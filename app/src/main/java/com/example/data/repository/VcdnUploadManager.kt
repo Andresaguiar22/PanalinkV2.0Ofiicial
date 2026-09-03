@@ -51,6 +51,7 @@ object VcdnUploadManager {
         userId: String,
         uploadType: String,
         customFileName: String? = null,
+        clientMessageUuid: String? = null,
         onProgress: ((Long, Long) -> Unit)? = null
     ): Result<UploadMediaResult> = withContext(Dispatchers.IO) {
         if (!file.exists() || file.length() <= 0L) {
@@ -61,29 +62,67 @@ object VcdnUploadManager {
             val token = ensureToken()
                 ?: return@withContext Result.failure(Exception("VCDN: usuario no autenticado"))
 
-            // 1. init
+            // 1. init (with stable identity for idempotency)
             val targetFilename = customFileName ?: file.name
+            val initJson = JSONObject().apply {
+                put("step", "init")
+                put("filename", targetFilename)
+                put("size", file.length())
+                put("contentType", mimeType)
+                put("title", "Panalink $uploadType $targetFilename")
+                put("uploadType", uploadType)
+                if (!customFileName.isNullOrBlank()) {
+                    put("stableFileName", customFileName)
+                    put("customFileName", customFileName)
+                }
+                if (!clientMessageUuid.isNullOrBlank()) {
+                    put("clientMessageUuid", clientMessageUuid)
+                }
+            }
             val init = JSONObject(
                 callEdge(
                     token,
-                    JSONObject().apply {
-                        put("step", "init")
-                        put("filename", targetFilename)
-                        put("size", file.length())
-                        put("contentType", mimeType)
-                        put("title", "Panalink $uploadType $targetFilename")
-                    }.toString().toRequestBody("application/json".toMediaTypeOrNull())
+                    initJson.toString().toRequestBody("application/json".toMediaTypeOrNull())
                 )
             )
             val uploadId = init.optString("uploadId")
             val videoId = init.optString("videoId")
-            if (uploadId.isBlank() || videoId.isBlank()) {
+            val isReady = init.optBoolean("ready", false)
+            val existingPoster = init.optString("posterUrl", "")
+            val initialBytesReceived = init.optLong("bytesReceived", 0L)
+
+            if (videoId.isBlank()) {
                 return@withContext Result.failure(Exception("VCDN init: respuesta incompleta"))
             }
 
-            // 2. chunks (sequential; VCDN appends in order)
+            // Si el video ya fue subido y transcodificado en un intento previo, devolver éxito inmediato
+            if (isReady) {
+                Log.i(TAG, "VCDN video ya completado y listo: videoId=$videoId")
+                return@withContext Result.success(
+                    UploadMediaResult(
+                        url = "vcdn://$videoId",
+                        thumbnailUrl = existingPoster.ifBlank { null },
+                        mime = mimeType,
+                        size = file.length(),
+                        duration = 0L,
+                        width = 0,
+                        height = 0
+                    )
+                )
+            }
+
+            if (uploadId.isBlank()) {
+                return@withContext Result.failure(Exception("VCDN init: falta uploadId para la subida"))
+            }
+
+            // 2. chunks (sequential; VCDN appends in order, reanuda desde initialBytesReceived si aplica)
             val total = file.length()
-            var offset = 0L
+            var offset = initialBytesReceived.coerceIn(0L, total)
+            if (offset > 0) {
+                Log.i(TAG, "VCDN reanudando subida desde offset $offset / $total")
+                onProgress?.invoke(offset, total)
+            }
+
             RandomAccessFile(file, "r").use { raf ->
                 while (offset < total) {
                     val len = minOf(CHUNK_SIZE, total - offset)
@@ -123,7 +162,7 @@ object VcdnUploadManager {
             // 4. poll status until ready/failed/timeout
             val started = System.currentTimeMillis()
             var status = "uploaded"
-            var poster = ""
+            var poster = existingPoster
             while (System.currentTimeMillis() - started < POLL_TIMEOUT_MS) {
                 delay(POLL_INTERVAL_MS)
                 val s = JSONObject(
@@ -134,7 +173,7 @@ object VcdnUploadManager {
                     )
                 )
                 status = s.optString("status")
-                poster = s.optString("posterUrl")
+                poster = s.optString("posterUrl", poster)
                 onProgress?.invoke(total, total)
                 if (status == "ready") break
                 if (status == "failed" || status == "error") {
