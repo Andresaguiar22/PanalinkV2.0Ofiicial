@@ -5,18 +5,22 @@
 // cdn.vcdn.me with the VCDN_API_KEY and updates state in PostgreSQL.
 //
 // Idempotency Contract & Concurrency Model:
-//   1. Atomic Session Claiming: Before calling upstream VCDN /upload/init, the
-//      Edge Function executes the PostgreSQL RPC `claim_vcdn_upload_session(userId, stableId)`.
+//   1. Atomic Session Claiming with Lease & Owner Token:
+//      Before calling upstream VCDN /upload/init, the Edge Function acquires a claim
+//      via PostgreSQL RPC `claim_vcdn_upload_session(userId, stableId, ownerToken)`.
 //      PostgreSQL guarantees with a UNIQUE(user_id, stable_id) constraint that
 //      exactly ONE request gets PROCEED_INIT. Concurrent requests get WAIT_CLAIM
-//      and wait until the uploadId/videoId are populated, preventing duplicate videos.
+//      and poll until uploadId/videoId are populated, preventing duplicate videos.
 //   2. Authoritative Offset Persistence: Every chunk synchronously calls
 //      `update_vcdn_upload_bytes` in PostgreSQL before returning 200 OK, ensuring
 //      cross-instance reliability across Edge Functions and Worker restarts.
 //   3. Chunk Idempotency & Lost Response: Chunks sent with matching or prior
 //      offsets are validated; VCDN progress is synchronously recorded.
-//   4. Atomic Complete: `claim_vcdn_complete` ensures multiple concurrent
-//      complete requests transition safely and return idempotent success.
+//   4. Atomic & Safe Complete: `claim_vcdn_complete` ensures multiple concurrent
+//      complete requests transition safely. `finalize_vcdn_session` is called ONLY
+//      after upstream VCDN confirms success. If VCDN fails, claim is rolled back.
+//   5. Deterministic Status Finalization: Status finalization correlates by
+//      `video_id` or `upload_id` seamlessly.
 
 const VCDN_BASE = "https://cdn.vcdn.me";
 const BFF_BASE = "https://embed.vcdn.me";
@@ -129,7 +133,7 @@ export default {
         }
 
         const parsed = JSON.parse(r.body || "{}");
-        const upstreamBytesReceived = Number(parsed.bytesReceived) || bytes.length;
+        const upstreamBytesReceived = Number(parsed.bytesReceived) || (chunkOffset >= 0 ? chunkOffset + bytes.length : bytes.length);
 
         // Synchronously persist authoritative bytesReceived to PostgreSQL before responding
         const updateRes = await callRpc("update_vcdn_upload_bytes", {
@@ -172,10 +176,13 @@ export default {
         }
 
         if (stableId) {
-          // 1. Atomic claim in PostgreSQL
+          const ownerToken = crypto.randomUUID();
+
+          // 1. Atomic claim in PostgreSQL with owner token
           let claimRes = await callRpc("claim_vcdn_upload_session", {
             p_user_id: userId,
             p_stable_id: stableId,
+            p_owner_token: ownerToken,
             p_filename: rawFilename,
             p_content_type: contentType,
             p_size: size
@@ -183,11 +190,12 @@ export default {
 
           // If another request is currently claiming the session, wait and poll atomically
           let retries = 0;
-          while (claimRes.ok && claimRes.data?.action === "WAIT_CLAIM" && retries < 15) {
-            await delay(200);
+          while (claimRes.ok && claimRes.data?.action === "WAIT_CLAIM" && retries < 25) {
+            await delay(300);
             claimRes = await callRpc("claim_vcdn_upload_session", {
               p_user_id: userId,
               p_stable_id: stableId,
+              p_owner_token: ownerToken,
               p_filename: rawFilename,
               p_content_type: contentType,
               p_size: size
@@ -212,6 +220,7 @@ export default {
                     posterUrl = v.poster_url || posterUrl;
                     await callRpc("finalize_vcdn_session", {
                       p_upload_id: existing.uploadId,
+                      p_video_id: existing.videoId,
                       p_ready: true,
                       p_poster_url: posterUrl
                     });
@@ -249,6 +258,7 @@ export default {
               await callRpc("fail_vcdn_upload_session", {
                 p_user_id: userId,
                 p_stable_id: stableId,
+                p_owner_token: ownerToken,
                 p_error: r.body.slice(0, 500)
               });
               return Response.json({ error: "VCDN init failed", code: r.status, detail: r.body.slice(0, 500) }, { status: 502 });
@@ -257,16 +267,22 @@ export default {
             const vcdnInit = JSON.parse(r.body);
 
             // Populate PostgreSQL session with authoritative upstream IDs
-            await callRpc("populate_vcdn_upload_session", {
+            const popRes = await callRpc("populate_vcdn_upload_session", {
               p_user_id: userId,
               p_stable_id: stableId,
+              p_owner_token: ownerToken,
               p_upload_id: vcdnInit.uploadId,
               p_video_id: vcdnInit.videoId,
               p_upload_url: vcdnInit.uploadUrl || ""
             });
 
+            const returnedUploadId = popRes.ok && popRes.data?.uploadId ? popRes.data.uploadId : vcdnInit.uploadId;
+            const returnedVideoId = popRes.ok && popRes.data?.videoId ? popRes.data.videoId : vcdnInit.videoId;
+
             return Response.json({
               ...vcdnInit,
+              uploadId: returnedUploadId,
+              videoId: returnedVideoId,
               bytesReceived: 0,
               ready: false
             });
@@ -289,36 +305,37 @@ export default {
       }
 
       // -------------------------------------------------------------
-      // Step: complete (Atomic under concurrency)
+      // Step: complete (Atomic & Safe under concurrency)
       // -------------------------------------------------------------
       if (step === "complete") {
         const uploadId = String(data.uploadId || "");
         if (!uploadId) return Response.json({ error: "missing uploadId" }, { status: 400 });
 
-        // Atomic claim to complete
+        // 1. Atomic claim to complete
         const claimComplete = await callRpc("claim_vcdn_complete", { p_upload_id: uploadId });
         if (claimComplete.ok && (claimComplete.data?.action === "ALREADY_COMPLETED" || claimComplete.data?.action === "ALREADY_COMPLETING")) {
           return Response.json({ status: "completed", idempotent: true });
         }
 
+        // 2. Call upstream VCDN complete
         const r = await vcdnFetch("/api/v1/upload/complete", {
           method: "POST",
           headers: { "Content-Type": "application/json" },
           body: JSON.stringify({ uploadId }),
         }, key);
 
-        await callRpc("finalize_vcdn_session", {
-          p_upload_id: uploadId,
-          p_ready: false
-        });
-
-        if (!r.ok) {
-          if (r.status === 400 || r.status === 409 || r.body.includes("already")) {
-            return Response.json({ status: "completed", idempotent: true });
-          }
-          return Response.json({ error: "VCDN complete failed", code: r.status, detail: r.body.slice(0, 500) }, { status: 502 });
+        // 3. ONLY finalize session if VCDN confirms success or already-completed
+        if (r.ok || r.status === 400 || r.status === 409 || r.body.includes("already")) {
+          await callRpc("finalize_vcdn_session", {
+            p_upload_id: uploadId,
+            p_ready: false
+          });
+          return Response.json(r.ok ? JSON.parse(r.body || "{}") : { status: "completed", idempotent: true });
         }
-        return Response.json(JSON.parse(r.body || "{}"));
+
+        // If VCDN returned a real failure, roll back the complete claim to allow safe retry
+        await callRpc("fail_vcdn_complete_claim", { p_upload_id: uploadId });
+        return Response.json({ error: "VCDN complete failed", code: r.status, detail: r.body.slice(0, 500) }, { status: 502 });
       }
 
       // -------------------------------------------------------------
@@ -346,9 +363,10 @@ export default {
             console.error("BFF player-config failed:", e);
           }
 
-          // Persist ready status in database
+          // Persist ready status in database via video_id
           await callRpc("finalize_vcdn_session", {
             p_upload_id: "",
+            p_video_id: videoId,
             p_ready: true,
             p_poster_url: posterUrl
           });
