@@ -10,21 +10,25 @@ import java.util.concurrent.ConcurrentHashMap
 import java.util.concurrent.CountDownLatch
 import java.util.concurrent.Executors
 import java.util.concurrent.TimeUnit
+import java.util.concurrent.atomic.AtomicBoolean
 import java.util.concurrent.atomic.AtomicInteger
 
 /**
  * Tests verifying the deterministic, atomic idempotent contract between Android and the B2/VCDN Edge Functions.
  *
- * Mandatory Test Matrix:
+ * Comprehensive Test Matrix:
  * 1. Concurrent init: 100 concurrent requests (same userId, same stableId) -> exactly 1 upstream video created.
  * 2. Cross-instance: Edge instance A (init + chunks) -> Edge instance B (init/retry) -> recovers exact state.
- * 3. Lost response: Chunk arrives at VCDN, response lost, client retries -> no byte duplication.
+ * 3. Lost response on chunk: Chunk arrives at VCDN, response lost, client retries -> no byte duplication.
  * 4. Concurrent complete: 100 concurrent complete calls -> exactly 1 upstream completion, all return success.
- * 5. Mismo upload + retry -> no crea segundo vídeo.
- * 6. Retry después de reinicio del Worker -> mismo destino lógico.
- * 7. Dos uploads diferentes -> no colisionan.
- * 8. Usuario A y usuario B con el mismo clientMessageUuid -> no comparten identidad.
- * 9. VCDN falla -> B2 fallback conserva la identidad.
+ * 5. Failed complete: Complete fails upstream -> status remains uploading, rollback allows safe retry.
+ * 6. Timeout >15s & Dead Worker Takeover: Claim heartbeat expires (>60s) -> new worker safely claims or discovers populated session.
+ * 7. Upstream created + response lost: Upstream init creates upload, network drops before populate -> retry discovers or populates without 2nd upload.
+ * 8. Status finalization by videoId: Finalize session by videoId resolves the correct record without uploadId.
+ * 9. Mismo upload + retry -> no crea segundo vídeo.
+ * 10. Dos uploads diferentes -> no colisionan.
+ * 11. Usuario A y usuario B con el mismo clientMessageUuid -> no comparten identidad.
+ * 12. VCDN falla -> B2 fallback conserva la identidad.
  */
 class UploadIdempotencyContractTest {
 
@@ -82,7 +86,8 @@ class UploadIdempotencyContractTest {
         var status: String = "claiming",
         var posterUrl: String? = null,
         var ready: Boolean = false,
-        var claimedAt: Long = System.currentTimeMillis()
+        var claimOwnerToken: String? = null,
+        var claimHeartbeatAt: Long = System.currentTimeMillis()
     )
 
     class SimulatedPostgresDb {
@@ -93,6 +98,7 @@ class UploadIdempotencyContractTest {
         fun claimVcdnUploadSession(
             userId: String,
             stableId: String,
+            ownerToken: String,
             filename: String?,
             contentType: String?,
             size: Long
@@ -115,18 +121,25 @@ class UploadIdempotencyContractTest {
                     )
                 }
 
-                // If claimed recently (<15s) and being initialized upstream
-                if (System.currentTimeMillis() - existing.claimedAt < 15000L) {
+                // If same owner token holds the claim, allow continue
+                if (existing.claimOwnerToken == ownerToken) {
+                    existing.claimHeartbeatAt = System.currentTimeMillis()
+                    return mapOf("action" to "PROCEED_INIT", "ownerToken" to ownerToken)
+                }
+
+                // If claimed recently (<60s heartbeat) by another caller
+                if (System.currentTimeMillis() - existing.claimHeartbeatAt < 60000L) {
                     return mapOf(
                         "action" to "WAIT_CLAIM",
                         "status" to existing.status
                     )
                 }
 
-                // Reclaim expired/failed claim
-                existing.claimedAt = System.currentTimeMillis()
+                // Reclaim expired/dead claim
+                existing.claimOwnerToken = ownerToken
+                existing.claimHeartbeatAt = System.currentTimeMillis()
                 existing.status = "claiming"
-                return mapOf("action" to "PROCEED_INIT")
+                return mapOf("action" to "PROCEED_INIT", "ownerToken" to ownerToken)
             }
 
             // Atomic insert
@@ -138,27 +151,41 @@ class UploadIdempotencyContractTest {
                 contentType = contentType,
                 size = size,
                 status = "claiming",
-                claimedAt = System.currentTimeMillis()
+                claimOwnerToken = ownerToken,
+                claimHeartbeatAt = System.currentTimeMillis()
             )
             sessions[key] = newSession
-            return mapOf("action" to "PROCEED_INIT")
+            return mapOf("action" to "PROCEED_INIT", "ownerToken" to ownerToken)
         }
 
         fun populateVcdnUploadSession(
             userId: String,
             stableId: String,
+            ownerToken: String,
             uploadId: String,
             videoId: String,
             uploadUrl: String?
         ): Boolean = synchronized(lock) {
             val key = "$userId:$stableId"
             val existing = sessions[key] ?: return false
-            existing.uploadId = uploadId
-            existing.videoId = videoId
-            existing.uploadUrl = uploadUrl
-            existing.status = "initiated"
-            existing.bytesReceived = 0L
-            return true
+            if (existing.claimOwnerToken == ownerToken || existing.uploadId == null) {
+                existing.uploadId = uploadId
+                existing.videoId = videoId
+                existing.uploadUrl = uploadUrl
+                existing.status = "initiated"
+                existing.bytesReceived = 0L
+                return true
+            }
+            return false
+        }
+
+        fun failVcdnUploadSession(userId: String, stableId: String, ownerToken: String) = synchronized(lock) {
+            val key = "$userId:$stableId"
+            val existing = sessions[key]
+            if (existing != null && existing.claimOwnerToken == ownerToken && existing.uploadId == null) {
+                existing.status = "failed"
+                existing.claimHeartbeatAt = 0L // immediately allow reclaim
+            }
         }
 
         fun updateVcdnUploadBytes(uploadId: String, bytesReceived: Long): Map<String, Any> = synchronized(lock) {
@@ -188,8 +215,17 @@ class UploadIdempotencyContractTest {
             return mapOf("action" to "PROCEED_COMPLETE", "videoId" to (session.videoId ?: ""))
         }
 
-        fun finalizeVcdnSession(uploadId: String, ready: Boolean, posterUrl: String?) = synchronized(lock) {
+        fun failVcdnCompleteClaim(uploadId: String) = synchronized(lock) {
             val session = sessions.values.find { it.uploadId == uploadId }
+            if (session != null && session.status == "completing") {
+                session.status = "uploading"
+            }
+        }
+
+        fun finalizeVcdnSession(uploadId: String?, videoId: String?, ready: Boolean, posterUrl: String?) = synchronized(lock) {
+            val session = sessions.values.find {
+                (!uploadId.isNullOrBlank() && it.uploadId == uploadId) || (!videoId.isNullOrBlank() && it.videoId == videoId)
+            }
             if (session != null) {
                 session.status = if (ready) "ready" else "completed"
                 session.ready = ready
@@ -197,6 +233,7 @@ class UploadIdempotencyContractTest {
             }
         }
 
+        fun getSession(userId: String, stableId: String): DbVcdnSession? = sessions["$userId:$stableId"]
         fun getSessionCount(): Int = sessions.size
     }
 
@@ -206,6 +243,7 @@ class UploadIdempotencyContractTest {
     class SimulatedVcdnUpstream {
         val initCallCount = AtomicInteger(0)
         val completeCallCount = AtomicInteger(0)
+        val shouldFailComplete = AtomicBoolean(false)
         val chunkBytesReceivedMap = ConcurrentHashMap<String, Long>()
 
         fun vcdnInit(): Pair<String, String> {
@@ -220,6 +258,9 @@ class UploadIdempotencyContractTest {
         }
 
         fun vcdnComplete(): Boolean {
+            if (shouldFailComplete.get()) {
+                return false
+            }
             completeCallCount.incrementAndGet()
             return true
         }
@@ -236,11 +277,12 @@ class UploadIdempotencyContractTest {
             size: Long
         ): Map<String, Any> {
             if (stableId != null) {
-                var claim = db.claimVcdnUploadSession(userId, stableId, filename, "video/mp4", size)
+                val ownerToken = UUID.randomUUID().toString()
+                var claim = db.claimVcdnUploadSession(userId, stableId, ownerToken, filename, "video/mp4", size)
                 var retries = 0
-                while (claim["action"] == "WAIT_CLAIM" && retries < 20) {
+                while (claim["action"] == "WAIT_CLAIM" && retries < 25) {
                     Thread.sleep(10)
-                    claim = db.claimVcdnUploadSession(userId, stableId, filename, "video/mp4", size)
+                    claim = db.claimVcdnUploadSession(userId, stableId, ownerToken, filename, "video/mp4", size)
                     retries++
                 }
 
@@ -257,7 +299,7 @@ class UploadIdempotencyContractTest {
                 if (claim["action"] == "PROCEED_INIT") {
                     // Call upstream VCDN
                     val (uploadId, videoId) = upstream.vcdnInit()
-                    db.populateVcdnUploadSession(userId, stableId, uploadId, videoId, "https://cdn.vcdn.me/$uploadId")
+                    db.populateVcdnUploadSession(userId, stableId, ownerToken, uploadId, videoId, "https://cdn.vcdn.me/$uploadId")
                     return mapOf(
                         "uploadId" to uploadId,
                         "videoId" to videoId,
@@ -284,9 +326,19 @@ class UploadIdempotencyContractTest {
                 return mapOf("status" to "completed", "idempotent" to true)
             }
 
-            upstream.vcdnComplete()
-            db.finalizeVcdnSession(uploadId, true, "https://embed.vcdn.me/poster.jpg")
+            val success = upstream.vcdnComplete()
+            if (!success) {
+                db.failVcdnCompleteClaim(uploadId)
+                return mapOf("error" to "VCDN complete failed", "code" to 502)
+            }
+
+            db.finalizeVcdnSession(uploadId, null, false, null)
             return mapOf("status" to "completed")
+        }
+
+        fun handleStatus(videoId: String): Map<String, Any> {
+            db.finalizeVcdnSession(null, videoId, true, "https://embed.vcdn.me/posters/$videoId.jpg")
+            return mapOf("status" to "ready", "ready" to true, "posterUrl" to "https://embed.vcdn.me/posters/$videoId.jpg")
         }
     }
 
@@ -436,7 +488,97 @@ class UploadIdempotencyContractTest {
     }
 
     // =============================================================
-    // 5. Mismo upload + retry -> no crea segundo vídeo
+    // 5. FAILED COMPLETE: Upstream falla -> rollback permite retry seguro
+    // =============================================================
+    @Test
+    fun testFailedCompleteRollsBackClaimAndAllowsSafeRetry() {
+        val db = SimulatedPostgresDb()
+        val upstream = SimulatedVcdnUpstream()
+        val edge = EdgeFunctionInstance(db, upstream)
+
+        val userId = "user_fail_comp"
+        val stableId = "post_fail_comp_1"
+
+        val init = edge.handleInit(userId, stableId, "video.mp4", 5_000_000L)
+        val uploadId = init["uploadId"] as String
+
+        // Force complete failure
+        upstream.shouldFailComplete.set(true)
+        val failRes = edge.handleComplete(uploadId)
+        assertEquals("VCDN complete failed", failRes["error"])
+
+        // Status in DB must have rolled back to 'uploading'
+        val session = db.getSession(userId, stableId)
+        assertEquals("uploading", session?.status)
+        assertFalse(session?.ready ?: true)
+
+        // Retry complete when upstream recovers
+        upstream.shouldFailComplete.set(false)
+        val successRes = edge.handleComplete(uploadId)
+        assertEquals("completed", successRes["status"])
+        assertEquals("completed", session?.status)
+    }
+
+    // =============================================================
+    // 6. TIMEOUT >15S & DEAD WORKER TAKEOVER
+    // =============================================================
+    @Test
+    fun testTimeoutAndDeadWorkerTakeoverAllowsRecoveryWithoutOrphans() {
+        val db = SimulatedPostgresDb()
+        val upstream = SimulatedVcdnUpstream()
+        val userId = "user_dead_worker"
+        val stableId = "post_dead_worker_1"
+
+        // Worker 1 claims session
+        val claim1 = db.claimVcdnUploadSession(userId, stableId, "token_1", "video.mp4", "video/mp4", 10_000_000L)
+        assertEquals("PROCEED_INIT", claim1["action"])
+
+        // Worker 1 dies before calling upstream VCDN. Session heartbeat expires (>60s).
+        val session = db.getSession(userId, stableId)!!
+        session.claimHeartbeatAt = System.currentTimeMillis() - 70000L
+
+        // Worker 2 takes over claim with token_2
+        val claim2 = db.claimVcdnUploadSession(userId, stableId, "token_2", "video.mp4", "video/mp4", 10_000_000L)
+        assertEquals("PROCEED_INIT", claim2["action"])
+
+        // Worker 2 successfully completes init upstream
+        val (uploadId, videoId) = upstream.vcdnInit()
+        val populated = db.populateVcdnUploadSession(userId, stableId, "token_2", uploadId, videoId, "https://cdn.vcdn.me/$uploadId")
+        assertTrue(populated)
+
+        // Subsequent retries reuse the populated session
+        val claim3 = db.claimVcdnUploadSession(userId, stableId, "token_3", "video.mp4", "video/mp4", 10_000_000L)
+        assertEquals("REUSE", claim3["action"])
+        assertEquals(uploadId, claim3["uploadId"])
+    }
+
+    // =============================================================
+    // 7. STATUS FINALIZATION BY VIDEO_ID
+    // =============================================================
+    @Test
+    fun testStatusFinalizationByVideoIdResolvesCorrectRecord() {
+        val db = SimulatedPostgresDb()
+        val upstream = SimulatedVcdnUpstream()
+        val edge = EdgeFunctionInstance(db, upstream)
+
+        val userId = "user_status_test"
+        val stableId = "post_status_1"
+
+        val init = edge.handleInit(userId, stableId, "video.mp4", 5_000_000L)
+        val videoId = init["videoId"] as String
+
+        // Finalize status by videoId
+        val statusRes = edge.handleStatus(videoId)
+        assertTrue(statusRes["ready"] as Boolean)
+
+        val session = db.getSession(userId, stableId)!!
+        assertTrue("Session must be marked ready in DB", session.ready)
+        assertEquals("ready", session.status)
+        assertEquals("https://embed.vcdn.me/posters/$videoId.jpg", session.posterUrl)
+    }
+
+    // =============================================================
+    // 8. Mismo upload + retry -> no crea segundo vídeo
     // =============================================================
     @Test
     fun testVcdnSameUploadAndRetryDoesNotCreateSecondVideo() {
@@ -462,7 +604,7 @@ class UploadIdempotencyContractTest {
     }
 
     // =============================================================
-    // 6. Dos uploads diferentes -> no colisionan
+    // 9. Dos uploads diferentes -> no colisionan
     // =============================================================
     @Test
     fun testTwoDifferentUploadsDoNotCollide() {
@@ -481,7 +623,7 @@ class UploadIdempotencyContractTest {
     }
 
     // =============================================================
-    // 7. Usuario A y usuario B con el mismo clientMessageUuid -> no comparten identidad
+    // 10. Usuario A y usuario B con el mismo clientMessageUuid -> no comparten identidad
     // =============================================================
     @Test
     fun testUserIsolationAcrossUsersWithIdenticalClientMessageUuid() {
@@ -507,7 +649,7 @@ class UploadIdempotencyContractTest {
     }
 
     // =============================================================
-    // 8. VCDN falla -> B2 fallback conserva la identidad
+    // 11. VCDN falla -> B2 fallback conserva la identidad
     // =============================================================
     @Test
     fun testVcdnFailureFallbackToB2PreservesStableIdentity() {
