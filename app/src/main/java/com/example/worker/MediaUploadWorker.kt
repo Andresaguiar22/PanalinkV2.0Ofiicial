@@ -43,9 +43,13 @@ class MediaUploadWorker(
         }
         val localUri = entity.localMediaUri
 
+        val fileCheck = if (!localUri.isNullOrBlank()) File(localUri) else null
+        val fileExists = fileCheck?.exists() == true
+        val fileSizeBytes = if (fileExists) fileCheck?.length() ?: 0L else 0L
+
         Log.i(
             TAG,
-            "MEDIA_UPLOAD_INIT: messageId=$messageId, authUid=$authUid, messageType=${entity.messageType}, localMediaUri=$localUri, roomStatus=${entity.status}, receiverId=${entity.receiverId}, clientMessageUuid=${entity.clientMessageUuid}"
+            "MEDIA_UPLOAD_INIT: messageId=$messageId, runAttemptCount=$runAttemptCount, fileExists=$fileExists, fileSizeBytes=$fileSizeBytes, messageType=${entity.messageType}, localMediaUri=$localUri, roomStatus=${entity.status}, receiverId=${entity.receiverId}, clientMessageUuid=${entity.clientMessageUuid}"
         )
 
         if (localUri.isNullOrBlank()) {
@@ -163,7 +167,7 @@ class MediaUploadWorker(
             val stableFileName = "${stableKey}.$ext"
 
             Log.i(TAG, "Processing and uploading $typeLabel ($mimeType), size=${file.length()} bytes, stableKey=$stableKey")
-            Log.i(TAG, "MEDIA_UPLOAD_START: messageId=$messageId, type=$typeLabel, size=${file.length()}, hasLocalMediaUri=true, attempt=$runAttemptCount")
+            Log.i(TAG, "MEDIA_UPLOAD_START: messageId=$messageId, type=$typeLabel, runAttemptCount=$runAttemptCount, fileExists=${file.exists()}, sizeBytes=${file.length()}, mimeType=$mimeType")
 
             // Failover total para TODO tipo de media: CDN primero (conserva thumbnails
             // server-side); si falla, B2. El circuit breaker evita quemar timeouts.
@@ -202,7 +206,7 @@ class MediaUploadWorker(
                 val mediaInfo = uploadResult.getOrThrow()
                 Log.i(
                     TAG,
-                    "MEDIA_UPLOAD_SUCCESS: messageId=$messageId, type=$typeLabel, hasMediaUrl=${!mediaInfo.url.isNullOrBlank()}, hasThumbnail=${!mediaInfo.thumbnailUrl.isNullOrBlank()}, size=${mediaInfo.size ?: file.length()}, duration=${mediaInfo.duration ?: entity.mediaDuration ?: 0L}"
+                    "MEDIA_UPLOAD_SUCCESS: messageId=$messageId, type=$typeLabel, runAttemptCount=$runAttemptCount, hasMediaUrl=${!mediaInfo.url.isNullOrBlank()}, hasThumbnail=${!mediaInfo.thumbnailUrl.isNullOrBlank()}, sizeBytes=${mediaInfo.size ?: file.length()}, duration=${mediaInfo.duration ?: entity.mediaDuration ?: 0L}"
                 )
 
                 val updatedEntity = entity.copy(
@@ -229,11 +233,13 @@ class MediaUploadWorker(
                 )
                 if (shouldKeep) {
                     messageDao.insertMessage(updatedEntity)
+                    Log.i(TAG, "MEDIA_ROOM_WRITE: messageId=$messageId, success=true, writtenStatus=${updatedEntity.status}, hasMediaUrl=${!updatedEntity.mediaUrl.isNullOrBlank()}")
                     // Upload confirmado en Room con mediaUrl remoto: los paths locales ya no se necesitan.
                     entity.localMediaUri?.let { runCatching { java.io.File(it).delete() } }
                     entity.localThumbnailUri?.let { runCatching { java.io.File(it).delete() } }
                 } else {
                     messageDao.deleteMessageById(updatedEntity.id)
+                    Log.i(TAG, "MEDIA_ROOM_WRITE: messageId=$messageId, success=true, deleted=true (filtered)")
                     // Mensaje filtrado (no visible): limpiar igualmente los locales.
                     entity.localMediaUri?.let { runCatching { java.io.File(it).delete() } }
                     entity.localThumbnailUri?.let { runCatching { java.io.File(it).delete() } }
@@ -248,7 +254,7 @@ class MediaUploadWorker(
                 val sanitizedMsg = error?.message?.replace(Regex("eyJ[a-zA-Z0-9_-]+\\.[a-zA-Z0-9_-]+\\.[a-zA-Z0-9_-]+"), "[REDACTED_TOKEN]")?.take(200) ?: "Unknown error"
                 Log.e(
                     TAG,
-                    "MEDIA_UPLOAD_FAILURE: messageId=$messageId, exception=${error?.javaClass?.simpleName ?: "Exception"}, message=$sanitizedMsg, attempt=$runAttemptCount, returningResult=$resultLabel",
+                    "MEDIA_UPLOAD_FAILURE: messageId=$messageId, runAttemptCount=$runAttemptCount, exception=${error?.javaClass?.simpleName ?: "Exception"}, message=$sanitizedMsg, returningResult=$resultLabel",
                     error
                 )
                 if (willRetry) {
@@ -257,6 +263,7 @@ class MediaUploadWorker(
                     // Terminal cuando se agotan los reintentos (MAX_UPLOAD_ATTEMPTS) o el archivo local no existe.
                     // Queda en 'failed' hasta un reintento manual explícito vía retryMessage().
                     markFailed(messageId)
+                    Log.i(TAG, "MEDIA_ROOM_WRITE: messageId=$messageId, success=true, writtenStatus=failed, attemptsExhausted=true")
                     logFinalStateAndResult(messageId, Result.failure())
                 }
             }

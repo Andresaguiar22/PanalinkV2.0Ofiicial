@@ -37,6 +37,24 @@ object B2UploadManager {
             .build()
     }
 
+    private fun sanitizeUrl(url: String?): String {
+        if (url.isNullOrBlank()) return ""
+        return try {
+            val uri = java.net.URI(url)
+            "${uri.scheme}://${uri.host}${uri.path}"
+        } catch (e: Exception) {
+            url.substringBefore("?").take(100)
+        }
+    }
+
+    private fun sanitizeError(error: String?): String {
+        if (error.isNullOrBlank()) return ""
+        return error.replace(Regex("eyJ[a-zA-Z0-9_-]+\\.[a-zA-Z0-9_-]+\\.[a-zA-Z0-9_-]+"), "[REDACTED_TOKEN]")
+            .replace(Regex("(?i)bearer\\s+[a-zA-Z0-9._~+/-]+"), "Bearer [REDACTED]")
+            .replace(Regex("(?i)apikey=[^&\\s]+"), "apikey=[REDACTED]")
+            .take(300)
+    }
+
     suspend fun upload(
         file: File,
         mimeType: String,
@@ -47,6 +65,7 @@ object B2UploadManager {
         onProgress: ((Long, Long) -> Unit)? = null
     ): Result<UploadMediaResult> = withContext(Dispatchers.IO) {
         if (!file.exists() || file.length() <= 0L) {
+            Log.e(TAG, "B2_EXCEPTION: exceptionClass=IllegalArgumentException, exactMessage=B2: archivo local inexistente o vacio")
             return@withContext Result.failure(Exception("B2: archivo local inexistente o vacío"))
         }
 
@@ -56,10 +75,12 @@ object B2UploadManager {
             val refreshed = SessionManager.refreshSession()
             if (!refreshed) {
                 Log.e(TAG, "Session refresh failed before B2 upload")
+                Log.e(TAG, "B2_EXCEPTION: exceptionClass=IllegalStateException, exactMessage=B2: No se pudo refrescar la sesion")
                 return@withContext Result.failure(Exception("B2: No se pudo refrescar la sesión"))
             }
             val token = SessionManager.getUserAuthToken() ?: SupabaseClient.currentToken
             if (token.isNullOrBlank()) {
+                Log.e(TAG, "B2_EXCEPTION: exceptionClass=IllegalStateException, exactMessage=B2: usuario no autenticado")
                 return@withContext Result.failure(Exception("B2: usuario no autenticado"))
             }
 
@@ -67,7 +88,6 @@ object B2UploadManager {
             if (presignResult.isFailure) {
                 val err = presignResult.exceptionOrNull()?.message.orEmpty()
                 // 401 = JWT expirado; refrescar y reintentar una vez.
-                // Verificamos por mensaje O por codigo de error.
                 if (err.contains("401") || presignResult.exceptionOrNull()?.message?.contains("401") == true) {
                     Log.w(TAG, "B2 presign devolvio 401; refrescando JWT y reintentando")
                     val refreshedAgain = SessionManager.refreshSession()
@@ -76,20 +96,24 @@ object B2UploadManager {
                         if (!newToken.isNullOrBlank()) {
                             val retryResult = doPresign(file, mimeType, userId, uploadType, newToken, customFileName, clientMessageUuid, onProgress)
                             if (retryResult.isFailure) {
-                                return@withContext Result.failure(retryResult.exceptionOrNull()
-                                    ?: Exception("B2 presign fallo tras refrescar JWT"))
+                                val retryEx = retryResult.exceptionOrNull() ?: Exception("B2 presign fallo tras refrescar JWT")
+                                Log.e(TAG, "B2_EXCEPTION: exceptionClass=${retryEx.javaClass.name}, exactMessage=${sanitizeError(retryEx.message)}")
+                                return@withContext Result.failure(retryEx)
                             }
                             return@withContext retryResult
                         }
                     }
+                    Log.e(TAG, "B2_EXCEPTION: exceptionClass=IllegalStateException, exactMessage=B2: JWT expirado y no se pudo refrescar")
                     return@withContext Result.failure(Exception("B2: JWT expirado y no se pudo refrescar"))
                 }
+                val presignEx = presignResult.exceptionOrNull() ?: Exception("B2 presign fallo")
+                Log.e(TAG, "B2_EXCEPTION: exceptionClass=${presignEx.javaClass.name}, exactMessage=${sanitizeError(presignEx.message)}")
                 return@withContext presignResult
             }
 
             presignResult
         } catch (e: Exception) {
-            Log.e(TAG, "B2 upload exception", e)
+            Log.e(TAG, "B2_EXCEPTION: exceptionClass=${e.javaClass.name}, exactMessage=${sanitizeError(e.message)}", e)
             Result.failure(e)
         }
     }
@@ -128,13 +152,18 @@ object B2UploadManager {
             .header("Content-Type", "application/json")
             .post(requestBody)
             .build()
-        Log.i(TAG, "Executing B2 presign request to $endpoint")
+        Log.i(TAG, "B2_PRESIGN_START: fileName=$finalFileName, mimeType=$mimeType, sizeBytes=${file.length()}, uploadType=$uploadType, customFileName=$customFileName, clientMessageUuid=$clientMessageUuid")
 
         client.newCall(presignRequest).execute().use { response ->
             val body = response.body?.string().orEmpty()
-            if (!response.isSuccessful) {
-                Log.e(TAG, "Presign failed: HTTP ${response.code}: ${body.take(500)}")
-                return@withContext Result.failure(Exception("B2 presign HTTP ${response.code}"))
+            val presignCode = response.code
+            val isPresignSuccess = response.isSuccessful
+            val sanitizedPresignBody = sanitizeError(body)
+            Log.i(TAG, "B2_PRESIGN_RESPONSE: httpStatus=$presignCode, isSuccessful=$isPresignSuccess, error=$sanitizedPresignBody")
+
+            if (!isPresignSuccess) {
+                Log.e(TAG, "Presign failed: HTTP $presignCode: $sanitizedPresignBody")
+                return@withContext Result.failure(Exception("B2 presign HTTP $presignCode: $sanitizedPresignBody"))
             }
 
             val json = JSONObject(body)
@@ -142,8 +171,12 @@ object B2UploadManager {
             val publicUrl = json.optString("publicUrl")
             val resolvedMime = json.optString("mimeType", mimeType)
             if (uploadUrl.isBlank() || publicUrl.isBlank()) {
+                Log.e(TAG, "B2_EXCEPTION: exceptionClass=IllegalStateException, exactMessage=B2 presign: respuesta incompleta")
                 return@withContext Result.failure(Exception("B2 presign: respuesta incompleta"))
             }
+
+            val sanitizedUploadUrl = sanitizeUrl(uploadUrl)
+            Log.i(TAG, "B2_PUT_START: targetHostPath=$sanitizedUploadUrl, mimeType=$resolvedMime, sizeBytes=${file.length()}")
 
             val putBody = FileRequestBody(resolvedMime, file, onProgress)
             val putRequest = Request.Builder()
@@ -153,16 +186,19 @@ object B2UploadManager {
                 .build()
 
             client.newCall(putRequest).execute().use { putResponse ->
-                if (!putResponse.isSuccessful) {
-                    val error = putResponse.body?.string().orEmpty()
-                    Log.e(TAG, "B2 PUT failed: HTTP ${putResponse.code}: ${error.take(500)}")
-                    return@withContext Result.failure(Exception("B2 PUT failed: HTTP ${putResponse.code} - ${error.take(500)}"))
-                } else {
-                    Log.i(TAG, "B2 PUT successful: HTTP ${putResponse.code}")
+                val putCode = putResponse.code
+                val isPutSuccess = putResponse.isSuccessful
+                val putError = sanitizeError(putResponse.body?.string())
+                Log.i(TAG, "B2_PUT_RESPONSE: httpStatus=$putCode, isSuccessful=$isPutSuccess, error=$putError")
+
+                if (!isPutSuccess) {
+                    Log.e(TAG, "B2 PUT failed: HTTP $putCode: $putError")
+                    return@withContext Result.failure(Exception("B2 PUT failed: HTTP $putCode - $putError"))
                 }
             }
 
-            Log.i(TAG, "B2 upload successful: $publicUrl")
+            val sanitizedPublicUrl = sanitizeUrl(publicUrl)
+            Log.i(TAG, "B2_RESULT_URL: publicUrl=$sanitizedPublicUrl, mime=$resolvedMime, sizeBytes=${file.length()}")
             Result.success(
                 UploadMediaResult(
                     url = publicUrl,

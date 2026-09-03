@@ -658,6 +658,16 @@ suspend fun insertLocalMessage(msg: Message) = withContext(Dispatchers.IO) {
                 ExistingWorkPolicy.KEEP,
                 uploadRequest
             )
+        Log.i(TAG, "WORKMANAGER_CREATION: uniqueWorkName=upload_$messageId, workRequestId=${uploadRequest.id}, messageId=$messageId, policy=KEEP")
+        try {
+            val workInfos = WorkManager.getInstance(PanaApplication.instance)
+                .getWorkInfosForUniqueWork("upload_$messageId")
+                .get()
+            val stateSummary = workInfos.joinToString { "${it.id}:${it.state}" }
+            Log.i(TAG, "WORKMANAGER_OBSERVED_STATE: uniqueWorkName=upload_$messageId, states=[$stateSummary]")
+        } catch (we: Exception) {
+            Log.w(TAG, "WORKMANAGER_OBSERVED_STATE_ERROR: uniqueWorkName=upload_$messageId, error=${we.message}")
+        }
         Log.i(TAG, "Scheduled background media upload for message $messageId")
     }
 
@@ -1241,6 +1251,7 @@ suspend fun insertLocalMessage(msg: Message) = withContext(Dispatchers.IO) {
                             } else {
                                 messageDao.deleteMessageById(entity.id)
                             }
+                            Log.i(TAG, "MESSAGE_LOCAL_TRANSITION: messageId=${entity.id}, finalSavedId=${finalMsg.id}, oldStatus=${entity.status}, newStatus=sent")
                             Log.i(TAG, "MESSAGE_REGISTER_SUCCESS: messageId=${entity.id}, remoteId=${finalMsg.id} (reconciled pre-POST)")
                             Log.i(TAG, "MESSAGE_REMOTE_VERIFY: found=true, remoteId=${finalMsg.id}, remoteStatus=${finalMsg.status}")
                             val localFinal = messageDao.getMessageById(finalMsg.id) ?: entity.clientMessageUuid?.let { messageDao.getMessagesByUuid(it).firstOrNull() }
@@ -1342,6 +1353,7 @@ suspend fun insertLocalMessage(msg: Message) = withContext(Dispatchers.IO) {
                             } else {
                                 messageDao.deleteMessageById(entity.id)
                             }
+                            Log.i(TAG, "MESSAGE_LOCAL_TRANSITION: messageId=${entity.id}, finalSavedId=${finalMsg.id}, oldStatus=${entity.status}, newStatus=sent")
                             Log.i(TAG, "MESSAGE_REGISTER_SUCCESS: messageId=${entity.id}, remoteId=${finalMsg.id} (reconciled on timeout/409)")
                             Log.i(TAG, "MESSAGE_REMOTE_VERIFY: found=true, remoteId=${finalMsg.id}, remoteStatus=${finalMsg.status}")
                             val localFinal = messageDao.getMessageById(finalMsg.id) ?: entity.clientMessageUuid?.let { messageDao.getMessagesByUuid(it).firstOrNull() }
@@ -1461,6 +1473,7 @@ suspend fun insertLocalMessage(msg: Message) = withContext(Dispatchers.IO) {
                     } else {
                         messageDao.updateMessageStatus(entity.id, "sent")
                     }
+                    Log.i(TAG, "MESSAGE_LOCAL_TRANSITION: messageId=${entity.id}, finalSavedId=$finalSavedId, oldStatus=${entity.status}, newStatus=sent")
 
                     // Verification of remote state via client_message_uuid
                     var remoteFound = false
