@@ -54,10 +54,11 @@ class UploadRepository {
         caption: String,
         userId: String,
         fileNamePrefix: String? = null,
+        stableFileName: String? = null,
         type: String? = null,
         onProgress: ((bytesWritten: Long, totalBytes: Long) -> Unit)? = null
     ): Result<UploadMediaResult> {
-        return uploadVideoWithRetry(mediaFile, mediaMimeType, caption, userId, fileNamePrefix, type, isRetry = false, onProgress = onProgress)
+        return uploadVideoWithRetry(mediaFile, mediaMimeType, caption, userId, fileNamePrefix, stableFileName, type, isRetry = false, onProgress = onProgress)
     }
 
     suspend fun uploadVideo(
@@ -66,6 +67,7 @@ class UploadRepository {
         caption: String,
         userId: String,
         fileNamePrefix: String? = null,
+        stableFileName: String? = null,
         type: String? = null
     ): Result<UploadMediaResult> = withContext(Dispatchers.IO) {
         if (mediaBytes.isEmpty()) {
@@ -75,7 +77,7 @@ class UploadRepository {
         val tempFile = File.createTempFile("upload_wrap_", ".tmp")
         try {
             tempFile.writeBytes(mediaBytes)
-            uploadVideoWithRetry(tempFile, mediaMimeType, caption, userId, fileNamePrefix, type, isRetry = false)
+            uploadVideoWithRetry(tempFile, mediaMimeType, caption, userId, fileNamePrefix, stableFileName, type, isRetry = false)
         } finally {
             tempFile.delete()
         }
@@ -87,6 +89,7 @@ class UploadRepository {
         caption: String,
         userId: String,
         fileNamePrefix: String?,
+        stableFileName: String? = null,
         type: String?,
         isRetry: Boolean,
         onProgress: ((bytesWritten: Long, totalBytes: Long) -> Unit)? = null
@@ -106,14 +109,18 @@ class UploadRepository {
         val extension = rawExt.ifEmpty { "bin" }
 
         val prefix = fileNamePrefix ?: ""
-        val fileName = if (prefix.isNotEmpty()) {
-            if (prefix.endsWith("_") || prefix.endsWith("-")) {
-                "$prefix${UUID.randomUUID()}.$extension"
-            } else {
-                "${prefix}_${UUID.randomUUID()}.$extension"
+        val fileName = when {
+            !stableFileName.isNullOrBlank() -> {
+                if (stableFileName.contains(".")) stableFileName else "$stableFileName.$extension"
             }
-        } else {
-            "${UUID.randomUUID()}.$extension"
+            prefix.isNotEmpty() -> {
+                if (prefix.endsWith("_") || prefix.endsWith("-")) {
+                    "$prefix${UUID.randomUUID()}.$extension"
+                } else {
+                    "${prefix}.$extension"
+                }
+            }
+            else -> "${UUID.randomUUID()}.$extension"
         }
 
         if (!mediaFile.exists() || mediaFile.length() == 0L) {
@@ -248,7 +255,7 @@ class UploadRepository {
                     if (!isRetry) {
                         Log.i(TAG, "Subida falló (Código $responseCode). Limpiando caché de CDN y reintentando una vez...")
                         CdnManager.clearCache()
-                        return@withContext uploadVideoWithRetry(mediaFile, mediaMimeType, caption, userId, fileNamePrefix, type, isRetry = true)
+                        return@withContext uploadVideoWithRetry(mediaFile, mediaMimeType, caption, userId, fileNamePrefix, stableFileName, type, isRetry = true)
                     }
                     return@withContext Result.failure(Exception("Error de servidor CDN ($responseCode): $errStr"))
                 }
@@ -258,7 +265,7 @@ class UploadRepository {
             if (!isRetry) {
                 Log.i(TAG, "Subida falló por IOException. Limpiando caché de CDN y reintentando...")
                 CdnManager.clearCache()
-                return@withContext uploadVideoWithRetry(mediaFile, mediaMimeType, caption, userId, fileNamePrefix, type, isRetry = true)
+                return@withContext uploadVideoWithRetry(mediaFile, mediaMimeType, caption, userId, fileNamePrefix, stableFileName, type, isRetry = true)
             }
             return@withContext Result.failure(ioe)
         } catch (je: org.json.JSONException) {
@@ -266,7 +273,7 @@ class UploadRepository {
             if (!isRetry) {
                 Log.i(TAG, "Subida falló por JSONException. Limpiando caché de CDN y reintentando...")
                 CdnManager.clearCache()
-                return@withContext uploadVideoWithRetry(mediaFile, mediaMimeType, caption, userId, fileNamePrefix, type, isRetry = true, onProgress = onProgress)
+                return@withContext uploadVideoWithRetry(mediaFile, mediaMimeType, caption, userId, fileNamePrefix, stableFileName, type, isRetry = true, onProgress = onProgress)
             }
             return@withContext Result.failure(je)
         } catch (re: java.lang.RuntimeException) {
@@ -274,7 +281,7 @@ class UploadRepository {
             if (!isRetry) {
                 Log.i(TAG, "Subida falló por RuntimeException. Limpiando caché de CDN y reintentando...")
                 CdnManager.clearCache()
-                return@withContext uploadVideoWithRetry(mediaFile, mediaMimeType, caption, userId, fileNamePrefix, type, isRetry = true, onProgress = onProgress)
+                return@withContext uploadVideoWithRetry(mediaFile, mediaMimeType, caption, userId, fileNamePrefix, stableFileName, type, isRetry = true, onProgress = onProgress)
             }
             return@withContext Result.failure(re)
         } catch (t: Throwable) {
@@ -282,7 +289,7 @@ class UploadRepository {
             if (!isRetry) {
                 Log.i(TAG, "Subida falló por Throwable. Limpiando caché de CDN y reintentando...")
                 CdnManager.clearCache()
-                return@withContext uploadVideoWithRetry(mediaFile, mediaMimeType, caption, userId, fileNamePrefix, type, isRetry = true, onProgress = onProgress)
+                return@withContext uploadVideoWithRetry(mediaFile, mediaMimeType, caption, userId, fileNamePrefix, stableFileName, type, isRetry = true, onProgress = onProgress)
             }
             val exc = if (t is Exception) t else Exception(t)
             return@withContext Result.failure(exc)

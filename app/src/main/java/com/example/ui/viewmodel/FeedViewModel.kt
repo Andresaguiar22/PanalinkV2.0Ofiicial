@@ -269,9 +269,11 @@ class FeedViewModel(
     fun cancelPendingPost(pendingPostId: String) {
         viewModelScope.launch(errorHandler + kotlinx.coroutines.Dispatchers.IO) {
             try {
-                WorkManager.getInstance(getApplication()).cancelUniqueWork("post_upload_$pendingPostId")
+                val workManager = WorkManager.getInstance(getApplication())
+                workManager.cancelUniqueWork("post_upload_$pendingPostId")
+                workManager.cancelAllWorkByTag("post_upload_$pendingPostId")
             } catch (e: Exception) {
-                android.util.Log.e("FeedViewModel", "Error cancelando trabajo de post pendiente", e)
+                Log.e("FeedViewModel", "Error cancelando trabajo de post pendiente", e)
             }
             pendingPostDao.deletePostById(pendingPostId)
         }

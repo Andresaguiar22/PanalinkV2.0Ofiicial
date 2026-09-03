@@ -103,5 +103,5 @@ object VideoRouter {
         uploadType: String,
         onProgress: ((Long, Long) -> Unit)?
     ): Result<UploadMediaResult> =
-        B2UploadManager.upload(file, mimeType, userId, uploadType, onProgress)
+        B2UploadManager.upload(file, mimeType, userId, uploadType, onProgress = onProgress)
 }

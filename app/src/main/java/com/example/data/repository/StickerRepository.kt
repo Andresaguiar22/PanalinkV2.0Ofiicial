@@ -32,22 +32,15 @@ object StickerRepository {
             return@withContext searchCache[cacheKey]!!
         }
 
-        // 1. Try calling the Supabase Edge Function (Production secure approach)
-        if (SupabaseClient.isConfigured) {
+        // 1. Try calling Giphy API directly if key is configured
+        if (BuildConfig.GIPHY_API_KEY.isNotBlank()) {
             try {
-                val service = SupabaseClient.apiService
-                if (service != null) {
-                    SessionManager.validateAndRefreshSessionIfNeeded()
-                    val auth = SupabaseClient.currentToken?.let { "Bearer $it" } ?: ""
-                    
-                    val requestBody = SearchStickersRequest(query = query ?: "", limit = limit)
-                    
-                    // Directly call Giphy API
-                    val response = com.example.service.GiphyClient.apiService.searchStickers(
-                        apiKey = BuildConfig.GIPHY_API_KEY,
-                        query = query ?: "",
-                        limit = limit
-                    )
+                // Directly call Giphy API
+                val response = com.example.service.GiphyClient.apiService.searchStickers(
+                    apiKey = BuildConfig.GIPHY_API_KEY,
+                    query = query ?: "",
+                    limit = limit
+                )
                     
                     val fullUrl = response.raw().request.url.toString()
                     val httpMethod = response.raw().request.method
@@ -91,9 +84,8 @@ object StickerRepository {
                         Log.w(TAG, "Giphy API returned error code $httpCode")
                         Log.w(TAG, "Body completo de la respuesta (error): $errorBody")
                     }
-                }
             } catch (e: Exception) {
-                Log.w(TAG, "Supabase Edge Function call failed, resorting to backup stickers", e)
+                Log.w(TAG, "Giphy API call failed, resorting to backup stickers", e)
             }
         }
 
@@ -111,30 +103,32 @@ object StickerRepository {
         if (searchCache.containsKey(cacheKey)) {
             return@withContext searchCache[cacheKey]!!
         }
-        try {
-            val response = com.example.service.GiphyClient.apiService.searchGifs(
-                apiKey = BuildConfig.GIPHY_API_KEY,
-                query = query,
-                limit = limit
-            )
-            if (response.isSuccessful) {
-                val giphyResponse = response.body()
-                val results = giphyResponse?.data?.map { gif ->
-                    StickerResult(
-                        id = gif.id,
-                        url = gif.images.fixedWidth.url,
-                        preview = gif.images.fixedWidth.url,
-                        width = gif.images.fixedWidth.width.toIntOrNull(),
-                        height = gif.images.fixedWidth.height.toIntOrNull()
-                    )
-                } ?: emptyList()
-                searchCache[cacheKey] = results
-                return@withContext results
-            } else {
-                Log.w(TAG, "Giphy GIF API returned error code ${response.code()}")
+        if (BuildConfig.GIPHY_API_KEY.isNotBlank()) {
+            try {
+                val response = com.example.service.GiphyClient.apiService.searchGifs(
+                    apiKey = BuildConfig.GIPHY_API_KEY,
+                    query = query,
+                    limit = limit
+                )
+                if (response.isSuccessful) {
+                    val giphyResponse = response.body()
+                    val results = giphyResponse?.data?.map { gif ->
+                        StickerResult(
+                            id = gif.id,
+                            url = gif.images.fixedWidth.url,
+                            preview = gif.images.fixedWidth.url,
+                            width = gif.images.fixedWidth.width.toIntOrNull(),
+                            height = gif.images.fixedWidth.height.toIntOrNull()
+                        )
+                    } ?: emptyList()
+                    searchCache[cacheKey] = results
+                    return@withContext results
+                } else {
+                    Log.w(TAG, "Giphy GIF API returned error code ${response.code()}")
+                }
+            } catch (e: Exception) {
+                Log.w(TAG, "Giphy GIF API call failed, resorting to static fallback GIFs", e)
             }
-        } catch (e: Exception) {
-            Log.w(TAG, "Giphy GIF API call failed, resorting to static fallback GIFs", e)
         }
         val fallbackGifs = listOf(
             StickerResult(id = "gif_fb_1", url = "https://media.giphy.com/media/l0HlSgH9bXWbBMtQ4/giphy.gif", preview = "https://media.giphy.com/media/l0HlSgH9bXWbBMtQ4/giphy.gif"),
