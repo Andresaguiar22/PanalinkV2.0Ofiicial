@@ -739,7 +739,7 @@ fun EstadosTabContent(
                                         ) {
                                             com.example.ui.components.PanaAvatar(
                                                 avatarUrl = safeAvatarUrl,
-                                                userId = null,
+                                                userId = videoState.state.userId,
                                                 placeholderName = safeDisplayName,
                                                 size = 18.dp,
                                                 borderWidth = 0.dp
