@@ -1188,6 +1188,12 @@ suspend fun insertLocalMessage(msg: Message) = withContext(Dispatchers.IO) {
                 }
                 val cleanMsgMap = msgMap.filterValues { it != null }
 
+                val targetThreadId = if (isDmSync) identity.threadId else entity.chatId
+                Log.i(
+                    TAG,
+                    "MESSAGE_REGISTER_START: messageId=${entity.id}, clientMessageUuid=${entity.clientMessageUuid}, authUid=$currentUid, senderId=${entity.senderId}, receiverId=$receiverUid, threadId=$targetThreadId, messageType=${entity.messageType}, hasMediaUrl=${!entity.mediaUrl.isNullOrBlank()}, roomStatus=${entity.status}"
+                )
+
                 Log.i(TAG, "PANALINK_SYNC: chatId=${entity.chatId}, message_type=${entity.messageType}, media_url=${entity.mediaUrl}")
 
                 // Pre-POST Reconciliation Check (Rule 1)
@@ -1226,6 +1232,13 @@ suspend fun insertLocalMessage(msg: Message) = withContext(Dispatchers.IO) {
                             } else {
                                 messageDao.deleteMessageById(entity.id)
                             }
+                            Log.i(TAG, "MESSAGE_REGISTER_SUCCESS: messageId=${entity.id}, remoteId=${finalMsg.id} (reconciled pre-POST)")
+                            Log.i(TAG, "MESSAGE_REMOTE_VERIFY: found=true, remoteId=${finalMsg.id}, remoteStatus=${finalMsg.status}")
+                            val localFinal = messageDao.getMessageById(finalMsg.id) ?: entity.clientMessageUuid?.let { messageDao.getMessagesByUuid(it).firstOrNull() }
+                            Log.i(
+                                TAG,
+                                "MESSAGE_LOCAL_FINAL_STATE: messageId=${localFinal?.id ?: finalMsg.id}, status=${localFinal?.status}, hasMediaUrl=${!localFinal?.mediaUrl.isNullOrBlank()}, hasLocalMediaUri=${!localFinal?.localMediaUri.isNullOrBlank()}"
+                            )
                             Log.i(TAG, "TRACE_SYNC: Reconciled message ${entity.clientMessageUuid} before POST. Marked as SENT.")
                             wasReconciled = true
                         }
@@ -1274,10 +1287,16 @@ suspend fun insertLocalMessage(msg: Message) = withContext(Dispatchers.IO) {
                     }
                 }
                 
-                var code = threadResponse?.code()
+                var code = threadResponse?.code() ?: 0
                 var isSuccessful = threadResponse?.isSuccessful == true
                 var errBody = threadResponse?.errorBody()?.string()
                 var respBody = if (isSuccessful) threadResponse?.body()?.string() else null
+                val sanitizedErrBody = sanitizeLogBody(errBody)
+
+                Log.i(
+                    TAG,
+                    "MESSAGE_REGISTER_RESPONSE: httpStatus=$code, isSuccessful=$isSuccessful, errorBody=$sanitizedErrBody"
+                )
                 
                 if (is409OrTimeout && !entity.clientMessageUuid.isNullOrBlank()) {
                     Log.i(TAG, "TRACE_SYNC: 409, timeout or transient error detected for msg ${entity.clientMessageUuid}. Reconciling...")
@@ -1314,15 +1333,24 @@ suspend fun insertLocalMessage(msg: Message) = withContext(Dispatchers.IO) {
                             } else {
                                 messageDao.deleteMessageById(entity.id)
                             }
+                            Log.i(TAG, "MESSAGE_REGISTER_SUCCESS: messageId=${entity.id}, remoteId=${finalMsg.id} (reconciled on timeout/409)")
+                            Log.i(TAG, "MESSAGE_REMOTE_VERIFY: found=true, remoteId=${finalMsg.id}, remoteStatus=${finalMsg.status}")
+                            val localFinal = messageDao.getMessageById(finalMsg.id) ?: entity.clientMessageUuid?.let { messageDao.getMessagesByUuid(it).firstOrNull() }
+                            Log.i(
+                                TAG,
+                                "MESSAGE_LOCAL_FINAL_STATE: messageId=${localFinal?.id ?: finalMsg.id}, status=${localFinal?.status}, hasMediaUrl=${!localFinal?.mediaUrl.isNullOrBlank()}, hasLocalMediaUri=${!localFinal?.localMediaUri.isNullOrBlank()}"
+                            )
                             Log.i(TAG, "TRACE_SYNC: Reconciled message ${entity.clientMessageUuid} after failed POST. Marked as SENT.")
                             continue
                         } else {
                             Log.w(TAG, "TRACE_SYNC: Message ${entity.clientMessageUuid} not found on remote after error/timeout. Keeping as pending/sending.")
+                            Log.e(TAG, "MESSAGE_REGISTER_FAILURE: messageId=${entity.id}, httpStatus=$code, error=$sanitizedErrBody")
                             allSuccessful = false
                             continue
                         }
                     } catch (e: Exception) {
                         Log.e(TAG, "Error reconciling message after failed POST", e)
+                        Log.e(TAG, "MESSAGE_REGISTER_FAILURE: messageId=${entity.id}, httpStatus=$code, error=${sanitizeLogBody(e.message)}")
                         allSuccessful = false
                         continue
                     }
@@ -1337,13 +1365,14 @@ suspend fun insertLocalMessage(msg: Message) = withContext(Dispatchers.IO) {
                     val responseBody = respBody ?: threadResponse?.body()?.string()
                     Log.i(TAG, "PANALINK_SYNC_RESULT: $responseBody, markedAsSent=true")
                 } else {
-                    val code = threadResponse?.code()
+                    val errorCode = threadResponse?.code() ?: 0
                     val errorBody = threadResponse?.errorBody()?.string() ?: ""
-                    Log.w(TAG, "PANALINK_SYNC_RESULT: thread_messages failed (Code: $code, Error: $errorBody).")
+                    Log.w(TAG, "PANALINK_SYNC_RESULT: thread_messages failed (Code: $errorCode, Error: $errorBody).")
                     
                     // IF IT IS A DM, WE DO NOT FALLBACK TO LEGACY MESSAGES
                     if (isDmSync) {
                         Log.e(TAG, "DM sync failed for message ${entity.id}. Staying pending.")
+                        Log.e(TAG, "MESSAGE_REGISTER_FAILURE: messageId=${entity.id}, httpStatus=$errorCode, error=$sanitizedErrBody")
                         allSuccessful = false
                         continue
                     }
@@ -1383,18 +1412,26 @@ suspend fun insertLocalMessage(msg: Message) = withContext(Dispatchers.IO) {
                         successful = true
                         respBody = legacyResponse.body()?.string()
                     } else {
+                        val legacyCode = legacyResponse?.code() ?: 0
+                        val legacyErr = sanitizeLogBody(legacyResponse?.errorBody()?.string())
+                        Log.e(TAG, "MESSAGE_REGISTER_FAILURE: messageId=${entity.id}, httpStatus=$legacyCode, error=$legacyErr")
                         allSuccessful = false
                     }
                 }
 
                 if (successful) {
                     val serverMsg = parseMessage(respBody, isDmSync)
+                    val confirmedRemoteId = serverMsg?.id ?: remoteId
+                    Log.i(TAG, "MESSAGE_REGISTER_SUCCESS: messageId=${entity.id}, remoteId=$confirmedRemoteId")
+
+                    var finalSavedId = entity.id
                     if (serverMsg != null) {
                         val finalMsgRaw = serverMsg
                         val finalMsg = com.example.util.CryptoManager.decryptMessageIfNeeded(finalMsgRaw).copy(
                             status = "sent",
                             clientMessageUuid = entity.clientMessageUuid ?: ""
                         )
+                        finalSavedId = finalMsg.id
                         val effectiveClearedAt = getEffectiveClearedAt(finalMsg.chatId, null)
                         val shouldKeep = com.example.util.MessageFilter.shouldKeepMessage(
                             messageId = finalMsg.id,
@@ -1415,6 +1452,50 @@ suspend fun insertLocalMessage(msg: Message) = withContext(Dispatchers.IO) {
                     } else {
                         messageDao.updateMessageStatus(entity.id, "sent")
                     }
+
+                    // Verification of remote state via client_message_uuid
+                    var remoteFound = false
+                    var verifiedRemoteId: String? = null
+                    var verifiedRemoteStatus: String? = null
+
+                    try {
+                        if (!entity.clientMessageUuid.isNullOrBlank() && isDmSync) {
+                            val checkResp = runCall { auth ->
+                                service.getThreadMessageByClientUuid(
+                                    apiKey = SupabaseClient.supabaseAnonKey,
+                                    authorization = auth,
+                                    clientUuidFilter = "eq.${entity.clientMessageUuid}"
+                                )
+                            }
+                            if (checkResp?.isSuccessful == true && !checkResp.body().isNullOrEmpty()) {
+                                val remoteItem = checkResp.body()!!.first()
+                                remoteFound = true
+                                verifiedRemoteId = remoteItem.id
+                                verifiedRemoteStatus = remoteItem.status ?: "sent"
+                            }
+                        }
+                    } catch (e: Exception) {
+                        Log.w(TAG, "MESSAGE_REMOTE_VERIFY error: ${e.message}")
+                    }
+
+                    if (!remoteFound && serverMsg != null) {
+                        remoteFound = true
+                        verifiedRemoteId = serverMsg.id
+                        verifiedRemoteStatus = serverMsg.status
+                    }
+
+                    Log.i(
+                        TAG,
+                        "MESSAGE_REMOTE_VERIFY: found=$remoteFound, remoteId=$verifiedRemoteId, remoteStatus=$verifiedRemoteStatus"
+                    )
+
+                    val localFinal = messageDao.getMessageById(finalSavedId)
+                        ?: (entity.clientMessageUuid?.let { messageDao.getMessagesByUuid(it).firstOrNull() })
+                    Log.i(
+                        TAG,
+                        "MESSAGE_LOCAL_FINAL_STATE: messageId=${localFinal?.id ?: finalSavedId}, status=${localFinal?.status}, hasMediaUrl=${!localFinal?.mediaUrl.isNullOrBlank()}, hasLocalMediaUri=${!localFinal?.localMediaUri.isNullOrBlank()}"
+                    )
+
                     Log.d(TAG, "Successfully synchronized message: ${entity.id}")
                     if (!receiverUid.isNullOrEmpty()) {
                         triggerSendPushNotification(
@@ -1427,6 +1508,7 @@ suspend fun insertLocalMessage(msg: Message) = withContext(Dispatchers.IO) {
                 }
             } catch (e: Exception) {
                 Log.e(TAG, "Failed to sync pending message: ${entity.id}", e)
+                Log.e(TAG, "MESSAGE_REGISTER_FAILURE: messageId=${entity.id}, httpStatus=0, error=${sanitizeLogBody(e.message)}")
                 allSuccessful = false
             }
         }
@@ -2412,5 +2494,14 @@ suspend fun insertLocalMessage(msg: Message) = withContext(Dispatchers.IO) {
             return t1 <= t2
         }
         return ts1 <= ts2
+    }
+
+    private fun sanitizeLogBody(body: String?): String {
+        if (body.isNullOrBlank()) return ""
+        return body
+            .replace(Regex("eyJ[a-zA-Z0-9_-]+\\.[a-zA-Z0-9_-]+\\.[a-zA-Z0-9_-]+"), "[REDACTED_TOKEN]")
+            .replace(Regex("(?i)(apikey|bearer)\\s+[a-zA-Z0-9._-]+"), "$1 [REDACTED]")
+            .replace(Regex("https?://[^\\s\"',]+"), "[REDACTED_URL]")
+            .take(300)
     }
 }

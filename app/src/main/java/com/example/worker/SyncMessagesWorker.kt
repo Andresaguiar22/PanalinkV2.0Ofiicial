@@ -28,6 +28,7 @@ class SyncMessagesWorker(
                 } catch (e: Exception) {
                     Log.w("SyncMessagesWorker", "Could not persist last sync timestamp", e)
                 }
+                Log.i("SyncMessagesWorker", "SYNC_WORK_RESULT = SUCCESS")
                 Result.success()
             } else {
                 // IMPORTANT: never terminate the unique sync chain as FAILED.
@@ -40,6 +41,7 @@ class SyncMessagesWorker(
                     "SyncMessagesWorker",
                     "Sync incomplete; keeping persistent retry (attempt=${runAttemptCount + 1})"
                 )
+                Log.i("SyncMessagesWorker", "SYNC_WORK_RESULT = RETRY")
                 Result.retry()
             }
         } catch (e: Exception) {
@@ -50,6 +52,7 @@ class SyncMessagesWorker(
             )
 
             // Same rule as above: a sync failure is recoverable state, not terminal state.
+            Log.i("SyncMessagesWorker", "SYNC_WORK_RESULT = RETRY")
             Result.retry()
         }
     }
