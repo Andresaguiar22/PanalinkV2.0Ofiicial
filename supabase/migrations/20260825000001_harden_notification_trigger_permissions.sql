@@ -1,0 +1,12 @@
+revoke all on function public.notify_on_post_like() from public, anon, authenticated;
+revoke all on function public.notify_on_post_comment() from public, anon, authenticated;
+revoke all on function public.notify_on_reel_like() from public, anon, authenticated;
+revoke all on function public.notify_on_reel_comment() from public, anon, authenticated;
+revoke all on function public.notify_on_reel_comment_reaction() from public, anon, authenticated;
+revoke all on function public.notify_on_story_like() from public, anon, authenticated;
+revoke all on function public.notify_on_story_comment() from public, anon, authenticated;
+revoke all on function public.notify_on_follow() from public, anon, authenticated;
+revoke all on function public.notify_followers_on_new_reel() from public, anon, authenticated;
+revoke all on function public.notify_followers_on_new_story() from public, anon, authenticated;
+revoke all on function public.notify_on_call_hangup() from public, anon, authenticated;
+revoke all on function private.dispatch_panalink_notification(uuid,uuid,text,text,text,text,uuid,text,text,text,text,jsonb) from public, anon, authenticated;

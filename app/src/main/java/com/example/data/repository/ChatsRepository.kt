@@ -1,0 +1,787 @@
+package com.example.data.repository
+
+import com.example.data.database.ChatEntity
+import com.example.data.database.ProfileEntity
+import android.util.Log
+import com.example.data.model.*
+import com.example.data.supabase.SupabaseClient
+import com.example.data.supabase.SessionManager
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.delay
+import kotlinx.coroutines.withContext
+import java.util.UUID
+
+import com.example.util.TimeUtils
+
+class ChatsRepository {
+    private val TAG = "ChatsRepository"
+    private val db = com.example.data.database.PanalinkDatabase.getDatabase(com.example.PanaApplication.instance)
+    private val chatDao = db.chatDao()
+    private val messageDao = db.messageDao()
+    private val deletedChatIds = java.util.concurrent.ConcurrentHashMap.newKeySet<String>()
+
+    private val prefs by lazy {
+        com.example.PanaApplication.instance.getSharedPreferences("panalink_prefs", android.content.Context.MODE_PRIVATE)
+    }
+
+    private fun deletedIdsPrefKey(): String {
+        val uid = SupabaseClient.currentUser?.id ?: "anonymous"
+        return "deleted_chat_ids_$uid"
+    }
+
+    private fun loadPersistedDeletedChatIds() {
+        try {
+            val raw = prefs.getString(deletedIdsPrefKey( ), null)
+            if (!raw.isNullOrBlank()) {
+                deletedChatIds.clear()
+                deletedChatIds.addAll(raw.split(",").filter { it.isNotBlank() })
+            }
+        } catch (e: Exception) {
+            Log.e(TAG, "Error loading persisted deleted chat ids", e)
+        }
+    }
+
+    private fun persistDeletedChatId(chatId: String) {
+        try {
+            deletedChatIds.add(chatId)
+            prefs.edit().putString(deletedIdsPrefKey( ), deletedChatIds.joinToString(",")).apply()
+        } catch (e: Exception) {
+            Log.e(TAG, "Error persisting deleted chat id", e)
+        }
+    }
+
+    private fun removePersistedDeletedChatId(chatId: String) {
+        try {
+            deletedChatIds.remove(chatId)
+            prefs.edit().putString(deletedIdsPrefKey( ), deletedChatIds.joinToString(",")).apply()
+        } catch (e: Exception) {
+            Log.e(TAG, "Error removing persisted deleted chat id", e)
+        }
+    }
+
+    init {
+        loadPersistedDeletedChatIds()
+    }
+
+    private suspend fun <R> runCall(call: suspend (String) -> retrofit2.Response<R>): retrofit2.Response<R>? {
+        return com.example.util.Resilience.retry(
+            times = 5,
+            initialDelay = 1000L,
+            maxDelay = 10000L,
+            factor = 2.0,
+            retryCondition = { it is java.io.IOException || (it is retrofit2.HttpException && it.code() in 500..599) || (it is retrofit2.HttpException && it.code() == 408) }
+        ) {
+            com.example.data.supabase.SessionManager.validateAndRefreshSessionIfNeeded()
+            val token = SupabaseClient.currentToken ?: return@retry null
+            val bearer = "Bearer $token"
+            
+            try {
+                call(bearer)
+            } catch (e: Exception) {
+                Log.e(TAG, "Network call failed", e)
+                throw e
+            }
+        }
+    }
+
+    suspend fun getChatIdByOtherUserId(otherUserId: String): String? = withContext(Dispatchers.IO) {
+        val currentUid = SupabaseClient.currentUser?.id ?: return@withContext null
+        val chats = chatDao.getAllChats()
+        val existing = chats.firstOrNull { it.otherUserId == otherUserId && it.type == "dm" }
+        if (existing != null && !existing.threadId.isNullOrEmpty()) {
+            return@withContext existing.id
+        }
+        
+        if (!SupabaseClient.isConfigured) return@withContext null
+        
+        // If not in cache or missing threadId, resolve via createDirectChat
+        val result = createDirectChat(otherUserId)
+        val chat = result.getOrNull()
+        if (chat != null && !chat.threadId.isNullOrEmpty()) {
+            val updatedLocal = chatDao.getAllChats().firstOrNull { it.otherUserId == otherUserId && it.type == "dm" }
+            return@withContext updatedLocal?.id ?: chat.id
+        }
+        return@withContext null
+    }
+
+    suspend fun getChatsWithDetails(): Result<List<ChatWithDetails>> = withContext(Dispatchers.IO) {
+        val currentUid = SupabaseClient.currentUser?.id ?: return@withContext Result.failure(Exception("Not authenticated"))
+
+        // Load from local DB first
+        val publicProfileDao = db.publicProfileDao()
+        val cachedChats = chatDao.getAllChats()
+        val localList = mutableListOf<ChatWithDetails>()
+        for (chatEntity in cachedChats) {
+            val otherProfile = chatEntity.otherUserId?.let { otherId ->
+                val pubEntity = publicProfileDao.getById(otherId)
+                val fromPublic = pubEntity?.takeIf { !it.avatarUrl.isNullOrBlank() }
+                    ?.let { PublicProfileResolver.toProfile(com.example.data.mapper.PublicProfileMapper.entityToModel(it)) }
+                if (fromPublic != null) {
+                    fromPublic
+                } else {
+                    // Fallback to the identity cache (local_profiles), which is kept fresh
+                    // by the avatar propagation flow; covers cold start/offline opens.
+                    val localEntity = db.profileDao().getProfileById(otherId)
+                    val localProfile = localEntity?.takeIf { !it.avatarUrl.isNullOrBlank() }?.let { le ->
+                        com.example.data.model.Profile(
+                            id = otherId,
+                            displayName = (if (le.displayName.isNullOrBlank()) pubEntity?.displayName else le.displayName) ?: otherId,
+                            avatarUrl = le.avatarUrl,
+                            firstName = le.firstName ?: pubEntity?.firstName,
+                            lastName = le.lastName ?: pubEntity?.lastName,
+                            lastProfileEdit = le.updatedAt ?: pubEntity?.updatedAt
+                        )
+                    }
+                    localProfile ?: pubEntity?.let { PublicProfileResolver.toProfile(com.example.data.mapper.PublicProfileMapper.entityToModel(it)) }
+                }
+            }
+            // Actually, we can get the last message directly from messageDao for this chat
+            val realLastMsg = messageDao.getLastMessageForChat(chatEntity.id)?.toMessage()
+            val decryptedLastMsg = realLastMsg?.let { com.example.util.CryptoManager.decryptMessageIfNeeded(it) }
+
+            localList.add(ChatWithDetails(
+                chat = chatEntity.toChat(),
+                otherMember = otherProfile,
+                lastMessage = decryptedLastMsg,
+                unreadCount = chatEntity.unreadCount
+            ))
+        }
+        localList.sortWith(
+            compareByDescending<ChatWithDetails> { it.chat.isPinned }
+                .thenByDescending { it.chat.pinnedAt ?: "" }
+                .thenByDescending { it.lastMessage?.createdAt ?: it.chat.createdAt ?: "" }
+        )
+
+        if (!SupabaseClient.isConfigured) {
+            if (localList.isEmpty()) {
+                // Initialize demo data if empty
+                delay(800)
+                val userChatIds = SupabaseClient.demoChatMembers
+                    .filter { it.userId == currentUid }
+                    .map { it.chatId }
+
+                val demoList = mutableListOf<ChatWithDetails>()
+                for (cid in userChatIds) {
+                    val chat = SupabaseClient.demoChats[cid] ?: continue
+                    val otherMemberId = SupabaseClient.demoChatMembers
+                        .firstOrNull { it.chatId == cid && it.userId != currentUid }?.userId
+                    val otherProfile = otherMemberId?.let { SupabaseClient.demoProfiles[it] }
+                    val lastMsg = SupabaseClient.demoMessages
+                        .filter { it.chatId == cid }
+                        .maxByOrNull { it.createdAt }
+                    
+                    demoList.add(ChatWithDetails(chat, otherProfile, lastMsg))
+                    
+                    // Cache them
+                    chatDao.insertChat(ChatEntity.fromChat(chat, otherMemberId, lastMsg?.id))
+                    otherProfile?.let { p: com.example.data.model.Profile ->
+                        val pubEntity = com.example.data.database.PublicProfileEntity(
+                            id = p.id,
+                            displayName = p.displayName,
+                            firstName = p.firstName,
+                            lastName = p.lastName,
+                            avatarUrl = p.avatarUrl,
+                            updatedAt = p.lastProfileEdit
+                        )
+                        publicProfileDao.upsert(pubEntity)
+                    }
+                }
+                demoList.sortWith(
+                    compareByDescending<ChatWithDetails> { it.chat.isPinned }
+                        .thenByDescending { it.chat.pinnedAt ?: "" }
+                        .thenByDescending { it.lastMessage?.createdAt ?: it.chat.createdAt ?: "" }
+                )
+                return@withContext Result.success(demoList)
+            }
+            return@withContext Result.success(localList)
+        }
+
+        return@withContext Result.success(localList)
+    }
+
+    suspend fun syncChatsWithSupabase(): Result<Unit> = withContext(Dispatchers.IO) {
+        val currentUid = SupabaseClient.currentUser?.id ?: return@withContext Result.failure(Exception("Not authenticated"))
+        val publicProfileDao = db.publicProfileDao()
+        loadPersistedDeletedChatIds()
+        if (!SupabaseClient.isConfigured) return@withContext Result.success(Unit)
+
+        try {
+            val service = SupabaseClient.apiService ?: return@withContext Result.failure(Exception("Supabase not configured"))
+            SessionManager.validateAndRefreshSessionIfNeeded()
+            var token = SupabaseClient.currentToken ?: return@withContext Result.failure(Exception("Not authenticated"))
+            var bearer = "Bearer $token"
+            val apiKey = SupabaseClient.supabaseAnonKey
+
+            suspend fun <R> runCallLocal(call: suspend (String) -> retrofit2.Response<R>): retrofit2.Response<R>? {
+                var response = try {
+                    call(bearer)
+                } catch (e: Exception) {
+                    Log.e(TAG, "Network call failed", e)
+                    null
+                }
+                
+                if (response != null && response.code() == 401) {
+                    val refreshed = SessionManager.refreshSession()
+                    if (refreshed) {
+                        val newToken = SupabaseClient.currentToken ?: ""
+                        bearer = "Bearer $newToken"
+                        response = try {
+                            call(bearer)
+                        } catch (e: Exception) {
+                            null
+                        }
+                    }
+                }
+                return response
+            }
+
+            // Load from network
+            val threadsResponse = runCallLocal { b ->
+                service.getOneToOneThreads(apiKey = apiKey, authorization = b, orFilter = "(user_a.eq.$currentUid,user_b.eq.$currentUid)")
+            }
+
+            val membersResponse = runCallLocal { b ->
+                service.getChatMembers(apiKey = apiKey, authorization = b, userIdFilter = "eq.$currentUid")
+            }
+            val membersMap = membersResponse?.body()?.associateBy { it.chatId } ?: emptyMap()
+
+            if (threadsResponse != null && threadsResponse.isSuccessful) {
+                val threads = threadsResponse.body() ?: emptyList()
+                
+                // Collect unique other member IDs to fetch their profiles specifically
+                val otherMemberIds = threads.map { if (it.userA == currentUid) it.userB else it.userA }.toSet()
+                val publicProfileRepo = PublicProfileRepository.getInstance()
+                val profilesMap = if (otherMemberIds.isNotEmpty()) {
+                    val publicResult = publicProfileRepo.getPublicProfiles(otherMemberIds.toList())
+                    val map = mutableMapOf<String, Profile>()
+                    if (publicResult is PublicProfileFetchResult.Success) {
+                        for ((id, pubResult) in publicResult.data) {
+                            if (pubResult is PublicProfileFetchResult.Success) {
+                                map[id] = PublicProfileResolver.toProfile(pubResult.data)
+                            }
+                        }
+                    }
+                    map
+                } else {
+                    emptyMap()
+                }
+
+                for (thread in threads) {
+                    val myMember = membersMap[thread.id]
+                    val localEntity = chatDao.getChatById(thread.id)
+                    val locallyDeleted = deletedChatIds.contains(thread.id)
+
+                    // Un chat borrado/ocultado localmente solo se elimina si el backend
+                    // confirma el estado (member.is_hidden == true).. El backend no expone
+                    // el borrado local en la fila del thread; borrar aquí en frío haría que
+                    // los chats reaparezcan al reconectar excepto si el usuario los borró)
+                    // del todo (deletedChatIds sin fila local)).
+                    if (myMember?.isHidden == true || (locallyDeleted && localEntity == null)) {
+
+                        try {
+                            chatDao.deleteChatById(thread.id)
+                            messageDao.clearChatMessages(thread.id)
+                        } catch (e: Exception) {
+                            Log.e(TAG, "Error removing hidden/deleted chat locally: ${e.localizedMessage}")
+                        }
+                        continue
+                    }
+
+                    val otherMemberId = if (thread.userA == currentUid) thread.userB else thread.userA
+                    val otherProfile = profilesMap[otherMemberId]
+
+                    val localLastEntity = messageDao.getLastMessageForChat(thread.id)
+                    val lastMsg = if (localLastEntity != null) {
+                        localLastEntity.toMessage()
+                    } else {
+                        val msgResponse = runCallLocal { b -> service.getThreadMessages(apiKey = apiKey, authorization = b, threadIdFilter = "eq.${thread.id}", order = "created_at.desc", limit = 1) }
+                        if (msgResponse != null && msgResponse.isSuccessful && !msgResponse.body().isNullOrEmpty()) {
+                            val msg = msgResponse.body()!![0].toMessage()
+                            val msgsRepo = com.example.data.repository.MessagesRepository.getInstance()
+                            val effectiveClearedAt = msgsRepo.getEffectiveClearedAt(thread.id, myMember?.lastClearedAt)
+                            val shouldKeep = com.example.util.MessageFilter.shouldKeepMessage(
+                                messageId = msg.id,
+                                messageClientUuid = msg.clientMessageUuid,
+                                messageCreatedAt = msg.createdAt,
+                                lastClearedAt = effectiveClearedAt,
+                                deletedMessageIds = msgsRepo.getUserDeletedMessageIds()
+                            )
+                            if (shouldKeep) {
+                                messageDao.insertMessage(com.example.data.database.MessageEntity.fromMessage(msg))
+                                msg
+                            } else {
+                                null
+                            }
+                        } else {
+                            null
+                        }
+                    }
+
+                    // El server no devuelve último mensaje visible (limpiado, filtrado o
+                    // fallo temporal de red../ Nunca borrar un chat que tiene fila local y/o
+                    // historial en Room: borrar aquí vaciaría la lista de chats offline..
+                    if (lastMsg == null && localLastEntity == null && localEntity == null) {
+                        try {
+                            chatDao.deleteChatById(thread.id)
+                        } catch (_: Exception) {}
+                        continue
+                    }
+
+                    val unreadCount = try {
+                        messageDao.getUnreadCountForChat(thread.id, currentUid)
+                    } catch (e: Exception) {
+                        0
+                    }
+
+                    val localChatEntity = chatDao.getChatById(thread.id)
+                    val isMuted = myMember?.isMuted == true || (localChatEntity?.isMuted == true)
+                    val isPinned = myMember?.isPinned == true || (localChatEntity?.isPinned == true)
+                    val pinnedAt = myMember?.pinnedAt ?: localChatEntity?.pinnedAt
+                    val chat = thread.toChat(isMuted = isMuted, isPinned = isPinned, pinnedAt = pinnedAt)
+
+                    // Sync to DB
+                    chatDao.insertChat(ChatEntity.fromChat(chat, otherMemberId, lastMsg?.id, unreadCount))
+                    otherProfile?.let { p: com.example.data.model.Profile ->
+                        val pubEntity = com.example.data.database.PublicProfileEntity(
+                            id = p.id,
+                            displayName = p.displayName,
+                            firstName = p.firstName,
+                            lastName = p.lastName,
+                            avatarUrl = p.avatarUrl,
+                            updatedAt = p.lastProfileEdit
+                        )
+                        publicProfileDao.upsert(pubEntity)
+                    }
+                }
+                Result.success(Unit)
+            } else {
+                Result.failure(Exception("Sync failed: Threads query unsuccessful"))
+            }
+        } catch (e: Exception) {
+            Log.e(TAG, "syncChatsWithSupabase exception", e)
+            Result.failure(e)
+        }
+    }
+
+    suspend fun getChatById(chatId: String): Result<Chat?> = withContext(Dispatchers.IO) {
+        try {
+            val service = SupabaseClient.apiService ?: return@withContext Result.failure(Exception("Supabase not configured"))
+            val apiKey = SupabaseClient.supabaseAnonKey
+            val token = SupabaseClient.currentToken ?: return@withContext Result.failure(Exception("Not authenticated"))
+            val bearer = "Bearer $token"
+            
+            val response = service.getChat(apiKey, bearer, "eq.$chatId")
+            if (response.isSuccessful && !response.body().isNullOrEmpty()) {
+                Result.success(response.body()!![0])
+            } else {
+                Result.success(null)
+            }
+        } catch (e: Exception) {
+            Result.failure(e)
+        }
+    }
+
+    suspend fun getLocalChat(chatId: String): Chat? = withContext(Dispatchers.IO) {
+        try {
+            chatDao.getChatById(chatId)?.toChat()
+        } catch (e: Exception) {
+            Log.e(TAG, "Error getting local chat", e)
+            null
+        }
+    }
+
+    suspend fun getParticipant(chatId: String, userId: String): Result<ChatMember?> = withContext(Dispatchers.IO) {
+        try {
+            val service = SupabaseClient.apiService ?: return@withContext Result.failure(Exception("Supabase not configured"))
+            val apiKey = SupabaseClient.supabaseAnonKey
+            val token = SupabaseClient.currentToken ?: return@withContext Result.failure(Exception("Not authenticated"))
+            val bearer = "Bearer $token"
+            
+            val response = service.getChatParticipant(apiKey, bearer, "eq.$chatId", "eq.$userId")
+            if (response.isSuccessful && !response.body().isNullOrEmpty()) {
+                Result.success(response.body()!![0])
+            } else {
+                Result.success(null)
+            }
+        } catch (e: Exception) {
+            Result.failure(e)
+        }
+    }
+
+    suspend fun joinChannel(chatId: String): Result<Unit> = withContext(Dispatchers.IO) {
+        val currentUid = SupabaseClient.currentUser?.id ?: return@withContext Result.failure(Exception("Not authenticated"))
+        val nowStr = TimeUtils.getNowIsoString()
+        try {
+            val service = SupabaseClient.apiService ?: return@withContext Result.failure(Exception("Supabase not configured"))
+            val apiKey = SupabaseClient.supabaseAnonKey
+            val token = SupabaseClient.currentToken ?: return@withContext Result.failure(Exception("Not authenticated"))
+            val bearer = "Bearer $token"
+            
+            val member = ChatMember(chatId, currentUid, "member", nowStr)
+            val response = service.createChatMember(apiKey, bearer, member)
+            if (response.isSuccessful) {
+                Result.success(Unit)
+            } else {
+                Result.failure(Exception(response.errorBody()?.string() ?: "Failed to join"))
+            }
+        } catch (e: Exception) {
+            Result.failure(e)
+        }
+    }
+
+    suspend fun getSubscriberCount(chatId: String): Int = withContext(Dispatchers.IO) {
+        try {
+            val service = SupabaseClient.apiService ?: return@withContext 0
+            val apiKey = SupabaseClient.supabaseAnonKey
+            val token = SupabaseClient.currentToken ?: return@withContext 0
+            val bearer = "Bearer $token"
+            
+            // PostgREST "Prefer: count=exact" for row counts
+            val response = service.getChatParticipantsCount(apiKey, bearer, "eq.$chatId")
+            if (response.isSuccessful) {
+                // PostgREST content-range looks like "0-0/123"
+                val range = response.headers()["Content-Range"]
+                if (range != null && range.contains("/")) {
+                    return@withContext range.substringAfter("/").toIntOrNull() ?: 0
+                }
+            }
+            0
+        } catch (e: Exception) {
+            0
+        }
+    }
+
+    suspend fun createDirectChat(otherUserId: String): Result<Chat> = withContext(Dispatchers.IO) {
+        val currentUid = SupabaseClient.currentUser?.id ?: return@withContext Result.failure(Exception("Not authenticated"))
+        val nowStr = TimeUtils.getNowIsoString()
+
+        if (!SupabaseClient.isConfigured) {
+            delay(1000)
+            // Check if DM chat already exists in demo
+            val existingChatId = SupabaseClient.demoChatMembers
+                .filter { it.userId == currentUid }
+                .map { it.chatId }
+                .firstOrNull { cid ->
+                    SupabaseClient.demoChatMembers.any { it.chatId == cid && it.userId == otherUserId }
+                }
+
+            if (existingChatId != null) {
+                val chat = SupabaseClient.demoChats[existingChatId]
+                if (chat != null) return@withContext Result.success(chat)
+            }
+
+            // Create new demo chat
+            val newId = "chat_${UUID.randomUUID().toString().take(6)}"
+            val newChat = Chat(newId, nowStr, "dm")
+            
+            SupabaseClient.demoChats[newId] = newChat
+            SupabaseClient.demoChatMembers.add(ChatMember(newId, currentUid, "member", nowStr))
+            SupabaseClient.demoChatMembers.add(ChatMember(newId, otherUserId, "member", nowStr))
+
+            return@withContext Result.success(newChat)
+        }
+
+        try {
+            val service = SupabaseClient.apiService ?: return@withContext Result.failure(Exception("Supabase not configured"))
+            val token = SupabaseClient.currentToken ?: return@withContext Result.failure(Exception("Session expired"))
+            val bearer = "Bearer $token"
+            val apiKey = SupabaseClient.supabaseAnonKey
+
+            val userA = if (currentUid < otherUserId) currentUid else otherUserId
+            val userB = if (currentUid < otherUserId) otherUserId else currentUid
+
+            // Step 1: Search for existing thread
+            val threadsResponse = service.getOneToOneThreads(
+                apiKey = apiKey,
+                authorization = bearer,
+                orFilter = "(user_a.eq.$currentUid,user_b.eq.$currentUid)"
+            )
+            if (threadsResponse.isSuccessful) {
+                val threads = threadsResponse.body() ?: emptyList()
+                val existingThread = threads.firstOrNull { 
+                    (it.userA == userA && it.userB == userB) || (it.userA == userB && it.userB == userA)
+                }
+                if (existingThread != null) {
+                    Log.d(TAG, "Found existing thread: ${existingThread.id}")
+                    val chat = existingThread.toChat()
+                    val existingLocal = chatDao.getChatById(existingThread.id)
+                        ?: chatDao.getAllChats().firstOrNull { it.otherUserId == otherUserId && it.type == "dm" }
+                    val chatEntity = com.example.data.database.ChatEntity(
+                        id = existingThread.id,
+                        createdAt = existingThread.createdAt ?: existingLocal?.createdAt ?: nowStr,
+                        type = "dm",
+                        name = existingLocal?.name ?: "Chat",
+                        otherUserId = otherUserId,
+                        lastMessageId = existingLocal?.lastMessageId,
+                        unreadCount = existingLocal?.unreadCount ?: 0,
+                        isReadonly = existingLocal?.isReadonly ?: false,
+                        isArchived = existingLocal?.isArchived ?: false,
+                        isMuted = existingLocal?.isMuted ?: false,
+                        isPinned = existingLocal?.isPinned ?: false,
+                        pinnedAt = existingLocal?.pinnedAt,
+                        threadId = existingThread.id
+                    )
+                    chatDao.insertChat(chatEntity)
+                    return@withContext Result.success(chat)
+                }
+            }
+
+            // Step 2: Create a new thread since it doesn't exist
+            val threadBody = mapOf("user_a" to userA, "user_b" to userB)
+            val createResponse = service.createOneToOneThread(apiKey, bearer, "return=representation", threadBody)
+            if (createResponse.isSuccessful && !createResponse.body().isNullOrEmpty()) {
+                val newThread = createResponse.body()!![0]
+                Log.d(TAG, "Created new thread: ${newThread.id}")
+                val chat = newThread.toChat()
+                val existingLocal = chatDao.getChatById(newThread.id)
+                    ?: chatDao.getAllChats().firstOrNull { it.otherUserId == otherUserId && it.type == "dm" }
+                val chatEntity = com.example.data.database.ChatEntity(
+                    id = newThread.id,
+                    createdAt = newThread.createdAt ?: existingLocal?.createdAt ?: nowStr,
+                    type = "dm",
+                    name = existingLocal?.name ?: "Chat",
+                    otherUserId = otherUserId,
+                    lastMessageId = existingLocal?.lastMessageId,
+                    unreadCount = existingLocal?.unreadCount ?: 0,
+                    isReadonly = existingLocal?.isReadonly ?: false,
+                    isArchived = existingLocal?.isArchived ?: false,
+                    isMuted = existingLocal?.isMuted ?: false,
+                    isPinned = existingLocal?.isPinned ?: false,
+                    pinnedAt = existingLocal?.pinnedAt,
+                    threadId = newThread.id
+                )
+                chatDao.insertChat(chatEntity)
+                return@withContext Result.success(chat)
+            } else {
+                val errMsg = createResponse.errorBody()?.string() ?: "Failed to create thread"
+                Log.e(TAG, "Failed to create thread: $errMsg")
+                return@withContext Result.failure(Exception(errMsg))
+            }
+        } catch (e: Exception) {
+            Log.e(TAG, "createDirectChat exception", e)
+            Result.failure(e)
+        }
+    }
+
+    suspend fun updateChannelReadOnlyStatus(chatId: String, isReadonly: Boolean): Result<Unit> = withContext(Dispatchers.IO) {
+        try {
+            val service = SupabaseClient.apiService ?: return@withContext Result.failure(Exception("Supabase not configured"))
+            val apiKey = SupabaseClient.supabaseAnonKey
+            val token = SupabaseClient.currentToken ?: return@withContext Result.failure(Exception("Not authenticated"))
+            val bearer = "Bearer $token"
+            
+            val response = service.updateChat(apiKey, bearer, "eq.$chatId", mapOf("is_readonly" to isReadonly))
+            if (response.isSuccessful) {
+                try {
+                    val existing = chatDao.getChatById(chatId)
+                    if (existing != null) {
+                        chatDao.insertChat(existing.copy(isReadonly = isReadonly))
+                    }
+                } catch (e: Throwable) {
+                    Log.e(TAG, "Failed to update local db chat isReadonly", e)
+                }
+                Result.success(Unit)
+            } else {
+                Result.failure(Exception(response.errorBody()?.string() ?: "Failed to update read-only status"))
+            }
+        } catch (e: Exception) {
+            Log.e(TAG, "updateChannelReadOnlyStatus exception", e)
+            Result.failure(e)
+        }
+    }
+
+    suspend fun deleteChatLocallyAndRemotely(chatId: String): Result<Boolean> = withContext(Dispatchers.IO) {
+        val nowStr = TimeUtils.getNowIsoString()
+        // Persist BEFORE deleting locally so el chat no reaparece tras
+        // reinstalar / reiniciar la app incluso si el borrado remoto falla.
+
+        persistDeletedChatId(chatId)
+        com.example.data.repository.MessagesRepository.getInstance().localClearedAtMap[chatId] = nowStr
+
+        try {
+            chatDao.deleteChatById(chatId)
+            messageDao.clearChatMessages(chatId)
+        } catch (e: Exception) {
+            Log.e(TAG, "Error deleting chat locally: ${e.localizedMessage}", e)
+        }
+
+        if (!SupabaseClient.isConfigured) {
+            SupabaseClient.demoChats.remove(chatId)
+            SupabaseClient.demoMessages.removeAll { it.chatId == chatId }
+            return@withContext Result.success(true)
+        }
+
+        var remoteOk = false
+        try {
+            val service = SupabaseClient.apiService ?: return@withContext Result.success(true)
+            val apiKey = SupabaseClient.supabaseAnonKey
+            val currentUser = com.example.data.supabase.SupabaseClient.currentUser?.id
+                    ?: return@withContext Result.success(true)
+
+
+            // chat_members es una vista sobre varias tablas base, asi que los
+            // INSERT/UPDATE directos sobre ella NO son auto-updatables y PostgREST
+            // los rechaza. La via que funciona es el RPC public.hide_chat el cual
+            // actualiza public.chat_participantes directamente, asi que lo preferimos..
+            val rpcResult = runCall { auth ->
+                service.hideChatRpc(
+                    apiKey = apiKey,
+                    authorization = auth,
+                    params = mapOf("p_chat_id" to chatId)
+                )
+            }
+            if (rpcResult?.isSuccessful == true) {
+                remoteOk = true
+            } else {
+                Log.e(TAG, "hideChatRpc failed: ${rpcResult?.errorBody()?.string()}")
+                // Fallback best-effort: statements directos sobre la vista legacy..
+                val upsertRes = runCall { auth ->
+                    service.upsertChatMemberMap(
+                        apiKey = apiKey,
+                        authorization = auth,
+                        prefer = "resolution=merge-duplicates",
+                        memberData = mapOf("chat_id" to chatId, "user_id" to currentUser, "is_hidden" to true, "last_cleared_at" to nowStr)
+                    )
+                    }
+                if (upsertRes?.isSuccessful == true) {
+                    remoteOk = true
+                } else {
+                    val result = runCall { auth ->
+                        service.updateChatParticipant(
+                            apiKey = apiKey,
+                            authorization = auth,
+                            chatIdFilter = "eq.$chatId",
+                            userIdFilter = "eq.$currentUser",
+                            updates = mapOf<String, Any>("is_hidden" to true, "last_cleared_at" to nowStr)
+                        )
+                        }
+                    if (result?.isSuccessful == true) {
+                        remoteOk = true
+                    } else {
+                        Log.e(TAG, "updateChatParticipant (hideChat) failed: ${result?.errorBody()?.string()}")
+                    }
+                }
+            }
+        } catch (e: Exception) {
+            Log.e(TAG, "Error personal deleting remote chat: ${e.localizedMessage}", e)
+        }
+
+
+        // Even si el remoto fallo, el tombstone persistente se mantiene
+        // para que la app no vuelva a mostrar el chat tras reiniciar..
+        Result.success(true)
+    }
+
+    suspend fun archiveChat(chatId: String, isArchived: Boolean = true): Result<Boolean> = withContext(Dispatchers.IO) {
+        try {
+            val existing = chatDao.getChatById(chatId)
+            if (existing != null) {
+                chatDao.insertChat(existing.copy(isArchived = isArchived))
+            }
+        } catch (e: Exception) {
+            Log.e(TAG, "Error updating local chat isArchived: ${e.localizedMessage}", e)
+        }
+
+        if (!SupabaseClient.isConfigured) {
+            return@withContext Result.success(true)
+        }
+
+        try {
+            val service = SupabaseClient.apiService ?: return@withContext Result.success(true)
+            val apiKey = SupabaseClient.supabaseAnonKey
+            runCall { auth ->
+                service.updateChat(
+                    apiKey = apiKey,
+                    authorization = auth,
+                    idFilter = "eq.$chatId",
+                    updates = mapOf("is_archived" to isArchived)
+                )
+            }
+            Result.success(true)
+        } catch (e: Exception) {
+            Log.e(TAG, "Error updating remote chat isArchived: ${e.localizedMessage}", e)
+            Result.success(true)
+        }
+    }
+
+    suspend fun muteChat(chatId: String, isMuted: Boolean = true): Result<Boolean> = withContext(Dispatchers.IO) {
+        try {
+            val existing = chatDao.getChatById(chatId)
+            if (existing != null) {
+                chatDao.insertChat(existing.copy(isMuted = isMuted))
+            } else {
+                chatDao.updateChatMuteStatus(chatId, isMuted)
+            }
+        } catch (e: Exception) {
+            Log.e(TAG, "Error updating local chat isMuted: ${e.localizedMessage}", e)
+        }
+
+        if (!SupabaseClient.isConfigured) {
+            return@withContext Result.success(true)
+        }
+
+        try {
+            val service = SupabaseClient.apiService ?: return@withContext Result.success(true)
+            val apiKey = SupabaseClient.supabaseAnonKey
+            runCall { auth ->
+                service.updateChatMuteStatusRpc(
+                    apiKey = apiKey,
+                    authorization = auth,
+                    params = mapOf("p_chat_id" to chatId, "p_is_muted" to isMuted)
+                )
+            }
+            Result.success(true)
+        } catch (e: Exception) {
+            Log.e(TAG, "Error updating remote chat mute status RPC: ${e.localizedMessage}", e)
+            Result.success(true)
+        }
+    }
+
+    suspend fun pinChat(chatId: String, isPinned: Boolean): Result<Boolean> = withContext(Dispatchers.IO) {
+        val currentTimestamp = if (isPinned) TimeUtils.getNowIsoString() else null
+        try {
+            val existing = chatDao.getChatById(chatId)
+            if (existing != null) {
+                chatDao.insertChat(existing.copy(isPinned = isPinned, pinnedAt = currentTimestamp))
+            } else {
+                chatDao.updateChatPinStatus(chatId, isPinned, currentTimestamp)
+            }
+        } catch (e: Exception) {
+            Log.e(TAG, "Error updating local chat isPinned: ${e.localizedMessage}", e)
+        }
+
+        if (!SupabaseClient.isConfigured) {
+            return@withContext Result.success(true)
+        }
+
+        try {
+            val service = SupabaseClient.apiService ?: return@withContext Result.success(true)
+            val apiKey = SupabaseClient.supabaseAnonKey
+            runCall { auth ->
+                service.updateChatPinStatusRpc(
+                    apiKey = apiKey,
+                    authorization = auth,
+                    params = mapOf("p_chat_id" to chatId, "p_is_pinned" to isPinned)
+                )
+            }
+            Result.success(true)
+        } catch (e: Exception) {
+            Log.e(TAG, "Error updating remote chat pin status RPC: ${e.localizedMessage}", e)
+            Result.success(true)
+        }
+    }
+
+    private fun parseToEpochMilli(ts: String?): Long {
+        return TimeUtils.parseToEpochMilli(ts)
+    }
+
+    private fun isTimestampBeforeOrEqual(ts1: String?, ts2: String?): Boolean {
+        if (ts1.isNullOrEmpty() || ts2.isNullOrEmpty()) return false
+        val t1 = TimeUtils.parseToEpochMilli(ts1)
+        val t2 = TimeUtils.parseToEpochMilli(ts2)
+        if (t1 > 0L && t2 > 0L) {
+            return t1 <= t2
+        }
+        return ts1 <= ts2
+    }
+}

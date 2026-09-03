@@ -1,0 +1,8 @@
+<?xml version="1.0" encoding="utf-8"?>
+<full-backup-content>
+    <!-- Private/account-bound local data must never be restored into another account/device. -->
+    <exclude domain="database" path="panalink_database" />
+    <exclude domain="sharedpref" path="panalink_session_secure_prefs.xml" />
+    <exclude domain="sharedpref" path="panalink_session_prefs.xml" />
+    <exclude domain="sharedpref" path="panalink_cache_prefs.xml" />
+</full-backup-content>

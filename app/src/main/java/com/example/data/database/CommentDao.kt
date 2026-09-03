@@ -1,0 +1,48 @@
+package com.example.data.database
+
+import androidx.room.*
+import kotlinx.coroutines.flow.Flow
+
+@Dao
+interface CommentDao {
+    @Query("SELECT * FROM local_comments WHERE targetId = :targetId AND isReel = :isReel ORDER BY createdAt ASC")
+    fun getCommentsFlow(targetId: String, isReel: Boolean): Flow<List<CommentEntity>>
+
+    @Query("SELECT * FROM local_comments WHERE targetId = :targetId AND isReel = :isReel ORDER BY createdAt ASC")
+    suspend fun getComments(targetId: String, isReel: Boolean): List<CommentEntity>
+
+    @Query("SELECT * FROM local_comments WHERE id = :id")
+    suspend fun getCommentById(id: String): CommentEntity?
+
+    @Upsert
+    suspend fun upsert(entity: CommentEntity)
+
+    @Upsert
+    suspend fun upsertAll(entities: List<CommentEntity>)
+
+    @Query("SELECT COUNT(*) FROM local_comments WHERE targetId = :targetId AND isReel = :isReel")
+    suspend fun getCommentCount(targetId: String, isReel: Boolean): Int
+
+    @Query("DELETE FROM local_comments WHERE id = :id")
+    suspend fun deleteById(id: String)
+
+    @Query("DELETE FROM local_comments WHERE targetId = :targetId AND isReel = :isReel")
+    suspend fun deleteByTarget(targetId: String, isReel: Boolean)
+
+    @Query("DELETE FROM local_comments WHERE targetId = :targetId AND isReel = :isReel AND id NOT IN (:remoteIds) AND syncStatus != 'pending_add'")
+    suspend fun deleteStaleCommentsInternal(targetId: String, isReel: Boolean, remoteIds: List<String>)
+
+    /**
+     * An empty remote response is not proof that the post has no comments;
+     * it can be caused by a transient/RLS/network read problem. Never wipe
+     * durable local comments in that case.
+     */
+    suspend fun deleteStaleComments(targetId: String, isReel: Boolean, remoteIds: List<String>) {
+        if (remoteIds.isNotEmpty()) {
+            deleteStaleCommentsInternal(targetId, isReel, remoteIds)
+        }
+    }
+
+    @Query("DELETE FROM local_comments")
+    suspend fun deleteAll()
+}

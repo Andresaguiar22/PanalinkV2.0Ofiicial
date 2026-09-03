@@ -1,0 +1,1101 @@
+package com.example.panatv
+
+import android.app.Activity
+import android.content.pm.ActivityInfo
+import android.os.Build
+import android.view.ViewGroup
+import android.widget.FrameLayout
+import androidx.activity.compose.BackHandler
+import androidx.compose.animation.AnimatedVisibility
+import androidx.compose.animation.fadeIn
+import androidx.compose.animation.fadeOut
+import androidx.compose.foundation.background
+import androidx.compose.foundation.border
+import androidx.compose.foundation.clickable
+import androidx.compose.foundation.layout.*
+import androidx.compose.foundation.lazy.LazyColumn
+import androidx.compose.foundation.lazy.LazyRow
+import androidx.compose.foundation.lazy.grid.GridCells
+import androidx.compose.foundation.lazy.grid.LazyVerticalGrid
+import androidx.compose.foundation.lazy.grid.items
+import androidx.compose.foundation.lazy.items
+import androidx.compose.foundation.rememberScrollState
+import androidx.compose.foundation.shape.CircleShape
+import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.foundation.text.BasicTextField
+import androidx.compose.foundation.verticalScroll
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.*
+import androidx.compose.material3.*
+import androidx.compose.runtime.*
+import androidx.compose.ui.Alignment
+import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.clip
+import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.SolidColor
+import androidx.compose.ui.graphics.vector.rememberVectorPainter
+import androidx.compose.ui.layout.ContentScale
+import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.platform.LocalLifecycleOwner
+import androidx.compose.ui.platform.LocalView
+import androidx.compose.ui.text.TextStyle
+import androidx.compose.ui.text.font.FontFamily
+import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.style.TextAlign
+import androidx.compose.ui.text.style.TextOverflow
+import androidx.compose.ui.unit.dp
+import androidx.compose.ui.unit.sp
+import androidx.compose.ui.viewinterop.AndroidView
+import androidx.core.view.WindowCompat
+import androidx.core.view.WindowInsetsCompat
+import androidx.core.view.WindowInsetsControllerCompat
+import androidx.lifecycle.Lifecycle
+import androidx.lifecycle.LifecycleEventObserver
+import androidx.lifecycle.viewmodel.compose.viewModel
+import androidx.media3.common.MediaItem
+import androidx.media3.common.Player
+import androidx.media3.common.PlaybackException
+import androidx.media3.datasource.DefaultHttpDataSource
+import androidx.media3.exoplayer.ExoPlayer
+import androidx.media3.exoplayer.source.DefaultMediaSourceFactory
+import androidx.media3.ui.AspectRatioFrameLayout
+import androidx.media3.ui.PlayerView
+import coil.compose.AsyncImage
+import coil.request.ImageRequest
+import kotlinx.coroutines.delay
+
+// ── Xuper TV style palette ──────────────────────────────────────────────
+private val TvBg = Color(0xFF121212)
+private val TvCard = Color(0xFF1E1E1E)
+private val TvCardAlt = Color(0xFF232323)
+private val TvAccent = Color(0xFFFF6F00)
+private val TvAccentSoft = Color(0x33FF6F00)
+private val TvTextSecondary = Color(0xFFB3B3B3)
+
+internal fun tvCategoryLabel(category: String): String = when (category) {
+    "movies" -> "Películas"
+    "entertainment" -> "Entretenimiento"
+    "series" -> "Series"
+    "sports" -> "Deportes"
+    "news" -> "Noticias"
+    "kids" -> "Infantil"
+    "music" -> "Música"
+    "documentary" -> "Documentales"
+    "general" -> "General"
+    "comedy" -> "Comedia"
+    "lifestyle" -> "Estilo de vida"
+    "culture" -> "Cultura"
+    "family" -> "Familia"
+    "animation" -> "Animación"
+    "education" -> "Educación"
+    "travel" -> "Viajes"
+    "cooking" -> "Cocina"
+    "science" -> "Ciencia"
+    "religious" -> "Religiosos"
+    "shop" -> "Tienda"
+    "business" -> "Negocios"
+    "classic" -> "Clásicos"
+    "outdoor" -> "Aire libre"
+    "relax" -> "Relax"
+    "weather" -> "Clima"
+    "legislative" -> "Legislativo"
+    else -> category.replaceFirstChar { it.uppercase() }
+}
+
+@androidx.annotation.OptIn(androidx.media3.common.util.UnstableApi::class)
+@OptIn(ExperimentalMaterial3Api::class)
+@Composable
+fun PanaTVScreen(viewModel: PanaTVViewModel = viewModel()) {
+    val context = LocalContext.current
+    val lifecycleOwner = LocalLifecycleOwner.current
+    val channels by viewModel.channels.collectAsState()
+    val currentChannel by viewModel.currentChannel.collectAsState()
+    val searchQuery by viewModel.searchQuery.collectAsState()
+    val selectedCountry by viewModel.selectedCountry.collectAsState()
+    val selectedCategory by viewModel.selectedCategory.collectAsState()
+    val availableCountries by viewModel.availableCountries.collectAsState()
+    val availableCategories by viewModel.availableCategories.collectAsState()
+    val debugMessage by viewModel.debugMessage.collectAsState()
+    val crashTrace by viewModel.crashTrace.collectAsState()
+    val showOnlyFavorites by viewModel.showOnlyFavorites.collectAsState()
+    val favorites by viewModel.favorites.collectAsState()
+
+    var isFullscreen by remember { mutableStateOf(false) }
+    var playerError by remember { mutableStateOf("") }
+    var showCountryDropdown by remember { mutableStateOf(false) }
+    var isMuted by remember { mutableStateOf(false) }
+    var isVideoRendering by remember { mutableStateOf(false) }
+    var isBuffering by remember { mutableStateOf(false) }
+    var isPlayingState by remember { mutableStateOf(false) }
+    var controlsVisible by remember { mutableStateOf(true) }
+    var isLocked by remember { mutableStateOf(false) }
+    var lockTapVisible by remember { mutableStateOf(false) }
+    var showChannelList by remember { mutableStateOf(false) }
+    var resizeMode by remember { mutableStateOf(AspectRatioFrameLayout.RESIZE_MODE_FIT) }
+    val view = LocalView.current
+
+    // Diagnostics: Show crash trace if exists
+    if (crashTrace.isNotEmpty()) {
+        AlertDialog(
+            onDismissRequest = { viewModel.clearCrashTrace() },
+            title = { Text("CRASH DIAGNOSTICS", color = Color.Red, fontWeight = FontWeight.Bold) },
+            text = {
+                Column(modifier = Modifier.verticalScroll(rememberScrollState())) {
+                    Text(crashTrace, fontSize = 10.sp, fontFamily = FontFamily.Monospace)
+                }
+            },
+            confirmButton = {
+                Button(onClick = { viewModel.clearCrashTrace() }) {
+                    Text("BORRAR Y CONTINUAR")
+                }
+            },
+            containerColor = TvCard,
+            textContentColor = Color.White
+        )
+    }
+
+    val exoPlayer = remember(currentChannel) {
+        val channel = currentChannel
+        if (channel != null) {
+            com.example.util.AppFloatingPlayerManager.acquirePlayer(
+                context = context,
+                id = channel.id,
+                url = channel.streamUrl,
+                title = channel.name,
+                type = "panatv"
+            )
+        } else {
+            ExoPlayer.Builder(context, com.example.core.media.PanaRenderersFactory.create(context)).build()
+        }
+    }
+
+    // Single listener per player instance. The old code re-ran this block on every
+    // channel change, stacking duplicate listeners and forcing playWhenReady=false
+    // until a first frame arrived — playback looked frozen after switching.
+    DisposableEffect(exoPlayer) {
+        val listener = object : Player.Listener {
+            override fun onPlayerError(error: PlaybackException) {
+                playerError = error.message ?: "Error desconocido"
+                isBuffering = false
+            }
+            override fun onRenderedFirstFrame() {
+                isVideoRendering = true
+            }
+            override fun onIsPlayingChanged(isPlaying: Boolean) {
+                isPlayingState = isPlaying
+                if (isPlaying) {
+                    isVideoRendering = true
+                    isBuffering = false
+                }
+            }
+            override fun onPlaybackStateChanged(playbackState: Int) {
+                isBuffering = playbackState == Player.STATE_BUFFERING
+            }
+        }
+        exoPlayer.addListener(listener)
+        exoPlayer.volume = if (isMuted) 0f else 1f
+        isPlayingState = exoPlayer.isPlaying
+        onDispose { exoPlayer.removeListener(listener) }
+    }
+
+    LaunchedEffect(isMuted) {
+        exoPlayer.volume = if (isMuted) 0f else 1f
+    }
+
+    var activePlayerView by remember { mutableStateOf<PlayerView?>(null) }
+
+    val rebindPlayer: (PlayerView) -> Unit = remember(exoPlayer) {
+        { playerView ->
+            playerView.player = null
+            playerView.player = exoPlayer
+            val surfaceView = playerView.videoSurfaceView as? android.view.SurfaceView
+            if (surfaceView != null) {
+                exoPlayer.setVideoSurfaceView(surfaceView)
+            } else {
+                val textureView = playerView.videoSurfaceView as? android.view.TextureView
+                if (textureView != null) {
+                    exoPlayer.setVideoTextureView(textureView)
+                }
+            }
+            playerView.invalidate()
+            playerView.requestLayout()
+        }
+    }
+
+    LaunchedEffect(isFullscreen) {
+        if (!isFullscreen) {
+            isLocked = false
+            showChannelList = false
+        }
+        val window = (context as? Activity)?.window ?: return@LaunchedEffect
+        val controller = WindowCompat.getInsetsController(window, view)
+        if (isFullscreen) {
+            controller.hide(WindowInsetsCompat.Type.systemBars())
+            controller.systemBarsBehavior = WindowInsetsControllerCompat.BEHAVIOR_SHOW_TRANSIENT_BARS_BY_SWIPE
+        } else {
+            controller.show(WindowInsetsCompat.Type.systemBars())
+            (context as? Activity)?.requestedOrientation = ActivityInfo.SCREEN_ORIENTATION_UNSPECIFIED
+        }
+        delay(100)
+        activePlayerView?.let { rebindPlayer(it) }
+    }
+
+    // Auto-hide fullscreen controls after 3s (never while locked or browsing channels)
+    LaunchedEffect(controlsVisible, isFullscreen, isLocked, showChannelList) {
+        if (isFullscreen && controlsVisible && !isLocked && !showChannelList) {
+            delay(3000)
+            controlsVisible = false
+        }
+    }
+
+    // Lock affordance: tapping the screen while locked reveals the unlock button briefly
+    LaunchedEffect(isLocked, lockTapVisible) {
+        if (isLocked && lockTapVisible) {
+            delay(3000)
+            lockTapVisible = false
+        }
+    }
+
+    LaunchedEffect(currentChannel) {
+        currentChannel?.let { channel ->
+            isVideoRendering = false
+            isBuffering = true
+            exoPlayer.stop()
+            exoPlayer.clearMediaItems()
+
+            val dataSourceFactory = DefaultHttpDataSource.Factory().apply {
+                channel.userAgent?.takeIf { it.isNotBlank() }?.let { setUserAgent(it) }
+                val defaultProps = mutableMapOf<String, String>()
+                channel.referrer?.takeIf { it.isNotBlank() }?.let { defaultProps["Referer"] = it }
+                setDefaultRequestProperties(defaultProps)
+            }
+            val mediaSource = DefaultMediaSourceFactory(context)
+                .setDataSourceFactory(dataSourceFactory)
+                .createMediaSource(MediaItem.fromUri(channel.streamUrl))
+            exoPlayer.setMediaSource(mediaSource)
+            exoPlayer.playWhenReady = true
+            exoPlayer.prepare()
+
+            activePlayerView?.let { rebindPlayer(it) }
+        }
+    }
+
+    DisposableEffect(lifecycleOwner) {
+        val observer = LifecycleEventObserver { _, event ->
+            when (event) {
+                Lifecycle.Event.ON_PAUSE -> exoPlayer.pause()
+                Lifecycle.Event.ON_RESUME -> {
+                    exoPlayer.play()
+                    activePlayerView?.let { rebindPlayer(it) }
+                }
+                else -> {}
+            }
+        }
+        lifecycleOwner.lifecycle.addObserver(observer)
+        onDispose {
+            lifecycleOwner.lifecycle.removeObserver(observer)
+            // No floating bubble: leaving PanaTV always stops and releases the player.
+            com.example.util.AppFloatingPlayerManager.isFloating = false
+            exoPlayer.release()
+            if (com.example.util.AppFloatingPlayerManager.exoPlayer == exoPlayer) {
+                com.example.util.AppFloatingPlayerManager.exoPlayer = null
+            }
+        }
+    }
+
+    BackHandler(enabled = isFullscreen) {
+        when {
+            showChannelList -> showChannelList = false
+            isLocked -> {}
+            else -> isFullscreen = false
+        }
+    }
+
+    val cycleResizeMode: () -> Unit = {
+        resizeMode = when (resizeMode) {
+            AspectRatioFrameLayout.RESIZE_MODE_FIT -> AspectRatioFrameLayout.RESIZE_MODE_FILL
+            AspectRatioFrameLayout.RESIZE_MODE_FILL -> AspectRatioFrameLayout.RESIZE_MODE_ZOOM
+            else -> AspectRatioFrameLayout.RESIZE_MODE_FIT
+        }
+    }
+
+    val resizeModeLabel = when (resizeMode) {
+        AspectRatioFrameLayout.RESIZE_MODE_FILL -> "LLENAR"
+        AspectRatioFrameLayout.RESIZE_MODE_ZOOM -> "ZOOM"
+        else -> "AJUSTAR"
+    }
+
+    val toggleOrientation: () -> Unit = {
+        val activity = context as? Activity
+        activity?.let {
+            val isLandscape = it.resources.configuration.orientation ==
+                android.content.res.Configuration.ORIENTATION_LANDSCAPE
+            it.requestedOrientation = if (isLandscape) {
+                ActivityInfo.SCREEN_ORIENTATION_PORTRAIT
+            } else {
+                ActivityInfo.SCREEN_ORIENTATION_SENSOR_LANDSCAPE
+            }
+        }
+    }
+
+    Scaffold(containerColor = TvBg) { padding ->
+        Box(modifier = Modifier.fillMaxSize()) {
+            Column(
+                modifier = Modifier
+                    .fillMaxSize()
+                    .padding(padding)
+            ) {
+                // ── Brand header ──
+                Row(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .padding(horizontal = 16.dp, vertical = 10.dp),
+                    verticalAlignment = Alignment.CenterVertically
+                ) {
+                    Box(
+                        modifier = Modifier
+                            .size(34.dp)
+                            .clip(RoundedCornerShape(8.dp))
+                            .background(TvAccent),
+                        contentAlignment = Alignment.Center
+                    ) {
+                        Icon(
+                            Icons.Default.LiveTv,
+                            contentDescription = null,
+                            tint = Color.White,
+                            modifier = Modifier.size(20.dp)
+                        )
+                    }
+                    Spacer(modifier = Modifier.width(10.dp))
+                    Text(
+                        "Pana",
+                        color = Color.White,
+                        fontSize = 22.sp,
+                        fontWeight = FontWeight.ExtraBold
+                    )
+                    Text(
+                        "TV",
+                        color = TvAccent,
+                        fontSize = 22.sp,
+                        fontWeight = FontWeight.ExtraBold
+                    )
+                    Spacer(modifier = Modifier.weight(1f))
+                    Box {
+                        Row(
+                            verticalAlignment = Alignment.CenterVertically,
+                            modifier = Modifier
+                                .clip(RoundedCornerShape(16.dp))
+                                .background(TvCard)
+                                .clickable { showCountryDropdown = true }
+                                .padding(horizontal = 10.dp, vertical = 6.dp)
+                        ) {
+                            Icon(Icons.Default.Public, contentDescription = null, tint = TvAccent, modifier = Modifier.size(16.dp))
+                            Spacer(modifier = Modifier.width(6.dp))
+                            Text(
+                                selectedCountry.ifEmpty { "Todos" },
+                                color = TvTextSecondary,
+                                fontSize = 13.sp
+                            )
+                        }
+                        DropdownMenu(
+                            expanded = showCountryDropdown,
+                            onDismissRequest = { showCountryDropdown = false },
+                            modifier = Modifier.background(TvCard)
+                        ) {
+                            DropdownMenuItem(
+                                text = { Text("Todos los países", color = Color.White) },
+                                onClick = {
+                                    viewModel.updateSelectedCountry("")
+                                    showCountryDropdown = false
+                                }
+                            )
+                            availableCountries.forEach { country ->
+                                DropdownMenuItem(
+                                    text = { Text(country, color = Color.White) },
+                                    onClick = {
+                                        viewModel.updateSelectedCountry(country)
+                                        showCountryDropdown = false
+                                    }
+                                )
+                            }
+                        }
+                    }
+                }
+
+                // ── Search bar ──
+                Box(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .padding(horizontal = 16.dp)
+                        .height(48.dp)
+                        .background(TvCard, RoundedCornerShape(24.dp))
+                        .padding(horizontal = 16.dp),
+                    contentAlignment = Alignment.CenterStart
+                ) {
+                    Row(verticalAlignment = Alignment.CenterVertically) {
+                        Icon(
+                            Icons.Default.Search,
+                            contentDescription = null,
+                            tint = TvTextSecondary,
+                            modifier = Modifier.size(20.dp)
+                        )
+                        Spacer(modifier = Modifier.width(12.dp))
+                        BasicTextField(
+                            value = searchQuery,
+                            onValueChange = { viewModel.updateSearchQuery(it) },
+                            textStyle = TextStyle(color = Color.White, fontSize = 15.sp),
+                            modifier = Modifier.fillMaxWidth(),
+                            cursorBrush = SolidColor(TvAccent),
+                            decorationBox = { innerTextField ->
+                                if (searchQuery.isEmpty()) {
+                                    Text("Buscar canales y programas...", color = TvTextSecondary, fontSize = 15.sp)
+                                }
+                                innerTextField()
+                            }
+                        )
+                    }
+                }
+
+                Spacer(modifier = Modifier.height(10.dp))
+
+                // ── Category chips ──
+                LazyRow(
+                    modifier = Modifier.fillMaxWidth(),
+                    contentPadding = PaddingValues(horizontal = 16.dp),
+                    horizontalArrangement = Arrangement.spacedBy(8.dp)
+                ) {
+                    item {
+                        CategoryChip(
+                            label = "Todos",
+                            selected = selectedCategory.isEmpty() && !showOnlyFavorites,
+                            onClick = {
+                                viewModel.updateSelectedCategory("")
+                                viewModel.setShowOnlyFavorites(false)
+                            }
+                        )
+                    }
+                    item {
+                        CategoryChip(
+                            label = "❤ Favoritos",
+                            selected = showOnlyFavorites,
+                            onClick = {
+                                viewModel.updateSelectedCategory("")
+                                viewModel.setShowOnlyFavorites(true)
+                            }
+                        )
+                    }
+                    items(availableCategories) { cat ->
+                        CategoryChip(
+                            label = tvCategoryLabel(cat),
+                            selected = selectedCategory == cat && !showOnlyFavorites,
+                            onClick = {
+                                viewModel.updateSelectedCategory(cat)
+                                viewModel.setShowOnlyFavorites(false)
+                            }
+                        )
+                    }
+                }
+
+                Spacer(modifier = Modifier.height(10.dp))
+
+                // ── Hero player (16:9) ──
+                Box(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .padding(horizontal = 16.dp)
+                        .aspectRatio(16f / 9f)
+                        .background(Color.Black, RoundedCornerShape(12.dp))
+                        .clip(RoundedCornerShape(12.dp))
+                ) {
+                    if (currentChannel != null) {
+                        if (!isFullscreen) {
+                            AndroidView(
+                                factory = { ctx ->
+                                    PlayerView(ctx).apply {
+                                        player = exoPlayer
+                                        useController = false
+                                        layoutParams = FrameLayout.LayoutParams(
+                                            ViewGroup.LayoutParams.MATCH_PARENT,
+                                            ViewGroup.LayoutParams.MATCH_PARENT
+                                        )
+                                    }
+                                },
+                                update = { playerView ->
+                                    playerView.resizeMode = resizeMode
+                                    activePlayerView = playerView
+                                    rebindPlayer(playerView)
+                                },
+                                modifier = Modifier.fillMaxSize()
+                            )
+                        }
+
+                        if (!isVideoRendering || isBuffering) {
+                            Box(
+                                modifier = Modifier.fillMaxSize().background(Color.Black),
+                                contentAlignment = Alignment.Center
+                            ) {
+                                CircularProgressIndicator(color = TvAccent)
+                            }
+                        }
+
+                        // Top overlay: channel name + LIVE badge
+                        Row(
+                            modifier = Modifier
+                                .align(Alignment.TopStart)
+                                .fillMaxWidth()
+                                .background(Color.Black.copy(alpha = 0.35f))
+                                .padding(horizontal = 12.dp, vertical = 8.dp),
+                            verticalAlignment = Alignment.CenterVertically
+                        ) {
+                            Box(
+                                modifier = Modifier
+                                    .clip(RoundedCornerShape(4.dp))
+                                    .background(Color(0xFFE53935))
+                                    .padding(horizontal = 6.dp, vertical = 2.dp)
+                            ) {
+                                Text("EN VIVO", color = Color.White, fontSize = 9.sp, fontWeight = FontWeight.Bold)
+                            }
+                            Spacer(modifier = Modifier.width(8.dp))
+                            Text(
+                                currentChannel?.name ?: "",
+                                color = Color.White,
+                                fontSize = 13.sp,
+                                fontWeight = FontWeight.SemiBold,
+                                maxLines = 1,
+                                overflow = TextOverflow.Ellipsis
+                            )
+                        }
+
+                        // Bottom mini controls
+                        Row(
+                            modifier = Modifier
+                                .align(Alignment.BottomStart)
+                                .fillMaxWidth()
+                                .background(Color.Black.copy(alpha = 0.35f))
+                                .padding(horizontal = 4.dp),
+                            verticalAlignment = Alignment.CenterVertically,
+                            horizontalArrangement = Arrangement.SpaceBetween
+                        ) {
+                            Row(verticalAlignment = Alignment.CenterVertically) {
+                                IconButton(onClick = {
+                                    if (exoPlayer.isPlaying) exoPlayer.pause() else exoPlayer.play()
+                                }) {
+                                    Icon(
+                                        if (isPlayingState) Icons.Default.Pause else Icons.Default.PlayArrow,
+                                        contentDescription = null,
+                                        tint = Color.White
+                                    )
+                                }
+                                IconButton(onClick = { isMuted = !isMuted }) {
+                                    Icon(
+                                        if (isMuted) Icons.Default.VolumeOff else Icons.Default.VolumeUp,
+                                        contentDescription = null,
+                                        tint = Color.White
+                                    )
+                                }
+                            }
+                            Row(verticalAlignment = Alignment.CenterVertically) {
+                                Text(
+                                    resizeModeLabel,
+                                    color = TvAccent,
+                                    fontSize = 11.sp,
+                                    fontWeight = FontWeight.Bold,
+                                    modifier = Modifier
+                                        .clip(RoundedCornerShape(6.dp))
+                                        .clickable { cycleResizeMode() }
+                                        .padding(horizontal = 8.dp, vertical = 6.dp)
+                                )
+                                IconButton(onClick = { isFullscreen = true }) {
+                                    Icon(Icons.Default.Fullscreen, contentDescription = "Pantalla completa", tint = Color.White)
+                                }
+                                IconButton(onClick = {
+                                    if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
+                                        (context as? Activity)?.enterPictureInPictureMode(
+                                            android.app.PictureInPictureParams.Builder().build()
+                                        )
+                                    }
+                                }) {
+                                    Icon(Icons.Default.PictureInPictureAlt, contentDescription = "PiP", tint = Color.White)
+                                }
+                            }
+                        }
+                    } else {
+                        Column(
+                            modifier = Modifier.align(Alignment.Center),
+                            horizontalAlignment = Alignment.CenterHorizontally
+                        ) {
+                            Icon(
+                                Icons.Default.LiveTv,
+                                contentDescription = null,
+                                tint = TvAccent.copy(alpha = 0.4f),
+                                modifier = Modifier.size(52.dp)
+                            )
+                            Spacer(modifier = Modifier.height(12.dp))
+                            Text(
+                                "Toca un canal para empezar a ver",
+                                color = TvTextSecondary,
+                                fontSize = 14.sp
+                            )
+                        }
+                    }
+                }
+
+                Spacer(modifier = Modifier.height(12.dp))
+
+                // ── Channel grid ──
+                if (channels.isEmpty()) {
+                    Box(
+                        modifier = Modifier.fillMaxSize(),
+                        contentAlignment = Alignment.Center
+                    ) {
+                        if (debugMessage.isNotEmpty()) {
+                            Column(horizontalAlignment = Alignment.CenterHorizontally) {
+                                CircularProgressIndicator(color = TvAccent)
+                                Spacer(modifier = Modifier.height(16.dp))
+                                Text(debugMessage, color = TvTextSecondary, fontSize = 14.sp, textAlign = TextAlign.Center)
+                            }
+                        } else {
+                            Column(horizontalAlignment = Alignment.CenterHorizontally) {
+                                Icon(Icons.Default.TvOff, contentDescription = null, tint = TvTextSecondary, modifier = Modifier.size(40.dp))
+                                Spacer(modifier = Modifier.height(8.dp))
+                                Text("No se encontraron canales", color = TvTextSecondary, fontSize = 15.sp)
+                            }
+                        }
+                    }
+                } else {
+                    LazyVerticalGrid(
+                        columns = GridCells.Fixed(4),
+                        modifier = Modifier.fillMaxSize(),
+                        contentPadding = PaddingValues(start = 12.dp, end = 12.dp, bottom = 32.dp),
+                        horizontalArrangement = Arrangement.spacedBy(8.dp),
+                        verticalArrangement = Arrangement.spacedBy(8.dp)
+                    ) {
+                        items(channels, key = { it.id }) { channel ->
+                            ChannelCard(
+                                channel = channel,
+                                isSelected = currentChannel?.id == channel.id,
+                                isFavorite = favorites.contains(channel.id),
+                                onToggleFavorite = { viewModel.toggleFavorite(channel.id) },
+                                onClick = { viewModel.selectChannel(channel) }
+                            )
+                        }
+                    }
+                }
+            }
+
+            // ── Fullscreen player overlay ──
+            AnimatedVisibility(
+                visible = isFullscreen,
+                enter = fadeIn(),
+                exit = fadeOut(),
+                modifier = Modifier.fillMaxSize()
+            ) {
+                Box(
+                    modifier = Modifier
+                        .fillMaxSize()
+                        .background(Color.Black)
+                        .clickable(
+                            interactionSource = remember { androidx.compose.foundation.interaction.MutableInteractionSource() },
+                            indication = null
+                        ) {
+                            if (isLocked) {
+                                lockTapVisible = true
+                            } else {
+                                controlsVisible = !controlsVisible
+                                if (!controlsVisible) showChannelList = false
+                            }
+                        }
+                ) {
+                    AndroidView(
+                        factory = { ctx ->
+                            PlayerView(ctx).apply {
+                                player = exoPlayer
+                                useController = false
+                                layoutParams = FrameLayout.LayoutParams(
+                                    ViewGroup.LayoutParams.MATCH_PARENT,
+                                    ViewGroup.LayoutParams.MATCH_PARENT
+                                )
+                            }
+                        },
+                        update = { playerView ->
+                            playerView.resizeMode = resizeMode
+                            activePlayerView = playerView
+                            rebindPlayer(playerView)
+                        },
+                        modifier = Modifier.fillMaxSize()
+                    )
+
+                    if ((!isVideoRendering || isBuffering) && currentChannel != null) {
+                        Box(
+                            modifier = Modifier.fillMaxSize().background(Color.Black),
+                            contentAlignment = Alignment.Center
+                        ) {
+                            CircularProgressIndicator(color = TvAccent)
+                        }
+                    }
+
+                    androidx.compose.animation.AnimatedVisibility(
+                        visible = controlsVisible && !isLocked,
+                        enter = fadeIn(),
+                        exit = fadeOut(),
+                        modifier = Modifier.fillMaxSize()
+                    ) {
+                        Box(modifier = Modifier.fillMaxSize()) {
+                            // Top bar
+                            Row(
+                                modifier = Modifier
+                                    .align(Alignment.TopStart)
+                                    .fillMaxWidth()
+                                    .background(Color.Black.copy(alpha = 0.5f))
+                                    .padding(horizontal = 8.dp, vertical = 6.dp),
+                                verticalAlignment = Alignment.CenterVertically
+                            ) {
+                                IconButton(onClick = { isFullscreen = false }) {
+                                    Icon(Icons.Default.ArrowBack, contentDescription = "Volver", tint = Color.White)
+                                }
+                                Box(
+                                    modifier = Modifier
+                                        .clip(RoundedCornerShape(4.dp))
+                                        .background(Color(0xFFE53935))
+                                        .padding(horizontal = 6.dp, vertical = 2.dp)
+                                ) {
+                                    Text("EN VIVO", color = Color.White, fontSize = 9.sp, fontWeight = FontWeight.Bold)
+                                }
+                                Spacer(modifier = Modifier.width(10.dp))
+                                Text(
+                                    currentChannel?.name ?: "",
+                                    color = Color.White,
+                                    fontSize = 15.sp,
+                                    fontWeight = FontWeight.SemiBold,
+                                    maxLines = 1,
+                                    overflow = TextOverflow.Ellipsis,
+                                    modifier = Modifier.weight(1f)
+                                )
+                                // Channel list toggle (stays in fullscreen)
+                                Row(
+                                    verticalAlignment = Alignment.CenterVertically,
+                                    modifier = Modifier
+                                        .clip(RoundedCornerShape(16.dp))
+                                        .background(if (showChannelList) TvAccentSoft else Color.White.copy(alpha = 0.12f))
+                                        .clickable { showChannelList = !showChannelList }
+                                        .padding(horizontal = 10.dp, vertical = 6.dp)
+                                ) {
+                                    Icon(
+                                        Icons.Default.List,
+                                        contentDescription = null,
+                                        tint = if (showChannelList) TvAccent else Color.White,
+                                        modifier = Modifier.size(16.dp)
+                                    )
+                                    Spacer(modifier = Modifier.width(6.dp))
+                                    Text(
+                                        "Canales",
+                                        color = if (showChannelList) TvAccent else Color.White,
+                                        fontSize = 13.sp,
+                                        fontWeight = FontWeight.Bold
+                                    )
+                                }
+                            }
+
+                            // Bottom controls
+                            Row(
+                                modifier = Modifier
+                                    .align(Alignment.BottomStart)
+                                    .fillMaxWidth()
+                                    .background(Color.Black.copy(alpha = 0.5f))
+                                    .padding(horizontal = 8.dp, vertical = 4.dp),
+                                verticalAlignment = Alignment.CenterVertically,
+                                horizontalArrangement = Arrangement.SpaceBetween
+                            ) {
+                                Row(verticalAlignment = Alignment.CenterVertically) {
+                                    IconButton(onClick = {
+                                        if (exoPlayer.isPlaying) exoPlayer.pause() else exoPlayer.play()
+                                    }) {
+                                        Icon(
+                                            if (isPlayingState) Icons.Default.Pause else Icons.Default.PlayArrow,
+                                            contentDescription = null,
+                                            tint = Color.White,
+                                            modifier = Modifier.size(30.dp)
+                                        )
+                                    }
+                                    IconButton(onClick = { isMuted = !isMuted }) {
+                                        Icon(
+                                            if (isMuted) Icons.Default.VolumeOff else Icons.Default.VolumeUp,
+                                            contentDescription = null,
+                                            tint = Color.White
+                                        )
+                                    }
+                                    // Lock screen: hides controls and disables touch until unlocked
+                                    IconButton(onClick = {
+                                        isLocked = true
+                                        showChannelList = false
+                                        controlsVisible = false
+                                        lockTapVisible = false
+                                    }) {
+                                        Icon(Icons.Default.Lock, contentDescription = "Bloquear pantalla", tint = Color.White)
+                                    }
+                                }
+                                Row(verticalAlignment = Alignment.CenterVertically) {
+                                    // Zoom / fill modes
+                                    Text(
+                                        resizeModeLabel,
+                                        color = TvAccent,
+                                        fontSize = 12.sp,
+                                        fontWeight = FontWeight.Bold,
+                                        modifier = Modifier
+                                            .clip(RoundedCornerShape(6.dp))
+                                            .background(TvAccentSoft)
+                                            .clickable { cycleResizeMode() }
+                                            .padding(horizontal = 10.dp, vertical = 6.dp)
+                                    )
+                                    // Rotate screen
+                                    IconButton(onClick = toggleOrientation) {
+                                        Icon(Icons.Default.ScreenRotation, contentDescription = "Voltear pantalla", tint = Color.White)
+                                    }
+                                    // PiP
+                                    IconButton(onClick = {
+                                        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
+                                            (context as? Activity)?.enterPictureInPictureMode(
+                                                android.app.PictureInPictureParams.Builder().build()
+                                            )
+                                        }
+                                    }) {
+                                        Icon(Icons.Default.PictureInPictureAlt, contentDescription = "PiP", tint = Color.White)
+                                    }
+                                    // Exit fullscreen
+                                    IconButton(onClick = { isFullscreen = false }) {
+                                        Icon(Icons.Default.FullscreenExit, contentDescription = "Salir", tint = Color.White)
+                                    }
+                                }
+                            }
+                        }
+                    }
+
+                    // ── Side channel list (toggleable, stays in fullscreen) ──
+                    androidx.compose.animation.AnimatedVisibility(
+                        visible = showChannelList && !isLocked,
+                        enter = androidx.compose.animation.slideInHorizontally { it } + fadeIn(),
+                        exit = androidx.compose.animation.slideOutHorizontally { it } + fadeOut(),
+                        modifier = Modifier.align(Alignment.CenterEnd)
+                    ) {
+                        Column(
+                            modifier = Modifier
+                                .fillMaxHeight()
+                                .width(260.dp)
+                                .background(Color(0xF2141414))
+                        ) {
+                            Text(
+                                "Canales",
+                                color = Color.White,
+                                fontSize = 16.sp,
+                                fontWeight = FontWeight.Bold,
+                                modifier = Modifier.padding(horizontal = 16.dp, vertical = 14.dp)
+                            )
+                            LazyColumn(
+                                modifier = Modifier.fillMaxSize(),
+                                contentPadding = PaddingValues(bottom = 24.dp)
+                            ) {
+                                items(channels, key = { it.id }) { channel ->
+                                    val isCurrent = currentChannel?.id == channel.id
+                                    Row(
+                                        modifier = Modifier
+                                            .fillMaxWidth()
+                                            .background(if (isCurrent) TvAccentSoft else Color.Transparent)
+                                            .clickable {
+                                                viewModel.selectChannel(channel)
+                                                showChannelList = false
+                                            }
+                                            .padding(horizontal = 12.dp, vertical = 8.dp),
+                                        verticalAlignment = Alignment.CenterVertically
+                                    ) {
+                                        Box(
+                                            modifier = Modifier
+                                                .size(40.dp)
+                                                .clip(RoundedCornerShape(8.dp))
+                                                .background(TvCard),
+                                            contentAlignment = Alignment.Center
+                                        ) {
+                                            if (channel.logoUrl.isNotBlank()) {
+                                                AsyncImage(
+                                                    model = ImageRequest.Builder(LocalContext.current)
+                                                        .data(channel.logoUrl)
+                                                        .crossfade(true)
+                                                        .build(),
+                                                    contentDescription = null,
+                                                    modifier = Modifier.fillMaxSize().padding(4.dp),
+                                                    contentScale = ContentScale.Fit,
+                                                    error = rememberVectorPainter(image = Icons.Default.Tv),
+                                                    placeholder = rememberVectorPainter(image = Icons.Default.Tv)
+                                                )
+                                            } else {
+                                                Icon(
+                                                    Icons.Default.Tv,
+                                                    contentDescription = null,
+                                                    tint = TvTextSecondary,
+                                                    modifier = Modifier.size(20.dp)
+                                                )
+                                            }
+                                        }
+                                        Spacer(modifier = Modifier.width(10.dp))
+                                        Text(
+                                            channel.name,
+                                            color = if (isCurrent) TvAccent else Color.White,
+                                            fontSize = 13.sp,
+                                            fontWeight = if (isCurrent) FontWeight.Bold else FontWeight.Normal,
+                                            maxLines = 2,
+                                            overflow = TextOverflow.Ellipsis,
+                                            modifier = Modifier.weight(1f)
+                                        )
+                                        if (isCurrent) {
+                                            Box(
+                                                modifier = Modifier
+                                                    .clip(RoundedCornerShape(4.dp))
+                                                    .background(Color(0xFFE53935))
+                                                    .padding(horizontal = 4.dp, vertical = 1.dp)
+                                            ) {
+                                                Text("VIENDO", color = Color.White, fontSize = 7.sp, fontWeight = FontWeight.Bold)
+                                            }
+                                        }
+                                    }
+                                }
+                            }
+                        }
+                    }
+
+                    // ── Lock overlay: only the unlock button, revealed on tap ──
+                    if (isLocked && lockTapVisible) {
+                        IconButton(
+                            onClick = {
+                                isLocked = false
+                                lockTapVisible = false
+                                controlsVisible = true
+                            },
+                            modifier = Modifier
+                                .align(Alignment.CenterStart)
+                                .padding(start = 16.dp)
+                                .size(48.dp)
+                                .background(Color.Black.copy(alpha = 0.6f), CircleShape)
+                        ) {
+                            Icon(
+                                Icons.Default.Lock,
+                                contentDescription = "Desbloquear pantalla",
+                                tint = Color.White
+                            )
+                        }
+                    }
+                }
+            }
+        }
+    }
+}
+
+@Composable
+private fun CategoryChip(label: String, selected: Boolean, onClick: () -> Unit) {
+    Box(
+        modifier = Modifier
+            .clip(RoundedCornerShape(16.dp))
+            .background(if (selected) TvAccent else TvCard)
+            .clickable(onClick = onClick)
+            .padding(horizontal = 14.dp, vertical = 7.dp)
+    ) {
+        Text(
+            label,
+            color = if (selected) Color.White else TvTextSecondary,
+            fontSize = 13.sp,
+            fontWeight = if (selected) FontWeight.Bold else FontWeight.Normal
+        )
+    }
+}
+
+@Composable
+private fun ChannelCard(
+    channel: PanaTVChannelEntity,
+    isSelected: Boolean,
+    isFavorite: Boolean,
+    onToggleFavorite: () -> Unit,
+    onClick: () -> Unit
+) {
+    Column(
+        modifier = Modifier
+            .clip(RoundedCornerShape(10.dp))
+            .background(if (isSelected) TvCardAlt else TvCard)
+            .then(
+                if (isSelected) Modifier.border(2.dp, TvAccent, RoundedCornerShape(10.dp))
+                else Modifier
+            )
+            .clickable(onClick = onClick)
+            .padding(bottom = 6.dp)
+    ) {
+        Box(
+            modifier = Modifier
+                .fillMaxWidth()
+                .aspectRatio(1.3f)
+                .padding(10.dp),
+            contentAlignment = Alignment.Center
+        ) {
+            if (channel.logoUrl.isNotBlank()) {
+                AsyncImage(
+                    model = ImageRequest.Builder(LocalContext.current)
+                        .data(channel.logoUrl)
+                        .crossfade(true)
+                        .build(),
+                    contentDescription = null,
+                    modifier = Modifier.fillMaxSize(),
+                    contentScale = ContentScale.Fit,
+                    error = rememberVectorPainter(image = Icons.Default.Tv),
+                    placeholder = rememberVectorPainter(image = Icons.Default.Tv)
+                )
+            } else {
+                Icon(
+                    Icons.Default.Tv,
+                    contentDescription = null,
+                    tint = TvTextSecondary,
+                    modifier = Modifier.size(32.dp)
+                )
+            }
+
+            // HD badge
+            if (channel.name.contains("HD", ignoreCase = true)) {
+                Box(
+                    modifier = Modifier
+                        .align(Alignment.TopEnd)
+                        .clip(RoundedCornerShape(4.dp))
+                        .background(TvAccent)
+                        .padding(horizontal = 4.dp, vertical = 1.dp)
+                ) {
+                    Text("HD", color = Color.White, fontSize = 8.sp, fontWeight = FontWeight.Bold)
+                }
+            }
+
+            // Favorite heart
+            Box(
+                modifier = Modifier
+                    .align(Alignment.TopStart)
+                    .size(24.dp)
+                    .clip(CircleShape)
+                    .background(Color.Black.copy(alpha = 0.35f))
+                    .clickable(onClick = onToggleFavorite),
+                contentAlignment = Alignment.Center
+            ) {
+                Icon(
+                    if (isFavorite) Icons.Default.Favorite else Icons.Default.FavoriteBorder,
+                    contentDescription = "Favorito",
+                    tint = if (isFavorite) TvAccent else Color.White.copy(alpha = 0.7f),
+                    modifier = Modifier.size(14.dp)
+                )
+            }
+        }
+
+        Text(
+            channel.name,
+            color = if (isSelected) Color.White else TvTextSecondary,
+            fontSize = 11.sp,
+            fontWeight = if (isSelected) FontWeight.Bold else FontWeight.Medium,
+            maxLines = 1,
+            overflow = TextOverflow.Ellipsis,
+            textAlign = TextAlign.Center,
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(horizontal = 4.dp)
+        )
+    }
+}

@@ -1,0 +1,103 @@
+package com.example.update
+
+import android.app.Application
+import androidx.lifecycle.AndroidViewModel
+import androidx.lifecycle.viewModelScope
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.StateFlow
+import kotlinx.coroutines.flow.asStateFlow
+import kotlinx.coroutines.launch
+
+class UpdateViewModel(application: Application) : AndroidViewModel(application) {
+
+    private val context = application.applicationContext
+
+    // Las actualizaciones siempre se distribuyen desde el repositorio público
+    // dedicado Andresaguiar22/panalink-ota (manifest en raw.githubusercontent.com
+    // y binarios en GitHub Releases). Sin GitHub Actions ni backend propio.
+    private val config = UpdateConfig(
+        manifestUrl = "https://raw.githubusercontent.com/Andresaguiar22/panalink-ota/main/manifest.json",
+        providerType = UpdateConfig.ProviderType.GITHUB_RELEASES,
+        githubOwner = "Andresaguiar22",
+        githubRepo = "panalink-ota"
+    )
+
+    private val repository: UpdateManifestRepository = if (config.providerType == UpdateConfig.ProviderType.GITHUB_RELEASES) {
+        GitHubUpdateManifestRepository(config)
+    } else {
+        HttpUpdateManifestRepository(config)
+    }
+    private val versionManager = AppVersionManager(context)
+    private val checker = UpdateChecker(repository, versionManager)
+    private val downloader = ApkDownloadManager(context)
+    private val installer = AndroidPackageInstaller(context, versionManager)
+
+    val updateStatus: StateFlow<UpdateStatus> = checker.state
+    val latestVersionInfo: StateFlow<AppVersionInfo?> = checker.latestVersionInfo
+    val remoteVersionName: StateFlow<String?> = checker.remoteVersionName
+    val downloadState: StateFlow<DownloadState> = downloader.downloadState
+
+    private val _errorMessage = MutableStateFlow<String?>(null)
+    val errorMessage: StateFlow<String?> = _errorMessage.asStateFlow()
+
+    @Volatile private var isDownloading = false
+
+    fun checkForUpdates(force: Boolean = false) {
+        viewModelScope.launch(Dispatchers.IO) {
+            _errorMessage.value = null
+            checker.checkForUpdates(force)
+        }
+    }
+
+    fun startDownloadAndInstall() {
+        // Guard anti-bucle: si ya hay una descarga en curso, no reiniciar (evita
+        // que recomposiciones del dialog o taps repetidos cancelen y reempiezen
+        // la descarga en bucle, dejándola "nunca terminar").
+        if (isDownloading) return
+        val info = latestVersionInfo.value ?: return
+        isDownloading = true
+        viewModelScope.launch(Dispatchers.IO) {
+            _errorMessage.value = null
+            try {
+                val downloadedFile = downloader.downloadApk(
+                    downloadUrl = info.downloadUrl,
+                    expectedSha256 = info.sha256,
+                    versionCode = info.versionCode
+                )
+
+                if (downloadedFile != null) {
+                    val installResult = installer.installApk(downloadedFile, info.sha256)
+                    installResult.onFailure { throwable ->
+                        _errorMessage.value = throwable.localizedMessage ?: "Installation failed"
+                    }
+                } else {
+                    // If downloader failed, errorMessage will be handled via DownloadState.Error
+                    val currentState = downloader.downloadState.value
+                    if (currentState is DownloadState.Error) {
+                        _errorMessage.value = currentState.message
+                    }
+                }
+            } finally {
+                isDownloading = false
+            }
+        }
+    }
+
+    fun cancelDownload() {
+        downloader.cancelDownload()
+        isDownloading = false
+    }
+
+    fun clearError() {
+        _errorMessage.value = null
+    }
+
+    fun getInstalledVersionName(): String {
+        return versionManager.getCurrentVersionName()
+    }
+
+    fun getInstalledVersionCode(): Long {
+        return versionManager.getCurrentVersionCode()
+    }
+}

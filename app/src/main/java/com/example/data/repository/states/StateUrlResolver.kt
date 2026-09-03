@@ -1,0 +1,54 @@
+package com.example.data.repository.states
+
+import com.example.data.model.UserState
+import com.example.data.repository.VcdnUrlResolver
+import com.example.data.supabase.SupabaseClient
+import com.example.data.supabase.SessionManager
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.runBlocking
+import kotlinx.coroutines.withContext
+
+/**
+ * URL resolution policy for states (stories/reels).
+ * The signed HLS `.m3u8` streamUrl must NEVER be persisted: it expires. Room
+ * and the remote DTOs keep the stable `vcdn://{videoId}` pointer. See [VcdnUrlResolver].
+ */
+object StateUrlResolver {
+
+    /** Defensive restore: recovers a stable `vcdn://` pointer when a legacy signed
+     *  `.m3u8` was persisted and the row now carriesa [UserState.vcdnVideoId]. */
+    fun stabilizeForRoom(state: UserState): UserState {
+        val vId = state.vcdnVideoId?.takeIf { it.isNotBlank() }
+        if (vId == null) return state
+        val url = state.mediaUrl.orEmpty()
+        return if (url.isBlank() || (state.mediaUrl?.contains(".m3u8", ignoreCase = true)) == true) {
+            state.copy(mediaUrl = "vcdn://\$vId")
+        } else state
+    }
+
+    /** Resolve a poster/thumbnail for cards without touching the playback URL. */
+    suspend fun resolveForDisplay(state: UserState): UserState = withContext(Dispatchers.IO) {
+        var s = stabilizeForRoom(state)
+        if (VcdnUrlResolver.isVcdnUrl(s.mediaUrl)) {
+
+            val poster = VcdnUrlResolver.resolvePoster(s.mediaUrl)
+            val posterFinal = if (poster.isNullOrBlank()) s.vcdnPosterUrl else poster
+            if (posterFinal != null && s.vcdnPosterUrl.isNullOrBlank()) {
+                s = s.copy(vcdnPosterUrl = posterFinal)
+            }
+            if (posterFinal != null && s.thumbnailUrl.isNullOrBlank()) {
+                s = s.copy(thumbnailUrl = posterFinal)
+            }
+        }
+        s
+    }
+
+    /** Synchronous variant for Coil (images/posters) at the UI boundary. */
+    fun resolveForDisplayBlocking(state: UserState): UserState = runBlocking { resolveForDisplay(state) }
+
+    /** Token-fetch + session pre-flight shared by the states remote data sources. */
+    suspend fun ensureSession(): String? = withContext(Dispatchers.IO) {
+        SessionManager.validateAndRefreshSessionIfNeeded()
+        return@withContext SupabaseClient.currentToken
+    }
+}

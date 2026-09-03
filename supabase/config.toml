@@ -1,0 +1,13 @@
+project_id = "tivqjfgjdxgzicrridaz"
+
+# Los triggers de la DB llaman a send-push con pg_net usando SOLO el header
+# x-internal-secret (sin JWT de Supabase). Si verify_jwt queda en true, el
+# gateway rechaza la llamada con 401 antes de ejecutar la función y el push
+# nunca sale. La función valida el secreto interno por su cuenta.
+[functions.send-push]
+verify_jwt = false
+
+# Mints LiveKit participant JWT. verify_jwt=true so the function receives the
+# caller's Supabase JWT; the participant identity is derived from its subject.
+[functions.livekit-token]
+verify_jwt = true
