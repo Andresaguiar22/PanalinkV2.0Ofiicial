@@ -32,19 +32,29 @@ class MediaUploadWorker(
     }
 
     override suspend fun doWork(): Result {
-        val messageId = inputData.getString("messageId") ?: return Result.failure()
-        Log.i(TAG, "Starting media upload for message: $messageId (attempt=$runAttemptCount)")
-
-        val entity = messageDao.getMessageById(messageId) ?: return Result.failure()
+        val messageId = inputData.getString("messageId") ?: run {
+            Log.e(TAG, "MEDIA_WORK_RESULT = FAILURE (missing messageId)")
+            return Result.failure()
+        }
+        val authUid = com.example.data.supabase.SupabaseClient.currentUser?.id
+        val entity = messageDao.getMessageById(messageId) ?: run {
+            Log.e(TAG, "MEDIA_WORK_RESULT = FAILURE (message $messageId not found in Room)")
+            return Result.failure()
+        }
         val localUri = entity.localMediaUri
+
+        Log.i(
+            TAG,
+            "MEDIA_UPLOAD_INIT: messageId=$messageId, authUid=$authUid, messageType=${entity.messageType}, localMediaUri=$localUri, roomStatus=${entity.status}, receiverId=${entity.receiverId}, clientMessageUuid=${entity.clientMessageUuid}"
+        )
 
         if (localUri.isNullOrBlank()) {
             if (!entity.mediaUrl.isNullOrBlank()) {
                 messagesRepository.scheduleSync()
-                return Result.success()
+                return logFinalStateAndResult(messageId, Result.success())
             }
             markFailed(messageId)
-            return Result.failure()
+            return logFinalStateAndResult(messageId, Result.failure())
         }
 
         return try {
@@ -58,6 +68,8 @@ class MediaUploadWorker(
                 val remoteUrls = mutableListOf<String>()
                 val uploadedPaths = mutableListOf<String>()
                 var remoteThumb: String? = null
+                
+                Log.i(TAG, "MEDIA_UPLOAD_START: messageId=$messageId, type=album[${allPaths.size}], hasLocalMediaUri=true, attempt=$runAttemptCount")
                 allPaths.forEachIndexed { index, path ->
                     val albumFile = File(path)
                     if (albumFile.exists()) {
@@ -99,19 +111,27 @@ class MediaUploadWorker(
                 val extantPaths = allPaths.filter { File(it).exists() }
                 if (extantPaths.isEmpty()) {
                     Log.e(TAG, "Album: no local files remain; marking failed (irrecuperable)")
+                    Log.e(TAG, "MEDIA_UPLOAD_FAILURE: messageId=$messageId, exception=IllegalStateException, message=No local files remain, attempt=$runAttemptCount, returningResult=FAILURE")
                     markFailed(messageId)
-                    return Result.failure()
+                    return logFinalStateAndResult(messageId, Result.failure())
                 }
 
                 if (remoteUrls.size != extantPaths.size) {
                     if (runAttemptCount + 1 < MAX_UPLOAD_ATTEMPTS) {
                         Log.w(TAG, "Album: partial upload ${remoteUrls.size}/${extantPaths.size}; retrying whole album (no commit)")
-                        return Result.retry()
+                        Log.w(TAG, "MEDIA_UPLOAD_FAILURE: messageId=$messageId, exception=PartialUploadException, message=Uploaded ${remoteUrls.size}/${extantPaths.size}, attempt=$runAttemptCount, returningResult=RETRY")
+                        return logFinalStateAndResult(messageId, Result.retry())
                     }
                     Log.w(TAG, "Album: still partial after $runAttemptCount attempts; marking failed (sync will revive)")
+                    Log.e(TAG, "MEDIA_UPLOAD_FAILURE: messageId=$messageId, exception=PartialUploadException, message=Max attempts reached, attempt=$runAttemptCount, returningResult=FAILURE")
                     markFailed(messageId)
-                    return Result.failure()
+                    return logFinalStateAndResult(messageId, Result.failure())
                 }
+
+                Log.i(
+                    TAG,
+                    "MEDIA_UPLOAD_SUCCESS: messageId=$messageId, type=image_album, hasMediaUrl=true, hasThumbnail=${remoteThumb != null}, size=${uploadedPaths.size}, duration=0"
+                )
 
                 val updated = entity.copy(
                     mediaUrl = remoteUrls.joinToString(","),
@@ -124,14 +144,15 @@ class MediaUploadWorker(
                 // hubo) se persiste en thumbnail_url; si no, el local se conserva para la UI.
                 uploadedPaths.forEach { runCatching { java.io.File(it).delete() } }
                 messagesRepository.scheduleSync()
-                return Result.success()
+                return logFinalStateAndResult(messageId, Result.success())
             }
 
             val file = File(localUri)
             if (!file.exists()) {
                 Log.e(TAG, "Local file does not exist: $localUri")
+                Log.e(TAG, "MEDIA_UPLOAD_FAILURE: messageId=$messageId, exception=FileNotFoundException, message=Local file missing, attempt=$runAttemptCount, returningResult=FAILURE")
                 markFailed(messageId)
-                return Result.failure()
+                return logFinalStateAndResult(messageId, Result.failure())
             }
 
             val mimeType = entity.mediaMime ?: "application/octet-stream"
@@ -142,7 +163,7 @@ class MediaUploadWorker(
             val stableFileName = "${stableKey}.$ext"
 
             Log.i(TAG, "Processing and uploading $typeLabel ($mimeType), size=${file.length()} bytes, stableKey=$stableKey")
-            Log.i(TAG, "Attempting upload with failover router...")
+            Log.i(TAG, "MEDIA_UPLOAD_START: messageId=$messageId, type=$typeLabel, size=${file.length()}, hasLocalMediaUri=true, attempt=$runAttemptCount")
 
             // Failover total para TODO tipo de media: CDN primero (conserva thumbnails
             // server-side); si falla, B2. El circuit breaker evita quemar timeouts.
@@ -179,7 +200,10 @@ class MediaUploadWorker(
 
             if (uploadResult.isSuccess) {
                 val mediaInfo = uploadResult.getOrThrow()
-                Log.i(TAG, "Upload successful: mediaUrl=${mediaInfo.url}, thumbUrl=${mediaInfo.thumbnailUrl}")
+                Log.i(
+                    TAG,
+                    "MEDIA_UPLOAD_SUCCESS: messageId=$messageId, type=$typeLabel, hasMediaUrl=${!mediaInfo.url.isNullOrBlank()}, hasThumbnail=${!mediaInfo.thumbnailUrl.isNullOrBlank()}, size=${mediaInfo.size ?: file.length()}, duration=${mediaInfo.duration ?: entity.mediaDuration ?: 0L}"
+                )
 
                 val updatedEntity = entity.copy(
                     mediaUrl = mediaInfo.url,
@@ -216,28 +240,61 @@ class MediaUploadWorker(
                 }
 
                 messagesRepository.scheduleSync()
-                Result.success()
+                logFinalStateAndResult(messageId, Result.success())
             } else {
                 val error = uploadResult.exceptionOrNull()
-                Log.e(TAG, "Upload failed (attempt=$runAttemptCount): ${error?.message}", error)
-                if (File(localUri).exists() && runAttemptCount + 1 < MAX_UPLOAD_ATTEMPTS) {
-                    Result.retry()
+                val willRetry = File(localUri).exists() && runAttemptCount + 1 < MAX_UPLOAD_ATTEMPTS
+                val resultLabel = if (willRetry) "RETRY" else "FAILURE"
+                val sanitizedMsg = error?.message?.replace(Regex("eyJ[a-zA-Z0-9_-]+\\.[a-zA-Z0-9_-]+\\.[a-zA-Z0-9_-]+"), "[REDACTED_TOKEN]")?.take(200) ?: "Unknown error"
+                Log.e(
+                    TAG,
+                    "MEDIA_UPLOAD_FAILURE: messageId=$messageId, exception=${error?.javaClass?.simpleName ?: "Exception"}, message=$sanitizedMsg, attempt=$runAttemptCount, returningResult=$resultLabel",
+                    error
+                )
+                if (willRetry) {
+                    logFinalStateAndResult(messageId, Result.retry())
                 } else {
                     // Terminal SOLO cuando el archivo local ya no existe (fue purgado/perdido:
-                    // en ese caso reintentar es imposible.y el estado "failed" informa al usuario.
+                    // en ese caso reintentar es imposible y el estado "failed" informa al usuario.
                     markFailed(messageId)
-                    Result.failure()
+                    logFinalStateAndResult(messageId, Result.failure())
                 }
             }
         } catch (e: Exception) {
-            Log.e(TAG, "Error in MediaUploadWorker (attempt=$runAttemptCount): ${e.localizedMessage}", e)
-            if (runAttemptCount + 1 >= MAX_UPLOAD_ATTEMPTS) {
+            val willRetry = runAttemptCount + 1 < MAX_UPLOAD_ATTEMPTS
+            val resultLabel = if (willRetry) "RETRY" else "FAILURE"
+            val sanitizedMsg = e.localizedMessage?.replace(Regex("eyJ[a-zA-Z0-9_-]+\\.[a-zA-Z0-9_-]+\\.[a-zA-Z0-9_-]+"), "[REDACTED_TOKEN]")?.take(200) ?: "Unknown error"
+            Log.e(
+                TAG,
+                "MEDIA_UPLOAD_FAILURE: messageId=$messageId, exception=${e.javaClass.simpleName}, message=$sanitizedMsg, attempt=$runAttemptCount, returningResult=$resultLabel",
+                e
+            )
+            if (!willRetry) {
                 markFailed(messageId)
-                Result.failure()
+                logFinalStateAndResult(messageId, Result.failure())
             } else {
-                Result.retry()
+                logFinalStateAndResult(messageId, Result.retry())
             }
         }
+    }
+
+    private suspend fun logFinalStateAndResult(messageId: String, result: Result): Result {
+        try {
+            val finalEntity = messageDao.getMessageById(messageId)
+            val resultName = when (result) {
+                is Result.Success -> "SUCCESS"
+                is Result.Retry -> "RETRY"
+                else -> "FAILURE"
+            }
+            Log.i(
+                TAG,
+                "MEDIA_UPLOAD_FINAL_STATE: messageId=$messageId, status=${finalEntity?.status}, hasMediaUrl=${!finalEntity?.mediaUrl.isNullOrBlank()}, hasLocalMediaUri=${!finalEntity?.localMediaUri.isNullOrBlank()}, retries=$runAttemptCount"
+            )
+            Log.i(TAG, "MEDIA_WORK_RESULT = $resultName (messageId=$messageId)")
+        } catch (e: Exception) {
+            Log.w(TAG, "Error logging final state for $messageId", e)
+        }
+        return result
     }
 }
 
