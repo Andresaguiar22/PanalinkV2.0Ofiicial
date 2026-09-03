@@ -83,7 +83,15 @@ object VideoRouter {
         }
 
         val vcdnResult = try {
-            VcdnUploadManager.upload(file, mimeType, userId, uploadType, customFileName, onProgress)
+            VcdnUploadManager.upload(
+                file = file,
+                mimeType = mimeType,
+                userId = userId,
+                uploadType = uploadType,
+                customFileName = customFileName,
+                clientMessageUuid = clientMessageUuid,
+                onProgress = onProgress
+            )
         } catch (e: Exception) {
             Log.e(TAG, "VCDN lanzó excepción", e)
             Result.failure(e)
