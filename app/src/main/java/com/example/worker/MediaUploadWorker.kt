@@ -70,7 +70,8 @@ class MediaUploadWorker(
                             mimeType = mime,
                             userId = entity.senderId,
                             uploadType = "image",
-                            customFileName = stableFileName
+                            customFileName = stableFileName,
+                            clientMessageUuid = stableUuid
                         ) {
                             PanalinkMediaManager.uploadMediaAndThumbnail(
                                 context = context,
@@ -163,6 +164,7 @@ class MediaUploadWorker(
                 userId = userId,
                 uploadType = typeLabel,
                 customFileName = stableFileName,
+                clientMessageUuid = stableUuid,
                 onProgress = progressCb
             ) {
                 PanalinkMediaManager.uploadMediaAndThumbnail(

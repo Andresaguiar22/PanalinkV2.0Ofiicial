@@ -73,15 +73,17 @@ object VideoRouter {
         mimeType: String,
         userId: String,
         uploadType: String,
+        customFileName: String? = null,
+        clientMessageUuid: String? = null,
         onProgress: ((Long, Long) -> Unit)? = null
     ): Result<UploadMediaResult> {
         if (!enabled || isVcdnDown()) {
             Log.i(TAG, "Gate off o circuito abierto; subiendo video a B2")
-            return b2Fallback(file, mimeType, userId, uploadType, onProgress)
+            return b2Fallback(file, mimeType, userId, uploadType, customFileName, clientMessageUuid, onProgress)
         }
 
         val vcdnResult = try {
-            VcdnUploadManager.upload(file, mimeType, userId, uploadType, onProgress)
+            VcdnUploadManager.upload(file, mimeType, userId, uploadType, customFileName, onProgress)
         } catch (e: Exception) {
             Log.e(TAG, "VCDN lanzó excepción", e)
             Result.failure(e)
@@ -93,7 +95,7 @@ object VideoRouter {
         }
         Log.w(TAG, "VCDN fallo (${vcdnResult.exceptionOrNull()?.message}); activando fallback B2")
         markVcdnFailed()
-        return b2Fallback(file, mimeType, userId, uploadType, onProgress)
+        return b2Fallback(file, mimeType, userId, uploadType, customFileName, clientMessageUuid, onProgress)
     }
 
     private suspend fun b2Fallback(
@@ -101,7 +103,17 @@ object VideoRouter {
         mimeType: String,
         userId: String,
         uploadType: String,
+        customFileName: String? = null,
+        clientMessageUuid: String? = null,
         onProgress: ((Long, Long) -> Unit)?
     ): Result<UploadMediaResult> =
-        B2UploadManager.upload(file, mimeType, userId, uploadType, onProgress = onProgress)
+        B2UploadManager.upload(
+            file = file,
+            mimeType = mimeType,
+            userId = userId,
+            uploadType = uploadType,
+            customFileName = customFileName,
+            clientMessageUuid = clientMessageUuid,
+            onProgress = onProgress
+        )
 }

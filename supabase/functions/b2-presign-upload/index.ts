@@ -48,17 +48,47 @@ export default {
       return Response.json({ error: "B2 storage is not configured" }, { status: 503 });
     }
 
-    let body: { fileName?: string; mimeType?: string; size?: number; uploadType?: string };
+    let body: {
+      fileName?: string;
+      mimeType?: string;
+      size?: number;
+      uploadType?: string;
+      clientMessageUuid?: string;
+      stableFileName?: string;
+      customFileName?: string;
+    };
     try {
       body = await req.json();
     } catch {
       return Response.json({ error: "Invalid JSON" }, { status: 400 });
     }
 
-    const fileName = sanitizeFileName(body.fileName || "file.bin");
     const mimeType = body.mimeType || "application/octet-stream";
     const uploadType = sanitizeFileName(body.uploadType || "misc");
-    const objectKey = `panalink/${uploadType}/${userId}/${crypto.randomUUID()}-${fileName}`;
+
+    // Idempotent objectKey generation:
+    // If stableFileName, clientMessageUuid, or customFileName is present,
+    // generate a deterministic objectKey so retries target the exact same B2 object.
+    // Otherwise, generate a randomUUID prefix to prevent collisions for arbitrary uploads.
+    let finalFileName: string;
+    if (body.stableFileName && body.stableFileName.trim()) {
+      finalFileName = sanitizeFileName(body.stableFileName.trim());
+    } else if (body.clientMessageUuid && body.clientMessageUuid.trim()) {
+      const stableUuid = sanitizeFileName(body.clientMessageUuid.trim());
+      const rawFileName = body.fileName ? sanitizeFileName(body.fileName.trim()) : "file.bin";
+      if (rawFileName.startsWith(stableUuid)) {
+        finalFileName = rawFileName;
+      } else {
+        finalFileName = `${stableUuid}-${rawFileName}`;
+      }
+    } else if (body.customFileName && body.customFileName.trim()) {
+      finalFileName = sanitizeFileName(body.customFileName.trim());
+    } else {
+      const rawFileName = sanitizeFileName(body.fileName || "file.bin");
+      finalFileName = `${crypto.randomUUID()}-${rawFileName}`;
+    }
+
+    const objectKey = `panalink/${uploadType}/${userId}/${finalFileName}`;
 
     const s3 = new S3Client({
       region: REGION,

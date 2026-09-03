@@ -50,6 +50,7 @@ object VcdnUploadManager {
         mimeType: String,
         userId: String,
         uploadType: String,
+        customFileName: String? = null,
         onProgress: ((Long, Long) -> Unit)? = null
     ): Result<UploadMediaResult> = withContext(Dispatchers.IO) {
         if (!file.exists() || file.length() <= 0L) {
@@ -61,15 +62,16 @@ object VcdnUploadManager {
                 ?: return@withContext Result.failure(Exception("VCDN: usuario no autenticado"))
 
             // 1. init
+            val targetFilename = customFileName ?: file.name
             val init = JSONObject(
                 callEdge(
                     token,
                     JSONObject().apply {
                         put("step", "init")
-                        put("filename", file.name)
+                        put("filename", targetFilename)
                         put("size", file.length())
                         put("contentType", mimeType)
-                        put("title", "Panalink $uploadType ${System.currentTimeMillis()}")
+                        put("title", "Panalink $uploadType $targetFilename")
                     }.toString().toRequestBody("application/json".toMediaTypeOrNull())
                 )
             )
