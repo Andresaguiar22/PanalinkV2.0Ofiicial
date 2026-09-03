@@ -105,7 +105,8 @@ class StatesRepository {
         presetMediaUrl: String? = null,
         audioUrl: String? = null,
         mediaFile: java.io.File? = null,
-        thumbnailUrl: String? = null
+        thumbnailUrl: String? = null,
+        targetStateId: String? = null
     ): Result<UserState> = withContext(Dispatchers.IO) {
         val currentUid = SupabaseClient.currentUser?.id ?: return@withContext Result.failure(Exception("Not authenticated"))
         
@@ -122,7 +123,9 @@ class StatesRepository {
         val stateType = if (isReel) "reel" else "story"
  
         val nowStr = SupabaseClient.getNowIsoString()
-        val stateId = if (SupabaseClient.isConfigured) {
+        val stateId = if (!targetStateId.isNullOrBlank()) {
+            targetStateId
+        } else if (SupabaseClient.isConfigured) {
             UUID.randomUUID().toString()
         } else {
             "state_${UUID.randomUUID()}"
@@ -135,6 +138,35 @@ class StatesRepository {
             val apiKey = SupabaseClient.supabaseAnonKey
             val bearer = "Bearer $token"
  
+            // 0. Pre-check for idempotency if targetStateId is provided:
+            // If already created in Supabase in a previous attempt, return the existing state directly.
+            if (!targetStateId.isNullOrBlank()) {
+                val existingCheck = try {
+                    if (isReel) {
+                        service.getUserReels(apiKey, bearer, idFilter = "eq.$stateId")
+                    } else {
+                        service.getUserStories(apiKey, bearer, idFilter = "eq.$stateId", expiresAtFilter = null)
+                    }
+                } catch (_: Exception) { null }
+
+                if (existingCheck?.isSuccessful == true && !existingCheck.body().isNullOrEmpty()) {
+                    val existing = existingCheck.body()!!.first()
+                    Log.i(TAG, "createState: publication $stateId already exists in Supabase. Reusing existing record.")
+                    val existingUserState = UserState(
+                        id = existing.id,
+                        authorId = existing.authorId,
+                        userIdField = existing.authorId,
+                        mediaUrl = existing.mediaUrl,
+                        mediaType = existing.mediaType,
+                        caption = existing.caption,
+                        visibility = "public",
+                        createdAt = existing.createdAt,
+                        type = stateType
+                    )
+                    return@withContext Result.success(existingUserState)
+                }
+            }
+
             // 1. Upload to dynamic CDN tunnel using UploadRepository
             if (mediaUrl == null && mediaMimeType != null) {
                 val uploadResult = if (mediaFile != null && mediaFile.exists()) {
@@ -220,6 +252,34 @@ class StatesRepository {
                     type = stateType
                 )
                 Result.success(newState)
+            } else if (createResponse.code() == 409 && !targetStateId.isNullOrBlank()) {
+                Log.w(TAG, "createState: 409 Conflict for $stateId. Recovering existing record...")
+                val conflictCheck = try {
+                    if (isReel) {
+                        service.getUserReels(apiKey, bearer, idFilter = "eq.$stateId")
+                    } else {
+                        service.getUserStories(apiKey, bearer, idFilter = "eq.$stateId", expiresAtFilter = null)
+                    }
+                } catch (_: Exception) { null }
+
+                if (conflictCheck?.isSuccessful == true && !conflictCheck.body().isNullOrEmpty()) {
+                    val existing = conflictCheck.body()!!.first()
+                    val existingUserState = UserState(
+                        id = existing.id,
+                        authorId = existing.authorId,
+                        userIdField = existing.authorId,
+                        mediaUrl = existing.mediaUrl,
+                        mediaType = existing.mediaType,
+                        caption = existing.caption,
+                        visibility = "public",
+                        createdAt = existing.createdAt,
+                        type = stateType
+                    )
+                    Result.success(existingUserState)
+                } else {
+                    val errorBody = createResponse.errorBody()?.string()
+                    Result.failure(Exception("Supabase Error 409 Conflict: $errorBody"))
+                }
             } else {
                 val errorBody = createResponse.errorBody()?.string()
                 Log.e(TAG, "🚨 [DIAGNOSTIC] Fallo en ${if(isReel) "createReel" else "createStory"}")

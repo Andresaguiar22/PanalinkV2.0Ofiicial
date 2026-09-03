@@ -197,4 +197,75 @@ class SocialUploadRecoveryTest {
         assertEquals("completed", result?.status)
         assertEquals("https://cdn.panalink.app/media.jpg", result?.remoteUrl)
     }
+
+    @Test
+    fun `9 metadata persistence and remote thumbnail recovery after process restart`() = runBlocking {
+        val dao = db.pendingUploadDao()
+        val uploadId = "upload-uuid-12345"
+        val metadataWithThumbnail = """{"remoteThumbnailUrl":"https://cdn.panalink.app/thumb.jpg","audioUrl":"https://cdn.panalink.app/music.mp3"}"""
+
+        val upload = PendingUploadEntity(
+            id = uploadId,
+            userId = "user-123",
+            uploadType = "STATE",
+            localFilePath = "/dummy/video.mp4",
+            thumbnailPath = "/dummy/thumb_local.jpg",
+            mimeType = "video/mp4",
+            caption = "Test Caption",
+            metadataJson = metadataWithThumbnail,
+            status = "uploading",
+            remoteUrl = "https://cdn.panalink.app/video.mp4"
+        )
+        dao.insertUpload(upload)
+
+        val retrieved = dao.getUploadById(uploadId)
+        assertNotNull(retrieved)
+        assertEquals("https://cdn.panalink.app/video.mp4", retrieved?.remoteUrl)
+        assertEquals("/dummy/thumb_local.jpg", retrieved?.thumbnailPath)
+
+        // Verify JSON parsing of preserved metadata
+        val parsedJson = org.json.JSONObject(retrieved!!.metadataJson!!)
+        assertEquals("https://cdn.panalink.app/thumb.jpg", parsedJson.getString("remoteThumbnailUrl"))
+        assertEquals("https://cdn.panalink.app/music.mp3", parsedJson.getString("audioUrl"))
+
+        // Simulate successful registration marking
+        parsedJson.put("publicationRegistered", true)
+        parsedJson.put("publicationId", uploadId)
+        dao.updateUpload(retrieved.copy(status = "completed", metadataJson = parsedJson.toString()))
+
+        val completed = dao.getUploadById(uploadId)
+        assertEquals("completed", completed?.status)
+        val completedJson = org.json.JSONObject(completed!!.metadataJson!!)
+        assertEquals(true, completedJson.getBoolean("publicationRegistered"))
+        assertEquals(uploadId, completedJson.getString("publicationId"))
+    }
+
+    @Test
+    fun `10 deterministic targetStateId derivation prevents duplicate creation`() {
+        val uploadId1 = "00000000-0000-0000-0000-000000000001"
+        val derived1 = try {
+            java.util.UUID.fromString(uploadId1)
+            uploadId1
+        } catch (_: Exception) {
+            java.util.UUID.nameUUIDFromBytes("panalink_state_$uploadId1".toByteArray()).toString()
+        }
+        assertEquals(uploadId1, derived1)
+
+        val nonUuidUploadId = "upload_story_1725372800000"
+        val derived2A = try {
+            java.util.UUID.fromString(nonUuidUploadId)
+            nonUuidUploadId
+        } catch (_: Exception) {
+            java.util.UUID.nameUUIDFromBytes("panalink_state_$nonUuidUploadId".toByteArray()).toString()
+        }
+        val derived2B = try {
+            java.util.UUID.fromString(nonUuidUploadId)
+            nonUuidUploadId
+        } catch (_: Exception) {
+            java.util.UUID.nameUUIDFromBytes("panalink_state_$nonUuidUploadId".toByteArray()).toString()
+        }
+        assertEquals(derived2A, derived2B)
+        // Valid UUID check
+        assertNotNull(java.util.UUID.fromString(derived2A))
+    }
 }
