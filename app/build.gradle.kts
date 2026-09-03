@@ -60,17 +60,31 @@ android {
             if (secretsFile.exists()) secrets.load(secretsFile.inputStream())
             if (appSecretsFile.exists()) secrets.load(appSecretsFile.inputStream())
 
-            val keystoreFile = System.getenv("KEYSTORE_FILE") ?: secrets.getProperty("KEYSTORE_FILE")
+            val keystoreFileEnv = System.getenv("KEYSTORE_FILE") ?: secrets.getProperty("KEYSTORE_FILE")
             val keystorePassword = System.getenv("KEYSTORE_PASSWORD") ?: secrets.getProperty("KEYSTORE_PASSWORD")
             val keyAliasStr = System.getenv("KEY_ALIAS") ?: secrets.getProperty("KEY_ALIAS")
             val keyPasswordEnv = System.getenv("KEY_PASSWORD") ?: secrets.getProperty("KEY_PASSWORD")
             val keyPasswordStr = if (!keyPasswordEnv.isNullOrEmpty()) keyPasswordEnv else keystorePassword
             val isReleaseRequested = gradle.startParameter.taskNames.any { it.contains("Release", ignoreCase = true) }
-            if (!keystoreFile.isNullOrEmpty() && !keystorePassword.isNullOrEmpty() && !keyAliasStr.isNullOrEmpty()) {
-                storeFile = file(keystoreFile)
+            if (!keystoreFileEnv.isNullOrEmpty() && !keystorePassword.isNullOrEmpty() && !keyAliasStr.isNullOrEmpty()) {
+                val resolvedStoreFile = if (file(keystoreFileEnv).exists()) {
+                    file(keystoreFileEnv)
+                } else {
+                    try {
+                        val decodedBytes = Base64.getDecoder().decode(keystoreFileEnv.trim())
+                        val generatedFile = project.file("release-key.jks")
+                        generatedFile.writeBytes(decodedBytes)
+                        generatedFile
+                    } catch (e: Exception) {
+                        file(keystoreFileEnv)
+                    }
+                }
+                storeFile = resolvedStoreFile
                 storePassword = keystorePassword
                 keyAlias = keyAliasStr
                 keyPassword = keyPasswordStr
+                isV1SigningEnabled = true
+                isV2SigningEnabled = true
             } else if (isReleaseRequested) {
                 throw GradleException("RELEASE BUILD BLOCKED: SIGNING CREDENTIALS (KEYSTORE_FILE, KEYSTORE_PASSWORD, KEY_ALIAS) ARE MISSING")
             }

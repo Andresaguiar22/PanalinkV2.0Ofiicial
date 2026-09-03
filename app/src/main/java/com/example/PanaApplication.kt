@@ -180,6 +180,12 @@ class PanaApplication : Application(), ImageLoaderFactory, DefaultLifecycleObser
         }
 
         scheduleOfflineMediaWarmup()
+
+        try {
+            com.example.util.SocialUploadRecoveryHelper.reconcilePendingUploads(this)
+        } catch (t: Throwable) {
+            android.util.Log.e("PanaApplication", "Pending upload reconciliation failed at startup", t)
+        }
     }
 
     /**
@@ -202,6 +208,11 @@ class PanaApplication : Application(), ImageLoaderFactory, DefaultLifecycleObser
                         com.example.data.repository.MessagesRepository.getInstance().scheduleSync()
                     } catch (e: Throwable) {
                         android.util.Log.e("PanaApplication", "Sync scheduling on restore failed", e)
+                    }
+                    try {
+                        com.example.util.SocialUploadRecoveryHelper.reconcilePendingUploads(applicationContext)
+                    } catch (e: Throwable) {
+                        android.util.Log.e("PanaApplication", "Pending upload reconciliation on restore failed", e)
                     }
                     try {
                         com.example.data.repository.CdnManager.getCDNUrl(forceRefresh = true)
