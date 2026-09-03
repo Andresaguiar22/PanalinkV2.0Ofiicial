@@ -1,0 +1,13 @@
+{
+  "versionCode": 48,
+  "versionName": "v1.3.21",
+  "apkUrl": "https://github.com/Andresaguiar22/panalink-ota/releases/download/v1.3.21/Panalink-v1.3.21.apk",
+  "sha256": "f8a311075a282019496d9ad0333297cdbd12857d19f7823c486ccab1a4d2924c",
+  "minimumSupportedVersionCode": 47,
+  "mandatory": false,
+  "changelog": [
+    "Panalink V2.0 Oficial - Release de Producción firmado digitalmente",
+    "Optimizaciones avanzadas de estabilidad offline y gestión de colas multimedia",
+    "Correcciones de sincronización en timepo real y robustez en canal de actualizaciones"
+  ]
+}
