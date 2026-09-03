@@ -198,8 +198,43 @@ class SocialMediaUploadWorker(
                     }
                     thumbnailUrlForCreate = uploadedThumbUrl
 
-                    pendingUploadDao.updateUpload(uploadingEntity.copy(remoteUrl = uploadedUrl, updatedAt = System.currentTimeMillis()))
+                    val updatedMetadata = try {
+                        val json = if (entity.metadataJson.isNullOrBlank()) org.json.JSONObject() else org.json.JSONObject(entity.metadataJson)
+                        if (uploadedThumbUrl != null) json.put("remoteThumbnailUrl", uploadedThumbUrl)
+                        json.toString()
+                    } catch (_: Exception) { entity.metadataJson }
+
+                    pendingUploadDao.updateUpload(
+                        uploadingEntity.copy(
+                            remoteUrl = uploadedUrl,
+                            thumbnailPath = entity.thumbnailPath,
+                            metadataJson = updatedMetadata,
+                            updatedAt = System.currentTimeMillis()
+                        )
+                    )
                 } else return handleFailure(entity, uploadResult.exceptionOrNull()?.localizedMessage ?: "Error de subida al CDN/B2")
+            }
+
+            // Si reanudamos después de que el medio ya fue subido, restaurar el thumbnailUrl persistido si está disponible
+            if (thumbnailUrlForCreate == null) {
+                thumbnailUrlForCreate = try {
+                    entity.metadataJson?.let {
+                        org.json.JSONObject(it).optString("remoteThumbnailUrl").takeIf { s -> s.isNotBlank() }
+                    }
+                } catch (_: Exception) { null }
+            }
+
+            val audioUrl = try {
+                entity.metadataJson?.let {
+                    org.json.JSONObject(it).optString("audioUrl").takeIf { s -> s.isNotBlank() }
+                }
+            } catch (_: Exception) { null }
+
+            val targetStateId = try {
+                java.util.UUID.fromString(uploadId)
+                uploadId
+            } catch (_: Exception) {
+                java.util.UUID.nameUUIDFromBytes("panalink_state_$uploadId".toByteArray()).toString()
             }
 
             setProgress(workDataOf("uploadId" to uploadId, "progress" to 85, "bytesWritten" to finalUploadFile.length(), "totalBytes" to finalUploadFile.length(), "status" to "Registrando publicación...", "uploadType" to entity.uploadType))
@@ -207,7 +242,15 @@ class SocialMediaUploadWorker(
             val success = when (entity.uploadType) {
                 "STATE", "REEL" -> {
                     val mediaType = when { entity.mimeType.startsWith("video/") -> "video"; entity.mimeType.startsWith("audio/") -> "audio"; else -> "image" }
-                    val result = statesRepository.createState(mediaType, entity.caption, isReel = entity.uploadType == "REEL", presetMediaUrl = uploadedUrl, thumbnailUrl = thumbnailUrlForCreate)
+                    val result = statesRepository.createState(
+                        mediaType = mediaType,
+                        caption = entity.caption,
+                        isReel = entity.uploadType == "REEL",
+                        presetMediaUrl = uploadedUrl,
+                        audioUrl = audioUrl,
+                        thumbnailUrl = thumbnailUrlForCreate,
+                        targetStateId = targetStateId
+                    )
                     createdState = result.getOrNull(); result.isSuccess
                 }
                 else -> false
@@ -217,7 +260,7 @@ class SocialMediaUploadWorker(
             try {
                 val currentUid = entity.userId.ifEmpty { SupabaseClient.currentUser?.id ?: "anonymous" }
                 val myProfile = profilesRepository.getProfile(currentUid).getOrNull() ?: SupabaseClient.currentProfile ?: com.example.data.model.Profile(currentUid, "", null)
-                val newState = createdState ?: com.example.data.model.UserState(id = java.util.UUID.randomUUID().toString(), authorId = currentUid, userIdField = currentUid, mediaUrl = uploadedUrl ?: "", mediaType = when { entity.mimeType.startsWith("video/") -> "video"; entity.mimeType.startsWith("audio/") -> "audio"; else -> "image" }, caption = entity.caption, createdAt = SupabaseClient.getNowIsoString(), type = if (entity.uploadType == "REEL") "reel" else "story", localVideoPath = entity.localFilePath)
+                val newState = createdState ?: com.example.data.model.UserState(id = targetStateId, authorId = currentUid, userIdField = currentUid, mediaUrl = uploadedUrl ?: "", mediaType = when { entity.mimeType.startsWith("video/") -> "video"; entity.mimeType.startsWith("audio/") -> "audio"; else -> "image" }, caption = entity.caption, createdAt = SupabaseClient.getNowIsoString(), type = if (entity.uploadType == "REEL") "reel" else "story", localVideoPath = entity.localFilePath)
                 try { db.statesDao().deleteById("optimistic_$uploadId"); db.statesDao().deleteOptimistic(currentUid, entity.caption) } catch (_: Exception) {}
                 statesRepository.saveStateLocally(com.example.data.model.UserStateWithUser(newState, myProfile), entity.localFilePath)
                 // Persist reel locally in ROM for instant profile loading
@@ -246,7 +289,16 @@ class SocialMediaUploadWorker(
                 reelsRepo.local.updateLocalPath(newState.id, entity.localFilePath)
             } catch (e: Exception) { Log.e(TAG, "Failed to save state locally", e) }
 
-            pendingUploadDao.updateUpload(entity.copy(status = "completed", remoteUrl = uploadedUrl, updatedAt = System.currentTimeMillis()))
+            val finalMetadata = try {
+                val base = entity.metadataJson
+                val json = if (base.isNullOrBlank()) org.json.JSONObject() else org.json.JSONObject(base)
+                if (thumbnailUrlForCreate != null) json.put("remoteThumbnailUrl", thumbnailUrlForCreate)
+                json.put("publicationRegistered", true)
+                json.put("publicationId", targetStateId)
+                json.toString()
+            } catch (_: Exception) { entity.metadataJson }
+
+            pendingUploadDao.updateUpload(entity.copy(status = "completed", remoteUrl = uploadedUrl, metadataJson = finalMetadata, updatedAt = System.currentTimeMillis()))
             setProgress(workDataOf("uploadId" to uploadId, "progress" to 100, "bytesWritten" to finalUploadFile.length(), "totalBytes" to finalUploadFile.length(), "status" to "Completado", "uploadType" to entity.uploadType))
             if (entity.uploadType != "REEL" && entity.uploadType != "STATE") {
                 try { finalUploadFile.delete(); if (file.absolutePath != finalUploadFile.absolutePath) file.delete() } catch (_: Exception) {}

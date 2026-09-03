@@ -932,12 +932,13 @@ fun StoryEditorScreen(
                         if (mediaFile.exists()) {
                             val deduplicatedFile = MediaDeduplicationEngine.deduplicateFile(mediaFile, mediaFile.parentFile ?: context.filesDir)
                             val mimeType = if (isVideoMedia) "video/mp4" else "image/jpeg"
-                            val uploadId = "upload_story_${System.currentTimeMillis()}"
+                            val uploadId = java.util.UUID.randomUUID().toString()
+                            val currentUid = com.example.data.supabase.SupabaseClient.currentUser?.id ?: "anonymous"
 
                             val pendingUpload = PendingUploadEntity(
                                 id = uploadId,
-                                userId = "current_user",
-                                uploadType = "story",
+                                userId = currentUid,
+                                uploadType = "STATE",
                                 localFilePath = deduplicatedFile.absolutePath,
                                 mimeType = mimeType,
                                 caption = "PanaLink Story ($exportResolution ${exportFps}fps)",
@@ -949,11 +950,23 @@ fun StoryEditorScreen(
                             val db = PanalinkDatabase.getDatabase(context)
                             db.pendingUploadDao().insertUpload(pendingUpload)
 
-                            val workRequest = OneTimeWorkRequestBuilder<SocialMediaUploadWorker>()
-                                .setInputData(workDataOf("uploadId" to uploadId))
+                            val constraints = androidx.work.Constraints.Builder()
+                                .setRequiredNetworkType(androidx.work.NetworkType.CONNECTED)
                                 .build()
 
-                            WorkManager.getInstance(context).enqueue(workRequest)
+                            val workRequest = OneTimeWorkRequestBuilder<SocialMediaUploadWorker>()
+                                .setConstraints(constraints)
+                                .setInputData(workDataOf("uploadId" to uploadId))
+                                .addTag("social_upload")
+                                .addTag("upload_$uploadId")
+                                .addTag("social_upload_$uploadId")
+                                .build()
+
+                            WorkManager.getInstance(context).enqueueUniqueWork(
+                                "social_upload_$uploadId",
+                                androidx.work.ExistingWorkPolicy.KEEP,
+                                workRequest
+                            )
                             AutoSaveManager.clearDraft(context, currentProject.id)
 
                             withContext(Dispatchers.Main) {
