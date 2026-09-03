@@ -1,0 +1,6 @@
+<?xml version="1.0" encoding="utf-8"?>
+<network-security-config>
+    <!-- The CDN host is configured at runtime (global_server_config) and may be
+         plain HTTP, so cleartext must be permitted or every media load fails. -->
+    <base-config cleartextTrafficPermitted="true" />
+</network-security-config>

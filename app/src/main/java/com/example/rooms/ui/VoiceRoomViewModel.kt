@@ -1,0 +1,76 @@
+package com.example.rooms.ui
+
+import android.app.Application
+import android.util.Log
+import androidx.lifecycle.AndroidViewModel
+import androidx.lifecycle.viewModelScope
+import com.example.data.repository.LiveKitFeatureGate
+import com.example.data.supabase.SupabaseClient
+import com.example.rooms.model.*
+import com.example.rooms.repository.VoiceRoomRepository
+import com.example.rooms.signaling.SupabaseVoiceRoomSignaling
+import com.example.rooms.signaling.VoiceRoomSignaling
+import com.example.rooms.webrtc.VoiceRoomAudioManager
+import com.example.rooms.webrtc.VoiceRoomEngine
+import com.example.rooms.webrtc.VoiceRoomWebRtcEngine
+import com.example.rooms.webrtc.LiveKitVoiceRoomEngine
+import kotlinx.coroutines.*
+import kotlinx.coroutines.flow.*
+import org.webrtc.IceCandidate
+
+class VoiceRoomViewModel(app:Application):AndroidViewModel(app){
+    companion object{private const val TAG="VoiceRoomVM"}
+    private val repository=VoiceRoomRepository.getInstance();private val myId:String get()=SupabaseClient.currentUser?.id?:""
+    private val _uiState=MutableStateFlow(VoiceRoomUiState(myUserId=myId));val uiState:StateFlow<VoiceRoomUiState> = _uiState
+    private var signaling:VoiceRoomSignaling?=null;private var rtcEngine:VoiceRoomEngine?=null;private var audioManager:VoiceRoomAudioManager?=null;private var roomId:String?=null;private var hasAudioPermission=false;private var hadConnection=false
+    private val cleanupScope=CoroutineScope(Dispatchers.IO+SupervisorJob())
+
+    fun enterRoom(targetRoomId:String?=null){if(roomId!=null)return;viewModelScope.launch{_uiState.update{it.copy(isJoining=true,error=null)};if(targetRoomId==null){_uiState.update{it.copy(isJoining=false,error="Selecciona una sala")};return@launch};repository.getRoomById(targetRoomId).onSuccess{setupRoom(it)}.onFailure{e->_uiState.update{it.copy(isJoining=false,error=e.message?:"No se pudo cargar la sala")}}}}
+    private suspend fun setupRoom(room:VoiceRoom){roomId=room.id;val joined=repository.joinRoom(room.id);if(joined.isFailure){roomId=null;_uiState.update{it.copy(isJoining=false,error=joined.exceptionOrNull()?.message?:"No se pudo entrar a la sala")};return};_uiState.update{it.copy(room=room)};startAudio();startSignaling(room.id);refreshSnapshot(room.id);if(roomId!=null)_uiState.update{it.copy(isJoining=false)}}
+    fun leaveRoom(){val id=roomId?:return;cleanupScope.launch{repository.leaveRoom(id)};teardown()}
+    private fun teardown(){val sig=signaling;cleanupScope.launch{sig?.leaveRoom()};rtcEngine?.release();rtcEngine=null;audioManager?.exitRoomAudio();audioManager=null;signaling=null;roomId=null;hadConnection=false;_uiState.value=VoiceRoomUiState(myUserId=myId)}
+    override fun onCleared(){val id=roomId;val sig=signaling;if(id!=null)cleanupScope.launch{repository.leaveRoom(id);sig?.leaveRoom()};rtcEngine?.release();audioManager?.exitRoomAudio();cleanupScope.cancel()}
+
+    fun onSeatClicked(seatIndex:Int,hasRecordPermission:Boolean){val state=_uiState.value;val id=roomId?:return;hasAudioPermission=hasRecordPermission;if(seatIndex !in 0..8)return;if(seatIndex==0&&!state.isAdmin)return;val mine=state.mySeat;viewModelScope.launch{if(mine!=null){if(mine.index==seatIndex)repository.leaveSeat(id).onSuccess{refreshSnapshot(id)}.onFailure{e->_uiState.update{it.copy(error=e.message?:"No se pudo dejar el sillón")}} else repository.moveSeat(id,seatIndex).onSuccess{refreshSnapshot(id)}.onFailure{e->_uiState.update{it.copy(error=e.message?:"No se pudo cambiar de sillón")}}}else if(state.seats.getOrNull(seatIndex)?.isOccupied!=true || state.isAdmin){repository.moveSeat(id,seatIndex).onSuccess{refreshSnapshot(id)}.onFailure{e->_uiState.update{it.copy(error=e.message?:"No se pudo ocupar el sillón")}}}}}
+    fun requestAnySeat(){val id=roomId?:return;if(_uiState.value.isSeated||_uiState.value.pendingSeatRequest!=null)return;viewModelScope.launch{repository.requestSeat(id,null).onSuccess{refreshSnapshot(id)}.onFailure{e->_uiState.update{it.copy(error=e.message?:"No se pudo solicitar un sillón")}}}}
+    fun approveSeatRequest(requestId:String,seatIndex:Int?=null){viewModelScope.launch{repository.resolveSeatRequest(requestId,true,seatIndex).onSuccess{roomId?.let{refreshSnapshot(it)}}.onFailure{e->_uiState.update{it.copy(error=e.message?:"No se pudo aprobar la solicitud")}}}}
+    fun denySeatRequest(requestId:String){viewModelScope.launch{repository.resolveSeatRequest(requestId,false,null).onSuccess{roomId?.let{refreshSnapshot(it)}}}}
+
+    fun onAudioPermissionResult(granted:Boolean){hasAudioPermission=granted;if(granted&&_uiState.value.isSeated&&!(_uiState.value.mySeat?.isMuted?:false)){rtcEngine?.setMicEnabled(true);_uiState.update{it.copy(isMicEnabled=true)}}}
+    fun toggleMute(){val id=roomId?:return;val seat=_uiState.value.mySeat?:return;val muted=!seat.isMuted;viewModelScope.launch{repository.moderateMute(id,myId,muted)};rtcEngine?.setMicEnabled(!muted&&hasAudioPermission);_uiState.update{it.copy(seats=VoiceRoomSeatReducer.setMuted(it.seats,myId,muted),isMicEnabled=!muted&&hasAudioPermission)}}
+    fun moderateMute(userId:String,muted:Boolean){val id=roomId?:return;if(!_uiState.value.isAdmin)return;viewModelScope.launch{repository.moderateMute(id,userId,muted).onSuccess{_uiState.update{it.copy(seats=VoiceRoomSeatReducer.setMuted(it.seats,userId,muted))}}}}
+    fun kickUser(userId:String){val id=roomId?:return;if(!_uiState.value.isAdmin)return;viewModelScope.launch{repository.kick(id,userId).onFailure{e->_uiState.update{it.copy(error=e.message)}}}}
+    fun banUser(userId:String,reason:String?=null){val id=roomId?:return;if(!_uiState.value.isAdmin)return;viewModelScope.launch{repository.ban(id,userId,reason).onFailure{e->_uiState.update{it.copy(error=e.message)}}}}
+    fun setAdmin(userId:String,makeAdmin:Boolean){val id=roomId?:return;if(!_uiState.value.isHost)return;viewModelScope.launch{repository.setAdmin(id,userId,makeAdmin).onSuccess{refreshSnapshot(id)}}}
+    fun inviteUser(userId:String){val id=roomId?:return;if(!_uiState.value.isAdmin)return;viewModelScope.launch{repository.invite(id,userId)}}
+    fun sendMessage(text:String){val id=roomId?:return;val value=text.trim();if(value.isEmpty())return;viewModelScope.launch{repository.sendMessage(id,value).onFailure{_uiState.update{it.copy(error="No se pudo enviar el mensaje")}}}}
+    fun clearError(){_uiState.update{it.copy(error=null)}}
+
+    private fun startAudio(){if(rtcEngine==null){val id=roomId?:return;val l=object:VoiceRoomEngine.Listener{override fun onLocalIceCandidate(toUserId:String,candidate:IceCandidate){viewModelScope.launch{signaling?.sendIceCandidate(roomId?:return@launch,toUserId,candidate.sdpMid?:"",candidate.sdpMLineIndex,candidate.sdp)}};override fun onPeerSpeaking(userId:String,speaking:Boolean){_uiState.update{it.copy(seats=VoiceRoomSeatReducer.setSpeaking(it.seats,userId,speaking))}};override fun onPeerConnectionStateChanged(userId:String,connected:Boolean){Log.d(TAG,"peer=$userId connected=$connected")};override suspend fun sendOfferTo(userId:String,sdp:String){signaling?.sendOffer(roomId?:return,userId,sdp)};override suspend fun sendAnswerTo(userId:String,sdp:String){signaling?.sendAnswer(roomId?:return,userId,sdp)}};rtcEngine=if(LiveKitFeatureGate.isEnabled())LiveKitVoiceRoomEngine(getApplication(),myId,id,l) else VoiceRoomWebRtcEngine(getApplication(),myId,l);rtcEngine!!.initialize()};if(audioManager==null)audioManager=VoiceRoomAudioManager(getApplication()).also{it.enterRoomAudio()};rtcEngine?.setMicEnabled(_uiState.value.isSeated&&hasAudioPermission&&!(_uiState.value.mySeat?.isMuted?:false))}
+    private fun startSignaling(id:String){val sig=SupabaseVoiceRoomSignaling(myId);signaling=sig;viewModelScope.launch{sig.joinRoom(id)};viewModelScope.launch{sig.tableEvents.collect{onTableEvent(it)}};viewModelScope.launch{sig.signalEvents.collect{onSignalEvent(it)}};viewModelScope.launch{sig.connectionState.collect{connected->if(connected){if(hadConnection)onSignalingReconnected();hadConnection=true}}}}
+    private fun onSignalingReconnected(){val id=roomId?:return;viewModelScope.launch{_uiState.value.seats.mapNotNull{it.userId}.filter{it!=myId}.forEach{signaling?.sendPeerReset(id,it)};rtcEngine?.resetPeers();refreshSnapshot(id)}}
+
+    private suspend fun enrichMembersAndSeats(id:String,members:List<VoiceRoomMember>):Map<String,com.example.rooms.data.PublicProfileDto>{val ids=members.map{it.userId} + _uiState.value.seats.mapNotNull{it.userId};return repository.getPublicProfiles(ids).getOrDefault(emptyMap())}
+    private suspend fun refreshSnapshot(id:String){
+        if(roomId!=id)return
+        repository.getRoomById(id).onSuccess{room->_uiState.update{s->s.copy(room=room)}}
+        val membersResult=repository.getMembers(id)
+        var profileMap=emptyMap<String,com.example.rooms.data.PublicProfileDto>()
+        membersResult.onSuccess{members->
+            profileMap=enrichMembersAndSeats(id,members)
+            val enriched=members.map{m->m.copy(displayName=profileMap[m.userId]?.displayName,avatarUrl=profileMap[m.userId]?.avatarUrl)}
+            val me=enriched.firstOrNull{it.userId==myId}
+            if(me==null){_uiState.update{it.copy(error="Ya no perteneces a esta sala")};teardown();return@onSuccess}
+            _uiState.update{it.copy(members=enriched,myRole=me.role,memberCount=enriched.size)}
+        }
+        if(roomId!=id)return
+        repository.getSeats(id).onSuccess{dtos->profileMap=repository.getPublicProfiles(dtos.map{it.userId}).getOrDefault(profileMap);var seats=VoiceRoomUiState.emptySeats();dtos.forEach{dto->val p=profileMap[dto.userId];seats=VoiceRoomSeatReducer.occupy(seats,dto.seatIndex,dto.userId,p?.displayName,p?.avatarUrl);if(dto.isMuted)seats=VoiceRoomSeatReducer.setMuted(seats,dto.userId,true)};val previous=_uiState.value.seats.mapNotNull{it.userId}.toSet();val current=dtos.map{it.userId}.toSet();previous.filter{it!=myId&&it !in current}.forEach{rtcEngine?.onPeerLeft(it)};_uiState.update{it.copy(seats=seats)};dtos.filter{it.userId!=myId}.forEach{rtcEngine?.onPeerJoined(it.userId)}}
+        repository.getSeatRequests(id).onSuccess{reqs->_uiState.update{s->s.copy(seatRequests=reqs)}}
+        repository.getMessages(id).onSuccess{dtos->val names=repository.getPublicProfiles(dtos.map{it.senderId}).getOrDefault(emptyMap());_uiState.update{it.copy(messages=dtos.map{d->VoiceRoomMessage(d.id,d.roomId,d.senderId,names[d.senderId]?.displayName,d.content,d.createdAt)})}}
+    }
+
+    private fun announceJoin(userId:String,joinedAt:String){viewModelScope.launch{val id=roomId?:return@launch;val p=repository.getPublicProfiles(listOf(userId)).getOrDefault(emptyMap())[userId];val name=p?.displayName?.takeIf{it.isNotBlank()}?:"Usuario";val system=VoiceRoomMessage("join:$userId:$joinedAt",id,"","", "$name se unió a la sala",joinedAt,true);_uiState.update{s->s.copy(messages=VoiceRoomMessagesReducer.append(s.messages,system))}}}
+
+    private fun onTableEvent(ev:VoiceRoomSignaling.TableEvent){val id=roomId?:return;when(ev.table){"voice_room_seats"->when(ev.eventType){"INSERT"->{val idx=ev.record.optInt("seat_index",-1);val uid=ev.record.optString("user_id");if(idx>=0&&uid.isNotEmpty()){viewModelScope.launch{val p=repository.getPublicProfiles(listOf(uid)).getOrDefault(emptyMap())[uid];_uiState.update{s->s.copy(seats=VoiceRoomSeatReducer.occupy(s.seats,idx,uid,p?.displayName,p?.avatarUrl))}};if(uid!=myId)rtcEngine?.onPeerJoined(uid)}};"UPDATE"->{val uid=ev.record.optString("user_id");_uiState.update{s->s.copy(seats=VoiceRoomSeatReducer.setMuted(s.seats,uid,ev.record.optBoolean("is_muted",false)))}};"DELETE"->{val uid=ev.record.optString("user_id");if(uid.isNotEmpty()){_uiState.update{s->s.copy(seats=VoiceRoomSeatReducer.release(s.seats,uid),isMicEnabled=if(uid==myId)false else s.isMicEnabled)};if(uid==myId)rtcEngine?.setMicEnabled(false) else rtcEngine?.onPeerLeft(uid)}}};"voice_room_members"->if(ev.eventType=="INSERT"){val uid=ev.record.optString("user_id");if(uid.isNotEmpty())announceJoin(uid,ev.record.optString("joined_at"));viewModelScope.launch{refreshSnapshot(id)}}else viewModelScope.launch{refreshSnapshot(id)};"voice_room_seat_requests"->viewModelScope.launch{repository.getSeatRequests(id).onSuccess{reqs->_uiState.update{s->s.copy(seatRequests=reqs)}};repository.getSeats(id).onSuccess{dtos->var seats=VoiceRoomUiState.emptySeats();dtos.forEach{d->seats=VoiceRoomSeatReducer.occupy(seats,d.seatIndex,d.userId,null,null);if(d.isMuted)seats=VoiceRoomSeatReducer.setMuted(seats,d.userId,true)};_uiState.update{it.copy(seats=seats)}}};"voice_room_bans"->if(ev.eventType=="INSERT"&&ev.record.optString("user_id")==myId)leaveRoom();"voice_room_messages"->if(ev.eventType=="INSERT"){val m=VoiceRoomMessage(ev.record.optString("id"),ev.record.optString("room_id"),ev.record.optString("sender_id"),null,ev.record.optString("content"),ev.record.optString("created_at"));viewModelScope.launch{val p=repository.getPublicProfiles(listOf(m.senderId)).getOrDefault(emptyMap())[m.senderId];_uiState.update{s->s.copy(messages=VoiceRoomMessagesReducer.append(s.messages,m.copy(senderName=p?.displayName)))}}}}}
+    private fun onSignalEvent(ev:VoiceRoomSignaling.SignalEvent){val engine=rtcEngine?:return;viewModelScope.launch{when(ev.type){"offer"->engine.onRemoteOffer(ev.fromUserId,ev.payload.optString("sdp"));"answer"->engine.onRemoteAnswer(ev.fromUserId,ev.payload.optString("sdp"));"ice"->engine.onRemoteIceCandidate(ev.fromUserId,ev.payload.optString("sdpMid"),ev.payload.optInt("sdpMLineIndex"),ev.payload.optString("candidate"));"peer_reset"->{engine.onPeerLeft(ev.fromUserId);engine.onPeerJoined(ev.fromUserId)}}}}
+}

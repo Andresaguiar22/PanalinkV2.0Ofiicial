@@ -1,0 +1,664 @@
+const express = require("express");
+const cors = require("cors");
+const multer = require("multer");
+const path = require("path");
+const fs = require("fs");
+const crypto = require("crypto");
+const jwt = require("jsonwebtoken");
+const { spawn } = require("child_process");
+
+const app = express();
+const PORT = process.env.PORT || 3000;
+
+// Security Limits
+const MAX_FILE_SIZE = 100 * 1024 * 1024; // 100 MB
+const MAX_FIELDS = 15;
+const MAX_FILES = 1;
+
+// --- MIDDLEWARE: SUPABASE JWT AUTHENTICATION ---
+function authUserMiddleware(req, res, next) {
+  // REQUIRE EXPLICIT SUPABASE SECRET - NO FALLBACK TO SIGNALING SECRET
+  const secret = process.env.SUPABASE_JWT_SECRET;
+  if (!secret) {
+    console.error("❌ SUPABASE_JWT_SECRET no configurado. El servidor no puede validar sesiones de usuario.");
+    return res.status(500).json({ error: "Error de configuración de seguridad en el servidor" });
+  }
+
+  let token = null;
+  const authHeader = req.headers.authorization;
+  if (authHeader && authHeader.startsWith("Bearer ")) {
+    token = authHeader.substring(7).trim();
+  }
+
+  if (!token) {
+    return res.status(401).json({ error: "Acceso denegado: Token de sesión ausente" });
+  }
+
+  try {
+    // ENFORCE HS256 ALGORITHM ONLY (STANDARD SUPABASE)
+    const decoded = jwt.verify(token, secret, {
+      algorithms: ["HS256"]
+    });
+
+    // EXCLUSIVELY USE 'sub' FOR IDENTITY
+    const userId = decoded.sub;
+    if (!userId) {
+      console.warn("⚠️ Token validado pero sin claim 'sub'. Rechazando.");
+      return res.status(401).json({ error: "Token inválido: Identidad de usuario no encontrada en 'sub'" });
+    }
+
+    // VALIDATE AUDIENCE (SUPABASE DEFAULT)
+    if (decoded.aud !== "authenticated") {
+      console.warn(`⚠️ Intento de acceso con audience inválida: ${decoded.aud}`);
+      return res.status(401).json({ error: "Token inválido: Audience no autorizada" });
+    }
+
+    // req.user.id is the authority
+    req.user = { id: userId, ...decoded };
+    next();
+  } catch (err) {
+    console.warn(`⚠️ Intento de acceso con token inválido: ${err.message}`);
+    // ALL ERRORS (EXPIRED, INVALID SIG, etc.) -> 401
+    return res.status(401).json({ error: "Sesión inválida o expirada" });
+  }
+}
+
+// --- HELPER: SECURE MIME VALIDATION VIA MAGIC BYTES (NO EXEC) ---
+function getMimeTypeByMagic(filePath, clientMime = null) {
+  try {
+    if (!fs.existsSync(filePath)) return null;
+    
+    const buffer = Buffer.alloc(32);
+    const fd = fs.openSync(filePath, "r");
+    const bytesRead = fs.readSync(fd, buffer, 0, 32, 0);
+    fs.closeSync(fd);
+
+    if (bytesRead < 4) return null;
+
+    // JPEG: FF D8 FF
+    if (buffer[0] === 0xFF && buffer[1] === 0xD8 && buffer[2] === 0xFF) return "image/jpeg";
+    
+    // PNG: 89 50 4E 47
+    if (buffer[0] === 0x89 && buffer[1] === 0x50 && buffer[2] === 0x4E && buffer[3] === 0x47) return "image/png";
+    
+    // GIF: 47 49 46 38
+    if (buffer[0] === 0x47 && buffer[1] === 0x49 && buffer[2] === 0x46 && buffer[3] === 0x38) return "image/gif";
+    
+    // PDF: 25 50 44 46
+    if (buffer[0] === 0x25 && buffer[1] === 0x50 && buffer[2] === 0x44 && buffer[3] === 0x46) return "application/pdf";
+    
+    // ZIP: 50 4B 03 04
+    if (buffer[0] === 0x50 && buffer[1] === 0x4B && buffer[2] === 0x03 && buffer[3] === 0x04) {
+      if (clientMime && (clientMime.includes("word") || clientMime.includes("excel") || clientMime.includes("officedocument") || clientMime.includes("sheet"))) {
+         return clientMime;
+      }
+      return "application/zip";
+    }
+    
+    // WEBP / WAV: RIFF container
+    if (buffer[0] === 0x52 && buffer[1] === 0x49 && buffer[2] === 0x46 && buffer[3] === 0x46) {
+      const type = buffer.toString("ascii", 8, 12);
+      if (type === "WEBP") return "image/webp";
+      if (type === "WAVE") return "audio/wav";
+    }
+
+    // OGG: OggS
+    if (buffer[0] === 0x4F && buffer[1] === 0x67 && buffer[2] === 0x67 && buffer[3] === 0x53) return "audio/ogg";
+
+    // MP4 / M4A / MOV / 3GP: ftyp at offset 4
+    if (buffer[4] === 0x66 && buffer[5] === 0x74 && buffer[6] === 0x79 && buffer[7] === 0x70) {
+      const brand = buffer.toString("ascii", 8, 12).trim();
+      
+      // Audio brands
+      if (brand === "m4a" || brand === "M4A" || brand === "M4B" || brand === "M4P" || brand === "dash") return "audio/mp4";
+      
+      // 3GP brands
+      if (brand.startsWith("3gp")) return "audio/3gpp";
+
+      // Video brands
+      if (brand === "qt") return "video/quicktime";
+      if (brand.startsWith("mp4") || brand === "isom" || brand === "iso2" || brand === "iso5" || brand === "iso6" || brand === "avc1") {
+        if (clientMime && clientMime.startsWith("audio/")) return "audio/mp4";
+        return "video/mp4";
+      }
+
+      // Trust client hint if ftyp is present
+      if (clientMime && (clientMime.startsWith("video/") || clientMime.startsWith("audio/"))) return clientMime;
+      return "video/mp4";
+    }
+
+    // MP3
+    if (buffer[0] === 0x49 && buffer[1] === 0x44 && buffer[2] === 0x33) return "audio/mpeg";
+    if (buffer[0] === 0xFF && (buffer[1] & 0xE0) === 0xE0) return "audio/mpeg";
+
+    // Legacy Office
+    if (buffer[0] === 0xD0 && buffer[1] === 0xCF && buffer[2] === 0x11 && buffer[3] === 0xE0) {
+      return clientMime || "application/msword";
+    }
+
+    return clientMime || null;
+  } catch (e) {
+    console.error("❌ Error en validación MIME:", e);
+    return clientMime;
+  }
+}
+
+// Centralized single source of truth for dynamic CDN URL
+let currentUrl = (process.env.APP_URL || "http://10.0.2.2:3000").replace(/\/$/, "");
+
+// Ensure PanalinkStorage directories exist
+const storageDir = path.join(__dirname, "PanalinkStorage");
+const foldersList = ["audio", "chat/temp", "documents", "images", "stickers", "videos"];
+foldersList.forEach(f => {
+  const dir = path.join(storageDir, f);
+  if (!fs.existsSync(dir)) {
+    fs.mkdirSync(dir, { recursive: true });
+  }
+});
+
+// Enable CORS and JSON parsing
+app.use(cors());
+app.use(express.json());
+
+// --- MIDDLEWARE: CDN AUTHENTICATION ---
+function authCdnMiddleware(req, res, next) {
+  const expectedToken = process.env.CDN_API_TOKEN;
+  if (!expectedToken) {
+    console.error("❌ CDN_API_TOKEN no está configurado en las variables de entorno del servidor.");
+    return res.status(500).json({ error: "Error de configuración de seguridad en el servidor CDN" });
+  }
+
+  let clientToken = null;
+  const authHeader = req.headers.authorization || req.headers["x-api-token"] || req.headers["x-cdn-token"];
+
+  if (authHeader && typeof authHeader === "string") {
+    if (authHeader.startsWith("Bearer ")) {
+      clientToken = authHeader.substring(7).trim();
+    } else {
+      clientToken = authHeader.trim();
+    }
+  } else if (req.query && (req.query.token || req.query.api_token)) {
+    const qToken = req.query.token || req.query.api_token;
+    if (typeof qToken === "string") {
+      clientToken = qToken.trim();
+    }
+  }
+
+  if (!clientToken) {
+    return res.status(401).json({ error: "Acceso denegado: Credencial ausente" });
+  }
+
+  // Constant-time comparison to prevent timing attacks
+  const clientBuf = Buffer.from(clientToken);
+  const expectedBuf = Buffer.from(expectedToken);
+
+  if (clientBuf.length !== expectedBuf.length || !crypto.timingSafeEqual(clientBuf, expectedBuf)) {
+    return res.status(403).json({ error: "Acceso denegado: Credencial incorrecta o malformada" });
+  }
+
+  next();
+}
+
+// --- HELPER: SAFE PATH RESOLUTION (PATH TRAVERSAL PROTECTION) ---
+function safeResolvePath(baseDir, fileParam, allowedSubdirs = []) {
+  if (!fileParam || typeof fileParam !== "string") {
+    return { error: "Parámetro inválido", path: null };
+  }
+
+  let decoded = fileParam;
+  try {
+    decoded = decodeURIComponent(fileParam);
+  } catch (e) {
+    return { error: "URI malformada", path: null };
+  }
+
+  // Detect path traversal signatures
+  const hasTraversal = /(\.\.|\/|\\|%2f|%5c|%2e)/i.test(fileParam) || /(\.\.|\/|\\)/.test(decoded);
+  const filename = path.basename(decoded);
+
+  if (hasTraversal || filename !== decoded || decoded.includes("..") || decoded.includes("\0")) {
+    return { error: "Intento de Path Traversal bloqueado", path: null, isTraversal: true };
+  }
+
+  const normalizedBase = path.resolve(baseDir);
+
+  for (const sub of [...allowedSubdirs, ""]) {
+    const candidate = path.resolve(normalizedBase, sub, filename);
+    if (candidate.startsWith(normalizedBase + path.sep)) {
+      if (fs.existsSync(candidate) && fs.statSync(candidate).isFile()) {
+        return { error: null, path: candidate };
+      }
+    }
+  }
+
+  return { error: "Archivo no encontrado", path: null };
+}
+
+// Configure Multer for temporary storage in chat/temp
+const storage = multer.diskStorage({
+  destination: (req, file, cb) => {
+    cb(null, path.join(storageDir, "chat", "temp"));
+  },
+  filename: (req, file, cb) => {
+    const safeOriginalName = path.basename(file.originalname).replace(/[^a-zA-Z0-9_\.-]/g, "_");
+    const isThumb = safeOriginalName.startsWith("thumb_");
+    const prefix = isThumb ? "" : "media-";
+    const ext = path.extname(safeOriginalName) || ".mp4";
+    const uniqueSuffix = Date.now() + "-" + Math.round(Math.random() * 1e9);
+
+    if (isThumb) {
+      const cleanName = safeOriginalName.replace(/\.[^/.]+$/, "");
+      cb(null, `${cleanName}_${uniqueSuffix}${ext}`);
+    } else {
+      cb(null, `${prefix}${uniqueSuffix}${ext}`);
+    }
+  }
+});
+const upload = multer({ 
+  storage,
+  limits: {
+    fileSize: MAX_FILE_SIZE,
+    fields: MAX_FIELDS,
+    files: MAX_FILES
+  }
+});
+
+// --- ENDPOINTS ---
+
+// 1. Root: Status & Navigation info
+app.get("/", (req, res) => {
+  res.json({
+    status: "online",
+    message: "Servidor de Control CDN para Panalink 🇻🇪",
+    cdn: {
+      active: true,
+      currentUrl: currentUrl
+    },
+    endpoints: {
+      status: "GET /cdn-status",
+      updateUrl: "GET /update-url?url=<nueva_url>",
+      upload: "POST /upload",
+      files: "GET /files",
+      video: "GET /video/:id"
+    }
+  });
+});
+
+// 2. CDN Status Endpoint
+app.get("/cdn-status", (req, res) => {
+  res.json({
+    active: true,
+    url: currentUrl
+  });
+});
+
+// 3. Manual/External Update Endpoint (Protected by CDN_API_TOKEN)
+app.get("/update-url", authCdnMiddleware, (req, res) => {
+  const url = req.query.url;
+  if (url) {
+    currentUrl = url.replace(/\/$/, "");
+    console.log("=========================================");
+    console.log("🟢 CDN Actualizado Manualmente:", currentUrl);
+    console.log("=========================================");
+    res.send(`OK - CDN actualizado a: ${currentUrl}`);
+  } else {
+    res.status(400).send("ERROR: Falta el parámetro 'url'");
+  }
+});
+
+// 4. File Upload (Required by Android UploadRepository)
+app.post("/upload", authUserMiddleware, upload.single("mediaFile"), async (req, res) => {
+  if (!req.file) {
+    return res.status(400).json({ error: "No se recibió ningún archivo" });
+  }
+
+  const tempPath = req.file.path;
+  const originalname = req.file.originalname || "unknown";
+  
+  // 1. Validate User Authorization
+  const bodyUserId = req.body.userId;
+  const authenticatedUserId = req.user.id;
+
+  if (bodyUserId && bodyUserId !== authenticatedUserId) {
+    console.warn(`🚨 Intento de suplantación: Usuario ${authenticatedUserId} intentó subir para ${bodyUserId}`);
+    if (fs.existsSync(tempPath)) fs.unlinkSync(tempPath);
+    return res.status(403).json({ error: "No tienes permiso para subir archivos en nombre de otro usuario" });
+  }
+
+  // 2. Validate MIME type via magic bytes
+  const clientMime = req.file.mimetype;
+  const detectedMime = getMimeTypeByMagic(tempPath, clientMime);
+  if (!detectedMime) {
+    console.error("❌ Falló la detección de MIME (tipo no soportado o archivo corrupto):", tempPath);
+    if (fs.existsSync(tempPath)) fs.unlinkSync(tempPath);
+    return res.status(400).json({ error: "Tipo de archivo no soportado o no se pudo validar" });
+  }
+
+  console.log(`🔍 Validación MIME: Enviado=${req.file.mimetype}, Detectado=${detectedMime}`);
+
+  // 3. Determine target folder and final extension
+  let targetFolder = "documents";
+  let finalExt = "";
+
+  if (detectedMime.startsWith("image/")) {
+    targetFolder = "images";
+    finalExt = detectedMime.split("/")[1].replace("jpeg", "jpg");
+  } else if (detectedMime.startsWith("video/") || detectedMime === "video/quicktime") {
+    targetFolder = "videos";
+    finalExt = detectedMime.split("/")[1].replace("quicktime", "mov");
+  } else if (detectedMime.startsWith("audio/")) {
+    targetFolder = "audio";
+    finalExt = detectedMime.split("/")[1].replace("mpeg", "mp3").replace("mp4", "m4a");
+  } else if (detectedMime.includes("sticker")) {
+    targetFolder = "stickers";
+    finalExt = "webp";
+  } else if (detectedMime === "application/pdf") {
+    targetFolder = "documents";
+    finalExt = "pdf";
+  } else if (detectedMime === "text/plain") {
+    targetFolder = "documents";
+    finalExt = "txt";
+  } else if (detectedMime === "application/zip") {
+    targetFolder = "documents";
+    finalExt = "zip";
+  } else {
+    targetFolder = "documents";
+    const originalExt = path.extname(originalname).toLowerCase().replace(".", "");
+    finalExt = originalExt || "bin";
+  }
+
+  // Sanitize final extension
+  finalExt = finalExt.replace(/[^a-z0-9]/g, "").substring(0, 5);
+  if (!finalExt) finalExt = "bin";
+
+  // 4. Secure File Naming (UUID)
+  const isThumb = path.basename(originalname).startsWith("thumb_");
+  const uniqueId = crypto.randomUUID();
+  const finalFilename = isThumb ? `thumb_${uniqueId}.${finalExt}` : `media-${uniqueId}.${finalExt}`;
+
+  const finalDest = path.join(storageDir, targetFolder, finalFilename);
+
+  // 5. Move to final destination
+  try {
+    fs.copyFileSync(tempPath, finalDest);
+    fs.unlinkSync(tempPath);
+  } catch (err) {
+    console.error("❌ Error al mover archivo a destino final:", err);
+    if (fs.existsSync(tempPath)) fs.unlinkSync(tempPath);
+    return res.status(500).json({ error: "Error interno al procesar el archivo" });
+  }
+
+  const mediaUrl = `${currentUrl}/video/${encodeURIComponent(finalFilename)}`;
+
+  console.log(`✅ Upload Seguro: ${finalFilename} (${targetFolder}) por usuario ${authenticatedUserId}`);
+
+  res.json({
+    success: true,
+    media_url: mediaUrl,
+    url: mediaUrl,
+    data: {
+      media_url: mediaUrl,
+      filename: finalFilename,
+      size: req.file.size,
+      folder: targetFolder,
+      mime: detectedMime
+    }
+  });
+});
+
+// 5. Get List of Files (Protected by CDN_API_TOKEN)
+app.get("/files", authCdnMiddleware, (req, res) => {
+  const folders = ["audio", "documents", "images", "stickers", "videos"];
+  const fileList = [];
+
+  folders.forEach(f => {
+    const dir = path.join(storageDir, f);
+    if (fs.existsSync(dir)) {
+      try {
+        const files = fs.readdirSync(dir);
+        files.forEach(file => {
+          const filePath = path.join(dir, file);
+          if (fs.statSync(filePath).isFile()) {
+            fileList.push({
+              filename: file,
+              folder: f,
+              url: `${currentUrl}/video/${encodeURIComponent(file)}`
+            });
+          }
+        });
+      } catch (e) {
+        console.error(`Error al leer carpeta ${f}:`, e);
+      }
+    }
+  });
+
+  res.json(fileList);
+});
+
+// 6. Video Stream with Full range-request support & Path Traversal Protection
+app.get("/video/:id", (req, res) => {
+  const result = safeResolvePath(storageDir, req.params.id, ["audio", "chat/temp", "documents", "images", "stickers", "videos"]);
+
+  if (result.isTraversal) {
+    console.warn(`🚨 Intento de Path Traversal bloqueado en GET /video: ${req.params.id}`);
+    return res.status(403).json({ error: "Acceso rechazado: Path Traversal detectado" });
+  }
+
+  if (!result.path) {
+    return res.status(404).send("Error: Archivo no encontrado");
+  }
+
+  res.sendFile(result.path);
+});
+
+// 7. Delete File from CDN (Protected by CDN_API_TOKEN & Path Traversal Protection)
+app.delete("/delete/:id", authCdnMiddleware, (req, res) => {
+  const result = safeResolvePath(storageDir, req.params.id, ["audio", "chat/temp", "documents", "images", "stickers", "videos"]);
+
+  if (result.isTraversal) {
+    console.warn(`🚨 Intento de Path Traversal bloqueado en DELETE /delete: ${req.params.id}`);
+    return res.status(403).json({ error: "Acceso rechazado: Path Traversal detectado" });
+  }
+
+  if (!result.path) {
+    return res.status(404).json({ error: "Archivo no encontrado" });
+  }
+
+  try {
+    fs.unlinkSync(result.path);
+    console.log(`🗑️ Archivo eliminado físicamente del CDN: ${req.params.id}`);
+    res.json({ success: true, message: "Archivo eliminado exitosamente del CDN" });
+  } catch (err) {
+    console.error(`Error al eliminar archivo del CDN:`, err);
+    res.status(500).json({ error: "No se pudo eliminar el archivo del servidor CDN" });
+  }
+});
+
+// --- CLOUDFLARED AUTO-TUNNEL INITIATION ---
+function startCloudflaredTunnel() {
+  console.log("⚡ Iniciando túnel de cloudflared como subproceso...");
+  const tunnel = spawn("cloudflared", ["tunnel", "--url", `http://localhost:${PORT}`]);
+
+  const handleOutput = (data) => {
+    const text = data.toString();
+    const match = text.match(/https:\/\/[a-z0-9-]+\.trycloudflare\.com/);
+    if (match) {
+      const detectedUrl = match[0];
+      if (currentUrl !== detectedUrl) {
+        currentUrl = detectedUrl;
+        console.log("\n=======================================================");
+        console.log("🌐 ¡TÚNEL DE CLOUDFLARED INICIADO Y DETECTADO CON ÉXITO!");
+        console.log("🔗 URL Pública Activa:", currentUrl);
+        console.log(`👉 Consulta el estado en: http://localhost:${PORT}/cdn-status`);
+        console.log("=======================================================\n");
+        updateSupabaseConfig(currentUrl);
+      }
+    }
+  };
+
+  async function updateSupabaseConfig(cdnUrl) {
+    const supabaseUrl = process.env.SUPABASE_URL;
+    const serviceRoleKey = process.env.SUPABASE_SERVICE_ROLE_KEY;
+
+    if (!supabaseUrl || !serviceRoleKey) {
+      console.warn("⚠️ SUPABASE_URL o SUPABASE_SERVICE_ROLE_KEY no configurados. Saltando actualización automática del CDN.");
+      return;
+    }
+
+    const retryDelays = [5000, 15000, 30000, 60000];
+    let attempt = 0;
+
+    while (attempt <= retryDelays.length) {
+      try {
+        // 1. PATCH request
+        const res = await fetch(`${supabaseUrl}/rest/v1/global_server_config?id=eq.1`, {
+          method: 'PATCH',
+          headers: {
+            'Content-Type': 'application/json',
+            'apikey': serviceRoleKey,
+            'Authorization': `Bearer ${serviceRoleKey}`
+          },
+          body: JSON.stringify({ cdn_url: cdnUrl, active: true, updated_at: new Date().toISOString() })
+        });
+
+        const status = res.status;
+        if (!res.ok && status !== 204) {
+          console.error(`❌ CDN_SUPABASE_UPDATE_FAILED: HTTP ${status} para URL ${cdnUrl}. Respuesta:`, await res.text());
+          throw new Error(`HTTP ${status}`);
+        }
+
+        // 2. GET request to verify
+        const verifyRes = await fetch(`${supabaseUrl}/rest/v1/global_server_config?id=eq.1&select=cdn_url`, {
+          method: 'GET',
+          headers: {
+            'apikey': serviceRoleKey,
+            'Authorization': `Bearer ${serviceRoleKey}`
+          }
+        });
+
+        const verifyStatus = verifyRes.status;
+        if (!verifyRes.ok) {
+          console.error(`❌ Falló la verificación GET: HTTP ${verifyStatus}`);
+          throw new Error(`GET HTTP ${verifyStatus}`);
+        }
+
+        const data = await verifyRes.json();
+        const remoteUrl = data && data[0] && data[0].cdn_url;
+
+        if (remoteUrl === cdnUrl) {
+          console.log("✅ CDN URL CONFIRMADA EN SUPABASE");
+          console.log(`Cloudflared URL detected: YES`);
+          console.log(`Current URL: ${cdnUrl}`);
+          console.log(`PATCH global_server_config: HTTP ${status}`);
+          console.log(`GET verification: HTTP ${verifyStatus}`);
+          console.log(`Supabase cdn_url matches currentUrl: YES`);
+          return; // Success, exit retry loop
+        } else {
+          console.error(`❌ Discrepancia en verificación. Local: ${cdnUrl}, Remoto: ${remoteUrl}`);
+          throw new Error("Verification mismatch");
+        }
+
+      } catch (e) {
+        if (attempt < retryDelays.length) {
+          const delay = retryDelays[attempt];
+          console.log(`⏳ Reintentando en ${delay / 1000}s... (Intento ${attempt + 1}/${retryDelays.length})`);
+          await new Promise(resolve => setTimeout(resolve, delay));
+          attempt++;
+        } else {
+          console.error("❌ Fallaron todos los intentos de actualizar Supabase con la nueva URL.");
+          break;
+        }
+      }
+    }
+  }
+
+  let spawnFailed = false;
+  tunnel.stdout.on("data", handleOutput);
+  tunnel.stderr.on("data", handleOutput);
+
+  tunnel.on("close", (code) => {
+    console.log(`⚠️ Proceso de cloudflared terminado con código: ${code}`);
+    if (spawnFailed) {
+      console.log("No se reintentará iniciar cloudflared porque el binario no existe en este entorno.");
+      return;
+    }
+    console.log("Se intentará reiniciar en 10 segundos...");
+    setTimeout(startCloudflaredTunnel, 10000);
+  });
+
+  tunnel.on("error", (err) => {
+    if (err.code === "ENOENT") {
+      spawnFailed = true;
+    }
+    console.warn("❌ No se pudo ejecutar cloudflared automáticamente:", err.message);
+  });
+}
+
+// Integrate Socket.IO with existing Express server on the same port
+const http = require("http");
+const { Server } = require("socket.io");
+const server = http.createServer(app);
+const io = new Server(server, {
+  cors: {
+    origin: "*",
+    methods: ["GET", "POST"]
+  }
+});
+
+// --- SOCKET.IO JWT AUTHENTICATION MIDDLEWARE ---
+io.use((socket, next) => {
+  const secret = process.env.SOCKET_JWT_SECRET;
+  if (!secret) {
+    console.error("❌ SOCKET_JWT_SECRET no configurado en variables de entorno.");
+    return next(new Error("Authentication error: Server secret not configured"));
+  }
+
+  const auth = socket.handshake.auth || {};
+  let token = auth.token || auth.jwt || socket.handshake.headers?.authorization;
+
+  if (typeof token === "string" && token.startsWith("Bearer ")) {
+    token = token.substring(7).trim();
+  }
+
+  if (!token || typeof token !== "string") {
+    console.warn(`❌ Intento de conexión Socket.IO rechazado: Token ausente (${socket.id})`);
+    return next(new Error("Authentication error: Token missing"));
+  }
+
+  try {
+    const decoded = jwt.verify(token, secret, {
+      algorithms: ["HS256"]
+    });
+
+    const userId = decoded.sub;
+
+    if (!userId || typeof userId !== "string" || userId.trim() === "") {
+      console.warn(`❌ Intento de conexión Socket.IO rechazado: Claim 'sub' inválido (${socket.id})`);
+      return next(new Error("Authentication error: Invalid token claims (sub missing)"));
+    }
+
+    socket.data.userId = userId.trim();
+    socket.data.userClaim = decoded;
+    console.log(`🔑 Socket.IO autenticado con éxito: socket=${socket.id}, userId=${socket.data.userId}`);
+    next();
+  } catch (err) {
+    console.warn(`❌ Intento de conexión Socket.IO rechazado: ${err.message} (${socket.id})`);
+    if (err.name === "TokenExpiredError") {
+      return next(new Error("Authentication error: Token expired"));
+    }
+    return next(new Error("Authentication error: Invalid token signature or format"));
+  }
+});
+
+const socketEvents = require("./socket/events");
+io.on("connection", (socket) => {
+  console.log(`🔌 Nuevo socket conectado: ${socket.id} (usuario ${socket.data.userId})`);
+  socketEvents(io, socket);
+});
+
+// Start Server
+server.listen(PORT, () => {
+  console.log(`🚀 Servidor Express y Socket.IO iniciado en el puerto ${PORT}`);
+  startCloudflaredTunnel();
+});
+
