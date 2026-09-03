@@ -17,11 +17,11 @@ interface MessageDao {
     @Query("SELECT * FROM local_messages WHERE chatId = :chatId AND (:oldestTimestamp IS NULL OR createdAt < :oldestTimestamp) ORDER BY createdAt DESC LIMIT :limit")
     suspend fun getMessagesForChatPaged(chatId: String, limit: Int, oldestTimestamp: String?): List<MessageEntity>
 
-    // Outgoing queue: all transient states are eligible for background retry.
-    // "failed" is NOT terminal for multimedia con archivo local existente: el sync
-    // lo revivira a sending y re-encolara el upload (fallos transitorios de red/CDN/B2).
-    // Solo queda "failed" cuando el archivo local se pierde (irrecuperable definitivamente.
-    @Query("SELECT DISTINCT local_messages.* FROM local_messages LEFT JOIN local_chats ON local_messages.chatId = local_chats.id WHERE local_messages.status IN ('sending', 'pending', 'pending_media', 'failed') AND (local_chats.id IS NULL OR local_chats.id = local_messages.chatId) ORDER BY local_messages.createdAt ASC")
+    // Outgoing queue: only active transient states ('sending', 'pending', 'pending_media')
+    // are eligible for automatic background sync retry.
+    // 'failed' is a terminal state for the automatic sync cycle and must NOT be retried
+    // automatically. It can only be revived back to 'sending' via an explicit manual retry.
+    @Query("SELECT DISTINCT local_messages.* FROM local_messages LEFT JOIN local_chats ON local_messages.chatId = local_chats.id WHERE local_messages.status IN ('sending', 'pending', 'pending_media') AND (local_chats.id IS NULL OR local_chats.id = local_messages.chatId) ORDER BY local_messages.createdAt ASC")
     suspend fun getPendingMessages(): List<MessageEntity>
 
     @Query("SELECT DISTINCT chatId FROM local_messages")
