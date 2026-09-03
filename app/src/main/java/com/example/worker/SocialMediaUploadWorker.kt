@@ -118,11 +118,14 @@ class SocialMediaUploadWorker(
                         onProgress = progressCb
                     )
                 } else {
+                    val ext = if (finalUploadFile.name.contains(".")) finalUploadFile.name.substringAfterLast(".") else "bin"
+                    val stableFileName = "social_${entity.id}_${entity.uploadType.lowercase()}.$ext"
                     UploadFailoverRouter.uploadWithFailover(
                         file = finalUploadFile,
                         mimeType = entity.mimeType,
                         userId = currentUid,
                         uploadType = entity.uploadType,
+                        customFileName = stableFileName,
                         onProgress = progressCb
                     ) { progress ->
                         UploadRepository().uploadVideo(
@@ -130,6 +133,7 @@ class SocialMediaUploadWorker(
                             mediaMimeType = entity.mimeType,
                             caption = captionForUpload,
                             userId = currentUid,
+                            stableFileName = stableFileName,
                             onProgress = progress
                         )
                     }

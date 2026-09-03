@@ -199,6 +199,13 @@ class PanalinkRealtimeService : Service() {
                 Log.d(TAG, "Subscribing to SupabaseClient.realtimeNotifications flow...")
                 SupabaseClient.realtimeNotifications.collect { dto ->
                     try {
+                        if (!dto.id.isNullOrEmpty()) {
+                            val notifKey = "notif_${dto.id}"
+                            if (!NotificationDeduplicator.shouldNotifyGeneric(notifKey)) {
+                                Log.d(TAG, "Realtime notification $notifKey already handled, skipping.")
+                                return@collect
+                            }
+                        }
                         val finalProfile = if (!dto.actorId.isNullOrEmpty()) {
                             val pubRepo = com.example.data.repository.PublicProfileRepository.getInstance(applicationContext)
                             val result = pubRepo.getPublicProfile(dto.actorId)
@@ -265,9 +272,14 @@ class PanalinkRealtimeService : Service() {
 
             if (isChatActive) {
                 // User is actively reading this chat. Only play the sutil active chat sound (no status bar pop)
+                NotificationDeduplicator.markAsNotified(msg.clientMessageUuid, msg.id)
                 NotificationHelper.playActiveChatSound(this@PanalinkRealtimeService)
                 Log.d(TAG, "User is actively reading this chat. Skipping system notification pop, sutil active chat sound played.")
             } else {
+                if (!NotificationDeduplicator.shouldNotifyMessage(msg.clientMessageUuid, msg.id)) {
+                    Log.d(TAG, "Realtime message already notified/deduplicated (uuid=${msg.clientMessageUuid}, id=${msg.id}). Suppressed.")
+                    return@launch
+                }
                 // Load sender profile avatar if possible to use in MessagingStyle
                 val decryptedMsg = com.example.util.CryptoManager.decryptMessageIfNeeded(msg)
                 val bodyText = (if (decryptedMsg.messageType == "sticker") "[Sticker]" else decryptedMsg.content) ?: "Nuevo mensaje"

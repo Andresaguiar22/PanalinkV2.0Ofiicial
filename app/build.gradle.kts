@@ -48,7 +48,7 @@ android {
         // Giphy: la API key se inyecta en build time (env/secrets.properties);
         // el fallback legacy conserva el comportamiento actual mientras no se configure.
 
-        val giphyApiKey = System.getenv("GIPHY_API_KEY") ?: secrets.getProperty("GIPHY_API_KEY") ?: "t8xzuvPe8NkWYQgPzfDSLa4RMoUVj5ai"
+        val giphyApiKey = System.getenv("GIPHY_API_KEY") ?: secrets.getProperty("GIPHY_API_KEY") ?: ""
         buildConfigField("String", "GIPHY_API_KEY", "\"$giphyApiKey\"")
     }
 

@@ -48,6 +48,8 @@ class MediaUploadWorker(
         }
 
         return try {
+            val stableUuid = entity.clientMessageUuid?.takeIf { it.isNotBlank() } ?: entity.id
+
             // Album de imagenes: el entity junta los paths locales con ",".
             // Subimos cada uno y guardamos las URLs remotas tambien con ",".
             if (entity.messageType == "image" && localUri.contains(",")) {
@@ -56,32 +58,36 @@ class MediaUploadWorker(
                 val remoteUrls = mutableListOf<String>()
                 val uploadedPaths = mutableListOf<String>()
                 var remoteThumb: String? = null
-                for (path in allPaths) {
+                allPaths.forEachIndexed { index, path ->
                     val albumFile = File(path)
-                    if (!albumFile.exists()) continue
-                    val mime = detectImageMime(albumFile)
-                    val res = UploadFailoverRouter.uploadWithFailover(
-                        file = albumFile,
-                        mimeType = mime,
-                        userId = entity.senderId,
-                        uploadType = "image"
-                    ) {
-                        PanalinkMediaManager.uploadMediaAndThumbnail(
-                            context = context,
-                            mediaFile = albumFile,
+                    if (albumFile.exists()) {
+                        val mime = detectImageMime(albumFile)
+                        val stableKey = "${stableUuid}_$index"
+                        val ext = if (albumFile.name.contains(".")) albumFile.name.substringAfterLast(".") else "jpg"
+                        val stableFileName = "${stableKey}.$ext"
+                        val res = UploadFailoverRouter.uploadWithFailover(
+                            file = albumFile,
                             mimeType = mime,
-                            typeLabel = "image",
                             userId = entity.senderId,
-                            caption = entity.content ?: "Album image"
-                        )
-                    }
-                    if (res.isSuccess) {
-                        remoteUrls += res.getOrThrow().url
-                        if (remoteThumb == null) remoteThumb = res.getOrThrow().thumbnailUrl
-                        uploadedPaths += path
-                    }
-                    else {
-                        Log.e(TAG, "Album image upload failed: ${res.exceptionOrNull()?.message}")
+                            uploadType = "image",
+                            customFileName = stableFileName
+                        ) {
+                            PanalinkMediaManager.uploadMediaAndThumbnail(
+                                context = context,
+                                mediaFile = albumFile,
+                                mimeType = mime,
+                                typeLabel = "image",
+                                userId = entity.senderId,
+                                caption = entity.content ?: "Album image"
+                            )
+                        }
+                        if (res.isSuccess) {
+                            remoteUrls += res.getOrThrow().url
+                            if (remoteThumb == null) remoteThumb = res.getOrThrow().thumbnailUrl
+                            uploadedPaths += path
+                        } else {
+                            Log.e(TAG, "Album image upload failed: ${res.exceptionOrNull()?.message}")
+                        }
                     }
                 }
 
@@ -130,7 +136,11 @@ class MediaUploadWorker(
             val mimeType = entity.mediaMime ?: "application/octet-stream"
             val typeLabel = entity.messageType ?: "text"
             val userId = entity.senderId
-            Log.i(TAG, "Processing and uploading $typeLabel ($mimeType), size=${file.length()} bytes")
+            val stableKey = "${stableUuid}_0"
+            val ext = if (file.name.contains(".")) file.name.substringAfterLast(".") else "bin"
+            val stableFileName = "${stableKey}.$ext"
+
+            Log.i(TAG, "Processing and uploading $typeLabel ($mimeType), size=${file.length()} bytes, stableKey=$stableKey")
             Log.i(TAG, "Attempting upload with failover router...")
 
             // Failover total para TODO tipo de media: CDN primero (conserva thumbnails
@@ -152,6 +162,7 @@ class MediaUploadWorker(
                 mimeType = mimeType,
                 userId = userId,
                 uploadType = typeLabel,
+                customFileName = stableFileName,
                 onProgress = progressCb
             ) {
                 PanalinkMediaManager.uploadMediaAndThumbnail(

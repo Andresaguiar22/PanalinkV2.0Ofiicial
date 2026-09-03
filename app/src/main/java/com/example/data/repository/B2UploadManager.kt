@@ -42,6 +42,7 @@ object B2UploadManager {
         mimeType: String,
         userId: String,
         uploadType: String,
+        customFileName: String? = null,
         onProgress: ((Long, Long) -> Unit)? = null
     ): Result<UploadMediaResult> = withContext(Dispatchers.IO) {
         if (!file.exists() || file.length() <= 0L) {
@@ -61,7 +62,7 @@ object B2UploadManager {
                 return@withContext Result.failure(Exception("B2: usuario no autenticado"))
             }
 
-            val presignResult = doPresign(file, mimeType, userId, uploadType, token, onProgress)
+            val presignResult = doPresign(file, mimeType, userId, uploadType, token, customFileName, onProgress)
             if (presignResult.isFailure) {
                 val err = presignResult.exceptionOrNull()?.message.orEmpty()
                 // 401 = JWT expirado; refrescar y reintentar una vez.
@@ -72,7 +73,7 @@ object B2UploadManager {
                     if (refreshed) {
                         val newToken = SessionManager.getUserAuthToken() ?: SupabaseClient.currentToken
                         if (!newToken.isNullOrBlank()) {
-                            val retryResult = doPresign(file, mimeType, userId, uploadType, newToken, onProgress)
+                            val retryResult = doPresign(file, mimeType, userId, uploadType, newToken, customFileName, onProgress)
                             if (retryResult.isFailure) {
                                 return@withContext Result.failure(retryResult.exceptionOrNull()
                                     ?: Exception("B2 presign fallo tras refrescar JWT"))
@@ -98,11 +99,12 @@ object B2UploadManager {
         userId: String,
         uploadType: String,
         token: String,
+        customFileName: String? = null,
         onProgress: ((Long, Long) -> Unit)? = null
     ): Result<UploadMediaResult> = withContext(Dispatchers.IO) {
         val endpoint = SupabaseClient.supabaseUrl.trimEnd('/') + FUNCTION
         val requestBody = JSONObject().apply {
-            put("fileName", file.name)
+            put("fileName", customFileName ?: file.name)
             put("mimeType", mimeType)
             put("size", file.length())
             put("uploadType", uploadType)

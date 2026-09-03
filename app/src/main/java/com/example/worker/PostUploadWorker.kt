@@ -75,9 +75,10 @@ class PostUploadWorker(
 
                 val mimeType = context.contentResolver.getType(uri) ?: "application/octet-stream"
                 if (mediaKind == null) mediaKind = kindForMime(mimeType)
-                val prefix = tempFile.name.substringBeforeLast(".")
+                val ext = if (tempFile.name.contains(".")) tempFile.name.substringAfterLast(".") else "bin"
+                val stableFileName = "post_${pendingPostId}_$index.$ext"
 
-                Log.d(TAG, "Uploading file $tempFile with mimeType $mimeType")
+                Log.d(TAG, "Uploading file $tempFile with mimeType $mimeType, stableFileName $stableFileName")
                 // Failover total: CDN primero; si falla, B2 (aplica a TODO tipo de media).
                 // VCDN (proxy edge function) para video PUBLICO del muro; el resto de
                 // media del post sigue por UploadFailoverRouter (B2/CDN) sin tocarlo.
@@ -99,28 +100,29 @@ class PostUploadWorker(
                     )
                 } else {
                     com.example.data.repository.UploadFailoverRouter.uploadWithFailover(
-                    file = tempFile,
-                    mimeType = mimeType,
-                    userId = effectiveUserId,
-                    uploadType = "POST",
-                    onProgress = { bytes, total ->
-                        val itemProgress = bytes.toFloat() / total.toFloat().coerceAtLeast(1f)
-                        val totalProgress = (index + itemProgress) / totalItems
-                        UploadRepository.setGlobalProgress(totalProgress)
-                        kotlinx.coroutines.runBlocking {
-                            pendingPostDao.updateStatusAndProgress(pendingPostId, "uploading", totalProgress)
+                        file = tempFile,
+                        mimeType = mimeType,
+                        userId = effectiveUserId,
+                        uploadType = "POST",
+                        customFileName = stableFileName,
+                        onProgress = { bytes, total ->
+                            val itemProgress = bytes.toFloat() / total.toFloat().coerceAtLeast(1f)
+                            val totalProgress = (index + itemProgress) / totalItems
+                            UploadRepository.setGlobalProgress(totalProgress)
+                            kotlinx.coroutines.runBlocking {
+                                pendingPostDao.updateStatusAndProgress(pendingPostId, "uploading", totalProgress)
+                            }
                         }
+                    ) { progress ->
+                        uploadRepository.uploadVideo(
+                            mediaFile = tempFile,
+                            mediaMimeType = mimeType,
+                            caption = "Feed Post Media",
+                            userId = pendingPost.userId,
+                            stableFileName = stableFileName,
+                            onProgress = progress
+                        )
                     }
-                ) { progress ->
-                    uploadRepository.uploadVideo(
-                        mediaFile = tempFile,
-                        mediaMimeType = mimeType,
-                        caption = "Feed Post Media",
-                        userId = pendingPost.userId,
-                        fileNamePrefix = prefix,
-                        onProgress = progress
-                    )
-                }
                 }
 
                 tempFile.delete()

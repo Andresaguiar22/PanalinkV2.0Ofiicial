@@ -98,14 +98,17 @@ class PanalinkFirebaseMessagingService : FirebaseMessagingService() {
 
                 val notificationTitle = remoteMessage.notification?.title ?: remoteMessage.data["title"] ?: "Pana 💬"
                 val notificationBody = remoteMessage.notification?.body ?: remoteMessage.data["body"] ?: "Nueva notificación recibida"
-                val chatId = remoteMessage.data["chat_id"] ?: remoteMessage.data["chatId"] ?: ""
-                val stateId = remoteMessage.data["state_id"] ?: remoteMessage.data["stateId"] ?: ""
-                val notificationType = remoteMessage.data["notification_type"] ?: remoteMessage.data["notificationType"] ?: "new_message"
-                val thumbnailUrl = remoteMessage.data["thumbnail_url"] ?: remoteMessage.data["thumbnailUrl"]
-                val mediaUrl = remoteMessage.data["media_url"] ?: remoteMessage.data["mediaUrl"]
-                val senderAvatar = remoteMessage.data["sender_avatar"] ?: remoteMessage.data["senderAvatar"]
+                val chatId = remoteMessage.data["chat_id"] ?: remoteMessage.data["chatId"] ?: remoteMessage.data["p_chat_id"] ?: remoteMessage.data["thread_id"] ?: remoteMessage.data["threadId"] ?: ""
+                val stateId = remoteMessage.data["state_id"] ?: remoteMessage.data["stateId"] ?: remoteMessage.data["p_state_id"] ?: ""
+                val notificationType = remoteMessage.data["notification_type"] ?: remoteMessage.data["notificationType"] ?: remoteMessage.data["p_notification_type"] ?: "new_message"
+                val thumbnailUrl = remoteMessage.data["thumbnail_url"] ?: remoteMessage.data["thumbnailUrl"] ?: remoteMessage.data["p_thumbnail_url"]
+                val mediaUrl = remoteMessage.data["media_url"] ?: remoteMessage.data["mediaUrl"] ?: remoteMessage.data["p_media_url"]
+                val senderAvatar = remoteMessage.data["sender_avatar"] ?: remoteMessage.data["senderAvatar"] ?: remoteMessage.data["p_sender_avatar"]
+                val clientMessageUuid = remoteMessage.data["client_message_uuid"] ?: remoteMessage.data["clientMessageUuid"] ?: remoteMessage.data["p_client_message_uuid"]
+                val messageId = remoteMessage.data["message_id"] ?: remoteMessage.data["messageId"] ?: remoteMessage.data["id"] ?: remoteMessage.data["p_message_id"]
+                val notificationId = remoteMessage.data["notification_id"] ?: remoteMessage.data["notificationId"] ?: remoteMessage.data["p_notification_id"]
 
-                val isChatMuted = if (chatId.isNotEmpty() && notificationType == "new_message") {
+                val isChatMuted = if (chatId.isNotEmpty() && (notificationType == "new_message" || notificationType == "chat_message")) {
                     try {
                         val db = com.example.data.database.PanalinkDatabase.getDatabase(applicationContext)
                         db.chatDao().getChatById(chatId)?.isMuted == true
@@ -117,15 +120,23 @@ class PanalinkFirebaseMessagingService : FirebaseMessagingService() {
                     return@launch
                 }
 
-                val isChatActive = notificationType == "new_message" &&
+                val isChatActive = (notificationType == "new_message" || notificationType == "chat_message") &&
                         SupabaseClient.isChatScreenActive &&
                         SupabaseClient.activeChatId == chatId
 
                 if (isChatActive) {
+                    NotificationDeduplicator.markAsNotified(clientMessageUuid, messageId)
                     NotificationHelper.playActiveChatSound(applicationContext)
                     Log.d(TAG, "Active chat: skipping system notification pop.")
-                } else if (notificationType == "new_message") {
-                    val senderId = remoteMessage.data["sender_id"] ?: remoteMessage.data["senderId"] ?: ""
+                    return@launch
+                }
+
+                if (notificationType == "new_message" || notificationType == "chat_message") {
+                    if (!NotificationDeduplicator.shouldNotifyMessage(clientMessageUuid, messageId)) {
+                        Log.d(TAG, "FCM message already notified/deduplicated (uuid=$clientMessageUuid, id=$messageId). Suppressed.")
+                        return@launch
+                    }
+                    val senderId = remoteMessage.data["sender_id"] ?: remoteMessage.data["senderId"] ?: remoteMessage.data["p_sender_id"] ?: ""
                     // Stash sender_id in the notification extras so tapping the
                     // notification opens the correct chat with the right contact
                     // profile (otherwise "unknown" leaves the header blank).
@@ -136,14 +147,20 @@ class PanalinkFirebaseMessagingService : FirebaseMessagingService() {
                     }
                     PanaLinkNotificationManager.showChatNotification(
                         context = applicationContext,
-                        senderName = remoteMessage.data["sender_name"] ?: remoteMessage.data["senderName"] ?: "",
-                        senderAvatarUrl = remoteMessage.data["sender_avatar"] ?: remoteMessage.data["senderAvatar"],
+                        senderName = remoteMessage.data["sender_name"] ?: remoteMessage.data["senderName"] ?: remoteMessage.data["p_sender_name"] ?: "",
+                        senderAvatarUrl = senderAvatar,
                         messageText = notificationBody,
                         chatId = chatId,
                         senderId = senderId,
                         extras = notifExtras
                     )
                 } else {
+                    val genericKey = notificationId?.takeIf { it.isNotEmpty() }?.let { "notif_$it" }
+                        ?: "${notificationType}_${chatId}_${stateId}"
+                    if (!NotificationDeduplicator.shouldNotifyGeneric(genericKey)) {
+                        Log.d(TAG, "FCM generic notification already processed ($genericKey). Suppressed.")
+                        return@launch
+                    }
                     val channelId = when (notificationType) {
                         "new_story", "new_reel" -> NotificationHelper.CHANNEL_ALERTS
                         "system_news", "app_update", "new_content" -> NotificationHelper.CHANNEL_ALERTS
