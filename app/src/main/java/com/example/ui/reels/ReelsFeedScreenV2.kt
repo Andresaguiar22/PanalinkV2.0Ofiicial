@@ -58,6 +58,7 @@ import com.example.data.model.Comment
 import com.example.data.model.UserStateWithUser
 import com.example.data.repository.CdnManager
 import com.example.data.video.CacheDataSourceFactory
+import com.example.ui.components.PanaAvatar
 import com.example.ui.viewmodel.ReelsUiState
 import com.example.ui.viewmodel.ReelsViewModel
 import kotlinx.coroutines.delay
@@ -406,11 +407,13 @@ private fun ReelsPageV2(
         }
         Column(Modifier.align(Alignment.BottomStart).navigationBarsPadding().padding(start = 16.dp, end = 90.dp, bottom = 34.dp)) {
             Row(verticalAlignment = Alignment.CenterVertically) {
-                Surface(shape = CircleShape, color = Color.White.copy(alpha = .18f), modifier = Modifier.size(40.dp).clickable(onClick = onProfile)) {
-                    Box(contentAlignment = Alignment.Center) {
-                        Text(reel.profile?.displayName?.firstOrNull()?.uppercase() ?: "P", color = Color.White, fontWeight = FontWeight.Bold)
-                    }
-                }
+                PanaAvatar(
+                    avatarUrl = reel.profile?.avatarUrl,
+                    userId = reel.state.userId,
+                    placeholderName = reel.profile?.displayName,
+                    size = 40.dp,
+                    modifier = Modifier.clickable(onClick = onProfile)
+                )
                 Spacer(Modifier.width(9.dp))
                 Text("@${reel.profile?.displayName?.ifBlank { "pana" } ?: "pana"}", color = Color.White, style = MaterialTheme.typography.titleMedium, fontWeight = FontWeight.Bold, modifier = Modifier.clickable(onClick = onProfile))
             }

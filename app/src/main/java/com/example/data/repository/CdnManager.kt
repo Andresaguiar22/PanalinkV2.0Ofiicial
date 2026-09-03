@@ -25,7 +25,7 @@ object CdnManager {
 
     private val MEDIA_PATH_MARKERS = listOf(
         "/video/", "/files/", "/documents/", "/uploads/",
-        "/images/", "/avatars/", "/audios/"
+        "/images/", "/audios/"
     )
 
     @Volatile private var cachedCdnUrl: String? = null
@@ -314,7 +314,7 @@ object CdnManager {
             else -> "$storageBase/avatars/${trimmed.removePrefix("/")}"
         }
 
-        // Pass through CDN resolver to ensure avatars also benefit from CDN caching/acceleration
-        return if (absolute != null) resolveMediaUrlSync(absolute) else null
+        // Avatars are served from Supabase Storage / B2 origin and must never be rewritten to vCDN
+        return absolute
     }
 }
