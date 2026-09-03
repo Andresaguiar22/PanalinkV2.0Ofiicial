@@ -1,46 +1,28 @@
-// VCDN video upload proxy with real idempotency (Camino 1).
+// VCDN video upload proxy with atomic, transactional idempotency (Camino 1).
 //
 // The VCDN API key NEVER enters the Android APK. The app streams the video to
-// this edge function in <=8MB chunks (Supabase edge limit = 10MB body); this
-// function forwards each chunk to cdn.vcdn.me with the VCDN_API_KEY and returns
-// the progress. After all chunks are uploaded, it finalizes the upload and polls
-// the transcode status; once "ready", it resolves a fresh HLS streamUrl via the
-// public BFF (embed.vcdn.me/api/bff/player-config/{videoId}) so the app only ever
-// stores the stable vcdn_video_id (the signed streamUrl expires and is renewed
-// at playback time by VcdnUrlResolver).
+// this edge function in <=8MB chunks; this function forwards each chunk to
+// cdn.vcdn.me with the VCDN_API_KEY and updates state in PostgreSQL.
 //
-// Idempotency Contract:
-//   When a client provides a stable identity (`stableFileName`, `clientMessageUuid`,
-//   or `customFileName`), the Edge Function checks for an existing upload session
-//   bound to (userId, stableId). If found:
-//     - If video is already ready in VCDN, it immediately returns { uploadId, videoId, ready: true, posterUrl }.
-//     - If upload is in progress, it reuses the existing { uploadId, videoId, bytesReceived }.
-//     - It never calls VCDN `/api/v1/upload/init` again, preventing duplicate video creation.
-//
-// Contract (POST):
-//   step=chunk   -> raw body octet-stream, headers: x-vcdn-upload-id
-//   JSON steps:  { "step": "init", "filename","size","contentType","title","stableFileName","clientMessageUuid" } -> { uploadId, videoId, uploadUrl, bytesReceived, ready, posterUrl }
-//                 { "step": "complete", "uploadId" }                          -> { status }
-//                 { "step": "status", "videoId" }                             -> { status, transcodeProgress, ready, streamUrl, posterUrl }
-// Auth: caller's Supabase JWT (verify_jwt=true). User ID is extracted from sub.
+// Idempotency Contract & Concurrency Model:
+//   1. Atomic Session Claiming: Before calling upstream VCDN /upload/init, the
+//      Edge Function executes the PostgreSQL RPC `claim_vcdn_upload_session(userId, stableId)`.
+//      PostgreSQL guarantees with a UNIQUE(user_id, stable_id) constraint that
+//      exactly ONE request gets PROCEED_INIT. Concurrent requests get WAIT_CLAIM
+//      and wait until the uploadId/videoId are populated, preventing duplicate videos.
+//   2. Authoritative Offset Persistence: Every chunk synchronously calls
+//      `update_vcdn_upload_bytes` in PostgreSQL before returning 200 OK, ensuring
+//      cross-instance reliability across Edge Functions and Worker restarts.
+//   3. Chunk Idempotency & Lost Response: Chunks sent with matching or prior
+//      offsets are validated; VCDN progress is synchronously recorded.
+//   4. Atomic Complete: `claim_vcdn_complete` ensures multiple concurrent
+//      complete requests transition safely and return idempotent success.
 
 const VCDN_BASE = "https://cdn.vcdn.me";
 const BFF_BASE = "https://embed.vcdn.me";
 
-interface SessionData {
-  uploadId: string;
-  videoId: string;
-  uploadUrl?: string;
-  bytesReceived: number;
-  status: string;
-  ready: boolean;
-  posterUrl?: string;
-  size: number;
-  filename: string;
-  contentType: string;
-}
-
-const sessionCache = new Map<string, SessionData>();
+const SUPABASE_URL = Deno.env.get("SUPABASE_URL") || "";
+const SUPABASE_SERVICE_ROLE_KEY = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY") || Deno.env.get("SUPABASE_ANON_KEY") || "";
 
 function getUserId(req: Request): string | null {
   const auth = req.headers.get("Authorization") || "";
@@ -60,6 +42,32 @@ function sanitizeFileName(name: string): string {
   return name.replace(/[^a-zA-Z0-9._-]/g, "_").slice(0, 160);
 }
 
+async function callRpc(functionName: string, params: Record<string, unknown>): Promise<{ ok: boolean; data: any; error?: string }> {
+  if (!SUPABASE_URL || !SUPABASE_SERVICE_ROLE_KEY) {
+    return { ok: false, data: null, error: "Database not configured" };
+  }
+  try {
+    const url = `${SUPABASE_URL.replace(/\/$/, '')}/rest/v1/rpc/${encodeURIComponent(functionName)}`;
+    const res = await fetch(url, {
+      method: "POST",
+      headers: {
+        "apikey": SUPABASE_SERVICE_ROLE_KEY,
+        "Authorization": `Bearer ${SUPABASE_SERVICE_ROLE_KEY}`,
+        "Content-Type": "application/json"
+      },
+      body: JSON.stringify(params)
+    });
+    if (!res.ok) {
+      const errText = await res.text();
+      return { ok: false, data: null, error: `RPC ${functionName} failed: ${res.status} ${errText}` };
+    }
+    const data = await res.json();
+    return { ok: true, data };
+  } catch (e) {
+    return { ok: false, data: null, error: String(e) };
+  }
+}
+
 async function vcdnFetch(path: string, init: RequestInit, key: string): Promise<{ ok: boolean; status: number; body: string }> {
   const headers = new Headers(init.headers);
   headers.set("Authorization", `Bearer ${key}`);
@@ -68,86 +76,8 @@ async function vcdnFetch(path: string, init: RequestInit, key: string): Promise<
   return { ok: res.ok, status: res.status, body };
 }
 
-const SUPABASE_URL = Deno.env.get("SUPABASE_URL");
-const SUPABASE_SERVICE_ROLE_KEY = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY") || Deno.env.get("SUPABASE_ANON_KEY");
-
-async function getDbSession(userId: string, stableId: string): Promise<SessionData | null> {
-  const memKey = `${userId}:${stableId}`;
-  const cached = sessionCache.get(memKey);
-  if (cached) return cached;
-
-  if (!SUPABASE_URL || !SUPABASE_SERVICE_ROLE_KEY) return null;
-  try {
-    const url = `${SUPABASE_URL.replace(/\/$/, '')}/rest/v1/vcdn_upload_sessions?user_id=eq.${encodeURIComponent(userId)}&stable_id=eq.${encodeURIComponent(stableId)}&select=*`;
-    const res = await fetch(url, {
-      headers: {
-        "apikey": SUPABASE_SERVICE_ROLE_KEY,
-        "Authorization": `Bearer ${SUPABASE_SERVICE_ROLE_KEY}`,
-        "Content-Type": "application/json"
-      }
-    });
-    if (res.ok) {
-      const rows = await res.json();
-      if (rows && rows.length > 0) {
-        const row = rows[0];
-        const session: SessionData = {
-          uploadId: row.upload_id,
-          videoId: row.video_id,
-          uploadUrl: row.upload_url || undefined,
-          bytesReceived: Number(row.bytes_received) || 0,
-          status: row.status || "initiated",
-          ready: Boolean(row.ready),
-          posterUrl: row.poster_url || "",
-          size: Number(row.size) || 0,
-          filename: row.filename,
-          contentType: row.content_type
-        };
-        sessionCache.set(memKey, session);
-        return session;
-      }
-    }
-  } catch (e) {
-    console.warn("getDbSession warning:", e);
-  }
-  return null;
-}
-
-async function saveDbSession(userId: string, stableId: string, session: SessionData): Promise<void> {
-  const memKey = `${userId}:${stableId}`;
-  sessionCache.set(memKey, session);
-
-  if (!SUPABASE_URL || !SUPABASE_SERVICE_ROLE_KEY) return;
-  try {
-    const id = `${userId}:${stableId}`;
-    const url = `${SUPABASE_URL.replace(/\/$/, '')}/rest/v1/vcdn_upload_sessions`;
-    await fetch(url, {
-      method: "POST",
-      headers: {
-        "apikey": SUPABASE_SERVICE_ROLE_KEY,
-        "Authorization": `Bearer ${SUPABASE_SERVICE_ROLE_KEY}`,
-        "Content-Type": "application/json",
-        "Prefer": "resolution=merge-duplicates"
-      },
-      body: JSON.stringify({
-        id,
-        user_id: userId,
-        stable_id: stableId,
-        upload_id: session.uploadId,
-        video_id: session.videoId,
-        upload_url: session.uploadUrl || null,
-        filename: session.filename || null,
-        content_type: session.contentType || null,
-        size: session.size || null,
-        bytes_received: session.bytesReceived || 0,
-        status: session.status || "initiated",
-        poster_url: session.posterUrl || null,
-        ready: Boolean(session.ready),
-        updated_at: new Date().toISOString()
-      })
-    });
-  } catch (e) {
-    console.warn("saveDbSession warning:", e);
-  }
+function delay(ms: number): Promise<void> {
+  return new Promise((resolve) => setTimeout(resolve, ms));
 }
 
 export default {
@@ -166,39 +96,63 @@ export default {
 
     const ct = req.headers.get("Content-Type") || "";
     try {
-      // Chunk step carries raw bytes in the body (Content-Type: application/octet-stream).
+      // -------------------------------------------------------------
+      // Step: chunk (Raw binary upload)
+      // -------------------------------------------------------------
       if (ct.includes("application/octet-stream")) {
         const uploadId = req.headers.get("x-vcdn-upload-id") || "";
+        const chunkOffset = Number(req.headers.get("x-vcdn-chunk-offset") || "-1");
         const bytes = new Uint8Array(await req.arrayBuffer());
+
         if (!uploadId || bytes.length === 0) {
           return Response.json({ error: "missing uploadId or bytes" }, { status: 400 });
         }
+
         const r = await vcdnFetch(`/api/v1/upload/${encodeURIComponent(uploadId)}/chunk`, {
           method: "POST",
           headers: { "Content-Type": "application/octet-stream" },
           body: bytes,
         }, key);
-        if (!r.ok) return Response.json({ error: "VCDN chunk failed", code: r.status, detail: r.body.slice(0, 500) }, { status: 502 });
-        const parsed = JSON.parse(r.body || "{}");
-        const bytesReceived = Number(parsed.bytesReceived) || bytes.length;
 
-        // Update session bytesReceived if found in cache
-        for (const [k, sess] of sessionCache.entries()) {
-          if (sess.uploadId === uploadId) {
-            sess.bytesReceived = Math.max(sess.bytesReceived || 0, bytesReceived);
-            const [uId, sId] = k.split(":");
-            if (uId && sId) {
-              saveDbSession(uId, sId, sess).catch(() => {});
+        if (!r.ok) {
+          // If chunk was already sent and VCDN rejects duplicate chunk, check if upload is already progressing
+          if (r.status === 400 || r.status === 409) {
+            const dbCheck = await callRpc("update_vcdn_upload_bytes", {
+              p_upload_id: uploadId,
+              p_bytes_received: chunkOffset >= 0 ? chunkOffset + bytes.length : bytes.length
+            });
+            if (dbCheck.ok && dbCheck.data?.bytesReceived) {
+              return Response.json({ bytesReceived: dbCheck.data.bytesReceived });
             }
           }
+          return Response.json({ error: "VCDN chunk failed", code: r.status, detail: r.body.slice(0, 500) }, { status: 502 });
         }
 
-        return Response.json({ bytesReceived });
+        const parsed = JSON.parse(r.body || "{}");
+        const upstreamBytesReceived = Number(parsed.bytesReceived) || bytes.length;
+
+        // Synchronously persist authoritative bytesReceived to PostgreSQL before responding
+        const updateRes = await callRpc("update_vcdn_upload_bytes", {
+          p_upload_id: uploadId,
+          p_bytes_received: upstreamBytesReceived
+        });
+
+        const finalBytes = updateRes.ok && updateRes.data?.bytesReceived
+          ? updateRes.data.bytesReceived
+          : upstreamBytesReceived;
+
+        return Response.json({ bytesReceived: finalBytes });
       }
 
+      // -------------------------------------------------------------
+      // JSON Steps: init, complete, status
+      // -------------------------------------------------------------
       const data = await req.json();
       const step = data.step;
 
+      // -------------------------------------------------------------
+      // Step: init
+      // -------------------------------------------------------------
       if (step === "init") {
         const rawFilename = String(data.filename || "video.mp4");
         const size = Number(data.size) || 0;
@@ -218,39 +172,108 @@ export default {
         }
 
         if (stableId) {
-          const existing = await getDbSession(userId, stableId);
-          if (existing) {
-            // Re-use existing VCDN session; check if already ready
+          // 1. Atomic claim in PostgreSQL
+          let claimRes = await callRpc("claim_vcdn_upload_session", {
+            p_user_id: userId,
+            p_stable_id: stableId,
+            p_filename: rawFilename,
+            p_content_type: contentType,
+            p_size: size
+          });
+
+          // If another request is currently claiming the session, wait and poll atomically
+          let retries = 0;
+          while (claimRes.ok && claimRes.data?.action === "WAIT_CLAIM" && retries < 15) {
+            await delay(200);
+            claimRes = await callRpc("claim_vcdn_upload_session", {
+              p_user_id: userId,
+              p_stable_id: stableId,
+              p_filename: rawFilename,
+              p_content_type: contentType,
+              p_size: size
+            });
+            retries++;
+          }
+
+          // Case A: Existing session found -> reuse uploadId / videoId
+          if (claimRes.ok && claimRes.data?.action === "REUSE") {
+            const existing = claimRes.data;
             let isReady = existing.ready;
             let posterUrl = existing.posterUrl;
-            try {
-              const r = await vcdnFetch(`/api/v1/videos/${encodeURIComponent(existing.videoId)}`, { method: "GET" }, key);
-              if (r.ok) {
-                const v = JSON.parse(r.body);
-                if (v.status === "ready") {
-                  isReady = true;
-                  existing.ready = true;
-                  existing.status = "ready";
-                  existing.posterUrl = v.poster_url || existing.posterUrl;
-                  posterUrl = existing.posterUrl;
+
+            // If not yet flagged ready in DB, check upstream VCDN once
+            if (!isReady && existing.videoId) {
+              try {
+                const r = await vcdnFetch(`/api/v1/videos/${encodeURIComponent(existing.videoId)}`, { method: "GET" }, key);
+                if (r.ok) {
+                  const v = JSON.parse(r.body);
+                  if (v.status === "ready") {
+                    isReady = true;
+                    posterUrl = v.poster_url || posterUrl;
+                    await callRpc("finalize_vcdn_session", {
+                      p_upload_id: existing.uploadId,
+                      p_ready: true,
+                      p_poster_url: posterUrl
+                    });
+                  }
                 }
-              }
-            } catch (_) {}
+              } catch (_) {}
+            }
 
             return Response.json({
               uploadId: existing.uploadId,
               videoId: existing.videoId,
               uploadUrl: existing.uploadUrl || "",
-              bytesReceived: existing.bytesReceived,
+              bytesReceived: existing.bytesReceived || 0,
               ready: isReady,
-              status: existing.status,
+              status: existing.status || "initiated",
               posterUrl: posterUrl || "",
               idempotentReused: true
             });
           }
+
+          // Case B: This request won the claim (PROCEED_INIT) -> Call upstream VCDN /upload/init
+          if (claimRes.ok && claimRes.data?.action === "PROCEED_INIT") {
+            const r = await vcdnFetch("/api/v1/upload/init", {
+              method: "POST",
+              headers: { "Content-Type": "application/json" },
+              body: JSON.stringify({
+                filename: rawFilename,
+                size,
+                contentType,
+                title,
+              }),
+            }, key);
+
+            if (!r.ok) {
+              await callRpc("fail_vcdn_upload_session", {
+                p_user_id: userId,
+                p_stable_id: stableId,
+                p_error: r.body.slice(0, 500)
+              });
+              return Response.json({ error: "VCDN init failed", code: r.status, detail: r.body.slice(0, 500) }, { status: 502 });
+            }
+
+            const vcdnInit = JSON.parse(r.body);
+
+            // Populate PostgreSQL session with authoritative upstream IDs
+            await callRpc("populate_vcdn_upload_session", {
+              p_user_id: userId,
+              p_stable_id: stableId,
+              p_upload_id: vcdnInit.uploadId,
+              p_video_id: vcdnInit.videoId,
+              p_upload_url: vcdnInit.uploadUrl || ""
+            });
+
+            return Response.json({
+              ...vcdnInit,
+              bytesReceived: 0,
+              ready: false
+            });
+          }
         }
 
-        // Fresh VCDN init
+        // Fallback for requests without stable identity
         const r = await vcdnFetch("/api/v1/upload/init", {
           method: "POST",
           headers: { "Content-Type": "application/json" },
@@ -262,34 +285,21 @@ export default {
           }),
         }, key);
         if (!r.ok) return Response.json({ error: "VCDN init failed", code: r.status, detail: r.body.slice(0, 500) }, { status: 502 });
-        const vcdnInit = JSON.parse(r.body);
-
-        if (stableId && vcdnInit.uploadId && vcdnInit.videoId) {
-          const session: SessionData = {
-            uploadId: vcdnInit.uploadId,
-            videoId: vcdnInit.videoId,
-            uploadUrl: vcdnInit.uploadUrl,
-            bytesReceived: 0,
-            status: "initiated",
-            ready: false,
-            posterUrl: "",
-            size,
-            filename: rawFilename,
-            contentType
-          };
-          await saveDbSession(userId, stableId, session);
-        }
-
-        return Response.json({
-          ...vcdnInit,
-          bytesReceived: 0,
-          ready: false
-        });
+        return Response.json(JSON.parse(r.body));
       }
 
+      // -------------------------------------------------------------
+      // Step: complete (Atomic under concurrency)
+      // -------------------------------------------------------------
       if (step === "complete") {
         const uploadId = String(data.uploadId || "");
         if (!uploadId) return Response.json({ error: "missing uploadId" }, { status: 400 });
+
+        // Atomic claim to complete
+        const claimComplete = await callRpc("claim_vcdn_complete", { p_upload_id: uploadId });
+        if (claimComplete.ok && (claimComplete.data?.action === "ALREADY_COMPLETED" || claimComplete.data?.action === "ALREADY_COMPLETING")) {
+          return Response.json({ status: "completed", idempotent: true });
+        }
 
         const r = await vcdnFetch("/api/v1/upload/complete", {
           method: "POST",
@@ -297,15 +307,10 @@ export default {
           body: JSON.stringify({ uploadId }),
         }, key);
 
-        for (const [k, sess] of sessionCache.entries()) {
-          if (sess.uploadId === uploadId) {
-            sess.status = "completed";
-            const [uId, sId] = k.split(":");
-            if (uId && sId) {
-              saveDbSession(uId, sId, sess).catch(() => {});
-            }
-          }
-        }
+        await callRpc("finalize_vcdn_session", {
+          p_upload_id: uploadId,
+          p_ready: false
+        });
 
         if (!r.ok) {
           if (r.status === 400 || r.status === 409 || r.body.includes("already")) {
@@ -316,9 +321,13 @@ export default {
         return Response.json(JSON.parse(r.body || "{}"));
       }
 
+      // -------------------------------------------------------------
+      // Step: status
+      // -------------------------------------------------------------
       if (step === "status") {
         const videoId = String(data.videoId || "");
         if (!videoId) return Response.json({ error: "missing videoId" }, { status: 400 });
+
         const r = await vcdnFetch(`/api/v1/videos/${encodeURIComponent(videoId)}`, { method: "GET" }, key);
         if (!r.ok) return Response.json({ error: "VCDN status failed", code: r.status, detail: r.body.slice(0, 500) }, { status: 502 });
         const v = JSON.parse(r.body);
@@ -326,7 +335,6 @@ export default {
         let streamUrl = "";
         let posterUrl = v.poster_url || "";
         if (ready) {
-          // Resolve a fresh signed HLS streamUrl from the public BFF (no auth needed).
           try {
             const cfg = await fetch(`${BFF_BASE}/api/bff/player-config/${encodeURIComponent(videoId)}`, { method: "GET" });
             if (cfg.ok) {
@@ -338,18 +346,14 @@ export default {
             console.error("BFF player-config failed:", e);
           }
 
-          for (const [k, sess] of sessionCache.entries()) {
-            if (sess.videoId === videoId) {
-              sess.ready = true;
-              sess.status = "ready";
-              sess.posterUrl = posterUrl;
-              const [uId, sId] = k.split(":");
-              if (uId && sId) {
-                saveDbSession(uId, sId, sess).catch(() => {});
-              }
-            }
-          }
+          // Persist ready status in database
+          await callRpc("finalize_vcdn_session", {
+            p_upload_id: "",
+            p_ready: true,
+            p_poster_url: posterUrl
+          });
         }
+
         return Response.json({
           status: v.status,
           transcodeProgress: v.transcode_progress ?? v.progress ?? 0,

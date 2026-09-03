@@ -136,6 +136,8 @@ object VcdnUploadManager {
                         .header("Authorization", "Bearer $token")
                         .header("Content-Type", "application/octet-stream")
                         .header("x-vcdn-upload-id", uploadId)
+                        .header("x-vcdn-chunk-offset", offset.toString())
+                        .header("x-vcdn-chunk-length", len.toString())
                         .post(buf.toRequestBody("application/octet-stream".toMediaTypeOrNull()))
                         .build()
 

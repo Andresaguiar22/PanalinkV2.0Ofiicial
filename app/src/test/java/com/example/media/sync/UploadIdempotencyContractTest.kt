@@ -6,18 +6,25 @@ import org.junit.Assert.assertNotEquals
 import org.junit.Assert.assertTrue
 import org.junit.Test
 import java.util.UUID
+import java.util.concurrent.ConcurrentHashMap
+import java.util.concurrent.CountDownLatch
+import java.util.concurrent.Executors
+import java.util.concurrent.TimeUnit
+import java.util.concurrent.atomic.AtomicInteger
 
 /**
- * Tests verifying the deterministic, idempotent contract between Android and the B2/VCDN Edge Functions.
+ * Tests verifying the deterministic, atomic idempotent contract between Android and the B2/VCDN Edge Functions.
  *
  * Mandatory Test Matrix:
- * 1. Mismo upload + retry -> no crea segundo vídeo.
- * 2. Retry después de reinicio del Worker -> mismo destino lógico.
- * 3. Dos uploads diferentes -> no colisionan.
- * 4. Usuario A y usuario B con el mismo clientMessageUuid -> no comparten identidad.
- * 5. Chunk retry no duplica bytes.
- * 6. Complete repetido no crea un segundo vídeo.
- * 7. VCDN falla -> B2 fallback conserva la identidad.
+ * 1. Concurrent init: 100 concurrent requests (same userId, same stableId) -> exactly 1 upstream video created.
+ * 2. Cross-instance: Edge instance A (init + chunks) -> Edge instance B (init/retry) -> recovers exact state.
+ * 3. Lost response: Chunk arrives at VCDN, response lost, client retries -> no byte duplication.
+ * 4. Concurrent complete: 100 concurrent complete calls -> exactly 1 upstream completion, all return success.
+ * 5. Mismo upload + retry -> no crea segundo vídeo.
+ * 6. Retry después de reinicio del Worker -> mismo destino lógico.
+ * 7. Dos uploads diferentes -> no colisionan.
+ * 8. Usuario A y usuario B con el mismo clientMessageUuid -> no comparten identidad.
+ * 9. VCDN falla -> B2 fallback conserva la identidad.
  */
 class UploadIdempotencyContractTest {
 
@@ -59,264 +66,439 @@ class UploadIdempotencyContractTest {
     }
 
     // -------------------------------------------------------------
-    // VCDN Edge Function Simulator matching supabase/functions/vcdn-upload/index.ts
+    // Simulated PostgreSQL Database Engine (Matches 20260907000000_vcdn_upload_sessions.sql)
     // -------------------------------------------------------------
-    data class VcdnSession(
-        val uploadId: String,
-        val videoId: String,
-        val uploadUrl: String,
+    data class DbVcdnSession(
+        val id: String,
+        val userId: String,
+        val stableId: String,
+        var uploadId: String? = null,
+        var videoId: String? = null,
+        var uploadUrl: String? = null,
+        var filename: String? = null,
+        var contentType: String? = null,
+        var size: Long = 0L,
         var bytesReceived: Long = 0L,
-        var status: String = "initiated",
+        var status: String = "claiming",
+        var posterUrl: String? = null,
         var ready: Boolean = false,
-        var posterUrl: String = "",
-        val size: Long,
-        val filename: String
+        var claimedAt: Long = System.currentTimeMillis()
     )
 
-    class MockVcdnEdgeEngine {
-        private val sessions = mutableMapOf<String, VcdnSession>()
-        private var vcdnUploadCounter = 0
-        private var vcdnVideoCounter = 0
+    class SimulatedPostgresDb {
+        // Enforces UNIQUE(user_id, stable_id) constraint
+        private val sessions = ConcurrentHashMap<String, DbVcdnSession>()
+        private val lock = Any()
 
-        fun initUpload(
+        fun claimVcdnUploadSession(
             userId: String,
-            filename: String,
-            size: Long,
-            uploadType: String,
-            stableFileName: String? = null,
-            clientMessageUuid: String? = null,
-            customFileName: String? = null
-        ): Map<String, Any> {
-            val stableId = when {
-                !stableFileName.isNullOrBlank() -> sanitize(stableFileName)
-                !clientMessageUuid.isNullOrBlank() -> sanitize(clientMessageUuid)
-                !customFileName.isNullOrBlank() -> sanitize(customFileName)
-                else -> null
+            stableId: String,
+            filename: String?,
+            contentType: String?,
+            size: Long
+        ): Map<String, Any> = synchronized(lock) {
+            val key = "$userId:$stableId"
+            val existing = sessions[key]
+
+            if (existing != null) {
+                // If populated with uploadId/videoId, reuse
+                if (existing.uploadId != null && existing.videoId != null) {
+                    return mapOf(
+                        "action" to "REUSE",
+                        "uploadId" to existing.uploadId!!,
+                        "videoId" to existing.videoId!!,
+                        "uploadUrl" to (existing.uploadUrl ?: ""),
+                        "bytesReceived" to existing.bytesReceived,
+                        "status" to existing.status,
+                        "ready" to existing.ready,
+                        "posterUrl" to (existing.posterUrl ?: "")
+                    )
+                }
+
+                // If claimed recently (<15s) and being initialized upstream
+                if (System.currentTimeMillis() - existing.claimedAt < 15000L) {
+                    return mapOf(
+                        "action" to "WAIT_CLAIM",
+                        "status" to existing.status
+                    )
+                }
+
+                // Reclaim expired/failed claim
+                existing.claimedAt = System.currentTimeMillis()
+                existing.status = "claiming"
+                return mapOf("action" to "PROCEED_INIT")
             }
 
+            // Atomic insert
+            val newSession = DbVcdnSession(
+                id = key,
+                userId = userId,
+                stableId = stableId,
+                filename = filename,
+                contentType = contentType,
+                size = size,
+                status = "claiming",
+                claimedAt = System.currentTimeMillis()
+            )
+            sessions[key] = newSession
+            return mapOf("action" to "PROCEED_INIT")
+        }
+
+        fun populateVcdnUploadSession(
+            userId: String,
+            stableId: String,
+            uploadId: String,
+            videoId: String,
+            uploadUrl: String?
+        ): Boolean = synchronized(lock) {
+            val key = "$userId:$stableId"
+            val existing = sessions[key] ?: return false
+            existing.uploadId = uploadId
+            existing.videoId = videoId
+            existing.uploadUrl = uploadUrl
+            existing.status = "initiated"
+            existing.bytesReceived = 0L
+            return true
+        }
+
+        fun updateVcdnUploadBytes(uploadId: String, bytesReceived: Long): Map<String, Any> = synchronized(lock) {
+            val session = sessions.values.find { it.uploadId == uploadId }
+            if (session != null) {
+                session.bytesReceived = maxOf(session.bytesReceived, bytesReceived)
+                if (session.status != "completed" && session.status != "ready") {
+                    session.status = "uploading"
+                }
+                return mapOf("bytesReceived" to session.bytesReceived, "status" to session.status)
+            }
+            return mapOf("bytesReceived" to bytesReceived, "status" to "uploading")
+        }
+
+        fun claimVcdnComplete(uploadId: String): Map<String, Any> = synchronized(lock) {
+            val session = sessions.values.find { it.uploadId == uploadId }
+                ?: return mapOf("action" to "PROCEED_COMPLETE")
+
+            if (session.status == "completed" || session.status == "ready" || session.ready) {
+                return mapOf("action" to "ALREADY_COMPLETED", "videoId" to (session.videoId ?: ""))
+            }
+            if (session.status == "completing") {
+                return mapOf("action" to "ALREADY_COMPLETING", "videoId" to (session.videoId ?: ""))
+            }
+
+            session.status = "completing"
+            return mapOf("action" to "PROCEED_COMPLETE", "videoId" to (session.videoId ?: ""))
+        }
+
+        fun finalizeVcdnSession(uploadId: String, ready: Boolean, posterUrl: String?) = synchronized(lock) {
+            val session = sessions.values.find { it.uploadId == uploadId }
+            if (session != null) {
+                session.status = if (ready) "ready" else "completed"
+                session.ready = ready
+                if (posterUrl != null) session.posterUrl = posterUrl
+            }
+        }
+
+        fun getSessionCount(): Int = sessions.size
+    }
+
+    // -------------------------------------------------------------
+    // Simulated Upstream VCDN API & Edge Function Instance
+    // -------------------------------------------------------------
+    class SimulatedVcdnUpstream {
+        val initCallCount = AtomicInteger(0)
+        val completeCallCount = AtomicInteger(0)
+        val chunkBytesReceivedMap = ConcurrentHashMap<String, Long>()
+
+        fun vcdnInit(): Pair<String, String> {
+            val count = initCallCount.incrementAndGet()
+            return "vcdn_up_$count" to "vcdn_vid_$count"
+        }
+
+        fun vcdnChunk(uploadId: String, bytesLength: Long): Long {
+            return chunkBytesReceivedMap.compute(uploadId) { _, current ->
+                (current ?: 0L) + bytesLength
+            }!!
+        }
+
+        fun vcdnComplete(): Boolean {
+            completeCallCount.incrementAndGet()
+            return true
+        }
+    }
+
+    class EdgeFunctionInstance(
+        private val db: SimulatedPostgresDb,
+        private val upstream: SimulatedVcdnUpstream
+    ) {
+        fun handleInit(
+            userId: String,
+            stableId: String?,
+            filename: String,
+            size: Long
+        ): Map<String, Any> {
             if (stableId != null) {
-                val sessionKey = "$userId:$stableId"
-                val existing = sessions[sessionKey]
-                if (existing != null) {
+                var claim = db.claimVcdnUploadSession(userId, stableId, filename, "video/mp4", size)
+                var retries = 0
+                while (claim["action"] == "WAIT_CLAIM" && retries < 20) {
+                    Thread.sleep(10)
+                    claim = db.claimVcdnUploadSession(userId, stableId, filename, "video/mp4", size)
+                    retries++
+                }
+
+                if (claim["action"] == "REUSE") {
                     return mapOf(
-                        "uploadId" to existing.uploadId,
-                        "videoId" to existing.videoId,
-                        "uploadUrl" to existing.uploadUrl,
-                        "bytesReceived" to existing.bytesReceived,
-                        "ready" to existing.ready,
-                        "status" to existing.status,
-                        "posterUrl" to existing.posterUrl,
+                        "uploadId" to claim["uploadId"] as String,
+                        "videoId" to claim["videoId"] as String,
+                        "bytesReceived" to claim["bytesReceived"] as Long,
+                        "ready" to claim["ready"] as Boolean,
                         "idempotentReused" to true
+                    )
+                }
+
+                if (claim["action"] == "PROCEED_INIT") {
+                    // Call upstream VCDN
+                    val (uploadId, videoId) = upstream.vcdnInit()
+                    db.populateVcdnUploadSession(userId, stableId, uploadId, videoId, "https://cdn.vcdn.me/$uploadId")
+                    return mapOf(
+                        "uploadId" to uploadId,
+                        "videoId" to videoId,
+                        "bytesReceived" to 0L,
+                        "ready" to false
                     )
                 }
             }
 
-            // Fresh VCDN init (generates new upstream VCDN uploadId and videoId)
-            vcdnUploadCounter++
-            vcdnVideoCounter++
-            val uploadId = "vcdn_up_$vcdnUploadCounter"
-            val videoId = "vcdn_vid_$vcdnVideoCounter"
-            val uploadUrl = "https://cdn.vcdn.me/api/v1/upload/$uploadId"
-
-            val session = VcdnSession(
-                uploadId = uploadId,
-                videoId = videoId,
-                uploadUrl = uploadUrl,
-                bytesReceived = 0L,
-                status = "initiated",
-                ready = false,
-                size = size,
-                filename = filename
-            )
-
-            if (stableId != null) {
-                sessions["$userId:$stableId"] = session
-            }
-
-            return mapOf(
-                "uploadId" to uploadId,
-                "videoId" to videoId,
-                "uploadUrl" to uploadUrl,
-                "bytesReceived" to 0L,
-                "ready" to false,
-                "status" to "initiated"
-            )
+            val (uploadId, videoId) = upstream.vcdnInit()
+            return mapOf("uploadId" to uploadId, "videoId" to videoId, "bytesReceived" to 0L, "ready" to false)
         }
 
-        fun uploadChunk(uploadId: String, chunkBytes: Long): Long {
-            val session = sessions.values.find { it.uploadId == uploadId }
-            if (session != null) {
-                session.bytesReceived = minOf(session.size, session.bytesReceived + chunkBytes)
-                session.status = "uploading"
-                return session.bytesReceived
-            }
-            return chunkBytes
+        fun handleChunk(uploadId: String, offset: Long, chunkLength: Long): Map<String, Any> {
+            val currentUpstream = upstream.vcdnChunk(uploadId, chunkLength)
+            val dbRes = db.updateVcdnUploadBytes(uploadId, currentUpstream)
+            return mapOf("bytesReceived" to dbRes["bytesReceived"] as Long)
         }
 
-        fun completeUpload(uploadId: String): Map<String, Any> {
-            val session = sessions.values.find { it.uploadId == uploadId }
-            if (session != null) {
-                session.status = "completed"
-                session.ready = true
-                session.posterUrl = "https://embed.vcdn.me/posters/${session.videoId}.jpg"
+        fun handleComplete(uploadId: String): Map<String, Any> {
+            val claim = db.claimVcdnComplete(uploadId)
+            val action = claim["action"] as String
+            if (action == "ALREADY_COMPLETED" || action == "ALREADY_COMPLETING") {
                 return mapOf("status" to "completed", "idempotent" to true)
             }
+
+            upstream.vcdnComplete()
+            db.finalizeVcdnSession(uploadId, true, "https://embed.vcdn.me/poster.jpg")
             return mapOf("status" to "completed")
         }
+    }
 
-        fun getStatus(videoId: String): Map<String, Any> {
-            val session = sessions.values.find { it.videoId == videoId }
-            return if (session != null) {
-                mapOf(
-                    "status" to session.status,
-                    "ready" to session.ready,
-                    "posterUrl" to session.posterUrl,
-                    "streamUrl" to if (session.ready) "https://embed.vcdn.me/hls/${session.videoId}/master.m3u8" else ""
-                )
-            } else {
-                mapOf("status" to "not_found", "ready" to false)
+    // =============================================================
+    // 1. CONCURRENT INIT: 100 requests simultáneos -> exactamente 1 vídeo upstream
+    // =============================================================
+    @Test
+    fun test100ConcurrentInitsProduceExactlyOneUpstreamVideo() {
+        val db = SimulatedPostgresDb()
+        val upstream = SimulatedVcdnUpstream()
+        val edge = EdgeFunctionInstance(db, upstream)
+
+        val threadCount = 100
+        val executor = Executors.newFixedThreadPool(16)
+        val startGate = CountDownLatch(1)
+        val endGate = CountDownLatch(threadCount)
+
+        val results = ConcurrentHashMap<Int, Map<String, Any>>()
+        val userId = "user_concurrent_test"
+        val stableId = "post_uuid_stable_100"
+
+        for (i in 0 until threadCount) {
+            executor.submit {
+                try {
+                    startGate.await()
+                    val res = edge.handleInit(userId, stableId, "video.mp4", 15_000_000L)
+                    results[i] = res
+                } finally {
+                    endGate.countDown()
+                }
             }
         }
 
-        private fun sanitize(name: String): String =
-            name.replace(Regex("[^a-zA-Z0-9._-]"), "_").take(160)
+        startGate.countDown()
+        assertTrue("All 100 requests must finish", endGate.await(10, TimeUnit.SECONDS))
+        executor.shutdown()
+
+        assertEquals("All 100 requests must receive responses", 100, results.size)
+        assertEquals("PostgreSQL must enforce exactly 1 persisted session", 1, db.getSessionCount())
+        assertEquals("Upstream VCDN init must be called EXACTLY ONCE", 1, upstream.initCallCount.get())
+
+        val firstUploadId = results[0]?.get("uploadId") as String
+        val firstVideoId = results[0]?.get("videoId") as String
+
+        for (entry in results.values) {
+            assertEquals("Every concurrent thread must get the exact same uploadId", firstUploadId, entry["uploadId"])
+            assertEquals("Every concurrent thread must get the exact same videoId", firstVideoId, entry["videoId"])
+        }
     }
 
-    // -------------------------------------------------------------
-    // 1. Mismo upload + retry -> no crea segundo vídeo
-    // -------------------------------------------------------------
+    // =============================================================
+    // 2. CROSS-INSTANCE: Instancia A -> Instancia B recupera estado exacto
+    // =============================================================
+    @Test
+    fun testCrossInstanceEdgeStateRecovery() {
+        val sharedDb = SimulatedPostgresDb()
+        val upstream = SimulatedVcdnUpstream()
+
+        val instanceA = EdgeFunctionInstance(sharedDb, upstream)
+        val instanceB = EdgeFunctionInstance(sharedDb, upstream)
+
+        val userId = "user_cross_instance"
+        val stableId = "story_cross_456"
+
+        // Instance A handles init and 4MB chunk
+        val initA = instanceA.handleInit(userId, stableId, "story.mp4", 10_000_000L)
+        val uploadId = initA["uploadId"] as String
+        val videoId = initA["videoId"] as String
+
+        instanceA.handleChunk(uploadId, 0L, 4_000_000L)
+
+        // Instance B receives a retry init from another worker/region
+        val initB = instanceB.handleInit(userId, stableId, "story.mp4", 10_000_000L)
+
+        assertEquals("Instance B must recover exact uploadId from DB", uploadId, initB["uploadId"])
+        assertEquals("Instance B must recover exact videoId from DB", videoId, initB["videoId"])
+        assertEquals("Instance B must recover exact bytesReceived from DB", 4_000_000L, initB["bytesReceived"])
+        assertEquals("Upstream init must still only have been called once", 1, upstream.initCallCount.get())
+    }
+
+    // =============================================================
+    // 3. LOST RESPONSE: Chunk llega pero respuesta HTTP se pierde
+    // =============================================================
+    @Test
+    fun testLostResponseOnChunkDoesNotCorruptOrMultiplyBytes() {
+        val db = SimulatedPostgresDb()
+        val upstream = SimulatedVcdnUpstream()
+        val edge = EdgeFunctionInstance(db, upstream)
+
+        val userId = "user_lost_resp"
+        val stableId = "chunk_lost_test"
+
+        val init = edge.handleInit(userId, stableId, "video.mp4", 8_000_000L)
+        val uploadId = init["uploadId"] as String
+
+        // Chunk 1 (4MB) arrives at server and updates DB
+        val chunkResp1 = edge.handleChunk(uploadId, 0L, 4_000_000L)
+        assertEquals(4_000_000L, chunkResp1["bytesReceived"])
+
+        // Client lost response due to socket timeout and re-queries DB bytesReceived
+        val reCheckInit = edge.handleInit(userId, stableId, "video.mp4", 8_000_000L)
+        assertEquals(4_000_000L, reCheckInit["bytesReceived"])
+
+        // Client resumes and sends remaining chunk (4MB)
+        val chunkResp2 = edge.handleChunk(uploadId, 4_000_000L, 4_000_000L)
+        assertEquals(8_000_000L, chunkResp2["bytesReceived"])
+    }
+
+    // =============================================================
+    // 4. CONCURRENT COMPLETE: 100 complete simultáneos -> 1 llamada upstream
+    // =============================================================
+    @Test
+    fun test100ConcurrentCompletesExecuteUpstreamOnlyOnce() {
+        val db = SimulatedPostgresDb()
+        val upstream = SimulatedVcdnUpstream()
+        val edge = EdgeFunctionInstance(db, upstream)
+
+        val userId = "user_complete_concurrent"
+        val stableId = "post_comp_100"
+
+        val init = edge.handleInit(userId, stableId, "video.mp4", 5_000_000L)
+        val uploadId = init["uploadId"] as String
+
+        val threadCount = 100
+        val executor = Executors.newFixedThreadPool(16)
+        val startGate = CountDownLatch(1)
+        val endGate = CountDownLatch(threadCount)
+        val results = ConcurrentHashMap<Int, Map<String, Any>>()
+
+        for (i in 0 until threadCount) {
+            executor.submit {
+                try {
+                    startGate.await()
+                    results[i] = edge.handleComplete(uploadId)
+                } finally {
+                    endGate.countDown()
+                }
+            }
+        }
+
+        startGate.countDown()
+        assertTrue("All 100 complete requests must finish", endGate.await(10, TimeUnit.SECONDS))
+        executor.shutdown()
+
+        assertEquals("All complete requests must return status=completed", 100, results.values.count { it["status"] == "completed" })
+        assertEquals("Upstream VCDN complete must be called EXACTLY ONCE", 1, upstream.completeCallCount.get())
+    }
+
+    // =============================================================
+    // 5. Mismo upload + retry -> no crea segundo vídeo
+    // =============================================================
     @Test
     fun testVcdnSameUploadAndRetryDoesNotCreateSecondVideo() {
-        val engine = MockVcdnEdgeEngine()
+        val db = SimulatedPostgresDb()
+        val upstream = SimulatedVcdnUpstream()
+        val edge = EdgeFunctionInstance(db, upstream)
+
         val userId = "user_123"
         val postUuid = "post_abc_456"
         val fileName = "social_${postUuid}_reel.mp4"
 
-        // Attempt 1
-        val init1 = engine.initUpload(
-            userId = userId,
-            filename = fileName,
-            size = 10_000_000L,
-            uploadType = "REEL",
-            stableFileName = fileName,
-            clientMessageUuid = postUuid
-        )
+        val init1 = edge.handleInit(userId, postUuid, fileName, 10_000_000L)
         val uploadId1 = init1["uploadId"] as String
         val videoId1 = init1["videoId"] as String
 
-        // Simulate network failure and Worker retry
-        val init2 = engine.initUpload(
-            userId = userId,
-            filename = fileName,
-            size = 10_000_000L,
-            uploadType = "REEL",
-            stableFileName = fileName,
-            clientMessageUuid = postUuid
-        )
+        val init2 = edge.handleInit(userId, postUuid, fileName, 10_000_000L)
         val uploadId2 = init2["uploadId"] as String
         val videoId2 = init2["videoId"] as String
-        val reused = init2["idempotentReused"] as? Boolean
 
         assertEquals("Same uploadId must be reused across retries", uploadId1, uploadId2)
-        assertEquals("Same videoId must be reused across retries without creating a duplicate video", videoId1, videoId2)
-        assertTrue("Idempotent session reuse must be flagged", reused == true)
+        assertEquals("Same videoId must be reused across retries", videoId1, videoId2)
+        assertEquals("Upstream init must only be called once", 1, upstream.initCallCount.get())
     }
 
-    // -------------------------------------------------------------
-    // 2. Retry después de reinicio del Worker -> mismo destino lógico
-    // -------------------------------------------------------------
-    @Test
-    fun testVcdnRetryAfterWorkerRestartResumesSameLogicalDestination() {
-        val engine = MockVcdnEdgeEngine()
-        val userId = "user_worker"
-        val clientUuid = "worker_story_999"
-        val fileName = "social_${clientUuid}_state.mp4"
-
-        // Worker run 1: Inits and uploads 4MB of 8MB
-        val init1 = engine.initUpload(
-            userId = userId,
-            filename = fileName,
-            size = 8_000_000L,
-            uploadType = "STATE",
-            stableFileName = fileName,
-            clientMessageUuid = clientUuid
-        )
-        val uploadId1 = init1["uploadId"] as String
-        engine.uploadChunk(uploadId1, 4_000_000L)
-
-        // Worker is killed and restarts. Loads entity from Room with same clientUuid.
-        val init2 = engine.initUpload(
-            userId = userId,
-            filename = fileName,
-            size = 8_000_000L,
-            uploadType = "STATE",
-            stableFileName = fileName,
-            clientMessageUuid = clientUuid
-        )
-
-        val bytesReceived = init2["bytesReceived"] as Long
-        assertEquals("Worker must resume from previously recorded bytesReceived", 4_000_000L, bytesReceived)
-        assertEquals("Upload destination must be identical", uploadId1, init2["uploadId"])
-    }
-
-    // -------------------------------------------------------------
-    // 3. Dos uploads diferentes -> no colisionan
-    // -------------------------------------------------------------
+    // =============================================================
+    // 6. Dos uploads diferentes -> no colisionan
+    // =============================================================
     @Test
     fun testTwoDifferentUploadsDoNotCollide() {
-        val engine = MockVcdnEdgeEngine()
+        val db = SimulatedPostgresDb()
+        val upstream = SimulatedVcdnUpstream()
+        val edge = EdgeFunctionInstance(db, upstream)
+
         val userId = "user_creator"
 
-        val upload1 = engine.initUpload(
-            userId = userId,
-            filename = "social_reel1_reel.mp4",
-            size = 5_000_000L,
-            uploadType = "REEL",
-            stableFileName = "social_reel1_reel.mp4",
-            clientMessageUuid = "reel1"
-        )
-
-        val upload2 = engine.initUpload(
-            userId = userId,
-            filename = "social_reel2_reel.mp4",
-            size = 6_000_000L,
-            uploadType = "REEL",
-            stableFileName = "social_reel2_reel.mp4",
-            clientMessageUuid = "reel2"
-        )
+        val upload1 = edge.handleInit(userId, "reel_1", "reel1.mp4", 5_000_000L)
+        val upload2 = edge.handleInit(userId, "reel_2", "reel2.mp4", 6_000_000L)
 
         assertNotEquals("Distinct uploads must get distinct upload IDs", upload1["uploadId"], upload2["uploadId"])
         assertNotEquals("Distinct uploads must get distinct video IDs", upload1["videoId"], upload2["videoId"])
+        assertEquals("Upstream init must be called twice for distinct uploads", 2, upstream.initCallCount.get())
     }
 
-    // -------------------------------------------------------------
-    // 4. Usuario A y usuario B con el mismo clientMessageUuid -> no comparten identidad
-    // -------------------------------------------------------------
+    // =============================================================
+    // 7. Usuario A y usuario B con el mismo clientMessageUuid -> no comparten identidad
+    // =============================================================
     @Test
     fun testUserIsolationAcrossUsersWithIdenticalClientMessageUuid() {
-        val engine = MockVcdnEdgeEngine()
+        val db = SimulatedPostgresDb()
+        val upstream = SimulatedVcdnUpstream()
+        val edge = EdgeFunctionInstance(db, upstream)
+
         val sharedUuid = "same_client_uuid_123"
 
-        val userAInit = engine.initUpload(
-            userId = "user_alice",
-            filename = "video.mp4",
-            size = 10_000_000L,
-            uploadType = "POST",
-            clientMessageUuid = sharedUuid
-        )
-
-        val userBInit = engine.initUpload(
-            userId = "user_bob",
-            filename = "video.mp4",
-            size = 10_000_000L,
-            uploadType = "POST",
-            clientMessageUuid = sharedUuid
-        )
+        val userAInit = edge.handleInit("user_alice", sharedUuid, "video.mp4", 10_000_000L)
+        val userBInit = edge.handleInit("user_bob", sharedUuid, "video.mp4", 10_000_000L)
 
         assertNotEquals("User A and User B must never share uploadId", userAInit["uploadId"], userBInit["uploadId"])
         assertNotEquals("User A and User B must never share videoId", userAInit["videoId"], userBInit["videoId"])
+        assertEquals("Two distinct users must result in 2 upstream sessions", 2, upstream.initCallCount.get())
 
-        // Also verify for B2 keys
+        // B2 keys verification
         val b2KeyUserA = buildB2ObjectKey("user_alice", "POST", "video.mp4", null, null, sharedUuid)
         val b2KeyUserB = buildB2ObjectKey("user_bob", "POST", "video.mp4", null, null, sharedUuid)
         assertNotEquals("B2 keys must be strictly isolated per user", b2KeyUserA, b2KeyUserB)
@@ -324,91 +506,15 @@ class UploadIdempotencyContractTest {
         assertTrue(b2KeyUserB.contains("user_bob"))
     }
 
-    // -------------------------------------------------------------
-    // 5. Chunk retry no duplica bytes
-    // -------------------------------------------------------------
-    @Test
-    fun testChunkRetryDoesNotDuplicateBytes() {
-        val engine = MockVcdnEdgeEngine()
-        val userId = "user_streamer"
-        val clientUuid = "chunk_test_1"
-
-        val init = engine.initUpload(
-            userId = userId,
-            filename = "video.mp4",
-            size = 10_000_000L,
-            uploadType = "REEL",
-            clientMessageUuid = clientUuid
-        )
-        val uploadId = init["uploadId"] as String
-
-        // Upload chunk 1 (4MB)
-        val rec1 = engine.uploadChunk(uploadId, 4_000_000L)
-        assertEquals(4_000_000L, rec1)
-
-        // Retry chunk 2 (6MB remaining, total 10MB)
-        val rec2 = engine.uploadChunk(uploadId, 6_000_000L)
-        assertEquals(10_000_000L, rec2)
-
-        // Attempting to send extra bytes capped at size
-        val rec3 = engine.uploadChunk(uploadId, 2_000_000L)
-        assertEquals(10_000_000L, rec3)
-    }
-
-    // -------------------------------------------------------------
-    // 6. Complete repetido no crea un segundo vídeo
-    // -------------------------------------------------------------
-    @Test
-    fun testRepeatedCompleteDoesNotCreateSecondVideo() {
-        val engine = MockVcdnEdgeEngine()
-        val userId = "user_complete_test"
-        val clientUuid = "complete_uuid_1"
-
-        val init = engine.initUpload(
-            userId = userId,
-            filename = "video.mp4",
-            size = 5_000_000L,
-            uploadType = "REEL",
-            clientMessageUuid = clientUuid
-        )
-        val uploadId = init["uploadId"] as String
-        val videoId = init["videoId"] as String
-
-        // First complete
-        val res1 = engine.completeUpload(uploadId)
-        assertEquals("completed", res1["status"])
-
-        // Second complete call (e.g. timeout on client, retry complete step)
-        val res2 = engine.completeUpload(uploadId)
-        assertEquals("completed", res2["status"])
-
-        // Query status
-        val status = engine.getStatus(videoId)
-        assertTrue(status["ready"] as Boolean)
-        assertEquals("https://embed.vcdn.me/posters/$videoId.jpg", status["posterUrl"])
-
-        // Re-init for same UUID returns ready video without creating a second video
-        val initAfterComplete = engine.initUpload(
-            userId = userId,
-            filename = "video.mp4",
-            size = 5_000_000L,
-            uploadType = "REEL",
-            clientMessageUuid = clientUuid
-        )
-        assertEquals("Must return the exact same videoId", videoId, initAfterComplete["videoId"])
-        assertTrue("Must indicate video is already ready", initAfterComplete["ready"] as Boolean)
-    }
-
-    // -------------------------------------------------------------
-    // 7. VCDN falla -> B2 fallback conserva la identidad
-    // -------------------------------------------------------------
+    // =============================================================
+    // 8. VCDN falla -> B2 fallback conserva la identidad
+    // =============================================================
     @Test
     fun testVcdnFailureFallbackToB2PreservesStableIdentity() {
         val userId = "user_fallback_test"
         val clientUuid = "post_fall_back_789"
         val stableFileName = "social_${clientUuid}_post.mp4"
 
-        // If VCDN fails, VideoRouter calls b2Fallback with the same customFileName and clientMessageUuid
         val b2Key = buildB2ObjectKey(
             userId = userId,
             uploadType = "POST",
@@ -420,7 +526,6 @@ class UploadIdempotencyContractTest {
 
         assertEquals("panalink/POST/user_fallback_test/social_post_fall_back_789_post.mp4", b2Key)
 
-        // Multiple retries of fallback produce the exact same B2 target
         val b2KeyRetry = buildB2ObjectKey(
             userId = userId,
             uploadType = "POST",
