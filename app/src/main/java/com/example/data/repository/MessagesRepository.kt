@@ -650,10 +650,12 @@ suspend fun insertLocalMessage(msg: Message) = withContext(Dispatchers.IO) {
         WorkManager.getInstance(PanaApplication.instance)
             .enqueueUniqueWork(
                 "upload_$messageId",
-                // APPEND_OR_REPLACE: un work ACTIVO (RUNNING/ENQUEUED) NO se cancela;
-                // el nuevo se encola como hijo y, al correr, el worker es idempotente
-                // (mediaUrl ya seteada -> no re-subida). Si el previo esta TERMINAL, se reemplaza y revive.
-                ExistingWorkPolicy.APPEND_OR_REPLACE,
+                // ExistingWorkPolicy.KEEP:
+                // - Máximo un WorkRequest activo por messageId.
+                // - Si el trabajo ya está ENQUEUED o RUNNING, se conserva intacto sin cancelarlo ni duplicarlo.
+                // - No genera cadenas innecesarias de WorkRequests anidados.
+                // - Si el trabajo anterior concluyó (SUCCEEDED/FAILED), permite encolar uno nuevo (idempotencia y soporte para retryMessage).
+                ExistingWorkPolicy.KEEP,
                 uploadRequest
             )
         Log.i(TAG, "Scheduled background media upload for message $messageId")
@@ -1082,8 +1084,15 @@ suspend fun insertLocalMessage(msg: Message) = withContext(Dispatchers.IO) {
         for (entity in pending) {
             try {
                 if (entity.messageType != null && entity.messageType != "text" && entity.mediaUrl.isNullOrEmpty()) {
-                    Log.w(TAG, "Skipping sync for multimedia message ${entity.id} because mediaUrl is missing (upload incomplete/failed)")
-                    if (entity.localMediaUri != null) scheduleMediaUpload(entity.id)
+                    Log.w(TAG, "Skipping sync for multimedia message ${entity.id} because mediaUrl is missing (upload in progress or incomplete)")
+                    if (!entity.localMediaUri.isNullOrBlank()) {
+                        // Idempotente con ExistingWorkPolicy.KEEP: si ya está encolado o corriendo, no duplica
+                        scheduleMediaUpload(entity.id)
+                    } else {
+                        // Sin URL remota y sin archivo local: estado irrecuperable automáticamente
+                        Log.e(TAG, "Multimedia message ${entity.id} has no mediaUrl and no localMediaUri; marking failed")
+                        messageDao.updateMessageStatus(entity.id, "failed")
+                    }
                     continue
                 }
                 
@@ -1522,7 +1531,7 @@ suspend fun insertLocalMessage(msg: Message) = withContext(Dispatchers.IO) {
         var allSuccessful = true
 
         try {
-            // A) Upload de mensajes locales pendientes (status = sending / failed)
+            // A) Upload de mensajes locales pendientes (status = sending / pending / pending_media)
             val pendingMsgs = messageDao.getPendingMessages()
             val pendingSuccess = syncPendingMessages()
             if (!pendingSuccess) {

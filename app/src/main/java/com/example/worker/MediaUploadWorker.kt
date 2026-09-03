@@ -254,14 +254,14 @@ class MediaUploadWorker(
                 if (willRetry) {
                     logFinalStateAndResult(messageId, Result.retry())
                 } else {
-                    // Terminal SOLO cuando el archivo local ya no existe (fue purgado/perdido:
-                    // en ese caso reintentar es imposible y el estado "failed" informa al usuario.
+                    // Terminal cuando se agotan los reintentos (MAX_UPLOAD_ATTEMPTS) o el archivo local no existe.
+                    // Queda en 'failed' hasta un reintento manual explícito vía retryMessage().
                     markFailed(messageId)
                     logFinalStateAndResult(messageId, Result.failure())
                 }
             }
         } catch (e: Exception) {
-            val willRetry = runAttemptCount + 1 < MAX_UPLOAD_ATTEMPTS
+            val willRetry = (!localUri.isNullOrBlank() && File(localUri).exists()) && (runAttemptCount + 1 < MAX_UPLOAD_ATTEMPTS)
             val resultLabel = if (willRetry) "RETRY" else "FAILURE"
             val sanitizedMsg = e.localizedMessage?.replace(Regex("eyJ[a-zA-Z0-9_-]+\\.[a-zA-Z0-9_-]+\\.[a-zA-Z0-9_-]+"), "[REDACTED_TOKEN]")?.take(200) ?: "Unknown error"
             Log.e(
