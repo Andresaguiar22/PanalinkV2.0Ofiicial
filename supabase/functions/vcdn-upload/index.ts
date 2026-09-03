@@ -311,8 +311,13 @@ export default {
         const uploadId = String(data.uploadId || "");
         if (!uploadId) return Response.json({ error: "missing uploadId" }, { status: 400 });
 
-        // 1. Atomic claim to complete
-        const claimComplete = await callRpc("claim_vcdn_complete", { p_upload_id: uploadId });
+        const ownerToken = crypto.randomUUID();
+
+        // 1. Atomic claim to complete with owner token
+        const claimComplete = await callRpc("claim_vcdn_complete", {
+          p_upload_id: uploadId,
+          p_owner_token: ownerToken,
+        });
         if (claimComplete.ok && (claimComplete.data?.action === "ALREADY_COMPLETED" || claimComplete.data?.action === "ALREADY_COMPLETING")) {
           return Response.json({ status: "completed", idempotent: true });
         }
@@ -328,13 +333,16 @@ export default {
         if (r.ok || r.status === 400 || r.status === 409 || r.body.includes("already")) {
           await callRpc("finalize_vcdn_session", {
             p_upload_id: uploadId,
-            p_ready: false
+            p_ready: false,
           });
           return Response.json(r.ok ? JSON.parse(r.body || "{}") : { status: "completed", idempotent: true });
         }
 
         // If VCDN returned a real failure, roll back the complete claim to allow safe retry
-        await callRpc("fail_vcdn_complete_claim", { p_upload_id: uploadId });
+        await callRpc("fail_vcdn_complete_claim", {
+          p_upload_id: uploadId,
+          p_owner_token: ownerToken,
+        });
         return Response.json({ error: "VCDN complete failed", code: r.status, detail: r.body.slice(0, 500) }, { status: 502 });
       }
 
