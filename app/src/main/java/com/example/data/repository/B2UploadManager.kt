@@ -43,6 +43,7 @@ object B2UploadManager {
         userId: String,
         uploadType: String,
         customFileName: String? = null,
+        clientMessageUuid: String? = null,
         onProgress: ((Long, Long) -> Unit)? = null
     ): Result<UploadMediaResult> = withContext(Dispatchers.IO) {
         if (!file.exists() || file.length() <= 0L) {
@@ -62,18 +63,18 @@ object B2UploadManager {
                 return@withContext Result.failure(Exception("B2: usuario no autenticado"))
             }
 
-            val presignResult = doPresign(file, mimeType, userId, uploadType, token, customFileName, onProgress)
+            val presignResult = doPresign(file, mimeType, userId, uploadType, token, customFileName, clientMessageUuid, onProgress)
             if (presignResult.isFailure) {
                 val err = presignResult.exceptionOrNull()?.message.orEmpty()
                 // 401 = JWT expirado; refrescar y reintentar una vez.
                 // Verificamos por mensaje O por codigo de error.
                 if (err.contains("401") || presignResult.exceptionOrNull()?.message?.contains("401") == true) {
                     Log.w(TAG, "B2 presign devolvio 401; refrescando JWT y reintentando")
-                    val refreshed = SessionManager.refreshSession()
-                    if (refreshed) {
+                    val refreshedAgain = SessionManager.refreshSession()
+                    if (refreshedAgain) {
                         val newToken = SessionManager.getUserAuthToken() ?: SupabaseClient.currentToken
                         if (!newToken.isNullOrBlank()) {
-                            val retryResult = doPresign(file, mimeType, userId, uploadType, newToken, customFileName, onProgress)
+                            val retryResult = doPresign(file, mimeType, userId, uploadType, newToken, customFileName, clientMessageUuid, onProgress)
                             if (retryResult.isFailure) {
                                 return@withContext Result.failure(retryResult.exceptionOrNull()
                                     ?: Exception("B2 presign fallo tras refrescar JWT"))
@@ -100,15 +101,24 @@ object B2UploadManager {
         uploadType: String,
         token: String,
         customFileName: String? = null,
+        clientMessageUuid: String? = null,
         onProgress: ((Long, Long) -> Unit)? = null
     ): Result<UploadMediaResult> = withContext(Dispatchers.IO) {
         val endpoint = SupabaseClient.supabaseUrl.trimEnd('/') + FUNCTION
+        val finalFileName = customFileName ?: file.name
         val requestBody = JSONObject().apply {
-            put("fileName", customFileName ?: file.name)
+            put("fileName", finalFileName)
             put("mimeType", mimeType)
             put("size", file.length())
             put("uploadType", uploadType)
             put("userId", userId)
+            if (!customFileName.isNullOrBlank()) {
+                put("stableFileName", customFileName)
+                put("customFileName", customFileName)
+            }
+            if (!clientMessageUuid.isNullOrBlank()) {
+                put("clientMessageUuid", clientMessageUuid)
+            }
         }.toString().toRequestBody("application/json".toMediaTypeOrNull())
 
         val presignRequest = Request.Builder()

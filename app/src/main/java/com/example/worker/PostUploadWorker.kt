@@ -83,12 +83,15 @@ class PostUploadWorker(
                 // VCDN (proxy edge function) para video PUBLICO del muro; el resto de
                 // media del post sigue por UploadFailoverRouter (B2/CDN) sin tocarlo.
                 val isPublicVideo = mimeType.startsWith("video/") && mediaKind == "VIDEO"
+                val postClientUuid = pendingPost.id
                 val uploadResult = if (isPublicVideo) {
                     com.example.data.repository.VideoRouter.uploadPublicVideo(
                         file = tempFile,
                         mimeType = mimeType,
                         userId = effectiveUserId,
                         uploadType = "POST",
+                        customFileName = stableFileName,
+                        clientMessageUuid = postClientUuid,
                         onProgress = { bytes, total ->
                             val itemProgress = bytes.toFloat() / total.toFloat().coerceAtLeast(1f)
                             val totalProgress = (index + itemProgress) / totalItems
@@ -105,6 +108,7 @@ class PostUploadWorker(
                         userId = effectiveUserId,
                         uploadType = "POST",
                         customFileName = stableFileName,
+                        clientMessageUuid = postClientUuid,
                         onProgress = { bytes, total ->
                             val itemProgress = bytes.toFloat() / total.toFloat().coerceAtLeast(1f)
                             val totalProgress = (index + itemProgress) / totalItems

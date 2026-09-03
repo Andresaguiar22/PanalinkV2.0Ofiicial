@@ -67,6 +67,7 @@ object UploadFailoverRouter {
         userId: String,
         uploadType: String,
         customFileName: String? = null,
+        clientMessageUuid: String? = null,
         onProgress: ((Long, Long) -> Unit)? = null,
         cdnUpload: (suspend (onProgress: ((Long, Long) -> Unit)?) -> Result<UploadMediaResult>)? = null
     ): Result<UploadMediaResult> {
@@ -77,6 +78,7 @@ object UploadFailoverRouter {
             userId = userId,
             uploadType = uploadType,
             customFileName = customFileName,
+            clientMessageUuid = clientMessageUuid,
             onProgress = onProgress
         )
     }

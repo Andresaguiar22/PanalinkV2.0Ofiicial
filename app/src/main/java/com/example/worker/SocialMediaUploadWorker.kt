@@ -109,23 +109,26 @@ class SocialMediaUploadWorker(
                 // UploadFailoverRouter (B2/CDN), sin tocarlo.
                 val isPublicVideo = entity.mimeType.startsWith("video/") &&
                     (entity.uploadType == "REEL" || entity.uploadType == "STATE")
+                val ext = if (finalUploadFile.name.contains(".")) finalUploadFile.name.substringAfterLast(".") else "bin"
+                val stableFileName = "social_${entity.id}_${entity.uploadType.lowercase()}.$ext"
                 val uploadResult = if (isPublicVideo) {
                     VideoRouter.uploadPublicVideo(
                         file = finalUploadFile,
                         mimeType = entity.mimeType,
                         userId = currentUid,
                         uploadType = entity.uploadType,
+                        customFileName = stableFileName,
+                        clientMessageUuid = entity.id,
                         onProgress = progressCb
                     )
                 } else {
-                    val ext = if (finalUploadFile.name.contains(".")) finalUploadFile.name.substringAfterLast(".") else "bin"
-                    val stableFileName = "social_${entity.id}_${entity.uploadType.lowercase()}.$ext"
                     UploadFailoverRouter.uploadWithFailover(
                         file = finalUploadFile,
                         mimeType = entity.mimeType,
                         userId = currentUid,
                         uploadType = entity.uploadType,
                         customFileName = stableFileName,
+                        clientMessageUuid = entity.id,
                         onProgress = progressCb
                     ) { progress ->
                         UploadRepository().uploadVideo(
@@ -161,7 +164,7 @@ class SocialMediaUploadWorker(
                         if (thumbFile != null) {
                             // 1) Supabase Storage (thumbnails bucket, fuente de verdad)
                             val currentUidForThumb = currentUid.ifEmpty { SupabaseClient.currentUser?.id ?: "anonymous" }
-                            val thumbObjectName = "thumb_${entity.uploadType.lowercase()}_${System.currentTimeMillis()}.jpg"
+                            val thumbObjectName = "thumb_${entity.uploadType.lowercase()}_${entity.id}.jpg"
                             val storageThumbUrl = try {
                                 supabaseStorage.uploadThumbnail(thumbFile, currentUidForThumb, thumbObjectName)
                             } catch (e: Exception) { Log.w(TAG, "Supabase Storage thumb falla", e); null }
@@ -171,17 +174,21 @@ class SocialMediaUploadWorker(
                                 Log.i(TAG, "Thumbnail subido a Supabase Storage: $uploadedThumbUrl")
                             } else {
                                 // 2) Fallback: CDN/B2 via failover router
+                                val thumbStableName = "thumb_social_${entity.id}_${entity.uploadType.lowercase()}.jpg"
                                 val thumbResult = UploadFailoverRouter.uploadWithFailover(
                                     file = thumbFile,
                                     mimeType = "image/jpeg",
                                     userId = currentUidForThumb,
-                                    uploadType = "thumbnail"
+                                    uploadType = "thumbnail",
+                                    customFileName = thumbStableName,
+                                    clientMessageUuid = entity.id
                                 ) {
                                     UploadRepository().uploadVideo(
                                         mediaFile = thumbFile,
                                         mediaMimeType = "image/jpeg",
                                         caption = "thumbnail",
-                                        userId = currentUidForThumb
+                                        userId = currentUidForThumb,
+                                        stableFileName = thumbStableName
                                     )
                                 }
                                 uploadedThumbUrl = thumbResult.getOrNull()?.url
