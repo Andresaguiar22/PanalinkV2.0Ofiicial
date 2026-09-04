@@ -230,12 +230,7 @@ class SocialMediaUploadWorker(
                 }
             } catch (_: Exception) { null }
 
-            val targetStateId = try {
-                java.util.UUID.fromString(uploadId)
-                uploadId
-            } catch (_: Exception) {
-                java.util.UUID.nameUUIDFromBytes("panalink_state_$uploadId".toByteArray()).toString()
-            }
+            val targetStateId = com.example.util.SocialUploadRecoveryHelper.deriveTargetStateId(uploadId)
 
             setProgress(workDataOf("uploadId" to uploadId, "progress" to 85, "bytesWritten" to finalUploadFile.length(), "totalBytes" to finalUploadFile.length(), "status" to "Registrando publicación...", "uploadType" to entity.uploadType))
             var createdState: com.example.data.model.UserState? = null
