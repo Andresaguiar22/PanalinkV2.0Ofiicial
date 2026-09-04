@@ -455,4 +455,48 @@ class SocialUploadRecoveryTest {
         assertEquals("failed", inDb?.status)
         assertEquals("Archivo local no encontrado", inDb?.errorMessage)
     }
+
+    @Test
+    fun `H - AUDIO upload becomes completed with remoteUrl and never creates a Story row`() = runBlocking {
+        val dao = db.pendingUploadDao()
+        val uploadId = "story_audio_contract_h"
+        val dummyFile = File(context.cacheDir, "test_audio_h.m4a").apply { writeText("dummy-audio") }
+        val upload = PendingUploadEntity(
+            id = uploadId,
+            userId = "user-123",
+            uploadType = "AUDIO",
+            localFilePath = dummyFile.absolutePath,
+            mimeType = "audio/mp4",
+            caption = "Audio de historia: fondo",
+            status = "pending"
+        )
+        dao.insertUpload(upload)
+
+        val entityBefore = dao.getUploadById(uploadId)
+        assertNotNull(entityBefore)
+        assertEquals("pending", entityBefore?.status)
+        assertNull(entityBefore?.remoteUrl)
+
+        val uploadingEntity = entityBefore!!.copy(status = "uploading", updatedAt = System.currentTimeMillis())
+        dao.updateUpload(uploadingEntity)
+
+        val uploadedUrl = "https://cdn.panalink.app/story_audio_123.m4a"
+
+        dao.updateUpload(uploadingEntity.copy(
+            status = "completed",
+            remoteUrl = uploadedUrl,
+            updatedAt = System.currentTimeMillis()
+        ))
+
+        val finalEntity = dao.getUploadById(uploadId)
+        assertNotNull(finalEntity)
+        assertEquals("completed", finalEntity?.status)
+        assertEquals(uploadedUrl, finalEntity?.remoteUrl)
+        assertEquals("AUDIO", finalEntity?.uploadType)
+
+        val storyRows = db.statesDao().getAllStatesSync()
+        assertTrue("AUDIO no debe crear filas de Story", storyRows.isEmpty())
+        assertTrue("Archivo de audio debe seguir existiendo", File(finalEntity!!.localFilePath).exists())
+    }
+
 }

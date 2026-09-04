@@ -83,7 +83,10 @@ class FeedRepositoryImpl : FeedRepository {
             val profilesMap = cachedEntities.associate { it.id to com.example.data.mapper.PublicProfileMapper.entityToModel(it) }
             
             val missingIds = userIds.filter { !profilesMap.containsKey(it) }
-            if (missingIds.isNotEmpty()) {
+            // Offline: calentamiento de perfiles SOLO con red real, fuera del camino crítico.
+
+            if (missingIds.isNotEmpty() && com.example.util.NetworkMonitor.isOnline.value) {
+
                 repoScope.launch {
                     publicProfileRepo.getPublicProfiles(missingIds)
                 }
@@ -104,6 +107,13 @@ class FeedRepositoryImpl : FeedRepository {
     override suspend fun getFeed(limit: Int, lastCreatedAt: String?): Result<Unit> = withContext(Dispatchers.IO) {
         val database = com.example.data.database.PanalinkDatabase.getDatabase(com.example.PanaApplication.instance)
         val postDao = database.postDao()
+
+        if (!com.example.util.NetworkMonitor.isOnline.value) {
+
+            return@withContext Result.success(Unit)
+
+
+        }
 
         if (!SupabaseClient.isConfigured) {
             return@withContext Result.success(Unit)
@@ -178,6 +188,11 @@ class FeedRepositoryImpl : FeedRepository {
     }
 
     override suspend fun createPost(post: PostDto): Result<PostDto> = withContext(Dispatchers.IO) {
+        if (!com.example.util.NetworkMonitor.isOnline.value) {
+
+            return@withContext Result.failure(Exception("Sin conexion: el post no se pudo crear"))
+
+        }
         try {
             val service = SupabaseClient.apiService ?: return@withContext Result.failure(Exception("Supabase not configured"))
             val response = runCall { b -> service.createPost(SupabaseClient.supabaseAnonKey, b, post) }
@@ -344,6 +359,10 @@ class FeedRepositoryImpl : FeedRepository {
     override suspend fun getCommentsForPost(postId: String): Result<Unit> = withContext(Dispatchers.IO) {
         val database = com.example.data.database.PanalinkDatabase.getDatabase(com.example.PanaApplication.instance)
         val commentDao = database.commentDao()
+        // Offline: mantener solo Room. No tocar Supabase ni reintentos.
+        if (!com.example.util.NetworkMonitor.isOnline.value) {
+            return@withContext Result.success(Unit)
+        }
 
         // 2. Refresh from Supabase if configured
         if (SupabaseClient.isConfigured) {
@@ -448,10 +467,16 @@ class FeedRepositoryImpl : FeedRepository {
         }
     }
 
-    override suspend fun getPostById(postId: String): Result<PostDto> = withContext(Dispatchers.IO) {
+    override suspend fun getPostById(postId: String): Result<PostDto> =withContext(Dispatchers.IO) {
         val database = com.example.data.database.PanalinkDatabase.getDatabase(com.example.PanaApplication.instance)
         val postDao = database.postDao()
         val local = postDao.getPostById(postId)
+        if (!com.example.util.NetworkMonitor.isOnline.value) {
+
+            if (local != null) return@withContext Result.success(local.toPostDto())
+            return@withContext Result.failure(Exception("Sin conexion"))
+
+        }
 
         try {
             val service = SupabaseClient.apiService ?: return@withContext Result.failure(Exception("Supabase not configured"))

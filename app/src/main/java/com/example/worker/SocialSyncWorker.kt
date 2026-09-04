@@ -20,6 +20,10 @@ class SocialSyncWorker(
     private val statesDao = db.statesDao()
 
     override suspend fun doWork(): Result {
+        // Red real VALIDATED (no solo CONNECTED: si no hay internet, devolver a la cola.
+        if (!com.example.util.NetworkMonitor.isOnline.value) {
+            return Result.retry()
+        }
         Log.i("SocialSyncWorker", "Starting sync of pending social actions...")
         if (!SupabaseClient.isConfigured) return Result.success()
 

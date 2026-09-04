@@ -254,12 +254,19 @@ class SocialMediaUploadWorker(
                     )
                     createdState = result.getOrNull(); result.isSuccess
                 }
+                // Audio personalizado de Historias: solo subida durable del medio;
+                // NO crea estado (es música de fondo, no una historia independiente).
+                "AUDIO" -> true
                 else -> false
             }
             if (!success) return handleFailure(entity, "Fallo al registrar la publicación en Supabase")
 
-            try {
-                val currentUid = entity.userId.ifEmpty { SupabaseClient.currentUser?.id ?: "anonymous" }
+            // Solo STATE/REEL persisten el estado localmente; el upload AUDIO es
+            // música de fondo y no debe crear filas de historias en Room.
+
+            if (entity.uploadType == "STATE" || entity.uploadType == "REEL") {
+                try {
+                    val currentUid = entity.userId.ifEmpty { SupabaseClient.currentUser?.id ?: "anonymous" }
                 val myProfile = profilesRepository.getProfile(currentUid).getOrNull() ?: SupabaseClient.currentProfile ?: com.example.data.model.Profile(currentUid, "", null)
                 val newState = createdState ?: com.example.data.model.UserState(id = targetStateId, authorId = currentUid, userIdField = currentUid, mediaUrl = uploadedUrl ?: "", mediaType = when { entity.mimeType.startsWith("video/") -> "video"; entity.mimeType.startsWith("audio/") -> "audio"; else -> "image" }, caption = entity.caption, createdAt = SupabaseClient.getNowIsoString(), type = if (entity.uploadType == "REEL") "reel" else "story", localVideoPath = entity.localFilePath)
                 try { db.statesDao().deleteById("optimistic_$uploadId"); db.statesDao().deleteOptimistic(currentUid, entity.caption) } catch (_: Exception) {}
@@ -288,7 +295,8 @@ class SocialMediaUploadWorker(
                     )
                 )
                 reelsRepo.local.updateLocalPath(newState.id, entity.localFilePath)
-            } catch (e: Exception) { Log.e(TAG, "Failed to save state locally", e) }
+                } catch (e: Exception) { Log.e(TAG, "Failed to save state locally", e) }
+            }
 
             val finalMetadata = try {
                 val base = entity.metadataJson
