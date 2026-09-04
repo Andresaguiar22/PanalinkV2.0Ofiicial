@@ -207,4 +207,61 @@ class MediaStateMachineTest {
         }
         assertFalse("Local file is cleaned only after confirmed upload", localMediaFile.exists())
     }
+
+    // 10. Precondición de archivo local y presencia de mediaUrl en MediaUploadWorker
+    @Test
+    fun test10_mediaUploadWorkerFilePreconditionMatrix() {
+        // 1. fileExists=false + mediaUrl existe -> NO debe fallar por archivo inexistente (CONTINUE_WITH_REMOTE_URL)
+        val res1 = MediaUploadWorker.evaluateFilePrecondition(
+            fileExists = false,
+            mediaUrl = "https://cdn.example.com/media/uploaded_file.jpg"
+        )
+        assertEquals(
+            "fileExists=false + mediaUrl presente NO debe fallar por archivo inexistente",
+            MediaUploadWorker.FilePreconditionResult.CONTINUE_WITH_REMOTE_URL,
+            res1
+        )
+
+        // 2. fileExists=false + mediaUrl vacío/null -> debe fallar (FAIL_MISSING_FILE)
+        val res2Null = MediaUploadWorker.evaluateFilePrecondition(
+            fileExists = false,
+            mediaUrl = null
+        )
+        assertEquals(
+            "fileExists=false + mediaUrl null debe fallar por archivo inexistente",
+            MediaUploadWorker.FilePreconditionResult.FAIL_MISSING_FILE,
+            res2Null
+        )
+
+        val res2Blank = MediaUploadWorker.evaluateFilePrecondition(
+            fileExists = false,
+            mediaUrl = "   "
+        )
+        assertEquals(
+            "fileExists=false + mediaUrl blank debe fallar por archivo inexistente",
+            MediaUploadWorker.FilePreconditionResult.FAIL_MISSING_FILE,
+            res2Blank
+        )
+
+        // 3. fileExists=true -> no debe fallar por esta condición (PROCEED_TO_UPLOAD si no hay remoteUrl, o CONTINUE_WITH_REMOTE_URL si ya la tenía)
+        val res3NoRemote = MediaUploadWorker.evaluateFilePrecondition(
+            fileExists = true,
+            mediaUrl = null
+        )
+        assertEquals(
+            "fileExists=true + mediaUrl null debe proceder a upload",
+            MediaUploadWorker.FilePreconditionResult.PROCEED_TO_UPLOAD,
+            res3NoRemote
+        )
+
+        val res3WithRemote = MediaUploadWorker.evaluateFilePrecondition(
+            fileExists = true,
+            mediaUrl = "https://cdn.example.com/media/existing.jpg"
+        )
+        assertEquals(
+            "fileExists=true + mediaUrl existente debe continuar con remoteUrl",
+            MediaUploadWorker.FilePreconditionResult.CONTINUE_WITH_REMOTE_URL,
+            res3WithRemote
+        )
+    }
 }
