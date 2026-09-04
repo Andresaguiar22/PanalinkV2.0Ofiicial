@@ -121,9 +121,8 @@ class MessagesRepository private constructor() {
             return@withContext CanonicalChatIdentity(kind = ChatKind.LEGACY, chatId = chatId)
         }
 
-        val targetReceiverId = receiverHint?.takeIf { isValidUuid(it) }
-            ?: chatEntity?.otherUserId?.takeIf { isValidUuid(it) }
-            ?: if (isValidUuid(chatId) && chatId != currentUid) chatId else null
+        val targetReceiverId = receiverHint?.takeIf { isValidUuid(it) && it != currentUid }
+            ?: chatEntity?.otherUserId?.takeIf { isValidUuid(it) && it != currentUid }
 
         // Caso A: Room tiene DM + threadId explícito canónico y válido
         if (chatEntity?.type == "dm" && !chatEntity.threadId.isNullOrEmpty() && isValidUuid(chatEntity.threadId)) {

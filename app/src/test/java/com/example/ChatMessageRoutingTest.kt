@@ -6,7 +6,7 @@ import org.junit.Test
 
 class ChatMessageRoutingTest {
     @Test
-    fun threadMessage_prefersCanonicalChatIdOverThreadId() {
+    fun threadMessage_prefersCanonicalThreadIdOverChatId() {
         val message = ThreadMessage(
             id = "11111111-1111-1111-1111-111111111111",
             threadId = "22222222-2222-2222-2222-222222222222",
@@ -17,6 +17,6 @@ class ChatMessageRoutingTest {
             clientMessageUuid = "66666666-6666-6666-6666-666666666666"
         )
 
-        assertEquals(message.chatId, message.toMessage().chatId)
+        assertEquals(message.threadId, message.toMessage().chatId)
     }
 }

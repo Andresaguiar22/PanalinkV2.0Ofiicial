@@ -125,10 +125,15 @@ fun MainNavHost(
 
 
                         val db2 = com.example.data.database.PanalinkDatabase.getDatabase(context)
-                        val resolvedChatId = kotlinx.coroutines.withContext(kotlinx.coroutines.Dispatchers.IO){
-                            val byId = db2.chatDao().getChatById(chatId)
-                            if (byId != null) byId.id
-                            else db2.chatDao().getChatByThreadId(chatId)?.id ?: chatId
+                        val resolvedChatId = kotlinx.coroutines.withContext(kotlinx.coroutines.Dispatchers.IO) {
+                            // Buscar primero por threadId canónico o id directo
+                            val byThread = db2.chatDao().getChatByThreadId(chatId)
+                            if (byThread != null) {
+                                byThread.threadId ?: byThread.id
+                            } else {
+                                val byId = db2.chatDao().getChatById(chatId)
+                                byId?.threadId ?: byId?.id ?: chatId
+                            }
                         }
 
                         val otherUserId = if (!rawOtherUserId.isNullOrBlank() && rawOtherUserId != "unknown") {
