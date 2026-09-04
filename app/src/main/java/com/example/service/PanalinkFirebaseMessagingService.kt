@@ -98,7 +98,38 @@ class PanalinkFirebaseMessagingService : FirebaseMessagingService() {
 
                 val notificationTitle = remoteMessage.notification?.title ?: remoteMessage.data["title"] ?: "Pana 💬"
                 val notificationBody = remoteMessage.notification?.body ?: remoteMessage.data["body"] ?: "Nueva notificación recibida"
-                val chatId = remoteMessage.data["chat_id"] ?: remoteMessage.data["chatId"] ?: remoteMessage.data["p_chat_id"] ?: remoteMessage.data["thread_id"] ?: remoteMessage.data["threadId"] ?: ""
+                
+                // Prioridad estricta para identidad canónica del chat:
+                // 1. thread_id / threadId / p_thread_id
+                // 2. chat_id / chatId / p_chat_id
+                // 3. aliases legacy
+                val rawThreadId = remoteMessage.data["thread_id"]
+                    ?: remoteMessage.data["threadId"]
+                    ?: remoteMessage.data["p_thread_id"]
+
+                val rawChatId = remoteMessage.data["chat_id"]
+                    ?: remoteMessage.data["chatId"]
+                    ?: remoteMessage.data["p_chat_id"]
+
+                val initialChatId = rawThreadId?.takeIf { it.isNotBlank() }
+                    ?: rawChatId?.takeIf { it.isNotBlank() }
+                    ?: ""
+
+                val db = try { com.example.data.database.PanalinkDatabase.getDatabase(applicationContext) } catch (e: Exception) { null }
+                val chatEntity = if (initialChatId.isNotEmpty()) {
+                    try {
+                        db?.chatDao()?.getChatByThreadId(initialChatId) ?: db?.chatDao()?.getChatById(initialChatId)
+                    } catch (e: Exception) { null }
+                } else null
+
+                // El valor entregado como chatId para navegación y lógica interna DEBE ser el thread_id canónico
+                val canonicalChatId = if (rawThreadId.isNullOrBlank() && !chatEntity?.threadId.isNullOrBlank()) {
+                    chatEntity!!.threadId!!
+                } else {
+                    initialChatId
+                }
+
+                val chatId = canonicalChatId
                 val stateId = remoteMessage.data["state_id"] ?: remoteMessage.data["stateId"] ?: remoteMessage.data["p_state_id"] ?: ""
                 val notificationType = remoteMessage.data["notification_type"] ?: remoteMessage.data["notificationType"] ?: remoteMessage.data["p_notification_type"] ?: "new_message"
                 val thumbnailUrl = remoteMessage.data["thumbnail_url"] ?: remoteMessage.data["thumbnailUrl"] ?: remoteMessage.data["p_thumbnail_url"]
@@ -108,21 +139,18 @@ class PanalinkFirebaseMessagingService : FirebaseMessagingService() {
                 val messageId = remoteMessage.data["message_id"] ?: remoteMessage.data["messageId"] ?: remoteMessage.data["id"] ?: remoteMessage.data["p_message_id"]
                 val notificationId = remoteMessage.data["notification_id"] ?: remoteMessage.data["notificationId"] ?: remoteMessage.data["p_notification_id"]
 
-                val isChatMuted = if (chatId.isNotEmpty() && (notificationType == "new_message" || notificationType == "chat_message")) {
-                    try {
-                        val db = com.example.data.database.PanalinkDatabase.getDatabase(applicationContext)
-                        db.chatDao().getChatById(chatId)?.isMuted == true
-                    } catch (e: Exception) { false }
+                val isChatMuted = if (canonicalChatId.isNotEmpty() && (notificationType == "new_message" || notificationType == "chat_message")) {
+                    chatEntity?.isMuted == true
                 } else false
 
                 if (isChatMuted) {
-                    Log.d(TAG, "Chat $chatId is muted. FCM notification suppressed.")
+                    Log.d(TAG, "Chat $canonicalChatId is muted. FCM notification suppressed.")
                     return@launch
                 }
 
                 val isChatActive = (notificationType == "new_message" || notificationType == "chat_message") &&
                         SupabaseClient.isChatScreenActive &&
-                        SupabaseClient.activeChatId == chatId
+                        (SupabaseClient.activeChatId == canonicalChatId || (chatEntity?.id != null && SupabaseClient.activeChatId == chatEntity.id))
 
                 if (isChatActive) {
                     NotificationDeduplicator.markAsNotified(clientMessageUuid, messageId)
@@ -137,20 +165,27 @@ class PanalinkFirebaseMessagingService : FirebaseMessagingService() {
                         return@launch
                     }
                     val senderId = remoteMessage.data["sender_id"] ?: remoteMessage.data["senderId"] ?: remoteMessage.data["p_sender_id"] ?: ""
-                    // Stash sender_id in the notification extras so tapping the
-                    // notification opens the correct chat with the right contact
-                    // profile (otherwise "unknown" leaves the header blank).
+                    // Preservar tanto sender_id como los identificadores originales en notifExtras
                     val notifExtras = mutableMapOf<String, String>()
                     if (senderId.isNotEmpty()) {
                         notifExtras["sender_id"] = senderId
                         notifExtras["senderId"] = senderId
+                        notifExtras["otherUserId"] = senderId
+                    }
+                    if (!rawThreadId.isNullOrEmpty()) {
+                        notifExtras["thread_id"] = rawThreadId
+                        notifExtras["threadId"] = rawThreadId
+                    }
+                    if (!rawChatId.isNullOrEmpty()) {
+                        notifExtras["chat_id"] = rawChatId
+                        notifExtras["chatId"] = rawChatId
                     }
                     PanaLinkNotificationManager.showChatNotification(
                         context = applicationContext,
                         senderName = remoteMessage.data["sender_name"] ?: remoteMessage.data["senderName"] ?: remoteMessage.data["p_sender_name"] ?: "",
                         senderAvatarUrl = senderAvatar,
                         messageText = notificationBody,
-                        chatId = chatId,
+                        chatId = canonicalChatId,
                         senderId = senderId,
                         extras = notifExtras
                     )

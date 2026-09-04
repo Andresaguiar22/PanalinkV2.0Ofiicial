@@ -92,6 +92,16 @@ class MessagesRepository private constructor() {
                 instance ?: MessagesRepository().also { instance = it }
             }
         }
+
+        fun isValidUuid(uuidStr: String?): Boolean {
+            if (uuidStr.isNullOrEmpty()) return false
+            return try {
+                java.util.UUID.fromString(uuidStr)
+                true
+            } catch (e: Exception) {
+                false
+            }
+        }
     }
 
     enum class ChatKind {

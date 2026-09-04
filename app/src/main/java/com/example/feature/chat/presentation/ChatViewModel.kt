@@ -199,16 +199,22 @@ private var chatJob: kotlinx.coroutines.Job? = null
     private var loadJob: kotlinx.coroutines.Job? = null
 
     fun loadChatHistory(chatId: String, otherUserId: String) {
-        // UN SOLO chat por pareja MÁS: el id que llega por navegación/notificación puede
-        // ser el thread_id (UID del hilo,) mientras que Room cachea el chat con otro id
-        // (thread.id del backend.. Si existe el chat canónico local, trabajamos SIEMPRE con
-        // ESE id — nunca con un id paralelo que abriría/duplicaría un chat fantasma..
+        // UN SOLO chat por pareja: el identificador canónico del DM es thread_id.
+        // 1. getChatByThreadId(chatId)
+        // 2. Si no existe, getChatById(chatId)
+        // 3. Si la entidad tiene threadId, utilizar threadId
+        // 4. Solo utilizar el id de Room si ese ID es realmente la identidad local canónica
         loadJob?.cancel()
         loadJob = viewModelScope.launch(Dispatchers.IO) {
             val dbChats = com.example.data.database.PanalinkDatabase.getDatabase(com.example.PanaApplication.instance).chatDao()
-            val canonicalChatId = kotlinx.coroutines.withContext(kotlinx.coroutines.Dispatchers.IO){
-                val byId = dbChats.getChatById(chatId)
-                if (byId != null) byId.id else dbChats.getChatByThreadId(chatId)?.id ?: chatId
+            val canonicalChatId = kotlinx.coroutines.withContext(kotlinx.coroutines.Dispatchers.IO) {
+                val byThread = dbChats.getChatByThreadId(chatId)
+                if (byThread != null) {
+                    byThread.threadId?.takeIf { it.isNotBlank() } ?: byThread.id
+                } else {
+                    val byId = dbChats.getChatById(chatId)
+                    byId?.threadId?.takeIf { it.isNotBlank() } ?: byId?.id ?: chatId
+                }
             }
             val effectiveChatId = canonicalChatId
             currentChatId = effectiveChatId
@@ -220,14 +226,14 @@ private var chatJob: kotlinx.coroutines.Job? = null
             var resolvedOtherUserId = otherUserId
             if (resolvedOtherUserId.isBlank() || resolvedOtherUserId == "unknown") {
                 try {
-                    val chatEntity = dbChats.getChatById(effectiveChatId)
+                    val chatEntity = dbChats.getChatByThreadId(effectiveChatId) ?: dbChats.getChatById(effectiveChatId)
 
                     val fromEntity = chatEntity?.otherUserId
                     if (!fromEntity.isNullOrBlank()) {
                         resolvedOtherUserId = fromEntity
                     } else {
-                        // Last resort: infer from the most recent incoming message's sender..
-                        val lastIncoming = kotlinx.coroutines.withContext(kotlinx.coroutines.Dispatchers.IO){
+                        // Last resort: infer from the most recent incoming message's sender
+                        val lastIncoming = kotlinx.coroutines.withContext(kotlinx.coroutines.Dispatchers.IO) {
                             com.example.data.database.PanalinkDatabase.getDatabase(com.example.PanaApplication.instance).messageDao().getMessagesForChat(effectiveChatId)
                                 .firstOrNull { it.senderId != com.example.data.supabase.SupabaseClient.currentUser?.id && !it.senderId.isNullOrBlank() }?.senderId
                         }
