@@ -297,6 +297,8 @@ object NotificationHelper {
         // Intent to open MainActivity and launch the specific content when clicked
         val intent = Intent(context, MainActivity::class.java).apply {
             flags = Intent.FLAG_ACTIVITY_NEW_TASK or Intent.FLAG_ACTIVITY_CLEAR_TOP
+            putExtra("thread_id", chatId)
+            putExtra("threadId", chatId)
             putExtra("chatId", chatId)
             putExtra("chat_id", chatId)
             putExtra("stateId", stateId)

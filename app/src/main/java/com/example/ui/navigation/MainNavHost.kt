@@ -92,7 +92,12 @@ fun MainNavHost(
             val intentToProcess = currentIntentState.value
             LaunchedEffect(intentToProcess) {
                 intentToProcess?.let { intent ->
-                    val chatId = intent.getStringExtra("chat_id") ?: intent.getStringExtra("chatId")
+                    val chatId = intent.getStringExtra("thread_id")
+                        ?: intent.getStringExtra("threadId")
+                        ?: intent.getStringExtra("p_thread_id")
+                        ?: intent.getStringExtra("chat_id")
+                        ?: intent.getStringExtra("chatId")
+                        ?: intent.getStringExtra("p_chat_id")
                     val stateId = intent.getStringExtra("state_id") ?: intent.getStringExtra("stateId")
                     val type = intent.getStringExtra("notification_type") ?: intent.getStringExtra("notificationType")
 
@@ -110,44 +115,103 @@ fun MainNavHost(
                         if (callManager.callState.value == com.example.call.CallState.IDLE) {
                             callManager.handleFCMIncomingCall(callerId, callerName, callTypeStr)
                         }
-                                        } else if (!chatId.isNullOrEmpty()) {
+                    } else if (!chatId.isNullOrEmpty()) {
+                        intent.removeExtra("thread_id")
+                        intent.removeExtra("threadId")
+                        intent.removeExtra("p_thread_id")
                         intent.removeExtra("chat_id")
                         intent.removeExtra("chatId")
+                        intent.removeExtra("p_chat_id")
                         val rawOtherUserId = intent.getStringExtra("otherUserId")
                             ?: intent.getStringExtra("sender_id")
                             ?: intent.getStringExtra("senderId")
-
-                        // Resolver el id CANÓNICO local del hilo: el payload puede traer el
-                        // thread_id (UID del hilo) mientras que el chat en Room puede estar
-                        // cacheado con otro id (thread.id del backend). Si ya existe el chat,
-                        // navegamos a ESE (mismo destino de la lista de chats) para que
-                        // launchSingleTop reutilice la pantalla abierta y NO abra una hermana/paralela.
-
-
-                        val db2 = com.example.data.database.PanalinkDatabase.getDatabase(context)
-                        val resolvedChatId = kotlinx.coroutines.withContext(kotlinx.coroutines.Dispatchers.IO) {
-                            // Buscar primero por threadId canónico o id directo
-                            val byThread = db2.chatDao().getChatByThreadId(chatId)
-                            if (byThread != null) {
-                                byThread.threadId ?: byThread.id
-                            } else {
-                                val byId = db2.chatDao().getChatById(chatId)
-                                byId?.threadId ?: byId?.id ?: chatId
-                            }
-                        }
-
-                        val otherUserId = if (!rawOtherUserId.isNullOrBlank() && rawOtherUserId != "unknown") {
-                            rawOtherUserId
-                        } else {
-                            val chatEntity = kotlinx.coroutines.withContext(kotlinx.coroutines.Dispatchers.IO) { db2.chatDao().getChatById(resolvedChatId) }
-                            val msgEntity = kotlinx.coroutines.withContext(kotlinx.coroutines.Dispatchers.IO) { db2.messageDao().getMessagesForChat(resolvedChatId)?.firstOrNull { it.senderId != com.example.data.supabase.SupabaseClient.currentUser?.id } }
-                            chatEntity?.otherUserId ?: msgEntity?.senderId ?: "unknown"
-                        }
+                            ?: intent.getStringExtra("p_sender_id")
                         intent.removeExtra("otherUserId")
                         intent.removeExtra("sender_id")
                         intent.removeExtra("senderId")
-                        delay(300)
-                        mainNavController.navigate("chat/$resolvedChatId/$otherUserId") { launchSingleTop = true }
+                        intent.removeExtra("p_sender_id")
+
+                        // Resolver el id CANÓNICO local del hilo para navegación:
+                        // 1. Buscar primero chatDao.getChatByThreadId(id) -> usar entity.threadId
+                        // 2. Si no, chatDao.getChatById(id) -> usar entity.threadId ?: entity.id
+                        // 3. Validar sender_id contra otherUserId para evitar contradicciones
+                        // 4. Si no está en Room, resolver con Supabase (one_to_one_threads)
+                        val db2 = com.example.data.database.PanalinkDatabase.getDatabase(context)
+                        val resolvedPair = kotlinx.coroutines.withContext(kotlinx.coroutines.Dispatchers.IO) {
+                            var canonicalThreadId: String? = null
+                            var resolvedOtherUserId = rawOtherUserId?.takeIf { it.isNotBlank() && it != "unknown" }
+                            val currentUid = com.example.data.supabase.SupabaseClient.currentUser?.id
+
+                            val byThread = db2.chatDao().getChatByThreadId(chatId)
+                            if (byThread != null) {
+                                canonicalThreadId = byThread.threadId ?: byThread.id
+                                if (byThread.type == "dm") {
+                                    val roomOther = byThread.otherUserId
+                                    if (!roomOther.isNullOrBlank()) {
+                                        if (resolvedOtherUserId != null && resolvedOtherUserId != roomOther) {
+                                            android.util.Log.e("MainActivity", "Contradicción de sender: notif sender=$resolvedOtherUserId != room otherUser=$roomOther. Abortando.")
+                                            return@withContext null
+                                        }
+                                        resolvedOtherUserId = roomOther
+                                    }
+                                }
+                            } else {
+                                val byId = db2.chatDao().getChatById(chatId)
+                                if (byId != null) {
+                                    canonicalThreadId = byId.threadId ?: byId.id
+                                    if (byId.type == "dm") {
+                                        val roomOther = byId.otherUserId
+                                        if (!roomOther.isNullOrBlank()) {
+                                            if (resolvedOtherUserId != null && resolvedOtherUserId != roomOther) {
+                                                android.util.Log.e("MainActivity", "Contradicción de sender: notif sender=$resolvedOtherUserId != room otherUser=$roomOther. Abortando.")
+                                                return@withContext null
+                                            }
+                                            resolvedOtherUserId = roomOther
+                                        }
+                                    }
+                                }
+                            }
+
+                            // Si no se pudo resolver localmente, intentar resolverlo contra Supabase
+                            if (canonicalThreadId == null || !com.example.data.repository.MessagesRepository.isValidUuid(canonicalThreadId)) {
+                                try {
+                                    val identity = com.example.data.repository.MessagesRepository.getInstance().resolveChatIdentity(
+                                        chatId = chatId,
+                                        receiverHint = resolvedOtherUserId
+                                    )
+                                    if (identity.kind == com.example.data.repository.MessagesRepository.ChatKind.DM && !identity.threadId.isNullOrEmpty()) {
+                                        canonicalThreadId = identity.threadId
+                                        if (!identity.receiverId.isNullOrEmpty()) {
+                                            if (resolvedOtherUserId != null && resolvedOtherUserId != identity.receiverId) {
+                                                android.util.Log.e("MainActivity", "Contradicción remota: sender=$resolvedOtherUserId != identity.receiver=${identity.receiverId}. Abortando.")
+                                                return@withContext null
+                                            }
+                                            resolvedOtherUserId = identity.receiverId
+                                        }
+                                    } else if (identity.kind == com.example.data.repository.MessagesRepository.ChatKind.CHANNEL || identity.kind == com.example.data.repository.MessagesRepository.ChatKind.LEGACY) {
+                                        canonicalThreadId = identity.chatId
+                                    }
+                                } catch (e: Exception) {
+                                    android.util.Log.e("MainActivity", "Error al resolver identidad en Supabase para $chatId", e)
+                                }
+                            }
+
+                            if (!canonicalThreadId.isNullOrEmpty()) {
+                                val finalOther = resolvedOtherUserId
+                                    ?: db2.chatDao().getChatById(canonicalThreadId)?.otherUserId
+                                    ?: db2.messageDao().getMessagesForChat(canonicalThreadId)?.firstOrNull { it.senderId != currentUid && !it.senderId.isNullOrBlank() }?.senderId
+                                    ?: "unknown"
+                                Pair(canonicalThreadId, finalOther)
+                            } else {
+                                null
+                            }
+                        }
+
+                        if (resolvedPair != null) {
+                            val (targetThreadId, targetOtherUserId) = resolvedPair
+                            delay(300)
+                            mainNavController.navigate("chat/$targetThreadId/$targetOtherUserId") { launchSingleTop = true }
+                        }
                     } else if (!stateId.isNullOrEmpty()) {
                         intent.removeExtra("state_id")
                         intent.removeExtra("stateId")

@@ -71,10 +71,11 @@ object PanaLinkNotificationManager {
             // Fallback to initials if bitmap failed
             val finalIcon = largeIconBitmap ?: NotificationHelper.createInitialsBitmap(context, senderName)
 
-            // Intent to open chat. Carry senderId so the chat opens with the
-            // correct contact profile instead of a blank "unknown" header.
+            // Intent to open chat using canonical thread_id.
             val intent = Intent(context, MainActivity::class.java).apply {
                 flags = Intent.FLAG_ACTIVITY_NEW_TASK or Intent.FLAG_ACTIVITY_CLEAR_TOP
+                putExtra("thread_id", chatId)
+                putExtra("threadId", chatId)
                 putExtra("chatId", chatId)
                 putExtra("chat_id", chatId)
                 if (senderId.isNotEmpty()) {
@@ -100,7 +101,10 @@ object PanaLinkNotificationManager {
             val replyIntent = Intent(context, NotificationReplyReceiver::class.java).apply {
                  action = "ACTION_REPLY"
                  putExtra("chatId", chatId)
+                 putExtra("thread_id", chatId)
+                 putExtra("threadId", chatId)
                  putExtra("senderId", senderId)
+                 putExtra("sender_id", senderId)
                  putExtra("notificationId", chatId.hashCode())
             }
             val replyPendingIntent = PendingIntent.getBroadcast(
