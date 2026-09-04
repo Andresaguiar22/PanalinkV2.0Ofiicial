@@ -79,27 +79,62 @@ To confirm Phase 1 success, the following metrics must be tracked and presented:
 source scripts/toolchain_env.sh && ./gradlew :app:assembleDebug            # debug
 VERSION_NAME=vX.Y.Z VERSION_CODE=N ./gradlew :app:assembleRelease   # release
 ```
-* Release requiere credenciales de firma: `KEYSTORE_FILE` (puede ser el keystore mismo base64-codificado — decodificar antes), `KEYSTORE_PASSWORD`, `KEY_ALIAS`, `KEY_PASSWORD`.
+* Release requiere credenciales de firma: `KEYSTORE_FILE` (puede ser el keystore mismo base64-codificado — el propio `app/build.gradle.kts` lo decodifica con `Base64.getDecoder()` si la ruta no existe; NO materializar en disco), `KEYSTORE_PASSWORD`, `KEY_ALIAS`, `KEY_PASSWORD`.
 * En debug el keystore NO es necesario; en release el build FAILS si faltan credenciales.
+* El `google-services.json` real SI se requiere para compilar release: materializarlo desde `GOOGLE_SERVICES_JSON` con `printf '%s' "$GOOGLE_SERVICES_JSON" > app/google-services.json` (gitignoreado, no committear).
+* `./gradlew` puede perder el bit de ejecución tras clonar: `chmod +x gradlew` antes de compilar (caso real en sesión 2026-09-04).
+* Gotcha secrets y subprocesos: los secrets se inyectan SOLO si su nombre aparece **literal en el comando del terminal**; corren scripts (ej. `bash /tmp/x.sh`) NO los heredan. Pasar los valores como args al script, o invocar el script con el nombre del secret literal en la misma línea.
+* Verificar versiones del APK compilado con `aapt dump badging` (p.ej. `<build-tools>/aapt dump badging app-release.apk`) antes de publicar: confirma `versionCode`/`versionName` reales del binario, no solo los del env..
 
 ### Canal OTA (Andresaguiar22/panalink-ota)
 * Repo público de distribución: `https://github.com/Andresaguiar22/panalink-ota` (rama `main`).
 * `manifest.json` en `main` es la fuente de verdad para la app; vivir también se adjunta como asset del release.
-* Convención de versiones: `versionCode` incrementa de 1 en 1;; `versionName` es la tag (`v1.3.x`). Actual: **v1.3.20 / code 47** (publicada 2026-09-03).
-* `minimumSupportedVersionCode` = versionCode de la versión anterior publicada (46 para v1.3.20);`mandatory` casi siempre `false`.
+* Convención de versiones: `versionCode` incrementa de 1 en 1;; `versionName` es la tag (`v1.3.x`). Actual: **v1.3.22 / code  49** (publicada 2026-09-04).
+* `minimumSupportedVersionCode` = versionCode de la versión anterior publicada (48 para v1.3.22);`mandatory` casi siempre `false`.
+* Últimas publicadas(histórico): v1.3.21/code 48 y v1.3.20/code 47 (2026-09-03).
 * Asset APK: `Panalink-<versionName>.apk`; adjuntar también `manifest.json` al release.
 * `sha256` del APK es obligatorio en el manifest (64 hex).
 
 ### Publicación OTA (vía GitHub API — usar `GITHUB_PERSONAL_ACCESS_TOKEN_OTA`)
-1. Compilar release (ver arriba,)y computar `sha256sum`.
-2. POST `/repos/Andresaguiar22/panalink-ota/releases` (draft=true, tag=`vX.Y.Z`, target=`main`, body=changelog+sha256).
-3. Subir assets al release (draft): APK (`Panalink-<tag>.apk`) y `manifest.json`.
-4. PUT `/repos/.../contents/manifest.json` en main con el manifest nuevo (usar `sha` actual del blob).
-5. PATCH `/repos/.../releases/<id>` → `draft: false` para publicar.
+1. Compilar release (ver arriba,)y computar `sha256sum`; verificadar versiones con `aapt dump badging`.
+2. Crear el **cuerpo JSON del release com archivo** (`/tmp/release_body.json` con `file_editor`, NUNCA con heredoc ni `jq -n` en terminal — el canal terminal corrompe concatenaciones). POST `/repos/Andresaguiar22/panalink-ota/releases` (draft=true, tag=`vX.Y.Z`, target=`main`, body=changelog+sha256+nota IA) con `--data-binary @file` y `Accept: application/vnd.github+json`.
+3. Subir assets al release (draft): APK (`Panalink-<tag>.apk`, `Content-Type: application/vnd.android.package-archive`) y `manifest.json` (`application/json`), con `--data-binary @file` contra `https://uploads.github.com/repos/.../releases/<id>/assets?name=<name>`.
+ El APK de ~140 MB sube en ~5 s..
+4. PUT `/repos/.../contents/manifest.json` en main con el manifest nuevo(usar `sha` actual del blob — obtenerlo con GET contents/ y construir el payload base64 con archivo+jq/`base64`, no inline frágil).
+5. PATCH `/repos/.../releases/<id>` → `draft: false` para publicar; verificadar con GET que `draft=false` y 2 assets..
+6. Verificar que `raw.githubusercontent.com/.../main/manifest.json` sirve ya el código/version nuevos (fuente de verdad viva).
 
 ### Changelog
 * Formato markdown con bullets; ej. `Migración a Panalink V2.0 Oficial con correcciones de CDN y Avatares`.
 * Incluir SIEMPRE el `SHA-256:` del APK en el body del release y la nota: `_Release creado por un agente de IA (OpenHands) en nombre del mantenedor._`
+---
+
+## 🧠 Conocimiento de arquitectura (mapeado en sesión 2026-09-04)
+
+### Realtime (Supabase)
+* **Origen de verdad de mensajes DM**: tabla `public.thread_messages` (NO `messages` — esa es una **vista** (`relkind='v'`) sobre `thread_messages`, y **no se puede publicar** en Realtime). `channel_messages` **NO existe** en `public`.
+* **Broadcast vs Postgres Changes**: el trigger `thread_messages_realtime_broadcast` publica en el canal broadcast `chat:{thread_id}` vía `realtime.broadcast_changes`; los eventos quedan en `realtime.messages` (solo topics `chat:*`), que es el buffer de **Broadcast**, no evidencia de Postgres Changes.
+
+* **Postgres Changes NO pasa por `realtime.messages`**; el server lo emite por WAL y nunca se persiste ahí. NO interpretar `realtime.messages` como prueba del estado de Postgres Changes..
+
+* **Suscripciones activas**: `realtime.subscription` es **efímero** (solo clientes conectados en el instante; refleja los joins de probes/WS también; NO acumula histórico). Campos útiles: `id`, `entity::regclass`, `created_at`.
+* **Verificación empírica del canal (hecha 2026-09-04, con sonda WS `service_role`)**:
+*  - `postgres_changes(public.thread_messages)` → `phx_reply ok` + `system: "Subscribed to PostgreSQL"` — **funciona a nivel de servidor**.,
+*  - `postgres_changes(public.channel_messages)` → `phx_reply ok` pero `system: error "Unable to subscribe ... channel_messages"` — **canal fantasma, rechazado**.,
+*  - `postgres_changes(public.messages)` (vista) → `system: error "Unable to subscribe ... messages"` — **vistas no son publicables**.,
+*  - **Un join fallido NO corta la conexión ni bloquea otros joins**: cada topic es independiente (error por canal, resto intacto. En Android eso genera solo un log silencioso (no rompe el flujo real)..,
+* **Trigger clave**: `trg_thread_messages_set_chat_id` (BEFORE INSERT,) hace `new.sender_id := auth.uid()` — **el servidor IMPONE el sender con el usuario autenticado**, even para `service_role`(que deja sender NULL al no haber `auth.uid()`) → **los INSERTs de mensajes SOLO funcionan con el JWT del usuario** (no con service_role).
+* **Consumidores del flow realtime( sin duplicación)**:
+*  - `MessageRealtimeHandler` (singleton en `MessagesRepository`, scope eterno) **mergea en Room** (vía `MessageFilter` + `messageDao.mergeAndSaveMessage`). Único mutador de Room.,
+*  - `PanalinkRealtimeService` escucha el mismo flow pero **solo notifica** (NO muta Room) → sin doble merge ni carreras por diseño.,
+* **Parser Android**: responde a topics `realtime:public:*` (`postgres_changes`); **no** a `chat:{thread_id}` (broadcast. El payload del broadcast real viene con columnas camelCase (`text`, `type`, `file_mime`)que el parser no espera (espera snake_case) — riesgo latente si algún día se consume broadcast, no afecta hoy..
+* **Estado de la investigación(P3):** join + canal + broadcast confirmados; falta demostración end-to-end con `authenticated`+RLS (prueba A: abrir la app real y ver `realtime.subscription` materializar `thread_messages` con `claims_role=authenticated`). **Cero cambios en Supabase hasta cerrarlo** (trigger/RLS/publications intactos).
+
+### 📹 vCDN (chat)
+* **Flujo verificado en código**: los vídeos de chat se enrutan por `vcdn-upload` (edge function con `SUPABASE_SERVICE_ROLE_KEY`) con **fallback automático a B2** si vCDN falla/interrumpe (commit `388408a` — "route chat video through vCDN with B2 fallback").
+* **`stable_id`** es la clave de sesión vCDN (claim/heartbeat 60 s; el claim puede recuperarse tras vencimiento; mismo `stable_id` puede reutilizar sesión existente). **No existe TTL/cleanup explícito** para sesiones abandonadas → P2-B auditado (no modificado//cerrado por decisión); el fallback vCDN→B2 **no cancela** la sesión vCDN (stale session riesgo conocido, aceptado por ahora.
+* **RLS vCDN NO tocarlo** (correctamente restringido..
+
 ---
 
 ## 🧼 Regla Anti-Corrupción de Bytes Invisibles (OBLIGATORIA)
