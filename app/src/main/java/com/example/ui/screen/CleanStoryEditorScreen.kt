@@ -117,12 +117,23 @@ fun CleanStoryEditorScreen(
             scope.launch(Dispatchers.IO) {
                 try {
                     isUploadingAudio = true
-                    val bytes = context.contentResolver.openInputStream(uri)?.readBytes() ?: return@launch
                     val mime = context.contentResolver.getType(uri) ?: "audio/mpeg"
+                    val ext = mime.substringAfter('/', "bin")
+                    val pendingDir = java.io.File(context.filesDir, "pending_media")
+                    if (!pendingDir.exists()) pendingDir.mkdirs()
+                    val tempFile = java.io.File.createTempFile("story_audio_", ".$ext", pendingDir)
+                    val input = context.contentResolver.openInputStream(uri)
+                    if (input == null) { tempFile.delete(); return@launch }
+                    input.use { stream ->
+                        tempFile.outputStream().use { output -> stream.copyTo(output) }
+                    }
                     val result = UploadRepository().uploadVideo(
-                        bytes, mime, "Audio de historia: $audioName",
-                        SupabaseClient.currentUser?.id ?: return@launch
+                        mediaFile = tempFile,
+                        mediaMimeType = mime,
+                        caption ="Audio de historia: $audioName",
+                        userId = SupabaseClient.currentUser?.id ?: run { tempFile.delete(); return@launch }
                     )
+                    tempFile.delete()
                     if (result.isSuccess) withContext(Dispatchers.Main) { audioUrl = result.getOrThrow().url }
                 } finally {
                     withContext(Dispatchers.Main) { isUploadingAudio = false }

@@ -26,6 +26,10 @@ class PostUploadWorker(
     private val feedRepository = FeedRepositoryImpl()
 
     override suspend fun doWork(): Result {
+        // Red real VALIDATED (no solo CONNECTED: si no hay internet, devolver a la cola.
+        if (!com.example.util.NetworkMonitor.isOnline.value) {
+            return Result.retry()
+        }
         val pendingPostId = inputData.getString("pendingPostId") ?: return Result.failure()
         val serverPostId = inputData.getString("serverPostId")
         val db = com.example.data.database.PanalinkDatabase.getDatabase(context)
@@ -95,10 +99,7 @@ class PostUploadWorker(
                         onProgress = { bytes, total ->
                             val itemProgress = bytes.toFloat() / total.toFloat().coerceAtLeast(1f)
                             val totalProgress = (index + itemProgress) / totalItems
-                            UploadRepository.setGlobalProgress(totalProgress)
-                            kotlinx.coroutines.runBlocking {
-                                pendingPostDao.updateStatusAndProgress(pendingPostId, "uploading", totalProgress)
-                            }
+                            // Progreso Room persistido por archivo tras el upload (sin runBlocking ni N escrituras).
                         }
                     )
                 } else {
@@ -113,9 +114,7 @@ class PostUploadWorker(
                             val itemProgress = bytes.toFloat() / total.toFloat().coerceAtLeast(1f)
                             val totalProgress = (index + itemProgress) / totalItems
                             UploadRepository.setGlobalProgress(totalProgress)
-                            kotlinx.coroutines.runBlocking {
-                                pendingPostDao.updateStatusAndProgress(pendingPostId, "uploading", totalProgress)
-                            }
+                            // Progreso Room persistido por archivo tras el upload (sin runBlocking ni N escrituras).
                         }
                     ) { progress ->
                         uploadRepository.uploadVideo(
@@ -135,6 +134,8 @@ class PostUploadWorker(
                     val publicUrl = uploadResult.getOrNull()?.url
                     if (publicUrl != null) {
                         mediaUrls.add(publicUrl)
+                        val completedProgress = (index + 1f) / totalItems
+                        pendingPostDao.updateStatusAndProgress(pendingPostId, "uploading", completedProgress)
                     } else {
                         return Result.retry()
                     }

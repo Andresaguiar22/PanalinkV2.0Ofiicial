@@ -997,6 +997,10 @@ class ProfilesRepository {
     }
 
     suspend fun isFollowing(followerId: String, followedId: String): Result<Boolean> = withContext(Dispatchers.IO) {
+        // Offline: no tocar red ni reintentos. Devolver no-seguido; la UI mostrara Seguir.
+        if (!com.example.util.NetworkMonitor.isOnline.value) {
+            return@withContext Result.success(false)
+        }
         if (!SupabaseClient.isConfigured) {
             val following = demoFollowers.any { it.first == followerId && it.second == followedId }
             return@withContext Result.success(following)

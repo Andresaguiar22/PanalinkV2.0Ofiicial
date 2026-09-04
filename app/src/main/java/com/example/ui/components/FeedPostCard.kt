@@ -149,7 +149,7 @@ fun FeedPostCard(
     var followChecked by rememberSaveable(post.id) { mutableStateOf(false) }
     LaunchedEffect(post.userId, currentUserId) {
         val authorId = post.userId
-        if (!followChecked && authorId != null && currentUserId != null && authorId != currentUserId) {
+        if (!followChecked && authorId != null && currentUserId != null && com.example.util.NetworkMonitor.isOnline.value && authorId != currentUserId) {
             com.example.data.repository.ProfilesRepository().isFollowing(currentUserId, authorId)
                 .onSuccess { isFollowingAuthor = it }
             followChecked = true
