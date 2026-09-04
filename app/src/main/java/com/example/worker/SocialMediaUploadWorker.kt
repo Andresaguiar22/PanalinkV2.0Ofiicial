@@ -302,21 +302,26 @@ class SocialMediaUploadWorker(
             pendingUploadDao.updateUpload(entity.copy(status = "completed", remoteUrl = uploadedUrl, metadataJson = finalMetadata, updatedAt = System.currentTimeMillis()))
             val completedBytes = if (finalUploadFile.exists()) finalUploadFile.length() else 0L
             setProgress(workDataOf("uploadId" to uploadId, "progress" to 100, "bytesWritten" to completedBytes, "totalBytes" to completedBytes, "status" to "Completado", "uploadType" to entity.uploadType))
-            try {
-                intermediateTempFile?.delete()
-                if (file.exists()) file.delete()
-                entity.thumbnailPath?.let { File(it).delete() }
-            } catch (_: Exception) {}
+            if (entity.uploadType != "REEL" && entity.uploadType != "STATE") {
+                try { finalUploadFile.delete(); if (file.absolutePath != finalUploadFile.absolutePath) file.delete() } catch (_: Exception) {}
+            }
+            try { intermediateTempFile?.delete() } catch (_: Exception) {}
             return Result.success()
         } catch (e: Exception) {
-            Log.e(TAG, "Social upload worker failed", e)
-            return handleFailure(entity, e.localizedMessage ?: "Error inesperado")
+            Log.e(TAG, "Exception during social upload", e)
+            return handleFailure(entity, e.localizedMessage ?: "Excepción desconocida")
         }
     }
 
-    private suspend fun handleFailure(entity: PendingUploadEntity, message: String): Result {
-        pendingUploadDao.updateUpload(entity.copy(status = "failed", errorMessage = message, updatedAt = System.currentTimeMillis()))
-        return Result.failure()
+    private suspend fun handleFailure(entity: PendingUploadEntity, error: String): Result {
+        val nextRetryCount = entity.retryCount + 1
+        return if (nextRetryCount >= 3) {
+            pendingUploadDao.updateUpload(entity.copy(status = "failed", errorMessage = error, retryCount = nextRetryCount, updatedAt = System.currentTimeMillis()))
+            Result.failure()
+        } else {
+            pendingUploadDao.updateUpload(entity.copy(status = "pending", retryCount = nextRetryCount, errorMessage = error, updatedAt = System.currentTimeMillis()))
+            Result.retry()
+        }
     }
 
     internal companion object {
