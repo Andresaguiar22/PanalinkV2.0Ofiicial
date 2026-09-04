@@ -147,45 +147,50 @@ class StatesViewModel(private val statesRepository: StatesRepository = StatesRep
     /** Subida durable del audio personalizado de Historias: copia streaming a archivo
      *  (sin readBytes() ni red desde Compose)y encola PendingUploadEntity +
      *  SocialMediaUploadWorker. El resultado queda observable via [storyAudioUploadId]. */
-    fun enqueueStoryAudio(context: android.content.Context, uri: android.net.Uri?, mimeType: String, audioName: String? = null) {
-        viewModelScope.launch(errorHandler + Dispatchers.IO) {
-            try {
-                val pendingMediaDir = java.io.File(context.filesDir, "pending_media")
-                if (!pendingMediaDir.exists()) pendingMediaDir.mkdirs()
-                val extension = mimeType.substringAfter('/', "bin")
-                val tempFile = java.io.File.createTempFile("story_audio_", ".$extension", pendingMediaDir).also { file ->
-                    context.contentResolver.openInputStream(uri ?: return@also)?.use { input ->
-                        file.outputStream().use { output -> input.copyTo(output) }
-                    }
+fun enqueueStoryAudio(context: android.content.Context, uri: android.net.Uri?, mimeType: String, audioName: String? = null) {
+    viewModelScope.launch(errorHandler + Dispatchers.IO) {
+
+        // Validar usuario ANTES de crear/copiar archivos: sin sesión no hay cola durable.
+
+        val userId = SupabaseClient.currentUser?.id ?: return@launch
+        if (userId.isBlank()) return@launch
+
+        var tempFile: java.io.File? = null
+        try {
+            val pendingMediaDir = java.io.File(context.filesDir, "pending_media")
+            if (!pendingMediaDir.exists()) pendingMediaDir.mkdirs()
+            val extension = mimeType.substringAfter('/', "bin")
+            tempFile = java.io.File.createTempFile("story_audio_", ".$extension", pendingMediaDir).also { file ->
+                context.contentResolver.openInputStream(uri ?: return@also)?.use { input ->
+                    file.outputStream().use { output -> input.copyTo(output) }
                 }
-                require(tempFile.length() > 0) { "Could not write story audio to temp file" }
-                val userId = SupabaseClient.currentUser?.id ?: return@launch
-                if (userId.isBlank()) return@launch
-                val uploadId = java.util.UUID.randomUUID().toString()
-                val db = com.example.data.database.PanalinkDatabase.getDatabase(context)
-                db.pendingUploadDao().insertUpload(com.example.data.database.PendingUploadEntity(
-                    id = uploadId,
-                    userId = userId,
-                    uploadType = "AUDIO",
-                    localFilePath = tempFile.absolutePath,
-                    mimeType = mimeType,
-                    caption = audioName?.let { "Audio de historia: $it" },
-                    status = "pending"))
-                val request = androidx.work.OneTimeWorkRequestBuilder<com.example.worker.SocialMediaUploadWorker>()
-                    .setConstraints(androidx.work.Constraints.Builder().setRequiredNetworkType(androidx.work.NetworkType.CONNECTED).build())
-                    .setInputData(androidx.work.workDataOf("uploadId" to uploadId))
-                    .addTag("social_upload").addTag("upload_$uploadId").addTag("social_upload_$uploadId")
-                    .setBackoffCriteria(androidx.work.BackoffPolicy.EXPONENTIAL, androidx.work.WorkRequest.MIN_BACKOFF_MILLIS, java.util.concurrent.TimeUnit.MILLISECONDS)
-                    .build()
-                androidx.work.WorkManager.getInstance(context).enqueueUniqueWork("social_upload_$uploadId", androidx.work.ExistingWorkPolicy.KEEP, request)
-                _storyAudioUploadId.value = uploadId
-            } catch (e: Exception) {
-                Log.e("StatesViewModel", "Error programando audio de historia", e)
-                _storyAudioUploadError.value = e.localizedMessage ?: "Error programando audio"
             }
+            require(tempFile!!.length() > 0) { "Could not write story audio to temp file" }
+            val uploadId = java.util.UUID.randomUUID().toString()
+            val db = com.example.data.database.PanalinkDatabase.getDatabase(context)
+            db.pendingUploadDao().insertUpload(com.example.data.database.PendingUploadEntity(
+                id = uploadId,
+                userId = userId,
+                uploadType = "AUDIO",
+                localFilePath = tempFile!!.absolutePath,
+                mimeType = mimeType,
+                caption = audioName?.let { "Audio de historia: $it" },
+                status = "pending"))
+            val request = androidx.work.OneTimeWorkRequestBuilder<com.example.worker.SocialMediaUploadWorker>()
+                .setConstraints(androidx.work.Constraints.Builder().setRequiredNetworkType(androidx.work.NetworkType.CONNECTED).build())
+                .setInputData(androidx.work.workDataOf("uploadId" to uploadId))
+                .addTag("social_upload").addTag("upload_$uploadId").addTag("social_upload_$uploadId")
+                .setBackoffCriteria(androidx.work.BackoffPolicy.EXPONENTIAL, androidx.work.WorkRequest.MIN_BACKOFF_MILLIS, java.util.concurrent.TimeUnit.MILLISECONDS)
+                .build()
+            androidx.work.WorkManager.getInstance(context).enqueueUniqueWork("social_upload_$uploadId", androidx.work.ExistingWorkPolicy.KEEP, request)
+            _storyAudioUploadId.value = uploadId
+        } catch (e: Exception) {
+            Log.e("StatesViewModel", "Error programando audio de historia", e)
+            try { tempFile?.delete() } catch (_: Exception) {}
+            _storyAudioUploadError.value = e.localizedMessage ?: "Error programando audio"
         }
     }
-
+}
     fun clearStoryAudioUploadError() { _storyAudioUploadError.value = null }
 
     fun resetCreateState() { _createStateFlow.value = CreateStateUiState.Idle }
