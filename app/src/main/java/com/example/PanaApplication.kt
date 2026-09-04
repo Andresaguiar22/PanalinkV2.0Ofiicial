@@ -324,6 +324,6 @@ class PanaApplication : Application(), ImageLoaderFactory, DefaultLifecycleObser
 
     companion object {
         lateinit var instance: PanaApplication
-            private set
+            internal set
     }
 }

@@ -739,11 +739,16 @@ suspend fun insertLocalMessage(msg: Message) = withContext(Dispatchers.IO) {
 
             val identity = resolveChatIdentity(chatId, receiverId)
             val resolvedReceiver = identity.receiverId ?: receiverId
+            val canonicalChatId = if (identity.kind == ChatKind.DM && !identity.threadId.isNullOrEmpty() && isValidUuid(identity.threadId)) {
+                identity.threadId
+            } else {
+                chatId
+            }
 
             // 3. Create and insert MessageEntity with local paths and "sending" status
             val entity = MessageEntity(
                 id = tempId,
-                chatId = chatId,
+                chatId = canonicalChatId,
                 senderId = currentUid,
                 receiverId = resolvedReceiver,
                 content = formattedContent,
@@ -759,7 +764,7 @@ suspend fun insertLocalMessage(msg: Message) = withContext(Dispatchers.IO) {
                 isGhost = isGhost
             )
             
-            val effectiveClearedAt = getEffectiveClearedAt(chatId, null)
+            val effectiveClearedAt = getEffectiveClearedAt(canonicalChatId, null)
             val shouldKeep = com.example.util.MessageFilter.shouldKeepMessage(
                 messageId = entity.id,
                 messageClientUuid = entity.clientMessageUuid,
@@ -824,11 +829,16 @@ suspend fun insertLocalMessage(msg: Message) = withContext(Dispatchers.IO) {
 
             val identity = resolveChatIdentity(chatId, receiverId)
             val resolvedReceiver = identity.receiverId ?: receiverId
+            val canonicalChatId = if (identity.kind == ChatKind.DM && !identity.threadId.isNullOrEmpty() && isValidUuid(identity.threadId)) {
+                identity.threadId
+            } else {
+                chatId
+            }
             val caption = "[${uris.size} fotos]"
 
             val entity = MessageEntity(
                 id = tempId,
-                chatId = chatId,
+                chatId = canonicalChatId,
                 senderId = currentUid,
                 receiverId = resolvedReceiver,
                 content = caption,
@@ -843,7 +853,7 @@ suspend fun insertLocalMessage(msg: Message) = withContext(Dispatchers.IO) {
                 thumbnailUrl = firstThumb
             )
 
-            val effectiveClearedAt = getEffectiveClearedAt(chatId, null)
+            val effectiveClearedAt = getEffectiveClearedAt(canonicalChatId, null)
             val shouldKeep = com.example.util.MessageFilter.shouldKeepMessage(
                 messageId = entity.id,
                 messageClientUuid = entity.clientMessageUuid,
