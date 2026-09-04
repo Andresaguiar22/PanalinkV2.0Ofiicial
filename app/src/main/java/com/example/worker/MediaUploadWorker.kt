@@ -22,12 +22,6 @@ class MediaUploadWorker(
     companion object {
         private const val MAX_UPLOAD_ATTEMPTS = 5
 
-        /**
-         * Evalúa la precondición de archivo local y presencia de URL remota previa.
-         * Si fileExists == false pero hasRemoteUrl == true, NO debe fallar por archivo inexistente.
-         * Si fileExists == false y hasRemoteUrl == false, debe fallar.
-         * Si fileExists == true, la condición es satisfecha.
-         */
         fun evaluateFilePrecondition(fileExists: Boolean, mediaUrl: String?): FilePreconditionResult {
             val hasRemoteUrl = !mediaUrl.isNullOrBlank()
             return when {
@@ -36,6 +30,40 @@ class MediaUploadWorker(
                 else -> FilePreconditionResult.PROCEED_TO_UPLOAD
             }
         }
+
+        /** Production decision used by the album worker before committing Room state. */
+        fun isAlbumComplete(remoteUrlCount: Int, totalRequired: Int): Boolean =
+            totalRequired > 0 && remoteUrlCount == totalRequired
+
+        /** Production decision used by the album worker before starting uploads. */
+        fun albumHasUnrecoverableFile(
+            paths: List<String>,
+            existingRemoteUrls: List<String>
+        ): Boolean {
+            for ((index, path) in paths.withIndex()) {
+                val existingUrl = existingRemoteUrls.getOrNull(index)?.takeIf { it.startsWith("http") }
+                if (evaluateFilePrecondition(File(path).exists(), existingUrl) == FilePreconditionResult.FAIL_MISSING_FILE) {
+                    return true
+                }
+            }
+            return false
+        }
+
+        /** Production retry gate: never retry when a required local file has disappeared. */
+        fun shouldRetryAlbum(
+            remoteUrlCount: Int,
+            totalRequired: Int,
+            allStillExist: Boolean,
+            runAttemptCount: Int,
+            maxAttempts: Int = MAX_UPLOAD_ATTEMPTS
+        ): Boolean =
+            remoteUrlCount != totalRequired &&
+                allStillExist &&
+                runAttemptCount + 1 < maxAttempts
+
+        /** Production stable object-name contract: same message/index => same object key. */
+        fun albumStableFileName(stableUuid: String, index: Int, extension: String): String =
+            "${stableUuid}_$index.${extension.trimStart('.').ifEmpty { "jpg" }}"
     }
 
     enum class FilePreconditionResult {
@@ -68,10 +96,7 @@ class MediaUploadWorker(
         val fileExists = fileCheck?.exists() == true
         val fileSizeBytes = if (fileExists) fileCheck?.length() ?: 0L else 0L
 
-        Log.i(
-            TAG,
-            "MEDIA_UPLOAD_INIT: messageId=$messageId, runAttemptCount=$runAttemptCount, fileExists=$fileExists, fileSizeBytes=$fileSizeBytes, messageType=${entity.messageType}, localMediaUri=$localUri, roomStatus=${entity.status}, receiverId=${entity.receiverId}, clientMessageUuid=${entity.clientMessageUuid}"
-        )
+        Log.i(TAG, "MEDIA_UPLOAD_INIT: messageId=$messageId, runAttemptCount=$runAttemptCount, fileExists=$fileExists, fileSizeBytes=$fileSizeBytes, messageType=${entity.messageType}, localMediaUri=$localUri, roomStatus=${entity.status}, receiverId=${entity.receiverId}, clientMessageUuid=${entity.clientMessageUuid}")
 
         if (localUri.isNullOrBlank()) {
             if (!entity.mediaUrl.isNullOrBlank()) {
@@ -85,40 +110,23 @@ class MediaUploadWorker(
         return try {
             val stableUuid = entity.clientMessageUuid?.takeIf { it.isNotBlank() } ?: entity.id
 
-            // Album de imagenes: el entity junta los paths locales con ",".
-            // Subimos cada uno y guardamos las URLs remotas tambien con ",".
             if (entity.messageType == "image" && localUri.contains(",")) {
                 Log.i(TAG, "Detected image album (paths joined by ',')")
                 val allPaths = localUri.split(",").map { it.trim() }.filter { it.isNotEmpty() }
                 val totalRequired = allPaths.size
 
                 val existingRemoteUrls = entity.mediaUrl?.split(",")?.map { it.trim() }?.filter { it.isNotEmpty() } ?: emptyList()
-                if (existingRemoteUrls.size == totalRequired && existingRemoteUrls.all { it.startsWith("http") }) {
+                if (isAlbumComplete(existingRemoteUrls.size, totalRequired) && existingRemoteUrls.all { it.startsWith("http") }) {
                     Log.i(TAG, "Album already fully uploaded with $totalRequired URLs; skipping physical upload and scheduling sync")
-                    if (entity.status != "sending") {
-                        messageDao.updateMessageStatus(messageId, "sending")
-                    }
+                    if (entity.status != "sending") messageDao.updateMessageStatus(messageId, "sending")
                     messagesRepository.scheduleSync()
                     return logFinalStateAndResult(messageId, Result.success())
                 }
 
                 Log.i(TAG, "MEDIA_UPLOAD_START: messageId=$messageId, type=album[$totalRequired], hasLocalMediaUri=true, attempt=$runAttemptCount")
 
-                // Atomic album check: verificar si algún archivo requerido se perdió y no tiene URL remota
-                var hasUnrecoverableFile = false
-                for ((index, path) in allPaths.withIndex()) {
-                    val f = File(path)
-                    val existingUrl = if (index < existingRemoteUrls.size && existingRemoteUrls[index].startsWith("http")) existingRemoteUrls[index] else null
-                    val precondition = evaluateFilePrecondition(fileExists = f.exists(), mediaUrl = existingUrl)
-                    if (precondition == FilePreconditionResult.FAIL_MISSING_FILE) {
-                        hasUnrecoverableFile = true
-                        break
-                    }
-                }
-
-                if (hasUnrecoverableFile) {
+                if (albumHasUnrecoverableFile(allPaths, existingRemoteUrls)) {
                     Log.e(TAG, "Album: at least one required local file is missing and unrecoverable; marking failed (no partial album)")
-                    Log.e(TAG, "MEDIA_UPLOAD_FAILURE: messageId=$messageId, exception=FileNotFoundException, message=Album missing required files, attempt=$runAttemptCount, returningResult=FAILURE")
                     markFailed(messageId)
                     return logFinalStateAndResult(messageId, Result.failure())
                 }
@@ -130,24 +138,20 @@ class MediaUploadWorker(
 
                 for ((index, path) in allPaths.withIndex()) {
                     val albumFile = File(path)
-                    val existingUrl = if (index < existingRemoteUrls.size && existingRemoteUrls[index].startsWith("http")) existingRemoteUrls[index] else null
-
+                    val existingUrl = existingRemoteUrls.getOrNull(index)?.takeIf { it.startsWith("http") }
                     if (existingUrl != null) {
                         remoteUrls += existingUrl
                         uploadedPaths += path
                         continue
                     }
-
                     if (!albumFile.exists()) {
                         allUploadsSucceeded = false
                         break
                     }
 
                     val mime = detectImageMime(albumFile)
-                    val stableKey = "${stableUuid}_$index"
                     val ext = if (albumFile.name.contains(".")) albumFile.name.substringAfterLast(".") else "jpg"
-                    val stableFileName = "${stableKey}.$ext"
-
+                    val stableFileName = albumStableFileName(stableUuid, index, ext)
                     val res = UploadFailoverRouter.uploadWithFailover(
                         file = albumFile,
                         mimeType = mime,
@@ -178,24 +182,16 @@ class MediaUploadWorker(
                     }
                 }
 
-                // Album atomico: NUNCA confirmar un album parcial. Deben existir exactamente N URLs.
-                if (remoteUrls.size != totalRequired || !allUploadsSucceeded) {
+                if (!isAlbumComplete(remoteUrls.size, totalRequired) || !allUploadsSucceeded) {
                     val allStillExist = allPaths.all { File(it).exists() }
-                    if (allStillExist && runAttemptCount + 1 < MAX_UPLOAD_ATTEMPTS) {
+                    if (shouldRetryAlbum(remoteUrls.size, totalRequired, allStillExist, runAttemptCount)) {
                         Log.w(TAG, "Album: partial upload ${remoteUrls.size}/$totalRequired; retrying entire album (no partial commit)")
-                        Log.w(TAG, "MEDIA_UPLOAD_FAILURE: messageId=$messageId, exception=PartialUploadException, message=Uploaded ${remoteUrls.size}/$totalRequired, attempt=$runAttemptCount, returningResult=RETRY")
                         return logFinalStateAndResult(messageId, Result.retry())
                     }
                     Log.e(TAG, "Album: failed to upload all $totalRequired images; marking failed")
-                    Log.e(TAG, "MEDIA_UPLOAD_FAILURE: messageId=$messageId, exception=PartialUploadException, message=Max attempts reached or file missing, attempt=$runAttemptCount, returningResult=FAILURE")
                     markFailed(messageId)
                     return logFinalStateAndResult(messageId, Result.failure())
                 }
-
-                Log.i(
-                    TAG,
-                    "MEDIA_UPLOAD_SUCCESS: messageId=$messageId, type=image_album, hasMediaUrl=true, hasThumbnail=${remoteThumb != null}, size=${uploadedPaths.size}, count=$totalRequired"
-                )
 
                 val updated = entity.copy(
                     mediaUrl = remoteUrls.joinToString(","),
@@ -204,33 +200,25 @@ class MediaUploadWorker(
                     status = "sending"
                 )
                 messageDao.insertMessage(updated)
-                // Originals confirmados en Room: ya no se necesitan.
-                uploadedPaths.forEach { runCatching { java.io.File(it).delete() } }
+                uploadedPaths.forEach { runCatching { File(it).delete() } }
                 messagesRepository.scheduleSync()
                 return logFinalStateAndResult(messageId, Result.success())
             }
 
             val file = File(localUri)
-            val precondition = evaluateFilePrecondition(fileExists = file.exists(), mediaUrl = entity.mediaUrl)
-
-            when (precondition) {
+            when (evaluateFilePrecondition(file.exists(), entity.mediaUrl)) {
                 FilePreconditionResult.FAIL_MISSING_FILE -> {
                     Log.e(TAG, "Local file does not exist: $localUri and no remoteUrl present")
-                    Log.e(TAG, "MEDIA_UPLOAD_FAILURE: messageId=$messageId, exception=FileNotFoundException, message=Local file missing, attempt=$runAttemptCount, returningResult=FAILURE")
                     markFailed(messageId)
                     return logFinalStateAndResult(messageId, Result.failure())
                 }
                 FilePreconditionResult.CONTINUE_WITH_REMOTE_URL -> {
                     Log.i(TAG, "Media already uploaded with remoteUrl=${entity.mediaUrl}; skipping physical upload and scheduling sync")
-                    if (entity.status != "sending") {
-                        messageDao.updateMessageStatus(messageId, "sending")
-                    }
+                    if (entity.status != "sending") messageDao.updateMessageStatus(messageId, "sending")
                     messagesRepository.scheduleSync()
                     return logFinalStateAndResult(messageId, Result.success())
                 }
-                FilePreconditionResult.PROCEED_TO_UPLOAD -> {
-                    // Continuar con la subida normal
-                }
+                FilePreconditionResult.PROCEED_TO_UPLOAD -> Unit
             }
 
             val mimeType = entity.mediaMime ?: "application/octet-stream"
@@ -240,21 +228,10 @@ class MediaUploadWorker(
             val ext = if (file.name.contains(".")) file.name.substringAfterLast(".") else "bin"
             val stableFileName = "${stableKey}.$ext"
 
-            Log.i(TAG, "Processing and uploading $typeLabel ($mimeType), size=${file.length()} bytes, stableKey=$stableKey")
-            Log.i(TAG, "MEDIA_UPLOAD_START: messageId=$messageId, type=$typeLabel, runAttemptCount=$runAttemptCount, fileExists=${file.exists()}, sizeBytes=${file.length()}, mimeType=$mimeType")
-
-            // Failover total para TODO tipo de media: CDN primero (conserva thumbnails
-            // server-side); si falla, B2. El circuit breaker evita quemar timeouts.
             val progressCb: (Long, Long) -> Unit = { written, total ->
                 if (total > 0L) {
                     val pct = ((written.toDouble() / total.toDouble()) * 100.0).toInt()
-                    setProgressAsync(androidx.work.workDataOf(
-                        "messageId" to messageId,
-                        "progress" to pct,
-                        "bytesWritten" to written,
-                        "totalBytes" to total,
-                        "status" to "Subiendo ($pct%)"
-                    ))
+                    setProgressAsync(androidx.work.workDataOf("messageId" to messageId, "progress" to pct, "bytesWritten" to written, "totalBytes" to total, "status" to "Subiendo ($pct%)"))
                 }
             }
             val uploadResult = UploadFailoverRouter.uploadWithFailover(
@@ -278,78 +255,42 @@ class MediaUploadWorker(
 
             if (uploadResult.isSuccess) {
                 val mediaInfo = uploadResult.getOrThrow()
-                Log.i(
-                    TAG,
-                    "MEDIA_UPLOAD_SUCCESS: messageId=$messageId, type=$typeLabel, runAttemptCount=$runAttemptCount, hasMediaUrl=${!mediaInfo.url.isNullOrBlank()}, hasThumbnail=${!mediaInfo.thumbnailUrl.isNullOrBlank()}, sizeBytes=${mediaInfo.size ?: file.length()}, duration=${mediaInfo.duration ?: entity.mediaDuration ?: 0L}"
-                )
-
                 val updatedEntity = entity.copy(
                     mediaUrl = mediaInfo.url,
                     thumbnailUrl = mediaInfo.thumbnailUrl ?: entity.thumbnailUrl?.takeIf { it.startsWith("http") },
                     mediaMime = mediaInfo.mime ?: entity.mediaMime,
                     mediaSize = mediaInfo.size ?: entity.mediaSize,
-                    // The B2 fallback returns 0 for media it can't probe; keep the
-                    // locally extracted metadata in that case.
                     mediaDuration = mediaInfo.duration?.takeIf { it > 0L } ?: entity.mediaDuration,
                     mediaWidth = mediaInfo.width?.takeIf { it > 0 } ?: entity.mediaWidth,
                     mediaHeight = mediaInfo.height?.takeIf { it > 0 } ?: entity.mediaHeight,
                     localMediaUri = null,
                     status = "sending"
                 )
-
                 val effectiveClearedAt = messagesRepository.getEffectiveClearedAt(updatedEntity.chatId, null)
-                val shouldKeep = com.example.util.MessageFilter.shouldKeepMessage(
-                    messageId = updatedEntity.id,
-                    messageClientUuid = updatedEntity.clientMessageUuid,
-                    messageCreatedAt = updatedEntity.createdAt,
-                    lastClearedAt = effectiveClearedAt,
-                    deletedMessageIds = messagesRepository.getUserDeletedMessageIds()
-                )
+                val shouldKeep = com.example.util.MessageFilter.shouldKeepMessage(messageId = updatedEntity.id, messageClientUuid = updatedEntity.clientMessageUuid, messageCreatedAt = updatedEntity.createdAt, lastClearedAt = effectiveClearedAt, deletedMessageIds = messagesRepository.getUserDeletedMessageIds())
                 if (shouldKeep) {
                     messageDao.insertMessage(updatedEntity)
-                    Log.i(TAG, "MEDIA_ROOM_WRITE: messageId=$messageId, success=true, writtenStatus=${updatedEntity.status}, hasMediaUrl=${!updatedEntity.mediaUrl.isNullOrBlank()}")
-                    // Upload confirmado en Room con mediaUrl remoto: los paths locales ya no se necesitan.
-                    entity.localMediaUri?.let { runCatching { java.io.File(it).delete() } }
-                    entity.localThumbnailUri?.let { runCatching { java.io.File(it).delete() } }
+                    entity.localMediaUri?.let { runCatching { File(it).delete() } }
+                    entity.localThumbnailUri?.let { runCatching { File(it).delete() } }
                 } else {
                     messageDao.deleteMessageById(updatedEntity.id)
-                    Log.i(TAG, "MEDIA_ROOM_WRITE: messageId=$messageId, success=true, deleted=true (filtered)")
-                    // Mensaje filtrado (no visible): limpiar igualmente los locales.
-                    entity.localMediaUri?.let { runCatching { java.io.File(it).delete() } }
-                    entity.localThumbnailUri?.let { runCatching { java.io.File(it).delete() } }
+                    entity.localMediaUri?.let { runCatching { File(it).delete() } }
+                    entity.localThumbnailUri?.let { runCatching { File(it).delete() } }
                 }
-
                 messagesRepository.scheduleSync()
                 logFinalStateAndResult(messageId, Result.success())
             } else {
                 val error = uploadResult.exceptionOrNull()
                 val willRetry = File(localUri).exists() && runAttemptCount + 1 < MAX_UPLOAD_ATTEMPTS
-                val resultLabel = if (willRetry) "RETRY" else "FAILURE"
-                val sanitizedMsg = error?.message?.replace(Regex("eyJ[a-zA-Z0-9_-]+\\.[a-zA-Z0-9_-]+\\.[a-zA-Z0-9_-]+"), "[REDACTED_TOKEN]")?.take(200) ?: "Unknown error"
-                Log.e(
-                    TAG,
-                    "MEDIA_UPLOAD_FAILURE: messageId=$messageId, runAttemptCount=$runAttemptCount, exception=${error?.javaClass?.simpleName ?: "Exception"}, message=$sanitizedMsg, returningResult=$resultLabel",
-                    error
-                )
                 if (willRetry) {
                     logFinalStateAndResult(messageId, Result.retry())
                 } else {
-                    // Terminal cuando se agotan los reintentos (MAX_UPLOAD_ATTEMPTS) o el archivo local no existe.
-                    // Queda en 'failed' hasta un reintento manual explícito vía retryMessage().
                     markFailed(messageId)
-                    Log.i(TAG, "MEDIA_ROOM_WRITE: messageId=$messageId, success=true, writtenStatus=failed, attemptsExhausted=true")
                     logFinalStateAndResult(messageId, Result.failure())
                 }
             }
         } catch (e: Exception) {
             val willRetry = (!localUri.isNullOrBlank() && File(localUri).exists()) && (runAttemptCount + 1 < MAX_UPLOAD_ATTEMPTS)
-            val resultLabel = if (willRetry) "RETRY" else "FAILURE"
-            val sanitizedMsg = e.localizedMessage?.replace(Regex("eyJ[a-zA-Z0-9_-]+\\.[a-zA-Z0-9_-]+\\.[a-zA-Z0-9_-]+"), "[REDACTED_TOKEN]")?.take(200) ?: "Unknown error"
-            Log.e(
-                TAG,
-                "MEDIA_UPLOAD_FAILURE: messageId=$messageId, exception=${e.javaClass.simpleName}, message=$sanitizedMsg, attempt=$runAttemptCount, returningResult=$resultLabel",
-                e
-            )
             if (!willRetry) {
                 markFailed(messageId)
                 logFinalStateAndResult(messageId, Result.failure())
@@ -367,10 +308,7 @@ class MediaUploadWorker(
                 is Result.Retry -> "RETRY"
                 else -> "FAILURE"
             }
-            Log.i(
-                TAG,
-                "MEDIA_UPLOAD_FINAL_STATE: messageId=$messageId, status=${finalEntity?.status}, hasMediaUrl=${!finalEntity?.mediaUrl.isNullOrBlank()}, hasLocalMediaUri=${!finalEntity?.localMediaUri.isNullOrBlank()}, retries=$runAttemptCount"
-            )
+            Log.i(TAG, "MEDIA_UPLOAD_FINAL_STATE: messageId=$messageId, status=${finalEntity?.status}, hasMediaUrl=${!finalEntity?.mediaUrl.isNullOrBlank()}, hasLocalMediaUri=${!finalEntity?.localMediaUri.isNullOrBlank()}, retries=$runAttemptCount")
             Log.i(TAG, "MEDIA_WORK_RESULT = $resultName (messageId=$messageId)")
         } catch (e: Exception) {
             Log.w(TAG, "Error logging final state for $messageId", e)
@@ -379,12 +317,6 @@ class MediaUploadWorker(
     }
 }
 
-/**
- * Detecta el MIME real de una imagen por magic bytes. El entity del album guarda un
- * unico mediaMime para todas las fotos (a menudo "image/jpeg" generico); subir cada una
- * con su tipo real evita problemas de content-type en B2/CDN. Si no se reconoce,
- * cae a "image/jpeg".
- */
 private fun detectImageMime(file: java.io.File): String {
     return try {
         java.io.BufferedInputStream(file.inputStream()).use { input ->
@@ -398,52 +330,10 @@ private fun detectImageMime(file: java.io.File): String {
             if (read < 3) gif = false
             var webp = read >= 12
             if (read < 12) webp = false
-            if (png) {
-                if (header[0] == 0x89.toByte()) {
-                    if (header[1] == 0x50.toByte()) {
-                        if (header[2] == 0x4E.toByte()) {
-                            if (header[3] == 0x47.toByte()) {
-                                return "image/png"
-                            }
-                        }
-                    }
-                }
-            }
-            if (jpeg) {
-                if (header[0] == 0xFF.toByte()) {
-                    if (header[1] == 0xD8.toByte()) {
-                        return "image/jpeg"
-                    }
-                }
-            }
-            if (gif) {
-                if (header[0] == 0x47.toByte()) {
-                    if (header[1] == 0x49.toByte()) {
-                        if (header[2] == 0x46.toByte()) {
-                            return "image/gif"
-                        }
-                    }
-                }
-            }
-            if (webp) {
-                if (header[0] == 0x52.toByte()) {
-                    if (header[1] == 0x49.toByte()) {
-                        if (header[2] == 0x46.toByte()) {
-                            if (header[3] == 0x46.toByte()) {
-                                if (header[8] == 0x57.toByte()) {
-                                    if (header[9] == 0x45.toByte()) {
-                                        if (header[10] == 0x42.toByte()) {
-                                            if (header[11] == 0x50.toByte()) {
-                                                return "image/webp"
-                                            }
-                                        }
-                                    }
-                                }
-                            }
-                        }
-                    }
-                }
-            }
+            if (png && header[0] == 0x89.toByte() && header[1] == 0x50.toByte() && header[2] == 0x4E.toByte() && header[3] == 0x47.toByte()) return "image/png"
+            if (jpeg && header[0] == 0xFF.toByte() && header[1] == 0xD8.toByte()) return "image/jpeg"
+            if (gif && header[0] == 0x47.toByte() && header[1] == 0x49.toByte() && header[2] == 0x46.toByte()) return "image/gif"
+            if (webp && header[0] == 0x52.toByte() && header[1] == 0x49.toByte() && header[2] == 0x46.toByte() && header[3] == 0x46.toByte() && header[8] == 0x57.toByte() && header[9] == 0x45.toByte() && header[10] == 0x42.toByte() && header[11] == 0x50.toByte()) return "image/webp"
             "image/jpeg"
         }
     } catch (_: Exception) {
