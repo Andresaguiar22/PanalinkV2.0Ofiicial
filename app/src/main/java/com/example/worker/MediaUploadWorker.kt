@@ -90,72 +90,111 @@ class MediaUploadWorker(
             if (entity.messageType == "image" && localUri.contains(",")) {
                 Log.i(TAG, "Detected image album (paths joined by ',')")
                 val allPaths = localUri.split(",").map { it.trim() }.filter { it.isNotEmpty() }
-                val remoteUrls = mutableListOf<String>()
-                val uploadedPaths = mutableListOf<String>()
-                var remoteThumb: String? = null
-                
-                Log.i(TAG, "MEDIA_UPLOAD_START: messageId=$messageId, type=album[${allPaths.size}], hasLocalMediaUri=true, attempt=$runAttemptCount")
-                allPaths.forEachIndexed { index, path ->
-                    val albumFile = File(path)
-                    if (albumFile.exists()) {
-                        val mime = detectImageMime(albumFile)
-                        val stableKey = "${stableUuid}_$index"
-                        val ext = if (albumFile.name.contains(".")) albumFile.name.substringAfterLast(".") else "jpg"
-                        val stableFileName = "${stableKey}.$ext"
-                        val res = UploadFailoverRouter.uploadWithFailover(
-                            file = albumFile,
-                            mimeType = mime,
-                            userId = entity.senderId,
-                            uploadType = "image",
-                            customFileName = stableFileName,
-                            clientMessageUuid = stableUuid
-                        ) {
-                            PanalinkMediaManager.uploadMediaAndThumbnail(
-                                context = context,
-                                mediaFile = albumFile,
-                                mimeType = mime,
-                                typeLabel = "image",
-                                userId = entity.senderId,
-                                caption = entity.content ?: "Album image"
-                            )
-                        }
-                        if (res.isSuccess) {
-                            remoteUrls += res.getOrThrow().url
-                            if (remoteThumb == null) remoteThumb = res.getOrThrow().thumbnailUrl
-                            uploadedPaths += path
-                        } else {
-                            Log.e(TAG, "Album image upload failed: ${res.exceptionOrNull()?.message}")
-                        }
+                val totalRequired = allPaths.size
+
+                val existingRemoteUrls = entity.mediaUrl?.split(",")?.map { it.trim() }?.filter { it.isNotEmpty() } ?: emptyList()
+                if (existingRemoteUrls.size == totalRequired && existingRemoteUrls.all { it.startsWith("http") }) {
+                    Log.i(TAG, "Album already fully uploaded with $totalRequired URLs; skipping physical upload and scheduling sync")
+                    if (entity.status != "sending") {
+                        messageDao.updateMessageStatus(messageId, "sending")
+                    }
+                    messagesRepository.scheduleSync()
+                    return logFinalStateAndResult(messageId, Result.success())
+                }
+
+                Log.i(TAG, "MEDIA_UPLOAD_START: messageId=$messageId, type=album[$totalRequired], hasLocalMediaUri=true, attempt=$runAttemptCount")
+
+                // Atomic album check: verificar si algún archivo requerido se perdió y no tiene URL remota
+                var hasUnrecoverableFile = false
+                for ((index, path) in allPaths.withIndex()) {
+                    val f = File(path)
+                    val existingUrl = if (index < existingRemoteUrls.size && existingRemoteUrls[index].startsWith("http")) existingRemoteUrls[index] else null
+                    val precondition = evaluateFilePrecondition(fileExists = f.exists(), mediaUrl = existingUrl)
+                    if (precondition == FilePreconditionResult.FAIL_MISSING_FILE) {
+                        hasUnrecoverableFile = true
+                        break
                     }
                 }
 
-                // Album atomico: NUNCA confirmar un album parcial ante fallos transitorios
-                // (red/B2/JWT). Las imagenes que fallen reintentaran con el worker (backoff)
-                // y el sync revivira "sending" siempre que quede archivo local utilizable.
-                // Si TODOS los archivos locales se perdieron, es irrecuperable -> "failed".
-                val extantPaths = allPaths.filter { File(it).exists() }
-                if (extantPaths.isEmpty()) {
-                    Log.e(TAG, "Album: no local files remain; marking failed (irrecuperable)")
-                    Log.e(TAG, "MEDIA_UPLOAD_FAILURE: messageId=$messageId, exception=IllegalStateException, message=No local files remain, attempt=$runAttemptCount, returningResult=FAILURE")
+                if (hasUnrecoverableFile) {
+                    Log.e(TAG, "Album: at least one required local file is missing and unrecoverable; marking failed (no partial album)")
+                    Log.e(TAG, "MEDIA_UPLOAD_FAILURE: messageId=$messageId, exception=FileNotFoundException, message=Album missing required files, attempt=$runAttemptCount, returningResult=FAILURE")
                     markFailed(messageId)
                     return logFinalStateAndResult(messageId, Result.failure())
                 }
 
-                if (remoteUrls.size != extantPaths.size) {
-                    if (runAttemptCount + 1 < MAX_UPLOAD_ATTEMPTS) {
-                        Log.w(TAG, "Album: partial upload ${remoteUrls.size}/${extantPaths.size}; retrying whole album (no commit)")
-                        Log.w(TAG, "MEDIA_UPLOAD_FAILURE: messageId=$messageId, exception=PartialUploadException, message=Uploaded ${remoteUrls.size}/${extantPaths.size}, attempt=$runAttemptCount, returningResult=RETRY")
+                val remoteUrls = mutableListOf<String>()
+                val uploadedPaths = mutableListOf<String>()
+                var remoteThumb: String? = null
+                var allUploadsSucceeded = true
+
+                for ((index, path) in allPaths.withIndex()) {
+                    val albumFile = File(path)
+                    val existingUrl = if (index < existingRemoteUrls.size && existingRemoteUrls[index].startsWith("http")) existingRemoteUrls[index] else null
+
+                    if (existingUrl != null) {
+                        remoteUrls += existingUrl
+                        uploadedPaths += path
+                        continue
+                    }
+
+                    if (!albumFile.exists()) {
+                        allUploadsSucceeded = false
+                        break
+                    }
+
+                    val mime = detectImageMime(albumFile)
+                    val stableKey = "${stableUuid}_$index"
+                    val ext = if (albumFile.name.contains(".")) albumFile.name.substringAfterLast(".") else "jpg"
+                    val stableFileName = "${stableKey}.$ext"
+
+                    val res = UploadFailoverRouter.uploadWithFailover(
+                        file = albumFile,
+                        mimeType = mime,
+                        userId = entity.senderId,
+                        uploadType = "image",
+                        customFileName = stableFileName,
+                        clientMessageUuid = stableUuid
+                    ) {
+                        PanalinkMediaManager.uploadMediaAndThumbnail(
+                            context = context,
+                            mediaFile = albumFile,
+                            mimeType = mime,
+                            typeLabel = "image",
+                            userId = entity.senderId,
+                            caption = entity.content ?: "Album image"
+                        )
+                    }
+
+                    if (res.isSuccess) {
+                        val mediaInfo = res.getOrThrow()
+                        remoteUrls += mediaInfo.url
+                        if (remoteThumb == null) remoteThumb = mediaInfo.thumbnailUrl
+                        uploadedPaths += path
+                    } else {
+                        Log.e(TAG, "Album image $index upload failed: ${res.exceptionOrNull()?.message}")
+                        allUploadsSucceeded = false
+                        break
+                    }
+                }
+
+                // Album atomico: NUNCA confirmar un album parcial. Deben existir exactamente N URLs.
+                if (remoteUrls.size != totalRequired || !allUploadsSucceeded) {
+                    val allStillExist = allPaths.all { File(it).exists() }
+                    if (allStillExist && runAttemptCount + 1 < MAX_UPLOAD_ATTEMPTS) {
+                        Log.w(TAG, "Album: partial upload ${remoteUrls.size}/$totalRequired; retrying entire album (no partial commit)")
+                        Log.w(TAG, "MEDIA_UPLOAD_FAILURE: messageId=$messageId, exception=PartialUploadException, message=Uploaded ${remoteUrls.size}/$totalRequired, attempt=$runAttemptCount, returningResult=RETRY")
                         return logFinalStateAndResult(messageId, Result.retry())
                     }
-                    Log.w(TAG, "Album: still partial after $runAttemptCount attempts; marking failed (sync will revive)")
-                    Log.e(TAG, "MEDIA_UPLOAD_FAILURE: messageId=$messageId, exception=PartialUploadException, message=Max attempts reached, attempt=$runAttemptCount, returningResult=FAILURE")
+                    Log.e(TAG, "Album: failed to upload all $totalRequired images; marking failed")
+                    Log.e(TAG, "MEDIA_UPLOAD_FAILURE: messageId=$messageId, exception=PartialUploadException, message=Max attempts reached or file missing, attempt=$runAttemptCount, returningResult=FAILURE")
                     markFailed(messageId)
                     return logFinalStateAndResult(messageId, Result.failure())
                 }
 
                 Log.i(
                     TAG,
-                    "MEDIA_UPLOAD_SUCCESS: messageId=$messageId, type=image_album, hasMediaUrl=true, hasThumbnail=${remoteThumb != null}, size=${uploadedPaths.size}, duration=0"
+                    "MEDIA_UPLOAD_SUCCESS: messageId=$messageId, type=image_album, hasMediaUrl=true, hasThumbnail=${remoteThumb != null}, size=${uploadedPaths.size}, count=$totalRequired"
                 )
 
                 val updated = entity.copy(
@@ -165,30 +204,33 @@ class MediaUploadWorker(
                     status = "sending"
                 )
                 messageDao.insertMessage(updated)
-                // Originals confirmados en Room: ya no se necesitan. El thumbnail remoto (si
-                // hubo) se persiste en thumbnail_url; si no, el local se conserva para la UI.
+                // Originals confirmados en Room: ya no se necesitan.
                 uploadedPaths.forEach { runCatching { java.io.File(it).delete() } }
                 messagesRepository.scheduleSync()
                 return logFinalStateAndResult(messageId, Result.success())
             }
 
             val file = File(localUri)
-            val hasRemoteUrl = !entity.mediaUrl.isNullOrBlank()
+            val precondition = evaluateFilePrecondition(fileExists = file.exists(), mediaUrl = entity.mediaUrl)
 
-            if (!file.exists() && !hasRemoteUrl) {
-                Log.e(TAG, "Local file does not exist: $localUri and no remoteUrl present")
-                Log.e(TAG, "MEDIA_UPLOAD_FAILURE: messageId=$messageId, exception=FileNotFoundException, message=Local file missing, attempt=$runAttemptCount, returningResult=FAILURE")
-                markFailed(messageId)
-                return logFinalStateAndResult(messageId, Result.failure())
-            }
-
-            if (hasRemoteUrl) {
-                Log.i(TAG, "Media already uploaded with remoteUrl=${entity.mediaUrl}; skipping physical upload and scheduling sync")
-                if (entity.status != "sending") {
-                    messageDao.updateMessageStatus(messageId, "sending")
+            when (precondition) {
+                FilePreconditionResult.FAIL_MISSING_FILE -> {
+                    Log.e(TAG, "Local file does not exist: $localUri and no remoteUrl present")
+                    Log.e(TAG, "MEDIA_UPLOAD_FAILURE: messageId=$messageId, exception=FileNotFoundException, message=Local file missing, attempt=$runAttemptCount, returningResult=FAILURE")
+                    markFailed(messageId)
+                    return logFinalStateAndResult(messageId, Result.failure())
                 }
-                messagesRepository.scheduleSync()
-                return logFinalStateAndResult(messageId, Result.success())
+                FilePreconditionResult.CONTINUE_WITH_REMOTE_URL -> {
+                    Log.i(TAG, "Media already uploaded with remoteUrl=${entity.mediaUrl}; skipping physical upload and scheduling sync")
+                    if (entity.status != "sending") {
+                        messageDao.updateMessageStatus(messageId, "sending")
+                    }
+                    messagesRepository.scheduleSync()
+                    return logFinalStateAndResult(messageId, Result.success())
+                }
+                FilePreconditionResult.PROCEED_TO_UPLOAD -> {
+                    // Continuar con la subida normal
+                }
             }
 
             val mimeType = entity.mediaMime ?: "application/octet-stream"
