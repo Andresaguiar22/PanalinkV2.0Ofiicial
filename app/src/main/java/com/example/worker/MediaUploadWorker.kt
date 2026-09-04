@@ -21,6 +21,27 @@ class MediaUploadWorker(
 
     companion object {
         private const val MAX_UPLOAD_ATTEMPTS = 5
+
+        /**
+         * Evalúa la precondición de archivo local y presencia de URL remota previa.
+         * Si fileExists == false pero hasRemoteUrl == true, NO debe fallar por archivo inexistente.
+         * Si fileExists == false y hasRemoteUrl == false, debe fallar.
+         * Si fileExists == true, la condición es satisfecha.
+         */
+        fun evaluateFilePrecondition(fileExists: Boolean, mediaUrl: String?): FilePreconditionResult {
+            val hasRemoteUrl = !mediaUrl.isNullOrBlank()
+            return when {
+                !fileExists && !hasRemoteUrl -> FilePreconditionResult.FAIL_MISSING_FILE
+                hasRemoteUrl -> FilePreconditionResult.CONTINUE_WITH_REMOTE_URL
+                else -> FilePreconditionResult.PROCEED_TO_UPLOAD
+            }
+        }
+    }
+
+    enum class FilePreconditionResult {
+        PROCEED_TO_UPLOAD,
+        CONTINUE_WITH_REMOTE_URL,
+        FAIL_MISSING_FILE
     }
 
     private suspend fun markFailed(messageId: String) {
@@ -152,11 +173,22 @@ class MediaUploadWorker(
             }
 
             val file = File(localUri)
-            if (!file.exists()) {
-                Log.e(TAG, "Local file does not exist: $localUri")
+            val hasRemoteUrl = !entity.mediaUrl.isNullOrBlank()
+
+            if (!file.exists() && !hasRemoteUrl) {
+                Log.e(TAG, "Local file does not exist: $localUri and no remoteUrl present")
                 Log.e(TAG, "MEDIA_UPLOAD_FAILURE: messageId=$messageId, exception=FileNotFoundException, message=Local file missing, attempt=$runAttemptCount, returningResult=FAILURE")
                 markFailed(messageId)
                 return logFinalStateAndResult(messageId, Result.failure())
+            }
+
+            if (hasRemoteUrl) {
+                Log.i(TAG, "Media already uploaded with remoteUrl=${entity.mediaUrl}; skipping physical upload and scheduling sync")
+                if (entity.status != "sending") {
+                    messageDao.updateMessageStatus(messageId, "sending")
+                }
+                messagesRepository.scheduleSync()
+                return logFinalStateAndResult(messageId, Result.success())
             }
 
             val mimeType = entity.mediaMime ?: "application/octet-stream"
