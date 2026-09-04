@@ -768,8 +768,8 @@ object SupabaseClient {
                             } else {
                                 val id = record.optString("id", "")
                                 val chatId = when {
-                                    record.has("chat_id") && !record.isNull("chat_id") -> record.optString("chat_id", "")
                                     record.has("thread_id") && !record.isNull("thread_id") -> record.optString("thread_id", "")
+                                    record.has("chat_id") && !record.isNull("chat_id") -> record.optString("chat_id", "")
                                     else -> ""
                                 }
                                 
