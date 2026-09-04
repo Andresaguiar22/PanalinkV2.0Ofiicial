@@ -19,6 +19,10 @@ on:
         description: 'Minimum supported versionCode (OTA only)'
         required: false
         default: '1'
+      pub_ota:
+        description: 'Publish OTA release automatically? (true/false)'
+        required: false
+        default: 'false'
 
 permissions:
   contents: write
@@ -99,6 +103,20 @@ jobs:
         with:
           name: app-release
           path: app/build/outputs/apk/release/app-release.apk
+          retention-days: 7
+
+      - name: Publish OTA Release (optional)
+        if: github.event_name == 'workflow_dispatch' && github.event.inputs.pub_ota == 'true' || github.event_name == 'push' && startsWith(github.ref, 'refs/tags/v')
+        env:
+          GITHUB_TOKEN: ${{ secrets.OTA_TOKEN }}
+          OTA_REPO: Andresaguiar22/panalink-ota
+          OTA_PUBLISH: 1
+        run: |
+          if [ -z "${{ secrets.OTA_TOKEN }}" ]; then
+            echo "::warning::OTA_TOKEN secret is missing; skipping OTA publish."
+            exit 0
+          fi
+          python3 .github/scripts/publish_ota.py
 
       - name: Clean up Keystore
         if: always()

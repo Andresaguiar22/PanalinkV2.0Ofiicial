@@ -81,21 +81,21 @@ VERSION_NAME=vX.Y.Z VERSION_CODE=N ./gradlew :app:assembleRelease   # release
 ```
 * Release requiere credenciales de firma: `KEYSTORE_FILE` (puede ser el keystore mismo base64-codificado — decodificar antes), `KEYSTORE_PASSWORD`, `KEY_ALIAS`, `KEY_PASSWORD`.
 * En debug el keystore NO es necesario; en release el build FAILS si faltan credenciales.
-
 ### Canal OTA (Andresaguiar22/panalink-ota)
 * Repo público de distribución: `https://github.com/Andresaguiar22/panalink-ota` (rama `main`).
-* `manifest.json` en `main` es la fuente de verdad para la app; vivir también se adjunta como asset del release.
-* Convención de versiones: `versionCode` incrementa de 1 en 1;; `versionName` es la tag (`v1.3.x`). Actual: **v1.3.20 / code 47** (publicada 2026-09-03).
-* `minimumSupportedVersionCode` = versionCode de la versión anterior publicada (46 para v1.3.20);`mandatory` casi siempre `false`.
+* `manifest.json` en `main` es la fuente de verdad para la app; también se adjunta como asset del release.
+* Convención de versiones: `versionCode` incrementa de 1 en 1; `versionName` es la tag (`v1.3.x`). Actual: **v1.3.21 / code 48** (publicada 2026-09-03).
+* `minimumSupportedVersionCode` = versionCode de la versión anterior publicada (47 para v1.3.21); `mandatory` casi siempre `false`.
 * Asset APK: `Panalink-<versionName>.apk`; adjuntar también `manifest.json` al release.
-* `sha256` del APK es obligatorio en el manifest (64 hex).
+* `sha256` del APK es obligatorio en el manifest (64 hex. Verificar SIEMPRE contra el APK real del CI (artifact `app-release` del workflow, no el APK manual local)).
 
-### Publicación OTA (vía GitHub API — usar `GITHUB_PERSONAL_ACCESS_TOKEN_OTA`)
-1. Compilar release (ver arriba,)y computar `sha256sum`.
-2. POST `/repos/Andresaguiar22/panalink-ota/releases` (draft=true, tag=`vX.Y.Z`, target=`main`, body=changelog+sha256).
-3. Subir assets al release (draft): APK (`Panalink-<tag>.apk`) y `manifest.json`.
-4. PUT `/repos/.../contents/manifest.json` en main con el manifest nuevo (usar `sha` actual del blob).
-5. PATCH `/repos/.../releases/<id>` → `draft: false` para publicar.
+### Publicación OTA — NUEVO FLUJO AUTOMATIZADO (preferido)
+1. Subir un tag `vX.Y.Z` al repo app — el workflow `.github/workflows/panalink-pipeline.yml` compila, firma y, si el secret `OTA_TOKEN` esté presente, publica automáticamente el release + manifest en `panalink-ota`.
+2. Alternativa manual: dispatch del workflow con input `pub_ota: true` (y `changelog`, `is_mandatory`, `minimum_version`)).
+3. El script `.github/scripts/publish_ota.py` implementa la publicación (usa `GITHUB_TOKEN` env, `OTA_REPO`, `OTA_TAG`, `OTA_PUBLISH=1` para ir live).
+4. El secret del repo app es `OTA_TOKEN` (NO `GITHUB_TOKEN_OTA` — GitHub rechaza nombres que empiecen con `GITHUB_`; el valor es el PAT con scope `repo` del user `Andresaguiar22`).
+
+### Publicación OTA (manual, vía GitHub API — usar `GITHUB_PERSONAL_ACCESS_TOKEN_OTA`)
 
 ### Changelog
 * Formato markdown con bullets; ej. `Migración a Panalink V2.0 Oficial con correcciones de CDN y Avatares`.
