@@ -99,7 +99,8 @@ class PostUploadWorker(
                         onProgress = { bytes, total ->
                             val itemProgress = bytes.toFloat() / total.toFloat().coerceAtLeast(1f)
                             val totalProgress = (index + itemProgress) / totalItems
-                            // Progreso Room persistido por archivo tras el upload (sin runBlocking ni N escrituras).
+                            // Progreso en memoria: Room se persiste por archivo tras el upload (sin runBlocking).
+                            UploadRepository.setGlobalProgress(totalProgress)
                         }
                     )
                 } else {

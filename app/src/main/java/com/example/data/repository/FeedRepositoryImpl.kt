@@ -83,7 +83,10 @@ class FeedRepositoryImpl : FeedRepository {
             val profilesMap = cachedEntities.associate { it.id to com.example.data.mapper.PublicProfileMapper.entityToModel(it) }
             
             val missingIds = userIds.filter { !profilesMap.containsKey(it) }
-            if (missingIds.isNotEmpty()) {
+            // Offline: calentamiento de perfiles SOLO con red real, fuera del camino crítico.
+
+            if (missingIds.isNotEmpty() && com.example.util.NetworkMonitor.isOnline.value) {
+
                 repoScope.launch {
                     publicProfileRepo.getPublicProfiles(missingIds)
                 }

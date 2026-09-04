@@ -40,12 +40,7 @@ import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import coil.compose.AsyncImage
-import com.example.data.repository.UploadRepository
-import com.example.data.supabase.SupabaseClient
 import com.example.ui.viewmodel.StatesViewModel
-import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.launch
-import kotlinx.coroutines.withContext
 
 private enum class StoryMode { IMAGE, VIDEO, TEXT }
 
@@ -76,7 +71,6 @@ fun CleanStoryEditorScreen(
     onBack: () -> Unit,
 ) {
     val context = LocalContext.current
-    val scope = rememberCoroutineScope()
 
     var mode by remember { mutableStateOf(StoryMode.IMAGE) }
     var mediaUri by remember { mutableStateOf<Uri?>(null) }
@@ -91,6 +85,7 @@ fun CleanStoryEditorScreen(
     var audioUri by remember { mutableStateOf<Uri?>(null) }
     var audioUrl by remember { mutableStateOf<String?>(null) }
     var isUploadingAudio by remember { mutableStateOf(false) }
+    var audioUploadFailed by remember { mutableStateOf(false) }
     var publishing by remember { mutableStateOf(false) }
 
     var audioPlayer by remember { mutableStateOf<android.media.MediaPlayer?>(null) }
@@ -114,32 +109,55 @@ fun CleanStoryEditorScreen(
             audioUri = uri
             audioName = uri.lastPathSegment ?: "Audio personalizado"
             audioUrl = null
-            scope.launch(Dispatchers.IO) {
-                try {
-                    isUploadingAudio = true
-                    val mime = context.contentResolver.getType(uri) ?: "audio/mpeg"
-                    val ext = mime.substringAfter('/', "bin")
-                    val pendingDir = java.io.File(context.filesDir, "pending_media")
-                    if (!pendingDir.exists()) pendingDir.mkdirs()
-                    val tempFile = java.io.File.createTempFile("story_audio_", ".$ext", pendingDir)
-                    val input = context.contentResolver.openInputStream(uri)
-                    if (input == null) { tempFile.delete(); return@launch }
-                    input.use { stream ->
-                        tempFile.outputStream().use { output -> stream.copyTo(output) }
+            audioUploadFailed = false
+            isUploadingAudio = true
+            // Subida durable: cola persistente + WorkManager (sin red desde Compose).
+            viewModel.enqueueStoryAudio(
+                context = context,
+                uri = uri,
+                mimeType = context.contentResolver.getType(uri) ?: "audio/mpeg",
+                audioName = audioName
+            )
+        }
+    }
+
+    val storyAudioUploadId by viewModel.storyAudioUploadId.collectAsState()
+    val storyAudioUploadError by viewModel.storyAudioUploadError.collectAsState()
+
+    // Observa la subida durable del audio: cuando el worker termina, resolvemos el URL.
+    LaunchedEffect(storyAudioUploadId) {
+        val uploadId = storyAudioUploadId ?: return@LaunchedEffect
+        androidx.work.WorkManager.getInstance(context)
+            .getWorkInfosForUniqueWorkFlow("social_upload_$uploadId")
+            .collect { infos ->
+                val info = infos.firstOrNull() ?: return@collect
+                when (info.state) {
+                    androidx.work.WorkInfo.State.SUCCEEDED -> {
+                        val entity = com.example.data.database.PanalinkDatabase.getDatabase(context)
+                            .pendingUploadDao().getUploadById(uploadId)
+                        if (entity?.remoteUrl?.isNotBlank() == true) {
+                            audioUrl = entity.remoteUrl
+                            isUploadingAudio = false
+                        } else {
+                            audioUploadFailed = true
+                            isUploadingAudio = false
+                        }
                     }
-                    val result = UploadRepository().uploadVideo(
-                        mediaFile = tempFile,
-                        mediaMimeType = mime,
-                        caption ="Audio de historia: $audioName",
-                        userId = SupabaseClient.currentUser?.id ?: run { tempFile.delete(); return@launch }
-                    )
-                    tempFile.delete()
-                    if (result.isSuccess) withContext(Dispatchers.Main) { audioUrl = result.getOrThrow().url }
-                } finally {
-                    withContext(Dispatchers.Main) { isUploadingAudio = false }
+                    androidx.work.WorkInfo.State.FAILED -> {
+                        audioUploadFailed = true
+                        isUploadingAudio = false
+                    }
+                    else -> Unit
                 }
             }
-        }
+    }
+
+    LaunchedEffect(storyAudioUploadError) {
+        val error = storyAudioUploadError ?: return@LaunchedEffect
+        audioUploadFailed = true
+        isUploadingAudio = false
+        Toast.makeText(context, "No se pudo programar el audio: $error", Toast.LENGTH_SHORT).show()
+        viewModel.clearStoryAudioUploadError()
     }
 
     fun launchMediaPicker() {
@@ -198,6 +216,11 @@ fun CleanStoryEditorScreen(
         if (isUploadingAudio) {
             Toast.makeText(context, "Subiendo audio, espera…", Toast.LENGTH_SHORT).show()
             return
+        }
+        if (audioUploadFailed) {
+            Toast.makeText(context, "El audio no se pudo subir; se publicará sin audio", Toast.LENGTH_SHORT).show()
+            audioEnabled = false
+            audioName = null
         }
         publishing = true
         // Close the editor immediately. The enqueue must run in the activity-scoped
