@@ -1197,11 +1197,8 @@ fun InicioTabContent(
                 modifier = Modifier.fillMaxSize()
             ) { page ->
                 val mediaUrl = mediaList[page]
-                val resolvedViewerUrl = remember(mediaUrl) {
-                    com.example.data.repository.CdnManager.resolveMediaUrlSync(mediaUrl) ?: mediaUrl
-                }
+                val resolvedViewerUrl = com.example.ui.components.rememberResolvedMediaUrl(mediaUrl)
                 val isVideo = com.example.ui.components.isVideoUrl(resolvedViewerUrl)
-
                 Box(
                     modifier = Modifier.fillMaxSize(),
                     contentAlignment = Alignment.Center
@@ -1592,6 +1589,7 @@ private fun FeedFullscreenVideoPlayer(
 ) {
     val context = LocalContext.current
     // Pooled player: swiping through fullscreen media avoids codec init/teardown.
+    if (videoUrl.isBlank()) return
     val exoPlayer = remember(videoUrl) {
         com.example.core.media.ExoPlayerManager.getPlayer(context).apply {
             repeatMode = androidx.media3.common.Player.REPEAT_MODE_OFF
