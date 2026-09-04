@@ -29,8 +29,20 @@ android {
         targetSdk = 35
         val baseVersionCode = 1
         val runNumber = (System.getenv("GITHUB_RUN_NUMBER") ?: "0").toInt()
-        versionCode = (System.getenv("VERSION_CODE") ?: (baseVersionCode + runNumber).toString()).toInt()
-        versionName = System.getenv("VERSION_NAME") ?: "1.0.$runNumber"
+        // El manifest.json raíz es la fuente de verdad para la versión OTA (versión publicada.
+        // El CI no inyecta VERSION_CODE/VERSION_NAME; leerlos de ahí evita publicar
+        // APKs con versionCode derivado del run number (1.0.<N>).
+        val otaManifest: Map<*, *>? = try {
+            groovy.json.JsonSlurper().parse(file("../manifest.json")) as Map<*, *>
+        } catch (e: Exception) {
+            null
+        }
+        val manifestVersionCode = (otaManifest?.get("versionCode") as? Number)?.toInt()
+            ?: baseVersionCode + runNumber
+        val manifestVersionName = otaManifest?.get("versionName") as? String
+            ?: "1.0.$runNumber"
+        versionCode = (System.getenv("VERSION_CODE") ?: manifestVersionCode.toString()).toInt()
+        versionName = System.getenv("VERSION_NAME") ?: manifestVersionName
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
 
         val secretsFile = file("../secrets.properties")
