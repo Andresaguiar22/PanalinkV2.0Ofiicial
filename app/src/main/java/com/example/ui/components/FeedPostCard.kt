@@ -57,6 +57,31 @@ import com.example.data.model.PostDto
 import com.example.identity.model.toIdentityUiState
 
 
+/**
+ * Resolves a media URL for the feed WITHOUT ever blocking composition.
+ *
+ * - Non-vcdn URLs are pure string rewrites (no network) and return synchronously,
+ *   matching the previous `resolveMediaUrlSync` behavior exactly.
+ * - `vcdn://` pointers are resolved asynchronously via [VcdnUrlResolver.resolve]
+ *   (suspend, offline-aware, cached). While no signed URL is available yet
+ *   (or offline) we return "" so callers can show a safe placeholder instead of
+ *   feeding an empty/invalid URI to ExoPlayer or Coil.
+ */
+@Composable
+internal fun rememberResolvedMediaUrl(rawUrl: String?): String {
+    val raw = rawUrl?.trim().orEmpty()
+    if (raw.isEmpty()) return ""
+    if (com.example.data.repository.VcdnUrlResolver.isVcdnUrl(raw)) {
+        var resolvedUrl by remember(raw) { mutableStateOf("") }
+        LaunchedEffect(raw) {
+            resolvedUrl = com.example.data.repository.VcdnUrlResolver.resolve(raw) ?: ""
+        }
+        return resolvedUrl
+    }
+    // Same synchronous pure-rewrite path the old sync resolver used for non-vcdn.
+    return com.example.data.repository.CdnManager.resolveMediaUrlSync(raw)
+}
+
 private fun urlPathOf(url: String): String =
     url.substringBefore('?').substringBefore('#').lowercase()
 
@@ -340,16 +365,28 @@ fun FeedPostCard(
                         modifier = Modifier.fillMaxSize()
                     ) { page ->
                         val url = mediaImagesAndVideos[page]
-                        val resolvedUrl = remember(url) {
-                            com.example.data.repository.CdnManager.resolveMediaUrlSync(url)
-                        }
+                        val resolvedUrl = rememberResolvedMediaUrl(url)
                         
                         Box(
                             modifier = Modifier
                                 .fillMaxSize()
                                 .clickable { onMediaClick(mediaImagesAndVideos, page, voiceAudioUrl) }
                         ) {
-                            if (post.type == "VIDEO" || post.type == "REEL" || isVideoUrl(resolvedUrl)) {
+                            if (resolvedUrl.isBlank()) {
+                                // vcdn:// sin URL firmada aún (resolución asíncrona pendiente o
+                                // offline): placeholder seguro. Nunca alimentar una URI vacía a ExoPlayer.
+ 
+                                Box(
+                                    modifier = Modifier.fillMaxSize(),
+                                    contentAlignment = Alignment.Center
+                                ) {
+                                    CircularProgressIndicator(
+                                        color = Color(0xFF00E5FF),
+                                        modifier = Modifier.size(32.dp),
+                                        strokeWidth = 2.dp
+                                    )
+                                }
+                            } else if (post.type == "VIDEO" || post.type == "REEL" || isVideoUrl(resolvedUrl)) {
                                 val videoUri = remember(resolvedUrl) { Uri.parse(resolvedUrl) }
                                 SimpleVideoPreviewPlayer(
                                     videoUri = videoUri,
@@ -443,11 +480,24 @@ fun FeedPostCard(
                     }
                 }
             } else if (voiceAudioUrl != null || post.type == "AUDIO") {
-                val resolvedAudio = remember(voiceAudioUrl) {
-                    com.example.data.repository.CdnManager.resolveMediaUrlSync(voiceAudioUrl ?: "")
-                }
+                val resolvedAudio = rememberResolvedMediaUrl(voiceAudioUrl)
                 Box(modifier = Modifier.fillMaxWidth().padding(horizontal = 14.dp, vertical = 8.dp)) {
+                    if (resolvedAudio.isBlank()) {
+                        // vcdn:// sin URL firmada aun: placeholder seguro
+                        Box(
+                            modifier = Modifier.fillMaxWidth().height(80.dp),
+                            contentAlignment = Alignment.Center
+                        ) {
+                            CircularProgressIndicator(
+                                color = Color(0xFF00E5FF),
+                                modifier = Modifier.size(28.dp),
+                                strokeWidth = 2.dp
+                            )
+                        }
+                    } else {
                     PlaylistAudioPlayer(audioUrls = listOf(resolvedAudio))
+                    }
+
                 }
             } else if (post.type == "TEXT" && mediaImagesAndVideos.isEmpty() && youtubeVideoId.isNullOrBlank()) {
                 // If it's just short text and was not expanded, we might want to make it look like a quote card
@@ -470,9 +520,7 @@ fun FeedPostCard(
                     verticalArrangement = Arrangement.spacedBy(8.dp)
                 ) {
                     mediaDocuments.forEach { docUrl ->
-                        val resolvedDocUrl = remember(docUrl) {
-                            com.example.data.repository.CdnManager.resolveMediaUrlSync(docUrl)
-                        }
+                        val resolvedDocUrl = rememberResolvedMediaUrl(docUrl)
                         com.example.ui.components.chat.media.DocumentPreviewCard(
                             docUrl = resolvedDocUrl,
                             mediaSize = null,
