@@ -40,6 +40,7 @@ import androidx.media3.common.util.UnstableApi
 import androidx.media3.exoplayer.ExoPlayer
 import androidx.media3.ui.PlayerView
 import coil.compose.AsyncImage
+import com.example.data.repository.CdnManager
 import kotlinx.coroutines.delay
 
 /**
@@ -71,15 +72,16 @@ fun FullScreenMediaViewer(
                 .fillMaxSize()
                 .background(Color.Black)
         ) {
+            val resolvedMediaUrl = CdnManager.resolveMediaUrlSync(mediaUrl)
             if (isVideo) {
                 VideoViewerContent(
-                    videoUrl = mediaUrl,
+                    videoUrl = resolvedMediaUrl,
                     showControls = showControls,
                     onToggleControls = { showControls = !showControls }
                 )
             } else {
                 ImageViewerContent(
-                    imageUrl = mediaUrl,
+                    imageUrl = resolvedMediaUrl,
                     onToggleControls = { showControls = !showControls }
                 )
             }

@@ -7,6 +7,7 @@ import androidx.work.WorkerParameters
 import com.example.data.database.PanalinkDatabase
 import com.example.data.repository.MessagesRepository
 import com.example.data.repository.UploadFailoverRouter
+import com.example.data.repository.VideoRouter
 import com.example.util.PanalinkMediaManager
 import java.io.File
 
@@ -64,6 +65,13 @@ class MediaUploadWorker(
         /** Production stable object-name contract: same message/index => same object key. */
         fun albumStableFileName(stableUuid: String, index: Int, extension: String): String =
             "${stableUuid}_$index.${extension.trimStart('.').ifEmpty { "jpg" }}"
+
+        /** Decisión P2-A: vídeo de chat va a vCDN (VideoRouter); el resto a B2. */
+        fun shouldRouteVideoToVcdn(messageType: String?, mimeType: String?): Boolean {
+            val type = messageType?.lowercase()?.trim().orEmpty()
+            val mime = mimeType?.lowercase()?.trim().orEmpty()
+            return type == "video" || type.startsWith("video/") || mime.startsWith("video/")
+        }
     }
 
     enum class FilePreconditionResult {
@@ -234,23 +242,36 @@ class MediaUploadWorker(
                     setProgressAsync(androidx.work.workDataOf("messageId" to messageId, "progress" to pct, "bytesWritten" to written, "totalBytes" to total, "status" to "Subiendo ($pct%)"))
                 }
             }
-            val uploadResult = UploadFailoverRouter.uploadWithFailover(
-                file = file,
-                mimeType = mimeType,
-                userId = userId,
-                uploadType = typeLabel,
-                customFileName = stableFileName,
-                clientMessageUuid = stableUuid,
-                onProgress = progressCb
-            ) {
-                PanalinkMediaManager.uploadMediaAndThumbnail(
-                    context = context,
-                    mediaFile = file,
+            val isVideo = shouldRouteVideoToVcdn(typeLabel, mimeType)
+            val uploadResult = if (isVideo) {
+                VideoRouter.uploadPublicVideo(
+                    file = file,
                     mimeType = mimeType,
-                    typeLabel = typeLabel,
                     userId = userId,
-                    caption = entity.content ?: "Multimedia message"
+                    uploadType = typeLabel,
+                    customFileName = stableFileName,
+                    clientMessageUuid = stableUuid,
+                    onProgress = progressCb
                 )
+            } else {
+                UploadFailoverRouter.uploadWithFailover(
+                    file = file,
+                    mimeType = mimeType,
+                    userId = userId,
+                    uploadType = typeLabel,
+                    customFileName = stableFileName,
+                    clientMessageUuid = stableUuid,
+                    onProgress = progressCb
+                ) {
+                    PanalinkMediaManager.uploadMediaAndThumbnail(
+                        context = context,
+                        mediaFile = file,
+                        mimeType = mimeType,
+                        typeLabel = typeLabel,
+                        userId = userId,
+                        caption = entity.content ?: "Multimedia message"
+                    )
+                }
             }
 
             if (uploadResult.isSuccess) {
