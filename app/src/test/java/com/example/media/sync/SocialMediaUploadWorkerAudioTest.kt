@@ -9,6 +9,7 @@ import com.example.worker.SocialMediaUploadWorker
 import kotlinx.coroutines.runBlocking
 import org.junit.After
 import org.junit.Assert.assertEquals
+import org.junit.Assert.assertFalse
 import org.junit.Assert.assertTrue
 import org.junit.Before
 import org.junit.Test
@@ -76,7 +77,7 @@ class SocialMediaUploadWorkerAudioTest {
         assertEquals("completed", entity?.status)
         assertEquals(remoteUrl, entity?.remoteUrl)
         assertEquals("AUDIO", entity?.uploadType)
-        assertTrue("El archivo local AUDIO debe sobrevivir al worker", localFile.exists())
+        assertFalse("El worker debe limpiar el archivo local AUDIO al completar", localFile.exists())
         assertTrue("AUDIO no debe crear ninguna Story", db.statesDao().getAllStatesSync().isEmpty())
     }
 }
