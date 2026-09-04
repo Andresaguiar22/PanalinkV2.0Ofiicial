@@ -32,18 +32,23 @@ class SocialMediaUploadWorker(
         val uploadId = inputData.getString("uploadId") ?: return Result.failure()
         val entity = pendingUploadDao.getUploadById(uploadId) ?: return Result.failure()
         val file = File(entity.localFilePath)
-        if (!file.exists()) {
+        val hasRemoteUrl = !entity.remoteUrl.isNullOrBlank()
+        if (!file.exists() && !hasRemoteUrl) {
             pendingUploadDao.updateUpload(entity.copy(status = "failed", errorMessage = "Archivo local no encontrado", updatedAt = System.currentTimeMillis()))
             return Result.failure()
         }
         val uploadingEntity = entity.copy(status = "uploading", updatedAt = System.currentTimeMillis())
         pendingUploadDao.updateUpload(uploadingEntity)
         try {
-            setProgress(workDataOf("uploadId" to uploadId, "progress" to 10, "bytesWritten" to 0L, "totalBytes" to file.length(), "status" to "Iniciando subida...", "uploadType" to entity.uploadType))
+            val initialBytes = if (file.exists()) file.length() else 0L
+            setProgress(workDataOf("uploadId" to uploadId, "progress" to 10, "bytesWritten" to 0L, "totalBytes" to initialBytes, "status" to "Iniciando subida...", "uploadType" to entity.uploadType))
 
             // Avatares y portadas son pequeños: siempre van a Supabase Storage.
             // Así permanecen disponibles aunque el CDN del PC esté caído.
             if (entity.uploadType == "PROFILE" || entity.uploadType == "PROFILE_COVER") {
+                if (!file.exists()) {
+                    return handleFailure(entity, "Archivo local no encontrado para perfil")
+                }
                 val currentUid = entity.userId.ifEmpty { SupabaseClient.currentUser?.id ?: "" }
                 if (currentUid.isBlank()) return handleFailure(entity, "Usuario no autenticado")
                 val storageResult = supabaseStorage.uploadProfileMedia(
@@ -73,7 +78,7 @@ class SocialMediaUploadWorker(
             var finalUploadFile = file
             var intermediateTempFile: File? = null
 
-            if (uploadedUrl == null && entity.mimeType.startsWith("video/") && entity.uploadType != "REEL" && !file.name.contains("_compressed_")) {
+            if (uploadedUrl == null && file.exists() && entity.mimeType.startsWith("video/") && entity.uploadType != "REEL" && !file.name.contains("_compressed_")) {
                 setProgress(workDataOf("uploadId" to uploadId, "progress" to 15, "bytesWritten" to 0L, "totalBytes" to file.length(), "status" to "Comprimiendo video...", "uploadType" to entity.uploadType))
                 try {
                     val pendingMediaDir = File(context.filesDir, "pending_media")
@@ -232,7 +237,8 @@ class SocialMediaUploadWorker(
 
             val targetStateId = com.example.util.SocialUploadRecoveryHelper.deriveTargetStateId(uploadId)
 
-            setProgress(workDataOf("uploadId" to uploadId, "progress" to 85, "bytesWritten" to finalUploadFile.length(), "totalBytes" to finalUploadFile.length(), "status" to "Registrando publicación...", "uploadType" to entity.uploadType))
+            val fileBytes = if (finalUploadFile.exists()) finalUploadFile.length() else 0L
+            setProgress(workDataOf("uploadId" to uploadId, "progress" to 85, "bytesWritten" to fileBytes, "totalBytes" to fileBytes, "status" to "Registrando publicación...", "uploadType" to entity.uploadType))
             var createdState: com.example.data.model.UserState? = null
             val success = when (entity.uploadType) {
                 "STATE", "REEL" -> {
@@ -294,7 +300,8 @@ class SocialMediaUploadWorker(
             } catch (_: Exception) { entity.metadataJson }
 
             pendingUploadDao.updateUpload(entity.copy(status = "completed", remoteUrl = uploadedUrl, metadataJson = finalMetadata, updatedAt = System.currentTimeMillis()))
-            setProgress(workDataOf("uploadId" to uploadId, "progress" to 100, "bytesWritten" to finalUploadFile.length(), "totalBytes" to finalUploadFile.length(), "status" to "Completado", "uploadType" to entity.uploadType))
+            val completedBytes = if (finalUploadFile.exists()) finalUploadFile.length() else 0L
+            setProgress(workDataOf("uploadId" to uploadId, "progress" to 100, "bytesWritten" to completedBytes, "totalBytes" to completedBytes, "status" to "Completado", "uploadType" to entity.uploadType))
             if (entity.uploadType != "REEL" && entity.uploadType != "STATE") {
                 try { finalUploadFile.delete(); if (file.absolutePath != finalUploadFile.absolutePath) file.delete() } catch (_: Exception) {}
             }
