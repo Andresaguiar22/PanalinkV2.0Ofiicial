@@ -33,6 +33,10 @@ class FeedRepositoryImpl : FeedRepository {
 
     private val TAG = "FeedRepository"
     private val repoScope = kotlinx.coroutines.CoroutineScope(kotlinx.coroutines.Dispatchers.IO + kotlinx.coroutines.SupervisorJob())
+    private val postRealtimeHandler = com.example.data.repository.feed.PostRealtimeHandler(
+        com.example.data.database.PanalinkDatabase.getDatabase(com.example.PanaApplication.instance).postDao(),
+        repoScope
+    )
 
     private suspend fun <R> runCall(call: suspend (String) -> Response<R>): Response<R>? {
         return com.example.util.Resilience.retry(
