@@ -276,31 +276,6 @@ object SupabaseClient {
                             val pgChanges = org.json.JSONArray().apply {
                                 put(JSONObject().apply {
                                     put("event", "*")
-        val postsJoin = JSONObject().apply {
-            put("topic", "realtime:public:posts")
-            put("event", "phx_join")
-            put("payload", JSONObject().apply {
-                put("config", JSONObject().apply {
-                    put("postgres_changes", JSONArray().apply {
-                        put(JSONObject().apply {
-                            put("event", "*")
-                            put("schema", "public")
-                            put("table", "posts")
-                        })
-                    })
-                })
-            })
-            put("ref", "posts_1")
-        }
-
-        if (currentTokenLocal != null && currentTokenLocal.isNotEmpty()) {
-            postsJoin.getJSONObject("payload").apply {
-                put("user_token", currentTokenLocal)
-                put("access_token", currentTokenLocal)
-            }
-        }
-
-        webSocket?.send(postsJoin.toString())
                                     put("schema", "public")
                                     put("table", "messages")
                                 })
@@ -570,6 +545,30 @@ object SupabaseClient {
                     put("ref", "music_1")
                 }
                 webSocket.send(joinMusicSocial.toString())
+
+                // Join posts channel (public schema)
+                val postsJoin = JSONObject().apply {
+                    put("topic", "realtime:public:posts")
+                    put("event", "phx_join")
+                    put("payload", JSONObject().apply {
+                        put("config", JSONObject().apply {
+                            val pgChanges = JSONArray().apply {
+                                put(JSONObject().apply {
+                                    put("event", "*")
+                                    put("schema", "public")
+                                    put("table", "posts")
+                                })
+                            }
+                            put("postgres_changes", pgChanges)
+                        })
+                        if (!currentTokenLocal.isNullOrEmpty()) {
+                            put("user_token", currentTokenLocal)
+                            put("access_token", currentTokenLocal)
+                        }
+                    })
+                    put("ref", "posts_1")
+                }
+                webSocket.send(postsJoin.toString())
 
                 // Start heartbeat
                 heartbeatJob = clientScope.launch {
