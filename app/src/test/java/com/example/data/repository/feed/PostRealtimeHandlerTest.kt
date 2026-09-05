@@ -32,13 +32,13 @@ class PostRealtimeHandlerTest {
 
     @Before
     fun setup() {
-        PostRealtimeHandler.clearProcessedEvents()
+        PostRealtimeHandler.resetForTest()
         val context = ApplicationProvider.getApplicationContext<Context>()
         db = Room.inMemoryDatabaseBuilder(context, PanalinkDatabase::class.java)
             .allowMainThreadQueries()
             .build()
         scope = CoroutineScope(Dispatchers.Unconfined + SupervisorJob())
-        handler = PostRealtimeHandler(db.postDao(), scope)
+        handler = PostRealtimeHandler.getInstance(db.postDao(), scope)
     }
 
     @After

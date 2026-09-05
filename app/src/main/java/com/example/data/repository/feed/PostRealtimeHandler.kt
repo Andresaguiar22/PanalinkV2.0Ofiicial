@@ -11,13 +11,27 @@ import kotlinx.coroutines.launch
 import java.util.Collections
 import java.util.LinkedHashMap
 
-class PostRealtimeHandler(
+class PostRealtimeHandler private constructor(
     private val postDao: PostDao,
     private val scope: CoroutineScope
 ) {
     private val TAG = "PostRealtimeHandler"
 
     companion object {
+        @Volatile
+        private var INSTANCE: PostRealtimeHandler? = null
+
+        fun getInstance(postDao: PostDao, scope: CoroutineScope): PostRealtimeHandler {
+            return INSTANCE ?: synchronized(this) {
+                INSTANCE ?: PostRealtimeHandler(postDao, scope).also { INSTANCE = it }
+            }
+        }
+
+        fun resetForTest() {
+            INSTANCE = null
+            clearProcessedEvents()
+        }
+
         private val processedRealtimeEventIds = Collections.synchronizedSet(
             object : LinkedHashMap<String, Boolean>(200, 0.75f, true) {
                 override fun removeEldestEntry(eldest: MutableMap.MutableEntry<String, Boolean>?): Boolean {

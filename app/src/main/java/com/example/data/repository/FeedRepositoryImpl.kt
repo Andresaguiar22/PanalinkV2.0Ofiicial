@@ -33,7 +33,7 @@ class FeedRepositoryImpl : FeedRepository {
 
     private val TAG = "FeedRepository"
     private val repoScope = kotlinx.coroutines.CoroutineScope(kotlinx.coroutines.Dispatchers.IO + kotlinx.coroutines.SupervisorJob())
-    private val postRealtimeHandler = com.example.data.repository.feed.PostRealtimeHandler(
+    private val postRealtimeHandler = com.example.data.repository.feed.PostRealtimeHandler.getInstance(
         com.example.data.database.PanalinkDatabase.getDatabase(com.example.PanaApplication.instance).postDao(),
         repoScope
     )
