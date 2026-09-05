@@ -58,5 +58,24 @@ object OfflineQueueRecovery {
                 SocialSyncWorker.enqueue(appContext)
             }
         }
+
+        CoroutineScope(Dispatchers.IO).launch {
+            if (db.messageDao().getPendingMessages().isNotEmpty()) {
+                val syncRequest = OneTimeWorkRequestBuilder<com.example.worker.SyncMessagesWorker>()
+                    .setConstraints(constraints)
+                    .setBackoffCriteria(
+                        androidx.work.BackoffPolicy.EXPONENTIAL,
+                        androidx.work.WorkRequest.MIN_BACKOFF_MILLIS,
+                        java.util.concurrent.TimeUnit.MILLISECONDS
+                    )
+                    .addTag("sync_messages_work")
+                    .build()
+                workManager.enqueueUniqueWork(
+                    "sync_messages_unique",
+                    ExistingWorkPolicy.KEEP,
+                    syncRequest
+                )
+            }
+        }
     }
 }

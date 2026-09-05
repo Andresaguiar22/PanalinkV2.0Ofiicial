@@ -29,17 +29,23 @@ class OfflineQueueRecoveryTest {
     private fun resetDatabaseIfClosed() {
         val current = PanalinkDatabase.getDatabase(context)
         if (current.isOpen) return
-        val companionClass = PanalinkDatabase.Companion::class.java
-        val field = companionClass.getDeclaredField("INSTANCE")
-        field.isAccessible = true
-        field.set(null, null)
+        try {
+            val companionClass = PanalinkDatabase.Companion::class.java
+            val field = companionClass.getDeclaredField("INSTANCE")
+            field.isAccessible = true
+            field.set(PanalinkDatabase.Companion, null)
+        } catch (e: Exception) {
+            // ignore
+        }
         db = PanalinkDatabase.getDatabase(context)
     }
 
     @Before
     fun setup() {
         context = ApplicationProvider.getApplicationContext<Context>()
-        WorkManagerTestInitHelper.initializeTestWorkManager(context)
+        try {
+            WorkManagerTestInitHelper.initializeTestWorkManager(context)
+        } catch (_: Exception) {}
         db = PanalinkDatabase.getDatabase(context)
         resetDatabaseIfClosed()
     }
@@ -49,6 +55,7 @@ class OfflineQueueRecoveryTest {
         db.pendingPostDao().deletePostById("post-recover-1")
         db.pendingPostDao().deletePostById("post-recover-2")
         db.pendingSocialActionDao().deleteActionById("action-recover-1")
+        db.messageDao().deleteMessageById("msg-recover-1")
     }
 
     private suspend fun uniqueWork(name: String): List<WorkInfo> {
@@ -127,6 +134,26 @@ class OfflineQueueRecoveryTest {
 
         val workInfos = uniqueWork("social_sync_work")
         assertEquals(0, workInfos.size)
+    }
+
+    @Test
+    fun `pending messages trigger SyncMessagesWorker enqueue`() = runBlocking {
+        db.messageDao().insertMessage(
+            com.example.data.database.MessageEntity(
+                id = "msg-recover-1",
+                chatId = "chat-1",
+                senderId = "user-1",
+                content = "Pending offline message",
+                createdAt = "2026-09-05T20:00:00Z",
+                status = "sending",
+                clientMessageUuid = "uuid-recover-1"
+            )
+        )
+        OfflineQueueRecovery.reconcile(context)
+        kotlinx.coroutines.delay(200)
+
+        val workInfos = uniqueWork("sync_messages_unique")
+        assertEquals(1, workInfos.size)
     }
 
     @Test
