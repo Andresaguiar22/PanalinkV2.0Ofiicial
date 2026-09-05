@@ -175,9 +175,7 @@ class PostRealtimeHandler private constructor(
 
                         val local = postDao.getPostById(postId)
                         val preserveLike = local != null && (local.currentUserLiked || postDao.hasPendingLikeAction(postId))
-                        val preserveComment = local != null && (
-                            postDao.hasPendingCommentAction(postId) || local.commentsCount > remoteEntity.commentsCount
-                        )
+                        val preserveComment = local != null && postDao.hasPendingCommentAction(postId)
 
                         val mergedEntity = if (local != null) {
                             remoteEntity.copy(
