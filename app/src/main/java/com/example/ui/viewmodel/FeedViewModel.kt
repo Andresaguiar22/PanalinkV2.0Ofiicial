@@ -226,7 +226,9 @@ class FeedViewModel(
         
         viewModelScope.launch(errorHandler + kotlinx.coroutines.Dispatchers.IO) {
             val pendingPostId = java.util.UUID.randomUUID().toString()
-            val serverPostId = java.util.UUID.randomUUID().toString()
+            // The durable pending ID is also the server post ID so recovery after
+            // process death cannot create a second server post.
+            val serverPostId = pendingPostId
             val mediaUrisJson = org.json.JSONArray(mediaUris).toString()
             
             val pendingPost = com.example.data.database.PendingPostEntity(
