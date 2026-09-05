@@ -12,6 +12,7 @@ import kotlinx.coroutines.runBlocking
 import org.junit.After
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertFalse
+import org.junit.Assert.assertNotNull
 import org.junit.Assert.assertTrue
 import org.junit.Before
 import org.junit.Test
@@ -56,6 +57,7 @@ class OfflineQueueRecoveryTest {
         db.pendingPostDao().deletePostById("post-recover-2")
         db.pendingSocialActionDao().deleteActionById("action-recover-1")
         db.messageDao().deleteMessageById("msg-recover-1")
+        db.messageDao().deleteMessageById("media-recover-1")
     }
 
     private suspend fun uniqueWork(name: String): List<WorkInfo> {
@@ -154,6 +156,32 @@ class OfflineQueueRecoveryTest {
 
         val workInfos = uniqueWork("sync_messages_unique")
         assertEquals(1, workInfos.size)
+    }
+
+    @Test
+    fun `pending media message triggers SyncMessagesWorker enqueue on process recovery`() = runBlocking {
+        db.messageDao().insertMessage(
+            com.example.data.database.MessageEntity(
+                id = "media-recover-1",
+                chatId = "chat-1",
+                senderId = "user-1",
+                content = "Pending media message",
+                createdAt = "2026-09-05T20:00:00Z",
+                status = "pending_media",
+                messageType = "image",
+                localMediaUri = "/cache/pending_media/test.jpg",
+                clientMessageUuid = "uuid-media-1"
+            )
+        )
+        OfflineQueueRecovery.reconcile(context)
+        kotlinx.coroutines.delay(200)
+
+        val workInfos = uniqueWork("sync_messages_unique")
+        assertEquals(1, workInfos.size)
+        val msg = db.messageDao().getMessageById("media-recover-1")
+        assertNotNull(msg)
+        assertEquals("/cache/pending_media/test.jpg", msg?.localMediaUri)
+        assertEquals("pending_media", msg?.status)
     }
 
     @Test
