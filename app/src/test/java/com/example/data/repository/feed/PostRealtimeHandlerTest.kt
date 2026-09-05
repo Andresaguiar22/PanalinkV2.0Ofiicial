@@ -38,11 +38,12 @@ class PostRealtimeHandlerTest {
             .allowMainThreadQueries()
             .build()
         scope = CoroutineScope(Dispatchers.Unconfined + SupervisorJob())
-        handler = PostRealtimeHandler.getInstance(db.postDao(), scope)
+        handler = PostRealtimeHandler.getInstanceForTest(db.postDao(), scope)
     }
 
     @After
     fun teardown() {
+        PostRealtimeHandler.resetForTest()
         scope.coroutineContext[kotlinx.coroutines.Job]?.cancel()
         db.close()
     }
@@ -259,5 +260,33 @@ class PostRealtimeHandlerTest {
 
         val messages = db.messageDao().getMessagesForChat("any-chat")
         assertEquals(0, messages.size)
+        assertNull(db.postDao().getPostById("unknown-record"))
+    }
+
+    @Test
+    fun test9_SameTimestampDifferentPayloadIsNotDeduplicated() = runBlocking {
+        val first = JSONObject().apply {
+            put("id", "post-same-ts")
+            put("user_id", "user-1")
+            put("content", "First update")
+            put("updated_at", "2026-09-05T01:00:00Z")
+        }
+        val second = JSONObject().apply {
+            put("id", "post-same-ts")
+            put("user_id", "user-1")
+            put("content", "Second legitimate update")
+            put("updated_at", "2026-09-05T01:00:00Z")
+        }
+        SupabaseClient.emitRealtimePost(
+            SupabaseClient.PostRealtimeUpdate("UPDATE", "post-same-ts", first)
+        )
+        SupabaseClient.emitRealtimePost(
+            SupabaseClient.PostRealtimeUpdate("UPDATE", "post-same-ts", second)
+        )
+        kotlinx.coroutines.delay(50)
+
+        val post = db.postDao().getPostById("post-same-ts")
+        assertNotNull(post)
+        assertEquals("Second legitimate update", post?.content)
     }
 }
