@@ -138,6 +138,21 @@ object SupabaseClient {
     private val _realtimeMusicUpdates = MutableSharedFlow<MusicUpdate>(extraBufferCapacity = 64)
     val realtimeMusicUpdates: SharedFlow<MusicUpdate> = _realtimeMusicUpdates
 
+    data class PostRealtimeUpdate(val eventType: String, val recordId: String, val record: JSONObject)
+    private val _realtimePosts = MutableSharedFlow<PostRealtimeUpdate>(replay = 0, extraBufferCapacity = 64)
+    val realtimePosts: SharedFlow<PostRealtimeUpdate> = _realtimePosts
+
+    private val _realtimePostDeletions = MutableSharedFlow<String>(replay = 0, extraBufferCapacity = 64)
+    val realtimePostDeletions: SharedFlow<String> = _realtimePostDeletions
+
+    fun emitRealtimePost(update: PostRealtimeUpdate) {
+        _realtimePosts.tryEmit(update)
+    }
+
+    fun emitRealtimePostDeletion(postId: String) {
+        _realtimePostDeletions.tryEmit(postId)
+    }
+
     fun emitRealtimeTyping(status: TypingStatus) {
         clientScope.launch {
             _realtimeTyping.emit(status)
@@ -546,6 +561,30 @@ object SupabaseClient {
                 }
                 webSocket.send(joinMusicSocial.toString())
 
+                // Join posts channel (public schema)
+                val postsJoin = JSONObject().apply {
+                    put("topic", "realtime:public:posts")
+                    put("event", "phx_join")
+                    put("payload", JSONObject().apply {
+                        put("config", JSONObject().apply {
+                            val pgChanges = org.json.JSONArray().apply {
+                                put(JSONObject().apply {
+                                    put("event", "*")
+                                    put("schema", "public")
+                                    put("table", "posts")
+                                })
+                            }
+                            put("postgres_changes", pgChanges)
+                        })
+                        if (!currentTokenLocal.isNullOrEmpty()) {
+                            put("user_token", currentTokenLocal)
+                            put("access_token", currentTokenLocal)
+                        }
+                    })
+                    put("ref", "posts_1")
+                }
+                webSocket.send(postsJoin.toString())
+
                 // Start heartbeat
                 heartbeatJob = clientScope.launch {
                     while (isActive) {
@@ -644,6 +683,11 @@ object SupabaseClient {
                                         clientScope.launch {
                                             _realtimeMessageDeletions.emit(deletedId)
                                         }
+                                    } else if (table == "posts" || topic.contains("posts")) {
+                                        Log.d(TAG, "Realtime DELETE event received for post ID: $deletedId in table $table")
+                                        clientScope.launch {
+                                            _realtimePostDeletions.emit(deletedId)
+                                        }
                                     } else if (table.contains("likes") && (table.contains("reel") || table.contains("story"))) {
                                         val statusId = record.optString("reel_id", record.optString("story_id", record.optString("status_id", "")))
                                         if (statusId.isNotEmpty()) {
@@ -658,6 +702,13 @@ object SupabaseClient {
                                                 _realtimeComments.emit(SocialInteractionUpdate(statusId, table.contains("reel"), eventType, deletedId, record))
                                             }
                                         }
+                                    }
+                                }
+                            } else if (table == "posts" || topic.contains("posts")) {
+                                val postId = record.optString("id", "")
+                                if (postId.isNotEmpty()) {
+                                    clientScope.launch {
+                                        _realtimePosts.emit(PostRealtimeUpdate(eventType, postId, record))
                                     }
                                 }
                             } else if (table == "global_server_config" || topic.contains("global_server_config")) {
