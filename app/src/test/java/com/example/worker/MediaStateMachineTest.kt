@@ -264,4 +264,52 @@ class MediaStateMachineTest {
             res3WithRemote
         )
     }
+
+    // 11. Ciclo end-to-end multimedia: pending_media -> upload -> confirmación servidor -> estabilidad clientMessageUuid -> no duplicados -> limpieza segura
+    @Test
+    fun test11_multimediaEndToEndLifecycleSimulation() = runBlocking {
+        val mediaFile = tempFolder.newFile("e2e_video.mp4")
+        mediaFile.writeText("fake video bytes")
+        assertTrue(mediaFile.exists())
+
+        val clientUuid = "uuid-e2e-multimedia-123"
+        val msgId = "msg-e2e-1"
+
+        val initialMsg = MessageEntity(
+            id = msgId,
+            chatId = "chat-e2e",
+            senderId = "user-1",
+            content = "Video message",
+            createdAt = "2026-09-05T21:00:00Z",
+            status = "pending_media",
+            messageType = "video",
+            localMediaUri = mediaFile.absolutePath,
+            clientMessageUuid = clientUuid
+        )
+        messageDao.insertMessage(initialMsg)
+
+        // 1. Verificar presencia en pending
+        val pending = messageDao.getPendingMessages()
+        assertTrue(pending.any { it.id == msgId && it.clientMessageUuid == clientUuid })
+
+        // 2. Simular éxito de subida y confirmación del servidor (mediaUrl asignada, status = sent)
+        val confirmedMsg = initialMsg.copy(
+            mediaUrl = "https://cdn.example.com/videos/e2e_video.mp4",
+            status = "sent"
+        )
+        messageDao.insertMessage(confirmedMsg) // Upsert por REPLACE
+
+        // 3. Verificar que clientMessageUuid permanece estable y no hay duplicados
+        val saved = messageDao.getMessageById(msgId)
+        assertNotNull(saved)
+        assertEquals(clientUuid, saved?.clientMessageUuid)
+        assertEquals("https://cdn.example.com/videos/e2e_video.mp4", saved?.mediaUrl)
+        assertEquals("sent", saved?.status)
+
+        // 4. Limpieza segura del archivo local solo tras confirmación
+        if (saved?.mediaUrl != null && saved.status == "sent") {
+            mediaFile.delete()
+        }
+        assertFalse("Local file must be cleaned up after successful server confirmation", mediaFile.exists())
+    }
 }

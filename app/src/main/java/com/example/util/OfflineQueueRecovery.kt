@@ -31,50 +31,58 @@ object OfflineQueueRecovery {
             .setRequiredNetworkType(NetworkType.CONNECTED)
             .build()
 
-        CoroutineScope(Dispatchers.IO).launch {
-            val pendingPosts = db.pendingPostDao().getActivePostsFlow().first()
-            pendingPosts.forEach { post ->
-                val request = OneTimeWorkRequestBuilder<PostUploadWorker>()
-                    .setConstraints(constraints)
-                    .setInputData(
-                        workDataOf(
-                            "pendingPostId" to post.id,
-                            "serverPostId" to post.id
+        kotlinx.coroutines.runBlocking(Dispatchers.IO) {
+            try {
+                val pendingPosts = db.pendingPostDao().getActivePostsFlow().first()
+                pendingPosts.forEach { post ->
+                    val request = OneTimeWorkRequestBuilder<PostUploadWorker>()
+                        .setConstraints(constraints)
+                        .setInputData(
+                            workDataOf(
+                                "pendingPostId" to post.id,
+                                "serverPostId" to post.id
+                            )
                         )
+                        .addTag("post_upload")
+                        .addTag("post_upload_${post.id}")
+                        .build()
+                    workManager.enqueueUniqueWork(
+                        POST_WORK_PREFIX + post.id,
+                        ExistingWorkPolicy.KEEP,
+                        request
                     )
-                    .addTag("post_upload")
-                    .addTag("post_upload_${post.id}")
-                    .build()
-                workManager.enqueueUniqueWork(
-                    POST_WORK_PREFIX + post.id,
-                    ExistingWorkPolicy.KEEP,
-                    request
-                )
+                }
+            } catch (e: Exception) {
+                android.util.Log.e("OfflineQueueRecovery", "Error reconciling posts", e)
             }
-        }
 
-        CoroutineScope(Dispatchers.IO).launch {
-            if (db.pendingSocialActionDao().getPendingActions().isNotEmpty()) {
-                SocialSyncWorker.enqueue(appContext)
+            try {
+                if (db.pendingSocialActionDao().getPendingActions().isNotEmpty()) {
+                    SocialSyncWorker.enqueue(appContext)
+                }
+            } catch (e: Exception) {
+                android.util.Log.e("OfflineQueueRecovery", "Error reconciling social actions", e)
             }
-        }
 
-        CoroutineScope(Dispatchers.IO).launch {
-            if (db.messageDao().getPendingMessages().isNotEmpty()) {
-                val syncRequest = OneTimeWorkRequestBuilder<com.example.worker.SyncMessagesWorker>()
-                    .setConstraints(constraints)
-                    .setBackoffCriteria(
-                        androidx.work.BackoffPolicy.EXPONENTIAL,
-                        androidx.work.WorkRequest.MIN_BACKOFF_MILLIS,
-                        java.util.concurrent.TimeUnit.MILLISECONDS
+            try {
+                if (db.messageDao().getPendingMessages().isNotEmpty()) {
+                    val syncRequest = OneTimeWorkRequestBuilder<com.example.worker.SyncMessagesWorker>()
+                        .setConstraints(constraints)
+                        .setBackoffCriteria(
+                            androidx.work.BackoffPolicy.EXPONENTIAL,
+                            androidx.work.WorkRequest.MIN_BACKOFF_MILLIS,
+                            java.util.concurrent.TimeUnit.MILLISECONDS
+                        )
+                        .addTag("sync_messages_work")
+                        .build()
+                    workManager.enqueueUniqueWork(
+                        "sync_messages_unique",
+                        ExistingWorkPolicy.KEEP,
+                        syncRequest
                     )
-                    .addTag("sync_messages_work")
-                    .build()
-                workManager.enqueueUniqueWork(
-                    "sync_messages_unique",
-                    ExistingWorkPolicy.KEEP,
-                    syncRequest
-                )
+                }
+            } catch (e: Exception) {
+                android.util.Log.e("OfflineQueueRecovery", "Error reconciling messages", e)
             }
         }
     }
