@@ -211,6 +211,16 @@ class PostRealtimeHandlerTest {
                 updatedAt = "2026-09-05T00:00:00Z"
             )
         )
+        db.pendingSocialActionDao().insertAction(
+            com.example.data.database.PendingSocialActionEntity(
+                localActionId = "pending-comment-1",
+                userId = "user-1",
+                targetId = "post-comment-1",
+                actionType = "COMMENT",
+                payload = "{\"text\":\"pending\"}",
+                isReel = false
+            )
+        )
 
         val record = JSONObject().apply {
             put("id", "post-comment-1")
@@ -229,6 +239,210 @@ class PostRealtimeHandlerTest {
         val post = db.postDao().getPostById("post-comment-1")
         assertNotNull(post)
         assertEquals(3, post?.commentsCount)
+    }
+
+    @Test
+    fun test10_RemoteLowerNoPending_Wins() = runBlocking {
+        db.postDao().upsert(
+            PostEntity(
+                id = "post-count-drop",
+                authorId = "user-1",
+                type = "TEXT",
+                content = "Count drop",
+                mediaUrlsJson = "[]",
+                audioUrl = null,
+                privacy = "PUBLIC",
+                likesCount = 0,
+                commentsCount = 10,
+                currentUserLiked = false,
+                createdAt = "2026-09-05T00:00:00Z",
+                updatedAt = "2026-09-05T00:00:00Z"
+            )
+        )
+
+        val record = JSONObject().apply {
+            put("id", "post-count-drop")
+            put("user_id", "user-1")
+            put("content", "Count drop updated")
+            put("likes_count", 0)
+            put("comments_count", 8)
+            put("created_at", "2026-09-05T00:00:00Z")
+            put("updated_at", "2026-09-05T01:00:00Z")
+        }
+        SupabaseClient.emitRealtimePost(
+            SupabaseClient.PostRealtimeUpdate("UPDATE", "post-count-drop", record)
+        )
+        kotlinx.coroutines.delay(50)
+
+        val post = db.postDao().getPostById("post-count-drop")
+        assertNotNull(post)
+        assertEquals(8, post?.commentsCount)
+    }
+
+    @Test
+    fun test11_RemoteLowerWithPendingComment_PreservesLocal() = runBlocking {
+        db.postDao().upsert(
+            PostEntity(
+                id = "post-count-pending",
+                authorId = "user-1",
+                type = "TEXT",
+                content = "Count pending",
+                mediaUrlsJson = "[]",
+                audioUrl = null,
+                privacy = "PUBLIC",
+                likesCount = 0,
+                commentsCount = 10,
+                currentUserLiked = false,
+                createdAt = "2026-09-05T00:00:00Z",
+                updatedAt = "2026-09-05T00:00:00Z"
+            )
+        )
+        db.pendingSocialActionDao().insertAction(
+            com.example.data.database.PendingSocialActionEntity(
+                localActionId = "pending-comment-2",
+                userId = "user-1",
+                targetId = "post-count-pending",
+                actionType = "COMMENT",
+                payload = "{\"text\":\"pending\"}",
+                isReel = false
+            )
+        )
+
+        val record = JSONObject().apply {
+            put("id", "post-count-pending")
+            put("user_id", "user-1")
+            put("content", "Count pending updated")
+            put("likes_count", 0)
+            put("comments_count", 8)
+            put("created_at", "2026-09-05T00:00:00Z")
+            put("updated_at", "2026-09-05T01:00:00Z")
+        }
+        SupabaseClient.emitRealtimePost(
+            SupabaseClient.PostRealtimeUpdate("UPDATE", "post-count-pending", record)
+        )
+        kotlinx.coroutines.delay(50)
+
+        val post = db.postDao().getPostById("post-count-pending")
+        assertNotNull(post)
+        assertEquals(10, post?.commentsCount)
+    }
+
+    @Test
+    fun test12_RemoteHigher_Wins() = runBlocking {
+        db.postDao().upsert(
+            PostEntity(
+                id = "post-count-up",
+                authorId = "user-1",
+                type = "TEXT",
+                content = "Count up",
+                mediaUrlsJson = "[]",
+                audioUrl = null,
+                privacy = "PUBLIC",
+                likesCount = 0,
+                commentsCount = 8,
+                currentUserLiked = false,
+                createdAt = "2026-09-05T00:00:00Z",
+                updatedAt = "2026-09-05T01:00:00Z"
+            )
+        )
+
+        val record = JSONObject().apply {
+            put("id", "post-count-up")
+            put("user_id", "user-1")
+            put("content", "Count up updated")
+            put("likes_count", 0)
+            put("comments_count", 10)
+            put("created_at", "2026-09-05T00:00:00Z")
+            put("updated_at", "2026-09-05T01:00:00Z")
+        }
+        SupabaseClient.emitRealtimePost(
+            SupabaseClient.PostRealtimeUpdate("UPDATE", "post-count-up", record)
+        )
+        kotlinx.coroutines.delay(50)
+
+        val post = db.postDao().getPostById("post-count-up")
+        assertNotNull(post)
+        assertEquals(10, post?.commentsCount)
+    }
+
+    @Test
+    fun test13_ReplayOfSameEventDoesNotCorruptCount() = runBlocking {
+        db.postDao().upsert(
+            PostEntity(
+                id = "post-count-replay",
+                authorId = "user-1",
+                type = "TEXT",
+                content = "Count replay",
+                mediaUrlsJson = "[]",
+                audioUrl = null,
+                privacy = "PUBLIC",
+                likesCount = 0,
+                commentsCount = 9,
+                currentUserLiked = false,
+                createdAt = "2026-09-05T00:00:00Z",
+                updatedAt = "2026-09-05T01:00:00Z"
+            )
+        )
+
+        val record = JSONObject().apply {
+            put("id", "post-count-replay")
+            put("user_id", "user-1")
+            put("content", "Count replay updated")
+            put("likes_count", 0)
+            put("comments_count", 7)
+            put("created_at", "2026-09-05T00:00:00Z")
+            put("updated_at", "2026-09-05T01:00:00Z")
+        }
+        val update1 = SupabaseClient.PostRealtimeUpdate("UPDATE", "post-count-replay", record)
+        val update2 = SupabaseClient.PostRealtimeUpdate("UPDATE", "post-count-replay", record)
+        SupabaseClient.emitRealtimePost(update1)
+        SupabaseClient.emitRealtimePost(update2)
+        kotlinx.coroutines.delay(50)
+
+        val post = db.postDao().getPostById("post-count-replay")
+        assertNotNull(post)
+        assertEquals(7, post?.commentsCount)
+        val posts = db.postDao().getAllPostsFlow().first()
+        assertEquals(1, posts.size)
+    }
+
+    @Test
+    fun test14_LoweredCommentsDoesNotAlterCurrentUserLiked() = runBlocking {
+        db.postDao().upsert(
+            PostEntity(
+                id = "post-like-comment-mixed",
+                authorId = "user-1",
+                type = "TEXT",
+                content = "Like preserved, comments refreshed",
+                mediaUrlsJson = "[]",
+                audioUrl = null,
+                privacy = "PUBLIC",
+                likesCount = 5,
+                commentsCount = 10,
+                currentUserLiked = true,
+                createdAt = "2026-09-05T00:00:00Z",
+                updatedAt = "2026-09-05T00:00:00Z"
+            )
+        )
+
+        val record = JSONObject().apply {
+            put("id", "post-like-comment-mixed")
+            put("user_id", "user-1")
+            put("content", "Like preserved, comments refreshed")
+            put("likes_count", 5)
+            put("comments_count", 8)
+            put("created_at", "2026-09-05T00:00:00Z")
+            put("updated_at", "2026-09-05T01:00:00Z")
+        }
+        SupabaseClient.emitRealtimePost(
+            SupabaseClient.PostRealtimeUpdate("UPDATE", "post-like-comment-mixed", record)
+        )
+        kotlinx.coroutines.delay(50)
+
+        val post = db.postDao().getPostById("post-like-comment-mixed")
+        assertNotNull(post)
+        assertEquals(8, post?.commentsCount)
+        assertEquals(true, post?.currentUserLiked)
     }
 
     @Test
