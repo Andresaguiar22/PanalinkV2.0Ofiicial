@@ -276,6 +276,31 @@ object SupabaseClient {
                             val pgChanges = org.json.JSONArray().apply {
                                 put(JSONObject().apply {
                                     put("event", "*")
+        val postsJoin = JSONObject().apply {
+            put("topic", "realtime:public:posts")
+            put("event", "phx_join")
+            put("payload", JSONObject().apply {
+                put("config", JSONObject().apply {
+                    put("postgres_changes", JSONArray().apply {
+                        put(JSONObject().apply {
+                            put("event", "*")
+                            put("schema", "public")
+                            put("table", "posts")
+                        })
+                    })
+                })
+            })
+            put("ref", "posts_1")
+        }
+
+        if (currentTokenLocal != null && currentTokenLocal.isNotEmpty()) {
+            postsJoin.getJSONObject("payload").apply {
+                put("user_token", currentTokenLocal)
+                put("access_token", currentTokenLocal)
+            }
+        }
+
+        webSocket?.send(postsJoin.toString())
                                     put("schema", "public")
                                     put("table", "messages")
                                 })
