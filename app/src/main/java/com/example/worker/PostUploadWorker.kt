@@ -20,7 +20,7 @@ import java.io.File
 import java.io.FileOutputStream
 import java.io.InputStream
 
-class PostUploadWorker(
+open class PostUploadWorker(
     private val context: Context,
     workerParams: WorkerParameters
 ) : CoroutineWorker(context, workerParams) {

@@ -29,7 +29,7 @@ class OfflineQueueRecoveryTest {
     private fun resetDatabaseIfClosed() {
         val current = PanalinkDatabase.getDatabase(context)
         if (current.isOpen) return
-        val companionClass = PanalinkDatabase.Companion::class.java
+        val companionClass = PanalinkDatabase::class.java
         val field = companionClass.getDeclaredField("INSTANCE")
         field.isAccessible = true
         field.set(null, null)
