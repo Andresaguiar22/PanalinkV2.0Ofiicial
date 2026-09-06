@@ -30,9 +30,10 @@ import androidx.sqlite.db.SupportSQLiteDatabase
         CommentEntity::class,
         PendingSocialActionEntity::class,
         LocalNotificationEntity::class,
-        ReelCommentReactionEntity::class
+        ReelCommentReactionEntity::class,
+        PendingPostMediaEntity::class
     ],
-    version = 46,
+    version = 47,
     exportSchema = true
 )
 abstract class PanalinkDatabase : RoomDatabase() {
@@ -56,6 +57,7 @@ abstract class PanalinkDatabase : RoomDatabase() {
     abstract fun commentDao(): CommentDao
     abstract fun pendingSocialActionDao(): PendingSocialActionDao
     abstract fun reelCommentReactionDao(): ReelCommentReactionDao
+    abstract fun pendingPostMediaDao(): PendingPostMediaDao
 
     companion object {
         @Volatile
@@ -632,6 +634,51 @@ abstract class PanalinkDatabase : RoomDatabase() {
             }
         }
 
+val MIGRATION_46_47 = object : Migration(46,  47) {
+            override fun migrate(db: SupportSQLiteDatabase) {
+                db.execSQL("""
+                    CREATE TABLE IF NOT EXISTS `pending_post_media` (
+                        `id` TEXT NOT NULL,
+                        `postId` TEXT NOT NULL,
+                        `mediaIndex` INTEGER NOT NULL,
+                        `localUri` TEXT NOT NULL,
+                        `mimeType` TEXT NOT NULL,
+                        `sizeBytes` INTEGER NOT NULL,
+                        `status` TEXT NOT NULL,
+                        `remoteObjectKey` TEXT,
+                        `remoteUrl` TEXT,
+                        `errorMessage` TEXT,
+                        `updatedAt` INTEGER NOT NULL,
+                        PRIMARY KEY(`id`),
+                        FOREIGN KEY(`postId`) REFERENCES `pending_posts`(`id`) ON UPDATE NO ACTION ON DELETE CASCADE
+                    )
+                """.trimIndent())
+                db.execSQL("CREATE INDEX IF NOT EXISTS `index_pending_post_media_postId` ON `pending_post_media` (`postId`)")
+                db.query("SELECT id, mediaUrisJson, createdAt FROM pending_posts")?.use { cursor ->
+                    while (cursor.moveToNext()) {
+                        val postId = cursor.getString(0)
+                        val json = cursor.getString(1) ?: continue
+                        val createdAt = cursor.getLong(2)
+                        val uris = try {
+                            val arr = org.json.JSONArray(json)
+                            (0 until arr.length()).map { arr.getString(it) }
+                        } catch (e: Exception) {
+                            emptyList()
+                        }
+                        uris.forEachIndexed { index, uri ->
+                            db.execSQL(
+                                """
+                                INSERT OR IGNORE INTO `pending_post_media` (
+                                    `id`, `postId`, `mediaIndex`, `localUri`, `mimeType`, `sizeBytes`, `status`, `updatedAt`
+                                ) VALUES (?, ?, ?, ?, 'application/octet-stream', 0, 'PENDING', ?)
+                                """, arrayOf(postId + ":" + index, postId, index, uri, createdAt)
+                            )
+                        }
+                    }
+                }
+            }
+        }
+
         fun getDatabase(context: Context): PanalinkDatabase {
             return INSTANCE ?: synchronized(this) {
                 val instance = Room.databaseBuilder(
@@ -645,7 +692,8 @@ abstract class PanalinkDatabase : RoomDatabase() {
                     MIGRATION_29_30, MIGRATION_30_31, MIGRATION_31_32, MIGRATION_32_33,
                     MIGRATION_33_34, MIGRATION_34_35, MIGRATION_35_36, MIGRATION_36_37,
                     MIGRATION_37_38, MIGRATION_38_39, MIGRATION_39_40, MIGRATION_40_41,
-                    MIGRATION_41_42, MIGRATION_42_44, MIGRATION_44_45, MIGRATION_45_46
+                    MIGRATION_41_42, MIGRATION_42_44, MIGRATION_44_45, MIGRATION_45_46,
+                    MIGRATION_46_47
                 )
                 .build()
                 INSTANCE = instance
