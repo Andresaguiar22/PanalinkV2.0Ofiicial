@@ -2,8 +2,12 @@ package com.example
 
 import com.example.data.repository.CallAvailability
 import com.example.data.repository.PresenceRepository
+import com.example.data.supabase.SupabaseClient
 import com.example.data.repository.UserPresenceStatus
 import com.example.util.PresenceHistoryTracker
+import kotlinx.coroutines.delay
+import kotlinx.coroutines.runBlocking
+import kotlinx.coroutines.withTimeout
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertFalse
 import org.junit.Assert.assertTrue
@@ -61,5 +65,44 @@ class PresenceRepositoryTest {
         assertTrue(history.size >= 2)
         assertEquals(UserPresenceStatus.ONLINE, history[0].status)
         assertEquals(UserPresenceStatus.AWAY, history[1].status)
+    }
+
+    @Test
+    fun testRealtimeStatusMapping() {
+        assertEquals(UserPresenceStatus.ONLINE, PresenceRepository.mapRealtimeStatus("online"))
+        assertEquals(UserPresenceStatus.AWAY, PresenceRepository.mapRealtimeStatus("away"))
+        assertEquals(UserPresenceStatus.BUSY, PresenceRepository.mapRealtimeStatus("busy"))
+        assertEquals(UserPresenceStatus.BUSY, PresenceRepository.mapRealtimeStatus("in_call"))
+        assertEquals(UserPresenceStatus.BUSY, PresenceRepository.mapRealtimeStatus("on_call"))
+        assertEquals(UserPresenceStatus.OFFLINE, PresenceRepository.mapRealtimeStatus("unknown"))
+    }
+
+    @Test
+    fun testNativePresenceLeaveBecomesOfflineAfterGracePeriod() = runBlocking {
+        val userId = "native_presence_leave_test"
+        val previousGracePeriod = PresenceRepository.gracePeriodDurationMs
+        PresenceRepository.gracePeriodDurationMs = 0L
+        try {
+            SupabaseClient.realtimePresenceState.value = mapOf(
+                userId to SupabaseClient.UserPresence(userId, "online", System.currentTimeMillis())
+            )
+            awaitPresenceStatus(userId, UserPresenceStatus.ONLINE)
+
+            SupabaseClient.realtimePresenceState.value = mapOf(
+                userId to SupabaseClient.UserPresence(userId, "offline", System.currentTimeMillis())
+            )
+            awaitPresenceStatus(userId, UserPresenceStatus.OFFLINE)
+        } finally {
+            PresenceRepository.gracePeriodDurationMs = previousGracePeriod
+            SupabaseClient.realtimePresenceState.value = emptyMap()
+        }
+    }
+
+    private suspend fun awaitPresenceStatus(userId: String, expected: UserPresenceStatus) {
+        withTimeout(2_000L) {
+            while (PresenceRepository.getPresenceForUser(userId).status != expected) {
+                delay(10L)
+            }
+        }
     }
 }

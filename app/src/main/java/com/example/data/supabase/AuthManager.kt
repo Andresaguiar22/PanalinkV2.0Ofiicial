@@ -545,6 +545,7 @@ class AuthManager {
     fun signOut() {
         pendingEmail = null
         pendingPassword = null
+        com.example.data.repository.PresenceRepository.onLogout()
         SessionManager.clearSession()
         SupabaseClient.disconnectRealtime()
     }

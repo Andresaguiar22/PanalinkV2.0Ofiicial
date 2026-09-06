@@ -600,11 +600,6 @@ object SupabaseClient {
                         clientScope.launch {
                             _realtimeTyping.emit(TypingStatus(chatId, userId, isTyping))
                         }
-                    } else if (finalEvent == "presence" || event == "presence") {
-                        val userId = finalPayload?.optString("user_id") ?: ""
-                        val status = finalPayload?.optString("status") ?: "offline"
-                        val lastSeen = finalPayload?.optLong("last_seen") ?: System.currentTimeMillis()
-                        emitRealtimePresence(UserPresence(userId, status, lastSeen))
                     } else if (event == "presence_state") {
                         val payload = obj.optJSONObject("payload") ?: JSONObject()
                         payload.keys().forEach { userId ->
@@ -1013,51 +1008,25 @@ object SupabaseClient {
     }
 
     fun trackPresence() {
+        if (currentUser == null) return
+        val status = com.example.data.repository.PresenceRepository.currentEffectiveStatus().rawValue
+        trackCurrentUserPresence(status)
+    }
+
+    fun trackCurrentUserPresence(status: String) {
         val currentUid = currentUser?.id ?: return
-        com.example.data.repository.PresenceRepository.startHeartbeat(currentUid)
         if (isConfigured && webSocket != null) {
             val payload = JSONObject().apply {
                 put("topic", "realtime:public")
                 put("event", "presence_track")
                 put("payload", JSONObject().apply {
                     put("user_id", currentUid)
-                    put("status", "online")
+                    put("status", status)
                     put("last_seen", System.currentTimeMillis())
                 })
                 put("ref", "track_${System.currentTimeMillis()}")
             }
             webSocket?.send(payload.toString())
-        }
-    }
-
-    fun broadcastPresence(status: String) {
-        val currentUid = currentUser?.id ?: ""
-        if (isConfigured && webSocket != null) {
-            val data = JSONObject().apply {
-                put("user_id", currentUid)
-                put("status", status)
-                put("last_seen", System.currentTimeMillis())
-            }
-            val msg = JSONObject().apply {
-                put("topic", "realtime:public:messages")
-                put("event", "broadcast")
-                put("payload", JSONObject().apply {
-                    put("type", "broadcast")
-                    put("event", "presence")
-                    put("payload", data)
-                })
-                put("ref", "presence_${System.currentTimeMillis()}")
-            }
-            webSocket?.send(msg.toString())
-        } else {
-            // Emulate self-presence to local flow
-            clientScope.launch {
-                val presence = UserPresence(currentUid, status, System.currentTimeMillis())
-                val current = realtimePresenceState.value.toMutableMap()
-                current[currentUid] = presence
-                realtimePresenceState.value = current
-                _realtimePresence.emit(presence)
-            }
         }
     }
 
