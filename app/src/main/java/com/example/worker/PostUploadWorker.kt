@@ -3,18 +3,20 @@ package com.example.worker
 import android.content.Context
 import android.net.Uri
 import android.util.Log
-import android.webkit.MimeTypeMap
 import androidx.work.CoroutineWorker
 import androidx.work.WorkerParameters
+import androidx.room.withTransaction
+import com.example.data.database.PanalinkDatabase
+import com.example.data.database.PendingPostEntity
+import com.example.data.database.PendingPostMediaDao
+import com.example.data.database.PendingPostMediaEntity
+import com.example.data.database.PendingPostMediaStatus
 import com.example.data.model.PostDto
 import com.example.data.repository.FeedRepositoryImpl
 import com.example.data.repository.UploadRepository
-import kotlinx.coroutines.CoroutineScope
-import kotlinx.coroutines.launch
 import java.io.File
 import java.io.FileOutputStream
 import java.io.InputStream
-import java.util.UUID
 
 class PostUploadWorker(
     private val context: Context,
@@ -26,18 +28,22 @@ class PostUploadWorker(
     private val feedRepository = FeedRepositoryImpl()
 
     override suspend fun doWork(): Result {
-        // Red real VALIDATED (no solo CONNECTED: si no hay internet, devolver a la cola.
         if (!com.example.util.NetworkMonitor.isOnline.value) {
             return Result.retry()
         }
+
         val pendingPostId = inputData.getString("pendingPostId") ?: return Result.failure()
         val serverPostId = inputData.getString("serverPostId")
-        val db = com.example.data.database.PanalinkDatabase.getDatabase(context)
+        val db = PanalinkDatabase.getDatabase(context)
         val pendingPostDao = db.pendingPostDao()
-        
+        val mediaDao = db.pendingPostMediaDao()
+
         val pendingPost = pendingPostDao.getPostById(pendingPostId) ?: return Result.failure()
-        
+
         val effectiveUserId = if (pendingPost.userId.isNotBlank()) {
+
+
+
             pendingPost.userId
         } else {
             com.example.data.supabase.SupabaseClient.currentUser?.id ?: ""
@@ -55,40 +61,84 @@ class PostUploadWorker(
         pendingPostDao.updateStatusAndProgress(pendingPostId, "uploading", 0f)
         UploadRepository.setGlobalProgress(0f)
 
-        val uris = try {
-            val jsonArray = org.json.JSONArray(pendingPost.mediaUrisJson)
-            List(jsonArray.length()) { jsonArray.getString(it) }
-        } catch (e: Exception) {
-            Log.e(TAG, "Failed to parse mediaUrisJson", e)
-            emptyList()
+        var mediaRows = mediaDao.getMediaForPost(pendingPostId)
+
+
+
+        if (mediaRows.isEmpty() && pendingPost.mediaUrisJson.isNotBlank() && pendingPost.mediaUrisJson != "[]") {
+            mediaRows = reconcileMediaRows(pendingPost, mediaDao, db)
         }
 
         val mediaUrls = mutableListOf<String>()
-        val totalItems = uris.size + 1 // +1 for the final post creation
         var mediaKind: String? = null
+        val totalItems = (mediaRows.size + 1).coerceAtLeast(1)
 
         try {
-            uris.forEachIndexed { index, uriStr ->
-                val uri = Uri.parse(uriStr)
-                
-                val tempFile = createTempFileFromUri(uri)
-                if (tempFile == null) {
-                    Log.e(TAG, "Failed to resolve URI: $uriStr")
-                    return Result.failure()
+            mediaRows.forEachIndexed { index, seededRow ->
+                val mediaRow = mediaDao.getMediaById(seededRow.id) ?: seededRow
+ 
+                if (mediaRow.status == PendingPostMediaStatus.UPLOADED) {
+
+
+
+                    if (!mediaRow.remoteUrl.isNullOrBlank()) {
+                        mediaUrls.add(mediaRow.remoteUrl)
+                    } else {
+                        mediaDao.markFailed(
+                            mediaRow.id,
+                            PendingPostMediaStatus.FAILED_RETRYABLE,
+                            "UPLOADED without remoteUrl",
+                            null,
+                            null,
+                            System.currentTimeMillis()
+                        )
+                        return Result.retry()
+                    }
+                    return@forEachIndexed
                 }
 
-                val mimeType = context.contentResolver.getType(uri) ?: "application/octet-stream"
+                val now = System.currentTimeMillis()
+                mediaDao.updateStatus(mediaRow.id, PendingPostMediaStatus.UPLOADING, now)
+
+                val uri = Uri.parse(mediaRow.localUri)
+
+                val tempFile = createTempFileFromUri(uri)
+                if (tempFile == null) {
+                    Log.e(TAG, "Failed to resolve URI: ${mediaRow.localUri}")
+                    mediaDao.markFailed(
+                        mediaRow.id,
+                        PendingPostMediaStatus.FAILED_RETRYABLE,
+                        "Failed to resolve URI: ${mediaRow.localUri}",
+                        null,
+                        null,
+                        System.currentTimeMillis()
+                    )
+                    return Result.retry()
+                }
+
+                val mimeType = if (mediaRow.mimeType.isNotBlank() && mediaRow.mimeType != "application/octet-stream") {
+
+
+
+                    mediaRow.mimeType
+                } else {
+                    context.contentResolver.getType(uri) ?: "application/octet-stream"
+                }
                 if (mediaKind == null) mediaKind = kindForMime(mimeType)
+
+
+
                 val ext = if (tempFile.name.contains(".")) tempFile.name.substringAfterLast(".") else "bin"
-                val stableFileName = "post_${pendingPostId}_$index.$ext"
+                val stableFileName = "post_${pendingPostId}_${mediaRow.mediaIndex}.$ext"
 
                 Log.d(TAG, "Uploading file $tempFile with mimeType $mimeType, stableFileName $stableFileName")
-                // Failover total: CDN primero; si falla, B2 (aplica a TODO tipo de media).
-                // VCDN (proxy edge function) para video PUBLICO del muro; el resto de
-                // media del post sigue por UploadFailoverRouter (B2/CDN) sin tocarlo.
+
                 val isPublicVideo = mimeType.startsWith("video/") && mediaKind == "VIDEO"
                 val postClientUuid = pendingPost.id
                 val uploadResult = if (isPublicVideo) {
+
+
+
                     com.example.data.repository.VideoRouter.uploadPublicVideo(
                         file = tempFile,
                         mimeType = mimeType,
@@ -99,7 +149,6 @@ class PostUploadWorker(
                         onProgress = { bytes, total ->
                             val itemProgress = bytes.toFloat() / total.toFloat().coerceAtLeast(1f)
                             val totalProgress = (index + itemProgress) / totalItems
-                            // Progreso en memoria: Room se persiste por archivo tras el upload (sin runBlocking).
                             UploadRepository.setGlobalProgress(totalProgress)
                         }
                     )
@@ -115,7 +164,6 @@ class PostUploadWorker(
                             val itemProgress = bytes.toFloat() / total.toFloat().coerceAtLeast(1f)
                             val totalProgress = (index + itemProgress) / totalItems
                             UploadRepository.setGlobalProgress(totalProgress)
-                            // Progreso Room persistido por archivo tras el upload (sin runBlocking ni N escrituras).
                         }
                     ) { progress ->
                         uploadRepository.uploadVideo(
@@ -129,20 +177,66 @@ class PostUploadWorker(
                     }
                 }
 
-                tempFile.delete()
-
                 if (uploadResult.isSuccess) {
-                    val publicUrl = uploadResult.getOrNull()?.url
+                    val result = uploadResult.getOrNull()
+                    val publicUrl = result?.url
                     if (publicUrl != null) {
+                        // Invariante principal: persistir en Room ANTES de continuar con el siguiente archivo.
+
+
+                        mediaDao.markUploaded(
+                            mediaRow.id,
+                            PendingPostMediaStatus.UPLOADED,
+                            null,
+                            publicUrl,
+                            System.currentTimeMillis()
+                        )
                         mediaUrls.add(publicUrl)
+
+
+
+                        // Ya hay evidencia durable (UPLOADED + remote ref persistidos en Room):
+                        // el archivo temporal puede limpiarse de forma segura..
+
+                        tempFile.delete()
+
                         val completedProgress = (index + 1f) / totalItems
                         pendingPostDao.updateStatusAndProgress(pendingPostId, "uploading", completedProgress)
                     } else {
+                        tempFile.delete()
+                        mediaDao.markFailed(
+                            mediaRow.id,
+                            PendingPostMediaStatus.FAILED_RETRYABLE,
+                            "Upload succeeded but no public URL",
+                            null,
+                            null,
+                            System.currentTimeMillis()
+                        )
                         return Result.retry()
                     }
                 } else {
+                    tempFile.delete()
+                    val err = uploadResult.exceptionOrNull()?.message ?: "Upload failed"
+                    mediaDao.markFailed(
+                        mediaRow.id,
+                        PendingPostMediaStatus.FAILED_RETRYABLE,
+                        err,
+                        null,
+                        null,
+                        System.currentTimeMillis()
+                    )
                     return Result.retry()
                 }
+            }
+
+            val uploadedCount = mediaDao.countUploaded(pendingPostId)
+            val totalCount = mediaDao.countMedia(pendingPostId)
+
+
+            if (totalCount > 0 && uploadedCount < totalCount) {
+
+
+                return Result.retry()
             }
 
             val sdf = java.text.SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss.SSS'Z'", java.util.Locale.US).apply {
@@ -155,6 +249,8 @@ class PostUploadWorker(
                     val map = mutableMapOf<String, String>()
                     jsonObject.keys().forEach { key ->
                         map[key] = jsonObject.getString(key)
+
+
                     }
                     map
                 } else {
@@ -173,29 +269,47 @@ class PostUploadWorker(
                 null
             }
 
-            // Tipo final: MIME primero (un video nunca debe renderizar como audio/ALBUM),
-            // luego el tipo que pidio la UI, y si solo hay texto se mantiene TEXT.
-            val mediaType = if (uris.size > 1) "ALBUM" else mediaKind
+
+            val orderedUrls = mediaDao.getMediaForPost(pendingPostId).
+                filter { it.status == PendingPostMediaStatus.UPLOADED && !it.remoteUrl.isNullOrBlank() }.
+                map { it.remoteUrl!! }
+
+            val mediaType = if (orderedUrls.size > 1) "ALBUM" else mediaKind
             val finalType = if (previewMetadataMap != null) "YOUTUBE"
                 else if (pendingPost.type != "TEXT") pendingPost.type
                 else mediaType ?: "TEXT"
 
-            // Create PostDto
+
             val postDto = PostDto(
                 id = serverPostId,
                 userId = effectiveUserId,
                 type = finalType,
                 content = pendingPost.content,
-                mediaUrls = mediaUrls,
+                mediaUrls = orderedUrls,
                 privacy = pendingPost.privacy,
                 createdAt = sdf.format(java.util.Date()),
                 previewMetadata = previewMetadataMap
             )
 
-            val createResult = feedRepository.createPost(postDto)
+
+            val createResult = feedRepository.createPost(postDto )
+
             if (createResult.isSuccess) {
                 Log.i(TAG, "Feed post created successfully!")
-                pendingPostDao.deletePostById(pendingPostId)
+
+
+                db.withTransaction {
+
+
+
+                    mediaDao.deleteForPost(pendingPostId)
+
+
+
+
+                    pendingPostDao.deletePostById(pendingPostId)
+
+                }
                 UploadRepository.setGlobalProgress(null)
                 UploadRepository.triggerUploadSuccess()
                 return Result.success()
@@ -213,6 +327,57 @@ class PostUploadWorker(
         }
     }
 
+    private suspend fun reconcileMediaRows(
+        pendingPost: PendingPostEntity,
+        mediaDao: PendingPostMediaDao,
+        db: PanalinkDatabase
+    ): List<PendingPostMediaEntity> {
+
+
+
+        val uris = try {
+            val jsonArray = org.json.JSONArray(pendingPost.mediaUrisJson)
+            List(jsonArray.length()) { jsonArray.getString(it) }
+        } catch (e: Exception) {
+            Log.e(TAG, "Failed to parse mediaUrisJson", e)
+            emptyList()
+        }
+
+        if (uris.isEmpty()) return emptyList()
+
+
+        val now = System.currentTimeMillis()
+        val rows = uris.mapIndexed { index, uriStr ->
+            val mimeType = try {
+                context.contentResolver.getType(Uri.parse(uriStr)) ?: "application/octet-stream"
+            } catch (e: Exception) {
+                "application/octet-stream"
+            }
+            PendingPostMediaEntity(
+                id = "${pendingPost.id}:$index",
+                postId = pendingPost.id,
+                mediaIndex = index,
+                localUri = uriStr,
+                mimeType = mimeType,
+                sizeBytes = 0L,
+                status = PendingPostMediaStatus.PENDING,
+                updatedAt = now
+            )
+        }
+
+        db.withTransaction {
+            if (mediaDao.getMediaForPost(pendingPost.id).isEmpty()) {
+                rows.forEach { mediaDao.upsertMedia(it) }
+            }
+        }
+
+        return mediaDao.getMediaForPost(pendingPost.id)
+
+
+
+
+    }
+
     private fun kindForMime(mime: String): String? = when {
         mime.startsWith("video/") -> "VIDEO"
         mime.startsWith("audio/") -> "AUDIO"
@@ -224,8 +389,7 @@ class PostUploadWorker(
         try {
             val inputStream: InputStream? = context.contentResolver.openInputStream(uri)
             if (inputStream == null) return null
-            
-            // Try to extract original filename
+
             var originalName = ""
             context.contentResolver.query(uri, null, null, null, null)?.use { cursor ->
                 if (cursor.moveToFirst()) {
@@ -235,29 +399,45 @@ class PostUploadWorker(
                     }
                 }
             }
-            
-            // Clean up the original name to use as prefix if possible
+
             val safeName = if (originalName.isNotBlank()) {
                 val nameWithoutExt = originalName.substringBeforeLast(".")
                 nameWithoutExt.replace(Regex("[^a-zA-Z0-9_-]"), "_").take(30) + "-"
             } else {
                 "feed_upload_tmp_"
             }
-            
+
             val extension = if (originalName.contains(".")) {
                 "." + originalName.substringAfterLast(".")
             } else {
                 ""
             }
-            
+
             val tempFile = File(context.cacheDir, "$safeName${System.currentTimeMillis()}$extension")
             FileOutputStream(tempFile).use { outputStream ->
                 inputStream.copyTo(outputStream)
+
+
+
             }
             return tempFile
         } catch (e: Exception) {
             Log.e(TAG, "Error resolving URI to temp file: $uri", e)
             return null
         }
+    }
+
+    companion object {
+        @JvmStatic
+        fun shouldSkipUpload(status: String): Boolean = status == PendingPostMediaStatus.UPLOADED
+
+        @JvmStatic
+        fun uploadedUrls(mediaRows: List<PendingPostMediaEntity>): List<String> =
+            mediaRows
+                .filter { it.status == PendingPostMediaStatus.UPLOADED && !it.remoteUrl.isNullOrBlank() }
+                .map { it.remoteUrl!! }
+
+        @JvmStatic
+        fun allMediaUploaded(total: Int, uploaded: Int): Boolean = total == 0 || uploaded >= total
     }
 }
