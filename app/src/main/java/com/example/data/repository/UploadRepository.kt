@@ -19,7 +19,7 @@ import java.io.File
 import java.util.UUID
 import java.util.concurrent.TimeUnit
 
-class UploadRepository {
+open class UploadRepository {
     private val TAG = "UploadRepository"
 
     companion object {
