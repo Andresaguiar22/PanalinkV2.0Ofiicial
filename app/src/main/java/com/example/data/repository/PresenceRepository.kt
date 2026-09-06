@@ -48,9 +48,7 @@ data class UserPresenceInfo(
 
 object PresenceRepository {
     private val scope = CoroutineScope(kotlinx.coroutines.SupervisorJob() + Dispatchers.IO)
-    private var heartbeatJob: Job? = null
-
-    // Deduplication cache to prevent duplicate processing from Broadcast and postgres_changes
+    // Deduplication cache to prevent duplicate native Presence frames.
     // Key: userId_status_windowTimestamp
     private val deduplicationCache = ConcurrentHashMap<String, Long>()
     private const val DEDUPLICATION_WINDOW_MS = 5000L
@@ -92,12 +90,7 @@ object PresenceRepository {
                             deduplicationCache.entries.removeIf { it.value < cutoff }
                         }
 
-                        val statusEnum = when (presence.status.lowercase()) {
-                            "online" -> UserPresenceStatus.ONLINE
-                            "away" -> UserPresenceStatus.AWAY
-                            "busy", "in_call", "on_call" -> UserPresenceStatus.BUSY
-                            else -> UserPresenceStatus.OFFLINE
-                        }
+                        val statusEnum = mapRealtimeStatus(presence.status)
 
                         if (statusEnum == UserPresenceStatus.OFFLINE) {
                             val prevPresence = currentMap[userId]
@@ -172,6 +165,15 @@ object PresenceRepository {
         return raw
     }
 
+    fun currentEffectiveStatus(): UserPresenceStatus = effectiveStatus()
+
+    internal fun mapRealtimeStatus(rawStatus: String): UserPresenceStatus = when (rawStatus.lowercase()) {
+        "online" -> UserPresenceStatus.ONLINE
+        "away" -> UserPresenceStatus.AWAY
+        "busy", "in_call", "on_call" -> UserPresenceStatus.BUSY
+        else -> UserPresenceStatus.OFFLINE
+    }
+
     /** True when the user hides their last-seen from everyone. */
     private fun isLastSeenHidden(): Boolean {
         return try {
@@ -186,7 +188,7 @@ object PresenceRepository {
         }
     }
 
-    /** Called by the Presence/Privacy center so the heartbeat picks up manual states. */
+    /** Called by the Presence/Privacy center to publish the manual state immediately. */
     fun applyManualStatusFromSettings(status: String) {
         _currentUserStatus.value = when (status) {
             "busy" -> UserPresenceStatus.BUSY
@@ -194,29 +196,20 @@ object PresenceRepository {
             else -> UserPresenceStatus.ONLINE
         }
         if (SupabaseClient.isConnected) {
-            SupabaseClient.broadcastPresence(effectiveStatus().rawValue)
+            SupabaseClient.trackCurrentUserPresence(effectiveStatus().rawValue)
         }
     }
 
     /**
-     * Heartbeat cada 30 segundos usando únicamente Realtime Broadcast.
-     * CERO escrituras a la base de datos PostgreSQL durante el heartbeat.
+     * Kept as a lifecycle-compatible no-op: Realtime's native Phoenix heartbeat
+     * maintains the socket and Presence membership.
      */
     fun startHeartbeat(currentUserId: String) {
         stopHeartbeat()
-        heartbeatJob = scope.launch {
-            while (true) {
-                if (SupabaseClient.isConnected) {
-                    SupabaseClient.broadcastPresence(effectiveStatus().rawValue)
-                }
-                delay(30_000L) // 30 segundos exactos
-            }
-        }
     }
 
     fun stopHeartbeat() {
-        heartbeatJob?.cancel()
-        heartbeatJob = null
+        // Native Presence has no application-level heartbeat job to cancel.
     }
 
     /**
@@ -230,8 +223,8 @@ object PresenceRepository {
         PresenceHistoryTracker.recordEvent(currentUid, status)
 
         if (SupabaseClient.isConnected) {
-            // Honors Privacy center: invisible users always broadcast offline.
-            SupabaseClient.broadcastPresence(effectiveStatus().rawValue)
+            // Honors Privacy center: invisible users are tracked as offline.
+            SupabaseClient.trackCurrentUserPresence(effectiveStatus().rawValue)
         }
 
         // Persistir a PostgreSQL SOLAMENTE en eventos de ciclo de vida/cambio manual
