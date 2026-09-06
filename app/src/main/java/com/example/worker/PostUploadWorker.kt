@@ -12,6 +12,8 @@ import com.example.data.database.PendingPostMediaDao
 import com.example.data.database.PendingPostMediaEntity
 import com.example.data.database.PendingPostMediaStatus
 import com.example.data.model.PostDto
+import com.example.data.model.UploadMediaResult
+import com.example.data.repository.FeedRepository
 import com.example.data.repository.FeedRepositoryImpl
 import com.example.data.repository.UploadRepository
 import java.io.File
@@ -24,8 +26,10 @@ class PostUploadWorker(
 ) : CoroutineWorker(context, workerParams) {
 
     private val TAG = "PostUploadWorker"
-    private val uploadRepository = UploadRepository()
-    private val feedRepository = FeedRepositoryImpl()
+    protected open val uploadRepository: UploadRepository = UploadRepository()
+    protected open val feedRepository: FeedRepository = FeedRepositoryImpl()
+    protected open val database: PanalinkDatabase
+        get() = PanalinkDatabase.getDatabase(applicationContext)
 
     override suspend fun doWork(): Result {
         if (!com.example.util.NetworkMonitor.isOnline.value) {
@@ -34,7 +38,7 @@ class PostUploadWorker(
 
         val pendingPostId = inputData.getString("pendingPostId") ?: return Result.failure()
         val serverPostId = inputData.getString("serverPostId")
-        val db = PanalinkDatabase.getDatabase(context)
+        val db = database
         val pendingPostDao = db.pendingPostDao()
         val mediaDao = db.pendingPostMediaDao()
 
@@ -58,16 +62,21 @@ class PostUploadWorker(
 
         Log.i(TAG, "Starting post upload for pendingPostId $pendingPostId, type ${pendingPost.type}, userId $effectiveUserId")
 
-        pendingPostDao.updateStatusAndProgress(pendingPostId, "uploading", 0f)
-        UploadRepository.setGlobalProgress(0f)
-
         var mediaRows = mediaDao.getMediaForPost(pendingPostId)
-
-
 
         if (mediaRows.isEmpty() && pendingPost.mediaUrisJson.isNotBlank() && pendingPost.mediaUrisJson != "[]") {
             mediaRows = reconcileMediaRows(pendingPost, mediaDao, db)
         }
+
+        val terminalMedia = mediaRows.firstOrNull { it.status == PendingPostMediaStatus.FAILED_TERMINAL }
+        if (terminalMedia != null) {
+            Log.w(TAG, "Stopping post $pendingPostId because media ${terminalMedia.id} is in FAILED_TERMINAL state; leaving durable Room state unchanged.")
+            UploadRepository.setGlobalProgress(null)
+            return Result.failure()
+        }
+
+        pendingPostDao.updateStatusAndProgress(pendingPostId, "uploading", 0f)
+        UploadRepository.setGlobalProgress(0f)
 
         val mediaUrls = mutableListOf<String>()
         var mediaKind: String? = null
@@ -76,11 +85,14 @@ class PostUploadWorker(
         try {
             mediaRows.forEachIndexed { index, seededRow ->
                 val mediaRow = mediaDao.getMediaById(seededRow.id) ?: seededRow
- 
+
+                if (mediaRow.status == PendingPostMediaStatus.FAILED_TERMINAL) {
+                    Log.w(TAG, "Media ${mediaRow.id} is FAILED_TERMINAL; stopping without re-uploading.")
+                    UploadRepository.setGlobalProgress(null)
+                    return Result.failure()
+                }
+
                 if (mediaRow.status == PendingPostMediaStatus.UPLOADED) {
-
-
-
                     if (!mediaRow.remoteUrl.isNullOrBlank()) {
                         mediaUrls.add(mediaRow.remoteUrl)
                     } else {
@@ -133,49 +145,19 @@ class PostUploadWorker(
 
                 Log.d(TAG, "Uploading file $tempFile with mimeType $mimeType, stableFileName $stableFileName")
 
-                val isPublicVideo = mimeType.startsWith("video/") && mediaKind == "VIDEO"
-                val postClientUuid = pendingPost.id
-                val uploadResult = if (isPublicVideo) {
-
-
-
-                    com.example.data.repository.VideoRouter.uploadPublicVideo(
-                        file = tempFile,
-                        mimeType = mimeType,
-                        userId = effectiveUserId,
-                        uploadType = "POST",
-                        customFileName = stableFileName,
-                        clientMessageUuid = postClientUuid,
-                        onProgress = { bytes, total ->
-                            val itemProgress = bytes.toFloat() / total.toFloat().coerceAtLeast(1f)
-                            val totalProgress = (index + itemProgress) / totalItems
-                            UploadRepository.setGlobalProgress(totalProgress)
-                        }
-                    )
-                } else {
-                    com.example.data.repository.UploadFailoverRouter.uploadWithFailover(
-                        file = tempFile,
-                        mimeType = mimeType,
-                        userId = effectiveUserId,
-                        uploadType = "POST",
-                        customFileName = stableFileName,
-                        clientMessageUuid = postClientUuid,
-                        onProgress = { bytes, total ->
-                            val itemProgress = bytes.toFloat() / total.toFloat().coerceAtLeast(1f)
-                            val totalProgress = (index + itemProgress) / totalItems
-                            UploadRepository.setGlobalProgress(totalProgress)
-                        }
-                    ) { progress ->
-                        uploadRepository.uploadVideo(
-                            mediaFile = tempFile,
-                            mediaMimeType = mimeType,
-                            caption = "Feed Post Media",
-                            userId = pendingPost.userId,
-                            stableFileName = stableFileName,
-                            onProgress = progress
-                        )
+                val uploadResult = performUpload(
+                    file = tempFile,
+                    mimeType = mimeType,
+                    mediaKind = mediaKind,
+                    userId = effectiveUserId,
+                    stableFileName = stableFileName,
+                    clientMessageUuid = pendingPost.id,
+                    onProgress = { bytes, total ->
+                        val itemProgress = bytes.toFloat() / total.toFloat().coerceAtLeast(1f)
+                        val totalProgress = (index + itemProgress) / totalItems
+                        UploadRepository.setGlobalProgress(totalProgress)
                     }
-                }
+                )
 
                 if (uploadResult.isSuccess) {
                     val result = uploadResult.getOrNull()
@@ -378,6 +360,48 @@ class PostUploadWorker(
 
     }
 
+    protected open suspend fun performUpload(
+        file: File,
+        mimeType: String,
+        mediaKind: String?,
+        userId: String,
+        stableFileName: String,
+        clientMessageUuid: String,
+        onProgress: (bytesWritten: Long, totalBytes: Long) -> Unit
+    ): kotlin.Result<UploadMediaResult> {
+        val isPublicVideo = mimeType.startsWith("video/") && mediaKind == "VIDEO"
+        return if (isPublicVideo) {
+            com.example.data.repository.VideoRouter.uploadPublicVideo(
+                file = file,
+                mimeType = mimeType,
+                userId = userId,
+                uploadType = "POST",
+                customFileName = stableFileName,
+                clientMessageUuid = clientMessageUuid,
+                onProgress = onProgress
+            )
+        } else {
+            com.example.data.repository.UploadFailoverRouter.uploadWithFailover(
+                file = file,
+                mimeType = mimeType,
+                userId = userId,
+                uploadType = "POST",
+                customFileName = stableFileName,
+                clientMessageUuid = clientMessageUuid,
+                onProgress = onProgress
+            ) { progress ->
+                uploadRepository.uploadVideo(
+                    mediaFile = file,
+                    mediaMimeType = mimeType,
+                    caption = "Feed Post Media",
+                    userId = userId,
+                    stableFileName = stableFileName,
+                    onProgress = progress
+                )
+            }
+        }
+    }
+
     private fun kindForMime(mime: String): String? = when {
         mime.startsWith("video/") -> "VIDEO"
         mime.startsWith("audio/") -> "AUDIO"
@@ -429,7 +453,13 @@ class PostUploadWorker(
 
     companion object {
         @JvmStatic
-        fun shouldSkipUpload(status: String): Boolean = status == PendingPostMediaStatus.UPLOADED
+        fun shouldSkipUpload(status: String): Boolean = status == PendingPostMediaStatus.UPLOADED ||
+            status == PendingPostMediaStatus.FAILED_TERMINAL
+
+        @JvmStatic
+        fun shouldAttemptUpload(status: String): Boolean = status == PendingPostMediaStatus.PENDING ||
+            status == PendingPostMediaStatus.FAILED_RETRYABLE ||
+            status == PendingPostMediaStatus.UPLOADING
 
         @JvmStatic
         fun uploadedUrls(mediaRows: List<PendingPostMediaEntity>): List<String> =
