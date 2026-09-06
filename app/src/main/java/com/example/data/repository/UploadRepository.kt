@@ -48,7 +48,7 @@ open class UploadRepository {
             .build()
     }
 
-    suspend fun uploadVideo(
+    open suspend fun uploadVideo(
         mediaFile: java.io.File,
         mediaMimeType: String,
         caption: String,

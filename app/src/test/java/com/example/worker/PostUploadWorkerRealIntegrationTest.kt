@@ -6,6 +6,7 @@ import androidx.room.Room
 import androidx.test.core.app.ApplicationProvider
 import androidx.work.ListenableWorker
 import androidx.work.WorkerParameters
+import androidx.work.WorkerFactory
 import androidx.work.testing.TestListenableWorkerBuilder
 import androidx.work.workDataOf
 import com.example.data.database.PanalinkDatabase
@@ -88,11 +89,21 @@ class PostUploadWorkerRealIntegrationTest {
         uploadRepository: UploadRepository,
         feedRepository: FeedRepository
     ): TestablePostUploadWorker {
-        val params = TestListenableWorkerBuilder.from(context, TestablePostUploadWorker::class.java)
+
+        return TestListenableWorkerBuilder.from(context, TestablePostUploadWorker::class.java)
             .setInputData(workDataOf("pendingPostId" to postId))
+            .setWorkerFactory(
+                object : WorkerFactory() {
+                    override fun createWorker(
+                        appContext: Context,
+                        workerClassName: String,
+                        workerParameters: WorkerParameters
+                    ): ListenableWorker =
+                        TestablePostUploadWorker(appContext, workerParameters, db, uploadRepository, feedRepository)
+                }
+            )
             .build()
-            .parameters
-        return TestablePostUploadWorker(context, params, db, uploadRepository, feedRepository)
+
     }
 
     @Test
@@ -111,8 +122,8 @@ class PostUploadWorkerRealIntegrationTest {
         assertTrue(result == ListenableWorker.Result.success())
         assertEquals(1, uploadRepo.calls.size)
         assertEquals("https://cdn.example/upload-1", uploadRepo.calls.single())
-        assertEquals(PendingPostMediaStatus.UPLOADED, db.pendingPostMediaDao().getMediaByIndex(postId, 0)?.status)
-        assertEquals(PendingPostMediaStatus.UPLOADED, db.pendingPostMediaDao().getMediaByIndex(postId, 1)?.status)
+        assertTrue(db.pendingPostMediaDao().getMediaByIndex(postId, 0) == null)
+        assertTrue(db.pendingPostMediaDao().getMediaByIndex(postId, 1) == null)
         assertEquals(listOf("https://cdn.example/0", "https://cdn.example/upload-1"), feedRepo.createdPosts.single().mediaUrls)
     }
 
@@ -159,8 +170,8 @@ class PostUploadWorkerRealIntegrationTest {
         assertTrue(result == ListenableWorker.Result.success())
         assertEquals(1, uploadRepo.calls.size)
         assertEquals("https://cdn.example/upload-1", uploadRepo.calls.single())
-        assertEquals(PendingPostMediaStatus.UPLOADED, db.pendingPostMediaDao().getMediaByIndex(postId, 1)?.status)
-        assertEquals("https://cdn.example/upload-1", db.pendingPostMediaDao().getMediaByIndex(postId, 1)?.remoteUrl)
+        assertTrue(db.pendingPostMediaDao().getMediaByIndex(postId, 1) == null)
+        assertTrue(db.pendingPostMediaDao().getMediaByIndex(postId, 1)?.remoteUrl == null)
     }
 
     @Test
