@@ -354,30 +354,6 @@ object SupabaseClient {
                 }
                 webSocket.send(joinFriendRequests.toString())
 
-                // Join channel_messages channel
-                val joinChannelMessages = JSONObject().apply {
-                    put("topic", "realtime:public:channel_messages")
-                    put("event", "phx_join")
-                    put("payload", JSONObject().apply {
-                        put("config", JSONObject().apply {
-                            val pgChanges = org.json.JSONArray().apply {
-                                put(JSONObject().apply {
-                                    put("event", "*")
-                                    put("schema", "public")
-                                    put("table", "channel_messages")
-                                })
-                            }
-                            put("postgres_changes", pgChanges)
-                        })
-                        if (!currentTokenLocal.isNullOrEmpty()) {
-                            put("user_token", currentTokenLocal)
-                            put("access_token", currentTokenLocal)
-                        }
-                    })
-                    put("ref", "chan_1")
-                }
-                webSocket.send(joinChannelMessages.toString())
-
                 // Join user_reels channel (social schema)
                 val joinUserReels = JSONObject().apply {
                     put("topic", "realtime:social:user_reels")
@@ -678,7 +654,7 @@ object SupabaseClient {
                             if (eventType == "DELETE") {
                                 val deletedId = record.optString("id", "")
                                 if (deletedId.isNotEmpty()) {
-                                    if (table == "messages") {
+                                    if (table == "messages" || table == "thread_messages") {
                                         Log.d(TAG, "Realtime DELETE event received for message ID: $deletedId in table $table")
                                         clientScope.launch {
                                             _realtimeMessageDeletions.emit(deletedId)
