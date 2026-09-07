@@ -27,9 +27,7 @@ module.exports = (io, socket) => {
 
     // Never trust client-supplied sender identity.
     const payload = { ...data, senderId: authenticatedUserId };
-    if (payload.callerId && eventName !== "call_accept" && eventName !== "call_request") {
-      payload.callerId = authenticatedUserId;
-    }
+    if (typeof data.callerId === "string") payload.callerId = authenticatedUserId;
 
     console.log(`📞 [${eventName}] de ${authenticatedUserId} para ${receiverId}`);
     const targetSocketId = users.getUserSocket(receiverId);
