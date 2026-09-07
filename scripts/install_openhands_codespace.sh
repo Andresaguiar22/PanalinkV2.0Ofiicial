@@ -19,26 +19,28 @@ fi
 
 echo "==> 3/5  Configurando LLM (gratis)..."
 BASE_URL="https://models.github.ai/v1"
-HTTP_CODE="$(curl -s -o /tmp/gm_models.json -w '%{http_code}' "$BASE_URL/models" -H "Authorization: Bearer ${GITHUB_TOKEN:-}" -H "Accept: application/json" 2>/dev/null)"
+GH_CODE="$(curl -s -o /dev/null -w '%{http_code}' --max-time 10 "$BASE_URL/models" -H "Authorization: Bearer ${GITHUB_TOKEN:-}" -H "Accept: application/json" 2>/dev/null)"
 
-if [ "$HTTP_CODE" = "410" ]; then
-    echo "   AVISO: GitHub Models esta en 'scheduled retirement brownout' (HTTP 410) — el catalogo"
-    echo "           publico gratis de GitHub Models ha sido retirado. Usamos Gemini (gratis) en su lugar.."
-    PROVIDER="gemini"
-elif [ "$HTTP_CODE" = "200" ]; then
-    echo "   OK GitHub Models accesible (usando openai/gpt-4o-mini)..."
-    PROVIDER="github"
-else
-    echo "   AVISO: GitHub Models responde HTTP ${HTTP_CODE:-?} — usamos Gemini (gratis) en su lugar.."
-    PROVIDER="gemini"
+if [ "$GH_CODE" = "410" ]; then
+    echo "   AVISO: GitHub Models esta en 'scheduled retirement brownout' (HTTP 410) — retirado. Usamos otra via gratis.."
+elif [ "$GH_CODE" != "200" ]; then
+    echo "   AVISO: GitHub Models responde HTTP ${GH_CODE:-?} — usamos otra via gratis.."
 fi
 
-if [ "$PROVIDER" = "github" ]; then
-    export GITHUB_TOKEN="${GITHUB_TOKEN:-$(gh auth token 2>/dev/null || true)}"
-    export LLM_API_KEY="$GITHUB_TOKEN"
-    export LLM_BASE_URL="$BASE_URL"
-    export LLM_MODEL="${LLM_MODEL:-openai/gpt-4o-mini}"
-else
+PROVIDER=""
+# 1) OpenRouter (gratis: modelo :free) si la API key esta disponible
+if [ -z "$PROVIDER" ] && [ -n "${OPENROUTER_API_KEY:-}" ]; then
+    TEST="$(curl -s -o /tmp/or_test.json -w '%{http_code}' --max-time 20 https://openrouter.ai/api/v1/chat/completions -H "Authorization: Bearer $OPENROUTER_API_KEY" -H "Content-Type: application/json" -d '{"model":"minimax/minimax-m2.7:free","messages":[{"role":"user","content":"ping"}],"max_tokens":5}')"
+    if [ "$TEST" = "200" ]; then
+        echo "   OK OpenRouter + minimax/minimax-m2.7:free (gratis)"
+        PROVIDER="openrouter"
+    else
+        echo "   AVISO: OpenRouter responde HTTP ${TEST:-?} — probamos Gemini.."
+    fi
+fi
+
+# 2) Gemini (gratis) si no hay OpenRouter
+if [ -z "$PROVIDER" ]; then
     echo
     if [ -z "${GEMINI_API_KEY:-}" ]; then
         echo "   Necesitamos tu Gemini API key (GRATIS, sin tarjeta):"
@@ -48,28 +50,29 @@ else
         echo
     fi
     # IMPORTANTE: LiteLLM/OpenHands usa el proveedor nativo 'gemini/'
-    # (prefijo 'gemini/', NO 'google/', y SIN base URL custom).
     unset LLM_BASE_URL
     export GEMINI_API_KEY
     export LLM_API_KEY="$GEMINI_API_KEY"
     export LLM_MODEL="${LLM_MODEL:-gemini/gemini-2.5-flash}"
+    PROVIDER="gemini"
+fi
+
+if [ "$PROVIDER" = "openrouter" ]; then
+    export LLM_API_KEY="$OPENROUTER_API_KEY"
+    export LLM_BASE_URL="https://openrouter.ai/api/v1"
+    export LLM_MODEL="${LLM_MODEL:-openrouter/minimax/minimax-m2.7:free}"
 fi
 
 echo "==> 4/5  Verificando el LLM..."
-if [ "$PROVIDER" = "github" ]; then
-    CODE="$(curl -s -o /dev/null -w '%{http_code}' --max-time 15 "${LLM_BASE_URL}models" -H "Authorization: Bearer $LLM_API_KEY" -H "Accept: application/json" 2>/dev/null)"
-    echo "   GET ${LLM_BASE_URL}models -> HTTP ${CODE:-?}"
+TEST_MODEL="$(echo "$LLM_MODEL" | sed 's|.*/||')"
+CODE="$(curl -s -o /tmp/llm_test.json -w '%{http_code}' --max-time 20 \
+    -X POST "${LLM_BASE_URL:-https://generativelanguage.googleapis.com/v1beta/openai}/chat/completions" \
+    -H "Authorization: Bearer $LLM_API_KEY" -H "Content-Type: application/json" \
+    -d "{\"model\":\"$TEST_MODEL\",\"messages\":[{\"role\":\"user\",\"content\":\"ping\"}],\"max_tokens\":5}" 2>/dev/null)"
+if [ "$CODE" = "200" ]; then
+    echo "   OK LLM accesible (clave valida)"
 else
-    # Gemini nativo: el test real es un chat/completions minimo, no /models.
-    CODE="$(curl -s -o /tmp/gemini_chat.json -w '%{http_code}' --max-time 20 \
-        -X POST https://generativelanguage.googleapis.com/v1beta/openai/chat/completions \
-        -H "Authorization: Bearer $LLM_API_KEY" -H "Content-Type: application/json" \
-        -d "{\"model\":\"gemini-2.5-flash\",\"messages\":[{\"role\":\"user\",\"content\":\"ping\"}],\"max_tokens\":5}" 2>/dev/null)"
-    if [ "$CODE" = "200" ]; then
-        echo "   OK Gemini accesible (clave valida)"
-    else
-        echo "   AVISO: test Gemini -> HTTP ${CODE:-?} (puede ser normal si la clave no tiene acceso al modelo; OpenHands probara igualmente)"
-    fi
+    echo "   AVISO: test LLM -> HTTP ${CODE:-?} (OpenHands probara igualmente)"
 fi
 
 echo "==> 5/5  Lanzando OpenHands... (dame la tarea)"
@@ -77,6 +80,15 @@ cd "$(git rev-parse --show-toplevel 2>/dev/null || pwd)"
 echo "     LLM_MODEL=${LLM_MODEL}"
 echo "     LLM_BASE_URL=${LLM_BASE_URL:-<nativo>}"
 echo
+
+# Limpieza critica de telemetria: si LMNR_*/OTEL_* estan puestas (comun
+# en Codespaces/entornos de agente), el decorador de observabilidad de
+# OpenHands crashea con TypeError (rollout_entrypoint) y la TUI se cuelga.
+
+for _v in $(env | grep -oE "^(LMNR|OTEL)[A-Z_]*" || true); do
+    unset "$_v" 2>/dev/null || true
+done
+unset LMNR_PROJECT_API_KEY LMNR_BASE_URL LMNR_FORCE_HTTP LMNR_HTTP_PORT LMNR_GRPC_PORT 2>/dev/null || true
 
 export LLM_API_KEY="$LLM_API_KEY"
 if [ -n "${LLM_BASE_URL:-}" ]; then
