@@ -2,8 +2,8 @@
 set -euo pipefail
 
 # =============================================
-#  OpenHands GRATIS en tu Codespace via GitHub Models
-#  Uso: bash scripts/install_openhands_codespace.sh
+#  OpenHands GRATIS en tu Codespace
+#  Uso: bash scripts/install_openhands_codespace.sh [opciones openhands]
 # =============================================
 
 echo "==> 1/5  Instalando uv..."
@@ -17,38 +17,45 @@ if ! command -v openhands >/dev/null 2>&1; then
     uv tool install openhands --python 3.12
 fi
 
-echo "==> 3/5  Obteniendo token de GitHub (para GitHub Models)..."
+echo "==> 3/5  Configurando LLM (gratis)..."
 BASE_URL="https://models.github.ai/v1"
+HTTP_CODE="$(curl -s -o /tmp/gm_models.json -w '%{http_code}' "$BASE_URL/models" -H "Authorization: Bearer ${GITHUB_TOKEN:-}" -H "Accept: application/json" 2>/dev/null)"
 
-# El token integrado de Codespaces (gh auth token) normalmente NO tiene models:read.
-# Solo lo usamos como primer intento; si falla, pedimos un PAT explicito.
-try_token() {
-    curl -s -o /tmp/gm_models.json -w '%{http_code}' "$BASE_URL/models" -H "Authorization: Bearer $1" -H "Accept: application/json"
-}
-
-export GITHUB_TOKEN="$(gh auth token 2>/dev/null || echo "${GITHUB_TOKEN:-}")"
-HTTP_CODE="$(try_token "$GITHUB_TOKEN" 2>/dev/null)"
-
-if [ "$HTTP_CODE" != "200" ]; then
-    echo "   El token actual no tiene acceso a GitHub Models (HTTP ${HTTP_CODE:-(vacio)})."
-    read -rsp "   Pega tu GitHub PAT con permiso 'models:read' (se usara solo localmente): " GITHUB_TOKEN
-    echo
-    HTTP_CODE="$(try_token "$GITHUB_TOKEN")"
-fi
-
-if [ "$HTTP_CODE" = "200" ]; then
-    MODEL_ID="$(python3 -c "import json;d=json.load(open('/tmp/gm_models.json));print(next((m['id'] for m in d.get('data',[]) if 'gpt-4o-mini' in m.get('id',''))), 'openai/gpt-4o-mini')" 2>/dev/null)"
-    echo "   OK GitHub Models accesible - modelo: ${MODEL_ID}"
+if [ "$HTTP_CODE" = "410" ]; then
+    echo "   AVISO: GitHub Models esta en 'scheduled retirement brownout' (HTTP 410) — el catalogo"
+    echo "           publico gratis de GitHub Models ha sido retirado. Usamos Gemini (gratis) en su lugar.."
+    PROVIDER="gemini"
+elif [ "$HTTP_CODE" = "200" ]; then
+    echo "   OK GitHub Models accesible (usando openai/gpt-4o-mini)..."
+    PROVIDER="github"
 else
-    MODEL_ID="openai/gpt-4o-mini"
-    echo "   ERROR: HTTP ${HTTP_CODE} - no se pudo validar GitHub Models."
-    if [ -z "$GITHUB_TOKEN" ]; then exit 1; fi
-    echo "   Continuo igualmente (el modelo ${MODEL_ID} puede fallar)..."
+    echo "   AVISO: GitHub Models responde HTTP ${HTTP_CODE:-?} — usamos Gemini (gratis) en su lugar.."
+    PROVIDER="gemini"
 fi
 
-export LLM_API_KEY="$GITHUB_TOKEN"
-export LLM_BASE_URL="$BASE_URL"
-export LLM_MODEL="${LLM_MODEL:-$MODEL_ID}"
+if [ "$PROVIDER" = "github" ]; then
+    export GITHUB_TOKEN="${GITHUB_TOKEN:-$(gh auth token 2>/dev/null || true)}"
+    export LLM_API_KEY="$GITHUB_TOKEN"
+    export LLM_BASE_URL="$BASE_URL"
+    export LLM_MODEL="${LLM_MODEL:-openai/gpt-4o-mini}"
+else
+    echo
+    if [ -z "${GEMINI_API_KEY:-}" ]; then
+        echo "   Necesitamos tu Gemini API key (GRATIS, sin tarjeta):"
+        echo "    1. Abre https://aistudio.google.com/apikey (login con Google)"
+        echo "    2. Create API key → copiala"
+        read -rsp "    3. Pegala aqui: " GEMINI_API_KEY
+        echo
+    fi
+    export GEMINI_API_KEY
+    export LLM_API_KEY="$GEMINI_API_KEY"
+    export LLM_BASE_URL="https://generativelanguage.googleapis.com/v1beta/openai/"
+    export LLM_MODEL="${LLM_MODEL:-google/gemini-2.5-flash}"
+fi
+
+echo "==> 4/5  Verificando el LLM..."
+CODE="$(curl -s -o /dev/null -w '%{http_code}' --max-time 15 "${LLM_BASE_URL}models" -H "Authorization: Bearer $LLM_API_KEY" -H "Accept: application/json" 2>/dev/null)"
+echo "   GET ${LLM_BASE_URL}models -> HTTP ${CODE:-?}"
 
 echo "==> 5/5  Lanzando OpenHands... (dame la tarea)"
 cd "$(git rev-parse --show-toplevel 2>/dev/null || pwd)"
@@ -56,10 +63,8 @@ echo "     LLM_MODEL=${LLM_MODEL}"
 echo "     LLM_BASE_URL=${LLM_BASE_URL}"
 echo
 
-if openhands --llm-model --help &>/dev/null; then
-    exec openhands --llm-model "$LLM_MODEL" --llm-api-key "$LLM_API_KEY" --llm-base-url "$LLM_BASE_URL" "$@"
-elif openhands --override-with-envs --help &>/dev/null; then
-    exec openhands --override-with-envs "$@"
-else
-    exec openhands "$@"
-fi
+export LLM_API_KEY="$LLM_API_KEY"
+export LLM_BASE_URL="$LLM_BASE_URL"
+export LLM_MODEL="$LLM_MODEL"
+
+exec openhands --override-with-envs "$@" 2>/dev/null || exec openhands "$@"
