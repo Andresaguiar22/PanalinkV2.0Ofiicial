@@ -22,7 +22,7 @@ object StateUrlResolver {
         if (vId == null) return state
         val url = state.mediaUrl.orEmpty()
         return if (url.isBlank() || (state.mediaUrl?.contains(".m3u8", ignoreCase = true)) == true) {
-            state.copy(mediaUrl = "vcdn://\$vId")
+            state.copy(mediaUrl = "vcdn://$vId")
         } else state
     }
 

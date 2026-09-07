@@ -39,17 +39,13 @@ object CacheDataSourceFactory {
     private val prefetchSemaphore = Semaphore(2)
 
     /**
-     * Stable cache keys based on the media's path (and query). The CDN manager
-     * rewrites the host whenever the active tunnel changes, so indexing by the
-     * full URI would break cache hits across sessions.
+    * Stable cache keys based on the media path. Signed query parameters rotate
+    * between sessions; including them would make an already cached video look
+    * like a different resource and break offline playback.
      */
     private val stableCacheKeyFactory = CacheKeyFactory { dataSpec ->
         val uri = dataSpec.uri
-        val pathKey = buildString {
-            append(uri.path?.let { it.ifBlank { null } } ?: uri.toString())
-            append(uri.query?.let { "?$it" } ?: "")
-        }
-        pathKey.ifBlank { uri.toString() }
+        uri.path?.takeIf { it.isNotBlank() } ?: uri.toString().substringBefore('?')
     }
 
     fun getCacheDataSourceFactory(context: Context): DataSource.Factory {
@@ -109,17 +105,25 @@ object CacheDataSourceFactory {
                     val buffer = ByteArray(65536) // Larger buffer for faster copy
 
                     Log.d(TAG, "Aggressive pre-fetching starting for: $url")
-                    dataSource.open(dataSpec)
                     var bytesRead = 0L
-
-                    while (bytesRead < prefetchBytes) {
-                        val read = dataSource.read(buffer, 0, buffer.size)
-                        if (read == -1) break
-                        bytesRead += read
+                    var reachedEnd = false
+                    try {
+                        dataSource.open(dataSpec)
+                        while (bytesRead < prefetchBytes) {
+                            val read = dataSource.read(buffer, 0, buffer.size)
+                            if (read == -1) {
+                                reachedEnd = true
+                                break
+                            }
+                            bytesRead += read
+                        }
+                    } finally {
+                        dataSource.close()
                     }
-                    dataSource.close()
-                    prefetchCompleted[url] = System.currentTimeMillis()
-                    Log.d(TAG, "Successfully pre-fetched ${bytesRead / 1024} KB for video: $url")
+                    if (bytesRead >= prefetchBytes || reachedEnd) {
+                        prefetchCompleted[url] = System.currentTimeMillis()
+                        Log.d(TAG, "Successfully pre-fetched ${bytesRead / 1024} KB for video: $url")
+                    }
                 } catch (e: Exception) {
                     Log.w(TAG, "Pre-fetch cancelled or failed for $url: ${e.localizedMessage}")
                 } finally {
