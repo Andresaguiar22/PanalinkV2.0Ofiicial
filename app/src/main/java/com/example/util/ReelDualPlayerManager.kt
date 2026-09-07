@@ -114,7 +114,8 @@ class ReelDualPlayerManager(private val context: Context) {
      * already lives). Active pages play; preload pages stay prepped but
      * paused with their first frame already rendered into their PlayerView.
      */
-    private val pendingPreloads = java.util.ArrayDeque<Pair<String, String>>()
+    private data class ReelPreloadEntry(val id: String, val url: String, val volume: Float)
+    private val pendingPreloads = java.util.ArrayDeque<ReelPreloadEntry>()
 
     fun acquireOrReuse(id: String, url: String, active: Boolean, volume: Float): Slot? {
         val existing = slotFor(id)
@@ -124,8 +125,8 @@ class ReelDualPlayerManager(private val context: Context) {
         }
         val freeSlot = freeSlot()
         if (!active && freeSlot == null) {
-            if (pendingPreloads.none { it.first == id }) {
-                pendingPreloads.addLast(id to url)
+            if (pendingPreloads.none { it.id == id }) {
+                pendingPreloads.addLast(ReelPreloadEntry(id, url, volume))
             }
             return null
         }
@@ -153,15 +154,14 @@ class ReelDualPlayerManager(private val context: Context) {
     }
 
 
-    private fun clearSlot(slot: Slot) {
+    private fun clearSlot(slot: Slot, requeue: Boolean = true) {
         val player = if (slot == Slot.A) slotAPlayer else slotBPlayer
         player?.stop()
         player?.release()
         if (slot == Slot.A) { slotAPlayer = null; slotAAssignedId = null } else { slotBPlayer = null; slotBAssignedId = null }
-        
+        if (!requeue) return
         val pending = pendingPreloads.pollFirst() ?: return
-        val (pid, purl) = pending
-        acquire(slot, pid, purl, 1f)
+        acquire(slot, pending.id, pending.url, pending.volume)
         pause(slot)
     }
 
@@ -193,7 +193,8 @@ class ReelDualPlayerManager(private val context: Context) {
     }
 
     fun releaseAll() {
-        clearSlot(Slot.A)
-        clearSlot(Slot.B)
+        pendingPreloads.clear()
+        clearSlot(Slot.A, requeue = false)
+        clearSlot(Slot.B, requeue = false)
     }
 }
