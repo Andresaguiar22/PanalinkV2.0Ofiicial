@@ -95,9 +95,12 @@ class StoryVideoPlayerSession(private val context: Context) {
                     if (effectiveDuration > 0L) {
                         onDurationReady?.invoke(effectiveDuration.coerceAtMost(Int.MAX_VALUE.toLong()).toInt())
                     }
-                    onPositionChanged?.invoke(
-                        current.coerceIn(0L, effectiveDuration.takeIf { it > 0L } ?: Long.MAX_VALUE)
-                    )
+                    val boundedCurrent = current.coerceIn(0L, effectiveDuration.takeIf { it > 0L } ?: Long.MAX_VALUE)
+                    onPositionChanged?.invoke(boundedCurrent)
+                    if (effectiveDuration > 0L && boundedCurrent >= effectiveDuration && p.playbackState == Player.STATE_READY) {
+                        p.seekTo(0L)
+                        onMediaEnded?.invoke()
+                    }
                 }
             } catch (_: Exception) {
                 // Session released or player tearing down; do not reschedule from a fatal access.
