@@ -152,6 +152,17 @@ class PanalinkFirebaseMessagingService : FirebaseMessagingService() {
                         SupabaseClient.isChatScreenActive &&
                         (SupabaseClient.activeChatId == canonicalChatId || (chatEntity?.id != null && SupabaseClient.activeChatId == chatEntity.id))
 
+                if (notificationType == "new_message" || notificationType == "chat_message") {
+                    // FCM is a wake/materialization signal only. Reconcile through
+                    // the existing Room + HTTP sync path; never create a second
+                    // local message from notification payload data.
+                    try {
+                        com.example.data.repository.MessagesRepository.getInstance().scheduleSync(canonicalChatId.takeIf { it.isNotBlank() })
+                    } catch (e: Exception) {
+                        Log.w(TAG, "Could not schedule message reconciliation from FCM", e)
+                    }
+                }
+
                 if (isChatActive) {
                     NotificationDeduplicator.markAsNotified(clientMessageUuid, messageId)
                     NotificationHelper.playActiveChatSound(applicationContext)

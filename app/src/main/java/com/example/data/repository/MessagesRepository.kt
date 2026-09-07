@@ -37,6 +37,18 @@ import androidx.work.Data
 class MessagesRepository private constructor() {
 
     private val TAG = "MessagesRepository"
+
+    private fun isTransientHttpStatus(code: Int?): Boolean {
+        return code == null || code == 0 || code == 408 || code == 409 || code == 425 || code == 429 || code >= 500
+    }
+
+    private fun isTransientException(error: Throwable): Boolean {
+        return error is java.io.IOException ||
+            error is java.net.SocketTimeoutException ||
+            error is java.net.ConnectException ||
+            error is java.net.UnknownHostException ||
+            ((error as? retrofit2.HttpException)?.code()?.let(::isTransientHttpStatus) == true)
+    }
     private val db = PanalinkDatabase.getDatabase(PanaApplication.instance)
     private val messageDao = db.messageDao()
     private val repositoryScope = CoroutineScope(Dispatchers.IO + kotlinx.coroutines.SupervisorJob())
@@ -74,6 +86,7 @@ class MessagesRepository private constructor() {
 
     val localClearedAtMap = java.util.concurrent.ConcurrentHashMap<String, String>()
     val lastSyncTimestamps = java.util.concurrent.ConcurrentHashMap<String, Long>()
+    private val confirmedReadWatermarks = java.util.concurrent.ConcurrentHashMap<String, String>()
 
 
 
@@ -612,13 +625,18 @@ suspend fun insertLocalMessage(msg: Message) = withContext(Dispatchers.IO) {
         entities.map { it.toMessage() }.sortedBy { it.createdAt }
     }
 
-    fun scheduleSync() {
+    fun scheduleSync(chatId: String? = null) {
         val constraints = Constraints.Builder()
             .setRequiredNetworkType(NetworkType.CONNECTED)
             .build()
 
+        val inputData = Data.Builder()
+            .putString("chatId", chatId)
+            .build()
+
         val syncRequest = OneTimeWorkRequestBuilder<SyncMessagesWorker>()
             .setConstraints(constraints)
+            .setInputData(inputData)
             .setBackoffCriteria(
                 BackoffPolicy.EXPONENTIAL,
                 WorkRequest.MIN_BACKOFF_MILLIS,
@@ -629,11 +647,11 @@ suspend fun insertLocalMessage(msg: Message) = withContext(Dispatchers.IO) {
 
         WorkManager.getInstance(PanaApplication.instance)
             .enqueueUniqueWork(
-                "sync_messages_unique",
+                chatId?.let { "sync_messages_$it" } ?: "sync_messages_unique",
                 ExistingWorkPolicy.KEEP,
                 syncRequest
             )
-        Log.i(TAG, "Scheduled background sync with WorkManager")
+        Log.i(TAG, "Scheduled background sync with WorkManager${chatId?.let { " for chat $it" } ?: ""}")
     }
 
     fun scheduleMediaUpload(messageId: String) {
@@ -1411,9 +1429,11 @@ suspend fun insertLocalMessage(msg: Message) = withContext(Dispatchers.IO) {
                     
                     // IF IT IS A DM, WE DO NOT FALLBACK TO LEGACY MESSAGES
                     if (isDmSync) {
-                        Log.e(TAG, "DM sync failed for message ${entity.id}. Staying pending.")
+                        val nextStatus = if (isTransientHttpStatus(errorCode)) "pending" else "failed"
+                        messageDao.updateMessageStatus(entity.id, nextStatus)
+                        Log.e(TAG, "DM sync failed for message ${entity.id}. Transitioning to $nextStatus.")
                         Log.e(TAG, "MESSAGE_REGISTER_FAILURE: messageId=${entity.id}, httpStatus=$errorCode, error=$sanitizedErrBody")
-                        allSuccessful = false
+                        if (nextStatus == "pending") allSuccessful = false
                         continue
                     }
 
@@ -1455,7 +1475,9 @@ suspend fun insertLocalMessage(msg: Message) = withContext(Dispatchers.IO) {
                         val legacyCode = legacyResponse?.code() ?: 0
                         val legacyErr = sanitizeLogBody(legacyResponse?.errorBody()?.string())
                         Log.e(TAG, "MESSAGE_REGISTER_FAILURE: messageId=${entity.id}, httpStatus=$legacyCode, error=$legacyErr")
-                        allSuccessful = false
+                        val nextStatus = if (isTransientHttpStatus(legacyCode)) "pending" else "failed"
+                        messageDao.updateMessageStatus(entity.id, nextStatus)
+                        if (nextStatus == "pending") allSuccessful = false
                     }
                 }
 
@@ -1777,7 +1799,11 @@ suspend fun insertLocalMessage(msg: Message) = withContext(Dispatchers.IO) {
         }
 
         try {
-            val service = SupabaseClient.apiService ?: return@withContext Result.success(message)
+            val service = SupabaseClient.apiService ?: run {
+                messageDao.updateMessageStatus(tempId, "pending")
+                scheduleSync()
+                return@withContext Result.failure(Exception("Servicio de mensajería no disponible"))
+            }
             SessionManager.validateAndRefreshSessionIfNeeded()
 
             val identity = resolveChatIdentity(chatId, receiverUid)
@@ -2010,14 +2036,16 @@ suspend fun insertLocalMessage(msg: Message) = withContext(Dispatchers.IO) {
                 }
                 return@withContext Result.success(updated)
             } else {
-                messageDao.updateMessageStatus(tempId, "pending")
-                scheduleSync()
+                val nextStatus = if (isTransientHttpStatus(response?.code())) "pending" else "failed"
+                messageDao.updateMessageStatus(tempId, nextStatus)
+                if (nextStatus == "pending") scheduleSync()
                 return@withContext Result.failure(Exception("Failed to send message: $errorStr"))
             }
         } catch (e: Exception) {
             Log.e(TAG, "sendMessage exception", e)
-            messageDao.updateMessageStatus(tempId, "pending")
-            scheduleSync()
+            val nextStatus = if (isTransientException(e)) "pending" else "failed"
+            messageDao.updateMessageStatus(tempId, nextStatus)
+            if (nextStatus == "pending") scheduleSync()
             Result.failure(e)
         }
     }
@@ -2043,6 +2071,11 @@ suspend fun insertLocalMessage(msg: Message) = withContext(Dispatchers.IO) {
                 )
             }
             if (response != null && response.isSuccessful) {
+                messageDao.markChatMessagesAsDelivered(
+                    chatId = chatId,
+                    myUserId = SupabaseClient.currentUser?.id.orEmpty(),
+                    deliveredAt = SupabaseClient.getNowIsoString()
+                )
                 return@withContext Result.success(true)
             }
             Result.success(false)
@@ -2052,11 +2085,27 @@ suspend fun insertLocalMessage(msg: Message) = withContext(Dispatchers.IO) {
         }
     }
 
-    suspend fun markThreadRead(chatId: String): Result<Boolean> = withContext(Dispatchers.IO) {
+    suspend fun markVisibleMessagesAsRead(chatId: String, visibleIds: List<String>): Result<Boolean> = withContext(Dispatchers.IO) {
+        if (visibleIds.isEmpty()) return@withContext Result.success(true)
+        val myUserId = SupabaseClient.currentUser?.id.orEmpty()
+        val watermark = messageDao.getMessagesByIds(chatId, visibleIds)
+            .asSequence()
+            .filter { it.senderId != myUserId }
+            .map { it.createdAt }
+            .maxOrNull()
+            ?: return@withContext Result.success(true)
+        markThreadRead(chatId, watermark)
+    }
+
+    suspend fun markThreadRead(chatId: String, watermarkCreatedAt: String? = null): Result<Boolean> = withContext(Dispatchers.IO) {
         val currentUid = SupabaseClient.currentUser?.id ?: ""
         val nowStr = SupabaseClient.getNowIsoString()
         try {
-            messageDao.markChatMessagesAsRead(chatId, currentUid, nowStr)
+            if (watermarkCreatedAt.isNullOrBlank()) {
+                messageDao.markChatMessagesAsRead(chatId, currentUid, nowStr)
+            } else {
+                messageDao.markChatMessagesAsReadThrough(chatId, currentUid, watermarkCreatedAt, nowStr)
+            }
             // Clear the unread badge column immediately so the chat list reflects
             // "read" as soon as the user opens the chat — not only on next sync.
             messageDao.resetUnreadCountForChat(chatId)
@@ -2081,19 +2130,37 @@ suspend fun insertLocalMessage(msg: Message) = withContext(Dispatchers.IO) {
             return@withContext Result.success(true)
         }
         if (!SupabaseClient.isConfigured) return@withContext Result.success(true)
+        val previousWatermark = confirmedReadWatermarks[chatId]
+        if (!watermarkCreatedAt.isNullOrBlank() && previousWatermark != null && previousWatermark >= watermarkCreatedAt) {
+            return@withContext Result.success(true)
+        }
         try {
             val service = SupabaseClient.apiService ?: return@withContext Result.success(false)
             val identity = resolveChatIdentity(chatId)
             val targetThreadId = identity.threadId ?: chatId
             val response = runCall { auth ->
-                service.markThreadRead(
-                    apiKey = SupabaseClient.supabaseAnonKey,
-                    authorization = auth,
-                    params = mapOf("p_thread_id" to targetThreadId)
-                )
+                if (watermarkCreatedAt.isNullOrBlank()) {
+                    service.markThreadRead(
+                        apiKey = SupabaseClient.supabaseAnonKey,
+                        authorization = auth,
+                        params = mapOf("p_thread_id" to targetThreadId)
+                    )
+                } else {
+                    service.markThreadReadThrough(
+                        apiKey = SupabaseClient.supabaseAnonKey,
+                        authorization = auth,
+                        params = mapOf(
+                            "p_thread_id" to targetThreadId,
+                            "p_before" to watermarkCreatedAt
+                        )
+                    )
+                }
             }
 
             if (response != null && response.isSuccessful) {
+                if (!watermarkCreatedAt.isNullOrBlank()) {
+                    confirmedReadWatermarks[chatId] = watermarkCreatedAt
+                }
                 return@withContext Result.success(true)
             }
             Result.success(false)

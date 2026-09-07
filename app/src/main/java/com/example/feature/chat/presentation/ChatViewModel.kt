@@ -259,9 +259,7 @@ private var chatJob: kotlinx.coroutines.Job? = null
         viewModelScope.launch {
             try {
                 messagesRepo.markThreadDelivered(chatId)
-                if (isSmartReadEnabled()) {
-                    messagesRepo.markThreadRead(chatId)
-                } else {
+                if (!isSmartReadEnabled()) {
                     messagesRepo.markThreadReadLocally(chatId)
                 }
             } catch (e: Exception) {
@@ -438,7 +436,7 @@ private var chatJob: kotlinx.coroutines.Job? = null
         viewModelScope.launch {
             try {
                 if (isSmartReadEnabled()) {
-                    messagesRepo.markThreadRead(chatId)
+                    messagesRepo.markVisibleMessagesAsRead(chatId, visibleIds)
                 } else {
                     messagesRepo.markThreadReadLocally(chatId)
                 }
@@ -568,11 +566,21 @@ private var chatJob: kotlinx.coroutines.Job? = null
             com.example.service.NotificationHelper.playOutgoingSound(context)
         }
         viewModelScope.launch {
-            messagesRepo.sendMessage(chatId, text, replyToId = replyToId, receiverUid = otherId, isGhost = _isGhostMode.value)
-            _inputMessage.value = ""
+            val result = messagesRepo.sendMessage(chatId, text, replyToId = replyToId, receiverUid = otherId, isGhost = _isGhostMode.value)
+            if (result.isSuccess) {
+                _inputMessage.value = ""
+            } else {
+                context?.let {
+                    Toast.makeText(
+                        it,
+                        "No se pudo enviar. El mensaje quedó disponible para reintentar.",
+                        Toast.LENGTH_LONG
+                    ).show()
+                }
+            }
             // Replying implicitly confirms reading: with "Lectura Inteligente" OFF
             // this is the only moment the read ack is sent to the server.
-            if (!isSmartReadEnabled()) {
+            if (result.isSuccess && !isSmartReadEnabled()) {
                 try {
                     messagesRepo.markThreadRead(chatId)
                 } catch (e: Exception) {
