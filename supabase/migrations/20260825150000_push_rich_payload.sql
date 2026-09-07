@@ -109,7 +109,9 @@ begin
       'thread_id', coalesce(new.thread_id::text, ''),
       'sender_id', new.sender_id,
       'sender_name', v_sender_name,
-      'message_type', v_msg_type
+      'message_type', v_msg_type,
+      'message_id', new.id::text,
+      'client_message_uuid', coalesce(new.client_message_uuid::text, '')
     )
   );
 

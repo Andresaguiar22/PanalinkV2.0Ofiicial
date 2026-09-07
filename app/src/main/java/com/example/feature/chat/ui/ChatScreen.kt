@@ -830,9 +830,10 @@ fun ChatScreen(
                                 }
                                 itemsIndexed(
                                     filteredMessages,
-                                    key = { index, message ->
-                                        val baseKey = if (!message.clientMessageUuid.isNullOrBlank()) message.clientMessageUuid else message.id
-                                        "${baseKey}_$index"
+                                    key = { _, message ->
+                                        message.id.takeIf { it.isNotBlank() && !it.startsWith("temp_") }
+                                            ?: message.clientMessageUuid.takeIf { it.isNotBlank() && !it.startsWith("temp_") }
+                                            ?: "message_${message.createdAt}_${message.senderId}_${message.content.hashCode()}"
                                     },
                                     contentType = { _, message -> message.messageType ?: if (message.textContent.startsWith("[Sticker] ")) "sticker" else "text" }
                                 ) { index, message ->
