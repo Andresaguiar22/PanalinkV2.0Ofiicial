@@ -47,15 +47,30 @@ else
         read -rsp "    3. Pegala aqui: " GEMINI_API_KEY
         echo
     fi
+    # IMPORTANTE: LiteLLM/OpenHands usa el proveedor nativo 'gemini/'
+    # (prefijo 'gemini/', NO 'google/', y SIN base URL custom).
+    unset LLM_BASE_URL
     export GEMINI_API_KEY
     export LLM_API_KEY="$GEMINI_API_KEY"
-    export LLM_BASE_URL="https://generativelanguage.googleapis.com/v1beta/openai/"
-    export LLM_MODEL="${LLM_MODEL:-google/gemini-2.5-flash}"
+    export LLM_MODEL="${LLM_MODEL:-gemini/gemini-2.5-flash}"
 fi
 
 echo "==> 4/5  Verificando el LLM..."
-CODE="$(curl -s -o /dev/null -w '%{http_code}' --max-time 15 "${LLM_BASE_URL}models" -H "Authorization: Bearer $LLM_API_KEY" -H "Accept: application/json" 2>/dev/null)"
-echo "   GET ${LLM_BASE_URL}models -> HTTP ${CODE:-?}"
+if [ "$PROVIDER" = "github" ]; then
+    CODE="$(curl -s -o /dev/null -w '%{http_code}' --max-time 15 "${LLM_BASE_URL}models" -H "Authorization: Bearer $LLM_API_KEY" -H "Accept: application/json" 2>/dev/null)"
+    echo "   GET ${LLM_BASE_URL}models -> HTTP ${CODE:-?}"
+else
+    # Gemini nativo: el test real es un chat/completions minimo, no /models.
+    CODE="$(curl -s -o /tmp/gemini_chat.json -w '%{http_code}' --max-time 20 \
+        -X POST https://generativelanguage.googleapis.com/v1beta/openai/chat/completions \
+        -H "Authorization: Bearer $LLM_API_KEY" -H "Content-Type: application/json" \
+        -d "{\"model\":\"gemini-2.5-flash\",\"messages\":[{\"role\":\"user\",\"content\":\"ping\"}],\"max_tokens\":5}" 2>/dev/null)"
+    if [ "$CODE" = "200" ]; then
+        echo "   OK Gemini accesible (clave valida)"
+    else
+        echo "   AVISO: test Gemini -> HTTP ${CODE:-?} (puede ser normal si la clave no tiene acceso al modelo; OpenHands probara igualmente)"
+    fi
+fi
 
 echo "==> 5/5  Lanzando OpenHands... (dame la tarea)"
 cd "$(git rev-parse --show-toplevel 2>/dev/null || pwd)"
@@ -64,7 +79,11 @@ echo "     LLM_BASE_URL=${LLM_BASE_URL}"
 echo
 
 export LLM_API_KEY="$LLM_API_KEY"
-export LLM_BASE_URL="$LLM_BASE_URL"
+if [ -n "${LLM_BASE_URL:-}" ]; then
+    export LLM_BASE_URL="$LLM_BASE_URL"
+else
+    unset LLM_BASE_URL 2>/dev/null || true
+fi
 export LLM_MODEL="$LLM_MODEL"
 
 exec openhands --override-with-envs "$@" 2>/dev/null || exec openhands "$@"
