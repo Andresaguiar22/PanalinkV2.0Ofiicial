@@ -41,7 +41,7 @@ object LiveKitTokenService {
      */
     suspend fun fetchToken(room: String, name: String? = null): TokenResponse? = withContext(Dispatchers.IO) {
         val cached = cache
-        if (cached != null && cached.expiresAtMs - SAFETY_MARGIN_MS > System.currentTimeMillis()) {
+        if (cached != null && cached.room == room && cached.expiresAtMs - SAFETY_MARGIN_MS > System.currentTimeMillis()) {
             return@withContext TokenResponse(cached.token, cached.url, identity = "", room = room)
         }
         requestToken(room, name)
