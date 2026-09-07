@@ -98,4 +98,18 @@ else
 fi
 export LLM_MODEL="$LLM_MODEL"
 
-exec openhands --override-with-envs "$@" 2>/dev/null || exec openhands "$@"
+if [ "$#" -gt 0 ]; then
+    exec openhands --override-with-envs "$@" 2>/dev/null || exec openhands "$@"
+fi
+
+echo "   Lanzando GUI web (navegador) en background..."
+PORT=3000
+while curl -s -o /dev/null --max-time 2 "http://127.0.0.1:${PORT}/"; do
+    PORT=$((PORT+1))
+done
+pkill -f "openhands web" 2>/dev/null || true
+nohup openhands web --host 0.0.0.0 --port "$PORT" --override-with-envs >> /tmp/oh_web.log 2>&1 &
+echo "   Abre en tu navegador:  http://localhost:${PORT}"
+echo "   (en Codespaces: Ports → Forward Port → ${PORT})"
+echo "   Para ver logs: tail -f /tmp/oh_web.log"
+wait
