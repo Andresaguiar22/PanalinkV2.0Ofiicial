@@ -16,7 +16,14 @@ class SyncMessagesWorker(
         val repository = MessagesRepository.getInstance()
 
         return try {
-            val allSynced = repository.syncAllPendingAndUpdatedMessages()
+            val targetChatId = inputData.getString("chatId")
+            val allSynced = if (targetChatId.isNullOrBlank()) {
+                repository.syncAllPendingAndUpdatedMessages()
+            } else {
+                val history = repository.getMessagesForChatPaged(targetChatId)
+                val updates = repository.syncUpdatedMessages(targetChatId)
+                history.isSuccess && updates.isSuccess
+            }
 
             if (allSynced) {
                 Log.i("SyncMessagesWorker", "Background sync completed successfully")

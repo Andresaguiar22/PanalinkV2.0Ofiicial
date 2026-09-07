@@ -54,6 +54,9 @@ interface MessageDao {
     @Query("SELECT * FROM local_messages WHERE id = :id")
     suspend fun getMessageById(id: String): MessageEntity?
 
+    @Query("SELECT * FROM local_messages WHERE id IN (:ids) AND chatId = :chatId")
+    suspend fun getMessagesByIds(chatId: String, ids: List<String>): List<MessageEntity>
+
     @Query("SELECT id FROM local_chats WHERE threadId = :threadId LIMIT 1")
     suspend fun getChatIdByThreadId(threadId: String): String?
 
@@ -421,6 +424,12 @@ interface MessageDao {
 
     @Query("UPDATE local_messages SET status = 'seen', seenAt = :seenAt WHERE chatId = :chatId AND senderId != :myUserId AND status != 'seen'")
     suspend fun markChatMessagesAsRead(chatId: String, myUserId: String, seenAt: String)
+
+    @Query("UPDATE local_messages SET status = CASE WHEN status = 'seen' THEN status ELSE 'delivered' END, deliveredAt = COALESCE(deliveredAt, :deliveredAt) WHERE chatId = :chatId AND senderId != :myUserId AND deliveredAt IS NULL")
+    suspend fun markChatMessagesAsDelivered(chatId: String, myUserId: String, deliveredAt: String)
+
+    @Query("UPDATE local_messages SET status = 'seen', seenAt = :seenAt, deliveredAt = COALESCE(deliveredAt, :seenAt) WHERE chatId = :chatId AND senderId != :myUserId AND createdAt <= :watermark AND status != 'seen'")
+    suspend fun markChatMessagesAsReadThrough(chatId: String, myUserId: String, watermark: String, seenAt: String)
 
     @Query("UPDATE local_messages SET isFavorited = :isFavorited WHERE id = :id")
     suspend fun updateMessageFavoriteStatus(id: String, isFavorited: Boolean)

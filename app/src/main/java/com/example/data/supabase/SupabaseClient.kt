@@ -288,14 +288,6 @@ object SupabaseClient {
                             put("presence", JSONObject().apply {
                                 put("key", "")
                             })
-                            val pgChanges = org.json.JSONArray().apply {
-                                put(JSONObject().apply {
-                                    put("event", "*")
-                                    put("schema", "public")
-                                    put("table", "messages")
-                                })
-                            }
-                            put("postgres_changes", pgChanges)
                         })
                         if (!currentTokenLocal.isNullOrEmpty()) {
                             put("user_token", currentTokenLocal)
@@ -878,15 +870,6 @@ object SupabaseClient {
                                                 Log.e(TAG, "Error triggering markThreadDelivered", e)
                                             }
                                         }
-                                        if (isChatScreenActive && activeChatId == chatId) {
-                                            clientScope.launch {
-                                                try {
-                                                    com.example.data.repository.MessagesRepository.getInstance().markThreadRead(chatId)
-                                                } catch (e: Exception) {
-                                                    Log.e(TAG, "Error triggering markThreadRead", e)
-                                                }
-                                            }
-                                        }
                                     }
 
                                     clientScope.launch {
@@ -926,19 +909,15 @@ object SupabaseClient {
         }
         reconnectJob?.cancel()
         reconnectJob = clientScope.launch {
-            val delayMs = when (reconnectAttempt) {
-                0 -> 2000L
-                1 -> 5000L
-                else -> 20000L
-            }
+            val attempt = reconnectAttempt
+            val delayMs = (2000L * (1L shl attempt.coerceIn(0, 5))).coerceAtMost(60_000L)
             Log.d(TAG, "Scheduling reconnection in $delayMs ms (attempt $reconnectAttempt)...")
             delay(delayMs)
-            val attempt = reconnectAttempt
-            if (attempt >= 3) {
-                Log.w(TAG, "Max realtime reconnect attempts reached; giving up until connectivity changes or app restart")
+            if (!com.example.util.NetworkMonitor.isOnline.value) {
+                Log.d(TAG, "Device went offline while waiting for realtime reconnect")
                 return@launch
             }
-            reconnectAttempt = attempt + 1
+            reconnectAttempt = (attempt + 1).coerceAtMost(30)
             connectRealtime()
         }
     }

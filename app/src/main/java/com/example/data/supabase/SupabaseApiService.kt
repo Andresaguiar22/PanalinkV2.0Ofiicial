@@ -556,6 +556,13 @@ interface SupabaseApiService {
         @Body params: Map<String, String>
     ): Response<ResponseBody>
 
+    @POST("rest/v1/rpc/mark_thread_read_through")
+    suspend fun markThreadReadThrough(
+        @Header("apikey") apiKey: String,
+        @Header("Authorization") authorization: String,
+        @Body params: Map<String, String>
+    ): Response<ResponseBody>
+
     @POST("rest/v1/rpc/get_active_media_statuses")
     suspend fun getActiveMediaStatuses(
         @Header("apikey") apiKey: String,
