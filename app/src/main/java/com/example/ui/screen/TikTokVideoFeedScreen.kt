@@ -893,11 +893,21 @@ fun TikTokPageItem(
     var isBuffering by remember { mutableStateOf(true) }
     var forceRotationDegrees by remember(state.id) { mutableStateOf(0f) }
 
-    LaunchedEffect(state.id, state.mediaUrl) {
+    // El feed remoto puede re-emitir la fila con mediaUrl distinta (re-anclaje CDN,
+    // URL firmada expirada, refresco de red). Resolver/player solo dependen
+    // del puntero estable (vcdn_video_id o copia local): así la reproducción en
+    // curso jamás se reinicia por un mediaUrl rotatorio..
+    val stableMediaUrl = remember(state.id, state.vcdnVideoId, state.localVideoPath, state.mediaUrl) {
+        val local = state.localVideoPath?.takeIf { it.isNotBlank() && java.io.File(it).exists() }
+        if (local != null) local
+        else if (!state.vcdnVideoId.isNullOrBlank()) "vcdn://${state.vcdnVideoId}"
+        else state.mediaUrl
+    }
+    LaunchedEffect(state.id, stableMediaUrl) {
         // La resolución vcdn:// puede requerir red (timeouts largos); nunca bloquear
         // el hilo principal buscando metadata de rotación de un reel..
-        val url = withContext(kotlinx.coroutines.Dispatchers.IO) {
-            com.example.data.repository.CdnManager.resolveMediaUrl(state.mediaUrl)
+        val url = withContext(kotlinx.coroutines.Dispatchers.IO){
+            com.example.data.repository.CdnManager.resolveMediaUrl(stableMediaUrl)
         } ?: return@LaunchedEffect
         if (url.isEmpty() || !url.startsWith("http")) return@LaunchedEffect
 
@@ -940,46 +950,34 @@ fun TikTokPageItem(
     }
 
 
-    var resolvedUrl by remember(state.id, state.mediaUrl, state.localVideoPath) { mutableStateOf<String?>(null) }
-    var resolveFailed by remember(state.id, state.mediaUrl, state.localVideoPath) { mutableStateOf(false) }
-    var retryCount by remember(state.id, state.mediaUrl, state.localVideoPath) { mutableStateOf(0) }
-    var activeSlot by remember(state.id, state.mediaUrl, state.localVideoPath) { mutableStateOf<ReelDualPlayerManager.Slot?>(null) }
 
-    LaunchedEffect(state.id, state.mediaUrl, state.localVideoPath, isActivePage, isPreload,retryCount,dualManager) {
-        if (isActivePage) {
-            resolvedUrl = null
-            retryCount = 0
-            activeSlot = null
-        }
-        if (state.localVideoPath.isNullOrEmpty() && state.mediaUrl.isNullOrBlank()) return@LaunchedEffect
-        resolvedUrl = if (state.localVideoPath.isNullOrEmpty()) {
-            val resolved = withContext(Dispatchers.IO) { com.example.data.repository.CdnManager.resolveMediaUrl(state.mediaUrl) }
+    var resolvedUrl by remember(stableMediaUrl, state.id) { mutableStateOf<String?>(null) }
+    var resolveFailed by remember(stableMediaUrl, state.id) { mutableStateOf(false) }
+    var retryCount by remember(stableMediaUrl, state.id) { mutableStateOf(0) }
+    var activeSlot by remember(stableMediaUrl, state.id) { mutableStateOf<ReelDualPlayerManager.Slot?>(null) }
+
+    LaunchedEffect(stableMediaUrl, state.id,isActivePage,isPreload,retryCount,dualManager) {
+
+        // BUGFIX: reiniciar el estado de resolución solo CUANDO el puntero estable
+        // cambia (otra fila, copia local nueva, o reel distinto). Un REPLACE de fila
+        // con mediaUrl rotatorio deja intacto el player que ya está sonando..
+        // El retryCount ya no resetea este efecto: onPlayerError reintenta en MODO
+        // preservando slot y posición en vez de soltar el slot y re-preparar desde 0.
+        if (state.localVideoPath.isNullOrEmpty() && stableMediaUrl.isNullOrBlank()) return@LaunchedEffect
+        resolvedUrl = if (state.localVideoPath.isNullOrEmpty()){
+            val resolved =withContext(Dispatchers.IO) { com.example.data.repository.CdnManager.resolveMediaUrl(stableMediaUrl)}
             resolved.takeIf { !it.startsWith("vcdn://") }
         } else {
             state.localVideoPath
         }
         if (resolvedUrl == null) resolveFailed = true
-    }
 
-    LaunchedEffect(state.id, resolvedUrl, isActivePage) {
-        val url = resolvedUrl
-        if (isActivePage && !url.isNullOrBlank() && url.startsWith("http")) {
-            com.example.media.social.ReelOfflineMediaManager.ensureLocalCopy(context, state.id, url)
-        }
-    }
-
-    LaunchedEffect(isActivePage,isPreload,resolvedUrl,activeSlot,retryCount,dualManager) {
-
-
-        // BUGFIX: el preload jamás debe caer en el slot activo: re-prepararlo
-        // (setMediaItem+prepare) mataría la reproducción visible (black screen tras scroll).
-
-        val url = resolvedUrl ?: return@LaunchedEffect
         // BUGFIX: al perder red el sub-guard (isOnline) reinicia esté LaunchedEffect
         // con resolvedUrl ya resuelto; si el slot ya está en A no re-resolvemos world
         val prev = activeSlot
         val hasLivePlayer = exoPlayerRef != null
         if (!hasLivePlayer && prev != null && prev != ReelDualPlayerManager.Slot.B) return@LaunchedEffect
+        val url = resolvedUrl ?: return@LaunchedEffect
         val slot = dualManager.acquireOrReuse(
             state.id,
             url,
@@ -990,6 +988,12 @@ fun TikTokPageItem(
         exoPlayerRef = dualManager.playerFor(slot)
     }
 
+    LaunchedEffect(state.id, resolvedUrl, stableMediaUrl,isActivePage) {
+        val url = resolvedUrl
+        if (isActivePage && !url.isNullOrBlank() && url.startsWith("http")) {
+            com.example.media.social.ReelOfflineMediaManager.ensureLocalCopy(context, state.id, url)
+        }
+    }
     LaunchedEffect(exoPlayerRef, state.id, retryCount) {
         val player = exoPlayerRef ?: return@LaunchedEffect
         val listener = object : Player.Listener {
@@ -1000,15 +1004,13 @@ fun TikTokPageItem(
             override fun onPlayerError(error: androidx.media3.common.PlaybackException) {
                 android.util.Log.e("TikTokVideoFeedScreen", "player error id=${state.id} code=${error.errorCode}", error)
                 isBuffering = false
-                // Offline: el reintento automático solo con red; sin red marcar error
-                // directamente para que la UI muestre Reintentar sin spinner congelado..
+                // Offline: reintento automatico solo con red; sin red marcar error (sin reiniciar posicion.
                 if (retryCount < 2 && com.example.util.NetworkMonitor.isOnline.value) {
                     retryCount += 1
-                    resolvedUrl = null
-                    dualManager.releaseIfOwned(state.id)
                 } else {
                     hasError = true
                 }
+
             }
         }
         player.addListener(listener)
