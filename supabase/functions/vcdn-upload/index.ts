@@ -72,6 +72,29 @@ async function callRpc(functionName: string, params: Record<string, unknown>): P
   }
 }
 
+// Verifies a session belongs to the caller before state-mutating RPCs are
+// invoked (chunk/complete/status). Prevents IDOR across vcdn_upload_sessions.
+async function isSessionOwner(
+  userId: string,
+  filter: { uploadId?: string; videoId?: string }
+): Promise<{ ok: boolean; reason?: string }> {
+  if (!SUPABASE_URL || !SUPABASE_SERVICE_ROLE_KEY) return { ok: false, reason: "server not configured" };
+  const key = filter.uploadId ? `upload_id=eq.${encodeURIComponent(filter.uploadId)}` : `video_id=eq.${encodeURIComponent(filter.videoId || "")}`;
+  try {
+    const res = await fetch(`${SUPABASE_URL.replace(/\/$/, "")}/rest/v1/vcdn_upload_sessions?select=user_id&${key}`, {
+      method: "GET",
+      headers: { "apikey": SUPABASE_SERVICE_ROLE_KEY, "Authorization": `Bearer ${SUPABASE_SERVICE_ROLE_KEY}` },
+    });
+    if (!res.ok) return { ok: false, reason: "session lookup failed" };
+    const rows = await res.json();
+    if (!Array.isArray(rows) || rows.length === 0) return { ok: false, reason: "session not found" };
+    if (rows.some((r) => r?.user_id !== userId)) return { ok: false, reason: "not owner" };
+    return { ok: true };
+  } catch (e) {
+    return { ok: false, reason: String(e) };
+  }
+}
+
 async function vcdnFetch(path: string, init: RequestInit, key: string): Promise<{ ok: boolean; status: number; body: string }> {
   const headers = new Headers(init.headers);
   headers.set("Authorization", `Bearer ${key}`);
@@ -110,6 +133,11 @@ export default {
 
         if (!uploadId || bytes.length === 0) {
           return Response.json({ error: "missing uploadId or bytes" }, { status: 400 });
+        }
+
+        const owner = await isSessionOwner(userId, { uploadId });
+        if (!owner.ok) {
+          return Response.json({ error: "Forbidden: upload does not belong to user" }, { status: 403 });
         }
 
         const r = await vcdnFetch(`/api/v1/upload/${encodeURIComponent(uploadId)}/chunk`, {
@@ -310,6 +338,10 @@ export default {
       if (step === "complete") {
         const uploadId = String(data.uploadId || "");
         if (!uploadId) return Response.json({ error: "missing uploadId" }, { status: 400 });
+        const owner = await isSessionOwner(userId, { uploadId });
+        if (!owner.ok) {
+          return Response.json({ error: "Forbidden: upload does not belong to user" }, { status: 403 });
+        }
 
         const ownerToken = crypto.randomUUID();
 
@@ -352,6 +384,10 @@ export default {
       if (step === "status") {
         const videoId = String(data.videoId || "");
         if (!videoId) return Response.json({ error: "missing videoId" }, { status: 400 });
+        const owner = await isSessionOwner(userId, { videoId });
+        if (!owner.ok) {
+          return Response.json({ error: "Forbidden: video does not belong to user" }, { status: 403 });
+        }
 
         const r = await vcdnFetch(`/api/v1/videos/${encodeURIComponent(videoId)}`, { method: "GET" }, key);
         if (!r.ok) return Response.json({ error: "VCDN status failed", code: r.status, detail: r.body.slice(0, 500) }, { status: 502 });

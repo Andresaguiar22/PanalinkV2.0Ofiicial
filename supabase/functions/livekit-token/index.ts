@@ -12,6 +12,39 @@ const LIVEKIT_URL = Deno.env.get("LIVEKIT_URL");
 const API_KEY = Deno.env.get("LIVEKIT_API_KEY");
 const API_SECRET = Deno.env.get("LIVEKIT_API_SECRET");
 
+const SUPABASE_URL = (Deno.env.get("SUPABASE_URL") || "").replace(/\/$/, "");
+const SERVICE_KEY = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY") || Deno.env.get("SUPABASE_ANON_KEY") || "";
+
+// Verifies the caller is allowed to join the requested LiveKit room before
+// minting a token. Voice rooms are checked against voice_room_can_access;
+// 1:1 call rooms (call_<uidA>-<uidB>) only accept the two participants, and
+// any other room shape is rejected since there is no DB model to authorize it.
+async function canJoinRoom(userId: string, room: string): Promise<{ ok: boolean; reason?: string }> {
+  if (room.startsWith("voice_")) {
+    const roomId = room.slice("voice_".length);
+    if (!/^[0-9a-fA-F-]{36}$/.test(roomId)) return { ok: false, reason: "invalid voice room" };
+    if (!SUPABASE_URL || !SERVICE_KEY) return { ok: false, reason: "server not configured" };
+    try {
+      const res = await fetch(`${SUPABASE_URL}/rest/v1/rpc/voice_room_can_access`, {
+        method: "POST",
+        headers: { "apikey": SERVICE_KEY, "Authorization": `Bearer ${SERVICE_KEY}`, "Content-Type": "application/json" },
+        body: JSON.stringify({ p_room_id: roomId }),
+      });
+      return { ok: res.ok, reason: res.ok ? undefined : "access denied" };
+    } catch {
+      return { ok: false, reason: "access check failed" };
+    }
+  }
+  if (room.startsWith("call_")) {
+    const pair = room.slice("call_".length);
+    const parts = pair.split("-");
+    if (parts.length > 2) return { ok: false, reason: "invalid call room" };
+    if (parts.some((p) => !/^[0-9a-fA-F-]{36}$/.test(p))) return { ok: false, reason: "invalid call room" };
+    return { ok: parts.includes(userId) };
+  }
+  return { ok: false, reason: "unsupported room" };
+}
+
 function base64UrlEncode(input: Uint8Array | ArrayBuffer): string {
   const bytes = input instanceof Uint8Array ? input : new Uint8Array(input);
   let bin = "";
@@ -74,9 +107,17 @@ export default {
     if (!room) {
       return Response.json({ error: "Missing room" }, { status: 400 });
     }
-    // Identity must be stable per user; default to the caller's user id so the
-    // app can always look up its own participant. Keep it LiveKit-safe (alnum + -).
-    const rawIdentity = (body.identity || userId).trim();
+
+    const access = await canJoinRoom(userId, room);
+    if (!access.ok) {
+      return Response.json({ error: "Forbidden: no access to room" }, { status: 403 });
+    }
+
+    // Identity must be stable per user. For unsolicited rooms (calls) it is
+    // always pinned to the caller so nobody can impersonate another participant;
+    // for voice rooms the client-provided identity (if any) is kept LiveKit-safe.
+
+    const rawIdentity = room.startsWith("call_") ? userId : ((body.identity || userId).trim());
     const identity = rawIdentity.replace(/[^a-zA-Z0-9_\-]/g, "_").slice(0, 120);
     const name = (body.name || "").trim().slice(0, 120) || undefined;
     const ttl = Math.min(Math.max(Number(body.ttl) || 3600, 60), 86400);

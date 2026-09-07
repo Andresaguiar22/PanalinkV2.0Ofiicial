@@ -65,8 +65,12 @@ export default {
     // Prefer an explicit object key; fall back to extracting it from a legacy URL.
     let objectKey = (body.key && body.key.trim()) || null;
     if (!objectKey && body.url) objectKey = urlToKey(body.url);
-    if (!objectKey) {
-      return Response.json({ error: "Missing key or valid url" }, { status: 400 });
+    if (!objectKey) return Response.json({ error: "Missing key or valid url" }, { status: 400 });
+
+    // Ownership check: only the requesting user may re-sign objects under
+    // their own prefix. Prevents IDOR where a caller signs another user's media.
+    if (!objectKey.startsWith(`panalink/`) || !objectKey.includes(`/${userId}/`)) {
+      return Response.json({ error: "Forbidden: key does not belong to user" }, { status: 403 });
     }
 
     const s3 = new S3Client({

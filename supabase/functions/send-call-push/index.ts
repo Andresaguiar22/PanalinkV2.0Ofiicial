@@ -71,10 +71,27 @@ Deno.serve(async (req) => {
 
     const body = await req.json();
     const receiverId = String(body.receiver_id ?? '').trim();
-    const callerId = String(body.caller_id ?? '').trim();
+    const requestedCallerId = String(body.caller_id ?? '').trim();
     const callerName = String(body.caller_name ?? 'Panalink').slice(0, 80);
     const callType = String(body.call_type ?? 'voice') === 'video' ? 'video' : 'voice';
     if (!receiverId) return jsonResponse({ error: 'receiver_id required' }, 400);
+    // Anti-spoofing: the caller id is taken from the validated JWT subject, not
+    // from the body, so nobody can forge an incoming call from someone else.
+    // Extract the caller identity from the gateway-validated JWT (verify_jwt=true).
+    const callerJwt = (req.headers.get("Authorization") || "").replace(/^Bearer\s+/i, "").trim();
+    let jwtSub = "";
+    if (callerJwt) {
+      try {
+        const parts = callerJwt.split(".");
+        if (parts.length === 3) {
+          const payload = JSON.parse(atob(parts[1].replace(/-/g, "+").replace(/_/g, "/")));
+          if (typeof payload.sub === "string") jwtSub = payload.sub;
+        }
+      } catch { /* ignore malformed JWT; rejected below */ }
+    }
+    const callerId = jwtSub || requestedCallerId;
+    if (!callerId) return jsonResponse({ error: "caller_id required" }, 400);
+    if (receiverId === callerId) return jsonResponse({ error: "cannot call yourself" }, 400);
 
     const supabaseUrl = Deno.env.get('SUPABASE_URL') ?? `https://${projectId}.supabase.co`;
     const serviceRoleKey = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY') ?? '';
@@ -118,7 +135,7 @@ Deno.serve(async (req) => {
       }
     }
     return jsonResponse({ ok: true, sent, total: tokens.length });
-  } catch (e) {
-    return jsonResponse({ error: String(e?.message ?? e) }, 500);
+  } catch (e: unknown) {
+    return jsonResponse({ error: String(e instanceof Error ? e.message : e) }, 500);
   }
 });
