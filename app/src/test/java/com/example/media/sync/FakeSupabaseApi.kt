@@ -154,6 +154,12 @@ class FakeSupabaseApi : SupabaseApiService {
     override suspend fun getUserPresence(apiKey: String, authorization: String, userIdFilter: String?): Response<List<Map<String, Any>>> = TODO()
     override suspend fun getPresenceSessions(apiKey: String, authorization: String, userIdFilter: String, order: String): Response<List<PresenceSession>> = TODO()
 
+    override suspend fun markThreadReadThrough(
+        apiKey: String,
+        authorization: String,
+        params: Map<String, String>
+    ): Response<ResponseBody> = TODO()
+
     // --- Music Social Sync Implementation ---
 
     override suspend fun getMusicPlaylists(
