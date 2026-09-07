@@ -5,6 +5,7 @@ import android.content.Context
 import android.content.Intent
 import android.content.IntentFilter
 import android.media.AudioAttributes
+import android.media.AudioDeviceInfo
 import android.media.AudioFocusRequest
 import android.media.AudioManager
 import android.os.Build
@@ -112,6 +113,53 @@ class AudioController(private val context: Context) {
 
     fun setAudioDevice(device: AudioDevice) {
         currentDevice = device
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.S) {
+            applyModernCommunicationDevice(device)
+        } else {
+            applyLegacyAudioDevice(device)
+        }
+    }
+
+    /**
+     * Android 12+ (API 31+: el enrutado de comunicación exige `setCommunicationDevice`.
+     * Los métodos legacy (`isSpeakerphoneOn`, `startBluetoothSco` no cambian la ruta del stream
+     * de comunicación en estas versiones y el altavoz/Bluetooth seguirían por el auricular..
+     */
+    private fun applyModernCommunicationDevice(device: AudioDevice) {
+        val commDevices = audioManager.availableCommunicationDevices
+        when (device) {
+            AudioDevice.EARPIECE -> {
+                val earpiece = commDevices.firstOrNull { it.type == AudioDeviceInfo.TYPE_BUILTIN_EARPIECE }
+                if (earpiece != null) {
+                    audioManager.setCommunicationDevice(earpiece)
+                } else {
+                    audioManager.clearCommunicationDevice()
+                }
+            }
+            AudioDevice.SPEAKER -> {
+                val speaker = commDevices.firstOrNull { it.type == AudioDeviceInfo.TYPE_BUILTIN_SPEAKER }
+                if (speaker != null) {
+                    audioManager.setCommunicationDevice(speaker)
+                } else {
+                    @Suppress("DEPRECATION")
+                    audioManager.isSpeakerphoneOn = true
+                }
+            }
+            AudioDevice.BLUETOOTH -> {
+                val scoDevice = commDevices.firstOrNull { it.type == AudioDeviceInfo.TYPE_BLUETOOTH_SCO }
+                if (scoDevice != null) {
+                    audioManager.setCommunicationDevice(scoDevice)
+                } else {
+                    @Suppress("DEPRECATION")
+                    audioManager.startBluetoothSco()
+                    audioManager.isBluetoothScoOn = true
+                }
+            }
+        }
+    }
+
+    @Suppress("DEPRECATION")
+    private fun applyLegacyAudioDevice(device: AudioDevice) {
         when (device) {
             AudioDevice.EARPIECE -> {
                 audioManager.isSpeakerphoneOn = false

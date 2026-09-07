@@ -45,10 +45,17 @@ class LiveKitCallEngine(
     interface Listener {
         /** Fired when the SFU connection becomes usable (peer media flowing). */
         fun onConnected()
-        /** Fired when the connection drops or fails. */
+        /** Fired when the SFU connection drops or fails. */
         fun onDisconnected()
         /** Fired on a reconnect attempt after a network blip. */
         fun onReconnecting()
+        /**
+         * Fired when the remote participant leaves the room..
+         * When the peer departs the SFU without sending `call_end` (app death,
+         * force-kill, total network loss,), the local side must not wait for the
+         * 30s Connection Guard timeout — we know the call is over.
+         */
+        fun onParticipantLeft()
     }
 
     companion object {
@@ -170,6 +177,7 @@ class LiveKitCallEngine(
                         if (lkRoom.remoteParticipants.isNotEmpty()) listener.onConnected()
                     }
                     is RoomEvent.ParticipantConnected -> listener.onConnected()
+                    is RoomEvent.ParticipantDisconnected -> listener.onParticipantLeft()
                     is RoomEvent.Disconnected -> {
                         if (released) return@collect
                         // If we never finished the initial join, route through the
@@ -241,12 +249,38 @@ class LiveKitCallEngine(
      * camera track has been published yet.
      */
     fun switchCamera() {
-        val track = localVideoTrack ?: return
         currentCameraFront = !currentCameraFront
         val next = if (currentCameraFront) CameraPosition.FRONT else CameraPosition.BACK
         scope.launch {
+            val track = localVideoTrack
+            if (track == null) {
+                // Camera is off — the UI pressed "switch" without enabling it.
+                // Enable it first (which creates the track) and then flip the positionor
+                // instead of silently ignoring the tap.
+                enableCameraAndFlip(next)
+                return@launch
+            }
             try { track.switchCamera(position = next) }
             catch (e: Exception) { Log.w(TAG, "switchCamera failed", e) }
+        }
+    }
+
+    private suspend fun enableCameraAndFlip(position: CameraPosition ) {
+        val r = room ?: return
+        cameraEnabled = true
+        // Mirror the existing setCameraEnabled(true) path: enable the capture first,
+        // then rotate the freshly created track to the requested positionor
+        try {
+            r.localParticipant.setCameraEnabled(true)
+            captureLocalVideoTrack(r)
+            localRenderer?.let { attachLocalRenderer(it) }
+        } catch (e: Exception) {
+            Log.w(TAG, "enableCameraAndFlip failed", e)
+            return
+        }
+        localVideoTrack?.let { track ->
+            try { track.switchCamera(position = position) }
+            catch (e: Exception) { Log.w(TAG, "enableCameraAndFlip rotate failed", e) }
         }
     }
 

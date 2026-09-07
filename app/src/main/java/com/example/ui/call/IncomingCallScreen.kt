@@ -6,6 +6,7 @@ import androidx.compose.animation.core.infiniteRepeatable
 import androidx.compose.animation.core.rememberInfiniteTransition
 import androidx.compose.animation.core.tween
 import androidx.compose.foundation.background
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -22,8 +23,7 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Call
 import androidx.compose.material.icons.filled.CallEnd
 import androidx.compose.material.icons.filled.Videocam
-import androidx.compose.material3.Button
-import androidx.compose.material3.ButtonDefaults
+
 import androidx.compose.material3.Icon
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
@@ -160,7 +160,8 @@ fun IncomingCallScreen(
                     Surface(
                         modifier = Modifier
                             .size(78.dp)
-                            .scale(1f),
+                            .scale(1f)
+                            .clickable(onClick = onReject),
                         color = Color(0xFFE53935),
                         shape = CircleShape,
                         shadowElevation = 8.dp
@@ -183,7 +184,9 @@ fun IncomingCallScreen(
                 // Accept
                 Column(horizontalAlignment = Alignment.CenterHorizontally) {
                     Surface(
-                        modifier = Modifier.size(78.dp),
+                        modifier = Modifier
+                            .size(78.dp)
+                            .clickable(onClick = onAccept),
                         color = Color(0xFF25D366),
                         shape = CircleShape,
                         shadowElevation = 8.dp
@@ -204,34 +207,6 @@ fun IncomingCallScreen(
                 }
             }
 
-            // Click zones (invisible buttons for accessibility)
-            Row(
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .padding(bottom = 24.dp),
-                horizontalArrangement = Arrangement.SpaceEvenly
-            ) {
-                Button(
-                    onClick = onReject,
-                    colors = ButtonDefaults.buttonColors(containerColor = Color(0xFFE53935)),
-                    modifier = Modifier
-                        .height(52.dp)
-                        .weight(1f)
-                        .padding(horizontal = 8.dp)
-                ) {
-                    Text("Rechazar", color = Color.White)
-                }
-                Button(
-                    onClick = onAccept,
-                    colors = ButtonDefaults.buttonColors(containerColor = Color(0xFF25D366)),
-                    modifier = Modifier
-                        .height(52.dp)
-                        .weight(1f)
-                        .padding(horizontal = 8.dp)
-                ) {
-                    Text("Aceptar", color = Color.White)
-                }
-            }
         }
     }
 }

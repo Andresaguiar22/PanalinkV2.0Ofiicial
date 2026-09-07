@@ -83,6 +83,11 @@ class CallManager private constructor(private val context: Context) : WebRTCClie
     val eglBaseContext: EglBase.Context by lazy { EglBase.create().eglBaseContext }
 
     private var durationJob: Job? = null
+    // Set when a call_end/rejected/busy arrives while an incoming call offer is
+    // still en-route (race condition): guards against starting the incoming
+    // foreground service (ringtone+vibration) after the caller already hung up.
+    @Volatile
+    private var incomingCallCancelled = false
     private var currentUserId: String? = null
     private var incomingSdpOffer: String? = null
 
@@ -204,6 +209,13 @@ class CallManager private constructor(private val context: Context) : WebRTCClie
                     return@collect
                 }
                 
+                // Race-guard: if a call_end/rejected/busy arrived while this offer
+                // was en route, do NOT start the incoming FGS (ringtone+vibration).
+                if (incomingCallCancelled) {
+                    incomingCallCancelled = false
+                    return@collect
+                }
+
                 try {
                     _opponentId.value = incoming.callerId
                     _opponentName.value = incoming.callerName
@@ -257,6 +269,8 @@ class CallManager private constructor(private val context: Context) : WebRTCClie
             client.callRejectedFlow.collect { data ->
                 Log.d(TAG, "Call rejected by peer — playing busy tone")
                 stopRingbackTone()
+                CallForegroundService.stopService(context)
+                incomingCallCancelled = true
                 playBusyTone()
                 updateCallState(CallState.BUSY)
                 delay(1500)
@@ -268,6 +282,8 @@ class CallManager private constructor(private val context: Context) : WebRTCClie
             client.callEndedFlow.collect { data ->
                 Log.d(TAG, "Call ended by peer")
                 stopRingbackTone()
+                CallForegroundService.stopService(context)
+                incomingCallCancelled = true
                 updateCallState(CallState.ENDED)
                 delay(1000)
                 resetCall()
@@ -278,6 +294,8 @@ class CallManager private constructor(private val context: Context) : WebRTCClie
             client.callBusyFlow.collect { data ->
                 Log.d(TAG, "Peer is busy — playing busy tone")
                 stopRingbackTone()
+                CallForegroundService.stopService(context)
+                incomingCallCancelled = true
                 playBusyTone()
                 updateCallState(CallState.BUSY)
                 delay(1500)
@@ -604,6 +622,26 @@ class CallManager private constructor(private val context: Context) : WebRTCClie
                             else -> {
                                 // IDLE/ENDED/FAILED — nothing to do.
                             }
+                        }
+                    }
+                }
+                override fun onParticipantLeft() {
+                    mainScope.launch {
+                        // The peer left the SFU without signaling `call_end` (app
+                        // killed, network dropped). Treat it as the call being over instead
+                        // of waiting for the Connection Guard timeout.
+
+                        if (_callState.value == CallState.CONNECTED ||
+                            _callState.value == CallState.RECONNECTING) {
+                            // Log BEFORE flipping the state so saveCallLog still sees
+                            // OUTGOING/CONNECTED and derives caller/receiver correctly.
+                            saveCallLog(com.example.data.model.CallLogStatus.COMPLETED)
+                            updateCallState(CallState.ENDED)
+                            // Skip signaling:the peer already left the room. The rest of the
+                            // teardown (FGS, WebRTC/LiveKit, audio focus, timer) lives in
+                            // resetCall()..
+                            delay(1000)
+                            resetCall()
                         }
                     }
                 }

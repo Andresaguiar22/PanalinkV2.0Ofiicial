@@ -29,7 +29,7 @@ object LiveKitTokenService {
         .readTimeout(15, TimeUnit.SECONDS)
         .build()
 
-    private data class CachedToken(val token: String, val url: String, val expiresAtMs: Long)
+    private data class CachedToken(val token: String, val url: String, val room: String, val expiresAtMs: Long)
     @Volatile private var cache: CachedToken? = null
     private const val SAFETY_MARGIN_MS = 5 * 60 * 1000L // re-fetch 5min before expiry
 
@@ -80,7 +80,7 @@ object LiveKitTokenService {
             val ttlSec = json.optInt("ttl", 3600).coerceIn(60, 86400)
             // Decode JWT exp to compute a precise cache window (falls back to ttl).
             val expMs = decodeExpMs(jwt) ?: (System.currentTimeMillis() + ttlSec * 1000)
-            cache = CachedToken(jwt, url, expMs)
+            cache = CachedToken(jwt, url, room, expMs)
             result = TokenResponse(jwt, url, json.optString("identity"), json.optString("room"))
         }
         return result
