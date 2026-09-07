@@ -142,10 +142,17 @@ fun VoiceRoomScreenV2(
                 modifier = Modifier.padding(top =  6.dp, bottom =  2.dp)
             )
 
+            VoiceRoomUpNextStrip(
+                seats = state.seats,
+                members = state.members,
+                modifier = Modifier.fillMaxWidth()
+            )
+
             Box(Modifier.weight(1f).fillMaxWidth()) {
                 VoiceRoomTikTokChat(
                     messages = state.messages,
                     memberById = memberById,
+                    onOpenProfile = onOpenProfile,
                     modifier = Modifier.fillMaxSize()
                 )
                 VoiceRoomFloatingEmojiOverlay(

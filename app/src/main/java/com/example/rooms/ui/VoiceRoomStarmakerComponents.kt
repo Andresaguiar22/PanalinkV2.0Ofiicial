@@ -406,6 +406,7 @@ private fun VoiceRoomSeat?.isMuteBadgeVisible(): Boolean = this != null && this.
 fun VoiceRoomTikTokChat(
     messages: List<VoiceRoomMessage>,
     memberById: Map<String, VoiceRoomMember>,
+    onOpenProfile: ((String) -> Unit)? = null,
     modifier: Modifier = Modifier
 ) {
     val listState = rememberLazyListState()
@@ -432,7 +433,8 @@ fun VoiceRoomTikTokChat(
             } else {
                 VoiceRoomTikTokMessage(
                     message = message,
-                    avatarUrl = memberById[message.senderId]?.avatarUrl
+                    avatarUrl = memberById[message.senderId]?.avatarUrl,
+                    onOpenProfile = onOpenProfile
                 )
             }
         }
@@ -443,9 +445,12 @@ fun VoiceRoomTikTokChat(
 private fun VoiceRoomTikTokMessage(
     message: VoiceRoomMessage,
     avatarUrl: String?,
+    onOpenProfile: ((String) -> Unit)? = null
 ) {
     Row(
-        modifier = Modifier.fillMaxWidth(),
+        modifier = Modifier
+            .fillMaxWidth()
+            .then(if (onOpenProfile != null) Modifier.clip(RoundedCornerShape(12.dp)).clickable { onOpenProfile(message.senderId) } else Modifier),
         verticalAlignment = Alignment.Top
     ) {
         Box(
@@ -551,6 +556,53 @@ data class VoiceRoomFloatingEmoji(
     val emoji:String,
     val xFraction: Float = 0.5f
 )
+@Composable
+fun VoiceRoomUpNextStrip(
+    seats: List<VoiceRoomSeat>,
+    members: List<VoiceRoomMember>,
+    modifier: Modifier = Modifier
+) {
+    val occupiedSeats = seats.filter{ it.isOccupied }
+    val joinedAtByUserId = members.associate{ it.userId to it.joinedAt }
+    val queue = occupiedSeats.sortedBy { joinedAtByUserId[it.userId] ?: "" }
+    val names = queue.mapNotNull { it.displayName ?: it.userId?.take(6) ?: "" }
+    if (names.isEmpty()) return
+    Row(
+        modifier = modifier
+            .horizontalScroll(rememberScrollState())
+            .padding(horizontal =  12.dp),
+        verticalAlignment = Alignment.CenterVertically,
+        horizontalArrangement = Arrangement.spacedBy(4.dp)
+    ) {
+        Text("🎤 En cola:", color = VoiceRoomPalette.Gold, fontSize =  10.sp, fontWeight = FontWeight.Bold)
+        names.take(4).forEach { name ->
+            Surface(
+                color = Color(0x332A1812),
+                shape = RoundedCornerShape(8.dp)
+            ) {
+                Text(
+                    " $name ",
+                    color = Color(0xFFE8DCD0),
+                    fontSize =  10.sp,
+                    maxLines =  1,
+                    overflow = TextOverflow.Ellipsis
+                )
+            }
+        }
+        if (names.size >  4) {
+            Surface(
+                color = Color(0x33FFFFFF),
+                shape = RoundedCornerShape(8.dp)
+            ) {
+                Text(
+                    "+${names.size - 4}",
+                    color = Color.Gray,
+                    fontSize =  10.sp
+                )
+            }
+        }
+    }
+}
 
 @Composable
 fun VoiceRoomInputBar(
