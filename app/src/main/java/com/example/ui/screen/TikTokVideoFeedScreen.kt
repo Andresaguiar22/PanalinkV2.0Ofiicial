@@ -978,7 +978,8 @@ fun TikTokPageItem(
         // BUGFIX: al perder red el sub-guard (isOnline) reinicia esté LaunchedEffect
         // con resolvedUrl ya resuelto; si el slot ya está en A no re-resolvemos world
         val prev = activeSlot
-        if (prev != null && prev != ReelDualPlayerManager.Slot.B) return@LaunchedEffect
+        val hasLivePlayer = exoPlayerRef != null
+        if (!hasLivePlayer && prev != null && prev != ReelDualPlayerManager.Slot.B) return@LaunchedEffect
         val slot = dualManager.acquireOrReuse(
             state.id,
             url,

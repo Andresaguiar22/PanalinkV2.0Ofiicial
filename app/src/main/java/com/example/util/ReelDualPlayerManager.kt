@@ -63,6 +63,8 @@ class ReelDualPlayerManager(private val context: Context) {
             player.playWhenReady = false
             player.prepare()
             if (slot == Slot.A) slotAAssignedId = id else slotBAssignedId = id
+        } else {
+            player.volume = volume
         }
         return player
     }
@@ -112,23 +114,28 @@ class ReelDualPlayerManager(private val context: Context) {
      * already lives). Active pages play; preload pages stay prepped but
      * paused with their first frame already rendered into their PlayerView.
      */
+    private val pendingPreloads = java.util.ArrayDeque<Pair<String, String>>()
+
     fun acquireOrReuse(id: String, url: String, active: Boolean, volume: Float): Slot? {
         val existing = slotFor(id)
         if (existing != null) {
             if (active) activate(existing, volume)
             return existing
         }
-        // Un preload jamás puede re-preparar el slot de la reproducción en curso:
-        // setMediaItem+prepare sobre el player visible la corta a negro (black
-        // screen tras scroll). Siempre que haya un slot libre lo usamos; si no
-        // hay ninguno (ambos slots ocupados) el preload se descarta: la página
-        // lo volverá a adquirir al volverse activa (y entonces sí, sobre su slot.
         val freeSlot = freeSlot()
         if (!active && freeSlot == null) {
+            if (pendingPreloads.none { it.first == id }) {
+                pendingPreloads.addLast(id to url)
+            }
             return null
         }
         val slot = if (active) {
-            Slot.A
+            val candidate = when (activeSlot) {
+                Slot.A -> Slot.B
+                Slot.B -> Slot.A
+                null -> freeSlot ?: Slot.A
+            }
+            candidate
         } else {
             freeSlot ?: (activeSlot ?: Slot.B)
         }
@@ -151,6 +158,11 @@ class ReelDualPlayerManager(private val context: Context) {
         player?.stop()
         player?.release()
         if (slot == Slot.A) { slotAPlayer = null; slotAAssignedId = null } else { slotBPlayer = null; slotBAssignedId = null }
+        
+        val pending = pendingPreloads.pollFirst() ?: return
+        val (pid, purl) = pending
+        acquire(slot, pid, purl, 1f)
+        pause(slot)
     }
 
     private fun build(): ExoPlayer {
