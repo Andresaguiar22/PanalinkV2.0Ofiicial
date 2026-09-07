@@ -75,7 +75,7 @@ fi
 echo "==> 5/5  Lanzando OpenHands... (dame la tarea)"
 cd "$(git rev-parse --show-toplevel 2>/dev/null || pwd)"
 echo "     LLM_MODEL=${LLM_MODEL}"
-echo "     LLM_BASE_URL=${LLM_BASE_URL}"
+echo "     LLM_BASE_URL=${LLM_BASE_URL:-<nativo>}"
 echo
 
 export LLM_API_KEY="$LLM_API_KEY"
