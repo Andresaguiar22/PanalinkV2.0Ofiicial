@@ -3,6 +3,8 @@ package com.example
 import com.example.data.database.MessageEntity
 import com.example.data.database.MessageDao
 import com.example.data.model.Message
+import com.example.service.NotificationDeduplicator
+import com.example.ui.components.chat.state.normalizeVisibleMessageKey
 import org.junit.Assert.*
 import org.junit.Test
 import org.json.JSONObject
@@ -64,6 +66,22 @@ class ExampleUnitTest {
         override suspend fun recomputeUnreadCountForChat(chatId: String, myUserId: String) = throw NotImplementedError()
         override suspend fun hasChat(chatId: String) = throw NotImplementedError()
         override suspend fun insertChatPlaceholder(chat: com.example.data.database.ChatEntity) = throw NotImplementedError()
+    }
+
+    @Test
+    fun testVisibleMessageKeyNormalizationStripsIndexSuffix() {
+        assertEquals("msg_abc", normalizeVisibleMessageKey("msg_abc_0"))
+        assertEquals("msg-uuid-123", normalizeVisibleMessageKey("msg-uuid-123"))
+        assertNull(normalizeVisibleMessageKey("temp_123"))
+        assertNull(normalizeVisibleMessageKey("typing_indicator"))
+    }
+
+    @Test
+    fun testNotificationDeduplicatorSuppressesSameMessageAcrossUuidAndId() {
+        NotificationDeduplicator.clearForTest()
+        assertTrue(NotificationDeduplicator.shouldNotifyMessage("client-1", "msg-1"))
+        assertFalse(NotificationDeduplicator.shouldNotifyMessage("client-1", "msg-2"))
+        assertFalse(NotificationDeduplicator.shouldNotifyMessage("client-2", "msg-1"))
     }
 
     @Test

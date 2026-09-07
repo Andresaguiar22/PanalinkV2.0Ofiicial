@@ -561,9 +561,11 @@ class MessagesRepository private constructor() {
                 return@withContext Result.success(emptyList())
             }
 
-            val processedMessages = remoteMessages.map { msg ->
+            val decryptedRemoteMessages = remoteMessages.map { msg ->
                 com.example.util.CryptoManager.decryptMessageIfNeeded(msg)
-            }.filter { msg ->
+            }
+            val newestRemoteUpdatedAt = decryptedRemoteMessages.mapNotNull { it.updatedAt }.maxOrNull()
+            val processedMessages = decryptedRemoteMessages.filter { msg ->
                 com.example.util.MessageFilter.shouldKeepMessage(
                     messageId = msg.id,
                     messageClientUuid = msg.clientMessageUuid,
@@ -573,16 +575,15 @@ class MessagesRepository private constructor() {
                 )
             }
 
+            if (!newestRemoteUpdatedAt.isNullOrEmpty()) {
+                prefs.edit().putString(prefKey, newestRemoteUpdatedAt).apply()
+                Log.d(TAG, "syncUpdatedMessages: Updated last_sync_updated_at cursor for chat $chatId to $newestRemoteUpdatedAt")
+            }
+
             if (processedMessages.isNotEmpty()) {
                 val entities = processedMessages.map { MessageEntity.fromMessage(it) }
                 entities.forEach { entity ->
                     messageDao.mergeAndSaveMessage(entity)
-                }
-
-                val newestUpdatedAt = processedMessages.mapNotNull { it.updatedAt }.maxOrNull()
-                if (!newestUpdatedAt.isNullOrEmpty()) {
-                    prefs.edit().putString(prefKey, newestUpdatedAt).apply()
-                    Log.d(TAG, "syncUpdatedMessages: Updated last_sync_updated_at cursor for chat $chatId to $newestUpdatedAt")
                 }
             }
 
@@ -2106,9 +2107,11 @@ suspend fun insertLocalMessage(msg: Message) = withContext(Dispatchers.IO) {
             } else {
                 messageDao.markChatMessagesAsReadThrough(chatId, currentUid, watermarkCreatedAt, nowStr)
             }
-            // Clear the unread badge column immediately so the chat list reflects
-            // "read" as soon as the user opens the chat — not only on next sync.
-            messageDao.resetUnreadCountForChat(chatId)
+            // Recompute the unread badge from the actual message state instead of
+            // zeroing it globally. A progressive read watermark should only clear
+            // the messages it actually marks as seen; the chat badge must reflect
+            // the remaining unread count on the server side.
+            messageDao.recomputeUnreadCountForChat(chatId, currentUid)
         } catch (e: Exception) {
             Log.e(TAG, "Error updating local messages as read: ${e.localizedMessage}", e)
         }
@@ -2176,9 +2179,7 @@ suspend fun insertLocalMessage(msg: Message) = withContext(Dispatchers.IO) {
         val nowStr = SupabaseClient.getNowIsoString()
         try {
             messageDao.markChatMessagesAsRead(chatId, currentUid, nowStr)
-            // Clear the unread badge column immediately so the chat list reflects
-            // "read" as soon as the user opens the chat — not only on next sync.
-            messageDao.resetUnreadCountForChat(chatId)
+            messageDao.recomputeUnreadCountForChat(chatId, currentUid)
             Result.success(true)
         } catch (e: Exception) {
             Log.e(TAG, "Error updating local messages as read: ${e.localizedMessage}", e)

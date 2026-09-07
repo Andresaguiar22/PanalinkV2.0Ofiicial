@@ -7,6 +7,17 @@ import kotlinx.coroutines.flow.collectLatest
 import kotlinx.coroutines.flow.distinctUntilChanged
 import kotlinx.coroutines.flow.map
 
+fun normalizeVisibleMessageKey(rawKey: Any?): String? {
+    val key = rawKey?.toString()?.trim().orEmpty()
+    if (key.isEmpty() || key == "typing_indicator" || key.contains("date_")) return null
+    if (key.startsWith("temp_")) return null
+    if (key.matches(Regex(".*_\\d+$"))) {
+        val trimmed = key.substringBeforeLast("_")
+        if (trimmed.isNotBlank() && !trimmed.startsWith("temp_")) return trimmed
+    }
+    return key
+}
+
 @Composable
 fun MessageReadTracker(
     lazyListState: LazyListState,
@@ -22,11 +33,7 @@ fun MessageReadTracker(
             if (visibleItems.isEmpty()) emptyList<String>()
             else {
                 visibleItems.mapNotNull { item ->
-                    // The item.key is the message.id (or clientMessageUuid)
-                    // We need to ensure we only include actual message IDs
-                    val key = item.key.toString()
-                    if (key.startsWith("temp_") || key == "typing_indicator" || key.contains("date_")) null
-                    else key
+                    normalizeVisibleMessageKey(item.key)
                 }
             }
         }
