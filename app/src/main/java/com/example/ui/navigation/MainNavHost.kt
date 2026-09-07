@@ -346,7 +346,10 @@ fun MainNavHost(
             val roomId = backStackEntry.arguments?.getString("roomId")
             com.example.rooms.ui.VoiceRoomScreen(
                 roomId = roomId,
-                onBack = { mainNavController.popBackStack() }
+                onBack = { mainNavController.popBackStack() },
+                onOpenProfile = { userId ->
+                    mainNavController.navigate("userProfile/$userId") { launchSingleTop = true }
+                }
             )
         }
 

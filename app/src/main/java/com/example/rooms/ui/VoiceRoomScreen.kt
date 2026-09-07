@@ -9,8 +9,18 @@ import androidx.compose.ui.Modifier
 import androidx.lifecycle.viewmodel.compose.viewModel
 
 @Composable
-fun VoiceRoomScreen(roomId:String?,onBack:()->Unit,viewModel:VoiceRoomViewModel=viewModel()) {
-    if (roomId.isNullOrBlank()) RoomSelectionRequired(onBack) else VoiceRoomScreenV2(roomId=roomId,onBack=onBack,viewModel=viewModel)
+fun VoiceRoomScreen(
+    roomId: String?,
+    onBack: () -> Unit,
+    viewModel: VoiceRoomViewModel = viewModel(),
+    onOpenProfile: ((String) -> Unit)? = null
+) {
+    if (roomId.isNullOrBlank()) RoomSelectionRequired(onBack) else VoiceRoomScreenV2(
+        roomId = roomId,
+        onBack = onBack,
+        viewModel = viewModel,
+        onOpenProfile = onOpenProfile
+    )
 }
 
 @Composable
