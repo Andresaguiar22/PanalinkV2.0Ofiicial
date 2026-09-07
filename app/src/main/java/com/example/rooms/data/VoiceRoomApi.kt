@@ -34,6 +34,10 @@ data class ModerateMuteRequest(@Json(name = "p_room_id") val roomId: String,@Jso
 data class RequestSeatRequest(@Json(name = "p_room_id") val roomId: String,@Json(name = "p_requested_seat") val seatIndex: Int?)
 @JsonClass(generateAdapter = true)
 data class ResolveSeatRequest(@Json(name = "p_request_id") val requestId: String,@Json(name = "p_approve") val approve: Boolean,@Json(name = "p_seat_index") val seatIndex: Int?)
+@JsonClass(generateAdapter = true)
+data class UpdateRoomSettingsRequest(@Json(name = "p_room_id") val roomId: String,@Json(name = "p_name") val name: String? = null,@Json(name = "p_description") val description: String? = null,@Json(name = "p_cover_url") val coverUrl: String? = null,@Json(name = "p_category") val category: String? = null,@Json(name = "p_visibility") val visibility: String? = null,@Json(name = "p_is_locked") val isLocked: Boolean? = null)
+@JsonClass(generateAdapter = true)
+data class VoiceRoomBanDto(val userId: String,@Json(name = "display_name") val displayName: String,@Json(name = "avatar_url") val avatarUrl: String?,val reason: String?,@Json(name = "banned_at") val bannedAt: String?)
 
 interface VoiceRoomApi {
     @GET("rest/v1/voice_rooms") suspend fun listLiveRooms(@Header("apikey") apiKey:String,@Header("Authorization") auth:String,@Query("status") status:String="eq.live",@Query("order") order:String="created_at.desc",@Query("limit") limit:Int=100):Response<List<VoiceRoomDto>>
@@ -50,6 +54,10 @@ interface VoiceRoomApi {
     @POST("/rest/v1/rpc/moderate_voice_room_kick") suspend fun moderateKick(@Header("apikey") apiKey:String,@Header("Authorization") auth:String,@Body body:Map<String,String>):Response<Unit>
     @POST("/rest/v1/rpc/moderate_voice_room_ban") suspend fun moderateBan(@Header("apikey") apiKey:String,@Header("Authorization") auth:String,@Body body:Map<String,String?>):Response<Unit>
     @POST("/rest/v1/rpc/invite_voice_room_user") suspend fun inviteUser(@Header("apikey") apiKey:String,@Header("Authorization") auth:String,@Body body:Map<String,String>):Response<Unit>
+    @POST("/rest/v1/rpc/update_voice_room_settings") suspend fun updateRoomSettings(@Header("apikey") apiKey:String,@Header("Authorization") auth:String,@Body body:UpdateRoomSettingsRequest):Response<List<VoiceRoomDto>>
+    @POST("/rest/v1/rpc/delete_voice_room") suspend fun deleteRoom(@Header("apikey") apiKey:String,@Header("Authorization") auth:String,@Body body:Map<String,String>):Response<Unit>
+    @POST("/rest/v1/rpc/get_voice_room_banned") suspend fun getBannedUsers(@Header("apikey") apiKey:String,@Header("Authorization") auth:String,@Body body:Map<String,String>):Response<List<VoiceRoomBanDto>>
+    @POST("/rest/v1/rpc/remove_voice_room_ban") suspend fun removeBan(@Header("apikey") apiKey:String,@Header("Authorization") auth:String,@Body body:Map<String,String>):Response<Unit>
     @GET("rest/v1/public_profiles") suspend fun getPublicProfiles(@Header("apikey") apiKey:String,@Header("Authorization") auth:String,@Query("id") ids:String):Response<List<PublicProfileDto>>
     @GET("rest/v1/voice_room_members") suspend fun getActiveMembers(@Header("apikey") apiKey:String,@Header("Authorization") auth:String,@Query("room_id") roomIdFilter:String,@Query("left_at") leftAt:String="is.null"):Response<List<VoiceRoomMemberDto>>
     @GET("rest/v1/voice_room_members") suspend fun getMembers(@Header("apikey") apiKey:String,@Header("Authorization") auth:String,@Query("room_id") roomId:String,@Query("left_at") leftAt:String="is.null"):Response<List<VoiceRoomMemberDto>>

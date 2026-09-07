@@ -7,6 +7,8 @@ import com.example.rooms.data.VoiceRoomMessageDto
 import com.example.rooms.data.VoiceRoomSeatDto
 import com.example.rooms.data.VoiceRoomSeatRequestDto
 import com.example.rooms.data.PublicProfileDto
+import com.example.rooms.data.UpdateRoomSettingsRequest
+import com.example.rooms.data.VoiceRoomBanDto
 import com.example.rooms.model.VoiceRoom
 import com.example.rooms.model.VoiceRoomMember
 import com.example.rooms.model.VoiceRoomMessage
@@ -38,6 +40,10 @@ class VoiceRoomRepository private constructor() {
     suspend fun kick(roomId:String,userId:String):Result<Unit> = runCatching{val res=api.moderateKick(apiKey,auth,mapOf("p_room_id" to roomId,"p_target_user" to userId));if(!res.isSuccessful)error("kick HTTP ${res.code()}: ${res.errorBody()?.string()}")}
     suspend fun ban(roomId:String,userId:String,reason:String?):Result<Unit> = runCatching{val res=api.moderateBan(apiKey,auth,mapOf("p_room_id" to roomId,"p_target_user" to userId,"p_reason" to reason));if(!res.isSuccessful)error("ban HTTP ${res.code()}: ${res.errorBody()?.string()}")}
     suspend fun invite(roomId:String,userId:String):Result<Unit> = runCatching{val res=api.inviteUser(apiKey,auth,mapOf("p_room_id" to roomId,"p_user_id" to userId));if(!res.isSuccessful)error("invite HTTP ${res.code()}")}
+    suspend fun updateRoomSettings(roomId:String,name:String?,description:String?,coverUrl:String?,category:String?,visibility:String?,isLocked:Boolean?):Result<VoiceRoom> = runCatching{name?.let{require(it.trim().length in 2..80){"El nombre debe tener entre 2 y 80 caracteres"}};description?.let{require(it.length<=280){"La descripción no puede superar 280 caracteres"}};if(visibility!=null)require(visibility in setOf("public","private")){"Visibilidad inválida"};val res=Resilience.retry{api.updateRoomSettings(apiKey,auth,UpdateRoomSettingsRequest(roomId,name?.trim(),description?.trim(),coverUrl?.trim()?.ifEmpty{null},category,visibility,isLocked))};if(!res.isSuccessful)error("updateRoomSettings HTTP ${res.code()}: ${res.errorBody()?.string()}");res.body()?.firstOrNull()?.toModel()?:error("No se pudo actualizar la sala")}
+    suspend fun deleteRoom(roomId:String):Result<Unit> = runCatching{val res=Resilience.retry{api.deleteRoom(apiKey,auth,mapOf("p_room_id" to roomId))};if(!res.isSuccessful)error("deleteRoom HTTP ${res.code()}: ${res.errorBody()?.string()}")}
+    suspend fun getBannedUsers(roomId:String):Result<List<VoiceRoomBanDto>> = runCatching{val res=Resilience.retry{api.getBannedUsers(apiKey,auth,mapOf("p_room_id" to roomId))};if(!res.isSuccessful)error("getBannedUsers HTTP ${res.code()}");res.body().orEmpty()}
+    suspend fun removeBan(roomId:String,userId:String):Result<Unit> = runCatching{val res=Resilience.retry{api.removeBan(apiKey,auth,mapOf("p_room_id" to roomId,"p_user_id" to userId))};if(!res.isSuccessful)error("removeBan HTTP ${res.code()}")}
     suspend fun getPublicProfiles(userIds:List<String>):Result<Map<String,PublicProfileDto>> = runCatching{val ids=userIds.filter{it.isNotBlank()}.distinct();if(ids.isEmpty())return@runCatching emptyMap();val res=api.getPublicProfiles(apiKey,auth,"in.(${ids.joinToString(",")})");if(!res.isSuccessful)error("getPublicProfiles HTTP ${res.code()}");res.body().orEmpty().associateBy{it.id}}
     suspend fun getSeats(roomId:String):Result<List<VoiceRoomSeatDto>> = runCatching{val res=api.getSeats(apiKey,auth,"eq.$roomId");if(!res.isSuccessful)error("getSeats HTTP ${res.code()}");res.body().orEmpty()}
     suspend fun getMembers(roomId:String):Result<List<VoiceRoomMember>> = runCatching{val res=api.getMembers(apiKey,auth,"eq.$roomId");if(!res.isSuccessful)error("getMembers HTTP ${res.code()}");res.body().orEmpty().map{VoiceRoomMember(it.id,it.roomId,it.userId,it.role,it.joinedAt)} }

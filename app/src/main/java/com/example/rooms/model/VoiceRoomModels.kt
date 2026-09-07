@@ -1,5 +1,7 @@
 package com.example.rooms.model
 
+import com.example.rooms.data.VoiceRoomBanDto
+
 /** Modelos del modulo Salas de Voz. Independientes del chat privado. */
 data class VoiceRoom(
     val id: String,
@@ -66,7 +68,11 @@ data class VoiceRoomUiState(
     val myRole: String = "listener",
     val isJoining: Boolean = true,
     val isMicEnabled: Boolean = false,
-    val error: String? = null
+    val error: String? = null,
+    val showSettings: Boolean = false,
+    val bannedUsers: List<VoiceRoomBanDto> = emptyList(),
+    val isSettingsSaving: Boolean = false,
+    val settingsMessage: String? = null
 ) {
     val mySeat: VoiceRoomSeat? get() = seats.firstOrNull { it.userId == myUserId }
     val isSeated: Boolean get() = mySeat != null

@@ -75,6 +75,7 @@ fun VoiceRoomScreenV2(
                 showRequestsBadge = state.isAdmin && state.seatRequests.any { it.status == "pending" },
                 onOpenRequests = { showRequests = true },
                 onOpenMembers = { showMembers = true },
+                onOpenSettings = if (state.isAdmin) { { viewModel.openSettings() } } else null,
                 onClose = { viewModel.leaveRoom(); onBack() }
             )
             if (state.isJoining) LinearProgressIndicator(Modifier.fillMaxWidth(), color = VoiceRoomPalette.Accent)
@@ -203,6 +204,25 @@ fun VoiceRoomScreenV2(
             members = state.members,
             myUserId = state.myUserId,
             onDismiss = { showMembers = false },
+            onOpenProfile = onOpenProfile
+        )
+    }
+    if (state.showSettings) {
+        VoiceRoomSettingsSheet(
+            room = state.room,
+            members = state.members,
+            myUserId = state.myUserId,
+            isHost = state.isHost,
+            isSaving = state.isSettingsSaving,
+            message = state.settingsMessage,
+            bannedUsers = state.bannedUsers,
+            onClose = { viewModel.closeSettings() },
+            onSaveSettings = { name, description, coverUrl, category, visibility, isLocked -> viewModel.updateRoomSettings(name, description, coverUrl, category, visibility, isLocked) },
+            onDeleteRoom = { viewModel.deleteRoom { onBack() } },
+            onSetAdmin = { userId, makeAdmin -> viewModel.setAdmin(userId, makeAdmin) },
+            onKick = { viewModel.kickUser(it) },
+            onBan = { viewModel.banUser(it) },
+            onRemoveBan = { viewModel.removeBan(it) },
             onOpenProfile = onOpenProfile
         )
     }

@@ -9,6 +9,7 @@ import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.horizontalScroll
+import androidx.compose.foundation.verticalScroll
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
@@ -18,6 +19,8 @@ import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Chair
+import androidx.compose.material.icons.filled.Check
+import androidx.compose.material.icons.filled.ChevronRight
 import androidx.compose.material.icons.filled.Close
 import androidx.compose.material.icons.filled.Group
 import androidx.compose.material.icons.filled.Lock
@@ -41,6 +44,7 @@ import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import coil.compose.AsyncImage
+import com.example.rooms.data.VoiceRoomBanDto
 import com.example.rooms.model.VoiceRoom
 import com.example.rooms.model.VoiceRoomMember
 import com.example.rooms.model.VoiceRoomMessage
@@ -155,6 +159,7 @@ fun VoiceRoomHeader(
     showRequestsBadge: Boolean,
     onOpenRequests: () -> Unit,
     onOpenMembers: () -> Unit,
+    onOpenSettings: (() -> Unit)? = null,
     onClose: () -> Unit,
     modifier: Modifier = Modifier
 ) {
@@ -230,6 +235,11 @@ fun VoiceRoomHeader(
                 BadgedBox(badge = { Badge { Text("!") } }) {
                     Icon(Icons.Default.People, contentDescription = "Solicitudes", tint = VoiceRoomPalette.Accent)
                 }
+            }
+        }
+        if (onOpenSettings != null) {
+            IconButton(onClick = onOpenSettings, modifier = Modifier.size(38.dp)) {
+                Icon(Icons.Default.Settings, contentDescription = "Configuración de la sala", tint = VoiceRoomPalette.Accent)
             }
         }
         IconButton(onClick = onClose, modifier = Modifier.size(38.dp)) {
@@ -721,4 +731,283 @@ private fun voiceRoomRoleLabel(role: String): String = when (role) {
     "admin" ->"⚙ Admin"
     "speaker" ->"🎤 Hablando"
     else ->"👂 Oyente"
+}
+
+@OptIn(ExperimentalMaterial3Api::class)
+@Composable
+fun VoiceRoomSettingsSheet(
+    room: VoiceRoom?,
+    members: List<VoiceRoomMember>,
+    myUserId: String,
+    isHost: Boolean,
+    isSaving: Boolean,
+    message: String? = null,
+    bannedUsers: List<VoiceRoomBanDto> = emptyList(),
+    onClose: () -> Unit,
+    onSaveSettings: (String?, String?, String?, String?, String?, Boolean?) -> Unit,
+    onDeleteRoom: () -> Unit,
+    onSetAdmin: (String, Boolean) -> Unit,
+    onKick: (String) -> Unit,
+    onBan: (String) -> Unit,
+    onRemoveBan: (String) -> Unit,
+    onOpenProfile: ((String) -> Unit)? = null
+) {
+    var name by remember { mutableStateOf(room?.name ?: "") }
+    var description by remember { mutableStateOf(room?.description ?: "") }
+    var coverUrl by remember { mutableStateOf(room?.coverUrl ?: "") }
+    var category by remember { mutableStateOf(room?.category ?: "general") }
+    var visibility by remember { mutableStateOf(if (room?.isPrivate == true) "private" else "public") }
+    var isLocked by remember { mutableStateOf(room?.isLocked ?: false) }
+    var editingField by remember { mutableStateOf<String?>(null) }
+    var showCategoryPicker by remember { mutableStateOf(false) }
+    var showDeleteConfirm by remember { mutableStateOf(false) }
+    var showMembersTab by remember { mutableStateOf(false) }
+    var showBannedTab by remember { mutableStateOf(false) }
+
+    val categories = listOf("general" to "General", "chat" to "Charlar", "meeting" to "Reunión", "work" to "Trabajo", "dating" to "Enamorados", "friends" to "Conocer gente", "music" to "Música", "gaming" to "Gaming")
+    val categoryLabel = categories.firstOrNull { it.first == category }?.second ?: "General"
+
+    ModalBottomSheet(
+        onDismissRequest = onClose,
+        containerColor = VoiceRoomPalette.BgDeep,
+        contentColor = Color.White
+    ) {
+ Column(
+            Modifier.fillMaxWidth().padding(horizontal =  16.dp, vertical =  8.dp)
+        ) {
+ Row(verticalAlignment = Alignment.CenterVertically) {
+                Icon(Icons.Default.Settings, null, tint = VoiceRoomPalette.Accent, modifier = Modifier.size(22.dp))
+                Spacer(Modifier.width(8.dp))
+                Text("Configuración de la sala", color = Color.White, fontSize =  18.sp, fontWeight = FontWeight.Bold)
+                Spacer(Modifier.weight(1f))
+                IconButton(onClick = onClose) { Icon(Icons.Default.Close, "Cerrar", tint = Color.White) }
+            }
+            Spacer(Modifier.height(6.dp))
+            message?.let {
+ Surface(color = VoiceRoomPalette.Accent.copy(alpha =  0.12f), shape = RoundedCornerShape(12.dp)) {
+ Text(it, color = VoiceRoomPalette.Accent, fontSize =  12.sp, modifier = Modifier.padding(horizontal =  10.dp, vertical =  6.dp))
+                }
+            }
+            Spacer(Modifier.height(4.dp))
+
+            if (!isHost) {
+ Text("Solo el anfitrión puede editar la configuración de la sala.", color = Color(0xFFB8A99A), fontSize =  12.sp, modifier = Modifier.padding(vertical =  6.dp))
+            }
+
+            SettingsSectionTitle("Perfil de la sala", "✏️")
+            SettingsCard {
+ SettingsRow("Nombre", name.ifBlank { "Sin nombre" }) { editingField = "name" }
+                SettingsDivider()
+ SettingsRow("Anuncio", description.ifBlank { "Sin anuncio" }) { editingField = "description" }
+                SettingsDivider()
+ SettingsRow("Portada", coverUrl.ifBlank { "Sin portada" }) { editingField = "cover" }
+                SettingsDivider()
+ SettingsRow("Categoría", categoryLabel) { editingField = null; showCategoryPicker = true }
+            }
+
+            SettingsSectionTitle("Privacidad", "🔒")
+            SettingsCard {
+ SettingsRow("Sala pública", "") { visibility = "public" }
+                SettingsDivider()
+ SettingsRow("Sala privada (solo invitados)", "") { visibility = "private" }
+                SettingsDivider()
+ SettingsToggleRow("Bloquear sala", "Nadie nuevo puede entrar", checked = isLocked) { isLocked = it }
+            }
+
+            if (editingField != null) {
+                SettingsCard {
+ Column(Modifier.padding(vertical =  6.dp)) {
+ OutlinedTextField(
+                            value = when (editingField) { "name" -> name; "description" -> description; else -> coverUrl },
+                            onValueChange = { v -> when (editingField) { "name" -> name = v.take(80); "description" -> description = v.take(280); else -> coverUrl = v.take(500) } },
+                            modifier = Modifier.fillMaxWidth(),
+                            singleLine = editingField != "description",
+                            minLines = if (editingField == "description") 2 else  1,
+                            maxLines = if (editingField == "description") 4 else 1,
+                            placeholder = { Text(if (editingField == "cover") "https://..." else if (editingField == "description") "Describe tu sala" else "Nombre de la sala") },
+                            colors = OutlinedTextFieldDefaults.colors(focusedBorderColor = VoiceRoomPalette.Accent, unfocusedBorderColor = Color(0xFF3E3E44), focusedTextColor = Color.White, unfocusedTextColor = Color.White)
+                        )
+ Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.End) {
+ TextButton(onClick = { editingField = null }) { Text("Listo", color = VoiceRoomPalette.Accent) }
+                        }
+                    }
+                }
+            }
+
+            Button(
+                onClick = { onSaveSettings(name,description,coverUrl.ifBlank { null },category,visibility,isLocked) },
+                enabled = !isSaving,
+                modifier = Modifier.fillMaxWidth(),
+                colors = ButtonDefaults.buttonColors(containerColor = VoiceRoomPalette.Accent, contentColor = Color(0xFF1A120E)),
+                shape = RoundedCornerShape(16.dp)
+            ) { Text(if (isSaving) "Guardando..." else "Guardar cambios", fontWeight = FontWeight.Bold, fontSize =  15.sp) }
+            Spacer(Modifier.height(12.dp))
+
+            SettingsSectionTitle("Miembros y administración", "👥")
+            SettingsCard {
+ SettingsRow("Miembros (${members.size})", "") { showMembersTab = true }
+                SettingsDivider()
+ SettingsRow("Baneados (${bannedUsers.size})", "") { showBannedTab = true }
+            }
+
+            if (isHost) {
+                Spacer(Modifier.height(10.dp))
+                SettingsSectionTitle("Zona peligrosa", "⚠️")
+                SettingsCard {
+ SettingsRow("Borrar sala", "Esta acción es permanente", danger = true) { showDeleteConfirm = true }
+                }
+            }
+            Spacer(Modifier.height(16.dp))
+        }
+    }
+
+    if (showCategoryPicker) {
+        AlertDialog(
+            onDismissRequest = { showCategoryPicker = false },
+            title = { Text("Categoría", color = Color.White) },
+            text = { Column { categories.forEach { (key,label) -> Row(Modifier.fillMaxWidth().clickable { category = key; showCategoryPicker = false }.padding(vertical =  10.dp), verticalAlignment = Alignment.CenterVertically) { if (category == key) Icon(Icons.Default.Check, null, tint = VoiceRoomPalette.Accent, modifier = Modifier.size(18.dp)) else Spacer(Modifier.size(18.dp)); Spacer(Modifier.width(10.dp)); Text(label, color = Color.White, fontSize =  15.sp) } } } },
+            confirmButton = { TextButton(onClick = { showCategoryPicker = false }) { Text("Cerrar", color = VoiceRoomPalette.Accent) } },
+            containerColor = VoiceRoomPalette.BgDeep
+        )
+    }
+
+    if (showDeleteConfirm) {
+        AlertDialog(
+            onDismissRequest = { showDeleteConfirm = false },
+            title = { Text("Eliminar sala", color = Color.White) },
+            text = { Text("¿Seguro que quieres borrar esta sala para siempre? Se eliminarán sillones, mensajes, solicitudes y miembros.", color = Color(0xFFD8CDC4)) },
+            confirmButton = { TextButton(onClick = { showDeleteConfirm = false; onDeleteRoom() }) { Text("Eliminar", color = Color(0xFFFF6E6E) ) } },
+            dismissButton = { TextButton(onClick = { showDeleteConfirm = false }) { Text("Cancelar", color = Color.White) } },
+            containerColor = VoiceRoomPalette.BgDeep
+        )
+    }
+
+if (showMembersTab) {
+    AlertDialog(
+        onDismissRequest = { showMembersTab = false },
+        title = { Text("Miembros de la sala", color = Color.White) },
+        text = {
+            Column(Modifier.verticalScroll(rememberScrollState()).heightIn(max = 420.dp)) {
+                members.forEach { member ->
+                    Row(Modifier.fillMaxWidth().padding(vertical = 8.dp), verticalAlignment = Alignment.CenterVertically) {
+                        Box(Modifier.size(36.dp).clip(CircleShape).background(Color(0xFF2E1A12)), contentAlignment = Alignment.Center) {
+                            Text(member.displayName?.take(1) ?: "?", color = Color.White, fontSize =  14.sp)
+                        }
+                        Spacer(Modifier.width(10.dp))
+                        Column(Modifier.weight(1f)) {
+                            Text(member.displayName ?: "Usuario", color = Color.White, fontSize =  14.sp, fontWeight = FontWeight.Medium)
+                            Text(voiceRoomRoleLabel(member.role), color = if (member.role == "owner" || member.role == "admin") VoiceRoomPalette.Gold else VoiceRoomPalette.Accent, fontSize =  11.sp)
+                        }
+                        if (member.userId != myUserId && member.userId != room?.ownerId) {
+
+                            if (isHost && member.role != "admin") {
+                                TextButton(onClick = { onSetAdmin(member.userId, true) }) { Text("Hacer admin", color = VoiceRoomPalette.Accent, fontSize =  11.sp) }
+                            }
+                            if (isHost && member.role == "admin") {
+                                TextButton(onClick = { onSetAdmin(member.userId, false) }) { Text("Quitar admin", color = Color(0xFFE8C46A), fontSize =  11.sp) }
+                            }
+                            TextButton(onClick = { onKick(member.userId) }) { Text("Expulsar", color = Color(0xFFFF8A80), fontSize =  11.sp) }
+                        }
+                        onOpenProfile?.let {
+                            TextButton(onClick = { it(member.userId) }) { Text("Ver", color = Color.Gray, fontSize =  11.sp) }
+                        }
+                    }
+                    HorizontalDivider(color = Color(0x1FFFFFFF))
+                }
+            }
+        },
+        confirmButton = { TextButton(onClick = { showMembersTab = false }) { Text("Cerrar", color = VoiceRoomPalette.Accent) } },
+        containerColor = VoiceRoomPalette.BgDeep
+    )
+}
+    if (showBannedTab) {
+    AlertDialog(
+        onDismissRequest = { showBannedTab = false },
+        title = { Text("Usuarios baneados", color = Color.White) },
+        text = {
+            if (bannedUsers.isEmpty()) {
+                Text("No hay usuarios baneados.", color = Color(0xFFD8CDC4))
+            } else {
+                Column(Modifier.verticalScroll(rememberScrollState()).heightIn(max =420.dp)) {
+                    bannedUsers.forEach { ban ->
+                        Row(Modifier.fillMaxWidth().padding(vertical =  8.dp), verticalAlignment = Alignment.CenterVertically) {
+                            Box(Modifier.size(36.dp).clip(CircleShape).background(Color(0xFF2E1A12)), contentAlignment = Alignment.Center) {
+                                Text(ban.displayName.take(1).ifBlank { "?" }, color = Color.White, fontSize =  14.sp)
+                            }
+                            Spacer(Modifier.width(10.dp))
+                            Column(Modifier.weight(1f)) {
+                                Text(ban.displayName.ifBlank { "Usuario baneado" }, color = Color.White, fontSize =  14.sp, fontWeight = FontWeight.Medium)
+                                Text(ban.reason ?: "Sin motivo", color = Color(0xFFB8A99A), fontSize =  11.sp, maxLines =  1, overflow = TextOverflow.Ellipsis)
+
+                            }
+                            TextButton(onClick = { onRemoveBan(ban.userId) }) { Text("Desbanear", color = VoiceRoomPalette.Accent, fontSize =  11.sp) }
+                        }
+                        HorizontalDivider(color = Color(0x1FFFFFFF))
+                    }
+                }
+            }
+        },
+        confirmButton = { TextButton(onClick = { showBannedTab = false }) { Text("Cerrar", color = VoiceRoomPalette.Accent) } },
+        containerColor = VoiceRoomPalette.BgDeep
+    )
+}}
+@Composable
+private fun SettingsSectionTitle(title: String, emoji: String) {
+    Text("$emoji $title", color = Color(0xFFB8A99A), fontWeight = FontWeight.Bold, fontSize =  13.sp, modifier = Modifier.padding(top =  14.dp, bottom =  6.dp))
+}
+
+@Composable
+private fun SettingsCard(content: @Composable ColumnScope.() -> Unit) {
+    Surface(color = Color(0xFF241510), shape = RoundedCornerShape(18.dp), modifier = Modifier.fillMaxWidth()) {
+
+ Column(content = content)
+    }
+}
+
+@Composable
+private fun SettingsDivider() {
+    HorizontalDivider(color = Color(0x1AFFFFFF), modifier = Modifier.padding(horizontal =  14.dp))
+}
+
+@Composable
+private fun SettingsRow(
+    title: String,
+    subtitle: String = "",
+    danger: Boolean = false,
+    onClick: (() -> Unit)? = null
+) {
+    val clickMod = if (onClick != null) Modifier.clickable(onClick = onClick) else Modifier
+    Row(Modifier.fillMaxWidth().then(clickMod).padding(horizontal =  16.dp, vertical =  13.dp), verticalAlignment = Alignment.CenterVertically) {
+
+        Column(Modifier.weight(1f)) {
+
+            Text(title, color = if (danger) Color(0xFFFF6E6E) else Color.White, fontSize =  14.sp, fontWeight = FontWeight.Medium)
+
+
+            if (subtitle.isNotBlank()) { Text(subtitle, color = Color(0xFFB8A99A), fontSize =  11.sp, maxLines =  1, overflow = TextOverflow.Ellipsis) }
+
+        }
+
+        if (danger) { Text("⚠️", fontSize =  14.sp) }
+
+        else if (onClick != null) { Icon(Icons.Default.ChevronRight, null, tint = Color(0xFFB8A99A), modifier = Modifier.size(16.dp)) }
+
+    }
+}
+
+@Composable
+private fun SettingsToggleRow(
+    title: String,
+    subtitle: String = "",
+    checked: Boolean,
+    onCheckedChange: (Boolean) -> Unit
+) {
+    Row(Modifier.fillMaxWidth().padding(horizontal =  16.dp, vertical =  8.dp), verticalAlignment = Alignment.CenterVertically) {
+
+        Column(Modifier.weight(1f)) {
+            Text(title, color = Color.White, fontSize =  14.sp, fontWeight = FontWeight.Medium)
+            if (subtitle.isNotBlank()) { Text(subtitle, color = Color(0xFFB8A99A), fontSize =  11.sp) }
+        }
+        Switch(checked = checked, onCheckedChange = onCheckedChange, colors = SwitchDefaults.colors(checkedThumbColor = VoiceRoomPalette.Accent, checkedTrackColor = VoiceRoomPalette.Accent.copy(alpha =  0.35f), uncheckedThumbColor = Color.White, uncheckedTrackColor = Color(0xFF3E3E44)))
+    }
 }
