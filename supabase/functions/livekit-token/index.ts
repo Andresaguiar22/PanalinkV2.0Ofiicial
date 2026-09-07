@@ -19,7 +19,7 @@ const SERVICE_KEY = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY") || Deno.env.get("S
 // minting a token. Voice rooms are checked against voice_room_can_access;
 // 1:1 call rooms (call_<uidA>-<uidB>) only accept the two participants, and
 // any other room shape is rejected since there is no DB model to authorize it.
-async function canJoinRoom(userId: string, room: string): Promise<{ ok: boolean; reason?: string }> {
+async function canJoinRoom(userId: string, room: string, authHeader: string | null): Promise<{ ok: boolean; reason?: string }> {
   if (room.startsWith("voice_")) {
     const roomId = room.slice("voice_".length);
     if (!/^[0-9a-fA-F-]{36}$/.test(roomId)) return { ok: false, reason: "invalid voice room" };
@@ -27,7 +27,7 @@ async function canJoinRoom(userId: string, room: string): Promise<{ ok: boolean;
     try {
       const res = await fetch(`${SUPABASE_URL}/rest/v1/rpc/voice_room_can_access`, {
         method: "POST",
-        headers: { "apikey": SERVICE_KEY, "Authorization": `Bearer ${SERVICE_KEY}`, "Content-Type": "application/json" },
+        headers: { "apikey": SERVICE_KEY, "Authorization": (authHeader || `Bearer ${SERVICE_KEY}`), "Content-Type": "application/json" },
         body: JSON.stringify({ p_room_id: roomId }),
       });
       return { ok: res.ok, reason: res.ok ? undefined : "access denied" };
@@ -108,7 +108,7 @@ export default {
       return Response.json({ error: "Missing room" }, { status: 400 });
     }
 
-    const access = await canJoinRoom(userId, room);
+    const access = await canJoinRoom(userId, room, req.headers.get("Authorization"));
     if (!access.ok) {
       return Response.json({ error: "Forbidden: no access to room" }, { status: 403 });
     }
