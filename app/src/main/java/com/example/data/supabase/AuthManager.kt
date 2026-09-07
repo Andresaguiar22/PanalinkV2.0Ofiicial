@@ -26,7 +26,7 @@ class AuthManager {
             
             val user = AuthUser("me_demo_id", email, null, mapOf("display_name" to displayName))
             SupabaseClient.currentUser = user
-            SupabaseClient.currentToken = "demo_token_xyz"
+            SupabaseClient.currentToken = null
             
             // Create profile
             val prof = Profile("me_demo_id", displayName, null, isProfileComplete = false)
@@ -197,7 +197,7 @@ class AuthManager {
 
                 val user = AuthUser("me_demo_id", email, if (isVerified) "2026-06-25T12:00:00Z" else null, mapOf("display_name" to displayName))
                 SupabaseClient.currentUser = user
-                SupabaseClient.currentToken = "demo_token_xyz"
+                SupabaseClient.currentToken = null
                 
                 val prof = Profile("me_demo_id", displayName, null)
                 SupabaseClient.currentProfile = prof
@@ -208,7 +208,7 @@ class AuthManager {
                 // Let register any, but if logging in a new demo email, let it pass
                 val user = AuthUser("me_demo_id", email, "2026-06-25T12:00:00Z", mapOf("display_name" to "Mi Cuenta"))
                 SupabaseClient.currentUser = user
-                SupabaseClient.currentToken = "demo_token_xyz"
+                SupabaseClient.currentToken = null
                 val prof = Profile("me_demo_id", "Mi Cuenta", null)
                 SupabaseClient.currentProfile = prof
                 SupabaseClient.demoProfiles[prof.id] = prof

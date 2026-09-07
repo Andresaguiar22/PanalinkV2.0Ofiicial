@@ -305,7 +305,8 @@ object CdnManager {
                 } else if (host.contains("trycloudflare.com")) {
                     null
                 } else {
-                    trimmed
+                    // Avoid cleartext: some legacy avatars arrive as http://; force HTTPS. 
+                    if (trimmed.startsWith("http://")) trimmed.replaceFirst("http://", "https://") else trimmed
                 }
             }
             trimmed.startsWith("/storage/v1/object/public/") -> "$supabaseBase$trimmed"
