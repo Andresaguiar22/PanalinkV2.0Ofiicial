@@ -940,12 +940,12 @@ fun TikTokPageItem(
     }
 
 
-    var resolvedUrl by remember(state.id, state.mediaUrl) { mutableStateOf<String?>(null) }
-    var resolveFailed by remember(state.id, state.mediaUrl) { mutableStateOf(false) }
-    var retryCount by remember(state.id, state.mediaUrl) { mutableStateOf(0) }
-    var activeSlot by remember(state.id, state.mediaUrl) { mutableStateOf<ReelDualPlayerManager.Slot?>(null) }
+    var resolvedUrl by remember(state.id, state.mediaUrl, state.localVideoPath) { mutableStateOf<String?>(null) }
+    var resolveFailed by remember(state.id, state.mediaUrl, state.localVideoPath) { mutableStateOf(false) }
+    var retryCount by remember(state.id, state.mediaUrl, state.localVideoPath) { mutableStateOf(0) }
+    var activeSlot by remember(state.id, state.mediaUrl, state.localVideoPath) { mutableStateOf<ReelDualPlayerManager.Slot?>(null) }
 
-    LaunchedEffect(state.id, state.mediaUrl, isActivePage, isPreload,retryCount,dualManager) {
+    LaunchedEffect(state.id, state.mediaUrl, state.localVideoPath, isActivePage, isPreload,retryCount,dualManager) {
         if (isActivePage) {
             resolvedUrl = null
             retryCount = 0
@@ -959,6 +959,13 @@ fun TikTokPageItem(
             state.localVideoPath
         }
         if (resolvedUrl == null) resolveFailed = true
+    }
+
+    LaunchedEffect(state.id, resolvedUrl, isActivePage) {
+        val url = resolvedUrl
+        if (isActivePage && !url.isNullOrBlank() && url.startsWith("http")) {
+            com.example.media.social.ReelOfflineMediaManager.ensureLocalCopy(context, state.id, url)
+        }
     }
 
     LaunchedEffect(isActivePage,isPreload,resolvedUrl,activeSlot,retryCount,dualManager) {
@@ -2001,25 +2008,6 @@ fun ReelsSkeletonLoader(avatarUrl: String?, displayName: String) {
                         .fillMaxWidth(0.5f)
                         .height(14.dp)
                         .background(Color.White.copy(alpha = 0.15f), RoundedCornerShape(4.dp))
-                )
-            }
-        }
-
-        // Right side skeleton
-        Column(
-            modifier = Modifier
-                .align(Alignment.BottomEnd)
-                .navigationBarsPadding()
-                .padding(bottom = 48.dp, end = 4.dp),
-            horizontalAlignment = Alignment.CenterHorizontally,
-            verticalArrangement = Arrangement.spacedBy(10.dp)
-        ) {
-            repeat(5) {
-                Box(
-                    modifier = Modifier
-                        .size(44.dp)
-                        .background(Color.White.copy(alpha = 0.15f), CircleShape)
-                        .graphicsLayer(alpha = alpha)
                 )
             }
         }

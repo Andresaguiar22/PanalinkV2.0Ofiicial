@@ -22,12 +22,9 @@ object VideoCacheManager {
     fun removeVideoCache(url: String) {
         try {
             val uri = android.net.Uri.parse(url)
-            // Match the stable path-based cache key used to write the entry;
-            // keyed by full URI here would never hit after CDN host changes.
-            val key = buildString {
-                append(uri.path?.let { it.ifBlank { null } } ?: uri.toString())
-                append(uri.query?.let { "?$it" } ?: "")
-            }.ifBlank { uri.toString() }
+            // Match the path-only key used by CacheDataSourceFactory. Signed
+            // query parameters rotate and must not identify a new video.
+            val key = uri.path?.takeIf { it.isNotBlank() } ?: uri.toString().substringBefore('?')
             cache?.removeResource(key)
         } catch (e: Exception) {
             Log.e("VideoCacheManager", "Error clearing cache for url: $url", e)
