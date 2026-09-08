@@ -33,6 +33,9 @@ import androidx.compose.animation.fadeIn
 import androidx.compose.animation.fadeOut
 import androidx.compose.animation.slideInHorizontally
 import androidx.compose.animation.slideOutHorizontally
+import androidx.compose.animation.slideInVertically
+import androidx.compose.animation.slideOutVertically
+import androidx.compose.animation.core.FastOutSlowInEasing
 import androidx.compose.animation.core.tween
 import androidx.navigation.NavHostController
 import androidx.navigation.NavType
@@ -273,25 +276,25 @@ fun MainNavHost(
         enterTransition = {
             slideInHorizontally(
                 initialOffsetX = { it },
-                animationSpec = tween(350)
+                animationSpec = tween(350, easing = FastOutSlowInEasing)
             ) + fadeIn(animationSpec = tween(350))
         },
         exitTransition = {
             slideOutHorizontally(
                 targetOffsetX = { -it },
-                animationSpec = tween(350)
+                animationSpec = tween(350, easing = FastOutSlowInEasing)
             ) + fadeOut(animationSpec = tween(350))
         },
         popEnterTransition = {
             slideInHorizontally(
                 initialOffsetX = { -it },
-                animationSpec = tween(350)
+                animationSpec = tween(350, easing = FastOutSlowInEasing)
             ) + fadeIn(animationSpec = tween(350))
         },
         popExitTransition = {
             slideOutHorizontally(
                 targetOffsetX = { it },
-                animationSpec = tween(350)
+                animationSpec = tween(350, easing = FastOutSlowInEasing)
             ) + fadeOut(animationSpec = tween(350))
         }
     ) {
@@ -341,7 +344,31 @@ fun MainNavHost(
         // Sala de Voz individual (modulo independiente com.example.rooms)
         composable(
             route = "voiceRoom/{roomId}",
-            arguments = listOf(navArgument("roomId") { type = NavType.StringType })
+            arguments = listOf(navArgument("roomId") { type = NavType.StringType }),
+            enterTransition = {
+                slideInVertically(
+                    initialOffsetY = { it },
+                    animationSpec = tween(320, easing = FastOutSlowInEasing)
+                ) + fadeIn(animationSpec = tween(320))
+            },
+            exitTransition = {
+                slideOutVertically(
+                    targetOffsetY = { it },
+                    animationSpec = tween(280, easing = FastOutSlowInEasing)
+                ) + fadeOut(animationSpec = tween(280))
+            },
+            popEnterTransition = {
+                slideInVertically(
+                    initialOffsetY = { -it },
+                    animationSpec = tween(320, easing = FastOutSlowInEasing)
+                ) + fadeIn(animationSpec = tween(320))
+            },
+            popExitTransition = {
+                slideOutVertically(
+                    targetOffsetY = { -it },
+                    animationSpec = tween(280, easing = FastOutSlowInEasing)
+                ) + fadeOut(animationSpec = tween(280))
+            }
         ) { backStackEntry ->
             val roomId = backStackEntry.arguments?.getString("roomId")
             com.example.rooms.ui.VoiceRoomScreen(

@@ -345,51 +345,28 @@ fun VoiceRoomSpeakingAura(size: Dp, modifier: Modifier = Modifier) {
 fun VoiceRoomAudioVisualizer(
     modifier: Modifier = Modifier,
     barCount: Int = 4,
-    active: Boolean = true
+    levels: List<Float>? = null
 ) {
-    val heights = remember { List(barCount) { kotlinx.random.Random.nextInt(6, 14).toFloat() } }
-    val baseHeightDp = heights.map { it.dp }
-
-    val transitions = remember { List(barCount) { rememberInfiniteTransition(label = "audioBar$it") } }
-
-    val animatedHeights = transitions.mapIndexed { idx, transition ->
-        transition.animateFloat(
-            initialValue = 4f,
-            targetValue = baseHeightDp[idx].value * 0.9f,
-            animationSpec = infiniteRepeatable(
-                animation = tween((400 + idx * 120).coerceAtMost(1000), easing = FastOutSlowInEasing),
-                repeatMode = RepeatMode.Reverse
-            ),
-            label = "barHeight$idx"
-        )
-    }
-
-    if (!active) {
-        Row(modifier = modifier.height(14.dp), horizontalArrangement = Arrangement.spacedBy(2.dp)) {
-            repeat(barCount) {
-                Box(
-                    modifier = Modifier
-                        .width(3.dp)
-                        .fillMaxHeight()
-                        .clip(RoundedCornerShape(2.dp))
-                        .background(VoiceRoomPalette.Accent.copy(alpha = 0.25f))
-                )
-            }
-        }
-        return
-    }
+    val idle = levels == null || levels.isEmpty()
+    val displayLevels = if (idle) List(barCount) { 0f } else levels.take(barCount).let { if (it.size < barCount) it + List(barCount - it.size) { 0f } else it }
 
     Row(
         modifier = modifier.height(18.dp),
         horizontalArrangement = Arrangement.spacedBy(2.dp, Alignment.CenterHorizontally)
     ) {
-        animatedHeights.forEach { animatedHeight ->
+        displayLevels.forEach { level ->
+            val fraction = level.coerceIn(0f, 1f)
+            val targetHeight = (4f + fraction * 14f).coerceAtLeast(4f)
+            val animatedHeight = remember { Animatable(4f) }
+            LaunchedEffect(level) {
+                animatedHeight.animateTo(targetHeight, tween(120))
+            }
             Box(
                 modifier = Modifier
                     .width(3.dp)
                     .height(animatedHeight.value.dp)
                     .clip(RoundedCornerShape(2.dp))
-                    .background(VoiceRoomPalette.Accent)
+                    .background(if (fraction > 0.05f) VoiceRoomPalette.Accent else VoiceRoomPalette.Accent.copy(alpha = 0.25f))
             )
         }
     }
@@ -493,7 +470,7 @@ private fun VoiceRoomSeatCircle(
             }
             if (speaking) {
                 Spacer(Modifier.width(6.dp))
-                VoiceRoomAudioVisualizer(active = true, barCount = 4)
+                VoiceRoomAudioVisualizer(levels = seat?.audioLevels ?: emptyList(), barCount = 4)
             }
         }
         if (seat?.isMuteBadgeVisible() == true) {

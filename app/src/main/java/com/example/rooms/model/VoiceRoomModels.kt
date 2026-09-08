@@ -35,7 +35,8 @@ data class VoiceRoomSeat(
     val displayName: String? = null,
     val avatarUrl: String? = null,
     val isMuted: Boolean = false,
-    val isSpeaking: Boolean = false
+    val isSpeaking: Boolean = false,
+    val audioLevels: List<Float> = emptyList()
 ) { val isOccupied: Boolean get() = userId != null }
 
 data class VoiceRoomMessage(
@@ -95,6 +96,7 @@ object VoiceRoomSeatReducer {
     fun releaseSeat(seats: List<VoiceRoomSeat>, seatIndex: Int): List<VoiceRoomSeat> = seats.map { if (it.index == seatIndex) VoiceRoomSeat(it.index) else it }
     fun setMuted(seats: List<VoiceRoomSeat>, userId: String, muted: Boolean): List<VoiceRoomSeat> = seats.map { if (it.userId == userId) it.copy(isMuted=muted,isSpeaking=if(muted) false else it.isSpeaking) else it }
     fun setSpeaking(seats: List<VoiceRoomSeat>, userId: String, speaking: Boolean): List<VoiceRoomSeat> = seats.map { if (it.userId == userId && !it.isMuted) it.copy(isSpeaking=speaking) else it }
+    fun setAudioLevels(seats: List<VoiceRoomSeat>, userId: String, levels: List<Float>): List<VoiceRoomSeat> = seats.map { if (it.userId == userId && !it.isMuted) it.copy(audioLevels=levels) else it }
     fun firstFreeSeatIndex(seats: List<VoiceRoomSeat>): Int? = seats.firstOrNull { it.userId == null && it.index != 0 }?.index
 }
 
