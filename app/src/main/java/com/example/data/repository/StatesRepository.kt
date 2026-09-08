@@ -6,6 +6,7 @@ import com.example.data.supabase.SupabaseClient
 import com.example.data.supabase.SessionManager
 import com.example.data.repository.states.RealtimeStateHandler
 import com.example.data.repository.states.SocialInteractionDataSource
+import com.example.data.repository.states.StateUrlResolver
 import com.example.data.repository.states.StatesRemoteDataSource
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.delay
@@ -52,15 +53,10 @@ class StatesRepository {
 
     suspend fun saveStateLocally(item: com.example.data.model.UserStateWithUser, localPath: String? = null) {
         withContext(Dispatchers.IO) {
-            // VCDN pointers must stay stable in Room: the signed HLS streamUrl
-            // expires, so if we ever persist a .m3u8 (legacy corruption from before
-            // the fix) and we know the stable video id, restore the pointer..
-            var state = item.state
-            val vId = state.vcdnVideoId?.takeIf { it.isNotBlank() }
-            if (vId != null && !state.mediaUrl.isNullOrBlank() && state.mediaUrl.contains(".m3u8", ignoreCase = true)) {
-                state = state.copy(mediaUrl = "vcdn://$vId")
-            }
-            statesDao.insertState(com.example.data.database.StateEntity.fromUserStateWithUser(item.copy(state = state), localPath))
+            val entity = com.example.data.database.StateEntity.fromUserStateWithUser(item, localPath)
+            val existing = statesDao.getStateById(entity.id)
+            val stabilized = StateUrlResolver.stabilizeEntityForRoom(entity, existing)
+            statesDao.insertState(stabilized)
         }
     }
 
@@ -194,11 +190,12 @@ class StatesRepository {
                 VcdnUrlResolver.videoIdOf(mediaUrl)
             } else null
             val vcdnPoster = if (vcdnVideoId != null) thumbnailUrl else null
+            val mediaUrlForBackend = if (vcdnVideoId != null) "vcdn://$vcdnVideoId" else (mediaUrl ?: "")
             val createResponse = if (isReel) {
                 val reelDto = com.example.data.model.ReelDto(
                     id = stateId,
                     authorId = currentUid,
-                    mediaUrl = mediaUrl ?: "",
+                    mediaUrl = mediaUrlForBackend,
                     mediaType = mediaType,
                     caption = caption,
                     thumbnailUrl = thumbnailUrl,
@@ -213,7 +210,7 @@ class StatesRepository {
                 val stateMap = mutableMapOf<String, Any?>(
                     "id" to stateId,
                     "author_id" to currentUid,
-                    "media_url" to mediaUrl,
+                    "media_url" to mediaUrlForBackend,
                     "media_type" to mediaType,
                     "caption" to caption,
                     "thumbnail_url" to thumbnailUrl,

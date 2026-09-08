@@ -50,14 +50,11 @@ class RealtimeStateHandler {
         val item = com.example.data.model.UserStateWithUser(userState, profile)
         val entity = com.example.data.database.StateEntity.fromUserStateWithUser(item)
         val existing = statesDao.getStateById(userState.id)
-        if (existing != null) {
-            statesDao.insertState(existing.copy(
-                mediaUrl = if (entity.mediaUrl.isNotEmpty()) entity.mediaUrl else existing.mediaUrl,
-                caption = entity.caption ?: existing.caption
-            ))
-        } else {
-            statesDao.insertState(entity)
-        }
+        val stabilized = StateUrlResolver.stabilizeEntityForRoom(entity, existing)
+        val finalEntity = if (existing != null) {
+            stabilized.copy(caption = entity.caption ?: existing.caption)
+        } else stabilized
+        statesDao.insertState(finalEntity)
     }
 
     private suspend fun fetchAndSaveSingleReel(reelId: String, isReel: Boolean): com.example.data.database.StateEntity? = withContext(Dispatchers.IO) {
@@ -72,8 +69,10 @@ class RealtimeStateHandler {
         val profile = resolveProfileForUser(state.userId)
         val item = com.example.data.model.UserStateWithUser(state, profile)
         val entity = com.example.data.database.StateEntity.fromUserStateWithUser(item)
-        statesDao.insertState(entity)
-        entity
+        val existing = statesDao.getStateById(reelId)
+        val stabilized = StateUrlResolver.stabilizeEntityForRoom(entity, existing)
+        statesDao.insertState(stabilized)
+        stabilized
     }
 
     private suspend fun ensureReelInRoom(reelId: String, isReel: Boolean): com.example.data.database.StateEntity? {

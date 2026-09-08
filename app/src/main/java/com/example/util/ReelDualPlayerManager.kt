@@ -39,6 +39,9 @@ import androidx.media3.common.util.UnstableApi
  */
 @UnstableApi
 class ReelDualPlayerManager(private val context: Context) {
+    companion object {
+        private const val TAG = "ReelDualPlayerManager"
+    }
     enum class Slot { A, B }
 
     private var slotAPlayer: ExoPlayer? = null
@@ -190,6 +193,14 @@ class ReelDualPlayerManager(private val context: Context) {
             )
             .setLoadControl(loadControl)
             .build()
+            .also { player ->
+                player.addListener(object : Player.Listener {
+                    override fun onPlayerError(error: PlaybackException) {
+                        val uri = player.currentMediaItem?.localConfiguration?.uri?.toString()
+                        Log.e(TAG, "ReelPlayerError: position=${player.currentPosition}, buffered=${player.bufferedPosition}, state=${player.playbackState}, isLoading=${player.isLoading}, playWhenReady=${player.playWhenReady}, errorCode=${error.errorCode}, cause=${error.cause?.message}, uri=$uri")
+                    }
+                })
+            }
     }
 
     fun releaseAll() {

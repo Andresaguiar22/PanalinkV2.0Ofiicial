@@ -312,33 +312,15 @@ class StatesRemoteDataSource {
                         // and the cached reel/story media in ROM would be orphaned, breaking
                         // the offline carousel/TikTok playback after a reconnect.
                         val existingEntity = statesDao.getStateById(newEntity.id)
-                        // Preserve the local stable vcdn:// pointer: the signed HLS streamUrl
-                        // /legacy .m3u8 from a merge MUST NOT replace a pointer that is
-                        // already being played — that would re-prepare the player and restart
-                        // the video from 0 mid-playback..
-                        val effectiveMediaUrl = if (existingEntity?.mediaUrl?.startsWith("vcdn://") == true) {
-                            existingEntity.mediaUrl
-                        } else {
-                            newEntity.mediaUrl
-                        }
-                        val effectiveLocalPath = newEntity.localVideoPath
-                            ?: existingEntity?.localVideoPath
-                        val effectiveThumbnail = newEntity.thumbnailUrl
-                            ?: existingEntity?.thumbnailUrl
-                        val effectivePoster = newEntity.vcdnPosterUrl
-                            ?: existingEntity?.vcdnPosterUrl
+                        val stabilized = StateUrlResolver.stabilizeEntityForRoom(newEntity, existingEntity)
 
-                        newEntity.copy(
+                        stabilized.copy(
                             likedByMe = finalLiked,
                             likesCount = finalLikesCount,
                             favoritedByMe = finalFavorited,
                             favoritesCount = finalFavsCount,
                             commentsCount = finalCommentsCount,
-                            sharesCount = finalSharesCount,
-                            localVideoPath = effectiveLocalPath,
-                            thumbnailUrl = effectiveThumbnail,
-                            mediaUrl = effectiveMediaUrl,
-                            vcdnPosterUrl = effectivePoster
+                            sharesCount = finalSharesCount
                         )
                     }
                     statesDao.insertStates(finalEntities)

@@ -2,6 +2,7 @@ package com.example.data.repository.reels
 
 import com.example.data.database.StateEntity
 import com.example.data.database.StatesDao
+import com.example.data.repository.states.StateUrlResolver
 import kotlinx.coroutines.flow.Flow
 
 /**
@@ -21,12 +22,18 @@ class ReelsLocalDataSource(
 
     suspend fun save(state: StateEntity) {
         require(state.isReel) { "ReelsLocalDataSource only accepts Reel states" }
-        statesDao.insertState(state)
+        val existing = statesDao.getStateById(state.id)
+        val stabilized = StateUrlResolver.stabilizeEntityForRoom(state, existing)
+        statesDao.insertState(stabilized)
     }
 
     suspend fun saveAll(states: List<StateEntity>) {
         require(states.all { it.isReel }) { "ReelsLocalDataSource only accepts Reel states" }
-        statesDao.insertStates(states)
+        val stabilized = states.map { entity ->
+            val existing = statesDao.getStateById(entity.id)
+            StateUrlResolver.stabilizeEntityForRoom(entity, existing)
+        }
+        statesDao.insertStates(stabilized)
     }
 
     suspend fun deleteById(id: String) = statesDao.deleteById(id)

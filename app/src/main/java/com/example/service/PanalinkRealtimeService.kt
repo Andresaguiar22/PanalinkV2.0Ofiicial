@@ -15,6 +15,7 @@ import com.example.R
 import coil.imageLoader
 import coil.request.ImageRequest
 import androidx.core.graphics.drawable.toBitmap
+import com.example.data.repository.states.StateUrlResolver
 import com.example.data.model.Message
 import com.example.data.supabase.SupabaseClient
 import kotlinx.coroutines.*
@@ -120,14 +121,14 @@ class PanalinkRealtimeService : Service() {
                         // The server row has no per-viewer flags: keep the local ones
                         // so a counter UPDATE event does not unlike/unview the reel.
                         val existingEntity = statesDao.getStateById(entity.id)
+                        val stabilized = StateUrlResolver.stabilizeEntityForRoom(entity, existingEntity)
                         val merged = if (existingEntity != null) {
-                            entity.copy(
+                            stabilized.copy(
                                 likedByMe = existingEntity.likedByMe,
                                 favoritedByMe = existingEntity.favoritedByMe,
-                                viewedByMe = existingEntity.viewedByMe,
-                                localVideoPath = entity.localVideoPath ?: existingEntity.localVideoPath
+                                viewedByMe = existingEntity.viewedByMe
                             )
-                        } else entity
+                        } else stabilized
                         statesDao.insertState(merged)
                         Log.d(TAG, "Saved resolved live status ${newState.id} in Room")
                     } catch (e: Exception) {

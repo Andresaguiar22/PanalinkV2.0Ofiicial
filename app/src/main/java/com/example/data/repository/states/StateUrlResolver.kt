@@ -1,5 +1,6 @@
 package com.example.data.repository.states
 
+import com.example.data.database.StateEntity
 import com.example.data.model.UserState
 import com.example.data.repository.VcdnUrlResolver
 import com.example.data.supabase.SupabaseClient
@@ -24,6 +25,26 @@ object StateUrlResolver {
         return if (url.isBlank() || (state.mediaUrl?.contains(".m3u8", ignoreCase = true)) == true) {
             state.copy(mediaUrl = "vcdn://$vId")
         } else state
+    }
+
+    fun stabilizeEntityForRoom(entity: StateEntity, existing: StateEntity? = null): StateEntity {
+        val merged = if (existing != null) {
+            entity.copy(
+                vcdnVideoId = entity.vcdnVideoId ?: existing.vcdnVideoId,
+                vcdnPosterUrl = entity.vcdnPosterUrl ?: existing.vcdnPosterUrl,
+                localVideoPath = entity.localVideoPath ?: existing.localVideoPath,
+                thumbnailUrl = entity.thumbnailUrl ?: existing.thumbnailUrl,
+                mediaUrl = entity.mediaUrl.ifBlank { existing.mediaUrl }
+            )
+        } else entity
+
+        val vId = merged.vcdnVideoId?.takeIf { it.isNotBlank() }
+        return if (vId != null) {
+            val url = merged.mediaUrl.orEmpty()
+            if (url.isBlank() || url.contains(".m3u8", ignoreCase = true)) {
+                merged.copy(mediaUrl = "vcdn://$vId")
+            } else merged
+        } else merged
     }
 
     /** Resolve a poster/thumbnail for cards without touching the playback URL. */
