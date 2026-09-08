@@ -90,24 +90,6 @@ val WhatsAppDarkColors = AppColors(
     onSurface = Color(0xFFE9EDEF)
 )
 
-val WhatsAppLightColors = AppColors(
-    primary = Color(0xFF008069),      // WhatsApp Light Green
-    secondary = Color(0xFFF0F2F5),    // Light Gray surface
-    background = Color(0xFFFFFFFF),   // White background
-    surface = Color(0xFFFFFFFF),      // White card surface
-    bubbleMe = Color(0xFFD9FDD3),     // Me bubble (light green)
-    bubbleOther = Color(0xFFFFFFFF),  // Other bubble (white)
-    topBar = Color(0xFF008069),
-    bottomBar = Color(0xFFFFFFFF),
-    accent = Color(0xFF008069),
-    isDark = false,
-    onPrimary = Color.White,
-    onSecondary = Color.Black,
-    onBackground = Color(0xFF111B21),
-    onSurface = Color(0xFF111B21)
-)
-
-
 val DarkTealColors = AppColors(
     primary = Color(0xFF00E5FF),      // Electric Cyan
     secondary = Color(0xFF161618),    // Dark Gray surface

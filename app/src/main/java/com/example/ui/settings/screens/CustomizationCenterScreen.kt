@@ -101,9 +101,9 @@ fun CustomizationCenterScreen(
                             "dark_teal" to "Teal 🟢",
                             "royal_purple" to "Purple 🟣",
                             "neon_orange" to "Orange 🟠",
-                            "nordic_ice" to "Ice ❄️"
+                            "nordic_ice" to "Ice ❄️",
+                            "whatsapp_dark" to "WhatsApp 🟢"
                         )
-                            "whatsapp_dark" to "WhatsApp 🟢",
 
                         val themesRow2 = listOf(
                             "cyberpunk" to "Cyberpunk 👾",
