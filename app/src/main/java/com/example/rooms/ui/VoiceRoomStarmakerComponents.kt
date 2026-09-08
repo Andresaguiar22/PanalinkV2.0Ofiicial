@@ -250,35 +250,60 @@ fun VoiceRoomHeader(
 
 @Composable
 fun VoiceRoomSpeakingAura(size: Dp, modifier: Modifier = Modifier) {
-    val transition = rememberInfiniteTransition(label = "speakingAura")
-    val auraScale by transition.animateFloat(
-        initialValue = 1f,
-        targetValue =  1.2f,
-        animationSpec = infiniteRepeatable(tween(650), RepeatMode.Reverse),
-        label = "auraScale"
-    )
-    val auraAlpha by transition.animateFloat(
-        initialValue = 0.45f,
-        targetValue = 0f,
-        animationSpec = infiniteRepeatable(tween(650), RepeatMode.Reverse),
-        label = "auraAlpha"
+    val base = size * 1.6f
+    val waves = listOf(0f, 0.25f, 0.5f)
+    val colors = listOf(
+        VoiceRoomPalette.Accent,
+        VoiceRoomPalette.Pink,
+        VoiceRoomPalette.Gold
     )
     Box(
         modifier = modifier
-            .size(size * 1.5f),
+            .size(base),
         contentAlignment = Alignment.Center
     ) {
-        Box(
-            modifier = Modifier
-                .matchParentSize()
-                .graphicsLayer {
-                    scaleX = auraScale
-                    scaleY = auraScale
-                    alpha = auraAlpha
+        waves.forEachIndexed { idx, delayFraction ->
+            val transition = rememberInfiniteTransition(label = "speakingAuraWave$idx")
+            val tween = remember { mutableStateOf(0) }
+            val phase = (tween.value + idx * 3) % waves.size
+            val progress = phase / (waves.size - 1f)
+
+            val scale by transition.animateFloat(
+                initialValue = 1f,
+                targetValue = 1.55f,
+                animationSpec = infiniteRepeatable(
+                    animation = tween(900),
+                    repeatMode = RepeatMode.Restart
+                ),
+                label = "waveScale$idx"
+            )
+            val alpha by transition.animateFloat(
+                initialValue = 0.55f,
+                targetValue = 0f,
+                animationSpec = infiniteRepeatable(
+                    animation = tween(900),
+                    repeatMode = RepeatMode.Restart
+                ),
+                label = "waveAlpha$idx"
+            )
+            LaunchedEffect(Unit) {
+                while (true) {
+                    kotlinx.coroutines.delay(300L)
+                    tween.value = (tween.value + 1) % waves.size
                 }
-                .clip(CircleShape)
-                .background(VoiceRoomPalette.Accent.copy(alpha = 0.5f))
-        )
+            }
+            Box(
+                modifier = Modifier
+                    .matchParentSize()
+                    .graphicsLayer {
+                        scaleX = scale
+                        scaleY = scale
+                        alpha = alpha
+                    }
+                    .clip(CircleShape)
+                    .background(colors[idx].copy(alpha = 0.55f))
+            )
+        }
     }
 }
 
