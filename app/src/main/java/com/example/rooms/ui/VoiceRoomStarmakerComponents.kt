@@ -434,35 +434,47 @@ fun VoiceRoomTikTokChat(
     onOpenProfile: ((String) -> Unit)? = null,
     modifier: Modifier = Modifier
 ) {
-    val listState = rememberLazyListState()
-    LaunchedEffect(messages.size) {
-        if (messages.isNotEmpty()) listState.animateScrollToItem(messages.size - 1)
-    }
-    LazyColumn(
-        state = listState,
-        modifier = modifier,
-        verticalArrangement = Arrangement.spacedBy(6.dp)
-    ) {
-        items(messages, key = { it.id }) { message ->
-            if (message.isSystem) {
-                Box(Modifier.fillMaxWidth(), contentAlignment = Alignment.Center) {
-                    Text(
-                        message.content,
-                        color = VoiceRoomPalette.Gold,
-                        fontSize =  10.sp,
-                        modifier = Modifier
-                            .background(Color(0x332A1812), RoundedCornerShape(8.dp))
-                            .padding(horizontal =  10.dp, vertical =  3.dp)
+    val reversedMessages = messages.reversed()
+    Box(modifier = modifier) {
+        LazyColumn(
+            state = rememberLazyListState(),
+            modifier = Modifier.fillMaxSize(),
+            verticalArrangement = Arrangement.spacedBy(4.dp),
+            reverseLayout = true,
+            contentPadding = PaddingValues(horizontal = 10.dp, vertical = 6.dp)
+        ) {
+            items(reversedMessages, key = { it.id }) { message ->
+                if (message.isSystem) {
+                    Box(Modifier.fillMaxWidth(), contentAlignment = Alignment.Center) {
+                        Text(
+                            message.content,
+                            color = VoiceRoomPalette.Gold,
+                            fontSize =  10.sp,
+                            modifier = Modifier
+                                .background(Color(0x332A1812), RoundedCornerShape(8.dp))
+                                .padding(horizontal =  10.dp, vertical =  3.dp)
+                        )
+                    }
+                } else {
+                    VoiceRoomTikTokMessage(
+                        message = message,
+                        avatarUrl = memberById[message.senderId]?.avatarUrl,
+                        onOpenProfile = onOpenProfile
                     )
                 }
-            } else {
-                VoiceRoomTikTokMessage(
-                    message = message,
-                    avatarUrl = memberById[message.senderId]?.avatarUrl,
-                    onOpenProfile = onOpenProfile
-                )
             }
         }
+        Box(
+            modifier = Modifier
+                .align(Alignment.BottomCenter)
+                .fillMaxWidth()
+                .height(90.dp)
+                .background(
+                    Brush.verticalGradient(
+                        colors = listOf(Color.Transparent, VoiceRoomPalette.BgDeep)
+                    )
+                )
+        )
     }
 }
 
@@ -475,27 +487,38 @@ private fun VoiceRoomTikTokMessage(
     Row(
         modifier = Modifier
             .fillMaxWidth()
-            .then(if (onOpenProfile != null) Modifier.clip(RoundedCornerShape(12.dp)).clickable { onOpenProfile(message.senderId) } else Modifier),
+            .then(if (onOpenProfile != null) Modifier.clip(RoundedCornerShape(14.dp)).clickable { onOpenProfile(message.senderId) } else Modifier),
         verticalAlignment = Alignment.Top
     ) {
         Box(
             modifier = Modifier
-                .size(26.dp)
+                .size(28.dp)
                 .clip(CircleShape)
-                .background(Color(0xFF4A2C21)),
+                .background(
+                    Brush.radialGradient(
+                        colors = listOf(VoiceRoomPalette.Gold.copy(alpha = 0.25f), Color(0xFF4A2C21)),
+                        radius = 1f
+                    )
+                ),
             contentAlignment = Alignment.Center
         ) {
             if (!avatarUrl.isNullOrBlank()) {
                 AsyncImage(model = avatarUrl, contentDescription = null, contentScale = ContentScale.Crop, modifier = Modifier.fillMaxSize())
             } else {
-                Text(message.senderName?.take(1)?.uppercase() ?: "👤", color = VoiceRoomPalette.Gold, fontSize =  11.sp, fontWeight = FontWeight.Bold)
+                Text(message.senderName?.take(1)?.uppercase() ?: "👤", color = VoiceRoomPalette.Gold, fontSize =  12.sp, fontWeight = FontWeight.Bold)
             }
         }
-        Spacer(Modifier.width(6.dp))
+        Spacer(Modifier.width(8.dp))
         Column(
             modifier = Modifier
-                .background(Color.Black.copy(alpha =  0.35f), RoundedCornerShape(12.dp))
-                .padding(horizontal =  10.dp, vertical =  6.dp)
+                .background(
+                    Brush.verticalGradient(
+                        colors = listOf(Color(0x26FFFFFF), Color(0x12FFFFFF))
+                    ),
+                    RoundedCornerShape(14.dp)
+                )
+                .padding(horizontal =  12.dp, vertical =  7.dp)
+                .weight(1f, fill = false)
         ) {
             Text(
                 message.senderName ?: message.senderId.take(8),
@@ -505,8 +528,8 @@ private fun VoiceRoomTikTokMessage(
                 maxLines =  1,
                 overflow = TextOverflow.Ellipsis
             )
-            Spacer(Modifier.height(1.dp))
-            Text(message.content, color = Color.White, fontSize =  13.sp)
+            Spacer(Modifier.height(2.dp))
+            Text(message.content, color = Color(0xFFF4E8DC), fontSize =  13.sp, lineHeight = 17.sp)
         }
     }
 }
