@@ -161,6 +161,12 @@ fun VoiceRoomHeader(
     onClose: () -> Unit,
     modifier: Modifier = Modifier
 ) {
+    val hostGlowAlpha by rememberInfiniteTransition(label = "hostGlow").animateFloat(
+        initialValue = 0.25f,
+        targetValue = 0.7f,
+        animationSpec = infiniteRepeatable(tween(900), RepeatMode.Reverse),
+        label = "hostGlowAlpha"
+    )
     Row(
         modifier = modifier
             .fillMaxWidth()
@@ -185,6 +191,12 @@ fun VoiceRoomHeader(
             } else {
                 Text(hostDisplayName?.take(1)?.uppercase() ?: "👑", color = VoiceRoomPalette.Gold, fontSize =  16.sp, fontWeight = FontWeight.Bold)
             }
+            Box(
+                modifier = Modifier
+                    .matchParentSize()
+                    .clip(CircleShape)
+                    .background(VoiceRoomPalette.Gold.copy(alpha = hostGlowAlpha))
+            )
         }
         Spacer(Modifier.width(8.dp))
         Column(Modifier.weight(1f)) {
@@ -478,9 +490,17 @@ private fun VoiceRoomTikTokMessage(
     avatarUrl: String?,
     onOpenProfile: ((String) -> Unit)? = null
 ) {
+    val alpha = remember { Animatable(0f) }
+    val offsetY = remember { Animatable(14f) }
+    LaunchedEffect(message.id) {
+        launch { alpha.animateTo(1f, tween(260)) }
+        launch { offsetY.animateTo(0f, tween(260, easing = FastOutSlowInEasing)) }
+    }
     Row(
         modifier = Modifier
             .fillMaxWidth()
+            .offset(y = offsetY.value.dp)
+            .graphicsLayer { this.alpha = alpha.value }
             .then(if (onOpenProfile != null) Modifier.clip(RoundedCornerShape(14.dp)).clickable { onOpenProfile(message.senderId) } else Modifier),
         verticalAlignment = Alignment.Top
     ) {
@@ -627,20 +647,23 @@ fun VoiceRoomFloatingEmojiOverlay(
                     )
                     onDone(emoji.id)
                 }
-                Text(
-                    emoji.emoji,
-                    fontSize =  22.sp,
-                    modifier = Modifier
-                        .align(Alignment.BottomCenter)
-                        .padding(bottom =  130.dp)
-                        .graphicsLayer {
-                            translationX = (emoji.xFraction - 0.5f) * size.width * 0.9f
-                            translationY = -progress.value * size.height * 0.35f
-                            alpha =  1f - progress.value
-                            scaleX =  0.7f + progress.value * 0.8f
-                            scaleY =  0.7f + progress.value * 0.8f
-                        }
-                )
+                val trail = listOf(0.55f, 0.8f)
+                trail.forEachIndexed { i, trailScale ->
+                    Text(
+                        emoji.emoji,
+                        fontSize = 22.sp,
+                        modifier = Modifier
+                            .align(Alignment.BottomCenter)
+                            .padding(bottom =  130.dp)
+                            .graphicsLayer {
+                                translationX = (emoji.xFraction - 0.5f) * size.width * 0.9f
+                                translationY = -progress.value * size.height * 0.35f - (i + 1) * 8f
+                                alpha =  (1f - progress.value) * (1f - (i + 1) * 0.25f)
+                                scaleX =  0.5f + progress.value * 0.6f - (i + 1) * 0.15f
+                                scaleY =  0.5f + progress.value * 0.6f - (i + 1) * 0.15f
+                            }
+                    )
+                }
             }
         }
     }
@@ -660,42 +683,61 @@ fun VoiceRoomUpNextStrip(
     val occupiedSeats = seats.filter{ it.isOccupied }
     val joinedAtByUserId = members.associate{ it.userId to it.joinedAt }
     val queue = occupiedSeats.sortedBy { joinedAtByUserId[it.userId] ?: "" }
-    val names = queue.mapNotNull { it.displayName ?: it.userId?.take(6) ?: "" }
-    if (names.isEmpty()) return
-    Row(
-        modifier = modifier
-            .horizontalScroll(rememberScrollState())
-            .padding(horizontal =  12.dp),
-        verticalAlignment = Alignment.CenterVertically,
-        horizontalArrangement = Arrangement.spacedBy(4.dp)
-    ) {
-        Text("🎤 En cola:", color = VoiceRoomPalette.Gold, fontSize =  10.sp, fontWeight = FontWeight.Bold)
-        names.take(4).forEach { name ->
-            Surface(
-                color = Color(0x332A1812),
-                shape = RoundedCornerShape(8.dp)
-            ) {
-                Text(
-                    " $name ",
-                    color = Color(0xFFE8DCD0),
-                    fontSize =  10.sp,
-                    maxLines =  1,
-                    overflow = TextOverflow.Ellipsis
-                )
+    if (queue.isEmpty()) return
+    Box(modifier = modifier.fillMaxWidth()) {
+        LazyRow(
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(horizontal = 10.dp),
+            horizontalArrangement = Arrangement.spacedBy(8.dp),
+            contentPadding = PaddingValues(horizontal = 4.dp)
+        ) {
+            item {
+                Text("🎤 En cola:", color = VoiceRoomPalette.Gold, fontSize =  10.sp, fontWeight = FontWeight.Bold, modifier = Modifier.padding(top = 4.dp))
+            }
+            items(queue.take(8), key = { it.userId ?: it.index }) { seat ->
+                Surface(
+                    shape = RoundedCornerShape(10.dp),
+                    color = Color(0x332A1812),
+                    modifier = Modifier.height(26.dp)
+                ) {
+                    Row(verticalAlignment = Alignment.CenterVertically, modifier = Modifier.padding(horizontal = 8.dp, vertical = 2.dp)) {
+                        Box(
+                            modifier = Modifier
+                                .size(18.dp)
+                                .clip(CircleShape)
+                                .background(Color(0xFF4A2C21)),
+                            contentAlignment = Alignment.Center
+                        ) {
+                            if (!seat.avatarUrl.isNullOrBlank()) {
+                                AsyncImage(model = seat.avatarUrl, contentDescription = null, contentScale = ContentScale.Crop, modifier = Modifier.fillMaxSize())
+                            } else {
+                                Text((seat.displayName ?: "?").take(1).uppercase(), color = VoiceRoomPalette.Gold, fontSize = 9.sp, fontWeight = FontWeight.Bold)
+                            }
+                        }
+                        Spacer(Modifier.width(6.dp))
+                        Text(
+                            seat.displayName ?: seat.userId?.take(6) ?: "Pana",
+                            color = Color(0xFFE8DCD0),
+                            fontSize =  10.sp,
+                            maxLines =  1,
+                            overflow = TextOverflow.Ellipsis
+                        )
+                    }
+                }
             }
         }
-        if (names.size >  4) {
-            Surface(
-                color = Color(0x33FFFFFF),
-                shape = RoundedCornerShape(8.dp)
-            ) {
-                Text(
-                    "+${names.size - 4}",
-                    color = Color.Gray,
-                    fontSize =  10.sp
+        Box(
+            modifier = Modifier
+                .align(Alignment.CenterEnd)
+                .fillMaxHeight()
+                .width(60.dp)
+                .background(
+                    Brush.horizontalGradient(
+                        colors = listOf(Color.Transparent, VoiceRoomPalette.BgDeep)
+                    )
                 )
-            }
-        }
+        )
     }
 }
 
@@ -770,6 +812,19 @@ fun VoiceRoomMicSeatButton(
     onToggleMute: () -> Unit,
     onEnableMic: () -> Unit
 ) {
+    val active = isSeated && !isMuted
+    val pulseAlpha by rememberInfiniteTransition(label = "micPulse").animateFloat(
+        initialValue = 0.4f,
+        targetValue = 0f,
+        animationSpec = infiniteRepeatable(tween(700), RepeatMode.Restart),
+        label = "micPulseAlpha"
+    )
+    val pulseScale by rememberInfiniteTransition(label = "micPulseScale").animateFloat(
+        initialValue = 1f,
+        targetValue = 1.18f,
+        animationSpec = infiniteRepeatable(tween(700), RepeatMode.Restart),
+        label = "micPulseScale"
+    )
     val icon = if (needsPermission || (isMuted && isSeated)) Icons.Default.MicOff else Icons.Default.Mic
     val tint = when {
         needsPermission ->VoiceRoomPalette.Accent
@@ -790,6 +845,19 @@ fun VoiceRoomMicSeatButton(
             },
         contentAlignment = Alignment.Center
     ) {
+        if (active) {
+            Box(
+                modifier = Modifier
+                    .matchParentSize()
+                    .graphicsLayer {
+                        scaleX = pulseScale
+                        scaleY = pulseScale
+                        alpha = pulseAlpha
+                    }
+                    .clip(CircleShape)
+                    .background(VoiceRoomPalette.Accent)
+            )
+        }
         Icon(imageVector = icon, contentDescription = null, tint = tint, modifier = Modifier.size(20.dp))
     }
 }
