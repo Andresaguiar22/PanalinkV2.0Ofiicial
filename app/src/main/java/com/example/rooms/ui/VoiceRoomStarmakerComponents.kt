@@ -305,8 +305,8 @@ fun VoiceRoomSpeakingAura(size: Dp, modifier: Modifier = Modifier) {
     ) {
         waves.forEachIndexed { idx, delayFraction ->
             val transition = rememberInfiniteTransition(label = "speakingAuraWave$idx")
-            val tween = remember { mutableStateOf(0) }
-            val phase = (tween.value + idx * 3) % waves.size
+            val tick = remember { mutableStateOf(0) }
+            val phase = (tick.value + idx * 3) % waves.size
             val progress = phase / (waves.size - 1f)
 
             val auraScale by transition.animateFloat(
@@ -329,8 +329,8 @@ fun VoiceRoomSpeakingAura(size: Dp, modifier: Modifier = Modifier) {
             )
             LaunchedEffect(Unit) {
                 while (true) {
-                    kotlinx.coroutines.                    kotlinx.coroutines.delay(300L)
-                    tween.value = (tween.value + 1) % waves.size
+                    kotlinx.coroutines.delay(300L)
+                    tick.value = (tick.value + 1) % waves.size
                 }
             }
             Box(
@@ -1317,8 +1317,7 @@ fun VoiceRoomSettingsSheet(
             }
         }
     }
-        }
-    }
+}
 
 @Composable
 private fun SettingsSectionTitle(title: String, emoji: String) {

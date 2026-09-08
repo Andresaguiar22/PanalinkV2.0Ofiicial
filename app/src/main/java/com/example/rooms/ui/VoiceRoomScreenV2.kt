@@ -238,7 +238,7 @@ fun VoiceRoomScreenV2(
             onOpenProfile = onOpenProfile
         )
     }
-    }
+}
 
 @Composable
 private fun ModerationDialog(
@@ -321,6 +321,7 @@ private fun SeatRequestsDialog(
                                     color = Color.Gray,
                                     fontSize =  11.sp
                                 )
+                            }
                             IconButton(onClick = { onApprove(r.id) }) {
                                 Icon(Icons.Default.Check, contentDescription = "Aprobar", tint = VoiceRoomPalette.Accent)
                             }
@@ -331,7 +332,6 @@ private fun SeatRequestsDialog(
             }
         }
         }
-    }
 },
         confirmButton = {
             TextButton(onClick = onDismiss) {
