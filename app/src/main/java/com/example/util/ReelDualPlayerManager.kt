@@ -128,8 +128,12 @@ class ReelDualPlayerManager(private val context: Context) {
             val currentUrl = slotUrls[existing]
             if (currentUrl != url) {
                 val player = playerFor(existing)!!
+                val savedPosition = player.currentPosition
+                val savedPlayWhenReady = player.playWhenReady
                 player.setMediaItem(MediaItem.fromUri(url))
                 player.prepare()
+                player.seekTo(savedPosition)
+                player.playWhenReady = savedPlayWhenReady
                 slotUrls[existing] = url
             }
             if (active) activate(existing, volume)
