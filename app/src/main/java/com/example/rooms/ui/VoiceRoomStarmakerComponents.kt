@@ -1037,7 +1037,7 @@ fun VoiceRoomMembersSheet(
     }
 }
 
-private fun voiceRoomRoleLabel(role: String): String = when (role) {
+fun voiceRoomRoleLabel(role: String): String = when (role) {
     "owner" -> "👑 Anfitrión"
     "admin" ->"⚙ Admin"
     "speaker" ->"🎤 Hablando"
@@ -1045,7 +1045,7 @@ private fun voiceRoomRoleLabel(role: String): String = when (role) {
 }
 
 @Composable
-private fun AnimatedDialog(
+fun AnimatedDialog(
     onDismiss: () -> Unit,
     title: String,
     modifier: Modifier = Modifier,
@@ -1320,12 +1320,12 @@ fun VoiceRoomSettingsSheet(
 }
 
 @Composable
-private fun SettingsSectionTitle(title: String, emoji: String) {
+fun SettingsSectionTitle(title: String, emoji: String) {
     Text("$emoji $title", color = Color(0xFFB8A99A), fontWeight = FontWeight.Bold, fontSize =  13.sp, modifier = Modifier.padding(top =  14.dp, bottom =  6.dp))
 }
 
 @Composable
-private fun SettingsCard(content: @Composable ColumnScope.() -> Unit) {
+fun SettingsCard(content: @Composable ColumnScope.() -> Unit) {
     Surface(color = Color(0xFF241510), shape = RoundedCornerShape(18.dp), modifier = Modifier.fillMaxWidth()) {
 
  Column(content = content)
@@ -1333,12 +1333,12 @@ private fun SettingsCard(content: @Composable ColumnScope.() -> Unit) {
 }
 
 @Composable
-private fun SettingsDivider() {
+fun SettingsDivider() {
     HorizontalDivider(color = Color(0x1AFFFFFF), modifier = Modifier.padding(horizontal =  14.dp))
 }
 
 @Composable
-private fun SettingsRow(
+fun SettingsRow(
     title: String,
     subtitle: String = "",
     danger: Boolean = false,
@@ -1364,7 +1364,7 @@ private fun SettingsRow(
 }
 
 @Composable
-private fun SettingsToggleRow(
+fun SettingsToggleRow(
     title: String,
     subtitle: String = "",
     checked: Boolean,
@@ -1378,5 +1378,4 @@ private fun SettingsToggleRow(
         }
         Switch(checked = checked, onCheckedChange = onCheckedChange, colors = SwitchDefaults.colors(checkedThumbColor = VoiceRoomPalette.Accent, checkedTrackColor = VoiceRoomPalette.Accent.copy(alpha =  0.35f), uncheckedThumbColor = Color.White, uncheckedTrackColor = Color(0xFF3E3E44)))
     }
-}
 }
