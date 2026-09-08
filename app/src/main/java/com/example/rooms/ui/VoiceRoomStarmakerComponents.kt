@@ -302,7 +302,7 @@ fun VoiceRoomSpeakingAura(size: Dp, modifier: Modifier = Modifier) {
             val phase = (tween.value + idx * 3) % waves.size
             val progress = phase / (waves.size - 1f)
 
-            val scale by transition.animateFloat(
+            val auraScale by transition.animateFloat(
                 initialValue = 1f,
                 targetValue = 1.55f,
                 animationSpec = infiniteRepeatable(
@@ -311,7 +311,7 @@ fun VoiceRoomSpeakingAura(size: Dp, modifier: Modifier = Modifier) {
                 ),
                 label = "waveScale$idx"
             )
-            val alpha by transition.animateFloat(
+            val auraAlpha by transition.animateFloat(
                 initialValue = 0.55f,
                 targetValue = 0f,
                 animationSpec = infiniteRepeatable(
@@ -330,9 +330,9 @@ fun VoiceRoomSpeakingAura(size: Dp, modifier: Modifier = Modifier) {
                 modifier = Modifier
                     .matchParentSize()
                     .graphicsLayer {
-                        scaleX = scale
-                        scaleY = scale
-                        alpha = alpha
+                        scaleX = auraScale
+                        scaleY = auraScale
+                        alpha = auraAlpha
                     }
                     .clip(CircleShape)
                     .background(colors[idx].copy(alpha = 0.55f))

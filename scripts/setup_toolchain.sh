@@ -80,19 +80,13 @@ fi
 log "Aceptando licencias e instalando platform-35 + build-tools..."
 yes | "$SDKMANAGER" --sdk_root="$SDK_DIR" --licenses >/dev/null 2>&1 || true
 # sdkmanager es propenso a fallos transitorios de red: reintenta hasta 4 veces.
-
 for attempt in 1 2 3 4; do
-  if "$SDKMANAGER" --sdk_root="$SDK_DIR" \
-    "platform-tools" "platforms;android-35" "build-tools;35.0.0" "build-tools;36.0.0" \
-    >/dev/null 2>&1; then
+  if "$SDKMANAGER" --sdk_root="$SDK_DIR" --no_https     "platform-tools" "platforms;android-35" "build-tools;35.0.0" "build-tools;36.0.0"     >/dev/null 2>&1; then
     break
   fi
   log "sdkmanager fallo en intento $attempt/4 - reintentando..."
   sleep 5
 done
-
-# Verifica que el SDK quedo completo antes de continuar.
-
 if [ ! -d "$SDK_DIR/platforms/android-35" ] || [ ! -d "$SDK_DIR/build-tools/35.0.0" ] || [ ! -d "$SDK_DIR/build-tools/36.0.0" ] || [ ! -x "$SDK_DIR/platform-tools/adb" ]; then
   log "ERROR: el Android SDK quedo incompleto tras los reintentos."
   log "  Revisa la conectividad hacia dl.google.com y volve a ejecutar:"
