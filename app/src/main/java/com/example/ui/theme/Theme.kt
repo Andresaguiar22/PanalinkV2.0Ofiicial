@@ -73,6 +73,41 @@ class AppColors(
     }
 }
 
+val WhatsAppDarkColors = AppColors(
+    primary = Color(0xFF00A884),      // WhatsApp Green
+    secondary = Color(0xFF1F2C34),    // Dark Gray surface
+    background = Color(0xFF0B141A),   // Dark background
+    surface = Color(0xFF1F2C34),      // Dark card surface
+    bubbleMe = Color(0xFF005C4B),     // Me bubble (dark green)
+    bubbleOther = Color(0xFF202C33),  // Other bubble (dark gray)
+    topBar = Color(0xFF202C33),
+    bottomBar = Color(0xFF202C33),
+    accent = Color(0xFF00A884),       // WhatsApp Green
+    isDark = true,
+    onPrimary = Color.White,
+    onSecondary = Color.White,
+    onBackground = Color(0xFFE9EDEF),
+    onSurface = Color(0xFFE9EDEF)
+)
+
+val WhatsAppLightColors = AppColors(
+    primary = Color(0xFF008069),      // WhatsApp Light Green
+    secondary = Color(0xFFF0F2F5),    // Light Gray surface
+    background = Color(0xFFFFFFFF),   // White background
+    surface = Color(0xFFFFFFFF),      // White card surface
+    bubbleMe = Color(0xFFD9FDD3),     // Me bubble (light green)
+    bubbleOther = Color(0xFFFFFFFF),  // Other bubble (white)
+    topBar = Color(0xFF008069),
+    bottomBar = Color(0xFFFFFFFF),
+    accent = Color(0xFF008069),
+    isDark = false,
+    onPrimary = Color.White,
+    onSecondary = Color.Black,
+    onBackground = Color(0xFF111B21),
+    onSurface = Color(0xFF111B21)
+)
+
+
 val DarkTealColors = AppColors(
     primary = Color(0xFF00E5FF),      // Electric Cyan
     secondary = Color(0xFF161618),    // Dark Gray surface
@@ -353,6 +388,8 @@ fun getColorsForTheme(themeKey: String?, customColors: AppColors? = null): AppCo
         "whatsapp_light" -> WhatsAppLightColors
         "classic_dark" -> ClassicDarkColors
         "elegant_grey" -> ElegantGreyColors
+        "whatsapp_dark" -> WhatsAppDarkColors
+
         "vivid_ocean" -> VividOceanColors
         "halo_light" -> HaloLightColors
         "halo_dark" -> HaloDarkColors
