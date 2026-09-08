@@ -102,8 +102,23 @@ class StatesViewModel(private val statesRepository: StatesRepository = StatesRep
     }
     fun loadSpectators(stateId: String) { viewModelScope.launch(errorHandler + Dispatchers.IO) { val currentState = findState(stateId); val isReel = currentState?.let { isReelState(it.state) } ?: false; statesRepository.getStatusViews(stateId, isReel).onSuccess { _currentSpectators.value = it.sortedBy { viewer -> viewer.viewedAt } }.onFailure { _currentSpectators.value = emptyList() } } }
     fun deleteStateForMe(stateId: String, onSuccess: () -> Unit) { viewModelScope.launch { com.example.data.database.PanalinkDatabase.getDatabase(com.example.PanaApplication.instance).statesDao().deleteById(stateId); onSuccess() } }
-    fun deleteState(stateId: String, onSuccess: () -> Unit) { viewModelScope.launch(errorHandler + Dispatchers.IO) { val currentState = findState(stateId) ?: return@launch; val isReel = isReelState(currentState.state); val mediaUrl = currentState.state.mediaUrl; val db = com.example.data.database.PanalinkDatabase.getDatabase(com.example.PanaApplication.instance); db.statesDao().deleteById(stateId); statesRepository.deleteUserStatus(stateId, isReel, mediaUrl).onSuccess { mediaUrl?.let { com.example.data.video.VideoCacheManager.removeVideoCache(it) }; onSuccess() } } }
-    fun deleteComment(stateId: String, commentId: String) { viewModelScope.launch(errorHandler + Dispatchers.IO) { val currentState = findState(stateId) ?: return@launch; statesRepository.deleteComment(commentId, isReelState(currentState.state)).onSuccess { loadComments(stateId); loadActiveStates(false) } } }
+fun deleteState(stateId: String, onSuccess: () -> Unit) { viewModelScope.launch(errorHandler + Dispatchers.IO) {
+        val currentState = findState(stateId) ?: return@launch
+        val isReel = isReelState(currentState.state)
+        val state = currentState.state
+        val db = com.example.data.database.PanalinkDatabase.getDatabase(com.example.PanaApplication.instance)
+        db.statesDao().deleteById(stateId)
+        statesRepository.deleteUserStatus(
+            stateId = stateId,
+            isReel = isReel,
+            mediaUrl = state.mediaUrl,
+            vcdnVideoId = state.vcdnVideoId,
+            vcdnPosterUrl = state.vcdnPosterUrl
+        ).onSuccess {
+            state.mediaUrl?.let { com.example.data.video.VideoCacheManager.removeVideoCache(it) }
+            onSuccess()
+        }
+    } }    fun deleteComment(stateId: String, commentId: String) { viewModelScope.launch(errorHandler + Dispatchers.IO) { val currentState = findState(stateId) ?: return@launch; statesRepository.deleteComment(commentId, isReelState(currentState.state)).onSuccess { loadComments(stateId); loadActiveStates(false) } } }
     fun registerView(stateId: String) { viewModelScope.launch(errorHandler + Dispatchers.IO) { val currentState = findState(stateId) ?: return@launch; val isReel = isReelState(currentState.state); val authorId = currentState.state.userId; statesRepository.registerView(stateId, isReel).onSuccess { if (authorId.isNotEmpty()) com.example.data.repository.NotificationsRepository().createNotification(authorId, "view", stateId); statesRepository.saveStateLocally(currentState.copy(state = currentState.state.copy(viewedByMe = true))) } } }
     fun publishTextState(caption: String, isReel: Boolean = false, audioUrl: String? = null) { if (caption.isBlank()) return; _createStateFlow.value = CreateStateUiState.Loading("Preparando estado..."); viewModelScope.launch(errorHandler) { statesRepository.createState("text", caption, null, null, isReel = isReel, audioUrl = audioUrl).onSuccess { _createStateFlow.value = CreateStateUiState.Success; clearStoryDraft(); loadActiveStates() }.onFailure { _createStateFlow.value = CreateStateUiState.Error(it.localizedMessage ?: "Error publicando estado") } } }
     fun publishStoryBackground(context: android.content.Context, uri: android.net.Uri?, mimeType: String, caption: String?, audioUrl: String? = null, mediaFile: java.io.File? = null) {

@@ -55,9 +55,14 @@ class ReelsRepository(
     suspend fun deleteComment(commentId: String): Result<Unit> =
         remote.deleteComment(commentId)
 
-    suspend fun deleteReel(reelId: String, mediaUrl: String?): Result<Unit> = withContext(Dispatchers.IO) {
+    suspend fun deleteReel(
+        reelId: String,
+        mediaUrl: String?,
+        vcdnVideoId: String? = null,
+        vcdnPosterUrl: String? = null
+    ): Result<Unit> =withContext(Dispatchers.IO) {
         local.deleteById(reelId)
-        val result = remote.deleteReel(reelId, mediaUrl)
+        val result = remote.deleteReel(reelId, mediaUrl, vcdnVideoId, vcdnPosterUrl)
         if (result.isSuccess && !mediaUrl.isNullOrBlank()) {
             try {
                 com.example.data.video.VideoCacheManager.removeVideoCache(mediaUrl)

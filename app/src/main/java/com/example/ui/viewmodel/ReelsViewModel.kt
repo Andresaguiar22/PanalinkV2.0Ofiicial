@@ -161,7 +161,7 @@ class ReelsViewModel(
 
     fun deleteReel(reel: UserStateWithUser, onSuccess: () -> Unit = {}, onError: ((String) -> Unit)? = null) {
         runAction("delete:${reel.state.id}", onError) {
-            repository.deleteReel(reel.state.id, reel.state.mediaUrl).also {
+            repository.deleteReel(reel.state.id, reel.state.mediaUrl, reel.state.vcdnVideoId, reel.state.vcdnPosterUrl).also {
                 if (it.isSuccess) onSuccess()
             }
         }

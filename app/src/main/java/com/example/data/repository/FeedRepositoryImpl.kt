@@ -421,11 +421,37 @@ class FeedRepositoryImpl : FeedRepository {
         Result.success(Unit)
     }
 
-    override suspend fun deletePost(postId: String): Result<Unit> = withContext(Dispatchers.IO) {
+override suspend fun deletePost(postId: String): Result<Unit> = withContext(Dispatchers.IO) {
         try {
             val database = com.example.data.database.PanalinkDatabase.getDatabase(com.example.PanaApplication.instance)
-            database.postDao().deletePostById(postId)
-            
+            val postDao = database.postDao()
+
+            // VCDN cleanup: capture local media references before the row disappears.
+            try {
+                val existing = postDao.getPostById(postId)
+                if (existing != null) {
+                    val urls = ArrayList<String?>()
+                    try {
+                        val arr = org.json.JSONArray(existing.mediaUrlsJson ?: "[]")
+                        for (i in 0 until arr.length()) urls.add(arr.optString(i, null))
+                    } catch (_: Exception) {
+                        // ignore malformed JSON
+                    }
+                    val ids = ArrayList<String?>()
+                    try {
+                        val arr = org.json.JSONArray(existing.customMediaIdsJson ?: "[]")
+                        for (i in 0 until arr.length()) ids.add(arr.optString(i, null))
+                    } catch (_: Exception) {
+                        // ignore malformed JSON
+                    }
+                    VcdnDeleter.deleteVideos(mediaUrls = urls, videoIds = ids)
+                }
+            } catch (e: Exception) {
+                Log.e("FeedRepository", "VCDN cleanup on post delete failed", e)
+            }
+
+            postDao.deletePostById(postId)
+
             val userId = SupabaseClient.currentUser?.id ?: return@withContext Result.success(Unit)
             val action = com.example.data.database.PendingSocialActionEntity(
                 localActionId = java.util.UUID.randomUUID().toString(),
@@ -442,6 +468,7 @@ class FeedRepositoryImpl : FeedRepository {
             Result.failure(e)
         }
     }
+
 
     override suspend fun updatePost(postId: String, content: String): Result<PostDto> = withContext(Dispatchers.IO) {
         try {

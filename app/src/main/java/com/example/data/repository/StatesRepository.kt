@@ -292,32 +292,21 @@ class StatesRepository {
         }
     }
 
-    suspend fun deleteUserStatus(stateId: String, isReel: Boolean, mediaUrl: String? = null): Result<Unit> = withContext(Dispatchers.IO) {
+    suspend fun deleteUserStatus(
+        stateId: String,
+        isReel: Boolean,
+        mediaUrl: String? = null,
+        vcdnVideoId: String? = null,
+        vcdnPosterUrl: String? = null
+    ): Result<Unit> = withContext(Dispatchers.IO) {
         try {
-            // Physically delete from CDN if mediaUrl is provided
-            mediaUrl?.let { url ->
-                val fileId = url.substringAfterLast("/")
-                if (fileId.isNotEmpty() && fileId.contains("media-")) {
-                    try {
-                        val cdnUrl = CdnManager.getCDNUrl()
-                        val deleteEndpoint = if (cdnUrl.endsWith("/")) "${cdnUrl}delete/$fileId" else "$cdnUrl/delete/$fileId"
-                        Log.i(TAG, "Procediendo a BORRADO FÍSICO CDN de archivo: $fileId en endpoint: $deleteEndpoint")
-                        val client = OkHttpClient()
-                        val request = Request.Builder()
-                            .url(deleteEndpoint)
-                            .delete()
-                            .build()
-                        client.newCall(request).execute().use { deleteRes ->
-                            Log.i(TAG, "Resultado de borrado físico en CDN: HTTP ${deleteRes.code}")
-                        }
-                    } catch (e: Exception) {
-                        Log.e(TAG, "Error intentando borrar físicamente el archivo del CDN: ${e.message}", e)
-                    }
-                }
-            }
+            VcdnDeleter.deleteVideos(
+                mediaUrls = listOfNotNull(mediaUrl, vcdnPosterUrl),
+                videoIds = listOfNotNull(vcdnVideoId?.ifBlank { null })
+            )
 
             val service = SupabaseClient.apiService ?: return@withContext Result.failure(Exception("Supabase not configured"))
-            val token = SupabaseClient.currentToken ?: return@withContext Result.failure(Exception("Session expired"))
+            val token = SessionManager.getUserAuthToken() ?: SupabaseClient.currentToken ?: return@withContext Result.failure(Exception("Session expired"))
             val apiKey = SupabaseClient.supabaseAnonKey
             val bearer = "Bearer $token"
 
@@ -336,5 +325,4 @@ class StatesRepository {
             Result.failure(e)
         }
     }
-
 }

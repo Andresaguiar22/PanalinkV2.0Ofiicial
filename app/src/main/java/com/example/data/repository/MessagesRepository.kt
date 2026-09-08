@@ -2216,10 +2216,20 @@ suspend fun insertLocalMessage(msg: Message) = withContext(Dispatchers.IO) {
         }
     }
 
-    suspend fun deleteMessageDefinitively(messageId: String): Result<Boolean> = withContext(Dispatchers.IO) {
+suspend fun deleteMessageDefinitively(messageId: String): Result<Boolean> =withContext(Dispatchers.IO) {
+        // VCDN cleanup: capture local media before physical row deletion.
+
         try {
-            messageDao.deleteMessageById(messageId)
+            val existing = messageDao.getMessageById(messageId)
+            if (existing != null) {
+                VcdnDeleter.deleteVideos(mediaUrls = listOfNotNull(existing.mediaUrl, existing.thumbnailUrl))
+            }
         } catch (e: Exception) {
+            Log.e(TAG, "VCDN cleanup on definitive delete failed: ${e.localizedMessage}", e)
+        }
+
+        try {
+            messageDao.deleteMessageById(messageId)        } catch (e: Exception) {
             Log.e(TAG, "Error deleting local message: ${e.localizedMessage}", e)
         }
 
@@ -2354,11 +2364,20 @@ suspend fun insertLocalMessage(msg: Message) = withContext(Dispatchers.IO) {
         }
     }
 
-    suspend fun deleteMessageForEveryone(messageId: String): Result<Boolean> = withContext(Dispatchers.IO) {
-        val nowStr = java.text.SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss'Z'", java.util.Locale.US).apply { 
-            timeZone = java.util.TimeZone.getTimeZone("UTC") 
+suspend fun deleteMessageForEveryone(messageId: String): Result<Boolean> = withContext(Dispatchers.IO) {
+        // VCDN cleanup: capture local media references before soft-delete.
+        try {
+            val existing = messageDao.getMessageById(messageId)
+            if (existing != null) {
+                VcdnDeleter.deleteVideos(mediaUrls = listOfNotNull(existing.mediaUrl, existing.thumbnailUrl))
+            }
+        } catch (e: Exception) {
+            Log.e(TAG, "VCDN cleanup on delete-for-everyone failed: ${e.localizedMessage}", e)
+        }
+
+        val nowStr = java.text.SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss'Z'", java.util.Locale.US).apply {
+            timeZone = java.util.TimeZone.getTimeZone("UTC")
         }.format(java.util.Date())
-        
         try {
             messageDao.markMessageDeletePending(messageId, nowStr)
         } catch (e: Exception) {

@@ -95,5 +95,10 @@ class ReelsRemoteDataSource(
 
     suspend fun deleteComment(commentId: String) = remote.deleteComment(commentId, true)
 
-    suspend fun deleteReel(reelId: String, mediaUrl: String?) = remote.deleteUserStatus(reelId, true, mediaUrl)
+    suspend fun deleteReel(
+        reelId: String,
+        mediaUrl: String?,
+        vcdnVideoId: String? = null,
+        vcdnPosterUrl: String? = null
+    ) = remote.deleteUserStatus(reelId, true, mediaUrl, vcdnVideoId, vcdnPosterUrl)
 }

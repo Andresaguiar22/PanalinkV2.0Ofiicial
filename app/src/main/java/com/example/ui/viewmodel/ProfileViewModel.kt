@@ -132,12 +132,18 @@ class ProfileViewModel(
     private val _totalLikesCount = MutableStateFlow(0)
     val totalLikesCount: StateFlow<Int> = _totalLikesCount
 
-    fun deleteReel(stateId: String, userId: String) {
+fun deleteReel(stateId: String, userId: String) {
         val reelsList = _reelsState.value.getOrNull() ?: emptyList()
         val match = reelsList.find { it.state.id == stateId }
-        val mediaUrl = match?.state?.mediaUrl
+        val state = match?.state
         viewModelScope.launch {
-            val result = StatesRepository().deleteUserStatus(stateId, isReel = true, mediaUrl = mediaUrl)
+            val result = StatesRepository().deleteUserStatus(
+                stateId = stateId,
+                isReel = true,
+                mediaUrl = state?.mediaUrl,
+                vcdnVideoId = state?.vcdnVideoId,
+                vcdnPosterUrl = state?.vcdnPosterUrl
+            )
             if (result.isSuccess) {
                 loadReels(userId)
             }
@@ -145,7 +151,7 @@ class ProfileViewModel(
     }
 
     fun loadStats(userId: String) {
-        viewModelScope.launch {
+            viewModelScope.launch {
             val followers = ProfilesRepository().getFollowersList(userId).getOrNull() ?: emptyList()
             _followersCount.value = followers.size
 
