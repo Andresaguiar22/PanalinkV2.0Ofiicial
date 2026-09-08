@@ -1,5 +1,8 @@
 package com.example.rooms.ui
 
+import androidx.compose.animation.core.Animatable
+import androidx.compose.animation.core.FastOutSlowInEasing
+import androidx.compose.animation.core.LinearOutSlowInEasing
 import androidx.compose.animation.core.RepeatMode
 import androidx.compose.animation.core.animateFloat
 import androidx.compose.animation.core.infiniteRepeatable
@@ -31,6 +34,7 @@ import androidx.compose.material.icons.filled.Send
 import androidx.compose.material.icons.filled.Settings
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
+import kotlinx.coroutines.launch
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
@@ -41,6 +45,7 @@ import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.Dp
+import androidx.compose.ui.unit.IntOffset
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import coil.compose.AsyncImage
@@ -434,7 +439,8 @@ fun VoiceRoomTikTokChat(
     onOpenProfile: ((String) -> Unit)? = null,
     modifier: Modifier = Modifier
 ) {
-    val reversedMessages = messages.reversed()
+    val chatMessages = messages.filter { !it.isSystem }
+    val systemMessages = messages.filter { it.isSystem }
     Box(modifier = modifier) {
         LazyColumn(
             state = rememberLazyListState(),
@@ -443,25 +449,12 @@ fun VoiceRoomTikTokChat(
             reverseLayout = true,
             contentPadding = PaddingValues(horizontal = 10.dp, vertical = 6.dp)
         ) {
-            items(reversedMessages, key = { it.id }) { message ->
-                if (message.isSystem) {
-                    Box(Modifier.fillMaxWidth(), contentAlignment = Alignment.Center) {
-                        Text(
-                            message.content,
-                            color = VoiceRoomPalette.Gold,
-                            fontSize =  10.sp,
-                            modifier = Modifier
-                                .background(Color(0x332A1812), RoundedCornerShape(8.dp))
-                                .padding(horizontal =  10.dp, vertical =  3.dp)
-                        )
-                    }
-                } else {
-                    VoiceRoomTikTokMessage(
-                        message = message,
-                        avatarUrl = memberById[message.senderId]?.avatarUrl,
-                        onOpenProfile = onOpenProfile
-                    )
-                }
+            items(chatMessages, key = { it.id }) { message ->
+                VoiceRoomTikTokMessage(
+                    message = message,
+                    avatarUrl = memberById[message.senderId]?.avatarUrl,
+                    onOpenProfile = onOpenProfile
+                )
             }
         }
         Box(
@@ -475,6 +468,14 @@ fun VoiceRoomTikTokChat(
                     )
                 )
         )
+        Box(modifier = Modifier.fillMaxSize()) {
+            systemMessages.forEach { msg ->
+                VoiceRoomSystemBubble(
+                    message = msg,
+                    modifier = Modifier.align(Alignment.BottomStart)
+                )
+            }
+        }
     }
 }
 
@@ -530,6 +531,59 @@ private fun VoiceRoomTikTokMessage(
             )
             Spacer(Modifier.height(2.dp))
             Text(message.content, color = Color(0xFFF4E8DC), fontSize =  13.sp, lineHeight = 17.sp)
+        }
+    }
+}
+
+@Composable
+fun VoiceRoomSystemBubble(message: VoiceRoomMessage, modifier: Modifier = Modifier) {
+    val alpha = remember { Animatable(0f) }
+    val scale = remember { Animatable(0.3f) }
+    val offsetX = remember { Animatable(0f) }
+    val offsetY = remember { Animatable(0f) }
+    LaunchedEffect(message.id) {
+        launch { alpha.animateTo(1f, tween(350)) }
+        launch { scale.animateTo(1f, tween(350, easing = FastOutSlowInEasing)) }
+        launch {
+            offsetX.animateTo(220f, tween(1800, easing = LinearOutSlowInEasing))
+            offsetY.animateTo(-180f, tween(1800, easing = LinearOutSlowInEasing))
+        }
+        delay(2200)
+        launch { alpha.animateTo(0f, tween(400)) }
+    }
+    Box(
+        modifier = modifier
+            .offset { IntOffset(offsetX.value.roundToInt(), offsetY.value.roundToInt()) }
+            .graphicsLayer {
+                scaleX = scale.value
+                scaleY = scale.value
+                this.alpha = alpha.value
+            }
+    ) {
+        Surface(
+            shape = RoundedCornerShape(18.dp),
+            color = VoiceRoomPalette.Accent.copy(alpha = 0.92f),
+            shadowElevation = 8.dp,
+            modifier = Modifier.wrapContentSize()
+        ) {
+            Row(verticalAlignment = Alignment.CenterVertically, modifier = Modifier.padding(horizontal = 14.dp, vertical = 8.dp)) {
+                Box(
+                    modifier = Modifier
+                        .size(22.dp)
+                        .clip(CircleShape)
+                        .background(Color.White.copy(alpha = 0.25f)),
+                    contentAlignment = Alignment.Center
+                ) {
+                    Text("👋", fontSize = 12.sp)
+                }
+                Spacer(Modifier.width(8.dp))
+                Text(
+                    message.content,
+                    color = Color.White,
+                    fontSize = 12.sp,
+                    fontWeight = FontWeight.Medium
+                )
+            }
         }
     }
 }
