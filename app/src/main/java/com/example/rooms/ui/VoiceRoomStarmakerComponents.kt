@@ -204,8 +204,8 @@ fun VoiceRoomHeader(
                 Text(
                     room?.name ?: "Sala de Voz",
                     color = Color.White,
-                    fontWeight = FontWeight.Bold,
-                    fontSize =  14.sp,
+                    fontWeight = FontWeight.ExtraBold,
+                    fontSize =  15.sp,
                     maxLines =  1,
                     overflow = TextOverflow.Ellipsis
                 )
@@ -214,13 +214,14 @@ fun VoiceRoomHeader(
                     Icon(Icons.Default.Lock, contentDescription = "Privada", tint = VoiceRoomPalette.Gold, modifier = Modifier.size(12.dp))
                 }
             }
-            Spacer(Modifier.height(2.dp))
+            Spacer(Modifier.height(1.dp))
             Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(5.dp)) {
                 VoiceRoomLiveBadge()
                 Text(
                     hostDisplayName ?: "Anfitrión",
-                    color = Color.White.copy(alpha = 0.85f),
+                    color = Color.White.copy(alpha = 0.8f),
                     fontSize =  11.sp,
+                    fontWeight = FontWeight.Medium,
                     maxLines =  1,
                     overflow = TextOverflow.Ellipsis
                 )
@@ -579,7 +580,7 @@ private fun VoiceRoomTikTokMessage(
             if (!avatarUrl.isNullOrBlank()) {
                 AsyncImage(model = avatarUrl, contentDescription = null, contentScale = ContentScale.Crop, modifier = Modifier.fillMaxSize())
             } else {
-                Text(message.senderName?.take(1)?.uppercase() ?: "👤", color = VoiceRoomPalette.Gold, fontSize =  12.sp, fontWeight = FontWeight.Bold)
+                Text(message.senderName?.take(1)?.uppercase() ?: "👤", color = VoiceRoomPalette.Gold, fontSize =  11.sp, fontWeight = FontWeight.Bold)
             }
         }
         Spacer(Modifier.width(8.dp))
@@ -597,7 +598,7 @@ private fun VoiceRoomTikTokMessage(
             Text(
                 message.senderName ?: message.senderId.take(8),
                 color = VoiceRoomPalette.Blue,
-                fontSize =  10.sp,
+                fontSize =  11.sp,
                 fontWeight = FontWeight.SemiBold,
                 maxLines =  1,
                 overflow = TextOverflow.Ellipsis
@@ -778,8 +779,9 @@ fun VoiceRoomUpNextStrip(
                         Spacer(Modifier.width(6.dp))
                         Text(
                             seat.displayName ?: seat.userId?.take(6) ?: "Pana",
-                            color = Color(0xFFE8DCD0),
+                            color = Color(0xFFF4E8DC),
                             fontSize =  10.sp,
+                            fontWeight = FontWeight.Medium,
                             maxLines =  1,
                             overflow = TextOverflow.Ellipsis
                         )
@@ -836,8 +838,8 @@ fun VoiceRoomInputBar(
             onValueChange = onValueChange,
             modifier = Modifier.weight(1f),
             singleLine = true,
-            placeholder ={ Text("Di algo...", fontSize =  13.sp, color = Color.Gray) },
-            textStyle = LocalTextStyle.current.copy(fontSize =  14.sp),
+            placeholder ={ Text("Di algo...", fontSize =  13.sp, color = Color(0xFFB8A99A)) },
+            textStyle = LocalTextStyle.current.copy(fontSize =  14.sp, fontWeight = FontWeight.Medium),
             colors = OutlinedTextFieldDefaults.colors(
                 focusedTextColor = Color.White,
                 unfocusedTextColor = Color.White,
@@ -856,7 +858,7 @@ fun VoiceRoomInputBar(
             Icon(
                 Icons.Default.Send,
                 contentDescription = "Enviar",
-                tint = if (value.isNotBlank()) VoiceRoomPalette.Accent else Color.Gray
+                tint = if (value.isNotBlank()) VoiceRoomPalette.Accent else Color(0x66FFFFFF)
             )
         }
     }
