@@ -4,11 +4,14 @@ import androidx.compose.animation.core.*
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.Canvas
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.horizontalScroll
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
+import androidx.compose.foundation.lazy.LazyRow
 import androidx.compose.foundation.lazy.items
+import androidx.compose.foundation.lazy.item
 import androidx.compose.foundation.lazy.rememberLazyListState
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.CircleShape
@@ -27,10 +30,12 @@ import androidx.compose.material.icons.filled.Send
 import androidx.compose.material.icons.filled.Settings
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
+import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.draw.shadow
 import androidx.compose.ui.draw.drawWithContent
 import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.graphics.Brush
@@ -50,6 +55,8 @@ import com.example.rooms.model.VoiceRoom
 import com.example.rooms.model.VoiceRoomMember
 import com.example.rooms.model.VoiceRoomMessage
 import com.example.rooms.model.VoiceRoomSeat
+import kotlin.random.Random
+import kotlin.math.roundToInt
 
 internal object VoiceRoomPalette {
     val Bg = Color(0xFF120C0A)
@@ -128,12 +135,12 @@ private fun VoiceRoomNoiseTexture(modifier: Modifier = Modifier) {
         val area = size.width * size.height
         val step = 12f
         val count = (area / (step * step)).toInt()
-        val rnd = kotlinx.random.Random(42)
+        val rnd = Random(42)
         repeat(count) {
             val x = rnd.nextFloat() * size.width
             val y = rnd.nextFloat() * size.height
             val a = rnd.nextFloat() * noiseAlpha
-            drawRect(color = Color.White.copy(alpha = a), topLeft = Offset(x, y), size = androidx.compose.ui.geometry.Size(step, step))
+            drawRect(color = Color.White.copy(alpha = a), topLeft = Offset(x.toFloat(), y.toFloat()), size = androidx.compose.ui.geometry.Size(step, step))
         }
     }
 }
@@ -322,7 +329,7 @@ fun VoiceRoomSpeakingAura(size: Dp, modifier: Modifier = Modifier) {
             )
             LaunchedEffect(Unit) {
                 while (true) {
-                    kotlinx.coroutines.delay(300L)
+                    kotlinx.coroutines.                    kotlinx.coroutines.delay(300L)
                     tween.value = (tween.value + 1) % waves.size
                 }
             }
@@ -1310,6 +1317,8 @@ fun VoiceRoomSettingsSheet(
             }
         }
     }
+        }
+    }
 
 @Composable
 private fun SettingsSectionTitle(title: String, emoji: String) {
@@ -1370,4 +1379,5 @@ private fun SettingsToggleRow(
         }
         Switch(checked = checked, onCheckedChange = onCheckedChange, colors = SwitchDefaults.colors(checkedThumbColor = VoiceRoomPalette.Accent, checkedTrackColor = VoiceRoomPalette.Accent.copy(alpha =  0.35f), uncheckedThumbColor = Color.White, uncheckedTrackColor = Color(0xFF3E3E44)))
     }
+}
 }
