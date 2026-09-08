@@ -3,7 +3,7 @@ package com.example.rooms.ui
 import androidx.compose.animation.core.*
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
-import androidx.compose.foundation.clickable
+import androidx.compose.foundation.Canvas
 import androidx.compose.foundation.horizontalScroll
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.foundation.layout.*
@@ -31,9 +31,12 @@ import kotlinx.coroutines.launch
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.draw.drawWithContent
+import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.graphicsLayer
+import androidx.compose.ui.graphics.drawscope.translate
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextOverflow
@@ -92,6 +95,7 @@ fun VoiceRoomBackground(
             offsetX =  80.dp,
             offsetY =  420.dp
         )
+        VoiceRoomNoiseTexture()
         Box(Modifier.fillMaxSize()) { content() }
     }
 }
@@ -115,6 +119,23 @@ private fun GlowOrb(
                 CircleShape
             )
     )
+}
+
+@Composable
+private fun VoiceRoomNoiseTexture(modifier: Modifier = Modifier) {
+    val noiseAlpha = 0.08f
+    Canvas(modifier = modifier.fillMaxSize()) {
+        val area = size.width * size.height
+        val step = 12f
+        val count = (area / (step * step)).toInt()
+        val rnd = kotlinx.random.Random(42)
+        repeat(count) {
+            val x = rnd.nextFloat() * size.width
+            val y = rnd.nextFloat() * size.height
+            val a = rnd.nextFloat() * noiseAlpha
+            drawRect(color = Color.White.copy(alpha = a), topLeft = Offset(x, y), size = androidx.compose.ui.geometry.Size(step, step))
+        }
+    }
 }
 
 @Composable
@@ -952,18 +973,27 @@ fun VoiceRoomMembersSheet(
     onDismiss: () -> Unit,
     onOpenProfile: ((String) -> Unit)? = null,
 ) {
+    val sheetState = rememberModalBottomSheetState(skipPartiallyExpanded = true)
+    val scope = rememberCoroutineScope()
     ModalBottomSheet(
-        onDismissRequest = onDismiss,
+        onDismissRequest = { scope.launch { sheetState.hide(); onDismiss() } },
         containerColor = VoiceRoomPalette.BgDeep,
-        contentColor = Color.White
+        contentColor = Color.White,
+        sheetState = sheetState,
+        dragHandle = null,
+        tonalElevation = 12.dp,
+        modifier = Modifier.navigationBarsPadding()
     ) {
         Column(
             modifier = Modifier
                 .fillMaxWidth()
-                .padding(16.dp)
-                .navigationBarsPadding()
+                .padding(horizontal = 16.dp, vertical = 12.dp)
         ) {
-            Text("Miembros (${members.size})", color = Color.White, fontWeight = FontWeight.Bold, fontSize =  16.sp)
+            Row(verticalAlignment = Alignment.CenterVertically) {
+                Text("Miembros (${members.size})", color = Color.White, fontWeight = FontWeight.ExtraBold, fontSize =  17.sp)
+                Spacer(Modifier.weight(1f))
+                IconButton(onClick = { scope.launch { sheetState.hide(); onDismiss() } }) { Icon(Icons.Default.Close, "Cerrar", tint = Color.White) }
+            }
             Spacer(Modifier.height(12.dp))
             LazyColumn(
                 modifier = Modifier
@@ -1030,6 +1060,46 @@ private fun voiceRoomRoleLabel(role: String): String = when (role) {
     else ->"👂 Oyente"
 }
 
+@Composable
+private fun AnimatedDialog(
+    onDismiss: () -> Unit,
+    title: String,
+    modifier: Modifier = Modifier,
+    text: @Composable (() -> Unit)? = null,
+    confirmText: String,
+    dangerConfirm: Boolean = false,
+    onConfirm: () -> Unit,
+    dismissText: String? = null,
+    onDismissClick: (() -> Unit)? = null,
+    containerColor: Color = VoiceRoomPalette.BgDeep
+) {
+    val alpha = remember { Animatable(0f) }
+    val scale = remember { Animatable(0.92f) }
+    LaunchedEffect(Unit) {
+        launch { alpha.animateTo(1f, tween(200)) }
+        launch { scale.animateTo(1f, tween(200, easing = FastOutSlowInEasing)) }
+    }
+    AlertDialog(
+        onDismissRequest = onDismiss,
+        title = { Text(title, color = Color.White, fontSize = 16.sp, fontWeight = FontWeight.SemiBold) },
+        text = text,
+        confirmButton = {
+            TextButton(onClick = onConfirm) {
+                Text(confirmText, color = if (dangerConfirm) Color(0xFFFF6E6E) else VoiceRoomPalette.Accent, fontWeight = FontWeight.SemiBold)
+            }
+        },
+        dismissButton = if (dismissText != null && onDismissClick != null) {
+            { TextButton(onClick = onDismissClick) { Text(dismissText, color = Color.White) } }
+        } else null,
+        containerColor = containerColor,
+        modifier = modifier.graphicsLayer {
+            this.alpha = alpha.value
+            scaleX = scale.value
+            scaleY = scale.value
+        }
+    )
+}
+
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun VoiceRoomSettingsSheet(
@@ -1065,17 +1135,19 @@ fun VoiceRoomSettingsSheet(
     val categoryLabel = categories.firstOrNull { it.first == category }?.second ?: "General"
 
     ModalBottomSheet(
-        onDismissRequest = onClose,
+        onDismissRequest = { onClose() },
         containerColor = VoiceRoomPalette.BgDeep,
-        contentColor = Color.White
+        contentColor = Color.White,
+        tonalElevation = 16.dp,
+        modifier = Modifier.navigationBarsPadding()
     ) {
- Column(
-            Modifier.fillMaxWidth().padding(horizontal =  16.dp, vertical =  8.dp)
+        Column(
+            Modifier.fillMaxWidth().padding(horizontal =  16.dp, vertical =  10.dp)
         ) {
- Row(verticalAlignment = Alignment.CenterVertically) {
+            Row(verticalAlignment = Alignment.CenterVertically) {
                 Icon(Icons.Default.Settings, null, tint = VoiceRoomPalette.Accent, modifier = Modifier.size(22.dp))
                 Spacer(Modifier.width(8.dp))
-                Text("Configuración de la sala", color = Color.White, fontSize =  18.sp, fontWeight = FontWeight.Bold)
+                Text("Configuración de la sala", color = Color.White, fontSize =  18.sp, fontWeight = FontWeight.ExtraBold)
                 Spacer(Modifier.weight(1f))
                 IconButton(onClick = onClose) { Icon(Icons.Default.Close, "Cerrar", tint = Color.White) }
             }
@@ -1159,31 +1231,48 @@ fun VoiceRoomSettingsSheet(
     }
 
     if (showCategoryPicker) {
-        AlertDialog(
-            onDismissRequest = { showCategoryPicker = false },
-            title = { Text("Categoría", color = Color.White) },
-            text = { Column { categories.forEach { (key,label) -> Row(Modifier.fillMaxWidth().clickable { category = key; showCategoryPicker = false }.padding(vertical =  10.dp), verticalAlignment = Alignment.CenterVertically) { if (category == key) Icon(Icons.Default.Check, null, tint = VoiceRoomPalette.Accent, modifier = Modifier.size(18.dp)) else Spacer(Modifier.size(18.dp)); Spacer(Modifier.width(10.dp)); Text(label, color = Color.White, fontSize =  15.sp) } } } },
-            confirmButton = { TextButton(onClick = { showCategoryPicker = false }) { Text("Cerrar", color = VoiceRoomPalette.Accent) } },
+        AnimatedDialog(
+            onDismiss = { showCategoryPicker = false },
+            title = "Categoría",
+            confirmText = "Cerrar",
+            onConfirm = { showCategoryPicker = false },
+            onDismissClick = { showCategoryPicker = false },
             containerColor = VoiceRoomPalette.BgDeep
-        )
+        ) {
+            Column {
+                categories.forEach { (key,label) ->
+                    Row(Modifier.fillMaxWidth().clickable { category = key; showCategoryPicker = false }.padding(vertical =  10.dp), verticalAlignment = Alignment.CenterVertically) {
+                        if (category == key) Icon(Icons.Default.Check, null, tint = VoiceRoomPalette.Accent, modifier = Modifier.size(18.dp)) else Spacer(Modifier.size(18.dp))
+                        Spacer(Modifier.width(10.dp))
+                        Text(label, color = Color.White, fontSize =  15.sp)
+                    }
+                }
+            }
+        }
     }
 
     if (showDeleteConfirm) {
-        AlertDialog(
-            onDismissRequest = { showDeleteConfirm = false },
-            title = { Text("Eliminar sala", color = Color.White) },
+        AnimatedDialog(
+            onDismiss = { showDeleteConfirm = false },
+            title = "Eliminar sala",
             text = { Text("¿Seguro que quieres borrar esta sala para siempre? Se eliminarán sillones, mensajes, solicitudes y miembros.", color = Color(0xFFD8CDC4)) },
-            confirmButton = { TextButton(onClick = { showDeleteConfirm = false; onDeleteRoom() }) { Text("Eliminar", color = Color(0xFFFF6E6E) ) } },
-            dismissButton = { TextButton(onClick = { showDeleteConfirm = false }) { Text("Cancelar", color = Color.White) } },
+            confirmText = "Eliminar",
+            dangerConfirm = true,
+            onConfirm = { showDeleteConfirm = false; onDeleteRoom() },
+            dismissText = "Cancelar",
+            onDismissClick = { showDeleteConfirm = false },
             containerColor = VoiceRoomPalette.BgDeep
         )
     }
 
-if (showMembersTab) {
-    AlertDialog(
-        onDismissRequest = { showMembersTab = false },
-        title = { Text("Miembros de la sala", color = Color.White) },
-        text = {
+    if (showMembersTab) {
+        AnimatedDialog(
+            onDismiss = { showMembersTab = false },
+            title = "Miembros de la sala",
+            confirmText = "Cerrar",
+            onConfirm = { showMembersTab = false },
+            containerColor = VoiceRoomPalette.BgDeep
+        ) {
             Column(Modifier.verticalScroll(rememberScrollState()).heightIn(max = 420.dp)) {
                 members.forEach { member ->
                     Row(Modifier.fillMaxWidth().padding(vertical = 8.dp), verticalAlignment = Alignment.CenterVertically) {
@@ -1196,7 +1285,6 @@ if (showMembersTab) {
                             Text(voiceRoomRoleLabel(member.role), color = if (member.role == "owner" || member.role == "admin") VoiceRoomPalette.Gold else VoiceRoomPalette.Accent, fontSize =  11.sp)
                         }
                         if (member.userId != myUserId && member.userId != room?.ownerId) {
-
                             if (isHost && member.role != "admin") {
                                 TextButton(onClick = { onSetAdmin(member.userId, true) }) { Text("Hacer admin", color = VoiceRoomPalette.Accent, fontSize =  11.sp) }
                             }
@@ -1212,16 +1300,16 @@ if (showMembersTab) {
                     HorizontalDivider(color = Color(0x1FFFFFFF))
                 }
             }
-        },
-        confirmButton = { TextButton(onClick = { showMembersTab = false }) { Text("Cerrar", color = VoiceRoomPalette.Accent) } },
-        containerColor = VoiceRoomPalette.BgDeep
-    )
-}
+        }
+    }
     if (showBannedTab) {
-    AlertDialog(
-        onDismissRequest = { showBannedTab = false },
-        title = { Text("Usuarios baneados", color = Color.White) },
-        text = {
+        AnimatedDialog(
+            onDismiss = { showBannedTab = false },
+            title = "Usuarios baneados",
+            confirmText = "Cerrar",
+            onConfirm = { showBannedTab = false },
+            containerColor = VoiceRoomPalette.BgDeep
+        ) {
             if (bannedUsers.isEmpty()) {
                 Text("No hay usuarios baneados.", color = Color(0xFFD8CDC4))
             } else {
@@ -1243,11 +1331,9 @@ if (showMembersTab) {
                     }
                 }
             }
-        },
-        confirmButton = { TextButton(onClick = { showBannedTab = false }) { Text("Cerrar", color = VoiceRoomPalette.Accent) } },
-        containerColor = VoiceRoomPalette.BgDeep
-    )
-}}
+        }
+    }
+
 @Composable
 private fun SettingsSectionTitle(title: String, emoji: String) {
     Text("$emoji $title", color = Color(0xFFB8A99A), fontWeight = FontWeight.Bold, fontSize =  13.sp, modifier = Modifier.padding(top =  14.dp, bottom =  6.dp))
