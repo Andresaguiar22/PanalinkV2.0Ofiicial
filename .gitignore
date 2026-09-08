@@ -24,3 +24,7 @@ secrets.properties
 secrets.defaults.properties
 server/PanalinkStorage/*
 
+
+# Toolchain local generado por scripts/setup_toolchain.sh
+.toolchain/
+.gradle-home/
