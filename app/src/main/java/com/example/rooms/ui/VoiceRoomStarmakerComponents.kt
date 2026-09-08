@@ -336,7 +336,7 @@ private fun VoiceRoomSeatCircle(
     onAdmin:()->Unit,
 ) {
     val speaking = seat?.isSpeaking == true
-    Box {
+    Box(modifier = Modifier, contentAlignment = Alignment.Center) {
         if (speaking) {
             VoiceRoomSpeakingAura(size = size)
         }
