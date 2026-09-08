@@ -318,6 +318,60 @@ fun VoiceRoomSpeakingAura(size: Dp, modifier: Modifier = Modifier) {
 }
 
 @Composable
+fun VoiceRoomAudioVisualizer(
+    modifier: Modifier = Modifier,
+    barCount: Int = 4,
+    active: Boolean = true
+) {
+    val heights = remember { List(barCount) { kotlinx.random.Random.nextInt(6, 14).toFloat() } }
+    val baseHeightDp = heights.map { it.dp }
+
+    val transitions = remember { List(barCount) { rememberInfiniteTransition(label = "audioBar$it") } }
+
+    val animatedHeights = transitions.mapIndexed { idx, transition ->
+        transition.animateFloat(
+            initialValue = 4f,
+            targetValue = baseHeightDp[idx].value * 0.9f,
+            animationSpec = infiniteRepeatable(
+                animation = tween((400 + idx * 120).coerceAtMost(1000), easing = FastOutSlowInEasing),
+                repeatMode = RepeatMode.Reverse
+            ),
+            label = "barHeight$idx"
+        )
+    }
+
+    if (!active) {
+        Row(modifier = modifier.height(14.dp), horizontalArrangement = Arrangement.spacedBy(2.dp)) {
+            repeat(barCount) {
+                Box(
+                    modifier = Modifier
+                        .width(3.dp)
+                        .fillMaxHeight()
+                        .clip(RoundedCornerShape(2.dp))
+                        .background(VoiceRoomPalette.Accent.copy(alpha = 0.25f))
+                )
+            }
+        }
+        return
+    }
+
+    Row(
+        modifier = modifier.height(18.dp),
+        horizontalArrangement = Arrangement.spacedBy(2.dp, Alignment.CenterHorizontally)
+    ) {
+        animatedHeights.forEach { animatedHeight ->
+            Box(
+                modifier = Modifier
+                    .width(3.dp)
+                    .height(animatedHeight.value.dp)
+                    .clip(RoundedCornerShape(2.dp))
+                    .background(VoiceRoomPalette.Accent)
+            )
+        }
+    }
+}
+
+@Composable
 fun VoiceRoomStageSeat(
     seat: VoiceRoomSeat?,
     size: Dp,
@@ -375,36 +429,42 @@ private fun VoiceRoomSeatCircle(
         if (speaking) {
             VoiceRoomSpeakingAura(size = size)
         }
-        Box(
-            modifier = Modifier
-                .size(size)
-                .clip(CircleShape)
-                .background(if (seat?.isOccupied == true) Color(0xFF4A2C21) else Color(0x29FFFFFF))
-                .border(if (speaking) 2.dp else 0.dp, VoiceRoomPalette.Accent, CircleShape)
-                .clickable(onClick = onClick),
-            contentAlignment = Alignment.Center
-        ) {
-            if (!seat?.avatarUrl.isNullOrBlank()) {
-                AsyncImage(
-                    model = seat.avatarUrl,
-                    contentDescription = null,
-                    contentScale = ContentScale.Crop,
-                    modifier = Modifier.fillMaxSize()
-                )
-            } else if (seat?.isOccupied == true) {
-                Text(
-                    seat.displayName?.take(1)?.uppercase() ?: "👤",
-                    color = VoiceRoomPalette.Gold,
-                    fontSize = (size.value * 0.35f).sp,
-                    fontWeight = FontWeight.Bold
-                )
-            } else {
-                Icon(
-                    Icons.Default.Chair,
-                    contentDescription = null,
-                    tint = Color.White.copy(alpha = 0.55f),
-                    modifier = Modifier.size(size * 0.44f)
-                )
+        Row(verticalAlignment = Alignment.CenterVertically) {
+            Box(
+                modifier = Modifier
+                    .size(size)
+                    .clip(CircleShape)
+                    .background(if (seat?.isOccupied == true) Color(0xFF4A2C21) else Color(0x29FFFFFF))
+                    .border(if (speaking) 2.dp else 0.dp, VoiceRoomPalette.Accent, CircleShape)
+                    .clickable(onClick = onClick),
+                contentAlignment = Alignment.Center
+            ) {
+                if (!seat?.avatarUrl.isNullOrBlank()) {
+                    AsyncImage(
+                        model = seat.avatarUrl,
+                        contentDescription = null,
+                        contentScale = ContentScale.Crop,
+                        modifier = Modifier.fillMaxSize()
+                    )
+                } else if (seat?.isOccupied == true) {
+                    Text(
+                        seat.displayName?.take(1)?.uppercase() ?: "👤",
+                        color = VoiceRoomPalette.Gold,
+                        fontSize = (size.value * 0.35f).sp,
+                        fontWeight = FontWeight.Bold
+                    )
+                } else {
+                    Icon(
+                        Icons.Default.Chair,
+                        contentDescription = null,
+                        tint = Color.White.copy(alpha = 0.55f),
+                        modifier = Modifier.size(size * 0.44f)
+                    )
+                }
+            }
+            if (speaking) {
+                Spacer(Modifier.width(6.dp))
+                VoiceRoomAudioVisualizer(active = true, barCount = 4)
             }
         }
         if (seat?.isMuteBadgeVisible() == true) {
