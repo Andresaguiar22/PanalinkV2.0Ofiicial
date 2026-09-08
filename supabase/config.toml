@@ -11,3 +11,10 @@ verify_jwt = false
 # caller's Supabase JWT; the participant identity is derived from its subject.
 [functions.livekit-token]
 verify_jwt = true
+
+# VCDN delete: called from Android (JWT) and from the expiration crons
+# via pg_net with x-internal-secret (same contract as send-push); without this,
+# the gateway rejects the cron call with 401 before the function can validate
+# the internal secret.
+[functions.vcdn-delete]
+verify_jwt = false
