@@ -48,6 +48,7 @@ class ReelDualPlayerManager(private val context: Context) {
     private var slotBPlayer: ExoPlayer? = null
     private var slotAAssignedId: String? = null
     private var slotBAssignedId: String? = null
+    private val slotUrls = mutableMapOf<Slot, String>()
     private var activeSlot: Slot? = null
 
     /** Acquires the player for [slot] and prepares [url]. If the slot already held this
@@ -65,6 +66,7 @@ class ReelDualPlayerManager(private val context: Context) {
             player.volume = volume
             player.playWhenReady = false
             player.prepare()
+            slotUrls[slot] = url
             if (slot == Slot.A) slotAAssignedId = id else slotBAssignedId = id
         } else {
             player.volume = volume
@@ -123,6 +125,13 @@ class ReelDualPlayerManager(private val context: Context) {
     fun acquireOrReuse(id: String, url: String, active: Boolean, volume: Float): Slot? {
         val existing = slotFor(id)
         if (existing != null) {
+            val currentUrl = slotUrls[existing]
+            if (currentUrl != url) {
+                val player = playerFor(existing)!!
+                player.setMediaItem(MediaItem.fromUri(url))
+                player.prepare()
+                slotUrls[existing] = url
+            }
             if (active) activate(existing, volume)
             return existing
         }
@@ -161,7 +170,7 @@ class ReelDualPlayerManager(private val context: Context) {
         val player = if (slot == Slot.A) slotAPlayer else slotBPlayer
         player?.stop()
         player?.release()
-        if (slot == Slot.A) { slotAPlayer = null; slotAAssignedId = null } else { slotBPlayer = null; slotBAssignedId = null }
+        if (slot == Slot.A) { slotAPlayer = null; slotAAssignedId = null; slotUrls.remove(Slot.A) } else { slotBPlayer = null; slotBAssignedId = null; slotUrls.remove(Slot.B) }
         if (!requeue) return
         val pending = pendingPreloads.pollFirst() ?: return
         acquire(slot, pending.id, pending.url, pending.volume)

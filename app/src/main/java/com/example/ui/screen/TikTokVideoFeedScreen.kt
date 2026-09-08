@@ -1136,7 +1136,9 @@ fun TikTokPageItem(
                             isBuffering = true
                             retryCount = 0
                             resolvedUrl = null
-                            dualManager.releaseIfOwned(state.id)
+                            dualManager.slotFor(state.id)?.let { slot ->
+                                dualManager.playerFor(slot)?.prepare()
+                            }
                         }
                     )
                 } else {
