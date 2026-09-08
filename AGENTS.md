@@ -107,6 +107,63 @@ VERSION_NAME=vX.Y.Z VERSION_CODE=N ./gradlew :app:assembleRelease   # release
 ### Changelog
 * Formato markdown con bullets; ej. `Migración a Panalink V2.0 Oficial con correcciones de CDN y Avatares`.
 * Incluir SIEMPRE el `SHA-256:` del APK en el body del release y la nota: `_Release creado por un agente de IA (OpenHands) en nombre del mantenedor._`
+
+---
+
+## 🤖 Instrucciones para agentes Kilo Code / OpenHands
+
+### Objetivo
+Esta sección existe para que cualquier agente pueda clonar este repo, preparar el toolchain y compilar la app sin protocolos manuales adicionales.
+
+### Prerrequisitos
+- Linux amd64 con bash, curl, unzip/zip, git y Java 11+ disponible para ejecutar `keytool` si se necesita importar certificados.
+- Acceso a Internet para descargar JDK 17, Android SDK y dependencias de Gradle.
+- El repo clonado en cualquier ruta (el setup es portable).
+
+### Setup automático del toolchain
+```bash
+bash scripts/setup_toolchain.sh
+source scripts/toolchain_env.sh
+```
+Qué hace:
+- Instala JDK 17 Temurin en `/workspace/project/toolchain/jdk17`.
+- Instala Android SDK (`platform-35`, `build-tools 35.0.0/36.0.0`, `platform-tools`) en `/workspace/project/toolchain/sdk`.
+- Genera `scripts/toolchain_env.sh` con `JAVA_HOME`, `ANDROID_HOME`, `ANDROID_SDK_ROOT`, `GRADLE_USER_HOME` y `PATH`.
+- Genera `secrets.defaults.properties` vacío si falta (requerido por `secrets-gradle-plugin 2.0.1`).
+- Genera `app/google-services.json` dummy si falta y no existe `GOOGLE_SERVICES_JSON`.
+- Acepta licencias, reintenta `sdkmanager` hasta 4 veces y verifica que el SDK quede completo.
+
+### Compilar debug
+```bash
+source scripts/toolchain_env.sh
+./gradlew --no-daemon :app:compileDebugKotlin
+```
+Notas:
+- Si `./gradlew` pierde el bit de ejecución tras el clone: `chmod +x gradlew`.
+- Si el wrapper falla por SSL al bajar Gradle, usar Gradle directo si está cacheado en `/workspace/project/gradle-home/gradle-9.3.1/bin/gradle`, o ejecutar `./gradlew` con `--no-daemon` la primera vez.
+- `gradle.properties` ya incluye `javax.net.ssl.trustStore` apuntando al `cacerts` del JDK 17 y `kotlin.daemon.jvmargs=-Xmx4g` para evitar OOM en compilación.
+
+### Compilar release
+```bash
+printf '%s' "$GOOGLE_SERVICES_JSON" > app/google-services.json
+VERSION_NAME=v1.3.Z VERSION_CODE=N ./gradlew --no-daemon :app:assembleRelease
+```
+- Requiere `KEYSTORE_FILE`, `KEYSTORE_PASSWORD`, `KEY_ALIAS`, `KEY_PASSWORD`.
+- No commitear `app/google-services.json` ni `secrets.defaults.properties`.
+
+### Troubleshooting rápido
+- `Plugin [id: 'org.gradle.toolchains.foojay-resolver-convention' ...]`: ya removido del repo. No debe aparecer.
+- `Plugin [id: 'com.android.application', version: '9.1.1'] not found`: revisar conectividad a `dl.google.com` y `repo.maven.apache.org`. El setup ya configura el truststore con el certificado proxy necesario.
+- `secrets.defaults.properties could not be found`: correr `bash scripts/setup_toolchain.sh` para generarlo.
+- `GC overhead limit exceeded` en Kotlin: verificar `gradle.properties` tenga `kotlin.daemon.jvmargs=-Xmx4g` y `org.gradle.jvmargs=-Xmx4g`.
+
+### Estado actual del build
+- `main` compila `:app:compileDebugKotlin` exitosamente en este entorno.
+- Si aparecen errores en `VoiceRoomStarmakerComponents.kt`, verificar que no haya caracteres invisibles (`bash scripts/sanitize_invisible.sh`) y que la variable conflictiva en `VoiceRoomSpeakingAura` esté renombrada a `auraScale`/`auraAlpha`.
+
+### Reglas importantes
+- No commitear archivos generados por el setup (`secrets.defaults.properties`, `app/google-services.json`, `.toolchain/`, `.gradle-home/`).
+- Respetar la regla anti-corrupción de bytes invisibles: editar con `file_editor`, no heredoc; sanitizar tras cada cambio.
 ---
 
 ## 🧠 Conocimiento de arquitectura (mapeado en sesión 2026-09-04)
