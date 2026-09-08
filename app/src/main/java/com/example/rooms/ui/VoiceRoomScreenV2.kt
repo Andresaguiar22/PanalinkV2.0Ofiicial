@@ -90,16 +90,21 @@ fun VoiceRoomScreenV2(
                 )
             }
 
-            VoiceRoomStageSeat(
-                seat = hostSeat,
-                size =  58.dp,
-                label = "Anfitrión",
-                isHost = true,
-                isMine = (hostSeat?.userId == state.myUserId),
-                showAdminAction = (hostSeat?.let { adminCanModerate(it) } == true),
-                onClick = { viewModel.onSeatClicked(0, hasMic) },
-                onAdmin = { hostSeat?.userId?.let { moderationTarget = it } }
-            )
+            Row(
+                modifier = Modifier.fillMaxWidth(),
+                horizontalArrangement = Arrangement.Center
+            ) {
+                VoiceRoomStageSeat(
+                    seat = hostSeat,
+                    size =  58.dp,
+                    label = "Anfitrión",
+                    isHost = true,
+                    isMine = (hostSeat?.userId == state.myUserId),
+                    showAdminAction = (hostSeat?.let { adminCanModerate(it) } == true),
+                    onClick = { viewModel.onSeatClicked(0, hasMic) },
+                    onAdmin = { hostSeat?.userId?.let { moderationTarget = it } }
+                )
+            }
             Spacer(Modifier.height(4.dp))
             Row(
                 modifier = Modifier.fillMaxWidth().padding(horizontal =  12.dp),
