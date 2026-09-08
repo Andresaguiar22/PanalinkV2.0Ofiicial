@@ -129,7 +129,8 @@ fun VoiceRoomLiveBadge(modifier: Modifier = Modifier) {
     Surface(
         modifier = modifier,
         shape = RoundedCornerShape(6.dp),
-        color = VoiceRoomPalette.RedLive
+        color = VoiceRoomPalette.RedLive,
+        shadowElevation = 4.dp
     ) {
         Row(
             modifier = Modifier.padding(horizontal = 6.dp, vertical =  3.dp),
@@ -177,6 +178,7 @@ fun VoiceRoomHeader(
             modifier = Modifier
                 .size(40.dp)
                 .clip(CircleShape)
+                .shadow(6.dp, CircleShape)
                 .background(Color(0xFF2E1A12))
                 .border(1.dp, VoiceRoomPalette.Accent, CircleShape),
             contentAlignment = Alignment.Center
@@ -435,6 +437,11 @@ private fun VoiceRoomSeatCircle(
                 modifier = Modifier
                     .size(size)
                     .clip(CircleShape)
+                    .shadow(
+                        elevation = if (seat?.isOccupied == true) 6.dp else 2.dp,
+                        shape = CircleShape,
+                        clip = false
+                    )
                     .background(if (seat?.isOccupied == true) Color(0xFF4A2C21) else Color(0x29FFFFFF))
                     .border(if (speaking) 2.dp else 0.dp, VoiceRoomPalette.Accent, CircleShape)
                     .clickable(onClick = onClick),
@@ -584,17 +591,21 @@ private fun VoiceRoomTikTokMessage(
             }
         }
         Spacer(Modifier.width(8.dp))
-        Column(
-            modifier = Modifier
-                .background(
-                    Brush.verticalGradient(
-                        colors = listOf(Color(0x26FFFFFF), Color(0x12FFFFFF))
-                    ),
-                    RoundedCornerShape(14.dp)
-                )
-                .padding(horizontal =  12.dp, vertical =  7.dp)
-                .weight(1f, fill = false)
+        Surface(
+            shape = RoundedCornerShape(14.dp),
+            color = Color.Transparent,
+            shadowElevation = 3.dp,
+            modifier = Modifier.weight(1f, fill = false)
         ) {
+            Column(
+                modifier = Modifier
+                    .background(
+                        Brush.verticalGradient(
+                            colors = listOf(Color(0x26FFFFFF), Color(0x12FFFFFF))
+                        )
+                    )
+                    .padding(horizontal =  12.dp, vertical =  7.dp)
+            ) {
             Text(
                 message.senderName ?: message.senderId.take(8),
                 color = VoiceRoomPalette.Blue,
@@ -760,7 +771,8 @@ fun VoiceRoomUpNextStrip(
                 Surface(
                     shape = RoundedCornerShape(10.dp),
                     color = Color(0x332A1812),
-                    modifier = Modifier.height(26.dp)
+                    modifier = Modifier.height(26.dp),
+                    shadowElevation = 2.dp
                 ) {
                     Row(verticalAlignment = Alignment.CenterVertically, modifier = Modifier.padding(horizontal = 8.dp, vertical = 2.dp)) {
                         Box(
@@ -817,12 +829,20 @@ fun VoiceRoomInputBar(
     onEnableMic:()->Unit,
     modifier: Modifier = Modifier
 ) {
-    Row(
+    Surface(
         modifier = modifier
             .fillMaxWidth()
             .padding(horizontal =  8.dp, vertical =  6.dp),
-        verticalAlignment = Alignment.CenterVertically
+        shape = RoundedCornerShape(24.dp),
+        color = Color(0x1F000000),
+        shadowElevation = 8.dp
     ) {
+        Row(
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(horizontal =  6.dp, vertical =  4.dp),
+            verticalAlignment = Alignment.CenterVertically
+        ) {
         VoiceRoomMicSeatButton(
             isSeated = isSeated,
             isMuted = isMuted,
