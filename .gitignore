@@ -17,4 +17,10 @@ local.properties
 .env
 debug.keystore
 app/google-services.json
+*.jks
+*.keystore
+*.base64
+secrets.properties
+secrets.defaults.properties
+server/PanalinkStorage/*
 
