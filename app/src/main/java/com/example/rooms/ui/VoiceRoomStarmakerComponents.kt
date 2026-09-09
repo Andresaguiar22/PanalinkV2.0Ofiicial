@@ -1031,11 +1031,11 @@ fun VoiceRoomMembersSheet(
                             TextButton(onClick = { onOpenProfile(member.userId) }) {
                                 Text("Ver perfil", color = VoiceRoomPalette.Accent, fontSize =  11.sp)
     }
+    }
 }
-}
-            }
         }
     }
+}
 }
 
 fun voiceRoomRoleLabel(role: String): String = when (role) {
