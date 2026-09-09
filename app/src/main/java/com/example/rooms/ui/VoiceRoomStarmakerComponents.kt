@@ -11,6 +11,7 @@ import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.LazyRow
 import androidx.compose.foundation.lazy.items
+import androidx.compose.foundation.lazy.LazyListState
 import androidx.compose.foundation.lazy.rememberLazyListState
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.CircleShape
@@ -343,22 +344,26 @@ fun VoiceRoomAudioVisualizer(
 ) {
     val idle = levels == null || levels.isEmpty()
     val displayLevels = if (idle) List(barCount) { 0f } else levels.take(barCount).let { if (it.size < barCount) it + List(barCount - it.size) { 0f } else it }
+    val animatedHeights = remember(levels) { displayLevels.map { Animatable(4f) }.toMutableStateList() }
+
+    LaunchedEffect(displayLevels) {
+        displayLevels.forEachIndexed { idx, level ->
+            val fraction = level.coerceIn(0f, 1f)
+            val targetHeight = (4f + fraction * 14f).coerceAtLeast(4f)
+            animatedHeights.getOrNull(idx)?.animateTo(targetHeight, tween(120))
+        }
+    }
 
     Row(
         modifier = modifier.height(18.dp),
         horizontalArrangement = Arrangement.spacedBy(2.dp, Alignment.CenterHorizontally)
     ) {
-        displayLevels.forEach { level ->
+        displayLevels.forEachIndexed { idx, level ->
             val fraction = level.coerceIn(0f, 1f)
-            val targetHeight = (4f + fraction * 14f).coerceAtLeast(4f)
-            val animatedHeight = remember { Animatable(4f) }
-            LaunchedEffect(level) {
-                animatedHeight.animateTo(targetHeight, tween(120))
-            }
             Box(
                 modifier = Modifier
                     .width(3.dp)
-                    .height(animatedHeight.value.dp)
+                    .height((animatedHeights.getOrNull(idx)?.value ?: 4f).dp)
                     .clip(RoundedCornerShape(2.dp))
                     .background(if (fraction > 0.05f) VoiceRoomPalette.Accent else VoiceRoomPalette.Accent.copy(alpha = 0.25f))
             )
@@ -420,6 +425,16 @@ private fun VoiceRoomSeatCircle(
     onAdmin:()->Unit,
 ) {
     val speaking = seat?.isSpeaking == true
+    val occupied = seat?.isOccupied == true
+    val seatTransition = updateTransition(occupied, label = "seatOccupied")
+    val seatAlpha by seatTransition.animateFloat(
+        transitionSpec = { tween(220, easing = FastOutSlowInEasing) },
+        label = "seatAlpha"
+    ) { if (it) 1f else 0.6f }
+    val seatScale by seatTransition.animateFloat(
+        transitionSpec = { tween(220, easing = FastOutSlowInEasing) },
+        label = "seatScale"
+    ) { if (it) 1f else 0.92f }
     val auraSize = size * 1.6f
     Box(
         modifier = Modifier.size(auraSize),
@@ -432,36 +447,38 @@ private fun VoiceRoomSeatCircle(
                     .size(size)
                     .clip(CircleShape)
                     .shadow(
-                        elevation = if (seat?.isOccupied == true) 6.dp else 2.dp,
+                        elevation = if (occupied) 6.dp else 2.dp,
                         shape = CircleShape,
                         clip = false
                     )
-                    .background(if (seat?.isOccupied == true) Color(0xFF4A2C21) else Color(0x29FFFFFF))
+                    .background(if (occupied) Color(0xFF4A2C21) else Color(0x29FFFFFF))
                     .border(if (speaking) 2.dp else 0.dp, VoiceRoomPalette.Accent, CircleShape)
                     .clickable(onClick = onClick),
                 contentAlignment = Alignment.Center
             ) {
-                if (!seat?.avatarUrl.isNullOrBlank()) {
-                    AsyncImage(
-                        model = seat.avatarUrl,
-                        contentDescription = null,
-                        contentScale = ContentScale.Crop,
-                        modifier = Modifier.fillMaxSize()
-                    )
-                } else if (seat?.isOccupied == true) {
-                    Text(
-                        seat.displayName?.take(1)?.uppercase() ?: "👤",
-                        color = VoiceRoomPalette.Gold,
-                        fontSize = (size.value * 0.35f).sp,
-                        fontWeight = FontWeight.Bold
-                    )
-                } else {
-                    Icon(
-                        Icons.Default.Chair,
-                        contentDescription = null,
-                        tint = Color.White.copy(alpha = 0.55f),
-                        modifier = Modifier.size(size * 0.44f)
-                    )
+                Box(modifier = Modifier.graphicsLayer { alpha = seatAlpha; scaleX = seatScale; scaleY = seatScale }) {
+                    if (!seat?.avatarUrl.isNullOrBlank()) {
+                        AsyncImage(
+                            model = seat.avatarUrl,
+                            contentDescription = "Avatar de ${seat.displayName ?: seat.userId}",
+                            contentScale = ContentScale.Crop,
+                            modifier = Modifier.fillMaxSize()
+                        )
+                    } else if (occupied) {
+                        Text(
+                            seat.displayName?.take(1)?.uppercase() ?: "👤",
+                            color = VoiceRoomPalette.Gold,
+                            fontSize = (size.value * 0.35f).sp,
+                            fontWeight = FontWeight.Bold
+                        )
+                    } else {
+                        Icon(
+                            Icons.Default.Chair,
+                            contentDescription = "Sillón libre",
+                            tint = Color.White.copy(alpha = 0.55f),
+                            modifier = Modifier.size(size * 0.44f)
+                        )
+                    }
                 }
             }
             if (speaking) {
@@ -478,7 +495,7 @@ private fun VoiceRoomSeatCircle(
                     .background(Color(0xFFE85D5D)),
                 contentAlignment = Alignment.Center
             ) {
-                Icon(Icons.Default.MicOff, contentDescription = null, tint = Color.White, modifier = Modifier.size(10.dp))
+                Icon(Icons.Default.MicOff, contentDescription = "Silenciado", tint = Color.White, modifier = Modifier.size(10.dp))
             }
         }
         if (showAdminCog) {
@@ -515,6 +532,14 @@ fun VoiceRoomTikTokChat(
         }
     }
     Box(modifier = modifier) {
+        if (chatMessages.isEmpty() && systemMessages.isEmpty()) {
+            Text(
+                text = "No hay mensajes aún, saludá! 👋",
+                color = Color(0x88FFFFFF),
+                fontSize = 12.sp,
+                modifier = Modifier.align(Alignment.Center)
+            )
+        }
         LazyColumn(
             state = listState,
             modifier = Modifier.fillMaxSize(),
@@ -677,6 +702,7 @@ fun VoiceRoomSystemBubble(message: VoiceRoomMessage, modifier: Modifier = Modifi
 @Composable
 fun VoiceRoomEmojiQuickBar(
     onReaction: (String) -> Unit,
+    emojiCounts: Map<String, Int> = emptyMap(),
     modifier: Modifier = Modifier
 ) {
     val emojis = listOf("❤️", "🔥", "😍", "😂", "👏", "🎉", "👍", "💜")
@@ -688,6 +714,7 @@ fun VoiceRoomEmojiQuickBar(
         horizontalArrangement = Arrangement.spacedBy(8.dp)
     ) {
         emojis.forEach { emoji ->
+            val count = emojiCounts[emoji] ?: 0
             Surface(
                 onClick = { onReaction(emoji) },
                 shape = CircleShape,
@@ -696,6 +723,19 @@ fun VoiceRoomEmojiQuickBar(
             ) {
                 Box(contentAlignment = Alignment.Center, modifier = Modifier.fillMaxSize()) {
                     Text(emoji, fontSize =  16.sp)
+                    if (count > 0) {
+                        Text(
+                            text = count.toString(),
+                            color = Color.White,
+                            fontSize = 9.sp,
+                            fontWeight = FontWeight.Bold,
+                            modifier = Modifier
+                                .align(Alignment.TopEnd)
+                                .padding(end = 2.dp, top = 2.dp)
+                                .size(12.dp)
+                                .background(Color(0xFFFF3B30), CircleShape)
+                        )
+                    }
                 }
             }
         }
@@ -830,6 +870,7 @@ fun VoiceRoomInputBar(
     onEnableMic:()->Unit,
     modifier: Modifier = Modifier
 ) {
+    val listenOnly = isSeated && needsPermission
     Surface(
         modifier = modifier
             .fillMaxWidth()
@@ -853,7 +894,17 @@ fun VoiceRoomInputBar(
             onToggleMute = onToggleMute,
             onEnableMic = onEnableMic
         )
-        Spacer(Modifier.width(4.dp))
+        if (listenOnly) {
+            Spacer(Modifier.width(4.dp))
+            Text(
+                text = "Solo escucha",
+                color = Color(0x88FFFFFF),
+                fontSize = 10.sp,
+                modifier = Modifier.padding(horizontal = 6.dp, vertical = 4.dp)
+            )
+        } else {
+            Spacer(Modifier.width(4.dp))
+        }
         OutlinedTextField(
             value = value,
             onValueChange = onValueChange,

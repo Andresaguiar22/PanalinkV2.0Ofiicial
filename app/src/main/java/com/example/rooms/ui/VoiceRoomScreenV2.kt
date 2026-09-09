@@ -7,6 +7,7 @@ import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.*
+import androidx.compose.foundation.lazy.rememberLazyListState
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Check
@@ -40,11 +41,13 @@ fun VoiceRoomScreenV2(
     val permission = rememberLauncherForActivityResult(ActivityResultContracts.RequestPermission()) { granted -> hasMic = granted; viewModel.onAudioPermissionResult(granted) }
 
     var inputText by remember { mutableStateOf("") }
-    var emojiReactions by remember { mutableStateOf<List<VoiceRoomFloatingEmoji>>(emptyList()) }
+    var emojiCounts by remember { mutableStateOf<Map<String, Int>>(emptyMap()) }
+    var floatingEmojis by remember { mutableStateOf<List<VoiceRoomFloatingEmoji>>(emptyList()) }
     var reactionIdCounter by remember { mutableStateOf(0L) }
     val pushReaction: (String) -> Unit = { emoji ->
         val xFraction = 0.15f + (Math.random().toFloat() * 0.7f)
-        emojiReactions = emojiReactions + VoiceRoomFloatingEmoji(reactionIdCounter++, emoji, xFraction)
+        floatingEmojis = floatingEmojis + VoiceRoomFloatingEmoji(reactionIdCounter++, emoji, xFraction)
+        emojiCounts = emojiCounts + (emoji to ((emojiCounts[emoji] ?: 0) + 1))
     }
     LaunchedEffect(roomId) { viewModel.enterRoom(roomId) }
     DisposableEffect(Unit) {
@@ -179,15 +182,16 @@ fun VoiceRoomScreenV2(
                     listState = chatListState
                 )
                 VoiceRoomFloatingEmojiOverlay(
-                    emojis = emojiReactions,
-                    onDone = { id -> emojiReactions = emojiReactions.filterNot { it.id == id } }
+                    emojis = floatingEmojis,
+                    onDone = { id -> floatingEmojis = floatingEmojis.filterNot { it.id == id } }
                 )
             }
 
             Spacer(Modifier.weight(1f))
 
             VoiceRoomEmojiQuickBar(
-                onReaction = { emoji -> pushReaction(emoji) }
+                onReaction = { emoji -> pushReaction(emoji) },
+                emojiCounts = emojiCounts
             )
 
             VoiceRoomInputBar(
@@ -205,14 +209,15 @@ fun VoiceRoomScreenV2(
                 onToggleMute = { viewModel.toggleMute() },
                 onEnableMic = { permission.launch(Manifest.permission.RECORD_AUDIO) }
             )
-            SnackbarHost(
-                hostState = snackbarHostState,
-                modifier = Modifier
-                    .align(Alignment.BottomCenter)
-                    .padding(bottom = 8.dp)
-            )
         }
+        SnackbarHost(
+            hostState = snackbarHostState,
+            modifier = Modifier
+                .align(Alignment.BottomCenter)
+                .padding(bottom = 8.dp)
+        )
     }
+}
 
     if (moderationTarget != null) {
         ModerationDialog(
@@ -267,7 +272,7 @@ fun VoiceRoomScreenV2(
 }
 
 @Composable
-private fun ModerationDialog(
+fun ModerationDialog(
     targetUserId: String,
     isHost: Boolean,
     targetIsAdmin: Boolean,
@@ -321,7 +326,7 @@ private fun ModerationDialog(
 }
 
 @Composable
-private fun SeatRequestsDialog(
+fun SeatRequestsDialog(
     requests: List<com.example.rooms.model.VoiceRoomSeatRequest>,
     onApprove: (String) -> Unit,
     onDeny: (String) -> Unit,
