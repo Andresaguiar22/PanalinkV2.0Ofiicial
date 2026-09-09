@@ -988,10 +988,15 @@ fun TikTokPageItem(
         exoPlayerRef = dualManager.playerFor(slot)
     }
 
-    LaunchedEffect(state.id, resolvedUrl, stableMediaUrl,isActivePage) {
+    LaunchedEffect(state.id, resolvedUrl, stableMediaUrl) {
         val url = resolvedUrl
-        if (isActivePage && !url.isNullOrBlank() && url.startsWith("http")) {
-            com.example.media.social.ReelOfflineMediaManager.ensureLocalCopy(context, state.id, url)
+        // H3 fix: only trigger ensureLocalCopy when the page is active but the
+        // player has buffered enough data (not actively streaming new data),
+        // to avoid competing I/O with the streaming CacheDataSource.
+        if (isActivePage && !url.isNullOrBlank() && url.startsWith("http") && !isBuffering) {
+            com.example.media.social.ReelOfflineMediaManager.ensureLocalCopy(
+                context, state.id, url
+            )
         }
     }
     LaunchedEffect(exoPlayerRef, state.id, retryCount) {

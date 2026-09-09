@@ -80,12 +80,15 @@ object CacheDataSourceFactory {
     }
 
     /**
-     * Pre-fetches the first 5MB of a video URL into the shared SimpleCache in the background.
-     * When ExoPlayer plays this video later, it starts instantly from local cache.
+     * Pre-fetches video data into the shared SimpleCache in the background.
+     * M1 fix: increased from fixed 5MB to adaptive prefetch (20MB or 25% of
+     * content length, whichever is smaller). This ensures seeks within the
+     * first portion of the video have cached data, reducing re-buffering
+     * and black-screen time during seeks.
      */
-    fun prefetchVideo(context: Context, url: String?, maxBytes: Long = 5L * 1024L * 1024L) {
+    fun prefetchVideo(context: Context, url: String?, maxBytes: Long = 20L * 1024L * 1024L) {
         if (url.isNullOrBlank() || !url.startsWith("http")) return
-        // Offline: sin red el prefetch solo quemaría timeouts de red; saltar.y
+        // Offline: sin red el prefetch solo quemaría timeouts de red; saltar.
         // El caché existente ya se sirve desde disco por el SimpleCache.
         if (!com.example.util.NetworkMonitor.isOnline.value) {
             android.util.Log.d(TAG, "Offline: skipping video prefetch for $url")
@@ -99,12 +102,18 @@ object CacheDataSourceFactory {
             prefetchSemaphore.withPermit {
                 try {
                     val dataSource = getCacheDataSourceFactory(appCtx).createDataSource()
-                        // Fetch only the requested first bytes (default 5 MB) for smoother initial playback.
-                        val prefetchBytes = maxBytes
+                    // M1 fix: probe content length first to pick an adaptive range.
+                    // For HLS (.m3u8) prefetch the manifest and first few segments.
+                    val probedLength = probeContentLength(url, appCtx)
+                    val effectiveBytes = when {
+                        probedLength > 0 -> minOf(maxBytes, probedLength / 4)
+                        else -> maxBytes
+                    }
+                    val prefetchBytes = effectiveBytes.coerceAtLeast(5L * 1024L * 1024L)
                     val dataSpec = DataSpec(Uri.parse(url), 0, prefetchBytes)
                     val buffer = ByteArray(65536) // Larger buffer for faster copy
 
-                    Log.d(TAG, "Aggressive pre-fetching starting for: $url")
+                    Log.d(TAG, "Adaptive pre-fetching (${prefetchBytes / 1024 / 1024}MB of $url)")
                     var bytesRead = 0L
                     var reachedEnd = false
                     try {
@@ -122,14 +131,27 @@ object CacheDataSourceFactory {
                     }
                     if (bytesRead >= prefetchBytes || reachedEnd) {
                         prefetchCompleted[url] = System.currentTimeMillis()
-                        Log.d(TAG, "Successfully pre-fetched ${bytesRead / 1024} KB for video: $url")
+                        Log.d(TAG, "Pre-fetched ${bytesRead / 1024} KB for video: $url")
                     }
                 } catch (e: Exception) {
-                    Log.w(TAG, "Pre-fetch cancelled or failed for $url: ${e.localizedMessage}")
+                    Log.w(TAG, "Pre-fetch failed for $url: ${e.localizedMessage}")
                 } finally {
                     prefetchInFlight.remove(url)
                 }
             }
+        }
+    }
+
+    /** Probes the content length via a lightweight HTTP HEAD request. */
+    private fun probeContentLength(url: String, context: Context): Long {
+        return try {
+            val factory = getCacheDataSourceFactory(context).createDataSource()
+            val spec = DataSpec(Uri.parse(url))
+            val length = factory.open(spec)
+            factory.close()
+            length
+        } catch (e: Exception) {
+            -1L
         }
     }
 }

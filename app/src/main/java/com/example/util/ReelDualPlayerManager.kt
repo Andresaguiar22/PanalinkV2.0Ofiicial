@@ -53,6 +53,10 @@ class ReelDualPlayerManager(private val context: Context) {
     private val slotUrls = mutableMapOf<Slot, String>()
     private var activeSlot: Slot? = null
 
+    /** Pending URL update for the active slot that cannot be re-prepared immediately.
+     *  Applied when the slot transitions to preload/inactive. */
+    private val pendingUrlUpdates = mutableMapOf<Slot, String>()
+
     /** Acquires the player for [slot] and prepares [url]. If the slot already held this
      *  media, it is returned untouched (first frame already rendered. */
     fun acquire(slot: Slot, id: String, url: String, volume: Float): ExoPlayer {
@@ -87,7 +91,20 @@ class ReelDualPlayerManager(private val context: Context) {
     /** Pauses whatever is playing (used when the page stops being active). */
     fun pause(slot: Slot) {
         val player = if (slot == Slot.A) slotAPlayer ?: return else slotBPlayer ?: return
+        // Apply any deferred URL update now that the slot is no longer active.
+        val pendingUrl = pendingUrlUpdates.remove(slot)
+        if (pendingUrl != null) {
+            val savedPosition = player.currentPosition
+            val savedPlayWhenReady = player.playWhenReady
+            player.setMediaItem(MediaItem.fromUri(pendingUrl))
+            player.prepare()
+            player.seekTo(savedPosition)
+            player.playWhenReady = savedPlayWhenReady
+            slotUrls[slot] = pendingUrl
+            Log.d(TAG, "Applied deferred URL update for slot $slot -> $pendingUrl")
+        }
         player.playWhenReady = false
+        activeSlot = null
     }
 
     /** The slot's currently assigned reel id,. */
@@ -130,13 +147,23 @@ class ReelDualPlayerManager(private val context: Context) {
             val currentUrl = slotUrls[existing]
             if (currentUrl != url) {
                 val player = playerFor(existing)!!
-                val savedPosition = player.currentPosition
-                val savedPlayWhenReady = player.playWhenReady
-                player.setMediaItem(MediaItem.fromUri(url))
-                player.prepare()
-                player.seekTo(savedPosition)
-                player.playWhenReady = savedPlayWhenReady
-                slotUrls[existing] = url
+                // H2 fix: do not re-prepare the active slot while playback is in
+                // progress (playWhenReady=true). Re-prepping the visible player
+                // causes black-screen flashes (setMediaItem+prepare discards
+                // buffered ranges). Instead, queue the URL update to be applied
+                // when this slot transitions to preload/inactive via pause().
+                if (existing == activeSlot && player.playWhenReady) {
+                    pendingUrlUpdates[existing] = url
+                    Log.d(TAG, "Deferred URL update for active slot $existing -> $url")
+                } else {
+                    val savedPosition = player.currentPosition
+                    val savedPlayWhenReady = player.playWhenReady
+                    player.setMediaItem(MediaItem.fromUri(url))
+                    player.prepare()
+                    player.seekTo(savedPosition)
+                    player.playWhenReady = savedPlayWhenReady
+                    slotUrls[existing] = url
+                }
             }
             if (active) activate(existing, volume)
             return existing
@@ -201,7 +228,7 @@ class ReelDualPlayerManager(private val context: Context) {
             context,
             CacheDataSourceFactory.getCacheDataSourceFactory(context)
         )
-        return ExoPlayer.Builder(context, PanaRenderersFactory.create(context, preferSoftware = true))
+        return ExoPlayer.Builder(context, PanaRenderersFactory.create(context))
             .setTrackSelector(trackSelector)
             .setMediaSourceFactory(
                 DefaultMediaSourceFactory(context).setDataSourceFactory(dataSourceFactory)
