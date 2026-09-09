@@ -153,7 +153,12 @@ fun VoiceRoomScreenV2(
                 modifier = Modifier.fillMaxWidth()
             )
 
-            Box(Modifier.weight(1f).fillMaxWidth()) {
+            Box(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .weight(1f, fill = false)
+                    .heightIn(max = 220.dp)
+            ) {
                 VoiceRoomTikTokChat(
                     messages = state.messages,
                     memberById = memberById,
