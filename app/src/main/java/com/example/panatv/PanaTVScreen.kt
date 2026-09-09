@@ -12,6 +12,7 @@ import androidx.compose.animation.fadeOut
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
+import androidx.compose.foundation.gestures.detectTransformGestures
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.LazyRow
@@ -31,9 +32,11 @@ import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.draw.scale
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.SolidColor
 import androidx.compose.ui.graphics.vector.rememberVectorPainter
+import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalLifecycleOwner
@@ -63,6 +66,10 @@ import androidx.media3.ui.PlayerView
 import coil.compose.AsyncImage
 import coil.request.ImageRequest
 import kotlinx.coroutines.delay
+import kotlinx.coroutines.launch
+import androidx.compose.ui.hapticfeedback.HapticFeedbackType
+import androidx.compose.ui.platform.LocalHapticFeedback
+import androidx.compose.animation.core.*
 
 // ── Xuper TV style palette ──────────────────────────────────────────────
 private val TvBg = Color(0xFF121212)
@@ -132,7 +139,15 @@ fun PanaTVScreen(viewModel: PanaTVViewModel = viewModel()) {
     var lockTapVisible by remember { mutableStateOf(false) }
     var showChannelList by remember { mutableStateOf(false) }
     var resizeMode by remember { mutableStateOf(AspectRatioFrameLayout.RESIZE_MODE_FIT) }
+    var currentPosition by remember { mutableLongStateOf(0L) }
+    var duration by remember { mutableLongStateOf(0L) }
+    var showChannelInput by remember { mutableStateOf(false) }
+    var channelNumberInput by remember { mutableStateOf("") }
+    var switchingChannel by remember { mutableStateOf(false) }
+    var switchingChannelName by remember { mutableStateOf("") }
     val view = LocalView.current
+    val haptic = LocalHapticFeedback.current
+    val scope = rememberCoroutineScope()
 
     // Diagnostics: Show crash trace if exists
     if (crashTrace.isNotEmpty()) {
@@ -150,6 +165,64 @@ fun PanaTVScreen(viewModel: PanaTVViewModel = viewModel()) {
                 }
             },
             containerColor = TvCard,
+            textContentColor = Color.White
+        )
+    }
+
+    // Channel number input dialog
+    if (showChannelInput) {
+        AlertDialog(
+            onDismissRequest = { showChannelInput = false },
+            title = { Text("Número de canal", color = Color.White, fontWeight = FontWeight.Bold) },
+            text = {
+                Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
+                    OutlinedTextField(
+                        value = channelNumberInput,
+                        onValueChange = { if (it.length <= 3 && it.all { c -> c.isDigit() }) channelNumberInput = it },
+                        placeholder = { Text("Ej: 101", color = TvTextSecondary) },
+                        keyboardOptions = androidx.compose.foundation.text.KeyboardOptions(keyboardType = androidx.compose.ui.text.input.KeyboardType.Number),
+                        modifier = Modifier.fillMaxWidth(),
+                        colors = OutlinedTextFieldDefaults.colors(
+                            focusedTextColor = Color.White,
+                            unfocusedTextColor = Color.White,
+                            focusedBorderColor = TvAccent,
+                            unfocusedBorderColor = Color.Gray
+                        )
+                    )
+                    if (channelNumberInput.isNotBlank()) {
+                        val channelNum = channelNumberInput.toIntOrNull()
+                        val foundChannel = channels.find { it.id.equals(channelNum.toString(), ignoreCase = true) }
+                        Text(
+                            text = foundChannel?.let { "Canal: ${it.name}" } ?: "Canal no encontrado",
+                            color = if (foundChannel != null) Color.Green else Color.Red,
+                            fontSize = 12.sp
+                        )
+                    }
+                }
+            },
+            confirmButton = {
+                TextButton(onClick = {
+                    val channelNum = channelNumberInput.toIntOrNull()
+                    val foundChannel = channels.find { it.id.equals(channelNum.toString(), ignoreCase = true) }
+                    if (foundChannel != null) {
+                        switchingChannelName = foundChannel.name
+                        switchingChannel = true
+                        haptic.performHapticFeedback(HapticFeedbackType.TextHandleMove)
+                        viewModel.selectChannel(foundChannel)
+                    }
+                    showChannelInput = false
+                    channelNumberInput = ""
+                }) {
+                    Text("Ir al canal", color = TvAccent, fontWeight = FontWeight.Bold)
+                }
+            },
+            dismissButton = {
+                TextButton(onClick = { showChannelInput = false; channelNumberInput = "" }) {
+                    Text("Cancelar", color = TvTextSecondary)
+                }
+            },
+            containerColor = TvCard,
+            titleContentColor = Color.White,
             textContentColor = Color.White
         )
     }
@@ -191,11 +264,22 @@ fun PanaTVScreen(viewModel: PanaTVViewModel = viewModel()) {
             override fun onPlaybackStateChanged(playbackState: Int) {
                 isBuffering = playbackState == Player.STATE_BUFFERING
             }
+            override fun onPositionDiscontinuity(oldPosition: Player.PositionInfo, newPosition: Player.PositionInfo, reason: Int) {
+                currentPosition = newPosition.positionMs
+            }
         }
         exoPlayer.addListener(listener)
         exoPlayer.volume = if (isMuted) 0f else 1f
         isPlayingState = exoPlayer.isPlaying
         onDispose { exoPlayer.removeListener(listener) }
+    }
+
+    LaunchedEffect(exoPlayer) {
+        while (true) {
+            currentPosition = exoPlayer.currentPosition
+            duration = exoPlayer.duration.coerceAtLeast(0L)
+            delay(1000)
+        }
     }
 
     LaunchedEffect(isMuted) {
@@ -232,6 +316,7 @@ fun PanaTVScreen(viewModel: PanaTVViewModel = viewModel()) {
         if (isFullscreen) {
             controller.hide(WindowInsetsCompat.Type.systemBars())
             controller.systemBarsBehavior = WindowInsetsControllerCompat.BEHAVIOR_SHOW_TRANSIENT_BARS_BY_SWIPE
+            (context as? Activity)?.requestedOrientation = ActivityInfo.SCREEN_ORIENTATION_LANDSCAPE
         } else {
             controller.show(WindowInsetsCompat.Type.systemBars())
             (context as? Activity)?.requestedOrientation = ActivityInfo.SCREEN_ORIENTATION_UNSPECIFIED
@@ -245,6 +330,14 @@ fun PanaTVScreen(viewModel: PanaTVViewModel = viewModel()) {
         if (isFullscreen && controlsVisible && !isLocked && !showChannelList) {
             delay(3000)
             controlsVisible = false
+        }
+    }
+
+    // Hide switching channel overlay after delay
+    LaunchedEffect(switchingChannel) {
+        if (switchingChannel) {
+            delay(2000)
+            switchingChannel = false
         }
     }
 
@@ -397,6 +490,10 @@ fun PanaTVScreen(viewModel: PanaTVViewModel = viewModel()) {
                                 fontSize = 13.sp
                             )
                         }
+                    }
+                    IconButton(onClick = { showChannelInput = true }) {
+                        Icon(Icons.Default.Numbers, contentDescription = "Número de canal", tint = TvTextSecondary, modifier = Modifier.size(18.dp))
+                    }
                         DropdownMenu(
                             expanded = showCountryDropdown,
                             onDismissRequest = { showCountryDropdown = false },
@@ -506,6 +603,32 @@ fun PanaTVScreen(viewModel: PanaTVViewModel = viewModel()) {
                         .aspectRatio(16f / 9f)
                         .background(Color.Black, RoundedCornerShape(12.dp))
                         .clip(RoundedCornerShape(12.dp))
+                        .pointerInput(Unit) {
+                            detectTransformGestures(
+                                onGesture = { _, pan, _, _ ->
+                                    val threshold = 100f
+                                    if (pan.x > threshold && !showChannelList) {
+                                        val currentIndex = channels.indexOfFirst { it.id == currentChannel?.id }
+                                        val prevIndex = (currentIndex - 1).coerceAtLeast(0)
+                                        if (prevIndex != currentIndex) {
+                                            switchingChannelName = channels[prevIndex].name
+                                            switchingChannel = true
+                                            haptic.performHapticFeedback(HapticFeedbackType.TextHandleMove)
+                                            viewModel.selectChannel(channels[prevIndex])
+                                        }
+                                    } else if (pan.x < -threshold && !showChannelList) {
+                                        val currentIndex = channels.indexOfFirst { it.id == currentChannel?.id }
+                                        val nextIndex = (currentIndex + 1).coerceAtMost(channels.lastIndex)
+                                        if (nextIndex != currentIndex) {
+                                            switchingChannelName = channels[nextIndex].name
+                                            switchingChannel = true
+                                            haptic.performHapticFeedback(HapticFeedbackType.TextHandleMove)
+                                            viewModel.selectChannel(channels[nextIndex])
+                                        }
+                                    }
+                                }
+                            )
+                        }
                 ) {
                     if (currentChannel != null) {
                         if (!isFullscreen) {
@@ -538,7 +661,7 @@ fun PanaTVScreen(viewModel: PanaTVViewModel = viewModel()) {
                             }
                         }
 
-                        // Top overlay: channel name + LIVE badge
+                        // Top overlay: channel name + LIVE badge + EPG
                         Row(
                             modifier = Modifier
                                 .align(Alignment.TopStart)
@@ -564,6 +687,16 @@ fun PanaTVScreen(viewModel: PanaTVViewModel = viewModel()) {
                                 maxLines = 1,
                                 overflow = TextOverflow.Ellipsis
                             )
+                            if (!currentChannel?.currentProgram.isNullOrBlank()) {
+                                Spacer(modifier = Modifier.width(8.dp))
+                                Text(
+                                    text = "· ${currentChannel!!.currentProgram!!.take(20)}",
+                                    color = TvAccent,
+                                    fontSize = 11.sp,
+                                    maxLines = 1,
+                                    overflow = TextOverflow.Ellipsis
+                                )
+                            }
                         }
 
                         // Bottom mini controls
@@ -595,6 +728,21 @@ fun PanaTVScreen(viewModel: PanaTVViewModel = viewModel()) {
                                 }
                             }
                             Row(verticalAlignment = Alignment.CenterVertically) {
+                                if (!currentChannel?.currentProgram.isNullOrBlank()) {
+                                    Surface(
+                                        shape = RoundedCornerShape(4.dp),
+                                        color = TvAccent.copy(alpha = 0.85f),
+                                        modifier = Modifier.padding(end = 8.dp)
+                                    ) {
+                                        Text(
+                                            text = currentChannel!!.currentProgram!!.take(18),
+                                            color = Color.White,
+                                            fontSize = 9.sp,
+                                            fontWeight = FontWeight.Bold,
+                                            modifier = Modifier.padding(horizontal = 6.dp, vertical = 2.dp)
+                                        )
+                                    }
+                                }
                                 Text(
                                     resizeModeLabel,
                                     color = TvAccent,
@@ -619,6 +767,32 @@ fun PanaTVScreen(viewModel: PanaTVViewModel = viewModel()) {
                                 }
                             }
                         }
+
+                        // EPG progress bar under player
+                        if (!currentChannel?.currentProgram.isNullOrBlank() && currentChannel!!.programProgress > 0f) {
+                            Box(
+                                modifier = Modifier
+                                    .align(Alignment.BottomStart)
+                                    .fillMaxWidth()
+                                    .padding(horizontal = 16.dp, bottom = 52.dp)
+                                    .height(3.dp)
+                            ) {
+                                Box(
+                                    modifier = Modifier
+                                        .fillMaxWidth()
+                                        .height(3.dp)
+                                        .clip(RoundedCornerShape(2.dp))
+                                        .background(Color.White.copy(alpha = 0.2f))
+                                )
+                                Box(
+                                    modifier = Modifier
+                                        .fillMaxWidth(currentChannel!!.programProgress)
+                                        .height(3.dp)
+                                        .clip(RoundedCornerShape(2.dp))
+                                        .background(TvAccent)
+                                )
+                            }
+                        }
                     } else {
                         Column(
                             modifier = Modifier.align(Alignment.Center),
@@ -638,6 +812,38 @@ fun PanaTVScreen(viewModel: PanaTVViewModel = viewModel()) {
                             )
                         }
                     }
+
+                    // Channel switching transition overlay
+                    AnimatedVisibility(
+                        visible = switchingChannel,
+                        enter = fadeIn(animationSpec = tween(300)),
+                        exit = fadeOut(animationSpec = tween(300)),
+                        modifier = Modifier.align(Alignment.Center)
+                    ) {
+                        Surface(
+                            color = Color.Black.copy(alpha = 0.7f),
+                            shape = RoundedCornerShape(16.dp),
+                            modifier = Modifier.padding(32.dp)
+                        ) {
+                            Row(
+                                modifier = Modifier.padding(horizontal = 24.dp, vertical = 16.dp),
+                                verticalAlignment = Alignment.CenterVertically,
+                                horizontalArrangement = Arrangement.spacedBy(12.dp)
+                            ) {
+                                CircularProgressIndicator(
+                                    color = TvAccent,
+                                    modifier = Modifier.size(24.dp),
+                                    strokeWidth = 2.dp
+                                )
+                                Text(
+                                    text = "Cambiando a $switchingChannelName...",
+                                    color = Color.White,
+                                    fontSize = 14.sp,
+                                    fontWeight = FontWeight.Medium
+                                )
+                            }
+                        }
+                    }
                 }
 
                 Spacer(modifier = Modifier.height(12.dp))
@@ -648,11 +854,23 @@ fun PanaTVScreen(viewModel: PanaTVViewModel = viewModel()) {
                         modifier = Modifier.fillMaxSize(),
                         contentAlignment = Alignment.Center
                     ) {
-                        if (debugMessage.isNotEmpty()) {
+                        if (debugMessage.isNotEmpty() && channels.isEmpty()) {
                             Column(horizontalAlignment = Alignment.CenterHorizontally) {
                                 CircularProgressIndicator(color = TvAccent)
                                 Spacer(modifier = Modifier.height(16.dp))
                                 Text(debugMessage, color = TvTextSecondary, fontSize = 14.sp, textAlign = TextAlign.Center)
+                            }
+                        } else if (channels.isEmpty() && (viewModel.uiState as? com.example.panatv.PanaTVUiState.Loading) != null) {
+                            LazyVerticalGrid(
+                                columns = GridCells.Adaptive(minSize = 130.dp),
+                                modifier = Modifier.fillMaxSize(),
+                                contentPadding = PaddingValues(start = 12.dp, end = 12.dp, bottom = 32.dp),
+                                horizontalArrangement = Arrangement.spacedBy(8.dp),
+                                verticalArrangement = Arrangement.spacedBy(8.dp)
+                            ) {
+                                items(12) {
+                                    ChannelCardSkeleton()
+                                }
                             }
                         } else {
                             Column(horizontalAlignment = Alignment.CenterHorizontally) {
@@ -664,7 +882,7 @@ fun PanaTVScreen(viewModel: PanaTVViewModel = viewModel()) {
                     }
                 } else {
                     LazyVerticalGrid(
-                        columns = GridCells.Fixed(4),
+                        columns = GridCells.Adaptive(minSize = 130.dp),
                         modifier = Modifier.fillMaxSize(),
                         contentPadding = PaddingValues(start = 12.dp, end = 12.dp, bottom = 32.dp),
                         horizontalArrangement = Arrangement.spacedBy(8.dp),
@@ -675,8 +893,18 @@ fun PanaTVScreen(viewModel: PanaTVViewModel = viewModel()) {
                                 channel = channel,
                                 isSelected = currentChannel?.id == channel.id,
                                 isFavorite = favorites.contains(channel.id),
-                                onToggleFavorite = { viewModel.toggleFavorite(channel.id) },
-                                onClick = { viewModel.selectChannel(channel) }
+                                onToggleFavorite = {
+                                    haptic.performHapticFeedback(HapticFeedbackType.LongPress)
+                                    viewModel.toggleFavorite(channel.id)
+                                },
+                                onClick = {
+                                    if (currentChannel?.id != channel.id) {
+                                        switchingChannelName = channel.name
+                                        switchingChannel = true
+                                        haptic.performHapticFeedback(HapticFeedbackType.TextHandleMove)
+                                        viewModel.selectChannel(channel)
+                                    }
+                                }
                             )
                         }
                     }
@@ -725,14 +953,60 @@ fun PanaTVScreen(viewModel: PanaTVViewModel = viewModel()) {
                         modifier = Modifier.fillMaxSize()
                     )
 
-                    if ((!isVideoRendering || isBuffering) && currentChannel != null) {
-                        Box(
-                            modifier = Modifier.fillMaxSize().background(Color.Black),
-                            contentAlignment = Alignment.Center
-                        ) {
-                            CircularProgressIndicator(color = TvAccent)
+                        if ((!isVideoRendering || isBuffering) && currentChannel != null) {
+                            if (isBuffering && !playerError.isBlank()) {
+                                Box(
+                                    modifier = Modifier.fillMaxSize().background(Color.Black),
+                                    contentAlignment = Alignment.Center
+                                ) {
+                                    Column(horizontalAlignment = Alignment.CenterHorizontally) {
+                                        Icon(
+                                            Icons.Default.WifiOff,
+                                            contentDescription = null,
+                                            tint = Color(0xFFEF5350),
+                                            modifier = Modifier.size(40.dp)
+                                        )
+                                        Spacer(modifier = Modifier.height(8.dp))
+                                        Text(
+                                            "Señal perdida",
+                                            color = Color.White,
+                                            fontSize = 14.sp,
+                                            fontWeight = FontWeight.Medium
+                                        )
+                                        Spacer(modifier = Modifier.height(12.dp))
+                                        Surface(
+                                            onClick = {
+                                                playerError = ""
+                                                isBuffering = true
+                                                viewModel.selectChannel(currentChannel!!)
+                                            },
+                                            shape = RoundedCornerShape(20.dp),
+                                            color = TvAccent
+                                        ) {
+                                            Row(
+                                                modifier = Modifier.padding(horizontal = 16.dp, vertical = 8.dp),
+                                                verticalAlignment = Alignment.CenterVertically,
+                                                horizontalArrangement = Arrangement.spacedBy(6.dp)
+                                            ) {
+                                                Icon(Icons.Default.Refresh, contentDescription = null, tint = Color.White, modifier = Modifier.size(16.dp))
+                                                Text("Reintentar", color = Color.White, fontWeight = FontWeight.Bold, fontSize = 12.sp)
+                                            }
+                                        }
+                                    }
+                                }
+                            } else if (isBuffering) {
+                                Box(
+                                    modifier = Modifier.fillMaxSize(),
+                                    contentAlignment = Alignment.Center
+                                ) {
+                                    CircularProgressIndicator(
+                                        color = TvAccent,
+                                        modifier = Modifier.size(36.dp),
+                                        strokeWidth = 3.dp
+                                    )
+                                }
+                            }
                         }
-                    }
 
                     androidx.compose.animation.AnimatedVisibility(
                         visible = controlsVisible && !isLocked,
@@ -771,6 +1045,22 @@ fun PanaTVScreen(viewModel: PanaTVViewModel = viewModel()) {
                                     overflow = TextOverflow.Ellipsis,
                                     modifier = Modifier.weight(1f)
                                 )
+                                if (!currentChannel?.currentProgram.isNullOrBlank()) {
+                                    Spacer(modifier = Modifier.width(8.dp))
+                                    Surface(
+                                        shape = RoundedCornerShape(4.dp),
+                                        color = TvAccentSoft,
+                                        modifier = Modifier.padding(horizontal = 6.dp)
+                                    ) {
+                                        Text(
+                                            text = "Ahora: ${currentChannel!!.currentProgram!!.take(20)}",
+                                            color = TvAccent,
+                                            fontSize = 10.sp,
+                                            fontWeight = FontWeight.Medium,
+                                            modifier = Modifier.padding(horizontal = 6.dp, vertical = 2.dp)
+                                        )
+                                    }
+                                }
                                 // Channel list toggle (stays in fullscreen)
                                 Row(
                                     verticalAlignment = Alignment.CenterVertically,
@@ -797,12 +1087,83 @@ fun PanaTVScreen(viewModel: PanaTVViewModel = viewModel()) {
                             }
 
                             // Bottom controls
-                            Row(
-                                modifier = Modifier
-                                    .align(Alignment.BottomStart)
-                                    .fillMaxWidth()
-                                    .background(Color.Black.copy(alpha = 0.5f))
-                                    .padding(horizontal = 8.dp, vertical = 4.dp),
+                            Column(modifier = Modifier.align(Alignment.BottomStart).fillMaxWidth()) {
+                                // EPG progress bar (if available)
+                                if (!currentChannel?.currentProgram.isNullOrBlank() && currentChannel!!.programProgress > 0f) {
+                                    Box(
+                                        modifier = Modifier
+                                            .fillMaxWidth()
+                                            .padding(horizontal = 8.dp)
+                                            .height(4.dp)
+                                    ) {
+                                        Box(
+                                            modifier = Modifier
+                                                .fillMaxWidth()
+                                                .height(4.dp)
+                                                .clip(RoundedCornerShape(2.dp))
+                                                .background(Color.White.copy(alpha = 0.2f))
+                                        )
+                                        Box(
+                                            modifier = Modifier
+                                                .fillMaxWidth(currentChannel!!.programProgress)
+                                                .height(4.dp)
+                                                .clip(RoundedCornerShape(2.dp))
+                                                .background(TvAccent)
+                                        )
+                                    }
+                                    Spacer(modifier = Modifier.height(6.dp))
+                                }
+
+                                // Progress bar scrubber
+                                if (duration > 0) {
+                                    Box(
+                                        modifier = Modifier
+                                            .fillMaxWidth()
+                                            .padding(horizontal = 8.dp)
+                                            .height(32.dp)
+                                    ) {
+                                        Slider(
+                                            value = currentPosition.toFloat(),
+                                            onValueChange = { newValue ->
+                                                currentPosition = newValue.toLong()
+                                                exoPlayer.seekTo(currentPosition)
+                                            },
+                                            valueRange = 0f..duration.toFloat(),
+                                            colors = SliderDefaults.colors(
+                                                thumbColor = TvAccent,
+                                                activeTrackColor = TvAccent,
+                                                inactiveTrackColor = Color.White.copy(alpha = 0.3f)
+                                            ),
+                                            modifier = Modifier
+                                                .fillMaxWidth()
+                                                .height(20.dp)
+                                        )
+                                        Row(
+                                            modifier = Modifier.fillMaxWidth(),
+                                            horizontalArrangement = Arrangement.SpaceBetween
+                                        ) {
+                                            Text(
+                                                text = formatMmSs(currentPosition),
+                                                color = Color.White,
+                                                fontSize = 10.sp,
+                                                fontWeight = FontWeight.Medium
+                                            )
+                                            Text(
+                                                text = formatMmSs(duration),
+                                                color = Color.White,
+                                                fontSize = 10.sp,
+                                                fontWeight = FontWeight.Medium
+                                            )
+                                        }
+                                    }
+                                }
+
+                                Row(
+                                    modifier = Modifier
+                                        .align(Alignment.BottomStart)
+                                        .fillMaxWidth()
+                                        .background(Color.Black.copy(alpha = 0.5f))
+                                        .padding(horizontal = 8.dp, vertical = 4.dp),
                                 verticalAlignment = Alignment.CenterVertically,
                                 horizontalArrangement = Arrangement.SpaceBetween
                             ) {
@@ -826,6 +1187,7 @@ fun PanaTVScreen(viewModel: PanaTVViewModel = viewModel()) {
                                     }
                                     // Lock screen: hides controls and disables touch until unlocked
                                     IconButton(onClick = {
+                                        haptic.performHapticFeedback(HapticFeedbackType.LongPress)
                                         isLocked = true
                                         showChannelList = false
                                         controlsVisible = false
@@ -988,6 +1350,64 @@ fun PanaTVScreen(viewModel: PanaTVViewModel = viewModel()) {
     }
 }
 
+private fun formatMmSs(ms: Long): String {
+    val totalSeconds = (ms / 1000).toInt()
+    val minutes = totalSeconds / 60
+    val seconds = totalSeconds % 60
+    return String.format(java.util.Locale.US, "%02d:%02d", minutes, seconds)
+}
+
+@Composable
+private fun ChannelCardSkeleton() {
+    var targetOffset by remember { mutableStateOf(0f) }
+
+    LaunchedEffect(Unit) {
+        while (true) {
+            targetOffset = 1000f
+            delay(1200)
+            targetOffset = 0f
+            delay(1200)
+        }
+    }
+
+    val shimmerColors = listOf(
+        Color(0xFF1E1E1E),
+        Color(0xFF2A2A30),
+        Color(0xFF1E1E1E)
+    )
+
+    val brush = Brush.horizontalGradient(
+        colors = shimmerColors,
+        startX = targetOffset - 500f,
+        endX = targetOffset
+    )
+
+    Column(
+        modifier = Modifier
+            .fillMaxWidth()
+            .clip(RoundedCornerShape(10.dp))
+            .background(Color(0xFF1E1E1E))
+            .padding(bottom = 6.dp)
+    ) {
+        Box(
+            modifier = Modifier
+                .fillMaxWidth()
+                .aspectRatio(1.3f)
+                .padding(10.dp)
+                .clip(RoundedCornerShape(8.dp))
+                .background(brush)
+        )
+        Box(
+            modifier = Modifier
+                .fillMaxWidth()
+                .height(12.dp)
+                .padding(horizontal = 4.dp)
+                .clip(RoundedCornerShape(4.dp))
+                .background(brush)
+        )
+    }
+}
+
 @Composable
 private fun CategoryChip(label: String, selected: Boolean, onClick: () -> Unit) {
     Box(
@@ -1083,19 +1503,50 @@ private fun ChannelCard(
                     modifier = Modifier.size(14.dp)
                 )
             }
+
+            // EPG now indicator (bottom bar)
+            if (!channel.currentProgram.isNullOrBlank()) {
+                Box(
+                    modifier = Modifier
+                        .align(Alignment.BottomStart)
+                        .fillMaxWidth()
+                        .height(4.dp)
+                        .clip(RoundedCornerShape(2.dp))
+                        .background(Color(0xFF333333))
+                ) {
+                    Box(
+                        modifier = Modifier
+                            .fillMaxWidth(0.65f)
+                            .fillMaxHeight()
+                            .clip(RoundedCornerShape(2.dp))
+                            .background(TvAccent)
+                    )
+                }
+            }
         }
 
-        Text(
-            channel.name,
-            color = if (isSelected) Color.White else TvTextSecondary,
-            fontSize = 11.sp,
-            fontWeight = if (isSelected) FontWeight.Bold else FontWeight.Medium,
-            maxLines = 1,
-            overflow = TextOverflow.Ellipsis,
-            textAlign = TextAlign.Center,
-            modifier = Modifier
-                .fillMaxWidth()
-                .padding(horizontal = 4.dp)
-        )
+        Column(modifier = Modifier.padding(horizontal = 6.dp, vertical = 4.dp)) {
+            Text(
+                channel.name,
+                color = if (isSelected) Color.White else TvTextSecondary,
+                fontSize = 11.sp,
+                fontWeight = if (isSelected) FontWeight.Bold else FontWeight.Medium,
+                maxLines = 1,
+                overflow = TextOverflow.Ellipsis,
+                textAlign = TextAlign.Center,
+                modifier = Modifier.fillMaxWidth()
+            )
+            if (!channel.currentProgram.isNullOrBlank()) {
+                Text(
+                    text = channel.currentProgram ?: "",
+                    color = TvTextSecondary.copy(alpha = 0.7f),
+                    fontSize = 9.sp,
+                    maxLines = 1,
+                    overflow = TextOverflow.Ellipsis,
+                    textAlign = TextAlign.Center,
+                    modifier = Modifier.fillMaxWidth()
+                )
+            }
+        }
     }
 }

@@ -12,5 +12,10 @@ data class PanaTVChannelEntity(
     val country: String,
     val category: String = "",
     val userAgent: String?,
-    val referrer: String?
+    val referrer: String?,
+    val currentProgram: String? = null,
+    val nextProgram: String? = null,
+    val programStartTime: String? = null,
+    val programEndTime: String? = null,
+    val programProgress: Float = 0f
 )
