@@ -47,7 +47,7 @@ interface PanaTVChannelDao {
     suspend fun clearChannels()
 }
 
-@Database(entities = [PanaTVChannelEntity::class, PanaTVFavoriteEntity::class], version = 4, exportSchema = false)
+@Database(entities = [PanaTVChannelEntity::class, PanaTVFavoriteEntity::class], version = 5, exportSchema = false)
 abstract class PanaTVDatabase : RoomDatabase() {
     abstract fun channelDao(): PanaTVChannelDao
     abstract fun favoriteDao(): PanaTVFavoriteDao
