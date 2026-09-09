@@ -101,7 +101,6 @@ fun VoiceRoomBackground(
             offsetX =  80.dp,
             offsetY =  420.dp
         )
-        VoiceRoomNoiseTexture()
         Box(Modifier.fillMaxSize()) { content() }
     }
 }
