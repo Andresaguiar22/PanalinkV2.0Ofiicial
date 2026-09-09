@@ -1,48 +1,33 @@
 package com.example.ui.components
 
-import android.content.ClipData
-import android.content.ClipboardManager
 import android.content.Context
 import android.net.Uri
 import android.widget.Toast
+import androidx.compose.animation.*
+import androidx.compose.animation.core.*
 import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
+import androidx.compose.foundation.gestures.detectTransformGestures
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.pager.HorizontalPager
 import androidx.compose.foundation.pager.rememberPagerState
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.BookmarkBorder
-import androidx.compose.material.icons.filled.Delete
-import androidx.compose.material.icons.filled.Edit
-import androidx.compose.material.icons.filled.Favorite
-import androidx.compose.material.icons.filled.FavoriteBorder
-import androidx.compose.material.icons.filled.MoreVert
-import androidx.compose.material.icons.filled.Pause
-import androidx.compose.material.icons.filled.PlayArrow
-import androidx.compose.material.icons.filled.PlaylistPlay
-import androidx.compose.material.icons.filled.Public
-import androidx.compose.material.icons.filled.Report
-import androidx.compose.material.icons.filled.Share
-import androidx.compose.material.icons.filled.ThumbUp
-import androidx.compose.material.icons.filled.VolumeMute
-import androidx.compose.material.icons.filled.VolumeUp
-import androidx.compose.material.icons.outlined.Share
-import androidx.compose.material.icons.outlined.ThumbUp
-import androidx.compose.material.icons.outlined.BookmarkBorder
-import androidx.compose.material.icons.outlined.ChatBubbleOutline
+import androidx.compose.material.icons.filled.*
+import androidx.compose.material.icons.outlined.*
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.runtime.saveable.rememberSaveable
-import kotlinx.coroutines.launch
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
-import androidx.compose.ui.graphics.Brush
+import androidx.compose.ui.draw.scale
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.graphicsLayer
+import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.font.FontWeight
@@ -54,19 +39,13 @@ import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.example.ui.screen.parseStateMetadata
 import com.example.ui.screen.RenderOverlays
 import com.example.data.model.PostDto
-import com.example.identity.model.toIdentityUiState
+import kotlinx.coroutines.delay
+import kotlinx.coroutines.launch
+import androidx.compose.ui.hapticfeedback.HapticFeedbackType
+import androidx.compose.ui.platform.LocalHapticFeedback
+import androidx.compose.ui.platform.LocalDensity
+import kotlin.math.abs
 
-
-/**
- * Resolves a media URL for the feed WITHOUT ever blocking composition.
- *
- * - Non-vcdn URLs are pure string rewrites (no network) and return synchronously,
- *   matching the previous `resolveMediaUrlSync` behavior exactly.
- * - `vcdn://` pointers are resolved asynchronously via [VcdnUrlResolver.resolve]
- *   (suspend, offline-aware, cached). While no signed URL is available yet
- *   (or offline) we return "" so callers can show a safe placeholder instead of
- *   feeding an empty/invalid URI to ExoPlayer or Coil.
- */
 @Composable
 internal fun rememberResolvedMediaUrl(rawUrl: String?): String {
     val raw = rawUrl?.trim().orEmpty()
@@ -78,7 +57,6 @@ internal fun rememberResolvedMediaUrl(rawUrl: String?): String {
         }
         return resolvedUrl
     }
-    // Same synchronous pure-rewrite path the old sync resolver used for non-vcdn.
     return com.example.data.repository.CdnManager.resolveMediaUrlSync(raw)
 }
 
@@ -92,14 +70,11 @@ private val VIDEO_SEGMENTS = setOf("video", "videos", "stream")
 private val AUDIO_SEGMENTS = setOf("audio", "audios", "voice")
 private val DOC_SEGMENTS = setOf("document", "documents", "docs")
 
-// Match on whole path segments (not substrings): the legacy Sufy bucket name was
-// "panalink-audio", so contains("audio") wrongly flagged every Sufy URL.
 private fun hasSegment(url: String, segments: Set<String>): Boolean =
     urlPathOf(url).split('/').any { it in segments }
 
 fun isVideoUrl(url: String): Boolean {
     if (url.isBlank()) return false
-    // VCDN pointers and HLS manifests are always video.
     if (url.startsWith("vcdn://", ignoreCase = true)) return true
     val path = urlPathOf(url)
     if (path.endsWith(".m3u8") || path.endsWith(".m3u")) return true
@@ -118,6 +93,7 @@ fun isDocumentUrl(url: String): Boolean {
     return hasSegment(url, DOC_SEGMENTS) || DOC_EXTENSIONS.any { path.endsWith(it) } || path.contains("application/")
 }
 
+@OptIn(ExperimentalMaterial3Api::class, ExperimentalAnimationApi::class)
 @Composable
 fun FeedPostCard(
     post: PostDto,
@@ -128,7 +104,8 @@ fun FeedPostCard(
     onEditClick: (String) -> Unit = {},
     onMediaClick: (List<String>, Int, String?) -> Unit = { _, _, _ -> },
     onAudioPlaylistClick: (PostDto) -> Unit = {},
-    onShareClick: () -> Unit = {}
+    onShareClick: () -> Unit = {},
+    onSaveClick: ((Boolean) -> Unit)? = null
 ) {
     val context = LocalContext.current
     val currentUserId = remember {
@@ -143,8 +120,8 @@ fun FeedPostCard(
     var isSaved by rememberSaveable(post.id) { mutableStateOf(false) }
     var isExpandedText by rememberSaveable(post.id) { mutableStateOf(false) }
     val scope = rememberCoroutineScope()
+    val haptic = LocalHapticFeedback.current
 
-    // Real follow state (Facebook-style "Seguir" pill in header)
     var isFollowingAuthor by rememberSaveable(post.id) { mutableStateOf(false) }
     var followChecked by rememberSaveable(post.id) { mutableStateOf(false) }
     LaunchedEffect(post.userId, currentUserId) {
@@ -156,27 +133,55 @@ fun FeedPostCard(
         }
     }
 
-    Column(
-        modifier = Modifier
-            .fillMaxWidth()
-            .background(Color(0xFF161618))
+    var isLiked by rememberSaveable(post.id) { mutableStateOf(post.isLikedByMe ?: false) }
+    LaunchedEffect(post.isLikedByMe) {
+        post.isLikedByMe?.let { isLiked = it }
+    }
+
+    var likeScale by remember { mutableStateOf(1f) }
+    val likeAnimScale by animateFloatAsState(
+        targetValue = likeScale,
+        animationSpec = spring(dampingRatio = Spring.DampingRatioMediumBouncy, stiffness = Spring.StiffnessMedium),
+        label = "like_scale"
+    )
+
+    var showHeartAnimation by remember { mutableStateOf(false) }
+
+    fun performLike() {
+        haptic.performHapticFeedback(HapticFeedbackType.LongPress)
+        likeScale = 1.4f
+        showHeartAnimation = true
+        likeScale = 1f
+        onLikeClick()
+    }
+
+    var visible by remember { mutableStateOf(false) }
+    LaunchedEffect(post.id) {
+        visible = true
+    }
+
+    AnimatedVisibility(
+        visible = visible,
+        enter = fadeIn(animationSpec = tween(300)) + slideInVertically(initialOffsetY = { 20 }),
+        exit = fadeOut()
     ) {
-            // Header
+        Column(
+            modifier = Modifier
+                .fillMaxWidth()
+                .background(Color(0xFF161618))
+        ) {
             Row(
                 modifier = Modifier
                     .fillMaxWidth()
                     .padding(horizontal = 14.dp, vertical = 12.dp),
                 verticalAlignment = Alignment.CenterVertically
             ) {
-                // Resolve Avatar
                 val rawAvatar = identityState?.avatarUrl ?: post.profile?.avatarUrl
                 val resolvedAvatar = remember(rawAvatar) {
                     com.example.data.repository.CdnManager.resolveAvatarUrl(rawAvatar)
                 }
                 
-                Box(
-                    modifier = Modifier.clickable { onProfileClick() }
-                ) {
+                Box(modifier = Modifier.clickable { onProfileClick() }) {
                     PanaAvatar(
                         avatarUrl = resolvedAvatar,
                         userId = identityState?.userId ?: post.profile?.id,
@@ -202,14 +207,11 @@ fun FeedPostCard(
                             modifier = Modifier.clickable { onProfileClick() }
                         )
                         if (!isMyPost) {
-                            Text(
-                                text = if (isFollowingAuthor) "  ·  Siguiendo" else "  ·  Seguir",
-                                color = if (isFollowingAuthor) Color.Gray else Color(0xFF45B6FF),
-                                fontWeight = FontWeight.Bold,
-                                fontSize = 14.sp,
-                                modifier = Modifier.clickable {
-                                    val uid = post.userId ?: return@clickable
-                                    val me = currentUserId ?: return@clickable
+                            Spacer(modifier = Modifier.width(6.dp))
+                            Surface(
+                                onClick = {
+                                    val uid = post.userId ?: return@Surface
+                                    val me = currentUserId ?: return@Surface
                                     val next = !isFollowingAuthor
                                     isFollowingAuthor = next
                                     scope.launch {
@@ -217,11 +219,22 @@ fun FeedPostCard(
                                         val result = if (next) repo.followUser(me, uid) else repo.unfollowUser(me, uid)
                                         result.onFailure { isFollowingAuthor = !next }
                                     }
-                                }
-                            )
+                                },
+                                shape = RoundedCornerShape(20.dp),
+                                border = if (!isFollowingAuthor) BorderStroke(1.dp, Color(0xFF45B6FF)) else null,
+                                color = if (isFollowingAuthor) Color.Transparent else Color(0xFF45B6FF).copy(alpha = 0.1f)
+                            ) {
+                                Text(
+                                    text = if (isFollowingAuthor) "Siguiendo" else "Seguir",
+                                    color = Color(0xFF45B6FF),
+                                    fontSize = 12.sp,
+                                    fontWeight = FontWeight.Bold,
+                                    modifier = Modifier.padding(horizontal = 12.dp, vertical = 4.dp)
+                                )
+                            }
                         }
                     }
-                    
+
                     val timeStr = remember(post.createdAt) {
                         try {
                             if (post.createdAt != null) {
@@ -254,7 +267,7 @@ fun FeedPostCard(
                         )
                     }
                 }
-                
+
                 Box {
                     IconButton(onClick = { showMenu = true }, modifier = Modifier.size(36.dp)) {
                         Icon(Icons.Default.MoreVert, contentDescription = "Opciones", tint = Color.Gray)
@@ -268,16 +281,16 @@ fun FeedPostCard(
                             DropdownMenuItem(
                                 text = { Text("Editar", color = Color.White) },
                                 leadingIcon = { Icon(Icons.Default.Edit, contentDescription = null, tint = Color.White) },
-                                onClick = { 
-                                     showMenu = false
+                                onClick = {
+                                    showMenu = false
                                     onEditClick(post.content ?: "")
                                 }
                             )
                             DropdownMenuItem(
                                 text = { Text("Eliminar", color = Color(0xFFFF4D4D)) },
                                 leadingIcon = { Icon(Icons.Default.Delete, contentDescription = null, tint = Color(0xFFFF4D4D)) },
-                                onClick = { 
-                                     showMenu = false
+                                onClick = {
+                                    showMenu = false
                                     onDeleteClick()
                                 }
                             )
@@ -285,8 +298,8 @@ fun FeedPostCard(
                             DropdownMenuItem(
                                 text = { Text("Reportar", color = Color.Gray) },
                                 leadingIcon = { Icon(Icons.Default.Report, contentDescription = null, tint = Color.Gray) },
-                                onClick = { 
-                                     showMenu = false
+                                onClick = {
+                                    showMenu = false
                                     Toast.makeText(context, "Publicación reportada", Toast.LENGTH_SHORT).show()
                                 }
                             )
@@ -295,7 +308,6 @@ fun FeedPostCard(
                 }
             }
 
-            // Extract content and metadata
             val youtubeVideoId = remember(post.content) {
                 if (!post.content.isNullOrBlank()) {
                     com.example.util.YouTubeUrlParser.extractYouTubeVideoId(post.content)
@@ -304,7 +316,6 @@ fun FeedPostCard(
             val metadata = remember(post.content) { parseStateMetadata(post.content) }
             val cleanCaption = metadata.baseCaption
 
-            // 1. Text Content (Before Media)
             if (cleanCaption.isNotBlank() && youtubeVideoId.isNullOrBlank()) {
                 val isLongText = cleanCaption.length > 150 || cleanCaption.lines().size > 4
                 Column(modifier = Modifier.padding(horizontal = 14.dp, vertical = 6.dp)) {
@@ -318,27 +329,33 @@ fun FeedPostCard(
                         modifier = Modifier.clickable(enabled = isLongText) { isExpandedText = !isExpandedText }
                     )
                     if (isLongText && !isExpandedText) {
-                        Text(
-                            text = "Ver más",
-                            color = Color.Gray,
-                            fontSize = 14.sp,
-                            fontWeight = FontWeight.Bold,
+                        Row(
                             modifier = Modifier
                                 .padding(top = 4.dp)
-                                .clickable { isExpandedText = true }
-                        )
+                                .clickable { isExpandedText = true },
+                            verticalAlignment = Alignment.CenterVertically
+                        ) {
+                            Text(
+                                text = "Ver más",
+                                color = Color(0xFF45B6FF),
+                                fontSize = 14.sp,
+                                fontWeight = FontWeight.Bold
+                            )
+                            Icon(
+                                imageVector = Icons.Default.KeyboardArrowDown,
+                                contentDescription = null,
+                                tint = Color(0xFF45B6FF),
+                                modifier = Modifier.size(16.dp)
+                            )
+                        }
                     }
                 }
             } else if (!youtubeVideoId.isNullOrBlank()) {
                 Box(modifier = Modifier.padding(horizontal = 14.dp, vertical = 6.dp)) {
-                    YouTubePostCard(
-                        videoId = youtubeVideoId,
-                        originalText = cleanCaption
-                    )
+                    YouTubePostCard(videoId = youtubeVideoId, originalText = cleanCaption)
                 }
             }
 
-            // 2. Media Content
             val allMediaList = (post.mediaUrls ?: emptyList()).filter { it.isNotBlank() }
             val mediaImagesAndVideos = remember(allMediaList) {
                 allMediaList.filter { !isAudioUrl(it) && !isDocumentUrl(it) }
@@ -353,6 +370,7 @@ fun FeedPostCard(
             if (mediaImagesAndVideos.isNotEmpty()) {
                 val pagerState = rememberPagerState(pageCount = { mediaImagesAndVideos.size })
                 var isMuted by remember { mutableStateOf(true) }
+                var doubleTapScale by remember { mutableFloatStateOf(1f) }
 
                 Box(
                     modifier = Modifier
@@ -366,40 +384,36 @@ fun FeedPostCard(
                     ) { page ->
                         val url = mediaImagesAndVideos[page]
                         val resolvedUrl = rememberResolvedMediaUrl(url)
-                        
+
                         Box(
                             modifier = Modifier
                                 .fillMaxSize()
-                                .clickable { onMediaClick(mediaImagesAndVideos, page, voiceAudioUrl) }
+                                .pointerInput(url) {
+                                    detectTransformGestures(
+                                        onGesture = { _, pan, zoom, _ ->
+                                            doubleTapScale = (zoom).coerceIn(1f, 4f)
+                                        }
+                                    )
+                                }
+                                .graphicsLayer {
+                                    scaleX = doubleTapScale
+                                    scaleY = doubleTapScale
+                                }
                         ) {
                             if (resolvedUrl.isBlank()) {
-                                // vcdn:// sin URL firmada aún (resolución asíncrona pendiente o
-                                // offline): placeholder seguro. Nunca alimentar una URI vacía a ExoPlayer.
- 
-                                Box(
-                                    modifier = Modifier.fillMaxSize(),
-                                    contentAlignment = Alignment.Center
-                                ) {
-                                    CircularProgressIndicator(
-                                        color = Color(0xFF00E5FF),
-                                        modifier = Modifier.size(32.dp),
-                                        strokeWidth = 2.dp
-                                    )
+                                Box(modifier = Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
+                                    CircularProgressIndicator(color = Color(0xFF00A884), modifier = Modifier.size(32.dp), strokeWidth = 2.dp)
                                 }
                             } else if (post.type == "VIDEO" || post.type == "REEL" || isVideoUrl(resolvedUrl)) {
                                 val videoUri = remember(resolvedUrl) { Uri.parse(resolvedUrl) }
-                                SimpleVideoPreviewPlayer(
-                                    videoUri = videoUri,
-                                    isMuted = isMuted,
-                                    modifier = Modifier.fillMaxSize()
-                                )
+                                SimpleVideoPreviewPlayer(videoUri = videoUri, isMuted = isMuted, modifier = Modifier.fillMaxSize())
                             } else {
                                 val resolvedResources = com.example.media.feed.PostMediaResolver.rememberResolvedMediaResources(
                                     mediaUrls = listOf(resolvedUrl),
                                     ownerId = post.userId
                                 )
                                 val mediaResource = resolvedResources.firstOrNull() ?: com.example.media.model.MediaResource.Remote(resolvedUrl)
-                                
+
                                 com.example.media.ui.MediaRenderer(
                                     resource = mediaResource,
                                     contentDescription = "Media",
@@ -408,10 +422,35 @@ fun FeedPostCard(
                                 )
                             }
                             RenderOverlays(metadata.overlaysBase64)
+
+                            if (showHeartAnimation) {
+                                LaunchedEffect(showHeartAnimation) {
+                                    delay(800)
+                                    showHeartAnimation = false
+                                }
+                                Box(
+                                    modifier = Modifier
+                                        .fillMaxSize()
+                                        .padding(80.dp),
+                                    contentAlignment = Alignment.Center
+                                ) {
+                                    androidx.compose.animation.AnimatedVisibility(
+                                        visible = showHeartAnimation,
+                                        enter = scaleIn(animationSpec = spring(dampingRatio = Spring.DampingRatioMediumBouncy)) + fadeIn(),
+                                        exit = scaleOut() + fadeOut()
+                                    ) {
+                                        Icon(
+                                            imageVector = Icons.Default.Favorite,
+                                            contentDescription = null,
+                                            tint = Color(0xFFFF2B54),
+                                            modifier = Modifier.size(80.dp)
+                                        )
+                                    }
+                                }
+                            }
                         }
                     }
 
-                    // Video Controls
                     val currentUrl = mediaImagesAndVideos.getOrNull(pagerState.currentPage) ?: ""
                     if (post.type == "VIDEO" || post.type == "REEL" || isVideoUrl(currentUrl)) {
                         IconButton(
@@ -431,7 +470,6 @@ fun FeedPostCard(
                         }
                     }
 
-                    // Pager Indicators
                     if (mediaImagesAndVideos.size > 1) {
                         Text(
                             text = "${pagerState.currentPage + 1}/${mediaImagesAndVideos.size}",
@@ -465,7 +503,6 @@ fun FeedPostCard(
                         }
                     }
 
-                    // Audio Badge
                     if (voiceAudioUrl != null && post.type != "VIDEO" && post.type != "REEL") {
                         Row(
                             modifier = Modifier
@@ -483,31 +520,12 @@ fun FeedPostCard(
                 val resolvedAudio = rememberResolvedMediaUrl(voiceAudioUrl)
                 Box(modifier = Modifier.fillMaxWidth().padding(horizontal = 14.dp, vertical = 8.dp)) {
                     if (resolvedAudio.isBlank()) {
-                        // vcdn:// sin URL firmada aun: placeholder seguro
-                        Box(
-                            modifier = Modifier.fillMaxWidth().height(80.dp),
-                            contentAlignment = Alignment.Center
-                        ) {
-                            CircularProgressIndicator(
-                                color = Color(0xFF00E5FF),
-                                modifier = Modifier.size(28.dp),
-                                strokeWidth = 2.dp
-                            )
+                        Box(modifier = Modifier.fillMaxWidth().height(80.dp), contentAlignment = Alignment.Center) {
+                            CircularProgressIndicator(color = Color(0xFF00A884), modifier = Modifier.size(28.dp), strokeWidth = 2.dp)
                         }
                     } else {
-                    PlaylistAudioPlayer(audioUrls = listOf(resolvedAudio))
+                        PlaylistAudioPlayer(audioUrls = listOf(resolvedAudio))
                     }
-
-                }
-            } else if (post.type == "TEXT" && mediaImagesAndVideos.isEmpty() && youtubeVideoId.isNullOrBlank()) {
-                // If it's just short text and was not expanded, we might want to make it look like a quote card
-                if (cleanCaption.isNotBlank() && cleanCaption.length < 150) {
-                     // The text is already shown in the Header section (1. Text Content).
-                     // We don't need to do anything here unless we want to remove it from there and show it here instead.
-                     // Since the prompt says "NO obligar a generar una imagen artificial. crear una presentación visual tipo quote/card."
-                     // actually, the standard text display above is enough for Twitter-like text.
-                     // Just add some bottom padding.
-                     Spacer(modifier = Modifier.height(4.dp))
                 }
             }
 
@@ -535,35 +553,23 @@ fun FeedPostCard(
                 Spacer(modifier = Modifier.height(8.dp))
             }
 
-            // Counters row (Facebook-style)
-            val isLiked = post.isLikedByMe
+            val postIsLiked = post.isLikedByMe ?: isLiked
             if (post.likesCount > 0 || post.commentsCount > 0 || post.sharesCount > 0) {
                 Row(
                     modifier = Modifier
                         .fillMaxWidth()
-                        .padding(horizontal = 14.dp, vertical = 8.dp),
+                        .padding(horizontal = 14.dp, vertical = 6.dp),
                     verticalAlignment = Alignment.CenterVertically
                 ) {
                     if (post.likesCount > 0) {
-                        Box(
-                            modifier = Modifier
-                                .size(18.dp)
-                                .background(Color(0xFF45B6FF), CircleShape),
-                            contentAlignment = Alignment.Center
-                        ) {
-                            Icon(
-                                imageVector = Icons.Default.ThumbUp,
-                                contentDescription = null,
-                                tint = Color.White,
-                                modifier = Modifier.size(11.dp)
-                            )
-                        }
-                        Spacer(modifier = Modifier.width(5.dp))
-                        Text(
-                            text = "${post.likesCount}",
-                            color = Color.Gray,
-                            fontSize = 13.sp
+                        Icon(
+                            imageVector = Icons.Default.ThumbUp,
+                            contentDescription = null,
+                            tint = Color(0xFF45B6FF),
+                            modifier = Modifier.size(14.dp)
                         )
+                        Spacer(modifier = Modifier.width(4.dp))
+                        Text(text = "${post.likesCount}", color = Color.Gray, fontSize = 13.sp)
                     }
                     Spacer(modifier = Modifier.weight(1f))
                     val tail = buildString {
@@ -573,18 +579,12 @@ fun FeedPostCard(
                         append(parts.joinToString("  ·  "))
                     }
                     if (tail.isNotEmpty()) {
-                        Text(
-                            text = tail,
-                            color = Color.Gray,
-                            fontSize = 13.sp,
-                            modifier = Modifier.clickable { onCommentClick() }
-                        )
+                        Text(text = tail, color = Color.Gray, fontSize = 13.sp, modifier = Modifier.clickable { onCommentClick() })
                     }
                 }
-                HorizontalDivider(color = Color.White.copy(alpha = 0.08f), thickness = 0.5.dp, modifier = Modifier.padding(horizontal = 12.dp))
+                HorizontalDivider(color = Color.White.copy(alpha = 0.06f), thickness = 0.5.dp, modifier = Modifier.padding(horizontal = 12.dp))
             }
 
-            // Action Bar (Facebook-style labeled buttons)
             Row(
                 modifier = Modifier
                     .fillMaxWidth()
@@ -594,25 +594,32 @@ fun FeedPostCard(
                 Row(
                     modifier = Modifier
                         .weight(1f)
-                        .clickable { onLikeClick() }
+                        .clickable { performLike() }
                         .padding(vertical = 8.dp),
                     horizontalArrangement = Arrangement.Center,
                     verticalAlignment = Alignment.CenterVertically
                 ) {
                     Icon(
-                        imageVector = if (isLiked) Icons.Default.ThumbUp else Icons.Outlined.ThumbUp,
-                        tint = if (isLiked) Color(0xFF45B6FF) else Color.Gray,
+                        imageVector = if (postIsLiked) Icons.Default.ThumbUp else Icons.Outlined.ThumbUp,
+                        tint = if (postIsLiked) Color(0xFF45B6FF) else Color.Gray,
                         contentDescription = "Me gusta",
-                        modifier = Modifier.size(20.dp)
+                        modifier = Modifier
+                            .size(20.dp)
+                            .scale(likeAnimScale)
                     )
                     Spacer(modifier = Modifier.width(6.dp))
                     Text(
                         text = "Me gusta",
-                        color = if (isLiked) Color(0xFF45B6FF) else Color.Gray,
+                        color = if (postIsLiked) Color(0xFF45B6FF) else Color.Gray,
                         fontSize = 13.sp,
                         fontWeight = FontWeight.SemiBold
                     )
                 }
+
+                VerticalDivider(
+                    color = Color.White.copy(alpha = 0.08f),
+                    modifier = Modifier.height(24.dp).padding(vertical = 4.dp)
+                )
 
                 Row(
                     modifier = Modifier
@@ -636,6 +643,11 @@ fun FeedPostCard(
                         fontWeight = FontWeight.SemiBold
                     )
                 }
+
+                VerticalDivider(
+                    color = Color.White.copy(alpha = 0.08f),
+                    modifier = Modifier.height(24.dp).padding(vertical = 4.dp)
+                )
 
                 Row(
                     modifier = Modifier
@@ -667,35 +679,26 @@ fun FeedPostCard(
                         fontWeight = FontWeight.SemiBold
                     )
                 }
+            }
 
-                if (post.type == "AUDIO" || voiceAudioUrl != null) {
+            if (post.type == "AUDIO" || voiceAudioUrl != null) {
+                Spacer(modifier = Modifier.height(4.dp))
+                Row(
+                    modifier = Modifier.fillMaxWidth().padding(horizontal = 14.dp),
+                    horizontalArrangement = Arrangement.End
+                ) {
                     IconButton(onClick = { onAudioPlaylistClick(post) }, modifier = Modifier.size(36.dp)) {
                         Icon(
                             imageVector = Icons.Default.PlaylistPlay,
                             tint = Color(0xFF00FF85),
                             contentDescription = "Reproducir lista",
-                            modifier = Modifier.size(24.dp)
+                            modifier = Modifier.size(22.dp)
                         )
                     }
                 }
-
-                IconButton(
-                    onClick = {
-                        isSaved = !isSaved
-                        val msg = if (isSaved) "Guardado" else "Eliminado de guardados"
-                        Toast.makeText(context, msg, Toast.LENGTH_SHORT).show()
-                    },
-                    modifier = Modifier.size(36.dp)
-                ) {
-                    Icon(
-                        imageVector = if (isSaved) Icons.Default.BookmarkBorder else Icons.Outlined.BookmarkBorder,
-                        tint = if (isSaved) Color(0xFF45B6FF) else Color.Gray,
-                        contentDescription = "Guardar",
-                        modifier = Modifier.size(22.dp)
-                    )
-                }
             }
 
-            Spacer(modifier = Modifier.height(6.dp))
+            Spacer(modifier = Modifier.height(4.dp))
+        }
     }
 }

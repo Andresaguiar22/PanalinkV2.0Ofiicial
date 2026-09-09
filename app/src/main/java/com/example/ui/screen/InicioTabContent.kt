@@ -956,29 +956,37 @@ fun InicioTabContent(
                             Spacer(modifier = Modifier.height(16.dp))
                             Text(
                                 text = "El muro está vacío por ahora",
-                                color = Color.Gray,
+                                color = Color.White,
                                 fontSize = 16.sp,
                                 fontWeight = FontWeight.Medium
                             )
+                            Spacer(modifier = Modifier.height(8.dp))
                             Text(
-                                text = "¡Sé el primero en compartir algo!",
-                                color = Color.Gray.copy(alpha = 0.6f),
-                                fontSize = 13.sp
+                                text = "Sé el primero en compartir algo con la comunidad",
+                                color = Color.Gray.copy(alpha = 0.7f),
+                                fontSize = 13.sp,
+                                textAlign = TextAlign.Center
                             )
+                            Spacer(modifier = Modifier.height(20.dp))
+                            Surface(
+                                onClick = { showCreatePostSheet = true },
+                                shape = RoundedCornerShape(24.dp),
+                                color = Color(0xFF00A884)
+                            ) {
+                                Row(
+                                    modifier = Modifier.padding(horizontal = 20.dp, vertical = 10.dp),
+                                    verticalAlignment = Alignment.CenterVertically,
+                                    horizontalArrangement = Arrangement.spacedBy(8.dp)
+                                ) {
+                                    Icon(Icons.Default.Add, contentDescription = null, tint = Color.White, modifier = Modifier.size(18.dp))
+                                    Text("Crear publicación", color = Color.White, fontWeight = FontWeight.Bold, fontSize = 14.sp)
+                                }
+                            }
                         }
                     }
                 } else if (feedUiState.isLoading && feedUiState.posts.isEmpty()) {
-
-                    items(3,
-                        key = { "loading_post_$it" }
-                    ) {
-                        Box(
-                            modifier = Modifier
-                                .fillMaxWidth()
-                                .height(320.dp)
-                                .padding(vertical = 4.dp)
-                                .shimmerEffect()
-                        )
+                    items(3, key = { "loading_post_$it" }) {
+                        FeedPostSkeleton()
                     }
                 }
             }
@@ -1040,30 +1048,61 @@ fun InicioTabContent(
                 // Comments List
                 LazyColumn(
                     modifier = Modifier.weight(1f),
-                    verticalArrangement = Arrangement.spacedBy(12.dp)
+                    verticalArrangement = Arrangement.spacedBy(8.dp)
                 ) {
                     if (commentsList.isEmpty()) {
                         item {
-                            Text("No hay comentarios aún. Sé el primero.", color = Color.Gray, modifier = Modifier.padding(16.dp))
+                            Box(modifier = Modifier.fillMaxWidth().padding(24.dp), contentAlignment = Alignment.Center) {
+                                Column(horizontalAlignment = Alignment.CenterHorizontally) {
+                                    Icon(Icons.Default.ChatBubbleOutline, contentDescription = null, tint = Color.Gray.copy(alpha = 0.3f), modifier = Modifier.size(48.dp))
+                                    Spacer(modifier = Modifier.height(8.dp))
+                                    Text("No hay comentarios aún. Sé el primero.", color = Color.Gray, fontSize = 14.sp)
+                                }
+                            }
                         }
                     } else {
                         itemsIndexed(commentsList, key = { _, comment -> comment.id }) { _, comment ->
-                            Row(modifier = Modifier.fillMaxWidth()) {
+                            Row(
+                                modifier = Modifier
+                                    .fillMaxWidth()
+                                    .background(Color(0xFF1F2C34).copy(alpha = 0.6f), RoundedCornerShape(12.dp))
+                                    .padding(10.dp),
+                                verticalAlignment = Alignment.Top
+                            ) {
                                 com.example.ui.components.PanaAvatar(
                                     avatarUrl = comment.avatarUrl,
                                     userId = comment.userId,
-                                    size = 36.dp,
+                                    size = 32.dp,
                                     borderWidth = 0.dp,
                                     placeholderName = comment.authorName
                                 )
                                 Spacer(modifier = Modifier.width(10.dp))
                                 Column(modifier = Modifier.weight(1f)) {
-                                    Text(comment.authorName, color = Color.White, fontWeight = FontWeight.Bold, fontSize = 13.sp)
-                                    Text(comment.text, color = Color.White, fontSize = 14.sp)
-                                    Spacer(modifier = Modifier.height(4.dp))
-                                    Text("Responder", color = Color.Gray, fontSize = 11.sp, modifier = Modifier.clickable {
-                                        // Simple reply implementation
-                                    })
+                                    Row(verticalAlignment = Alignment.CenterVertically) {
+                                        Text(comment.authorName, color = Color.White, fontWeight = FontWeight.Bold, fontSize = 13.sp)
+                                        Spacer(modifier = Modifier.width(6.dp))
+                                        Text(
+                                            text = remember(comment.createdAt) {
+                                                try {
+                                                    val parser = java.text.SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss", java.util.Locale.US)
+                                                    parser.timeZone = java.util.TimeZone.getTimeZone("UTC")
+                                                    val date = parser.parse(comment.createdAt)
+                                                    val diff = System.currentTimeMillis() - (date?.time ?: System.currentTimeMillis())
+                                                    val minutes = (diff / 60000).toInt()
+                                                    when {
+                                                        minutes < 1 -> "hace un momento"
+                                                        minutes < 60 -> "hace ${minutes}m"
+                                                        minutes < 1440 -> "hace ${minutes / 60}h"
+                                                        else -> "hace ${minutes / 1440}d"
+                                                    }
+                                                } catch (e: Exception) { "hace poco" }
+                                            },
+                                            color = Color.Gray,
+                                            fontSize = 11.sp
+                                        )
+                                    }
+                                    Spacer(modifier = Modifier.height(2.dp))
+                                    Text(comment.text, color = Color.White.copy(alpha = 0.9f), fontSize = 14.sp)
                                 }
                             }
                         }
