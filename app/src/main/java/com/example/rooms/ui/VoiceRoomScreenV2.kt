@@ -156,7 +156,6 @@ fun VoiceRoomScreenV2(
             Box(
                 modifier = Modifier
                     .fillMaxWidth()
-                    .weight(1f, fill = false)
                     .heightIn(max = 220.dp)
             ) {
                 VoiceRoomTikTokChat(
@@ -170,6 +169,8 @@ fun VoiceRoomScreenV2(
                     onDone = { id -> emojiReactions = emojiReactions.filterNot { it.id == id } }
                 )
             }
+
+            Spacer(Modifier.weight(1f))
 
             VoiceRoomEmojiQuickBar(
                 onReaction = { emoji -> pushReaction(emoji) }
