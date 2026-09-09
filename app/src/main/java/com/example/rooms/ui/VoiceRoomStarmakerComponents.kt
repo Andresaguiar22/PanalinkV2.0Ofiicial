@@ -836,15 +836,15 @@ fun VoiceRoomInputBar(
     Surface(
         modifier = modifier
             .fillMaxWidth()
-            .padding(horizontal =  8.dp, vertical =  6.dp),
-        shape = RoundedCornerShape(24.dp),
+            .padding(horizontal = 6.dp, vertical = 3.dp),
+        shape = RoundedCornerShape(18.dp),
         color = Color(0x1F000000),
-        shadowElevation = 8.dp
+        shadowElevation = 4.dp
     ) {
         Row(
             modifier = Modifier
                 .fillMaxWidth()
-                .padding(horizontal =  6.dp, vertical =  4.dp),
+                .padding(horizontal = 4.dp, vertical = 2.dp),
             verticalAlignment = Alignment.CenterVertically
         ) {
         VoiceRoomMicSeatButton(
@@ -856,14 +856,14 @@ fun VoiceRoomInputBar(
             onToggleMute = onToggleMute,
             onEnableMic = onEnableMic
         )
-        Spacer(Modifier.width(6.dp))
+        Spacer(Modifier.width(4.dp))
         OutlinedTextField(
             value = value,
             onValueChange = onValueChange,
             modifier = Modifier.weight(1f),
             singleLine = true,
-            placeholder ={ Text("Di algo...", fontSize =  13.sp, color = Color(0xFFB8A99A)) },
-            textStyle = LocalTextStyle.current.copy(fontSize =  14.sp, fontWeight = FontWeight.Medium),
+            placeholder ={ Text("Di algo...", fontSize = 11.sp, color = Color(0xFFB8A99A)) },
+            textStyle = LocalTextStyle.current.copy(fontSize = 12.sp, fontWeight = FontWeight.Medium),
             colors = OutlinedTextFieldDefaults.colors(
                 focusedTextColor = Color.White,
                 unfocusedTextColor = Color.White,
@@ -872,19 +872,21 @@ fun VoiceRoomInputBar(
                 focusedContainerColor = Color(0x1F000000),
                 unfocusedContainerColor = Color(0x1F000000)
             ),
-            shape = RoundedCornerShape(24.dp)
+            shape = RoundedCornerShape(18.dp)
         )
         IconButton(
             onClick = onSend,
             enabled = value.isNotBlank(),
-            modifier = Modifier.size(40.dp)
+            modifier = Modifier.size(32.dp)
         ) {
             Icon(
                 Icons.Default.Send,
                 contentDescription = "Enviar",
-                tint = if (value.isNotBlank()) VoiceRoomPalette.Accent else Color(0x66FFFFFF)
+                tint = if (value.isNotBlank()) VoiceRoomPalette.Accent else Color(0x66FFFFFF),
+                modifier = Modifier.size(18.dp)
             )
         }
+    }
     }
 }
 }
