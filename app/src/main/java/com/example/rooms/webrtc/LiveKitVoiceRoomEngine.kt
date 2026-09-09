@@ -148,7 +148,7 @@ class LiveKitVoiceRoomEngine(
     private fun observeSpeaking(remote: RemoteParticipant?) {
         if (remote == null || released) return
         scope.launch {
-            remote.isSpeaking.collect { speaking ->
+            remote::isSpeaking.flow.collect { speaking ->
                 if (released) return@collect
                 remote.identity?.value?.let { id -> listener.onPeerSpeaking(id, speaking) }
             }
@@ -162,7 +162,7 @@ class LiveKitVoiceRoomEngine(
      */
     private fun observeLocalSpeaking(lkRoom: Room) {
         scope.launch {
-            lkRoom.localParticipant.isSpeaking.collect { speaking ->
+            lkRoom.localParticipant::isSpeaking.flow.collect { speaking ->
                 if (released) return@collect
                 listener.onPeerSpeaking(myUserId, speaking)
             }
