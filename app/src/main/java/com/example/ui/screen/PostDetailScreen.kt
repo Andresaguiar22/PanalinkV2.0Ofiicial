@@ -1,5 +1,6 @@
 package com.example.ui.screen
 
+import android.net.Uri
 import android.widget.Toast
 import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.animation.core.tween
@@ -19,6 +20,8 @@ import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material.icons.filled.ArrowDownward
 import androidx.compose.material.icons.filled.Close
 import androidx.compose.material.icons.filled.Send
+import androidx.compose.material.icons.filled.VolumeMute
+import androidx.compose.material.icons.filled.VolumeUp
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
@@ -46,7 +49,7 @@ fun PostDetailScreen(
     postId: String,
     viewModel: FeedViewModel,
     onBackClick: () -> Unit,
-    onMediaClick: (List<String>, Int, String?) -> Unit = { _, _, _ -> },
+    onMediaClick: (List<String>, Int, String?, Long) -> Unit = { _, _, _, _ -> },
     modifier: Modifier = Modifier
 ) {
     val context = LocalContext.current
@@ -61,8 +64,9 @@ fun PostDetailScreen(
     
     // Fullscreen media viewer state
     var fullScreenMediaList by remember { mutableStateOf<List<String>?>(null) }
-    var fullScreenInitialPage by remember { mutableStateOf(0) }
+    var fullScreenInitialPage by remember { mutableIntStateOf(0) }
     var fullScreenStartPosition by remember { mutableLongStateOf(0L) }
+    var fullScreenBackgroundAudio by remember { mutableStateOf<String?>(null) }
 
     LaunchedEffect(postId) {
         viewModel.getPostDetail(postId)
@@ -255,11 +259,12 @@ fun PostDetailScreen(
                             onEditClick = { content ->
                                 viewModel.updatePost(post.id!!, content)
                             },
-                            onMediaClick = { list, page, audio, position ->
-                                fullScreenMediaList = list
-                                fullScreenInitialPage = page
-                                fullScreenStartPosition = position
-                            }
+                             onMediaClick = { list, page, audio, position ->
+                                 fullScreenMediaList = list
+                                 fullScreenInitialPage = page
+                                 fullScreenBackgroundAudio = audio
+                                 fullScreenStartPosition = position
+                             }
                         )
                     }
 
@@ -322,6 +327,56 @@ fun PostDetailScreen(
             initialPage = fullScreenInitialPage,
             pageCount = { mediaList.size }
         )
+
+        // Background audio player for photos with audio
+        var backgroundAudioPlayer by remember { mutableStateOf<androidx.media3.exoplayer.ExoPlayer?>(null) }
+        var backgroundAudioMuted by remember { mutableStateOf(false) }
+        
+        LaunchedEffect(fullScreenBackgroundAudio, pagerState.currentPage, fullScreenMediaList) {
+            val audioUrl = fullScreenBackgroundAudio
+            val currentMediaUrl = mediaList.getOrNull(pagerState.currentPage)
+            val currentIsVideo = currentMediaUrl?.let { com.example.ui.components.isVideoUrl(it) } ?: false
+            
+            // Release previous player if exists - independent players should be released
+            backgroundAudioPlayer?.let { player ->
+                player.release()
+                backgroundAudioPlayer = null
+            }
+            
+            // Create new player for background audio if we have audio and current media is not video
+            if (audioUrl != null && audioUrl.isNotBlank() && !currentIsVideo) {
+                val player = androidx.media3.exoplayer.ExoPlayer.Builder(context).build().apply {
+                    setMediaItem(androidx.media3.common.MediaItem.fromUri(audioUrl))
+                    repeatMode = androidx.media3.common.Player.REPEAT_MODE_ONE
+                    prepare()
+                    playWhenReady = true
+                    volume = if (backgroundAudioMuted) 0f else 1f
+                }
+                backgroundAudioPlayer = player
+            }
+        }
+
+        // Cleanup background audio player - independent players should be released, not returned to pool
+        DisposableEffect(fullScreenBackgroundAudio, pagerState.currentPage, fullScreenMediaList) {
+            onDispose {
+                backgroundAudioPlayer?.let { player ->
+                    // Independent players (created with ExoPlayer.Builder) should be released, not returned to pool
+                    player.release()
+                    backgroundAudioPlayer = null
+                }
+            }
+        }
+
+        // Pause/resume background audio when page changes to/from video
+        LaunchedEffect(pagerState.currentPage, mediaList) {
+            val currentMediaUrl = mediaList.getOrNull(pagerState.currentPage)
+            val currentIsVideo = currentMediaUrl?.let { com.example.ui.components.isVideoUrl(it) } ?: false
+            if (currentIsVideo) {
+                backgroundAudioPlayer?.playWhenReady = false
+            } else if (fullScreenBackgroundAudio != null && fullScreenBackgroundAudio!!.isNotBlank()) {
+                backgroundAudioPlayer?.playWhenReady = !backgroundAudioMuted
+            }
+        }
 
         Box(
             modifier = Modifier
@@ -386,7 +441,15 @@ fun PostDetailScreen(
                 horizontalArrangement = Arrangement.SpaceBetween
             ) {
                 IconButton(
-                    onClick = { fullScreenMediaList = null },
+                    onClick = { 
+                        fullScreenMediaList = null
+                        fullScreenBackgroundAudio = null
+                        fullScreenStartPosition = 0L
+                        backgroundAudioPlayer?.let { player ->
+                            player.release()
+                            backgroundAudioPlayer = null
+                        }
+                    },
                     modifier = Modifier.background(Color.Black.copy(alpha = 0.5f), CircleShape)
                 ) {
                     Icon(Icons.Default.Close, contentDescription = "Cerrar", tint = Color.White)
@@ -404,11 +467,29 @@ fun PostDetailScreen(
                     )
                 }
 
+                // Background audio mute button (only show when background audio is playing)
+                if (fullScreenBackgroundAudio != null && backgroundAudioPlayer != null) {
+                    IconButton(
+                        onClick = { 
+                            backgroundAudioMuted = !backgroundAudioMuted
+                            backgroundAudioPlayer?.volume = if (backgroundAudioMuted) 0f else 1f
+                        },
+                        modifier = Modifier.background(Color.Black.copy(alpha = 0.5f), CircleShape)
+                    ) {
+                        Icon(
+                            imageVector = if (backgroundAudioMuted) Icons.Default.VolumeMute else Icons.Default.VolumeUp,
+                            contentDescription = if (backgroundAudioMuted) "Activar audio" else "Silenciar audio",
+                            tint = Color.White,
+                            modifier = Modifier.size(20.dp)
+                        )
+                    }
+                }
+
                 IconButton(
                     onClick = {
                         val currentUrl = mediaList[pagerState.currentPage]
                         try {
-                            val uri = android.net.Uri.parse(currentUrl)
+                            val uri = Uri.parse(currentUrl)
                             val request = android.app.DownloadManager.Request(uri).apply {
                                 setNotificationVisibility(android.app.DownloadManager.Request.VISIBILITY_VISIBLE_NOTIFY_COMPLETED)
                                 val fileName = currentUrl.substringAfterLast("/")
@@ -418,9 +499,9 @@ fun PostDetailScreen(
                             }
                             val manager = context.getSystemService(android.content.Context.DOWNLOAD_SERVICE) as android.app.DownloadManager
                             manager.enqueue(request)
-                            android.widget.Toast.makeText(context, "Descarga iniciada... 📥", android.widget.Toast.LENGTH_SHORT).show()
+                            Toast.makeText(context, "Descarga iniciada... 📥", Toast.LENGTH_SHORT).show()
                         } catch (e: Exception) {
-                            android.widget.Toast.makeText(context, "Error: ${e.message}", android.widget.Toast.LENGTH_LONG).show()
+                            Toast.makeText(context, "Error: ${e.message}", Toast.LENGTH_LONG).show()
                         }
                     },
                     modifier = Modifier.background(Color.Black.copy(alpha = 0.5f), CircleShape)
