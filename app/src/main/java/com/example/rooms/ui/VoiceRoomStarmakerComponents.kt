@@ -887,7 +887,6 @@ fun VoiceRoomInputBar(
             )
         }
     }
-    }
 }
 }
 
