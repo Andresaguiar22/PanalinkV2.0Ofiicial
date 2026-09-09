@@ -372,7 +372,8 @@ fun FeedPostCard(
             if (mediaImagesAndVideos.isNotEmpty()) {
                 val pagerState = rememberPagerState(pageCount = { mediaImagesAndVideos.size })
                 var isMuted by remember { mutableStateOf(true) }
-                var currentVideoPosition by remember { mutableStateOf(0L) }
+                // Per-media video position tracking keyed by stable URL
+                val videoPositionMap = remember { mutableStateMapOf<String, Long>() }
 
                 Box(
                     modifier = Modifier
@@ -390,9 +391,9 @@ fun FeedPostCard(
                         Box(
                             modifier = Modifier
                                 .fillMaxSize()
-                                .clickable { onMediaClick(mediaImagesAndVideos, pagerState.currentPage, voiceAudioUrl, currentVideoPosition) }
                                 .pointerInput(Unit) {
                                     detectTapGestures(
+                                        onTap = { onMediaClick(mediaImagesAndVideos, pagerState.currentPage, voiceAudioUrl, videoPositionMap[mediaImagesAndVideos[pagerState.currentPage]] ?: 0L) },
                                         onDoubleTap = { performLike() }
                                     )
                                 }
@@ -407,7 +408,7 @@ fun FeedPostCard(
                                     videoUri = videoUri,
                                     isMuted = isMuted,
                                     modifier = Modifier.fillMaxSize(),
-                                    onPositionUpdate = { pos -> currentVideoPosition = pos }
+                                    onPositionUpdate = { pos -> videoPositionMap[resolvedUrl] = pos }
                                 )
                             } else {
                                 val resolvedResources = com.example.media.feed.PostMediaResolver.rememberResolvedMediaResources(
