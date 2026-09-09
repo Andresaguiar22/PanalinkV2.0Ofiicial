@@ -889,6 +889,7 @@ fun VoiceRoomInputBar(
         }
     }
 }
+}
 
 @Composable
 fun VoiceRoomMicSeatButton(
