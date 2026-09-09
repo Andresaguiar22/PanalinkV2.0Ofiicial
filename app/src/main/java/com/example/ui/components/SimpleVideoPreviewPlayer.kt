@@ -26,7 +26,8 @@ fun SimpleVideoPreviewPlayer(
     modifier: Modifier = Modifier,
     isMuted: Boolean = true,
     trimStartSeconds: Float = 0f,
-    trimEndSeconds: Float = 0f
+    trimEndSeconds: Float = 0f,
+    onPositionUpdate: ((Long) -> Unit)? = null
 ) {
     val context = LocalContext.current
     val view = LocalView.current
@@ -133,6 +134,18 @@ fun SimpleVideoPreviewPlayer(
 
     LaunchedEffect(isVisible, exoPlayer) {
         exoPlayer?.playWhenReady = isVisible
+    }
+
+    // Report current position for video continuity
+    LaunchedEffect(exoPlayer, isVisible) {
+        val player = exoPlayer ?: return@LaunchedEffect
+        if (!isVisible) return@LaunchedEffect
+        while (true) {
+            if (player.playbackState == Player.STATE_READY) {
+                onPositionUpdate?.invoke(player.currentPosition)
+            }
+            kotlinx.coroutines.delay(200)
+        }
     }
 
     AndroidView(

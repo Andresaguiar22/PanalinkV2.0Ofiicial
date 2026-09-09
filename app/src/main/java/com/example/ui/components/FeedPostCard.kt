@@ -9,7 +9,7 @@ import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
-import androidx.compose.foundation.gestures.detectTransformGestures
+import androidx.compose.foundation.gestures.detectTapGestures
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.pager.HorizontalPager
 import androidx.compose.foundation.pager.rememberPagerState
@@ -25,6 +25,7 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.draw.scale
+import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.input.pointer.pointerInput
@@ -103,7 +104,7 @@ fun FeedPostCard(
     onProfileClick: () -> Unit = {},
     onDeleteClick: () -> Unit = {},
     onEditClick: (String) -> Unit = {},
-    onMediaClick: (List<String>, Int, String?) -> Unit = { _, _, _ -> },
+    onMediaClick: (List<String>, Int, String?, Long) -> Unit = { _, _, _, _ -> },
     onAudioPlaylistClick: (PostDto) -> Unit = {},
     onShareClick: () -> Unit = {},
     onSaveClick: ((Boolean) -> Unit)? = null
@@ -371,7 +372,7 @@ fun FeedPostCard(
             if (mediaImagesAndVideos.isNotEmpty()) {
                 val pagerState = rememberPagerState(pageCount = { mediaImagesAndVideos.size })
                 var isMuted by remember { mutableStateOf(true) }
-                var doubleTapScale by remember { mutableFloatStateOf(1f) }
+                var currentVideoPosition by remember { mutableStateOf(0L) }
 
                 Box(
                     modifier = Modifier
@@ -389,16 +390,11 @@ fun FeedPostCard(
                         Box(
                             modifier = Modifier
                                 .fillMaxSize()
-                                .pointerInput(url) {
-                                    detectTransformGestures(
-                                        onGesture = { _, pan, zoom, _ ->
-                                            doubleTapScale = (zoom).coerceIn(1f, 4f)
-                                        }
+                                .clickable { onMediaClick(mediaImagesAndVideos, pagerState.currentPage, voiceAudioUrl, currentVideoPosition) }
+                                .pointerInput(Unit) {
+                                    detectTapGestures(
+                                        onDoubleTap = { performLike() }
                                     )
-                                }
-                                .graphicsLayer {
-                                    scaleX = doubleTapScale
-                                    scaleY = doubleTapScale
                                 }
                         ) {
                             if (resolvedUrl.isBlank()) {
@@ -407,7 +403,12 @@ fun FeedPostCard(
                                 }
                             } else if (post.type == "VIDEO" || post.type == "REEL" || isVideoUrl(resolvedUrl)) {
                                 val videoUri = remember(resolvedUrl) { Uri.parse(resolvedUrl) }
-                                SimpleVideoPreviewPlayer(videoUri = videoUri, isMuted = isMuted, modifier = Modifier.fillMaxSize())
+                                SimpleVideoPreviewPlayer(
+                                    videoUri = videoUri,
+                                    isMuted = isMuted,
+                                    modifier = Modifier.fillMaxSize(),
+                                    onPositionUpdate = { pos -> currentVideoPosition = pos }
+                                )
                             } else {
                                 val resolvedResources = com.example.media.feed.PostMediaResolver.rememberResolvedMediaResources(
                                     mediaUrls = listOf(resolvedUrl),
@@ -418,7 +419,8 @@ fun FeedPostCard(
                                 com.example.media.ui.MediaRenderer(
                                     resource = mediaResource,
                                     contentDescription = "Media",
-                                    modifier = Modifier.fillMaxSize(),
+                                    modifier = Modifier
+                                        .fillMaxSize(),
                                     contentScale = ContentScale.Crop
                                 )
                             }
@@ -472,16 +474,40 @@ fun FeedPostCard(
                     }
 
                     if (mediaImagesAndVideos.size > 1) {
-                        Text(
-                            text = "${pagerState.currentPage + 1}/${mediaImagesAndVideos.size}",
-                            color = Color.White,
+                        Row(
                             modifier = Modifier
                                 .align(Alignment.TopEnd)
-                                .padding(12.dp)
-                                .background(Color.Black.copy(alpha = 0.6f), RoundedCornerShape(16.dp))
-                                .padding(horizontal = 10.dp, vertical = 4.dp),
-                            fontSize = 12.sp,
-                            fontWeight = FontWeight.Bold
+                                .padding(12.dp),
+                            horizontalArrangement = Arrangement.spacedBy(8.dp)
+                        ) {
+                            Icon(
+                                imageVector = Icons.Default.Fullscreen,
+                                contentDescription = "Expandir",
+                                tint = Color.White.copy(alpha = 0.7f),
+                                modifier = Modifier
+                                    .size(20.dp)
+                                    .background(Color.Black.copy(alpha = 0.5f), CircleShape)
+                                    .padding(6.dp)
+                            )
+                            Text(
+                                text = "${pagerState.currentPage + 1}/${mediaImagesAndVideos.size}",
+                                color = Color.White,
+                                modifier = Modifier
+                                    .background(Color.Black.copy(alpha = 0.6f), RoundedCornerShape(16.dp))
+                                    .padding(horizontal = 10.dp, vertical = 4.dp),
+                                fontSize = 12.sp,
+                                fontWeight = FontWeight.Bold
+                            )
+                        }
+                        
+                        // Premium sliding indicator (pill-style)
+                        val indicatorOffset by animateFloatAsState(
+                            targetValue = pagerState.currentPage * 24f,
+                            animationSpec = spring(
+                                dampingRatio = Spring.DampingRatioMediumBouncy,
+                                stiffness = Spring.StiffnessMedium
+                            ),
+                            label = "indicatorOffset"
                         )
                         Row(
                             modifier = Modifier
@@ -489,16 +515,27 @@ fun FeedPostCard(
                                 .padding(bottom = 12.dp),
                             horizontalArrangement = Arrangement.Center
                         ) {
-                            repeat(mediaImagesAndVideos.size) { iteration ->
-                                val color = if (pagerState.currentPage == iteration) Color.White else Color.White.copy(alpha = 0.4f)
-                                val width = if (pagerState.currentPage == iteration) 18.dp else 6.dp
+                            Box(
+                                modifier = Modifier
+                                    .width((mediaImagesAndVideos.size * 24).dp + 12.dp)
+                                    .height(6.dp)
+                            ) {
+                                // Track
                                 Box(
                                     modifier = Modifier
-                                        .padding(3.dp)
-                                        .clip(CircleShape)
-                                        .background(color)
+                                        .fillMaxWidth()
                                         .height(6.dp)
-                                        .width(width)
+                                        .clip(CircleShape)
+                                        .background(Color.White.copy(alpha = 0.3f))
+                                )
+                                // Sliding pill indicator
+                                Box(
+                                    modifier = Modifier
+                                        .offset(x = (indicatorOffset + 6).dp)
+                                        .width(18.dp)
+                                        .height(6.dp)
+                                        .clip(CircleShape)
+                                        .background(Color.White)
                                 )
                             }
                         }

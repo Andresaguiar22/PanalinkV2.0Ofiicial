@@ -2,27 +2,42 @@ package com.example.ui.screen
 
 import android.widget.Toast
 import androidx.compose.animation.AnimatedVisibility
+import androidx.compose.animation.core.tween
+import androidx.compose.animation.fadeIn
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
+import androidx.compose.foundation.gestures.detectTransformGestures
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.itemsIndexed
+import androidx.compose.foundation.pager.HorizontalPager
+import androidx.compose.foundation.pager.rememberPagerState
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
+import androidx.compose.material.icons.filled.ArrowDownward
+import androidx.compose.material.icons.filled.Close
 import androidx.compose.material.icons.filled.Send
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.graphicsLayer
+import androidx.compose.ui.input.pointer.pointerInput
+import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
+import coil.compose.AsyncImage
+import com.example.ui.components.rememberResolvedMediaUrl
+import com.example.ui.components.isVideoUrl
+import com.example.ui.screen.FeedFullscreenVideoPlayer
 import com.example.ui.viewmodel.FeedViewModel
 
 @OptIn(ExperimentalMaterial3Api::class)
@@ -31,6 +46,7 @@ fun PostDetailScreen(
     postId: String,
     viewModel: FeedViewModel,
     onBackClick: () -> Unit,
+    onMediaClick: (List<String>, Int, String?) -> Unit = { _, _, _ -> },
     modifier: Modifier = Modifier
 ) {
     val context = LocalContext.current
@@ -42,6 +58,11 @@ fun PostDetailScreen(
     var commentText by remember { mutableStateOf("") }
     var isSending by remember { mutableStateOf(false) }
     var showEmojiPicker by remember { mutableStateOf(false) }
+    
+    // Fullscreen media viewer state
+    var fullScreenMediaList by remember { mutableStateOf<List<String>?>(null) }
+    var fullScreenInitialPage by remember { mutableStateOf(0) }
+    var fullScreenStartPosition by remember { mutableLongStateOf(0L) }
 
     LaunchedEffect(postId) {
         viewModel.getPostDetail(postId)
@@ -233,6 +254,11 @@ fun PostDetailScreen(
                             },
                             onEditClick = { content ->
                                 viewModel.updatePost(post.id!!, content)
+                            },
+                            onMediaClick = { list, page, audio, position ->
+                                fullScreenMediaList = list
+                                fullScreenInitialPage = page
+                                fullScreenStartPosition = position
                             }
                         )
                     }
@@ -284,6 +310,126 @@ fun PostDetailScreen(
                             }
                         }
                     }
+                }
+            }
+        }
+    }
+
+    // Fullscreen media viewer (similar to InicioTabContent)
+    if (fullScreenMediaList != null) {
+        val mediaList = fullScreenMediaList!!
+        val pagerState = rememberPagerState(
+            initialPage = fullScreenInitialPage,
+            pageCount = { mediaList.size }
+        )
+
+        Box(
+            modifier = Modifier
+                .fillMaxSize()
+                .background(Color.Black)
+        ) {
+            HorizontalPager(
+                state = pagerState,
+                modifier = Modifier.fillMaxSize()
+            ) { page ->
+                val mediaUrl = mediaList[page]
+                val resolvedViewerUrl = rememberResolvedMediaUrl(mediaUrl)
+                val isVideo = isVideoUrl(resolvedViewerUrl)
+                Box(
+                    modifier = Modifier.fillMaxSize(),
+                    contentAlignment = Alignment.Center
+                ) {
+                    if (isVideo) {
+                        val startPos = if (page == fullScreenInitialPage) fullScreenStartPosition else 0L
+                        FeedFullscreenVideoPlayer(
+                            videoUrl = resolvedViewerUrl,
+                            isActivePage = pagerState.currentPage == page,
+                            startPosition = startPos
+                        )
+                    } else {
+                        var photoScale by remember { mutableFloatStateOf(1f) }
+                        var photoOffset by remember { mutableStateOf(androidx.compose.ui.geometry.Offset.Zero) }
+                        AsyncImage(
+                            model = resolvedViewerUrl,
+                            contentDescription = "Pantalla completa",
+                            modifier = Modifier
+                                .fillMaxSize()
+                                .pointerInput(resolvedViewerUrl) {
+                                    detectTransformGestures { _, pan, zoom, _ ->
+                                        photoScale = (photoScale * zoom).coerceIn(1f, 5f)
+                                        photoOffset = if (photoScale > 1f) {
+                                            androidx.compose.ui.geometry.Offset(photoOffset.x + pan.x, photoOffset.y + pan.y)
+                                        } else {
+                                            androidx.compose.ui.geometry.Offset.Zero
+                                        }
+                                    }
+                                }
+                                .graphicsLayer {
+                                    scaleX = photoScale
+                                    scaleY = photoScale
+                                    translationX = photoOffset.x
+                                    translationY = photoOffset.y
+                                },
+                            contentScale = ContentScale.Fit
+                        )
+                    }
+                }
+            }
+
+            Row(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .align(Alignment.TopCenter)
+                    .statusBarsPadding()
+                    .padding(horizontal = 12.dp, vertical = 8.dp),
+                verticalAlignment = Alignment.CenterVertically,
+                horizontalArrangement = Arrangement.SpaceBetween
+            ) {
+                IconButton(
+                    onClick = { fullScreenMediaList = null },
+                    modifier = Modifier.background(Color.Black.copy(alpha = 0.5f), CircleShape)
+                ) {
+                    Icon(Icons.Default.Close, contentDescription = "Cerrar", tint = Color.White)
+                }
+
+                if (mediaList.size > 1) {
+                    Text(
+                        text = "${pagerState.currentPage + 1}/${mediaList.size}",
+                        color = Color.White,
+                        fontWeight = FontWeight.Bold,
+                        fontSize = 16.sp,
+                        modifier = Modifier
+                            .background(Color.Black.copy(alpha = 0.5f), RoundedCornerShape(12.dp))
+                            .padding(horizontal = 12.dp, vertical = 6.dp)
+                    )
+                }
+
+                IconButton(
+                    onClick = {
+                        val currentUrl = mediaList[pagerState.currentPage]
+                        try {
+                            val uri = android.net.Uri.parse(currentUrl)
+                            val request = android.app.DownloadManager.Request(uri).apply {
+                                setNotificationVisibility(android.app.DownloadManager.Request.VISIBILITY_VISIBLE_NOTIFY_COMPLETED)
+                                val fileName = currentUrl.substringAfterLast("/")
+                                setDestinationInExternalPublicDir(android.os.Environment.DIRECTORY_DOWNLOADS, fileName)
+                                setTitle("Descargando archivo")
+                                setDescription(fileName)
+                            }
+                            val manager = context.getSystemService(android.content.Context.DOWNLOAD_SERVICE) as android.app.DownloadManager
+                            manager.enqueue(request)
+                            android.widget.Toast.makeText(context, "Descarga iniciada... 📥", android.widget.Toast.LENGTH_SHORT).show()
+                        } catch (e: Exception) {
+                            android.widget.Toast.makeText(context, "Error: ${e.message}", android.widget.Toast.LENGTH_LONG).show()
+                        }
+                    },
+                    modifier = Modifier.background(Color.Black.copy(alpha = 0.5f), CircleShape)
+                ) {
+                    Icon(
+                        imageVector = Icons.Filled.ArrowDownward,
+                        contentDescription = "Descargar",
+                        tint = Color.White
+                    )
                 }
             }
         }
