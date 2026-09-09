@@ -12,8 +12,8 @@ dependencyResolutionManagement {
   repositories {
     google()
     mavenCentral()
-    // JitPack — required transitively by io.livekit:livekit-android (audioswitch).
     maven { url = uri("https://jitpack.io") }
+    maven { url = uri("https://maven.aliyun.com/repository/public/") }
   }
 }
 
