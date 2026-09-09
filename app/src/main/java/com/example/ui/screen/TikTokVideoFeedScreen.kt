@@ -84,6 +84,9 @@ import androidx.compose.ui.focus.focusRequester
 import android.app.DownloadManager
 import android.os.Environment
 import android.net.Uri
+import android.os.Vibrator
+import android.os.VibratorManager
+import android.content.Context
 import android.widget.Toast
 import androidx.compose.ui.platform.LocalContext
 import androidx.media3.common.Player
@@ -105,6 +108,17 @@ import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.example.util.NetworkMonitor
 import com.example.ui.components.PanaAvatar
 import com.example.ui.components.OfflineEmptyView
+
+private fun performHaptic(context: Context) {
+    val vib = if (android.os.Build.VERSION.SDK_INT >= android.os.Build.VERSION_CODES.S) {
+        val vm = context.getSystemService(Context.VIBRATOR_MANAGER_SERVICE) as VibratorManager
+        vm.defaultVibrator
+    } else {
+        @Suppress("DEPRECATION")
+        context.getSystemService(Context.VIBRATOR_SERVICE) as Vibrator
+    }
+    vib.vibrate(android.os.VibrationEffect.createOneShot(15, android.os.VibrationEffect.DEFAULT_AMPLITUDE))
+}
 
 @androidx.annotation.OptIn(androidx.media3.common.util.UnstableApi::class)
 @OptIn(ExperimentalFoundationApi::class)
@@ -282,7 +296,7 @@ fun TikTokVideoFeedScreen(
                             ) {
                                 AsyncImage(
                                     model = com.example.data.repository.CdnManager.resolveMediaUrlSync(item.state.mediaUrl),
-                                    contentDescription = null,
+                                    contentDescription = "Miniatura de reel de ${item.profile?.displayName ?: "usuario"}",
                                     modifier = Modifier.fillMaxSize(),
                                     contentScale = ContentScale.Crop
                                 )
@@ -740,7 +754,7 @@ private fun ReelRailAction(
     Column(horizontalAlignment = Alignment.CenterHorizontally) {
         Box(
             modifier = Modifier
-                .size(46.dp)
+                .size(52.dp)
                 .clickable(
                     interactionSource = remember { MutableInteractionSource() },
                     indication = null,
@@ -1146,6 +1160,19 @@ fun TikTokPageItem(
                             }
                         }
                     )
+                    // Auto-retry: attempt reconnection every 5s while error persists.
+                    LaunchedEffect(hasError) {
+                        kotlinx.coroutines.delay(5000)
+                        if (hasError) {
+                            hasError = false
+                            isBuffering = true
+                            retryCount = 0
+                            resolvedUrl = null
+                            dualManager.slotFor(state.id)?.let { slot ->
+                                dualManager.playerFor(slot)?.prepare()
+                            }
+                        }
+                    }
                 } else {
                     Box(
                         modifier = Modifier
@@ -1328,6 +1355,7 @@ fun TikTokPageItem(
                             .offset(y = 8.dp)
                             .background(Color(0xFFFF2B54), CircleShape)
                             .clickable {
+                                performHaptic(context)
                                 scope.launch {
                                     profilesRepo.followUser(currentUid, safeProfileId)
                                     isFollowing = true
@@ -1363,7 +1391,10 @@ fun TikTokPageItem(
                     scaleX = likeScale
                     scaleY = likeScale
                 },
-                onClick = { onLikeClick() }
+                onClick = {
+                    performHaptic(context)
+                    onLikeClick()
+                }
             )
 
             // Comments
@@ -1585,9 +1616,6 @@ fun TikTokPageItem(
                         isDraggingSlider = false
                         exoPlayerRef?.let { player ->
                             player.seekTo(currentPosition)
-                            // H1 fix: re-affirm playWhenReady after seek so playback
-                            // resumes immediately once buffered. Avoids STATE_BUFFERING
-                            // stuck with skeleton overlay on top of PlayerView.
                             player.playWhenReady = true
                         }
                     },
@@ -1600,6 +1628,9 @@ fun TikTokPageItem(
                     modifier = Modifier
                         .fillMaxWidth()
                         .height(if (isDraggingSlider) 20.dp else 8.dp)
+                        .semantics {
+                            this.contentDescription = "Progreso del vídeo: ${formatMmSs(currentPosition)} de ${formatMmSs(duration)}"
+                        },
                 )
             }
         }
