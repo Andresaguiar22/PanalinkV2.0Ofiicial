@@ -108,7 +108,7 @@ fun VoiceRoomBackground(
 }
 
 @Composable
-private fun GlowOrb(
+fun GlowOrb(
     color: Color,
     size: Dp,
     offsetX: Dp,
