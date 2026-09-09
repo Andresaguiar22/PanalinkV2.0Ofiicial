@@ -45,6 +45,7 @@ class LiveKitVoiceRoomEngine(
     }
 
     private val scope = CoroutineScope(Dispatchers.Default + SupervisorJob())
+    private val speakingJobs = java.util.concurrent.ConcurrentHashMap<String, kotlinx.coroutines.Job>()
     @Volatile private var room: Room? = null
     @Volatile private var released = false
     @Volatile private var micEnabled = false
@@ -91,16 +92,13 @@ class LiveKitVoiceRoomEngine(
                         if (id != null) {
                             listener.onPeerConnectionStateChanged(id, false)
                             listener.onPeerSpeaking(id, false)
+                            stopSpeakingMonitor(id)
                         }
                     }
                     is RoomEvent.ActiveSpeakersChanged -> {
-                        // Active speakers carries the full set of currently-talking
-                        // participants; clear everyone not in it so stale glows turn off.
                         val active = event.speakers.mapNotNull { it.identity?.value }.toSet()
-                        // We can't enumerate all participants here cheaply, so only
-                        // light up the active ones; per-participant isSpeaking flows
-                        // (collected above) handle the off-transition precisely.
                         active.forEach { listener.onPeerSpeaking(it, true) }
+                        speakingJobs.keys.forEach { id -> if (id !in active) listener.onPeerSpeaking(id, false) }
                     }
                     else -> {}
                 }
@@ -147,12 +145,18 @@ class LiveKitVoiceRoomEngine(
      */
     private fun observeSpeaking(remote: RemoteParticipant?) {
         if (remote == null || released) return
-        scope.launch {
+        val id = remote.identity?.value ?: return
+        speakingJobs[id]?.cancel()
+        speakingJobs[id] = scope.launch {
             remote::isSpeaking.flow.collect { speaking ->
                 if (released) return@collect
-                remote.identity?.value?.let { id -> listener.onPeerSpeaking(id, speaking) }
+                listener.onPeerSpeaking(id, speaking)
             }
         }
+    }
+
+    private fun stopSpeakingMonitor(userId: String) {
+        speakingJobs.remove(userId)?.cancel()
     }
 
     /**
@@ -206,6 +210,8 @@ class LiveKitVoiceRoomEngine(
     override fun release() {
         if (released) return
         released = true
+        speakingJobs.values.forEach { it.cancel() }
+        speakingJobs.clear()
         disconnect()
         scope.cancel()
     }

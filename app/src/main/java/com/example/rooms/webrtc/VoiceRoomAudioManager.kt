@@ -18,8 +18,11 @@ class VoiceRoomAudioManager(context: Context) {
 
     private val audioManager = context.getSystemService(Context.AUDIO_SERVICE) as AudioManager
     private var focusRequest: AudioFocusRequest? = null
+    private var audioModeActive = false
 
     fun enterRoomAudio() {
+        if (audioModeActive) return
+        audioModeActive = true
         val result = if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
             val attrs = AudioAttributes.Builder()
                 .setUsage(AudioAttributes.USAGE_VOICE_COMMUNICATION)
@@ -40,6 +43,8 @@ class VoiceRoomAudioManager(context: Context) {
     }
 
     fun exitRoomAudio() {
+        if (!audioModeActive) return
+        audioModeActive = false
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
             focusRequest?.let { audioManager.abandonAudioFocusRequest(it) }
             focusRequest = null

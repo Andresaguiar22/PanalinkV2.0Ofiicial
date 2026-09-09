@@ -566,12 +566,18 @@ fun VoiceRoomTikTokChat(
                     )
                 )
         )
-        Box(modifier = Modifier.fillMaxSize()) {
-            systemMessages.forEach { msg ->
-                VoiceRoomSystemBubble(
-                    message = msg,
-                    modifier = Modifier.align(Alignment.BottomStart)
-                )
+        Box(modifier = Modifier.fillMaxSize().padding(bottom = 8.dp)) {
+            Column(
+                modifier = Modifier
+                    .align(Alignment.BottomStart)
+                    .padding(horizontal =  10.dp),
+                verticalArrangement = Arrangement.spacedBy(4.dp)
+            ) {
+                systemMessages.forEach { msg ->
+                    key(msg.id) {
+                        VoiceRoomSystemBubble(message = msg)
+                    }
+                }
             }
         }
     }
@@ -871,6 +877,7 @@ fun VoiceRoomInputBar(
     modifier: Modifier = Modifier
 ) {
     val listenOnly = isSeated && needsPermission
+    val mutedByAdmin = isSeated && isMuted && !needsPermission
     Surface(
         modifier = modifier
             .fillMaxWidth()
@@ -894,10 +901,10 @@ fun VoiceRoomInputBar(
             onToggleMute = onToggleMute,
             onEnableMic = onEnableMic
         )
-        if (listenOnly) {
+        if (listenOnly || mutedByAdmin) {
             Spacer(Modifier.width(4.dp))
             Text(
-                text = "Solo escucha",
+                text = if (mutedByAdmin) "Silenciado" else "Solo escucha",
                 color = Color(0x88FFFFFF),
                 fontSize = 10.sp,
                 modifier = Modifier.padding(horizontal = 6.dp, vertical = 4.dp)

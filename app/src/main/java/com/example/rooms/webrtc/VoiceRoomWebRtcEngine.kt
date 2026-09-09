@@ -196,9 +196,16 @@ class VoiceRoomWebRtcEngine(
                             .filter { it.type == "inbound-rtp" }
                             .mapNotNull { stat ->
                                 @Suppress("UNCHECKED_CAST")
-                                (stat.members as? Map<String, Any>)?.get("audioLevel") as? Double
+                                val m = stat.members as? Map<String, Any>
+                                val audioLevel = m?.get("audioLevel") as? Double
+                                val audioEnergy = m?.get("totalAudioEnergy") as? Double
+                                if (audioLevel != null && audioLevel > 0.0) audioLevel
+                                else audioEnergy ?: 0.0
                             }
                             .maxOrNull() ?: 0.0
+                        // audioLevel is a 0..1 sample; totalAudioEnergy grows over time,
+                        // so a plain threshold is meaningless for it: treat any positive
+                        // energy burst as speaking (the monitor polls at 500ms).
                         val speaking = level > SPEAKING_THRESHOLD
                         if (speaking != lastSpeaking) {
                             lastSpeaking = speaking
