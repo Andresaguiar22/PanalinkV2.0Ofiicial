@@ -80,6 +80,8 @@ import com.example.ui.viewmodel.SocialViewModel
 import com.example.ui.viewmodel.SocialUiState
 import com.example.ui.viewmodel.CommentsEvent
 import androidx.compose.ui.focus.FocusRequester
+import androidx.compose.ui.semantics.semantics
+import androidx.compose.ui.semantics.contentDescription
 import androidx.compose.ui.focus.focusRequester
 import android.app.DownloadManager
 import android.os.Environment
