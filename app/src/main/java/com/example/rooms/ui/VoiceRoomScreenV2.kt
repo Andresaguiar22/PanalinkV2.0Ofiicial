@@ -2,6 +2,7 @@ package com.example.rooms.ui
 
 import android.Manifest
 import android.content.pm.PackageManager
+import android.view.View
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.foundation.background
@@ -59,13 +60,35 @@ fun VoiceRoomScreenV2(
     val hostSeat = state.seats.getOrNull(0)
     val hostMember = state.members.firstOrNull { it.userId == hostSeat?.userId }
 
+    val snackbarHostState = remember { SnackbarHostState() }
+    val chatListState = rememberLazyListState()
+    LaunchedEffect(state.error) {
+        val message = state.error
+        if (!message.isNullOrBlank()) {
+            snackbarHostState.showSnackbar(message)
+            viewModel.clearError()
+        }
+    }
+    LaunchedEffect(state.messages.size) {
+        if (state.messages.isNotEmpty()) {
+            chatListState.animateScrollToItem(0)
+        }
+    }
+
+    fun seatClickHaptic() {
+        val view = (context as? android.app.Activity)?.window?.decorView
+        view?.performHapticFeedback(android.view.HapticFeedbackConstants.VIRTUAL_KEY)
+    }
+
     VoiceRoomBackground {
-        Column(
-            modifier = Modifier
-                .fillMaxSize()
-                .statusBarsPadding()
-                .navigationBarsPadding()
-        ) {
+        Box(modifier = Modifier.fillMaxSize()) {
+            Column(
+                modifier = Modifier
+                    .fillMaxSize()
+                    .statusBarsPadding()
+                    .navigationBarsPadding()
+                    .imePadding()
+            ) {
             VoiceRoomHeader(
                 room = state.room,
                 hostDisplayName = hostMember?.displayName ?: hostSeat?.displayName,
@@ -80,16 +103,6 @@ fun VoiceRoomScreenV2(
             )
             if (state.isJoining) LinearProgressIndicator(Modifier.fillMaxWidth(), color = VoiceRoomPalette.Accent)
 
- 
-            state.error?.let {
-                Text(
-                    it,
-                    color = Color(0xFFFF8A80),
-                    fontSize = 11.sp,
-                    modifier = Modifier.padding(horizontal =  16.dp, vertical =  3.dp)
-                )
-            }
-
             Row(
                 modifier = Modifier.fillMaxWidth(),
                 horizontalArrangement = Arrangement.Center
@@ -101,7 +114,7 @@ fun VoiceRoomScreenV2(
                     isHost = true,
                     isMine = (hostSeat?.userId == state.myUserId),
                     showAdminAction = (hostSeat?.let { adminCanModerate(it) } == true),
-                    onClick = { viewModel.onSeatClicked(0, hasMic) },
+                    onClick = { seatClickHaptic(); viewModel.onSeatClicked(0, hasMic) },
                     onAdmin = { hostSeat?.userId?.let { moderationTarget = it } }
                 )
             }
@@ -118,7 +131,7 @@ fun VoiceRoomScreenV2(
                         label = "NO. $idx",
                         isMine = (seat?.userId == state.myUserId),
                         showAdminAction = (seat?.let { adminCanModerate(it) } == true),
-                        onClick = { viewModel.onSeatClicked(idx, hasMic) },
+                        onClick = { seatClickHaptic(); viewModel.onSeatClicked(idx, hasMic) },
                         onAdmin = { seat?.userId?.let { moderationTarget = it } }
                     )
                 }
@@ -136,7 +149,7 @@ fun VoiceRoomScreenV2(
                         label = "NO. $idx",
                         isMine = (seat?.userId == state.myUserId),
                         showAdminAction = (seat?.let { adminCanModerate(it) } == true),
-                        onClick = { viewModel.onSeatClicked(idx, hasMic) },
+                        onClick = { seatClickHaptic(); viewModel.onSeatClicked(idx, hasMic) },
                         onAdmin = { seat?.userId?.let { moderationTarget = it } }
                     )
                 }
@@ -162,7 +175,8 @@ fun VoiceRoomScreenV2(
                     messages = state.messages,
                     memberById = memberById,
                     onOpenProfile = onOpenProfile,
-                    modifier = Modifier.fillMaxSize()
+                    modifier = Modifier.fillMaxSize(),
+                    listState = chatListState
                 )
                 VoiceRoomFloatingEmojiOverlay(
                     emojis = emojiReactions,
@@ -190,6 +204,12 @@ fun VoiceRoomScreenV2(
                 onRequestSeat = { viewModel.requestAnySeat() },
                 onToggleMute = { viewModel.toggleMute() },
                 onEnableMic = { permission.launch(Manifest.permission.RECORD_AUDIO) }
+            )
+            SnackbarHost(
+                hostState = snackbarHostState,
+                modifier = Modifier
+                    .align(Alignment.BottomCenter)
+                    .padding(bottom = 8.dp)
             )
         }
     }

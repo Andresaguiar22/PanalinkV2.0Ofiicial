@@ -504,13 +504,19 @@ fun VoiceRoomTikTokChat(
     messages: List<VoiceRoomMessage>,
     memberById: Map<String, VoiceRoomMember>,
     onOpenProfile: ((String) -> Unit)? = null,
-    modifier: Modifier = Modifier
+    modifier: Modifier = Modifier,
+    listState: LazyListState = rememberLazyListState()
 ) {
     val chatMessages = messages.filter { !it.isSystem }
     val systemMessages = messages.filter { it.isSystem }
+    LaunchedEffect(chatMessages.size) {
+        if (chatMessages.isNotEmpty()) {
+            listState.animateScrollToItem(0)
+        }
+    }
     Box(modifier = modifier) {
         LazyColumn(
-            state = rememberLazyListState(),
+            state = listState,
             modifier = Modifier.fillMaxSize(),
             verticalArrangement = Arrangement.spacedBy(4.dp),
             reverseLayout = true,
