@@ -1,10 +1,6 @@
-# Generado por setup_toolchain.sh — source para compilar Panalink.
-# Rutas relativas al repo (portable): sobrevive a resets/recreaciones del sandbox.
-SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
-PROJECT_DIR="$(cd "$SCRIPT_DIR/.." && pwd)"
-TOOLCHAIN_DIR="${TOOLCHAIN_DIR:-$PROJECT_DIR/.toolchain}"
-export JAVA_HOME="$TOOLCHAIN_DIR/jdk17"
-export ANDROID_HOME="$TOOLCHAIN_DIR/sdk"
-export ANDROID_SDK_ROOT="$TOOLCHAIN_DIR/sdk"
-export GRADLE_USER_HOME="$PROJECT_DIR/.gradle-home"
-export PATH="$JAVA_HOME/bin:$ANDROID_HOME/platform-tools:$PATH"
+# Generado por kilocode-toolchain.sh — source para compilar Panalink.
+export JAVA_HOME="/workspace/f5527b83-2c5c-4ce1-8c96-eba2450613be/sessions/agent_3734b016-9bf5-4bda-aedc-cd1f2576e187/.toolchain/jdk17"
+export ANDROID_HOME="/workspace/f5527b83-2c5c-4ce1-8c96-eba2450613be/sessions/agent_3734b016-9bf5-4bda-aedc-cd1f2576e187/.toolchain/sdk"
+export ANDROID_SDK_ROOT="/workspace/f5527b83-2c5c-4ce1-8c96-eba2450613be/sessions/agent_3734b016-9bf5-4bda-aedc-cd1f2576e187/.toolchain/sdk"
+export GRADLE_USER_HOME="/workspace/f5527b83-2c5c-4ce1-8c96-eba2450613be/sessions/agent_3734b016-9bf5-4bda-aedc-cd1f2576e187/.gradle-home"
+export PATH="/workspace/f5527b83-2c5c-4ce1-8c96-eba2450613be/sessions/agent_3734b016-9bf5-4bda-aedc-cd1f2576e187/.toolchain/jdk17/bin:/workspace/f5527b83-2c5c-4ce1-8c96-eba2450613be/sessions/agent_3734b016-9bf5-4bda-aedc-cd1f2576e187/.toolchain/sdk/platform-tools:/workspace/f5527b83-2c5c-4ce1-8c96-eba2450613be/sessions/agent_3734b016-9bf5-4bda-aedc-cd1f2576e187/.toolchain/jdk17/bin:/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin"
