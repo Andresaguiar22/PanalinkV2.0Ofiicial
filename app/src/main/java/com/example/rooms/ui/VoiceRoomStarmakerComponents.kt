@@ -1030,10 +1030,9 @@ fun VoiceRoomMembersSheet(
                         if (member.userId != myUserId && onOpenProfile != null) {
                             TextButton(onClick = { onOpenProfile(member.userId) }) {
                                 Text("Ver perfil", color = VoiceRoomPalette.Accent, fontSize =  11.sp)
-                            }
-                        }
-                    }
-                }
+    }
+}
+}
             }
         }
     }
