@@ -33,6 +33,7 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.draw.scale
+import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.SolidColor
 import androidx.compose.ui.graphics.vector.rememberVectorPainter
@@ -126,6 +127,7 @@ fun PanaTVScreen(viewModel: PanaTVViewModel = viewModel()) {
     val crashTrace by viewModel.crashTrace.collectAsState()
     val showOnlyFavorites by viewModel.showOnlyFavorites.collectAsState()
     val favorites by viewModel.favorites.collectAsState()
+    val isLoading by viewModel.isLoading.collectAsState()
 
     var isFullscreen by remember { mutableStateOf(false) }
     var playerError by remember { mutableStateOf("") }
@@ -774,7 +776,7 @@ fun PanaTVScreen(viewModel: PanaTVViewModel = viewModel()) {
                                 modifier = Modifier
                                     .align(Alignment.BottomStart)
                                     .fillMaxWidth()
-                                    .padding(horizontal = 16.dp, bottom = 52.dp)
+                                    .padding(start = 16.dp, end = 16.dp, bottom = 52.dp)
                                     .height(3.dp)
                             ) {
                                 Box(
@@ -860,7 +862,7 @@ fun PanaTVScreen(viewModel: PanaTVViewModel = viewModel()) {
                                 Spacer(modifier = Modifier.height(16.dp))
                                 Text(debugMessage, color = TvTextSecondary, fontSize = 14.sp, textAlign = TextAlign.Center)
                             }
-                        } else if (channels.isEmpty() && (viewModel.uiState as? com.example.panatv.PanaTVUiState.Loading) != null) {
+                        } else if (channels.isEmpty() && isLoading) {
                             LazyVerticalGrid(
                                 columns = GridCells.Adaptive(minSize = 130.dp),
                                 modifier = Modifier.fillMaxSize(),
@@ -1160,13 +1162,12 @@ fun PanaTVScreen(viewModel: PanaTVViewModel = viewModel()) {
 
                                 Row(
                                     modifier = Modifier
-                                        .align(Alignment.BottomStart)
                                         .fillMaxWidth()
                                         .background(Color.Black.copy(alpha = 0.5f))
                                         .padding(horizontal = 8.dp, vertical = 4.dp),
-                                verticalAlignment = Alignment.CenterVertically,
-                                horizontalArrangement = Arrangement.SpaceBetween
-                            ) {
+                                    verticalAlignment = Alignment.CenterVertically,
+                                    horizontalArrangement = Arrangement.SpaceBetween
+                                ) {
                                 Row(verticalAlignment = Alignment.CenterVertically) {
                                     IconButton(onClick = {
                                         if (exoPlayer.isPlaying) exoPlayer.pause() else exoPlayer.play()
