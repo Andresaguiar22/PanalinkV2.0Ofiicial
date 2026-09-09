@@ -288,10 +288,9 @@ fun VoiceRoomHeader(
 }
 
 @Composable
-fun VoiceRoomSpeakingAura(size: Dp, modifier: Modifier = Modifier) {
+fun VoiceRoomSpeakingAura(size: Dp, speaking: Boolean, modifier: Modifier = Modifier) {
     val base = size * 1.6f
-    val waves = listOf(0f, 0.25f, 0.5f)
-    val colors = listOf(
+    val waves = listOf(
         VoiceRoomPalette.Accent,
         VoiceRoomPalette.Pink,
         VoiceRoomPalette.Gold
@@ -301,46 +300,36 @@ fun VoiceRoomSpeakingAura(size: Dp, modifier: Modifier = Modifier) {
             .size(base),
         contentAlignment = Alignment.Center
     ) {
-        waves.forEachIndexed { idx, delayFraction ->
-            val transition = rememberInfiniteTransition(label = "speakingAuraWave$idx")
-            val tick = remember { mutableStateOf(0) }
-            val phase = (tick.value + idx * 3) % waves.size
-            val progress = phase / (waves.size - 1f)
-
-            val auraScale by transition.animateFloat(
+        waves.forEachIndexed { idx, color ->
+            val infiniteTransition = rememberInfiniteTransition(label = "auraWave$idx")
+            val auraScale by infiniteTransition.animateFloat(
                 initialValue = 1f,
                 targetValue = 1.55f,
                 animationSpec = infiniteRepeatable(
-                    animation = tween(900),
+                    animation = tween(1400, delayMillis = idx * 350, easing = FastOutSlowInEasing),
                     repeatMode = RepeatMode.Restart
                 ),
                 label = "waveScale$idx"
             )
-            val auraAlpha by transition.animateFloat(
+            val auraAlpha by infiniteTransition.animateFloat(
                 initialValue = 0.55f,
                 targetValue = 0f,
                 animationSpec = infiniteRepeatable(
-                    animation = tween(900),
+                    animation = tween(1400, delayMillis = idx * 350, easing = FastOutSlowInEasing),
                     repeatMode = RepeatMode.Restart
                 ),
                 label = "waveAlpha$idx"
             )
-            LaunchedEffect(Unit) {
-                while (true) {
-                    kotlinx.coroutines.delay(300L)
-                    tick.value = (tick.value + 1) % waves.size
-                }
-            }
             Box(
                 modifier = Modifier
                     .matchParentSize()
                     .graphicsLayer {
-                        scaleX = auraScale
-                        scaleY = auraScale
-                        alpha = auraAlpha
+                        scaleX = if (speaking) auraScale else 1f
+                        scaleY = if (speaking) auraScale else 1f
+                        alpha = if (speaking) auraAlpha else 0f
                     }
                     .clip(CircleShape)
-                    .background(colors[idx].copy(alpha = 0.55f))
+                    .background(color.copy(alpha = 0.45f))
             )
         }
     }
@@ -431,10 +420,12 @@ private fun VoiceRoomSeatCircle(
     onAdmin:()->Unit,
 ) {
     val speaking = seat?.isSpeaking == true
-    Box(modifier = Modifier, contentAlignment = Alignment.Center) {
-        if (speaking) {
-            VoiceRoomSpeakingAura(size = size)
-        }
+    val auraSize = size * 1.6f
+    Box(
+        modifier = Modifier.size(auraSize),
+        contentAlignment = Alignment.Center
+    ) {
+        VoiceRoomSpeakingAura(size = size, speaking = speaking)
         Row(verticalAlignment = Alignment.CenterVertically) {
             Box(
                 modifier = Modifier
