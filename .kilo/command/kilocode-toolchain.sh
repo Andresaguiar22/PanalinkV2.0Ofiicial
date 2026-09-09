@@ -70,7 +70,7 @@ if [ ! -x "$SDKMANAGER" ]; then
   chmod -R a+rx "$SDK_DIR/cmdline-tools/latest/bin" "$SDK_DIR/cmdline-tools/latest/lib" 2>/dev/null || true
 fi
 
-# Licencias
+# Licencias: aceptar primero y reintentar si es necesario
 log "Aceptando licencias..."
 licenses_log="$TOOLCHAIN_DIR/sdk_licenses.log"
 yes | "$SDKMANAGER" --sdk_root="$SDK_DIR" --licenses > "$licenses_log" 2>&1 || true
@@ -78,6 +78,32 @@ if grep -q "All SDK package licenses accepted" "$licenses_log"; then
   log "Licencias aceptadas correctamente."
 else
   log "ADVERTENCIA: puede haber problemas con las licencias del SDK. Revisar $licenses_log"
+fi
+
+# Paquetes SDK: reintentar instalacion si quedan paquetes pendientes
+log "Instalando platform-35 + build-tools..."
+for attempt in 1 2 3 4; do
+  install_log="$TOOLCHAIN_DIR/sdk_install_${attempt}.log"
+  if "$SDKMANAGER" --sdk_root="$SDK_DIR" --no_https \
+     "platform-tools" "platforms;android-35" "build-tools;35.0.0" "build-tools;36.0.0" \
+     > "$install_log" 2>&1; then
+    break
+  fi
+  log "sdkmanager fallo en intento $attempt/4 - reintentando..."
+  sleep 5
+done
+# Si todavia faltan, reintentar una pasada extra habilitando HTTPS (algunos mirrors requieren TLS)
+if [ ! -d "$SDK_DIR/platforms/android-35" ] || [ ! -d "$SDK_DIR/build-tools/35.0.0" ] || [ ! -d "$SDK_DIR/build-tools/36.0.0" ] || [ ! -x "$SDK_DIR/platform-tools/adb" ]; then
+  log "Reintentando instalacion SDK con HTTPS..."
+  "$SDKMANAGER" --sdk_root="$SDK_DIR" \
+     "platform-tools" "platforms;android-35" "build-tools;35.0.0" "build-tools;36.0.0" \
+     > "$TOOLCHAIN_DIR/sdk_install_fallback.log" 2>&1 || true
+fi
+if [ ! -d "$SDK_DIR/platforms/android-35" ] || [ ! -d "$SDK_DIR/build-tools/35.0.0" ] || [ ! -d "$SDK_DIR/build-tools/36.0.0" ] || [ ! -x "$SDK_DIR/platform-tools/adb" ]; then
+  log "ERROR: el Android SDK quedo incompleto tras los reintentos."
+  log "  Revisa la conectividad hacia dl.google.com y volve a ejecutar:"
+  log "  bash .kilo/command/kilocode-toolchain.sh"
+  exit 1
 fi
 
 # Proxy SSL truststore
@@ -97,25 +123,6 @@ if echo | openssl s_client -connect dl.google.com:443 -servername dl.google.com 
   fi
 else
   log "ADVERTENCIA: no se pudo extraer el certificado del proxy. El build puede fallar por SSL."
-fi
-
-# Paquetes SDK
-log "Instalando platform-35 + build-tools..."
-for attempt in 1 2 3 4; do
-  install_log="$TOOLCHAIN_DIR/sdk_install_${attempt}.log"
-  if "$SDKMANAGER" --sdk_root="$SDK_DIR" --no_https \
-     "platform-tools" "platforms;android-35" "build-tools;35.0.0" "build-tools;36.0.0" \
-     > "$install_log" 2>&1; then
-    break
-  fi
-  log "sdkmanager fallo en intento $attempt/4 - reintentando..."
-  sleep 5
-done
-if [ ! -d "$SDK_DIR/platforms/android-35" ] || [ ! -d "$SDK_DIR/build-tools/35.0.0" ] || [ ! -d "$SDK_DIR/build-tools/36.0.0" ] || [ ! -x "$SDK_DIR/platform-tools/adb" ]; then
-  log "ERROR: el Android SDK quedo incompleto tras los reintentos."
-  log "  Revisa la conectividad hacia dl.google.com y volve a ejecutar:"
-  log "  bash .kilo/command/kilocode-toolchain.sh"
-  exit 1
 fi
 
 # google-services.json
@@ -150,12 +157,49 @@ fi
 # toolchain_env.sh
 {
   printf '# Generado por kilocode-toolchain.sh — source para compilar Panalink.\n'
+  printf 'export PROJECT_DIR="%s"\n' "$PROJECT_DIR"
   printf 'export JAVA_HOME="%s"\n' "$JDK_DIR"
   printf 'export ANDROID_HOME="%s"\n' "$SDK_DIR"
   printf 'export ANDROID_SDK_ROOT="%s"\n' "$SDK_DIR"
   printf 'export GRADLE_USER_HOME="%s"\n' "$GRADLE_HOME_DIR"
   printf 'export PATH="%s/bin:%s/platform-tools:%s"\n' "$JDK_DIR" "$SDK_DIR" "$PATH"
 } > "$PROJECT_DIR/scripts/toolchain_env.sh"
+
+# settings.gradle.kts: orden de repositorios y mirrors para resolver plugins/dependencias
+# Nota: se escribe solo si falta o si la variable KILO_TOOLCHAIN_UPDATE_SETTINGS=true
+if [ ! -f "$PROJECT_DIR/settings.gradle.kts" ] || [ "${KILO_TOOLCHAIN_UPDATE_SETTINGS:-false}" = "true" ]; then
+  log "Actualizando settings.gradle.kts con repositorios y orden recomendado..."
+  cat > "$PROJECT_DIR/settings.gradle.kts" <<'EOF'
+pluginManagement {
+  repositories {
+    google()
+    maven { url = uri("https://plugins.gradle.org/m2/") }
+    maven { url = uri("https://repo.huaweicloud.com/repository/maven/") }
+    maven { url = uri("https://maven.aliyun.com/repository/public/") }
+    mavenCentral()
+    maven { url = uri("https://jitpack.io") }
+  }
+}
+
+
+dependencyResolutionManagement {
+  repositoriesMode.set(RepositoriesMode.FAIL_ON_PROJECT_REPOS)
+  repositories {
+    google()
+    maven { url = uri("https://jitpack.io") }
+    maven { url = uri("https://repo.huaweicloud.com/repository/maven/") }
+    maven { url = uri("https://maven.aliyun.com/repository/public/") }
+    mavenCentral()
+  }
+}
+
+rootProject.name = "PanaLink V2.0"
+
+include(":app")
+EOF
+else
+  log "settings.gradle.kts ya existe; se preserva. Usa KILO_TOOLCHAIN_UPDATE_SETTINGS=true para reescribir."
+fi
 
 # gradlew permiso
 if [ -f "$PROJECT_DIR/gradlew" ] && [ ! -x "$PROJECT_DIR/gradlew" ]; then
@@ -164,4 +208,8 @@ if [ -f "$PROJECT_DIR/gradlew" ] && [ ! -x "$PROJECT_DIR/gradlew" ]; then
 fi
 
 log "Listo. Para compilar:"
-log "  source scripts/toolchain_env.sh && ./gradlew :app:compileDebugKotlin"
+log "  export PROJECT_DIR=\"$PWD\""
+log "  source scripts/toolchain_env.sh"
+log "  ./gradlew --no-daemon :app:compileDebugKotlin"
+log ""
+log "Si Gradle falla por resolucion de plugins/dependencias, revisa que settings.gradle.kts use los mirrors Huawei/Aliyun antes de Maven Central y jitpack primero en dependencyResolutionManagement."
