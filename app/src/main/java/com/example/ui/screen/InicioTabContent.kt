@@ -1238,9 +1238,9 @@ fun InicioTabContent(
             val currentMediaUrl = mediaList.getOrNull(pagerState.currentPage)
             val currentIsVideo = currentMediaUrl?.let { com.example.ui.components.isVideoUrl(it) } ?: false
             
-            // Release previous player if exists
+            // Release previous player if exists - independent players should be released
             backgroundAudioPlayer?.let { player ->
-                com.example.core.media.ExoPlayerManager.releasePlayer(player)
+                player.release()
                 backgroundAudioPlayer = null
             }
             
@@ -1257,11 +1257,12 @@ fun InicioTabContent(
             }
         }
 
-        // Cleanup background audio player
+        // Cleanup background audio player - independent players should be released, not returned to pool
         DisposableEffect(fullScreenBackgroundAudio, pagerState.currentPage, fullScreenMediaList) {
             onDispose {
                 backgroundAudioPlayer?.let { player ->
-                    com.example.core.media.ExoPlayerManager.releasePlayer(player)
+                    // Independent players (created with ExoPlayer.Builder) should be released, not returned to pool
+                    player.release()
                     backgroundAudioPlayer = null
                 }
             }
