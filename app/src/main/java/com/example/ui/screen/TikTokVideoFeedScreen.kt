@@ -1184,7 +1184,7 @@ fun TikTokPageItem(
                                 }
                         )
 
-                        if (isBuffering && isActivePage) {
+                        if (isBuffering && isActivePage && currentPosition == 0L) {
                             ReelsSkeletonLoader(
                                 avatarUrl = safeAvatarUrl,
                                 displayName = safeDisplayName ?: ""
@@ -1578,7 +1578,13 @@ fun TikTokPageItem(
                     },
                     onValueChangeFinished = {
                         isDraggingSlider = false
-                        exoPlayerRef?.seekTo(currentPosition)
+                        exoPlayerRef?.let { player ->
+                            player.seekTo(currentPosition)
+                            // H1 fix: re-affirm playWhenReady after seek so playback
+                            // resumes immediately once buffered. Avoids STATE_BUFFERING
+                            // stuck with skeleton overlay on top of PlayerView.
+                            player.playWhenReady = true
+                        }
                     },
                     valueRange = 0f..duration.toFloat(),
                     colors = SliderDefaults.colors(
