@@ -26,10 +26,10 @@ fun LiveVideoSurface(
         contentAlignment = Alignment.Center
     ) {
         if (videoTrack != null) {
+            val context = androidx.compose.ui.platform.LocalContext.current
             var rendererRef by remember { mutableStateOf<SurfaceViewRenderer?>(null) }
 
             DisposableEffect(videoTrack) {
-                val context = androidx.compose.ui.platform.LocalContext.current
                 val renderer = SurfaceViewRenderer(context).also { view ->
                     initRenderer?.invoke(view)
                     view.setEnableHardwareScaler(true)
