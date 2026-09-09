@@ -11,7 +11,6 @@ import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.LazyRow
 import androidx.compose.foundation.lazy.items
-import androidx.compose.foundation.lazy.item
 import androidx.compose.foundation.lazy.rememberLazyListState
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.CircleShape
@@ -1057,7 +1056,8 @@ fun AnimatedDialog(
     onConfirm: () -> Unit,
     dismissText: String? = null,
     onDismissClick: (() -> Unit)? = null,
-    containerColor: Color = VoiceRoomPalette.BgDeep
+    containerColor: Color = VoiceRoomPalette.BgDeep,
+    content: (@Composable () -> Unit)? = null
 ) {
     val alpha = remember { Animatable(0f) }
     val scale = remember { Animatable(0.92f) }
@@ -1068,7 +1068,7 @@ fun AnimatedDialog(
     AlertDialog(
         onDismissRequest = onDismiss,
         title = { Text(title, color = Color.White, fontSize = 16.sp, fontWeight = FontWeight.SemiBold) },
-        text = text,
+        text = text ?: content,
         confirmButton = {
             TextButton(onClick = onConfirm) {
                 Text(confirmText, color = if (dangerConfirm) Color(0xFFFF6E6E) else VoiceRoomPalette.Accent, fontWeight = FontWeight.SemiBold)
@@ -1380,5 +1380,4 @@ fun SettingsToggleRow(
         }
         Switch(checked = checked, onCheckedChange = onCheckedChange, colors = SwitchDefaults.colors(checkedThumbColor = VoiceRoomPalette.Accent, checkedTrackColor = VoiceRoomPalette.Accent.copy(alpha =  0.35f), uncheckedThumbColor = Color.White, uncheckedTrackColor = Color(0xFF3E3E44)))
     }
-}
 }
