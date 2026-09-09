@@ -26,25 +26,28 @@ fun LiveVideoSurface(
         contentAlignment = Alignment.Center
     ) {
         if (videoTrack != null) {
-            AndroidView(
-                factory = { context ->
-                    SurfaceViewRenderer(context).apply {
-                        // LiveKit must initialize the renderer's EGL context before
-                        // a track is attached. Without this, the view can remain blank.
-                        initRenderer?.invoke(this)
-                        setEnableHardwareScaler(true)
-                        setMirror(false)
-                        setScalingType(RendererCommon.ScalingType.SCALE_ASPECT_FILL)
-                        videoTrack.addRenderer(this)
-                    }
-                },
-                update = { view ->
+            var rendererRef by remember { mutableStateOf<SurfaceViewRenderer?>(null) }
+
+            DisposableEffect(videoTrack) {
+                val context = androidx.compose.ui.platform.LocalContext.current
+                val renderer = SurfaceViewRenderer(context).also { view ->
+                    initRenderer?.invoke(view)
+                    view.setEnableHardwareScaler(true)
+                    view.setMirror(false)
+                    view.setScalingType(RendererCommon.ScalingType.SCALE_ASPECT_FILL)
                     videoTrack.addRenderer(view)
-                },
-                onReset = { view ->
-                    videoTrack.removeRenderer(view)
-                    try { view.release() } catch (_: Exception) {}
-                },
+                    rendererRef = view
+                }
+
+                onDispose {
+                    videoTrack.removeRenderer(renderer)
+                    rendererRef = null
+                    try { renderer.release() } catch (_: Exception) {}
+                }
+            }
+
+            AndroidView(
+                factory = { rendererRef ?: SurfaceViewRenderer(it) },
                 modifier = Modifier.fillMaxSize()
             )
         } else {

@@ -26,14 +26,12 @@ import com.example.live.data.repository.LiveRoomRepositoryImpl
 import com.example.live.domain.model.LiveConnectionState
 import com.example.live.domain.model.LiveStream
 import com.example.live.domain.repository.LiveRoomRepository
-import com.example.live.ui.components.LiveBroadcastControls
-import com.example.live.ui.components.LiveGuestControls
-import com.example.live.ui.components.LiveVideoSurface
-import com.example.live.ui.components.LiveViewerComments
+import com.example.live.ui.components.*
 import com.example.live.ui.viewmodel.LiveGuestViewModel
 import com.example.live.ui.viewmodel.LiveViewModel
-import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
+import kotlinx.coroutines.Dispatchers
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -85,6 +83,17 @@ fun LiveBroadcastScreen(
     var isMicMuted by remember { mutableStateOf(false) }
     var isCameraOff by remember { mutableStateOf(false) }
 
+    var elapsedSeconds by remember { mutableStateOf(0) }
+    LaunchedEffect(isLiveStarted) {
+        if (isLiveStarted) {
+            elapsedSeconds = 0
+            while (true) {
+                delay(1000)
+                elapsedSeconds++
+            }
+        }
+    }
+
     fun stopAndFinish() {
         scope.launch(Dispatchers.IO) {
             try {
@@ -113,7 +122,20 @@ fun LiveBroadcastScreen(
     Scaffold(
         topBar = {
             TopAppBar(
-                title = { Text("Transmitir en Vivo", fontWeight = FontWeight.Bold) },
+                title = {
+                    if (isLiveStarted && activeStream != null) {
+                        Row(verticalAlignment = Alignment.CenterVertically) {
+                            LivePulseIndicator(isLive = true)
+                            Spacer(modifier = Modifier.width(8.dp))
+                            Text(
+                                text = "${formatElapsed(elapsedSeconds)} · 👁 $viewerCount",
+                                fontWeight = FontWeight.Bold
+                            )
+                        }
+                    } else {
+                        Text("Transmitir en Vivo", fontWeight = FontWeight.Bold)
+                    }
+                },
                 navigationIcon = {
                     IconButton(onClick = { showEndConfirmation = true }) {
                         Icon(Icons.Default.ArrowBack, contentDescription = "Regresar", tint = Color.White)
@@ -128,7 +150,9 @@ fun LiveBroadcastScreen(
         containerColor = Color(0xFF161618)
     ) { paddingValues ->
         Box(
-            modifier = Modifier.fillMaxSize().padding(paddingValues),
+            modifier = Modifier
+                .fillMaxSize()
+                .padding(paddingValues),
             contentAlignment = Alignment.Center
         ) {
             if (!hasPermissions) {
@@ -152,7 +176,9 @@ fun LiveBroadcastScreen(
                 }
             } else if (!isLiveStarted) {
                 Column(
-                    modifier = Modifier.fillMaxSize().padding(24.dp),
+                    modifier = Modifier
+                        .fillMaxSize()
+                        .padding(24.dp),
                     verticalArrangement = Arrangement.Center,
                     horizontalAlignment = Alignment.CenterHorizontally
                 ) {
@@ -188,6 +214,30 @@ fun LiveBroadcastScreen(
                             unfocusedTextColor = Color.White
                         )
                     )
+
+                    Spacer(modifier = Modifier.height(16.dp))
+                    Box(
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .height(200.dp)
+                            .clip(RoundedCornerShape(16.dp))
+                            .background(Color.Black)
+                    ) {
+                        LiveVideoSurface(
+                            videoTrack = localVideoTrack,
+                            initRenderer = repository::initVideoRenderer,
+                            modifier = Modifier.fillMaxSize()
+                        )
+                        if (localVideoTrack == null) {
+                            Box(
+                                modifier = Modifier.fillMaxSize(),
+                                contentAlignment = Alignment.Center
+                            ) {
+                                CircularProgressIndicator(color = Color(0xFF00A884))
+                            }
+                        }
+                    }
+
                     if (errorMessage != null) {
                         Spacer(modifier = Modifier.height(8.dp))
                         Text(text = errorMessage!!, color = Color(0xFFEF5350), fontSize = 13.sp)
@@ -249,34 +299,19 @@ fun LiveBroadcastScreen(
                 }
             } else {
                 Box(
-                    modifier = Modifier.fillMaxSize().background(Color.DarkGray),
+                    modifier = Modifier.fillMaxSize(),
                     contentAlignment = Alignment.Center
                 ) {
-                    Column(
-                        horizontalAlignment = Alignment.CenterHorizontally,
+                    LiveVideoSurface(
+                        videoTrack = localVideoTrack,
+                        initRenderer = repository::initVideoRenderer,
+                        modifier = Modifier.fillMaxSize()
+                    )
+
+                    LiveConnectionOverlay(
+                        connectionState = connectionState,
                         modifier = Modifier.align(Alignment.Center)
-                    ) {
-                        // IMPORTANT: this track comes from the same LiveKitManager that
-                        // publishes the broadcast; there is no second disconnected manager.
-                        LiveVideoSurface(
-                            videoTrack = localVideoTrack,
-                            initRenderer = repository::initVideoRenderer,
-                            modifier = Modifier.size(240.dp, 320.dp)
-                        )
-                        Spacer(modifier = Modifier.height(16.dp))
-                        Text(
-                            text = when (connectionState) {
-                                is LiveConnectionState.Connected -> "Transmitiendo en Vivo (Cámara y Micrófono activos)"
-                                is LiveConnectionState.Connecting -> "Iniciando transmisión..."
-                                is LiveConnectionState.Reconnecting -> "Reconectando..."
-                                is LiveConnectionState.Error -> "Error de conexión"
-                                else -> "Transmisión activa"
-                            },
-                            color = Color.White,
-                            fontSize = 15.sp,
-                            fontWeight = FontWeight.Medium
-                        )
-                    }
+                    )
 
                     Surface(
                         modifier = Modifier.align(Alignment.TopCenter).padding(top = 16.dp),
@@ -288,33 +323,44 @@ fun LiveBroadcastScreen(
                             verticalAlignment = Alignment.CenterVertically,
                             horizontalArrangement = Arrangement.spacedBy(8.dp)
                         ) {
-                            Surface(
-                                shape = RoundedCornerShape(8.dp),
-                                color = Color(0xFFEF5350),
-                                modifier = Modifier.size(8.dp)
-                            ) {}
+                            LivePulseIndicator(isLive = true)
                             Text("EN VIVO", color = Color.White, fontWeight = FontWeight.Bold, fontSize = 12.sp)
                             Text("👁 $viewerCount", color = Color.White, fontWeight = FontWeight.Medium, fontSize = 12.sp)
+                            Text("· ${formatElapsed(elapsedSeconds)}", color = Color.White, fontSize = 12.sp)
                         }
                     }
 
                     if (remoteVideoTrack != null) {
-                        Surface(
-                            modifier = Modifier.align(Alignment.BottomEnd).padding(12.dp).width(140.dp).height(200.dp),
-                            shape = RoundedCornerShape(16.dp),
-                            color = Color.Black
-                        ) {
-                            LiveVideoSurface(
-                                videoTrack = remoteVideoTrack,
-                                initRenderer = repository::initVideoRenderer,
-                                modifier = Modifier.fillMaxSize()
-                            )
+                        Box(modifier = Modifier.align(Alignment.BottomEnd).padding(12.dp)) {
+                            Surface(
+                                modifier = Modifier.width(140.dp).height(200.dp),
+                                shape = RoundedCornerShape(16.dp),
+                                color = Color.Black
+                            ) {
+                                LiveVideoSurface(
+                                    videoTrack = remoteVideoTrack,
+                                    initRenderer = repository::initVideoRenderer,
+                                    modifier = Modifier.fillMaxSize()
+                                )
+                                Surface(
+                                    shape = RoundedCornerShape(4.dp),
+                                    color = Color.Black.copy(alpha = 0.6f),
+                                    modifier = Modifier
+                                        .align(Alignment.BottomStart)
+                                        .padding(4.dp)
+                                ) {
+                                    Text(
+                                        text = "Co-Host",
+                                        color = Color.White,
+                                        fontSize = 10.sp,
+                                        modifier = Modifier.padding(horizontal = 4.dp, vertical = 2.dp)
+                                    )
+                                }
+                            }
                         }
                     }
 
-                    Box(
-                        modifier = Modifier.align(Alignment.TopStart).padding(top = 16.dp, start = 16.dp)
-                    ) {
+                    Box(modifier = Modifier.align(Alignment.TopStart).padding(top = 16.dp, start = 16.dp)) {
                         activeStream?.let { stream ->
                             LiveGuestControls(
                                 guests = guests,
@@ -324,9 +370,7 @@ fun LiveBroadcastScreen(
                         }
                     }
 
-                    Box(
-                        modifier = Modifier.align(Alignment.BottomCenter).fillMaxWidth()
-                    ) {
+                    Box(modifier = Modifier.align(Alignment.BottomCenter).fillMaxWidth()) {
                         Column {
                             LiveViewerComments(
                                 comments = comments,
@@ -334,12 +378,14 @@ fun LiveBroadcastScreen(
                                 isBroadcaster = true,
                                 onDeleteComment = { commentId -> viewModel.deleteComment(commentId) },
                                 onBlockUser = { userId -> activeStream?.let { viewModel.blockUser(it.id, userId) } },
+                                hostId = SupabaseClient.currentUser?.id,
                                 modifier = Modifier.fillMaxWidth()
                             )
 
                             LiveBroadcastControls(
                                 isMicMuted = isMicMuted,
                                 isCameraOff = isCameraOff,
+                                elapsedSeconds = elapsedSeconds,
                                 onToggleMic = {
                                     isMicMuted = !isMicMuted
                                     scope.launch { repository.setMicrophoneEnabled(!isMicMuted) }
@@ -377,5 +423,16 @@ fun LiveBroadcastScreen(
             titleContentColor = Color.White,
             textContentColor = Color.Gray
         )
+    }
+}
+
+private fun formatElapsed(totalSeconds: Int): String {
+    val h = totalSeconds / 3600
+    val m = (totalSeconds % 3600) / 60
+    val s = totalSeconds % 60
+    return if (h > 0) {
+        String.format("%d:%02d:%02d", h, m, s)
+    } else {
+        String.format("%d:%02d", m, s)
     }
 }

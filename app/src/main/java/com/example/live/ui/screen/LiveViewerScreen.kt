@@ -22,6 +22,7 @@ import com.example.live.domain.model.LiveStream
 import com.example.live.domain.repository.LiveRoomRepository
 import com.example.live.ui.components.*
 import com.example.live.ui.viewmodel.LiveViewModel
+import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
 
 @Composable
@@ -78,6 +79,14 @@ fun LiveViewerScreen(
         }
     }
 
+    var elapsedSeconds by remember { mutableStateOf(0) }
+    LaunchedEffect(liveId) {
+        while (true) {
+            delay(1000)
+            elapsedSeconds++
+        }
+    }
+
     Box(
         modifier = Modifier
             .fillMaxSize()
@@ -88,10 +97,15 @@ fun LiveViewerScreen(
             modifier = Modifier.fillMaxSize()
         )
 
-        // 2. Cabecera (Alignment.TopCenter)
+        LiveConnectionOverlay(
+            connectionState = connectionState,
+            modifier = Modifier.align(Alignment.Center)
+        )
+
         LiveViewerHeader(
             liveStream = liveStream,
             viewerCount = viewerCount,
+            elapsedSeconds = elapsedSeconds,
             onClose = {
                 viewModel.stopStreamSession()
                 repository.leaveRoom()
@@ -100,13 +114,13 @@ fun LiveViewerScreen(
             modifier = Modifier.align(Alignment.TopCenter)
         )
 
-        // 3. Columna de comentarios (inferior izquierda)
         LiveViewerComments(
             comments = comments,
             onSendComment = { text -> viewModel.postComment(liveId, text) },
             isBroadcaster = false,
-            onDeleteComment = { /* No aplica en visor */ },
-            onBlockUser = { /* No aplica en visor */ },
+            onDeleteComment = {},
+            onBlockUser = {},
+            hostId = liveStream?.hostId,
             modifier = Modifier
                 .align(Alignment.BottomStart)
                 .padding(start = 12.dp, bottom = 68.dp)
@@ -114,7 +128,6 @@ fun LiveViewerScreen(
                 .heightIn(max = 240.dp)
         )
 
-        // 4. Corazones flotantes (inferior derecha)
         LiveFloatingHeartsOverlay(
             trigger = reactionTrigger,
             modifier = Modifier
@@ -122,9 +135,9 @@ fun LiveViewerScreen(
                 .padding(end = 16.dp, bottom = 72.dp)
         )
 
-        // 5. Barra de herramientas inferior
         LiveViewerBottomBar(
-            onOpenInput = { /* Implementar despliegue de teclado */ },
+            liveId = liveId,
+            onSendComment = { text -> viewModel.postComment(liveId, text) },
             onGift = { viewModel.sendReaction(liveId) },
             modifier = Modifier
                 .align(Alignment.BottomCenter)

@@ -1,5 +1,6 @@
 package com.example.live.ui.screen
 
+import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
@@ -7,9 +8,9 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.ArrowBack
 import androidx.compose.material.icons.filled.LiveTv
 import androidx.compose.material.icons.filled.Videocam
+import androidx.compose.material.icons.filled.WifiOff
 import androidx.compose.material3.*
-import androidx.compose.runtime.Composable
-import androidx.compose.runtime.getValue
+import androidx.compose.runtime.*
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -18,6 +19,7 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.example.live.ui.components.LiveCard
+import com.example.live.ui.components.LiveSkeletonCard
 import com.example.live.ui.viewmodel.LiveViewModel
 
 @OptIn(ExperimentalMaterial3Api::class)
@@ -29,6 +31,7 @@ fun LiveFeedScreen(
     onNavigateToBroadcast: () -> Unit = {}
 ) {
     val uiState by viewModel.uiState.collectAsStateWithLifecycle()
+    val isRefreshing by remember { mutableStateOf(false) }
 
     Scaffold(
         topBar = {
@@ -63,9 +66,15 @@ fun LiveFeedScreen(
                 .padding(paddingValues)
         ) {
             when {
-                uiState.isLoading -> {
-                    Box(modifier = Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
-                        CircularProgressIndicator(color = Color(0xFF00A884))
+                uiState.isLoading && uiState.activeLives.isEmpty() -> {
+                    LazyColumn(
+                        modifier = Modifier.fillMaxSize(),
+                        contentPadding = PaddingValues(16.dp),
+                        verticalArrangement = Arrangement.spacedBy(16.dp)
+                    ) {
+                        items(3) {
+                            LiveSkeletonCard()
+                        }
                     }
                 }
                 uiState.activeLives.isEmpty() -> {
@@ -85,6 +94,12 @@ fun LiveFeedScreen(
                             text = "No hay transmisiones en vivo activas",
                             color = Color.Gray,
                             fontSize = 16.sp
+                        )
+                        Spacer(modifier = Modifier.height(8.dp))
+                        Text(
+                            text = "Sé el primero en transmitir",
+                            color = Color.Gray.copy(alpha = 0.7f),
+                            fontSize = 14.sp
                         )
                     }
                 }
