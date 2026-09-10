@@ -487,7 +487,7 @@ private fun VoiceRoomSeatCircle(
 ) {
     val speaking = seat?.isSpeaking == true
     val occupied = seat?.isOccupied == true
-    val isMuted = seat?.isMuted == false
+    val isMuted = seat?.isMuted == true
 
     val circleBg = if (occupied) VoiceRoomPalette.DarkSurface.copy(alpha = 0.5f) else VoiceRoomPalette.SurfaceBlue.copy(alpha = 0.4f)
     val displaySize = if (isHost) size * 1.05f else size
@@ -522,7 +522,7 @@ private fun VoiceRoomSeatCircle(
                     fontWeight = FontWeight.Bold
                 )
             }
-            if (speaking && isMuted) {
+            if (speaking && !isMuted) {
                 VoiceRoomSpeakingIndicator(
                     speaking = true,
                     modifier = Modifier.align(Alignment.BottomCenter),
