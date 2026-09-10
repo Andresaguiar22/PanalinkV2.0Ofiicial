@@ -2,13 +2,10 @@ package com.example.rooms.ui
 
 import android.Manifest
 import android.content.pm.PackageManager
-import android.view.View
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.contract.ActivityResultContracts
-import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.rememberLazyListState
-import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Check
 import androidx.compose.material.icons.filled.Close
@@ -17,6 +14,8 @@ import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.platform.LocalView
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
@@ -33,22 +32,25 @@ fun VoiceRoomScreenV2(
 ) {
     com.example.util.KeepScreenOn()
     val state by viewModel.uiState.collectAsState()
-    val context = androidx.compose.ui.platform.LocalContext.current
+    val context = LocalContext.current
+    val view = LocalView.current
     var moderationTarget by remember { mutableStateOf<String?>(null) }
     var showRequests by remember { mutableStateOf(false) }
     var showMembers by remember { mutableStateOf(false) }
     var hasMic by remember { mutableStateOf(ContextCompat.checkSelfPermission(context, Manifest.permission.RECORD_AUDIO) == PackageManager.PERMISSION_GRANTED) }
-    val permission = rememberLauncherForActivityResult(ActivityResultContracts.RequestPermission()) { granted -> hasMic = granted; viewModel.onAudioPermissionResult(granted) }
+    val permission = rememberLauncherForActivityResult(ActivityResultContracts.RequestPermission()) { granted ->
+        hasMic = granted
+        viewModel.onAudioPermissionResult(granted)
+    }
 
     var inputText by remember { mutableStateOf("") }
-    var emojiCounts by remember { mutableStateOf<Map<String, Int>>(emptyMap()) }
     var floatingEmojis by remember { mutableStateOf<List<VoiceRoomFloatingEmoji>>(emptyList()) }
     var reactionIdCounter by remember { mutableStateOf(0L) }
     val pushReaction: (String) -> Unit = { emoji ->
         val xFraction = 0.15f + (Math.random().toFloat() * 0.7f)
         floatingEmojis = floatingEmojis + VoiceRoomFloatingEmoji(reactionIdCounter++, emoji, xFraction)
-        emojiCounts = emojiCounts + (emoji to ((emojiCounts[emoji] ?: 0) + 1))
     }
+
     LaunchedEffect(roomId) { viewModel.enterRoom(roomId) }
     DisposableEffect(Unit) {
         onDispose {
@@ -65,6 +67,7 @@ fun VoiceRoomScreenV2(
 
     val snackbarHostState = remember { SnackbarHostState() }
     val chatListState = rememberLazyListState()
+
     LaunchedEffect(state.error) {
         val message = state.error
         if (!message.isNullOrBlank()) {
@@ -72,153 +75,230 @@ fun VoiceRoomScreenV2(
             viewModel.clearError()
         }
     }
+
+    // Scroll inteligente: solo auto-scroll si el usuario está cerca del inicio
     LaunchedEffect(state.messages.size) {
         if (state.messages.isNotEmpty()) {
-            chatListState.animateScrollToItem(0)
+            val lastVisible = chatListState.layoutInfo.visibleItemsInfo.lastOrNull()?.index
+            val shouldScroll = lastVisible == null || lastVisible <= 2
+            if (shouldScroll) {
+                chatListState.animateScrollToItem(0)
+            }
         }
     }
 
     fun seatClickHaptic() {
-        val view = (context as? android.app.Activity)?.window?.decorView
-        view?.performHapticFeedback(android.view.HapticFeedbackConstants.VIRTUAL_KEY)
+        view.performHapticFeedback(android.view.HapticFeedbackConstants.VIRTUAL_KEY)
     }
 
     VoiceRoomBackground {
         Box(modifier = Modifier.fillMaxSize()) {
+
+            // ── Contenido principal: header + escenario + asientos + up next + chat ──
             Column(
                 modifier = Modifier
                     .fillMaxSize()
                     .statusBarsPadding()
-                    .navigationBarsPadding()
-                    .imePadding()
             ) {
-            VoiceRoomHeader(
-                room = state.room,
-                hostDisplayName = hostMember?.displayName ?: hostSeat?.displayName,
-                hostAvatarUrl = hostMember?.avatarUrl ?: hostSeat?.avatarUrl,
-                memberCount = state.memberCount,
-                isPrivate = state.room?.isPrivate == true,
-                showRequestsBadge = state.isAdmin && state.seatRequests.any { it.status == "pending" },
-                onOpenRequests = { showRequests = true },
-                onOpenMembers = { showMembers = true },
-                onOpenSettings = if (state.isAdmin) { { viewModel.openSettings() } } else null,
-                onClose = { viewModel.leaveRoom(); onBack() }
-            )
-            if (state.isJoining) LinearProgressIndicator(Modifier.fillMaxWidth(), color = VoiceRoomPalette.Accent)
-
-            Row(
-                modifier = Modifier.fillMaxWidth(),
-                horizontalArrangement = Arrangement.Center
-            ) {
-                VoiceRoomStageSeat(
-                    seat = hostSeat,
-                    size =  58.dp,
-                    label = "Anfitrión",
-                    isHost = true,
-                    isMine = (hostSeat?.userId == state.myUserId),
-                    showAdminAction = (hostSeat?.let { adminCanModerate(it) } == true),
-                    onClick = { seatClickHaptic(); viewModel.onSeatClicked(0, hasMic) },
-                    onAdmin = { hostSeat?.userId?.let { moderationTarget = it } }
+                // Header
+                VoiceRoomHeader(
+                    room = state.room,
+                    hostDisplayName = hostMember?.displayName ?: hostSeat?.displayName,
+                    hostAvatarUrl = hostMember?.avatarUrl ?: hostSeat?.avatarUrl,
+                    memberCount = state.memberCount,
+                    isPrivate = state.room?.isPrivate == true,
+                    showRequestsBadge = state.isAdmin && state.seatRequests.any { it.status == "pending" },
+                    onOpenRequests = { showRequests = true },
+                    onOpenMembers = { showMembers = true },
+                    onOpenSettings = if (state.isAdmin) { { viewModel.openSettings() } } else null,
+                    onOpenShare = { /* compartir sala */ },
+                    onClose = { viewModel.leaveRoom(); onBack() }
                 )
-            }
-            Spacer(Modifier.height(4.dp))
-            Row(
-                modifier = Modifier.fillMaxWidth().padding(horizontal =  12.dp),
-                horizontalArrangement = Arrangement.SpaceEvenly
-            ) {
-                (1..4).forEach { idx ->
-                    val seat = state.seats.getOrNull(idx)
+
+                if (state.isJoining) {
+                    LinearProgressIndicator(
+                        modifier = Modifier.fillMaxWidth(),
+                        color = VoiceRoomPalette.Accent
+                    )
+                }
+
+                // Host (centrado)
+                Row(
+                    modifier = Modifier.fillMaxWidth(),
+                    horizontalArrangement = Arrangement.Center
+                ) {
                     VoiceRoomStageSeat(
-                        seat = seat,
-                        size =  54.dp,
-                        label = "NO. $idx",
-                        isMine = (seat?.userId == state.myUserId),
-                        showAdminAction = (seat?.let { adminCanModerate(it) } == true),
-                        onClick = { seatClickHaptic(); viewModel.onSeatClicked(idx, hasMic) },
-                        onAdmin = { seat?.userId?.let { moderationTarget = it } }
+                        seat = hostSeat,
+                        size = 58.dp,
+                        isHost = true,
+                        isMine = (hostSeat?.userId == state.myUserId),
+                        showAdminAction = (hostSeat?.let { adminCanModerate(it) } == true),
+                        onClick = { seatClickHaptic(); viewModel.onSeatClicked(0, hasMic) },
+                        onAdmin = { hostSeat?.userId?.let { moderationTarget = it } }
+                    )
+                }
+
+                Spacer(modifier = Modifier.height(4.dp))
+
+                // Asientos en pares (fila 1: seats 1, 2)
+                Row(
+                    modifier = Modifier.fillMaxWidth().padding(horizontal = 12.dp),
+                    horizontalArrangement = Arrangement.SpaceEvenly
+                ) {
+                    val seat1 = state.seats.getOrNull(1)
+                    val seat2 = state.seats.getOrNull(2)
+                    VoiceRoomStageSeat(
+                        seat = seat1, size = 54.dp,
+                        isMine = (seat1?.userId == state.myUserId),
+                        showAdminAction = (seat1?.let { adminCanModerate(it) } == true),
+                        onClick = { seatClickHaptic(); viewModel.onSeatClicked(1, hasMic) },
+                        onAdmin = { seat1?.userId?.let { moderationTarget = it } }
+                    )
+                    VoiceRoomStageSeat(
+                        seat = seat2, size = 54.dp,
+                        isMine = (seat2?.userId == state.myUserId),
+                        showAdminAction = (seat2?.let { adminCanModerate(it) } == true),
+                        onClick = { seatClickHaptic(); viewModel.onSeatClicked(2, hasMic) },
+                        onAdmin = { seat2?.userId?.let { moderationTarget = it } }
+                    )
+                }
+
+                Spacer(modifier = Modifier.height(4.dp))
+
+                // Asientos en pares (fila 2: seats 3, 4)
+                Row(
+                    modifier = Modifier.fillMaxWidth().padding(horizontal = 12.dp),
+                    horizontalArrangement = Arrangement.SpaceEvenly
+                ) {
+                    val seat3 = state.seats.getOrNull(3)
+                    val seat4 = state.seats.getOrNull(4)
+                    VoiceRoomStageSeat(
+                        seat = seat3, size = 54.dp,
+                        isMine = (seat3?.userId == state.myUserId),
+                        showAdminAction = (seat3?.let { adminCanModerate(it) } == true),
+                        onClick = { seatClickHaptic(); viewModel.onSeatClicked(3, hasMic) },
+                        onAdmin = { seat3?.userId?.let { moderationTarget = it } }
+                    )
+                    VoiceRoomStageSeat(
+                        seat = seat4, size = 54.dp,
+                        isMine = (seat4?.userId == state.myUserId),
+                        showAdminAction = (seat4?.let { adminCanModerate(it) } == true),
+                        onClick = { seatClickHaptic(); viewModel.onSeatClicked(4, hasMic) },
+                        onAdmin = { seat4?.userId?.let { moderationTarget = it } }
+                    )
+                }
+
+                Spacer(modifier = Modifier.height(4.dp))
+
+                // Asientos en pares (fila 3: seats 5, 6)
+                Row(
+                    modifier = Modifier.fillMaxWidth().padding(horizontal = 12.dp),
+                    horizontalArrangement = Arrangement.SpaceEvenly
+                ) {
+                    val seat5 = state.seats.getOrNull(5)
+                    val seat6 = state.seats.getOrNull(6)
+                    VoiceRoomStageSeat(
+                        seat = seat5, size = 50.dp,
+                        isMine = (seat5?.userId == state.myUserId),
+                        showAdminAction = (seat5?.let { adminCanModerate(it) } == true),
+                        onClick = { seatClickHaptic(); viewModel.onSeatClicked(5, hasMic) },
+                        onAdmin = { seat5?.userId?.let { moderationTarget = it } }
+                    )
+                    VoiceRoomStageSeat(
+                        seat = seat6, size = 50.dp,
+                        isMine = (seat6?.userId == state.myUserId),
+                        showAdminAction = (seat6?.let { adminCanModerate(it) } == true),
+                        onClick = { seatClickHaptic(); viewModel.onSeatClicked(6, hasMic) },
+                        onAdmin = { seat6?.userId?.let { moderationTarget = it } }
+                    )
+                }
+
+                Spacer(modifier = Modifier.height(4.dp))
+
+                // Asientos en pares (fila 4: seats 7, 8)
+                Row(
+                    modifier = Modifier.fillMaxWidth().padding(horizontal = 12.dp),
+                    horizontalArrangement = Arrangement.SpaceEvenly
+                ) {
+                    val seat7 = state.seats.getOrNull(7)
+                    val seat8 = state.seats.getOrNull(8)
+                    VoiceRoomStageSeat(
+                        seat = seat7, size = 50.dp,
+                        isMine = (seat7?.userId == state.myUserId),
+                        showAdminAction = (seat7?.let { adminCanModerate(it) } == true),
+                        onClick = { seatClickHaptic(); viewModel.onSeatClicked(7, hasMic) },
+                        onAdmin = { seat7?.userId?.let { moderationTarget = it } }
+                    )
+                    VoiceRoomStageSeat(
+                        seat = seat8, size = 50.dp,
+                        isMine = (seat8?.userId == state.myUserId),
+                        showAdminAction = (seat8?.let { adminCanModerate(it) } == true),
+                        onClick = { seatClickHaptic(); viewModel.onSeatClicked(8, hasMic) },
+                        onAdmin = { seat8?.userId?.let { moderationTarget = it } }
+                    )
+                }
+
+                // Up Next strip
+                VoiceRoomUpNextStrip(
+                    seats = state.seats,
+                    members = state.members,
+                    modifier = Modifier.fillMaxWidth()
+                )
+
+                // Chat — ocupa el espacio restante, detrás del composer
+                Box(modifier = Modifier.weight(1f)) {
+                    VoiceRoomTikTokChat(
+                        messages = state.messages,
+                        memberById = memberById,
+                        onOpenProfile = onOpenProfile,
+                        modifier = Modifier.fillMaxSize(),
+                        listState = chatListState
                     )
                 }
             }
-            Spacer(Modifier.height(4.dp))
-            Row(
-                modifier = Modifier.fillMaxWidth().padding(horizontal =  12.dp),
-                horizontalArrangement = Arrangement.SpaceEvenly
-            ) {
-                (5..8).forEach { idx ->
-                    val seat = state.seats.getOrNull(idx)
-                    VoiceRoomStageSeat(
-                        seat = seat,
-                        size =  54.dp,
-                        label = "NO. $idx",
-                        isMine = (seat?.userId == state.myUserId),
-                        showAdminAction = (seat?.let { adminCanModerate(it) } == true),
-                        onClick = { seatClickHaptic(); viewModel.onSeatClicked(idx, hasMic) },
-                        onAdmin = { seat?.userId?.let { moderationTarget = it } }
-                    )
-                }
-            }
 
-            HorizontalDivider(
-                color = Color(0x26FFFFFF),
-                modifier = Modifier.padding(top =  6.dp, bottom =  2.dp)
+            // ── Emoji reactions flotantes (encima de todo) ──
+            VoiceRoomFloatingEmojiOverlay(
+                emojis = floatingEmojis,
+                onDone = { id -> floatingEmojis = floatingEmojis.filterNot { it.id == id } }
             )
 
-            VoiceRoomUpNextStrip(
-                seats = state.seats,
-                members = state.members,
-                modifier = Modifier.fillMaxWidth()
-            )
-
+            // ── Composer flotante (encima del chat, IME-aware) ──
+            // Solo este elemento recibe imePadding() — el contenido principal no se comprime
             Box(
                 modifier = Modifier
-                    .fillMaxWidth()
-                    .heightIn(max = 220.dp)
+                    .align(Alignment.BottomCenter)
+                    .imePadding()
             ) {
-                VoiceRoomTikTokChat(
-                    messages = state.messages,
-                    memberById = memberById,
-                    onOpenProfile = onOpenProfile,
-                    modifier = Modifier.fillMaxSize(),
-                    listState = chatListState
-                )
-                VoiceRoomFloatingEmojiOverlay(
-                    emojis = floatingEmojis,
-                    onDone = { id -> floatingEmojis = floatingEmojis.filterNot { it.id == id } }
+                VoiceRoomInputBar(
+                    value = inputText,
+                    onValueChange = { inputText = it.take(2000) },
+                    onSend = {
+                        viewModel.sendMessage(inputText)
+                        inputText = ""
+                    },
+                    isSeated = state.isSeated,
+                    isMuted = state.mySeat?.isMuted == true,
+                    pendingRequest = state.pendingSeatRequest != null,
+                    needsPermission = (!hasMic && state.mySeat?.isMuted != true),
+                    onRequestSeat = { viewModel.requestAnySeat() },
+                    onToggleMute = { viewModel.toggleMute() },
+                    onEnableMic = { permission.launch(Manifest.permission.RECORD_AUDIO) },
+                    onReaction = { emoji -> pushReaction(emoji) }
                 )
             }
 
-            Spacer(Modifier.weight(1f))
-
-            VoiceRoomEmojiQuickBar(
-                onReaction = { emoji -> pushReaction(emoji) },
-                emojiCounts = emojiCounts
-            )
-
-            VoiceRoomInputBar(
-                value = inputText,
-                onValueChange = { inputText = it.take(2000) },
-                onSend = {
-                    viewModel.sendMessage(inputText)
-                    inputText = ""
-                },
-                isSeated = state.isSeated,
-                isMuted = state.mySeat?.isMuted == true,
-                pendingRequest = state.pendingSeatRequest != null,
-                needsPermission = (!hasMic && state.mySeat?.isMuted != true),
-                onRequestSeat = { viewModel.requestAnySeat() },
-                onToggleMute = { viewModel.toggleMute() },
-                onEnableMic = { permission.launch(Manifest.permission.RECORD_AUDIO) }
+            // ── Snackbar (por encima del composer) ──
+            SnackbarHost(
+                hostState = snackbarHostState,
+                modifier = Modifier
+                    .align(Alignment.BottomCenter)
+                    .padding(bottom = 100.dp)
             )
         }
-        SnackbarHost(
-            hostState = snackbarHostState,
-            modifier = Modifier
-                .align(Alignment.BottomCenter)
-                .padding(bottom = 8.dp)
-        )
     }
-}
 
+    // ── Diálogos (por encima de todo) ──
     if (moderationTarget != null) {
         ModerationDialog(
             targetUserId = moderationTarget!!,
@@ -260,7 +340,9 @@ fun VoiceRoomScreenV2(
             message = state.settingsMessage,
             bannedUsers = state.bannedUsers,
             onClose = { viewModel.closeSettings() },
-            onSaveSettings = { name, description, coverUrl, category, visibility, isLocked -> viewModel.updateRoomSettings(name, description, coverUrl, category, visibility, isLocked) },
+            onSaveSettings = { name, description, coverUrl, category, visibility, isLocked ->
+                viewModel.updateRoomSettings(name, description, coverUrl, category, visibility, isLocked)
+            },
             onDeleteRoom = { viewModel.deleteRoom { onBack() } },
             onSetAdmin = { userId, makeAdmin -> viewModel.setAdmin(userId, makeAdmin) },
             onKick = { viewModel.kickUser(it) },
@@ -287,41 +369,41 @@ fun ModerationDialog(
 ) {
     AlertDialog(
         onDismissRequest = onDismiss,
-        title = { Text("Administrar usuario") },
+        title = { Text("Administrar usuario", color = VoiceRoomPalette.TextPrimary) },
         text = {
             Column {
-                Text(targetUserId.take(12), color = Color.Gray, fontSize =  11.sp)
+                Text(targetUserId.take(12), color = VoiceRoomPalette.TextSecondary, fontSize = 11.sp)
                 if (!targetIsAdmin || isHost) {
                     TextButton(onClick = if (targetMuted) onUnmute else onMute) {
-                        Text(if (targetMuted) "Desmutear" else "Mutear")
+                        Text(if (targetMuted) "Desmutear" else "Mutear", color = VoiceRoomPalette.Accent)
                     }
                     TextButton(onClick = onKick) {
-                        Text("Expulsar")
+                        Text("Expulsar", color = Color(0xFFFF8A80))
                     }
                     TextButton(onClick = onBan) {
-                        Text("Bloquear")
+                        Text("Bloquear", color = Color(0xFFFF8A80))
                     }
                 }
                 if (isHost && !targetIsAdmin) {
                     TextButton(onClick = onAdmin) {
-                        Text("Dar administración")
+                        Text("Dar administración", color = VoiceRoomPalette.Gold)
                     }
                 }
                 if (isHost && targetIsAdmin) {
                     TextButton(onClick = onRemoveAdmin) {
-                        Text("Quitar administración")
+                        Text("Quitar administración", color = VoiceRoomPalette.Gold)
                     }
                 }
             }
         },
         confirmButton = {
             TextButton(onClick = onDismiss) {
-                Text("Cerrar")
+                Text("Cerrar", color = VoiceRoomPalette.TextSecondary)
             }
         },
         containerColor = VoiceRoomPalette.BgDeep,
-        titleContentColor = Color.White,
-        textContentColor = Color.White
+        titleContentColor = VoiceRoomPalette.TextPrimary,
+        textContentColor = VoiceRoomPalette.TextPrimary
     )
 }
 
@@ -334,11 +416,11 @@ fun SeatRequestsDialog(
 ) {
     AlertDialog(
         onDismissRequest = onDismiss,
-        title = { Text("Solicitudes de sillón") },
+        title = { Text("Solicitudes de sillón", color = VoiceRoomPalette.TextPrimary) },
         text = {
             Column {
                 if (requests.isEmpty()) {
-                    Text("No hay solicitudes pendientes")
+                    Text("No hay solicitudes pendientes", color = VoiceRoomPalette.TextSecondary)
                 } else {
                     requests.forEach { r ->
                         Row(
@@ -346,31 +428,31 @@ fun SeatRequestsDialog(
                             verticalAlignment = Alignment.CenterVertically
                         ) {
                             Column(Modifier.weight(1f)) {
-                                Text(r.userId.take(10), color = Color.White)
+                                Text(r.userId.take(10), color = VoiceRoomPalette.TextSecondary, fontSize = 11.sp)
                                 Text(
                                     if (r.requestedSeatIndex == null) "Cualquier sillón" else "Sillón ${r.requestedSeatIndex}",
-                                    color = Color.Gray,
-                                    fontSize =  11.sp
+                                    color = VoiceRoomPalette.TextSecondary,
+                                    fontSize = 11.sp
                                 )
                             }
                             IconButton(onClick = { onApprove(r.id) }) {
                                 Icon(Icons.Default.Check, contentDescription = "Aprobar", tint = VoiceRoomPalette.Accent)
                             }
                             IconButton(onClick = { onDeny(r.id) }) {
-                                Icon(Icons.Default.Close, contentDescription = "Denegar", tint = Color(0xFFFF7B72))
+                                Icon(Icons.Default.Close, contentDescription = "Denegar", tint = Color(0xFFFF8A80))
                             }
+                        }
+                    }
                 }
             }
-        }
-        }
-},
+        },
         confirmButton = {
             TextButton(onClick = onDismiss) {
-                Text("Cerrar")
+                Text("Cerrar", color = VoiceRoomPalette.TextSecondary)
             }
         },
         containerColor = VoiceRoomPalette.BgDeep,
-        titleContentColor = Color.White,
-        textContentColor = Color.White
+        titleContentColor = VoiceRoomPalette.TextPrimary,
+        textContentColor = VoiceRoomPalette.TextPrimary
     )
 }
