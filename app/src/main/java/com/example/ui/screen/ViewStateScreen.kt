@@ -68,7 +68,9 @@ import com.example.ui.viewmodel.StatesUiState
 import com.example.ui.viewmodel.StatesViewModel
 import com.example.data.supabase.SupabaseClient
 import kotlinx.coroutines.delay
+import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
+import kotlinx.coroutines.withContext
 import java.text.SimpleDateFormat
 import java.util.*
 import androidx.compose.foundation.ExperimentalFoundationApi
@@ -1995,23 +1997,30 @@ fun VideoPlayer(
                 Text("Error al reproducir video", color = Color.White, fontWeight = FontWeight.Bold)
                 Spacer(modifier = Modifier.height(8.dp))
                 Button(onClick = {
+                    val ctx = context
                     hasError = false
                     isBuffering = true
                     session.onStateChanged = null
                     
                     if (com.example.util.NetworkMonitor.isOnline.value) {
-                        val newUrl = com.example.data.repository.CdnManager.resolveMediaUrlSync(videoUrl)
-                        if (newUrl.isBlank() or videoUrl.isBlank()) {
-                            onUnavailable?.invoke()
-                        } else {
-                            session.onStateChanged = { s, p, b, pct, d ->
-                                isBuffering = (s == "BUFFERING" || s == "IDLE")
+                        // Resolve on IO thread to avoid blocking Main; resolveMediaUrl may
+                        // perform network I/O (VCDN BFF call).
+                        kotlinx.coroutines.MainScope().launch(Dispatchers.IO) {
+                            val newUrl = com.example.data.repository.CdnManager.resolveMediaUrl(videoUrl)
+                            kotlinx.coroutines.withContext(kotlinx.coroutines.Dispatchers.Main) {
+                                if (newUrl.isBlank() || videoUrl.isBlank()) {
+                                    onUnavailable?.invoke()
+                                } else {
+                                    session.onStateChanged = { s, p, b, pct, d ->
+                                        isBuffering = (s == "BUFFERING" || s == "IDLE")
+                                    }
+                                    session.play(stateId, newUrl.ifBlank { videoUrl }, isMuted, videoTrim)
+                                }
                             }
-                            session.play(stateId, newUrl.ifBlank { videoUrl }, isMuted, videoTrim)
                         }
                     } else {
                         onUnavailable?.invoke()
-                        Toast.makeText(context, "No hay conexión a Internet", Toast.LENGTH_SHORT).show()
+                        Toast.makeText(ctx, "No hay conexión a Internet", Toast.LENGTH_SHORT).show()
                     }
                 }, colors = ButtonDefaults.buttonColors(containerColor = Color(0xFF00FF85))) {
                     Text("Reintentar", color = Color.Black)
