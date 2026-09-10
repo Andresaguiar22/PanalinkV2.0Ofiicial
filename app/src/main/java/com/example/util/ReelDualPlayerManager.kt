@@ -101,7 +101,7 @@ class ReelDualPlayerManager(private val context: Context) {
             player.seekTo(savedPosition)
             player.playWhenReady = savedPlayWhenReady
             slotUrls[slot] = pendingUrl
-            Log.d(TAG, "Applied deferred URL update for slot $slot -> $pendingUrl")
+            Log.d(TAG, "Applied deferred URL update for slot $slot") // redacted: signed HLS URL
         }
         player.playWhenReady = false
         activeSlot = null
@@ -194,7 +194,7 @@ class ReelDualPlayerManager(private val context: Context) {
                 // when this slot transitions to preload/inactive via pause().
                 if (existing == activeSlot && player.playWhenReady) {
                     pendingUrlUpdates[existing] = url
-                    Log.d(TAG, "Deferred URL update for active slot $existing -> $url")
+                    Log.d(TAG, "Deferred URL update for active slot $existing") // redacted: signed HLS URL
                 } else {
                     val savedPosition = player.currentPosition
                     val savedPlayWhenReady = player.playWhenReady
