@@ -19,6 +19,7 @@ import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.SupervisorJob
 import kotlinx.coroutines.cancel
 import kotlinx.coroutines.launch
+import kotlinx.coroutines.runBlocking
 
 /**
  * Media transport for 1-1 calls backed by a LiveKit SFU. Both peers join the
@@ -321,11 +322,35 @@ class LiveKitCallEngine(
         localVideoTrack = pub?.track as? LocalVideoTrack
     }
 
+    /**
+     * Tears down the LiveKit room deterministically and synchronously: disables
+     * local mic/camera, disconnects the room, and clears the reference. Does NOT
+     * consult [released] so it can be shared by [disconnect] (end a call but keep
+     * the engine reusable) and [release] (destroy the engine). It is fully sync so
+     * it can never race against an immediate [scope.cancel].
+     */
+    private fun disconnectInternal() {
+        val r = room ?: return
+        // Best-effort: disable local mic/camera so no capture keeps running while
+        // the call ends. setMicrophoneEnabled/setCameraEnabled are suspend, so we
+        // drive them to completion synchronously inside runBlocking (NOT
+        // scope.launch, which would be orphaned by the scope.cancel() below) so
+        // they cannot be skipped. runCatching isolates failures so a mic/cam
+        // error cannot mask the Room.disconnect() that must always run.
+        runCatching {
+            runBlocking {
+                runCatching { r.localParticipant.setMicrophoneEnabled(false) }
+                runCatching { r.localParticipant.setCameraEnabled(false) }
+            }
+        }
+        runCatching { r.disconnect() }
+        room = null
+    }
+
+    /** Ends an active call without destroying the engine (remains reusable). */
     fun disconnect() {
         if (released) return
-        val r = room ?: return
-        try { r.disconnect() } catch (e: Exception) { Log.w(TAG, "disconnect error", e) }
-        room = null
+        disconnectInternal()
         // AI: transcribe call audio via OpenRouter Whisper
         // Real integration would record audio track and call OpenRouterService.transcribeAudio()
         val hasKey = !System.getenv("OPENROUTER_API_KEY").isNullOrBlank()
@@ -334,24 +359,13 @@ class LiveKitCallEngine(
         }
     }
 
+    /** Destroys the engine: idempotent, synchronous cleanup, scope cancelled last. */
     fun release() {
         if (released) return
         released = true
-        val r = room
-        // Best-effort: unpublish local mic/camera before tearing the room down
-        // so no local capture keeps running while the call ends. Done inline
-        // (not via scope.launch) because the scope is cancelled right after.
-        if (r != null) {
-            try {
-                scope.launch {
-                    runCatching { r.localParticipant.setMicrophoneEnabled(false) }
-                    runCatching { r.localParticipant.setCameraEnabled(false) }
-                }
-            } catch (_: Exception) {}
-        }
-        disconnect()
+        disconnectInternal()
         scope.cancel()
-        // Drop renderer references so we don't leak the SurfaceView renderers.
+        // Drop renderer/track references so we don't leak the SurfaceView renderers.
         localRenderer = null
         remoteRenderer = null
         localVideoTrack = null

@@ -37,10 +37,15 @@ async function canJoinRoom(userId: string, room: string, authHeader: string | nu
   }
   if (room.startsWith("call_")) {
     const pair = room.slice("call_".length);
-    const parts = pair.split("-");
-    if (parts.length > 2) return { ok: false, reason: "invalid call room" };
-    if (parts.some((p) => !/^[0-9a-fA-F-]{36}$/.test(p))) return { ok: false, reason: "invalid call room" };
-    return { ok: parts.includes(userId) };
+    // Room names encode two participant UUIDs as call_<uuidA>-<uuidB>. A UUID
+    // itself contains hyphens, so split("-") would explode a single UUID. Match
+    // exactly two well-formed UUIDs separated by the single inter-UUID hyphen.
+    const match = pair.match(
+      /^([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{12})-([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{12})$/,
+    );
+    if (!match) return { ok: false, reason: "invalid call room" };
+    const [, userA, userB] = match;
+    return { ok: userA === userId || userB === userId };
   }
   return { ok: false, reason: "unsupported room" };
 }

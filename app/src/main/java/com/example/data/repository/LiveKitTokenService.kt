@@ -29,7 +29,13 @@ object LiveKitTokenService {
         .readTimeout(15, TimeUnit.SECONDS)
         .build()
 
-    private data class CachedToken(val token: String, val url: String, val room: String, val expiresAtMs: Long)
+    private data class CachedToken(
+        val token: String,
+        val url: String,
+        val room: String,
+        val userId: String,
+        val expiresAtMs: Long,
+    )
     @Volatile private var cache: CachedToken? = null
     private const val SAFETY_MARGIN_MS = 5 * 60 * 1000L // re-fetch 5min before expiry
 
@@ -40,8 +46,15 @@ object LiveKitTokenService {
      * fresh and was issued for the same room.
      */
     suspend fun fetchToken(room: String, name: String? = null): TokenResponse? = withContext(Dispatchers.IO) {
+        val currentUserId = SessionManager.getCurrentUserId()
         val cached = cache
-        if (cached != null && cached.room == room && cached.expiresAtMs - SAFETY_MARGIN_MS > System.currentTimeMillis()) {
+        // Cache is keyed on both the authenticated user and the room, so a
+        // different user/session within the same process cannot reuse a token
+        // issued to a previous user for the same room.
+        if (cached != null
+            && cached.userId == currentUserId
+            && cached.room == room
+            && cached.expiresAtMs - SAFETY_MARGIN_MS > System.currentTimeMillis()) {
             return@withContext TokenResponse(cached.token, cached.url, identity = "", room = room)
         }
         requestToken(room, name)
@@ -80,7 +93,7 @@ object LiveKitTokenService {
             val ttlSec = json.optInt("ttl", 3600).coerceIn(60, 86400)
             // Decode JWT exp to compute a precise cache window (falls back to ttl).
             val expMs = decodeExpMs(jwt) ?: (System.currentTimeMillis() + ttlSec * 1000)
-            cache = CachedToken(jwt, url, room, expMs)
+            cache = CachedToken(jwt, url, room, SessionManager.getCurrentUserId() ?: "", expMs)
             result = TokenResponse(jwt, url, json.optString("identity"), json.optString("room"))
         }
         return result
