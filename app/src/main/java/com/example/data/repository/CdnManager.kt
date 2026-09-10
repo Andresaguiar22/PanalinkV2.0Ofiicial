@@ -286,6 +286,36 @@ object CdnManager {
         return raw
     }
 
+    /**
+     * Like [resolveMediaUrl] but force-refreshes any VCDN signed URL by bypassing
+     * the in-memory cache. Used by the 401 recovery and preventive refresh paths
+     * in the reel player when a signed URL is suspected to have expired mid-playback
+     * (the BFF's reported [expires] may be much longer than the real CDN token TTL).
+     *
+     * Non-VCDN URLs are resolved the same way as [resolveMediaUrl] since they have
+     * no per-playback expiry semantics (B2 re-signing happens at the DataSource layer).
+     */
+    suspend fun resolveMediaUrlFresh(originalUrl: String?): String {
+        val raw = originalUrl?.trim().orEmpty()
+        if (raw.isEmpty()) return ""
+        if (raw.startsWith("content://") || raw.startsWith("file://") ||
+            raw.startsWith("android.resource://") || raw.startsWith("/")) return raw
+        if (isDeadCdnHost(raw)) return ""
+
+        // VCDN: force-refresh to bypass any stale cached signed URL
+        if (VcdnUrlResolver.isVcdnUrl(raw)) return VcdnUrlResolver.resolve(raw, forceRefresh = true) ?: ""
+
+        // Non-VCDN: same as regular resolve
+        if (isCdnRelated(raw)) {
+            val activeCdnBase = getCDNUrl()
+            if (activeCdnBase.isNotEmpty()) {
+                return reconstructCdnUrl(raw, activeCdnBase)
+            }
+        }
+
+        return raw
+    }
+
     fun resolveAvatarUrl(rawUrl: String?): String? {
         val trimmed = rawUrl?.trim()
         if (trimmed.isNullOrEmpty() || trimmed.equals("null", true) || trimmed.equals("undefined", true)) return null

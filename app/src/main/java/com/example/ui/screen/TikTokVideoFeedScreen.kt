@@ -1161,6 +1161,77 @@ fun TikTokPageItem(
                     correlationId = state.id.take(36),
                     details = "causeType=$causeType, httpStatus=${httpStatus ?: "N/A"}, errorCode=${error.errorCode}, retryCount=$retryCount"
                 )
+                // Issue #15: 401 recovery for VCDN signed URLs.
+                // The BFF may report a long expiry, but the CDN token actually
+                // expires ~60s into playback. When the CDN returns 401 mid-stream,
+                // force a fresh resolution (bypassing the stale cache) and update
+                // the MediaItem URI on the active player, preserving position
+                // and playWhenReady. This does NOT touch ReelDualPlayerManager
+                // architecture — refreshActiveUrl is a targeted addition that
+                // mirrors the existing pause() URL-swap pattern.
+                if (httpStatus == 401 && com.example.data.repository.VcdnUrlResolver.isVcdnUrl(stableMediaUrl) &&
+                    !isRetrying && com.example.util.NetworkMonitor.isOnline.value && retryCount < 2) {
+                    isRetrying = true
+                    retryCount += 1
+                    val currentPos = player.currentPosition
+                    diagnostics.record(
+                        DiagnosticCategory.NETWORK,
+                        "401 recovery started",
+                        correlationId = state.id.take(36),
+                        details = "attempt=$retryCount, position=$currentPos"
+                    )
+                    scope.launch {
+                        val refreshStart = System.currentTimeMillis()
+                        var recovered = false
+                        try {
+                            val freshUrl = com.example.data.repository.CdnManager.resolveMediaUrlFresh(stableMediaUrl ?: "")
+                            if (!freshUrl.isNullOrBlank() && freshUrl.startsWith("http") && freshUrl != resolvedUrl) {
+                                val updated = dualManager.refreshActiveUrl(state.id, freshUrl)
+                                if (updated) {
+                                    resolvedUrl = freshUrl
+                                    recovered = true
+                                    diagnostics.record(
+                                        DiagnosticCategory.NETWORK,
+                                        "401 recovery completed",
+                                        correlationId = state.id.take(36),
+                                        durationMs = System.currentTimeMillis() - refreshStart,
+                                        details = "attempt=$retryCount, position=$currentPos"
+                                    )
+                                } else {
+                                    diagnostics.record(
+                                        DiagnosticCategory.ERRORS,
+                                        "401 recovery failed",
+                                        severity = DiagnosticSeverity.WARNING,
+                                        correlationId = state.id.take(36),
+                                        details = "attempt=$retryCount, urlNotUpdated=true"
+                                    )
+                                }
+                            } else {
+                                diagnostics.record(
+                                    DiagnosticCategory.ERRORS,
+                                    "401 recovery failed",
+                                    severity = DiagnosticSeverity.WARNING,
+                                    correlationId = state.id.take(36),
+                                    details = "attempt=$retryCount, noFreshUrl=${freshUrl.isNullOrBlank()}"
+                                )
+                            }
+                        } catch (e: Exception) {
+                            diagnostics.record(
+                                DiagnosticCategory.ERRORS,
+                                "401 recovery failed",
+                                severity = DiagnosticSeverity.WARNING,
+                                correlationId = state.id.take(36),
+                                details = "attempt=$retryCount, exception=${e.javaClass.simpleName}"
+                            )
+                        } finally {
+                            isRetrying = false
+                            if (!recovered) {
+                                hasError = true
+                            }
+                        }
+                    }
+                    return  // Don't fall through to generic retry — URL refresh is in flight
+                }
                 // OFFLINE FIX: solo reintentar con red disponible y no si ya está en curso un retry
                 if (!isRetrying && retryCount < 2 && com.example.util.NetworkMonitor.isOnline.value) {
                     isRetrying = true
@@ -1203,6 +1274,63 @@ fun TikTokPageItem(
             awaitCancellation()
         } finally {
             player.removeListener(listener)
+        }
+    }
+
+    // Issue #15: Preventive VCDN signed URL refresh.
+    // The BFF reports a long expiry, but the actual CDN token expires ~60s post-start.
+    // For reels longer than ~60s, proactively force a fresh resolution at ~50s to
+    // beat the CDN expiry. Only applies to VCDN URLs (B2 re-signs at DataSource layer,
+    // CDN/Supabase URLs don't expire mid-stream). resolvedUrl is intentionally NOT
+    // a key here to avoid an infinite re-launch loop when the URL is updated.
+    LaunchedEffect(isActivePage, state.id, exoPlayerRef) {
+        if (!isActivePage) return@LaunchedEffect
+        val player = exoPlayerRef ?: return@LaunchedEffect
+        if (!com.example.data.repository.VcdnUrlResolver.isVcdnUrl(stableMediaUrl)) return@LaunchedEffect
+
+        val refreshDelayMs = 50_000L // 50s guard before ~60s CDN token expiry
+        diagnostics.record(
+            DiagnosticCategory.NETWORK,
+            "Signed URL refresh started",
+            correlationId = state.id.take(36),
+            details = "preventive=true, delayMs=$refreshDelayMs"
+        )
+        kotlinx.coroutines.delay(refreshDelayMs)
+        if (!isActivePage || exoPlayerRef == null) return@LaunchedEffect
+
+        val refreshStart = System.currentTimeMillis()
+        val currentPos = player.currentPosition
+        try {
+            val freshUrl = com.example.data.repository.CdnManager.resolveMediaUrlFresh(stableMediaUrl ?: "")
+            if (!freshUrl.isNullOrBlank() && freshUrl.startsWith("http") && freshUrl != resolvedUrl) {
+                val updated = dualManager.refreshActiveUrl(state.id, freshUrl)
+                if (updated) {
+                    resolvedUrl = freshUrl
+                    diagnostics.record(
+                        DiagnosticCategory.NETWORK,
+                        "Signed URL refresh completed",
+                        correlationId = state.id.take(36),
+                        durationMs = System.currentTimeMillis() - refreshStart,
+                        details = "position=$currentPos"
+                    )
+                } else {
+                    diagnostics.record(
+                        DiagnosticCategory.ERRORS,
+                        "Signed URL refresh failed",
+                        severity = DiagnosticSeverity.WARNING,
+                        correlationId = state.id.take(36),
+                        details = "urlNotUpdated=true"
+                    )
+                }
+            }
+        } catch (e: Exception) {
+            diagnostics.record(
+                DiagnosticCategory.ERRORS,
+                "Signed URL refresh failed",
+                severity = DiagnosticSeverity.WARNING,
+                correlationId = state.id.take(36),
+                details = "exception=${e.javaClass.simpleName}"
+            )
         }
     }
 

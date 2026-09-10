@@ -107,6 +107,46 @@ class ReelDualPlayerManager(private val context: Context) {
         activeSlot = null
     }
 
+    /**
+     * Immediately updates the MediaItem URI of the slot currently assigned to [id]
+     * with [newUrl], preserving playback position and playWhenReady state.
+     *
+     * Used for 401 recovery when a VCDN signed URL has expired mid-playback:
+     * the player already has the expired URL baked into its MediaItem, so a
+     * plain prepare() won't help. This swaps the URI and re-prepares while
+     * keeping the user at the same position.
+     *
+     * Unlike acquireOrReuse, this does NOT defer to pendingUrlUpdates — a 401
+     * means playback is already broken, so the refresh must be immediate.
+     *
+     * Returns true if the URL was actually updated, false if no change was needed
+     * or the slot/player is unavailable (e.g. already released).
+     */
+    fun refreshActiveUrl(id: String, newUrl: String): Boolean {
+        val slot = slotFor(id) ?: return false
+        val currentUrl = slotUrls[slot]
+        if (currentUrl == newUrl) return false
+
+        // Clear any deferred update — we're applying a fresh URL now
+        pendingUrlUpdates.remove(slot)
+
+        val player = playerFor(slot) ?: return false
+        val savedPosition = player.currentPosition
+        val savedPlayWhenReady = player.playWhenReady
+        try {
+            player.setMediaItem(MediaItem.fromUri(newUrl))
+            player.prepare()
+            player.seekTo(savedPosition)
+            player.playWhenReady = savedPlayWhenReady
+            slotUrls[slot] = newUrl
+            Log.d(TAG, "Refreshed URL for slot $slot (position preserved: $savedPosition, playing: $savedPlayWhenReady)")
+            return true
+        } catch (e: IllegalStateException) {
+            Log.w(TAG, "Player already released during URL refresh for slot $slot", e)
+            return false
+        }
+    }
+
     /** The slot's currently assigned reel id,. */
     fun assignedId(slot: Slot): String? = if (slot == Slot.A) slotAAssignedId else slotBAssignedId
 

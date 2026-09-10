@@ -72,8 +72,13 @@ object VcdnUrlResolver {
 
     /** Synchronous variant for Coil/image loaders. Returns EMPTY STRING when the video is
      *  not available (null from [resolve]) — callers must treat "" as "no playback",
-     *  never as "vcdn://..." raw pointer. Fail-open (empty) keeps callers safe. */
-    fun resolveBlocking(originalUrl: String): String = runBlocking { resolve(originalUrl) ?: "" }
+     *  never as "vcdn://..." raw pointer. Fail-open (empty) keeps callers safe.
+     *
+     *  When [forceRefresh] is true, the in-memory cache entry is evicted and a fresh
+     *  BFF request is issued — bypassing any stale cached URL. Used for 401 recovery
+     *  when a signed URL has expired mid-playback. */
+    fun resolveBlocking(originalUrl: String, forceRefresh: Boolean = false): String =
+        runBlocking { resolve(originalUrl, forceRefresh = forceRefresh) ?: "" }
 
     /**
      * Returns a loadable HLS streamUrl for [originalUrl].
@@ -87,15 +92,20 @@ object VcdnUrlResolver {
      * Transient errors (timeouts/5xx) fall back to a stale cached URL if fresh
      * enough (24h), else NULL too (a raw vcdn:// must never reach the player).
      */
-    suspend fun resolve(originalUrl: String?): String? = withContext(Dispatchers.IO) {
+    suspend fun resolve(originalUrl: String?, forceRefresh: Boolean = false): String? = withContext(Dispatchers.IO) {
         val raw = originalUrl?.trim().orEmpty()
         if (!isVcdnUrl(raw)) return@withContext raw
         val videoId = videoIdOf(raw) ?: return@withContext raw
         val now = System.currentTimeMillis()
 
-        // 1. Cache hit (in-memory, instant)
-        cache[videoId]?.let { cached ->
-            if (cached.expiresAt > now) return@withContext cached.url
+        // 1. Cache hit (in-memory, instant) — skip when forceRefresh to bypass
+        //    a potentially stale URL (e.g. signed token expired mid-playback).
+        if (!forceRefresh) {
+            cache[videoId]?.let { cached ->
+                if (cached.expiresAt > now) return@withContext cached.url
+            }
+        } else {
+            cache.remove(videoId)
         }
 
         // Offline: skip network entirely
