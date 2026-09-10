@@ -61,11 +61,9 @@ import com.example.data.video.CacheDataSourceFactory
 import com.example.ui.components.PanaAvatar
 import com.example.ui.viewmodel.ReelsUiState
 import com.example.ui.viewmodel.ReelsViewModel
-import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.isActive
 import kotlinx.coroutines.launch
-import kotlinx.coroutines.withContext
 import kotlin.math.max
 
 private enum class ReelFilterV2(val label: String) {
@@ -128,9 +126,7 @@ fun ReelsFeedScreenV2(
             // Trigger preloading of the next reel
             val nextIndex = pagerState.currentPage + 1
             if (nextIndex < filteredReels.size && com.example.util.NetworkMonitor.isOnline.value) {
-                val nextUrl = withContext(Dispatchers.IO) {
-                    com.example.data.repository.CdnManager.resolveMediaUrl(filteredReels[nextIndex].state.mediaUrl)
-                }
+                val nextUrl = CdnManager.resolveMediaUrlSync(filteredReels[nextIndex].state.mediaUrl)
                 if (!nextUrl.isNullOrBlank()) {
                     viewModel.preloadNextReel(nextUrl)
                 }
@@ -139,10 +135,8 @@ fun ReelsFeedScreenV2(
             if (com.example.util.NetworkMonitor.isOnline.value) {
                 (pagerState.currentPage + 1..pagerState.currentPage + 2).forEach { index ->
                     filteredReels.getOrNull(index)?.state?.mediaUrl?.let { raw ->
-                        scope.launch(Dispatchers.IO) {
-                            CdnManager.resolveMediaUrl(raw)?.takeIf(String::isNotBlank)?.let {
-                                CacheDataSourceFactory.prefetchVideo(context, it)
-                            }
+                        CdnManager.resolveMediaUrlSync(raw)?.takeIf(String::isNotBlank)?.let {
+                            CacheDataSourceFactory.prefetchVideo(context, it)
                         }
                     }
                 }
@@ -260,17 +254,7 @@ private fun ReelsPageV2(
     onCopyLink: () -> Unit,
 ) {
     val context = LocalContext.current
-    // Async URL resolution: resolveMediaUrlSync can perform VCDN BFF I/O, must not block Main
-    var urlSync by remember(reel.state.mediaUrl) { mutableStateOf<String?>(null) }
-    var urlResolved by remember(reel.state.mediaUrl) { mutableStateOf(false) }
-    LaunchedEffect(reel.state.mediaUrl) {
-        if (!urlResolved) {
-            urlSync = withContext(Dispatchers.IO) {
-                com.example.data.repository.CdnManager.resolveMediaUrl(reel.state.mediaUrl)
-            }
-            urlResolved = true
-        }
-    }
+    val urlSync = remember(reel.state.mediaUrl) { CdnManager.resolveMediaUrlSync(reel.state.mediaUrl) }
     val urlSafe = remember(urlSync) { urlSync?.takeIf { it.isNotBlank() && !it.startsWith("vcdn://") } }
 
     // Preload control: prepare next only when available (controlled window, not indiscriminate)
@@ -343,19 +327,14 @@ private fun ReelsPageV2(
                     playerState = "loading"
                     // Re-resolver URL antes de reintentar (captura URLs VCDN renovadas)
                     if (com.example.util.NetworkMonitor.isOnline.value) {
-                        // Resolve on IO thread to avoid blocking the Main thread with VCDN BFF I/O
-                        scope.launch(Dispatchers.IO) {
-                            val resolved = com.example.data.repository.CdnManager.resolveMediaUrl(reel.state.mediaUrl)
-                            withContext(Dispatchers.Main) {
-                                if (!resolved.startsWith("vcdn://") && resolved.isNotBlank()) {
-                                    player.stop(); player.clearMediaItems()
-                                    player.setMediaItem(MediaItem.fromUri(resolved))
-                                    player.prepare()
-                                    player.playWhenReady = true
-                                } else {
-                                    player.stop(); player.clearMediaItems()
-                                }
-                            }
+                        val resolved = CdnManager.resolveMediaUrlSync(reel.state.mediaUrl)
+                        if (!resolved.startsWith("vcdn://") && resolved.isNotBlank()) {
+                            player.stop(); player.clearMediaItems()
+                            player.setMediaItem(MediaItem.fromUri(resolved))
+                            player.prepare()
+                            player.playWhenReady = true
+                        } else {
+                            player.stop(); player.clearMediaItems()
                         }
                     } else {
                         player.stop(); player.clearMediaItems()
