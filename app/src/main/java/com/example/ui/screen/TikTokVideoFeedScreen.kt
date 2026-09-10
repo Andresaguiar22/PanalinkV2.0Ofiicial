@@ -994,13 +994,13 @@ fun TikTokPageItem(
     // Player acquisition depends ONLY on resolved URL, NOT on metadata.
     // Metadata extraction is deferred to a secondary LaunchedEffect above so
     // it never blocks playback preparation.
-    LaunchedEffect(stableMediaUrl, state.id,isActivePage,isPreload,retryCount,dualManager) {
+    LaunchedEffect(stableMediaUrl, state.id,isActivePage,isPreload,dualManager) {
 
         // BUGFIX: reiniciar el estado de resolución solo CUANDO el puntero estable
         // cambia (otra fila, copia local nueva, o reel distinto). Un REPLACE de fila
-        // con mediaUrl rotatorio deja intacto el player que ya está sonando..
-        // El retryCount ya no resetea este efecto: onPlayerError reintenta en MODO
-        // preservando slot y posición en vez de soltar el slot y re-preparar desde 0.
+        // con mediaUrl rotatorio deja intacto el player que ya está sonando.
+        // retryCount NO está en esta key: el retry no debe re-resolver ni re-acquire,
+        // solo re-preparar el player existente (ver LaunchedEffect de listener abajo).
         if (state.localVideoPath.isNullOrEmpty() && stableMediaUrl.isNullOrBlank()) return@LaunchedEffect
         resolvedUrl = if (state.localVideoPath.isNullOrEmpty()){
             val resolved =withContext(Dispatchers.IO) { com.example.data.repository.CdnManager.resolveMediaUrl(stableMediaUrl)}
@@ -1037,7 +1037,7 @@ fun TikTokPageItem(
             )
         }
     }
-    LaunchedEffect(exoPlayerRef, state.id, retryCount) {
+    LaunchedEffect(exoPlayerRef, state.id) {
         val player = exoPlayerRef ?: return@LaunchedEffect
         val listener = object : Player.Listener {
             override fun onPlaybackStateChanged(playbackState: Int) {
@@ -1047,13 +1047,19 @@ fun TikTokPageItem(
             override fun onPlayerError(error: androidx.media3.common.PlaybackException) {
                 android.util.Log.e("TikTokVideoFeedScreen", "player error id=${state.id} code=${error.errorCode}", error)
                 isBuffering = false
-                // Offline: reintento automatico solo con red; sin red marcar error (sin reiniciar posicion.
+                // OFFLINE FIX: solo reintentar con red disponible
                 if (retryCount < 2 && com.example.util.NetworkMonitor.isOnline.value) {
                     retryCount += 1
+                    // Retry REAL: re-preparar el player existente preservando posición.
+                    // acquireOrReuse no reprepa si el slot+URL son los mismos, así que
+                    // forzamos prepare() explícitamente aquí.
+                    val currentPos = player.currentPosition
+                    player.prepare()
+                    player.seekTo(currentPos)
+                    player.playWhenReady = isActivePage && !isPaused
                 } else {
                     hasError = true
                 }
-
             }
         }
         player.addListener(listener)
