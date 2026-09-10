@@ -21,6 +21,7 @@ import coil.compose.AsyncImage
 import com.example.data.supabase.SupabaseClient
 import com.example.live.domain.model.LiveStream
 import com.example.ui.components.PanaAvatar
+import com.example.ui.components.rememberAsyncMediaUrl
 
 @Composable
 fun LiveViewerHeader(
@@ -37,6 +38,7 @@ fun LiveViewerHeader(
     val currentUid = SupabaseClient.currentUser?.id ?: "anon"
     val isFollowing by remember(liveStream?.hostId) { mutableStateOf(false) }
     val scope = rememberCoroutineScope()
+    val resolvedThumbnailUrl = rememberAsyncMediaUrl(liveStream?.thumbnailUrl)
 
     Row(
         modifier = modifier
@@ -53,9 +55,9 @@ fun LiveViewerHeader(
             verticalAlignment = Alignment.CenterVertically
         ) {
             Box(modifier = Modifier.size(36.dp)) {
-                if (!liveStream?.thumbnailUrl.isNullOrBlank()) {
+                if (resolvedThumbnailUrl.isNotBlank()) {
                     AsyncImage(
-                        model = com.example.data.repository.CdnManager.resolveMediaUrlSync(liveStream!!.thumbnailUrl!!),
+                        model = resolvedThumbnailUrl,
                         contentDescription = "Miniatura del live",
                         modifier = Modifier
                             .fillMaxSize()

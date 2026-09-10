@@ -20,8 +20,8 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import coil.compose.AsyncImage
-import com.example.data.repository.CdnManager
 import com.example.data.supabase.SupabaseClient
+import com.example.ui.components.rememberAsyncMediaUrl
 import com.example.ui.viewmodel.ProfileViewModel
 
 @Composable
@@ -70,9 +70,7 @@ fun ReelsGrid(viewModel: ProfileViewModel, onNavigateToReel: (String) -> Unit) {
                         for (i in 0 until 3) {
                             if (i < rowReels.size) {
                                 val reel = rowReels[i]
-                                val resolvedMediaUrl = remember(reel.state.mediaUrl) {
-                                    CdnManager.resolveMediaUrlSync(reel.state.mediaUrl)
-                                }
+                                val resolvedMediaUrl = rememberAsyncMediaUrl(reel.state.mediaUrl)
                                 Box(
                                     modifier = Modifier
                                         .weight(1f)

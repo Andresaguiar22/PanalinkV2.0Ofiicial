@@ -11,6 +11,11 @@ import androidx.media3.exoplayer.trackselection.AdaptiveTrackSelection
 import androidx.media3.exoplayer.trackselection.DefaultTrackSelector
 import com.example.data.repository.CdnManager
 import java.util.concurrent.atomic.AtomicBoolean
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.SupervisorJob
+import kotlinx.coroutines.cancel
+import kotlinx.coroutines.launch
 
 /**
  * Session estable de ExoPlayer para el visor de Stories.
@@ -41,6 +46,7 @@ class StoryVideoPlayerSession(private val context: Context) {
     private var lastVideoUrl: String = ""
     private var lastIsMuted: Boolean = false
     private var lastTrim: Pair<Float, Float>? = null
+    private val retryScope = CoroutineScope(Dispatchers.Main.immediate + SupervisorJob())
 
     val player: ExoPlayer = createPlayer()
 
@@ -222,13 +228,24 @@ class StoryVideoPlayerSession(private val context: Context) {
                 if (retryCount < MAX_RETRIES && !isReleased.get() && com.example.util.NetworkMonitor.isOnline.value) {
                     retryCount++
                     Log.w(TAG, "stateId=$stateId retry $retryCount re-resolviendo URL")
-                    val freshUrl = CdnManager.resolveMediaUrlSync(lastVideoUrl)
-                    if (freshUrl.isNotBlank()) {
-                        player.setMediaItem(MediaItem.fromUri(freshUrl))
-                        player.prepare()
-                        player.play()
-                        return
+                    val expectedStateId = stateId
+                    val expectedVideoUrl = lastVideoUrl
+                    retryScope.launch {
+                        val freshUrl = runCatching {
+                            CdnManager.resolveMediaUrl(expectedVideoUrl)
+                        }.getOrDefault("")
+                        if (isReleased.get() || stateId != expectedStateId || lastVideoUrl != expectedVideoUrl) {
+                            return@launch
+                        }
+                        if (freshUrl.isNotBlank()) {
+                            player.setMediaItem(MediaItem.fromUri(freshUrl))
+                            player.prepare()
+                            player.play()
+                        } else {
+                            onError?.invoke(stateId, error.errorCodeName ?: "", error.errorCode)
+                        }
                     }
+                    return
                 }
                 onError?.invoke(stateId, error.errorCodeName ?: "", error.errorCode)
             }
@@ -263,6 +280,7 @@ class StoryVideoPlayerSession(private val context: Context) {
 
     fun release() {
         if (isReleased.compareAndSet(false, true)) {
+            retryScope.cancel()
             mainHandler.removeCallbacks(trimRunnable)
             try {
                 player.release()

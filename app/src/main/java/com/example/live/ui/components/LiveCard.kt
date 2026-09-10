@@ -25,6 +25,7 @@ import androidx.compose.ui.unit.sp
 import coil.compose.AsyncImage
 import com.example.data.supabase.SupabaseClient
 import com.example.live.domain.model.LiveStream
+import com.example.ui.components.rememberAsyncMediaUrl
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
 
@@ -36,6 +37,7 @@ fun LiveCard(
 ) {
     var pulseScale by remember { mutableStateOf(1f) }
     var pulseAlpha by remember { mutableStateOf(0.8f) }
+    val resolvedThumbnailUrl = rememberAsyncMediaUrl(live.thumbnailUrl)
 
     LaunchedEffect(live.status) {
         if (live.status == "LIVE") {
@@ -59,9 +61,9 @@ fun LiveCard(
         colors = CardDefaults.cardColors(containerColor = Color(0xFF1F2C34))
     ) {
         Box(modifier = Modifier.fillMaxSize()) {
-            if (!live.thumbnailUrl.isNullOrBlank()) {
+            if (resolvedThumbnailUrl.isNotBlank()) {
                 AsyncImage(
-                    model = com.example.data.repository.CdnManager.resolveMediaUrlSync(live.thumbnailUrl!!),
+                    model = resolvedThumbnailUrl,
                     contentDescription = "Miniatura de ${live.title}",
                     modifier = Modifier.fillMaxSize(),
                     contentScale = ContentScale.Crop

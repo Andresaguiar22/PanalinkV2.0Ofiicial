@@ -27,6 +27,7 @@ import coil.compose.AsyncImage
 import com.example.identity.bridge.LegacyIdentityBridge
 import com.example.data.supabase.SupabaseClient
 import com.example.live.domain.model.LiveComment
+import com.example.ui.components.rememberAsyncMediaUrl
 import kotlinx.coroutines.launch
 
 @OptIn(ExperimentalFoundationApi::class)
@@ -62,6 +63,7 @@ fun LiveViewerComments(
                 .collectAsStateWithLifecycle(initialValue = null)
             val displayName = identityState?.displayName ?: comment.userId.take(8)
             val avatarUrl = identityState?.avatarUrl
+            val resolvedAvatarUrl = rememberAsyncMediaUrl(avatarUrl)
 
             Row(
                 modifier = Modifier
@@ -89,9 +91,9 @@ fun LiveViewerComments(
                         .size(24.dp)
                         .clip(CircleShape)
                 ) {
-                    if (!avatarUrl.isNullOrBlank()) {
+                    if (resolvedAvatarUrl.isNotBlank()) {
                         AsyncImage(
-                            model = com.example.data.repository.CdnManager.resolveMediaUrlSync(avatarUrl),
+                            model = resolvedAvatarUrl,
                             contentDescription = "Avatar de $displayName",
                             modifier = Modifier.fillMaxSize(),
                             contentScale = androidx.compose.ui.layout.ContentScale.Crop

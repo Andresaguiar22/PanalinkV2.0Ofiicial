@@ -9,6 +9,7 @@ import com.example.data.repository.VcdnUrlResolver
 import com.example.media.model.MediaResource
 import com.example.media.repository.MediaRepository
 import com.example.media.storage.MediaStorageManager
+import com.example.ui.components.rememberAsyncMediaUrl
 import java.io.File
 
 object StoryMediaResolver {
@@ -43,20 +44,15 @@ object StoryMediaResolver {
             }
         }
 
-        // vcdn:// is a stable pointer, not an image URL. Never call the synchronous
-        // resolver from Compose: it uses runBlocking and can freeze the main thread
-        // when Wi-Fi is connected but the internet is actually unavailable. The
-        // carousel already resolves a VCDN poster asynchronously.
+        // vcdn:// is a stable pointer, not an image URL. Keep the pointer until the
+        // async media resolver can replace it; never block Compose with runBlocking.
         if (VcdnUrlResolver.isVcdnUrl(rawRemoteUrl)) {
             return MediaResource.Remote(rawRemoteUrl)
         }
 
-        // Non-VCDN media URLs are pure URL normalization and do not require a network
-        // request here. Keep this operation synchronous and cheap for composition.
-        val remoteUrl = remember(rawRemoteUrl) {
-            CdnManager.resolveMediaUrlSync(rawRemoteUrl)
-        }
-
+        // All remote resolution runs outside Compose/Main. CdnManager.resolveMediaUrl
+        // is suspend and may perform CDN/VCDN network I/O.
+        val remoteUrl = rememberAsyncMediaUrl(rawRemoteUrl)
         if (remoteUrl.isBlank()) {
             return MediaResource.Missing
         }
