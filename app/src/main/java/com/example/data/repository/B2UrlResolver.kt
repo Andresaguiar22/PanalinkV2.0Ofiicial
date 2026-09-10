@@ -5,8 +5,6 @@ import com.example.data.supabase.SessionManager
 import com.example.data.supabase.SupabaseClient
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.runBlocking
-import kotlinx.coroutines.sync.Mutex
-import kotlinx.coroutines.sync.withLock
 import kotlinx.coroutines.withContext
 import okhttp3.MediaType.Companion.toMediaTypeOrNull
 import okhttp3.OkHttpClient
@@ -47,7 +45,6 @@ object B2UrlResolver {
 
     /** freshUrl keyed by the stable object key (path without query), so cache survives across re-signs. */
     private val cacheByHostPath = ConcurrentHashMap<String, FreshUrl>()
-    private val mutex = Mutex()
 
     private data class FreshUrl(val url: String, val expiresAt: Long)
 
@@ -92,7 +89,7 @@ object B2UrlResolver {
             }
             fresh
         } catch (e: Exception) {
-            Log.w(TAG, "Re-sign failed for $raw: ${e.message}; using original")
+            Log.w(TAG, "Re-sign failed for B2 media URL: ${e.javaClass.simpleName}; using original")
             raw
         }
     }
@@ -117,7 +114,7 @@ object B2UrlResolver {
         val fresh = try {
             resignBlocking(raw)
         } catch (e: Exception) {
-            Log.w(TAG, "Re-sign (sync) failed: ${e.message}")
+            Log.w(TAG, "Re-sign (sync) failed: ${e.javaClass.simpleName}")
             null
         } ?: return raw
         if (fresh != raw) {
@@ -137,7 +134,7 @@ object B2UrlResolver {
         // 401 = JWT expirado: refrescar (bloqueante) y reintentar una vez.
         if (fresh == null && SessionManager.isJwtExpired(token)) {
             Log.w(TAG, "JWT expirado en b2-presign-download; refrescando")
-            val refreshed = kotlinx.coroutines.runBlocking { SessionManager.refreshSession() }
+            val refreshed = runBlocking { SessionManager.refreshSession() }
             if (refreshed) {
                 val newToken = SessionManager.getUserAuthToken() ?: SupabaseClient.currentToken
                 if (!newToken.isNullOrBlank()) {
