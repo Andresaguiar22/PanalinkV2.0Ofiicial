@@ -56,12 +56,8 @@ import androidx.core.view.WindowInsetsControllerCompat
 import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.LifecycleEventObserver
 import androidx.lifecycle.viewmodel.compose.viewModel
-import androidx.media3.common.MediaItem
 import androidx.media3.common.Player
 import androidx.media3.common.PlaybackException
-import androidx.media3.datasource.DefaultHttpDataSource
-import androidx.media3.exoplayer.ExoPlayer
-import androidx.media3.exoplayer.source.DefaultMediaSourceFactory
 import androidx.media3.ui.AspectRatioFrameLayout
 import androidx.media3.ui.PlayerView
 import coil.compose.AsyncImage
@@ -229,6 +225,9 @@ fun PanaTVScreen(viewModel: PanaTVViewModel = viewModel()) {
         )
     }
 
+    // Single ExoPlayer source of truth: AppFloatingPlayerManager.
+    // PanaTV acquires/reuses the shared player — never creates an orphan.
+    // When currentChannel == null, no player is needed (placeholder UI shown instead).
     val exoPlayer = remember(currentChannel) {
         val channel = currentChannel
         if (channel != null) {
@@ -237,16 +236,19 @@ fun PanaTVScreen(viewModel: PanaTVViewModel = viewModel()) {
                 id = channel.id,
                 url = channel.streamUrl,
                 title = channel.name,
-                type = "panatv"
+                type = "panatv",
+                userAgent = channel.userAgent,
+                referrer = channel.referrer
             )
         } else {
-            ExoPlayer.Builder(context, com.example.core.media.PanaRenderersFactory.create(context)).build()
+            null
         }
     }
 
-    // Single listener per player instance. The old code re-ran this block on every
-    // channel change, stacking duplicate listeners and forcing playWhenReady=false
-    // until a first frame arrived — playback looked frozen after switching.
+    // Single listener per player instance. Re-attached only when the player
+    // reference changes (channel switch causes acquirePlayer to return the same
+    // reused player, so the listener key stays stable and we avoid stacking
+    // duplicate listeners that caused stale callbacks after fast channel switches).
     DisposableEffect(exoPlayer) {
         val listener = object : Player.Listener {
             override fun onPlayerError(error: PlaybackException) {
@@ -270,37 +272,41 @@ fun PanaTVScreen(viewModel: PanaTVViewModel = viewModel()) {
                 currentPosition = newPosition.positionMs
             }
         }
-        exoPlayer.addListener(listener)
-        exoPlayer.volume = if (isMuted) 0f else 1f
-        isPlayingState = exoPlayer.isPlaying
-        onDispose { exoPlayer.removeListener(listener) }
+        exoPlayer?.addListener(listener)
+        exoPlayer?.volume = if (isMuted) 0f else 1f
+        isPlayingState = exoPlayer?.isPlaying ?: false
+        onDispose { exoPlayer?.removeListener(listener) }
     }
 
+    // Position/duration polling on the SAME player instance. Keyed on exoPlayer
+    // so the coroutine is cancelled/restarted only when the player changes.
     LaunchedEffect(exoPlayer) {
+        val player = exoPlayer ?: return@LaunchedEffect
         while (true) {
-            currentPosition = exoPlayer.currentPosition
-            duration = exoPlayer.duration.coerceAtLeast(0L)
+            currentPosition = player.currentPosition
+            duration = player.duration.coerceAtLeast(0L)
             delay(1000)
         }
     }
 
-    LaunchedEffect(isMuted) {
-        exoPlayer.volume = if (isMuted) 0f else 1f
+    LaunchedEffect(isMuted, exoPlayer) {
+        exoPlayer?.volume = if (isMuted) 0f else 1f
     }
 
     var activePlayerView by remember { mutableStateOf<PlayerView?>(null) }
 
-    val rebindPlayer: (PlayerView) -> Unit = remember(exoPlayer) {
+    val rebindPlayer: (PlayerView) -> Unit = remember {
         { playerView ->
+            val player = exoPlayer ?: return@remember
             playerView.player = null
-            playerView.player = exoPlayer
+            playerView.player = player
             val surfaceView = playerView.videoSurfaceView as? android.view.SurfaceView
             if (surfaceView != null) {
-                exoPlayer.setVideoSurfaceView(surfaceView)
+                player.setVideoSurfaceView(surfaceView)
             } else {
                 val textureView = playerView.videoSurfaceView as? android.view.TextureView
                 if (textureView != null) {
-                    exoPlayer.setVideoTextureView(textureView)
+                    player.setVideoTextureView(textureView)
                 }
             }
             playerView.invalidate()
@@ -351,42 +357,23 @@ fun PanaTVScreen(viewModel: PanaTVViewModel = viewModel()) {
         }
     }
 
-    LaunchedEffect(currentChannel) {
-        currentChannel?.let { channel ->
-            playerError = ""
-            isVideoRendering = false
-            isBuffering = true
-            exoPlayer.stop()
-            exoPlayer.clearMediaItems()
-
-            val dataSourceFactory = DefaultHttpDataSource.Factory().apply {
-                channel.userAgent?.takeIf { it.isNotBlank() }?.let { setUserAgent(it) }
-                val defaultProps = mutableMapOf<String, String>()
-                channel.referrer?.takeIf { it.isNotBlank() }?.let { defaultProps["Referer"] = it }
-                setDefaultRequestProperties(defaultProps)
-            }
-            val mediaSource = DefaultMediaSourceFactory(context)
-                .setDataSourceFactory(dataSourceFactory)
-                .createMediaSource(MediaItem.fromUri(channel.streamUrl))
-            exoPlayer.setMediaSource(mediaSource)
-            exoPlayer.playWhenReady = true
-            exoPlayer.prepare()
-
-            activePlayerView?.let { rebindPlayer(it) }
-        }
-    }
+    // CHANNEL SWITCHING IS HANDLED IN acquirePlayer: single prepare path.
+    // The old LaunchedEffect(currentChannel) that did stop() → clearMediaItems()
+    // → setMediaSource() → prepare() has been removed to eliminate double preparation.
+    // acquirePlayer() already calls setMediaItem + prepare with the correct
+    // userAgent/referrer headers via the shared HTTP factory.
 
     DisposableEffect(lifecycleOwner) {
         val observer = LifecycleEventObserver { _, event ->
             when (event) {
-                Lifecycle.Event.ON_PAUSE -> exoPlayer.pause()
+                Lifecycle.Event.ON_PAUSE -> exoPlayer?.pause()
                 Lifecycle.Event.ON_STOP -> {
                     // Backgrounded (HOME, alt-TAB, another Activity over PanaTV): pause
                     // immediately so no audio leaks into the background. The player
                     // instance is kept alive (not released) so returning here is cheap;
                     // it is fully released in onDispose below when the screen is actually
                     // left/destroyed.
-                    exoPlayer.pause()
+                    exoPlayer?.pause()
                 }
                 Lifecycle.Event.ON_RESUME -> {
                     // Do NOT auto-play on resume: prevents ghost playback when the user
@@ -661,7 +648,7 @@ fun PanaTVScreen(viewModel: PanaTVViewModel = viewModel()) {
                             )
                         }
 
-                        if (!isVideoRendering || isBuffering) {
+                        if ((!isVideoRendering || isBuffering) && exoPlayer != null) {
                             Box(
                                 modifier = Modifier.fillMaxSize().background(Color.Black),
                                 contentAlignment = Alignment.Center
@@ -720,7 +707,8 @@ fun PanaTVScreen(viewModel: PanaTVViewModel = viewModel()) {
                         ) {
                             Row(verticalAlignment = Alignment.CenterVertically) {
                                 IconButton(onClick = {
-                                    if (exoPlayer.isPlaying) exoPlayer.pause() else exoPlayer.play()
+                                    val p = exoPlayer
+                                    if (p?.isPlaying == true) p.pause() else p?.play()
                                 }) {
                                     Icon(
                                         if (isPlayingState) Icons.Default.Pause else Icons.Default.PlayArrow,
@@ -1121,7 +1109,7 @@ fun PanaTVScreen(viewModel: PanaTVViewModel = viewModel()) {
 
                                 // Progress bar scrubber: only for seekable/DVR windows;
                                 // suppress the VOD-style slider on non-seekable live streams.
-                                if (duration > 0L && exoPlayer.isCurrentWindowSeekable) {
+                                if (duration > 0L && exoPlayer?.isCurrentWindowSeekable == true) {
                                     Box(
                                         modifier = Modifier
                                             .fillMaxWidth()
@@ -1132,7 +1120,7 @@ fun PanaTVScreen(viewModel: PanaTVViewModel = viewModel()) {
                                             value = currentPosition.toFloat(),
                                             onValueChange = { newValue ->
                                                 currentPosition = newValue.toLong()
-                                                exoPlayer.seekTo(currentPosition)
+                                                exoPlayer?.seekTo(currentPosition)
                                             },
                                             valueRange = 0f..duration.toFloat(),
                                             colors = SliderDefaults.colors(
@@ -1174,7 +1162,8 @@ fun PanaTVScreen(viewModel: PanaTVViewModel = viewModel()) {
                                 ) {
                                 Row(verticalAlignment = Alignment.CenterVertically) {
                                     IconButton(onClick = {
-                                        if (exoPlayer.isPlaying) exoPlayer.pause() else exoPlayer.play()
+                                        val p = exoPlayer
+                                    if (p?.isPlaying == true) p.pause() else p?.play()
                                     }) {
                                         Icon(
                                             if (isPlayingState) Icons.Default.Pause else Icons.Default.PlayArrow,

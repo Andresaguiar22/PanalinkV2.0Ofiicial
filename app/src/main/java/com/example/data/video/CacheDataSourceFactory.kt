@@ -49,12 +49,30 @@ object CacheDataSourceFactory {
     }
 
     fun getCacheDataSourceFactory(context: Context): DataSource.Factory {
-        // DefaultHttpDataSource setup with snappy timeouts optimized for quick loading and robust user-agent to bypass CDN blocks
-        val httpDataSourceFactory = DefaultHttpDataSource.Factory()
-            .setUserAgent("Mozilla/5.0 (Linux; Android 10; K) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/124.0.0.0 Mobile Safari/537.36 Panalink/1.0")
-            .setConnectTimeoutMs(15000) // 15s connect timeout
-            .setReadTimeoutMs(15000)    // 15s read timeout
-            .setAllowCrossProtocolRedirects(true)
+        return getCacheDataSourceFactory(context, null)
+    }
+
+    /**
+     * When [customHttpFactory] is provided, it is used instead of the default
+     * DefaultHttpDataSource.Factory. This lets callers (e.g. AppFloatingPlayerManager)
+     * set per-stream headers (User-Agent, Referer) on a shared, reusable
+     * factory instance so that headers can be updated dynamically between
+     * setMediaItem calls without rebuilding the ExoPlayer.
+     *
+     * The [customHttpFactory] is wrapped by [B2ResignDataSourceFactory] so B2
+     * presigned URLs continue to be re-signed transparently.
+     */
+    fun getCacheDataSourceFactory(
+        context: Context,
+        customHttpFactory: DefaultHttpDataSource.Factory?
+    ): DataSource.Factory {
+        val httpDataSourceFactory = customHttpFactory ?: run {
+            DefaultHttpDataSource.Factory()
+                .setUserAgent("Mozilla/5.0 (Linux; Android 10; K) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/124.0.0.0 Mobile Safari/537.36 Panalink/1.0")
+                .setConnectTimeoutMs(15000)
+                .setReadTimeoutMs(15000)
+                .setAllowCrossProtocolRedirects(true)
+        }
 
         // Wrap the HTTP factory so any Backblaze B2 URL (presigned GETs expire after
         // 7 days) is re-signed on open() via b2-presign-download before the bytes flow.

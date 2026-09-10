@@ -8,6 +8,7 @@ import androidx.room.Database
 import androidx.room.Insert
 import androidx.room.OnConflictStrategy
 import androidx.room.Query
+import androidx.room.Transaction
 import androidx.room.Room
 import androidx.room.RoomDatabase
 import kotlinx.coroutines.flow.Flow
@@ -39,6 +40,18 @@ interface PanaTVChannelDao {
 
     @Insert(onConflict = OnConflictStrategy.REPLACE)
     suspend fun insertChannels(channels: List<PanaTVChannelEntity>)
+    
+    /**
+     * Atomically replaces the entire channel table within a single Room transaction.
+     * If the insert fails mid-way, either the old data or the new data survives —
+     * never a partial mix. The caller is responsible for validating the dataset
+     * BEFORE calling this (so corrupt/empty payloads never wipe valid cache).
+     */
+    @Transaction
+    suspend fun replaceChannels(channels: List<PanaTVChannelEntity>) {
+        clearChannels()
+        insertChannels(channels)
+    }
     
     @Query("SELECT COUNT(*) FROM panatv_channels")
     suspend fun getChannelCount(): Int

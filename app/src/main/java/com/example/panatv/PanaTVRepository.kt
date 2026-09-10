@@ -243,8 +243,7 @@ class PanaTVRepository(private val context: Context) {
                 onDebug("Total final para Room: ${entities.size}")
 
                 if (entities.isNotEmpty()) {
-                    dao.clearChannels()
-                    dao.insertChannels(entities)
+                    dao.replaceChannels(entities)
                     prefs.edit().putLong("last_sync_time", System.currentTimeMillis()).apply()
                     Log.d(TAG, "Sincronización exitosa. ${entities.size} canales guardados en la BD local.")
                     onDebug("Sincronización exitosa: ${entities.size} canales.")
