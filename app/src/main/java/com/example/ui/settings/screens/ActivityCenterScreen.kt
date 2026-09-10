@@ -36,22 +36,35 @@ fun ActivityCenterScreen(
     val context = LocalContext.current
 
     LaunchedEffect(uiState.errorMessage) {
-        uiState.errorMessage?.let { Toast.makeText(context, it, Toast.LENGTH_LONG).show(); viewModel.dispatch(ActivityAction.ClearError) }
+        uiState.errorMessage?.let { err ->
+            Toast.makeText(context, err, Toast.LENGTH_LONG).show()
+            viewModel.dispatch(ActivityAction.ClearError)
+        }
     }
 
     Scaffold(
         topBar = {
             TopAppBar(
                 title = { Text("Centro de Actividad", color = Color.White) },
-                navigationIcon = { IconButton(onClick = onBack) { Icon(Icons.AutoMirrored.Filled.ArrowBack, "Regresar", tint = Color.White) } },
-                actions = { IconButton(onClick = { viewModel.dispatch(ActivityAction.RefreshSummary) }) { Icon(Icons.Default.Refresh, "Actualizar", tint = Color.White) } },
+                navigationIcon = {
+                    IconButton(onClick = onBack) {
+                        Icon(Icons.AutoMirrored.Filled.ArrowBack, contentDescription = "Regresar", tint = Color.White)
+                    }
+                },
+                actions = {
+                    IconButton(onClick = { viewModel.dispatch(ActivityAction.RefreshSummary) }) {
+                        Icon(Icons.Default.Refresh, contentDescription = "Actualizar", tint = Color.White)
+                    }
+                },
                 colors = TopAppBarDefaults.topAppBarColors(containerColor = Color(0xFF121B22))
             )
         },
         containerColor = Color(0xFF121B22)
     ) { padding ->
         if (uiState.isLoading) {
-            Box(Modifier.fillMaxSize().padding(padding), contentAlignment = Alignment.Center) { CircularProgressIndicator(color = Color(0xFF25D366)) }
+            Box(Modifier.fillMaxSize().padding(padding), contentAlignment = Alignment.Center) {
+                CircularProgressIndicator(color = Color(0xFF25D366))
+            }
         } else {
             LazyColumn(
                 modifier = Modifier.fillMaxSize().padding(padding),
@@ -72,14 +85,14 @@ fun ActivityCenterScreen(
                 }
 
                 item {
-                    Card(colors = CardDefaults.cardColors(Color(0xFF1E2B33)), shape = RoundedCornerShape(16.dp), modifier = Modifier.fillMaxWidth()) {
+                    Card(colors = CardDefaults.cardColors(containerColor = Color(0xFF1E2B33)), shape = RoundedCornerShape(16.dp), modifier = Modifier.fillMaxWidth()) {
                         Column(Modifier.padding(16.dp)) {
                             Text("Diagnóstico del sistema", color = Color.White, fontSize = 16.sp, fontWeight = FontWeight.Bold)
                             Spacer(Modifier.height(6.dp))
                             Text("Monitoriza procesos de Panalink y captura la línea de tiempo de Reels, VCDN, ExoPlayer, caché, red y errores directamente desde el teléfono.", color = Color(0xFF90A4AE), fontSize = 13.sp)
                             Spacer(Modifier.height(12.dp))
                             Button(onClick = onNavigateToDiagnostics, modifier = Modifier.fillMaxWidth(), colors = ButtonDefaults.buttonColors(containerColor = Color(0xFF25D366), contentColor = Color.Black)) {
-                                Icon(Icons.Default.MonitorHeart, null)
+                                Icon(Icons.Default.MonitorHeart, contentDescription = null)
                                 Spacer(Modifier.width(8.dp))
                                 Text("Abrir diagnóstico", fontWeight = FontWeight.Bold)
                             }
@@ -88,7 +101,7 @@ fun ActivityCenterScreen(
                 }
 
                 item {
-                    Card(colors = CardDefaults.cardColors(Color(0xFF1E2B33)), shape = RoundedCornerShape(16.dp), modifier = Modifier.fillMaxWidth()) {
+                    Card(colors = CardDefaults.cardColors(containerColor = Color(0xFF1E2B33)), shape = RoundedCornerShape(16.dp), modifier = Modifier.fillMaxWidth()) {
                         Column(Modifier.padding(16.dp)) {
                             Text("Desglose de Almacenamiento Local", color = Color.White, fontSize = 15.sp, fontWeight = FontWeight.Bold, modifier = Modifier.padding(bottom = 12.dp))
                             SystemStatusRow("Base de Datos (Room)", uiState.databaseSize, Icons.Default.Storage, Color(0xFF00E5FF))
@@ -100,7 +113,7 @@ fun ActivityCenterScreen(
 
                 item {
                     Text("Estado del sistema", color = Color.White, fontSize = 18.sp, fontWeight = FontWeight.Bold, modifier = Modifier.padding(bottom = 8.dp))
-                    Card(colors = CardDefaults.cardColors(Color(0xFF1E2B33)), shape = RoundedCornerShape(16.dp), modifier = Modifier.fillMaxWidth()) {
+                    Card(colors = CardDefaults.cardColors(containerColor = Color(0xFF1E2B33)), shape = RoundedCornerShape(16.dp), modifier = Modifier.fillMaxWidth()) {
                         Column(Modifier.padding(16.dp)) {
                             SystemStatusRow("Sincronización de chats", uiState.lastSynchronization, Icons.Default.CheckCircle, Color(0xFF4CAF50))
                             Spacer(Modifier.height(16.dp))
@@ -113,12 +126,20 @@ fun ActivityCenterScreen(
 
                 item {
                     Text("Dispositivos activos", color = Color.White, fontSize = 18.sp, fontWeight = FontWeight.Bold, modifier = Modifier.padding(bottom = 8.dp))
-                    Card(colors = CardDefaults.cardColors(Color(0xFF1E2B33)), shape = RoundedCornerShape(16.dp), modifier = Modifier.fillMaxWidth()) {
+                    Card(colors = CardDefaults.cardColors(containerColor = Color(0xFF1E2B33)), shape = RoundedCornerShape(16.dp), modifier = Modifier.fillMaxWidth()) {
                         Column(Modifier.padding(16.dp)) {
-                            if (uiState.activeDevices.isEmpty()) Text("No hay dispositivos registrados", color = Color(0xFF90A4AE), fontSize = 13.sp)
-                            uiState.activeDevices.forEachIndexed { index, device ->
-                                DeviceRow(device)
-                                if (index < uiState.activeDevices.lastIndex) Spacer(Modifier.height(16.dp))
+                            if (uiState.activeDevices.isEmpty()) {
+                                Text("No hay dispositivos registrados", color = Color(0xFF90A4AE), fontSize = 13.sp)
+                            } else {
+                                uiState.activeDevices.forEachIndexed { index, device ->
+                                    DeviceRow(
+                                        name = device.name,
+                                        time = device.lastActive,
+                                        icon = if (device.iconType == "computer") Icons.Default.Computer else Icons.Default.Smartphone,
+                                        isCurrent = device.isCurrent
+                                    )
+                                    if (index < uiState.activeDevices.lastIndex) Spacer(Modifier.height(16.dp))
+                                }
                             }
                         }
                     }
@@ -132,7 +153,9 @@ fun ActivityCenterScreen(
 fun ActivityStatCard(modifier: Modifier = Modifier, title: String, value: String, icon: ImageVector, iconColor: Color) {
     Surface(modifier = modifier, shape = RoundedCornerShape(16.dp), color = Color(0xFF1E2B33), tonalElevation = 2.dp) {
         Column(Modifier.padding(16.dp)) {
-            Box(Modifier.size(40.dp).background(iconColor.copy(alpha = .12f), CircleShape), contentAlignment = Alignment.Center) { Icon(icon, null, tint = iconColor, modifier = Modifier.size(24.dp)) }
+            Box(Modifier.size(40.dp).background(iconColor.copy(alpha = 0.12f), CircleShape), contentAlignment = Alignment.Center) {
+                Icon(icon, contentDescription = null, tint = iconColor, modifier = Modifier.size(24.dp))
+            }
             Spacer(Modifier.height(12.dp))
             Text(value, color = Color.White, fontSize = 22.sp, fontWeight = FontWeight.Bold)
             Text(title, color = Color(0xFF90A4AE), fontSize = 13.sp)
@@ -143,24 +166,30 @@ fun ActivityStatCard(modifier: Modifier = Modifier, title: String, value: String
 @Composable
 fun SystemStatusRow(title: String, subtitle: String, icon: ImageVector, iconColor: Color) {
     Row(verticalAlignment = Alignment.CenterVertically) {
-        Icon(icon, null, tint = iconColor, modifier = Modifier.size(24.dp))
+        Icon(icon, contentDescription = null, tint = iconColor, modifier = Modifier.size(24.dp))
         Spacer(Modifier.width(16.dp))
-        Column { Text(title, color = Color.White, fontSize = 15.sp, fontWeight = FontWeight.Medium); Text(subtitle, color = Color(0xFF90A4AE), fontSize = 13.sp) }
+        Column {
+            Text(title, color = Color.White, fontSize = 15.sp, fontWeight = FontWeight.Medium)
+            Text(subtitle, color = Color(0xFF90A4AE), fontSize = 13.sp)
+        }
     }
 }
 
 @Composable
-private fun DeviceRow(device: DeviceInfo) {
+fun DeviceRow(name: String, time: String, icon: ImageVector, isCurrent: Boolean) {
     Row(verticalAlignment = Alignment.CenterVertically) {
         Box(Modifier.size(44.dp).background(Color(0xFF2A3942), CircleShape), contentAlignment = Alignment.Center) {
-            Icon(if (device.iconType == "computer") Icons.Default.Computer else Icons.Default.Smartphone, null, tint = Color.White, modifier = Modifier.size(22.dp))
+            Icon(icon, contentDescription = null, tint = Color.White, modifier = Modifier.size(22.dp))
         }
         Spacer(Modifier.width(16.dp))
         Column(Modifier.weight(1f)) {
-            Text(device.name, color = Color.White, fontSize = 15.sp, fontWeight = FontWeight.Medium)
+            Text(name, color = Color.White, fontSize = 15.sp, fontWeight = FontWeight.Medium)
             Row(verticalAlignment = Alignment.CenterVertically) {
-                if (device.isCurrent) { Box(Modifier.size(8.dp).background(Color(0xFF4CAF50), CircleShape)); Spacer(Modifier.width(6.dp)) }
-                Text(device.lastActive, color = if (device.isCurrent) Color(0xFF4CAF50) else Color(0xFF90A4AE), fontSize = 12.sp)
+                if (isCurrent) {
+                    Box(Modifier.size(8.dp).background(Color(0xFF4CAF50), CircleShape))
+                    Spacer(Modifier.width(6.dp))
+                }
+                Text(time, color = if (isCurrent) Color(0xFF4CAF50) else Color(0xFF90A4AE), fontSize = 12.sp)
             }
         }
     }
