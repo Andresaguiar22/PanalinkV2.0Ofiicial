@@ -1138,12 +1138,28 @@ fun TikTokPageItem(
             override fun onPlayerError(error: androidx.media3.common.PlaybackException) {
                 android.util.Log.e("TikTokVideoFeedScreen", "player error id=${state.id} code=${error.errorCode}", error)
                 isBuffering = false
+                // Issue #12: capturar HTTP status real del error para saber si el
+                // servidor devuelve 403, 404, 416, 5xx, etc. Instrumentación pura:
+                // se inspecciona la cadena de causas del PlaybackException en busca
+                // de InvalidResponseCodeException (Media3 HttpDataSource).
+                var httpStatus: Int? = null
+                var causeType: String = "null"
+                var currentCause: Throwable? = error.cause
+                while (currentCause != null) {
+                    val cause = currentCause
+                    causeType = cause.javaClass.simpleName
+                    if (cause is androidx.media3.datasource.HttpDataSource.InvalidResponseCodeException) {
+                        httpStatus = cause.responseCode
+                        break
+                    }
+                    currentCause = cause.cause
+                }
                 diagnostics.record(
                     DiagnosticCategory.ERRORS,
                     "Player error",
                     severity = DiagnosticSeverity.ERROR,
                     correlationId = state.id.take(36),
-                    details = "errorCode=${error.errorCode}, retryCount=$retryCount"
+                    details = "causeType=$causeType, httpStatus=${httpStatus ?: "N/A"}, errorCode=${error.errorCode}, retryCount=$retryCount"
                 )
                 // OFFLINE FIX: solo reintentar con red disponible y no si ya está en curso un retry
                 if (!isRetrying && retryCount < 2 && com.example.util.NetworkMonitor.isOnline.value) {
