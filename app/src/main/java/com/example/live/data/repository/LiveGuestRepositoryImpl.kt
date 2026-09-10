@@ -6,9 +6,11 @@ import com.example.live.domain.model.LiveGuest
 import com.example.live.domain.repository.LiveGuestRepository
 import com.squareup.moshi.Moshi
 import com.squareup.moshi.Types
+import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.channels.awaitClose
 import kotlinx.coroutines.flow.callbackFlow
 import kotlinx.coroutines.launch
+import kotlinx.coroutines.withContext
 import okhttp3.MediaType.Companion.toMediaType
 import okhttp3.OkHttpClient
 import okhttp3.Request
@@ -26,198 +28,211 @@ class LiveGuestRepositoryImpl(private val context: Context) : LiveGuestRepositor
     private val moshi = Moshi.Builder().build()
 
     override suspend fun inviteGuest(streamId: String, guestUserId: String): Result<LiveGuest> {
-        return try {
-            val url = "${SupabaseClient.supabaseUrl}/rest/v1/live_guests"
-            val token = SupabaseClient.currentToken ?: return Result.failure(Exception("No token"))
-            val body = JSONObject().apply {
-                put("stream_id", streamId)
-                put("guest_user_id", guestUserId)
-                put("status", "PENDING")
-            }.toString().toRequestBody(jsonMediaType)
+        return withContext(Dispatchers.IO) {
+            try {
+                val url = "${SupabaseClient.supabaseUrl}/rest/v1/live_guests"
+                val token = SupabaseClient.currentToken ?: return@withContext Result.failure(Exception("No token"))
+                val body = JSONObject().apply {
+                    put("stream_id", streamId)
+                    put("guest_user_id", guestUserId)
+                    put("status", "PENDING")
+                }.toString().toRequestBody(jsonMediaType)
 
-            val request = Request.Builder()
-                .url(url)
-                .post(body)
-                .header("apikey", SupabaseClient.supabaseAnonKey)
-                .header("Authorization", "Bearer $token")
-                .header("Content-Type", "application/json")
-                .header("Prefer", "return=representation")
-                .build()
+                val request = Request.Builder()
+                    .url(url)
+                    .post(body)
+                    .header("apikey", SupabaseClient.supabaseAnonKey)
+                    .header("Authorization", "Bearer $token")
+                    .header("Content-Type", "application/json")
+                    .header("Prefer", "return=representation")
+                    .build()
 
-            client.newCall(request).execute().use { response ->
-                val responseBody = response.body?.string() ?: ""
-                if (response.isSuccessful && responseBody.isNotBlank()) {
-                    val adapter = moshi.adapter<List<LiveGuest>>(Types.newParameterizedType(List::class.java, LiveGuest::class.java))
-                    val list = adapter.fromJson(responseBody)
-                    val guest = list?.firstOrNull() ?: return Result.failure(Exception("Guest not created"))
-                    Result.success(guest)
-                } else {
-                    Result.failure(Exception("Error inviting guest: ${response.code}"))
+                client.newCall(request).execute().use { response ->
+                    val responseBody = response.body?.string() ?: ""
+                    if (response.isSuccessful && responseBody.isNotBlank()) {
+                        val adapter = moshi.adapter<List<LiveGuest>>(Types.newParameterizedType(List::class.java, LiveGuest::class.java))
+                        val list = adapter.fromJson(responseBody)
+                        val guest = list?.firstOrNull() ?: return@use Result.failure(Exception("Guest not created"))
+                        Result.success(guest)
+                    } else {
+                        Result.failure(Exception("Error inviting guest: ${response.code}"))
+                    }
                 }
+            } catch (e: Exception) {
+                Result.failure(e)
             }
-        } catch (e: Exception) {
-            Result.failure(e)
         }
     }
 
     override suspend fun requestToJoin(streamId: String): Result<LiveGuest> {
-        return try {
-            val url = "${SupabaseClient.supabaseUrl}/rest/v1/live_guests"
-            val token = SupabaseClient.currentToken ?: return Result.failure(Exception("No token"))
-            val body = JSONObject().apply {
-                put("stream_id", streamId)
-                put("guest_user_id", SupabaseClient.currentUser?.id ?: "") // Current user is requesting
-                put("status", "PENDING")
-            }.toString().toRequestBody(jsonMediaType)
-            
-            // ... (rest of implementation similar to inviteGuest)
-            val request = Request.Builder()
-                .url(url)
-                .post(body)
-                .header("apikey", SupabaseClient.supabaseAnonKey)
-                .header("Authorization", "Bearer $token")
-                .header("Prefer", "return=representation")
-                .build()
+        return withContext(Dispatchers.IO) {
+            try {
+                val url = "${SupabaseClient.supabaseUrl}/rest/v1/live_guests"
+                val token = SupabaseClient.currentToken ?: return@withContext Result.failure(Exception("No token"))
+                val body = JSONObject().apply {
+                    put("stream_id", streamId)
+                    put("guest_user_id", SupabaseClient.currentUser?.id ?: "")
+                    put("status", "PENDING")
+                }.toString().toRequestBody(jsonMediaType)
 
-            client.newCall(request).execute().use { response ->
-                val responseBody = response.body?.string() ?: ""
-                if (response.isSuccessful && responseBody.isNotBlank()) {
-                    val adapter = moshi.adapter<List<LiveGuest>>(Types.newParameterizedType(List::class.java, LiveGuest::class.java))
-                    val list = adapter.fromJson(responseBody)
-                    val guest = list?.firstOrNull() ?: return Result.failure(Exception("Guest not created"))
-                    Result.success(guest)
-                } else {
-                    Result.failure(Exception("Error requesting to join: ${response.code}"))
+                val request = Request.Builder()
+                    .url(url)
+                    .post(body)
+                    .header("apikey", SupabaseClient.supabaseAnonKey)
+                    .header("Authorization", "Bearer $token")
+                    .header("Prefer", "return=representation")
+                    .build()
+
+                client.newCall(request).execute().use { response ->
+                    val responseBody = response.body?.string() ?: ""
+                    if (response.isSuccessful && responseBody.isNotBlank()) {
+                        val adapter = moshi.adapter<List<LiveGuest>>(Types.newParameterizedType(List::class.java, LiveGuest::class.java))
+                        val list = adapter.fromJson(responseBody)
+                        val guest = list?.firstOrNull() ?: return@use Result.failure(Exception("Guest not created"))
+                        Result.success(guest)
+                    } else {
+                        Result.failure(Exception("Error requesting to join: ${response.code}"))
+                    }
                 }
+            } catch (e: Exception) {
+                Result.failure(e)
             }
-        } catch (e: Exception) {
-            Result.failure(e)
         }
     }
 
     override suspend fun leaveLive(streamId: String): Result<Unit> {
-         return try {
-            val url = "${SupabaseClient.supabaseUrl}/rest/v1/live_guests?stream_id=eq.$streamId&guest_user_id=eq.${SupabaseClient.currentUser?.id ?: ""}"
-            val token = SupabaseClient.currentToken ?: return Result.failure(Exception("No token"))
-            val body = JSONObject().put("status", "LEFT").toString().toRequestBody(jsonMediaType)
-            
-            val request = Request.Builder()
-                .url(url)
-                .patch(body)
-                .header("apikey", SupabaseClient.supabaseAnonKey)
-                .header("Authorization", "Bearer $token")
-                .header("Content-Type", "application/json")
-                .header("Prefer", "return=minimal")
-                .build()
-                
-            client.newCall(request).execute().use { response ->
-                if (response.isSuccessful) Result.success(Unit)
-                else Result.failure(Exception("Error leaving live: ${response.code}"))
+        return withContext(Dispatchers.IO) {
+            try {
+                val url = "${SupabaseClient.supabaseUrl}/rest/v1/live_guests?stream_id=eq.$streamId&guest_user_id=eq.${SupabaseClient.currentUser?.id ?: ""}"
+                val token = SupabaseClient.currentToken ?: return@withContext Result.failure(Exception("No token"))
+                val body = JSONObject().put("status", "LEFT").toString().toRequestBody(jsonMediaType)
+
+                val request = Request.Builder()
+                    .url(url)
+                    .patch(body)
+                    .header("apikey", SupabaseClient.supabaseAnonKey)
+                    .header("Authorization", "Bearer $token")
+                    .header("Content-Type", "application/json")
+                    .header("Prefer", "return=minimal")
+                    .build()
+
+                client.newCall(request).execute().use { response ->
+                    if (response.isSuccessful) Result.success(Unit)
+                    else Result.failure(Exception("Error leaving live: ${response.code}"))
+                }
+            } catch (e: Exception) {
+                Result.failure(e)
             }
-        } catch (e: Exception) {
-            Result.failure(e)
         }
     }
 
     override suspend fun acceptInvitation(streamId: String, guestUserId: String): Result<Unit> {
-        return try {
-            val url = "${SupabaseClient.supabaseUrl}/rest/v1/live_guests?stream_id=eq.$streamId&guest_user_id=eq.$guestUserId"
-            val token = SupabaseClient.currentToken ?: return Result.failure(Exception("No token"))
-            val body = JSONObject().apply {
-                put("status", "ACCEPTED")
-                put("joined_at", java.time.Instant.now().toString())
-            }.toString().toRequestBody(jsonMediaType)
+        return withContext(Dispatchers.IO) {
+            try {
+                val url = "${SupabaseClient.supabaseUrl}/rest/v1/live_guests?stream_id=eq.$streamId&guest_user_id=eq.$guestUserId"
+                val token = SupabaseClient.currentToken ?: return@withContext Result.failure(Exception("No token"))
+                val body = JSONObject().apply {
+                    put("status", "ACCEPTED")
+                    put("joined_at", java.time.Instant.now().toString())
+                }.toString().toRequestBody(jsonMediaType)
 
-            val request = Request.Builder()
-                .url(url)
-                .patch(body)
-                .header("apikey", SupabaseClient.supabaseAnonKey)
-                .header("Authorization", "Bearer $token")
-                .header("Content-Type", "application/json")
-                .header("Prefer", "return=minimal")
-                .build()
+                val request = Request.Builder()
+                    .url(url)
+                    .patch(body)
+                    .header("apikey", SupabaseClient.supabaseAnonKey)
+                    .header("Authorization", "Bearer $token")
+                    .header("Content-Type", "application/json")
+                    .header("Prefer", "return=minimal")
+                    .build()
 
-            client.newCall(request).execute().use { response ->
-                if (response.isSuccessful) Result.success(Unit)
-                else Result.failure(Exception("Error accepting invitation: ${response.code}"))
+                client.newCall(request).execute().use { response ->
+                    if (response.isSuccessful) Result.success(Unit)
+                    else Result.failure(Exception("Error accepting invitation: ${response.code}"))
+                }
+            } catch (e: Exception) {
+                Result.failure(e)
             }
-        } catch (e: Exception) {
-            Result.failure(e)
         }
     }
 
     override suspend fun rejectInvitation(streamId: String, guestUserId: String): Result<Unit> {
-        return try {
-            val url = "${SupabaseClient.supabaseUrl}/rest/v1/live_guests?stream_id=eq.$streamId&guest_user_id=eq.$guestUserId"
-            val token = SupabaseClient.currentToken ?: return Result.failure(Exception("No token"))
-            val body = JSONObject().put("status", "REJECTED").toString().toRequestBody(jsonMediaType)
+        return withContext(Dispatchers.IO) {
+            try {
+                val url = "${SupabaseClient.supabaseUrl}/rest/v1/live_guests?stream_id=eq.$streamId&guest_user_id=eq.$guestUserId"
+                val token = SupabaseClient.currentToken ?: return@withContext Result.failure(Exception("No token"))
+                val body = JSONObject().put("status", "REJECTED").toString().toRequestBody(jsonMediaType)
 
-            val request = Request.Builder()
-                .url(url)
-                .patch(body)
-                .header("apikey", SupabaseClient.supabaseAnonKey)
-                .header("Authorization", "Bearer $token")
-                .header("Content-Type", "application/json")
-                .header("Prefer", "return=minimal")
-                .build()
+                val request = Request.Builder()
+                    .url(url)
+                    .patch(body)
+                    .header("apikey", SupabaseClient.supabaseAnonKey)
+                    .header("Authorization", "Bearer $token")
+                    .header("Content-Type", "application/json")
+                    .header("Prefer", "return=minimal")
+                    .build()
 
-            client.newCall(request).execute().use { response ->
-                if (response.isSuccessful) Result.success(Unit)
-                else Result.failure(Exception("Error rejecting invitation: ${response.code}"))
+                client.newCall(request).execute().use { response ->
+                    if (response.isSuccessful) Result.success(Unit)
+                    else Result.failure(Exception("Error rejecting invitation: ${response.code}"))
+                }
+            } catch (e: Exception) {
+                Result.failure(e)
             }
-        } catch (e: Exception) {
-            Result.failure(e)
         }
     }
 
     override suspend fun removeGuest(streamId: String, guestUserId: String): Result<Unit> {
-        return try {
-            val url = "${SupabaseClient.supabaseUrl}/rest/v1/live_guests?stream_id=eq.$streamId&guest_user_id=eq.$guestUserId"
-            val token = SupabaseClient.currentToken ?: return Result.failure(Exception("No token"))
-            val body = JSONObject().put("status", "REMOVED").toString().toRequestBody(jsonMediaType)
+        return withContext(Dispatchers.IO) {
+            try {
+                val url = "${SupabaseClient.supabaseUrl}/rest/v1/live_guests?stream_id=eq.$streamId&guest_user_id=eq.$guestUserId"
+                val token = SupabaseClient.currentToken ?: return@withContext Result.failure(Exception("No token"))
+                val body = JSONObject().put("status", "REMOVED").toString().toRequestBody(jsonMediaType)
 
-            val request = Request.Builder()
-                .url(url)
-                .patch(body)
-                .header("apikey", SupabaseClient.supabaseAnonKey)
-                .header("Authorization", "Bearer $token")
-                .header("Content-Type", "application/json")
-                .header("Prefer", "return=minimal")
-                .build()
+                val request = Request.Builder()
+                    .url(url)
+                    .patch(body)
+                    .header("apikey", SupabaseClient.supabaseAnonKey)
+                    .header("Authorization", "Bearer $token")
+                    .header("Content-Type", "application/json")
+                    .header("Prefer", "return=minimal")
+                    .build()
 
-            client.newCall(request).execute().use { response ->
-                if (response.isSuccessful) Result.success(Unit)
-                else Result.failure(Exception("Error removing guest: ${response.code}"))
+                client.newCall(request).execute().use { response ->
+                    if (response.isSuccessful) Result.success(Unit)
+                    else Result.failure(Exception("Error removing guest: ${response.code}"))
+                }
+            } catch (e: Exception) {
+                Result.failure(e)
             }
-        } catch (e: Exception) {
-            Result.failure(e)
         }
     }
 
     override suspend fun getGuests(streamId: String): Result<List<LiveGuest>> {
-        return try {
-            val url = "${SupabaseClient.supabaseUrl}/rest/v1/live_guests?stream_id=eq.$streamId"
-            val token = SupabaseClient.currentToken ?: return Result.failure(Exception("No token"))
+        return withContext(Dispatchers.IO) {
+            try {
+                val url = "${SupabaseClient.supabaseUrl}/rest/v1/live_guests?stream_id=eq.$streamId"
+                val token = SupabaseClient.currentToken ?: return@withContext Result.failure(Exception("No token"))
 
-            val request = Request.Builder()
-                .url(url)
-                .get()
-                .header("apikey", SupabaseClient.supabaseAnonKey)
-                .header("Authorization", "Bearer $token")
-                .build()
+                val request = Request.Builder()
+                    .url(url)
+                    .get()
+                    .header("apikey", SupabaseClient.supabaseAnonKey)
+                    .header("Authorization", "Bearer $token")
+                    .build()
 
-            client.newCall(request).execute().use { response ->
-                val responseBody = response.body?.string() ?: ""
-                if (response.isSuccessful && responseBody.isNotBlank()) {
-                    val adapter = moshi.adapter<List<LiveGuest>>(Types.newParameterizedType(List::class.java, LiveGuest::class.java))
-                    val list = adapter.fromJson(responseBody) ?: emptyList()
-                    Result.success(list)
-                } else {
-                    Result.success(emptyList())
+                client.newCall(request).execute().use { response ->
+                    val responseBody = response.body?.string() ?: ""
+                    if (response.isSuccessful && responseBody.isNotBlank()) {
+                        val adapter = moshi.adapter<List<LiveGuest>>(Types.newParameterizedType(List::class.java, LiveGuest::class.java))
+                        val list = adapter.fromJson(responseBody) ?: emptyList()
+                        Result.success(list)
+                    } else {
+                        Result.success(emptyList())
+                    }
                 }
+            } catch (e: Exception) {
+                Result.failure(e)
             }
-        } catch (e: Exception) {
-            Result.failure(e)
         }
     }
 

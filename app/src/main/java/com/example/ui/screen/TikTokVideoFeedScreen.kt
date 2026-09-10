@@ -42,6 +42,7 @@ import androidx.compose.material.icons.automirrored.rounded.VolumeUp
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.runtime.collectAsState
+import androidx.compose.runtime.produceState
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
@@ -110,6 +111,16 @@ import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.example.util.NetworkMonitor
 import com.example.ui.components.PanaAvatar
 import com.example.ui.components.OfflineEmptyView
+
+// Async thumbnail URL resolution: resolveMediaUrlSync can perform VCDN BFF I/O (runBlocking),
+// which must never block Main/UI during compose. produceState runs the resolution in a coroutine.
+@Composable
+private fun resolvedThumbnailUrl(rawUrl: String?): String {
+    val state by produceState(initialValue = rawUrl ?: "") {
+        value = com.example.data.repository.CdnManager.resolveMediaUrl(rawUrl)
+    }
+    return state
+}
 
 private fun performHaptic(context: Context) {
     val vib = if (android.os.Build.VERSION.SDK_INT >= android.os.Build.VERSION_CODES.S) {
@@ -297,7 +308,7 @@ fun TikTokVideoFeedScreen(
                                     }
                             ) {
                                 AsyncImage(
-                                    model = com.example.data.repository.CdnManager.resolveMediaUrlSync(item.state.mediaUrl),
+                                    model = resolvedThumbnailUrl(item.state.mediaUrl),
                                     contentDescription = "Miniatura de reel de ${item.profile?.displayName ?: "usuario"}",
                                     modifier = Modifier.fillMaxSize(),
                                     contentScale = ContentScale.Crop
@@ -1424,15 +1435,21 @@ fun TikTokPageItem(
                 tint = Color.White,
                 contentDescription = "Compartir",
                 onClick = {
-                    val shareText = "Mira este reel de pana en Panalink: ${metadata.baseCaption} - ${com.example.data.repository.CdnManager.resolveMediaUrlSync(state.mediaUrl) ?: ""}"
-                    val sendIntent = android.content.Intent().apply {
-                        action = android.content.Intent.ACTION_SEND
-                        putExtra(android.content.Intent.EXTRA_TEXT, shareText)
-                        type = "text/plain"
+                    // Resolve on IO to avoid blocking Main with VCDN BFF I/O
+                    scope.launch(Dispatchers.IO) {
+                        val resolvedUrl = com.example.data.repository.CdnManager.resolveMediaUrl(state.mediaUrl)
+                        val shareText = "Mira este reel de pana en Panalink: ${metadata.baseCaption} - ${resolvedUrl ?: ""}"
+                        kotlinx.coroutines.withContext(Dispatchers.Main) {
+                            val sendIntent = android.content.Intent().apply {
+                                action = android.content.Intent.ACTION_SEND
+                                putExtra(android.content.Intent.EXTRA_TEXT, shareText)
+                                type = "text/plain"
+                            }
+                            val shareIntent = android.content.Intent.createChooser(sendIntent, "Compartir Reel de pana 🇻🇪")
+                            context.startActivity(shareIntent)
+                            onShareClick()
+                        }
                     }
-                    val shareIntent = android.content.Intent.createChooser(sendIntent, "Compartir Reel de pana 🇻🇪")
-                    context.startActivity(shareIntent)
-                    onShareClick()
                 }
             )
 
@@ -1463,8 +1480,14 @@ fun TikTokPageItem(
                     DropdownMenuItem(
                         text = { Text("Descargar vídeo", color = Color.White, fontSize = 14.sp) },
                         onClick = {
-                            downloadVideo(context, com.example.data.repository.CdnManager.resolveMediaUrlSync(state.mediaUrl) ?: "", state.caption ?: "Vídeo de Panalink")
-                            showActionMoreMenu = false
+                            // Resolve on IO to avoid blocking Main with VCDN BFF I/O
+                            scope.launch(Dispatchers.IO) {
+                                val resolved = com.example.data.repository.CdnManager.resolveMediaUrl(state.mediaUrl)
+                                kotlinx.coroutines.withContext(Dispatchers.Main) {
+                                    downloadVideo(context, resolved ?: "", state.caption ?: "Vídeo de Panalink")
+                                    showActionMoreMenu = false
+                                }
+                            }
                         }
                     )
                     DropdownMenuItem(
