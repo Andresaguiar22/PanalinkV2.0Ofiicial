@@ -81,10 +81,10 @@ object CacheDataSourceFactory {
 
     /**
      * Pre-fetches video data into the shared SimpleCache in the background.
-     * M1 fix: increased from fixed 5MB to adaptive prefetch (20MB or 25% of
-     * content length, whichever is smaller). This ensures seeks within the
-     * first portion of the video have cached data, reducing re-buffering
-     * and black-screen time during seeks.
+     *
+     * Single-pass design: opens the DataSource exactly once to read the first
+     * [maxBytes] of the stream. No separate probe/probeContentLength step,
+     * eliminating redundant HTTP round-trips on HLS/CDN media.
      */
     fun prefetchVideo(context: Context, url: String?, maxBytes: Long = 20L * 1024L * 1024L) {
         if (url.isNullOrBlank() || !url.startsWith("http")) return
@@ -100,26 +100,19 @@ object CacheDataSourceFactory {
         val appCtx = context.applicationContext
         CoroutineScope(Dispatchers.IO).launch {
             prefetchSemaphore.withPermit {
+                var dataSource: DataSource? = null
                 try {
-                    val dataSource = getCacheDataSourceFactory(appCtx).createDataSource()
-                    // M1 fix: probe content length first to pick an adaptive range.
-                    // For HLS (.m3u8) prefetch the manifest and first few segments.
-                    val probedLength = probeContentLength(url, appCtx)
-                    val effectiveBytes = when {
-                        probedLength > 0 -> minOf(maxBytes, probedLength / 4)
-                        else -> maxBytes
-                    }
-                    val prefetchBytes = effectiveBytes.coerceAtLeast(5L * 1024L * 1024L)
-                    val dataSpec = DataSpec(Uri.parse(url), 0, prefetchBytes)
-                    val buffer = ByteArray(65536) // Larger buffer for faster copy
+                    dataSource = getCacheDataSourceFactory(appCtx).createDataSource()
+                    val dataSpec = DataSpec(Uri.parse(url), 0, maxBytes)
+                    val buffer = ByteArray(65536) // 64KB buffer para faster copy
 
-                    Log.d(TAG, "Adaptive pre-fetching (${prefetchBytes / 1024 / 1024}MB of $url)")
+                    Log.d(TAG, "Pre-fetching up to ${maxBytes / 1024 / 1024}MB of $url")
                     var bytesRead = 0L
                     var reachedEnd = false
                     try {
-                        dataSource.open(dataSpec)
-                        while (bytesRead < prefetchBytes) {
-                            val read = dataSource.read(buffer, 0, buffer.size)
+                        dataSource!!.open(dataSpec)
+                        while (bytesRead < maxBytes) {
+                            val read = dataSource!!.read(buffer, 0, buffer.size)
                             if (read == -1) {
                                 reachedEnd = true
                                 break
@@ -127,9 +120,9 @@ object CacheDataSourceFactory {
                             bytesRead += read
                         }
                     } finally {
-                        dataSource.close()
+                        dataSource?.close()
                     }
-                    if (bytesRead >= prefetchBytes || reachedEnd) {
+                    if (bytesRead >= maxBytes || reachedEnd) {
                         prefetchCompleted[url] = System.currentTimeMillis()
                         Log.d(TAG, "Pre-fetched ${bytesRead / 1024} KB for video: $url")
                     }
@@ -139,19 +132,6 @@ object CacheDataSourceFactory {
                     prefetchInFlight.remove(url)
                 }
             }
-        }
-    }
-
-    /** Probes the content length via a lightweight HTTP HEAD request. */
-    private fun probeContentLength(url: String, context: Context): Long {
-        return try {
-            val factory = getCacheDataSourceFactory(context).createDataSource()
-            val spec = DataSpec(Uri.parse(url))
-            val length = factory.open(spec)
-            factory.close()
-            length
-        } catch (e: Exception) {
-            -1L
         }
     }
 }

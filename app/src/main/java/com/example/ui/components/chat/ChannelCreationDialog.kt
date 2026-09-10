@@ -22,7 +22,9 @@ import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.example.data.supabase.SupabaseClient
+import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
+import kotlinx.coroutines.withContext
 import com.example.data.repository.UploadRepository
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.activity.compose.rememberLauncherForActivityResult
@@ -142,80 +144,106 @@ fun CreateChannelDialog(
                             var isUploadingAvatar by remember { mutableStateOf(false) }
 
                             val coverPicker = rememberLauncherForActivityResult(ActivityResultContracts.PickVisualMedia()) { uri ->
-                                if (uri != null) {
-                                    coroutineScope.launch {
-                                        isUploadingCover = true
-                                        try {
-                                            val bytes = context.contentResolver.openInputStream(uri)?.readBytes()
-                                            if (bytes != null) {
-                                                val mime = context.contentResolver.getType(uri) ?: "image/jpeg"
-                                                val uid = SupabaseClient.currentUser?.id ?: ""
-                                                // Supabase Storage primero (fuente de verdad), CDN como respaldo.
-                                                val tempFile = java.io.File.createTempFile("channel_cover_", ".img", context.cacheDir)
-                                                tempFile.writeBytes(bytes)
-                                                val storageUrl = com.example.data.repository.SupabaseStorageRepository().uploadChannelMedia(tempFile, uid, mime, isCover = true)
-                                                tempFile.delete()
-                                                if (storageUrl != null) {
-                                                    coverUrl = storageUrl
-                                                } else {
-                                                    val result = com.example.data.repository.UploadRepository().uploadVideo(
-                                                        mediaBytes = bytes,
-                                                        mediaMimeType = mime,
-                                                        caption = "cover",
-                                                        userId = uid,
-                                                        fileNamePrefix = "channel_cover"
-                                                    )
-                                                    if (result.isSuccess) {
-                                                        coverUrl = result.getOrNull()?.url ?: ""
-                                                    } else {
-                                                        android.widget.Toast.makeText(context, "Error al subir portada", android.widget.Toast.LENGTH_SHORT).show()
+                                    if (uri != null) {
+                                        coroutineScope.launch {
+                                            isUploadingCover = true
+                                            try {
+                                                // Move all I/O (readBytes, writeBytes, upload) to Dispatchers.IO
+                                                // to avoid blocking the Compose/Main thread
+                                                val result = withContext(Dispatchers.IO) {
+                                                    val bytes = context.contentResolver.openInputStream(uri)?.readBytes()
+                                                    bytes?.let {
+                                                        val mime = context.contentResolver.getType(uri) ?: "image/jpeg"
+                                                        val uid = SupabaseClient.currentUser?.id ?: ""
+                                                        // Supabase Storage primero (fuente de verdad), CDN como respaldo.
+                                                        val tempFile = java.io.File.createTempFile("channel_cover_", ".img", context.cacheDir)
+                                                        try {
+                                                            tempFile.writeBytes(bytes)
+                                                            val storageUrl = com.example.data.repository.SupabaseStorageRepository().uploadChannelMedia(tempFile, uid, mime, isCover = true)
+                                                            if (storageUrl != null) {
+                                                                storageUrl
+                                                            } else {
+                                                                val uploadResult = com.example.data.repository.UploadRepository().uploadVideo(
+                                                                    mediaBytes = bytes,
+                                                                    mediaMimeType = mime,
+                                                                    caption = "cover",
+                                                                    userId = uid,
+                                                                    fileNamePrefix = "channel_cover"
+                                                                )
+                                                                if (uploadResult.isSuccess) {
+                                                                    uploadResult.getOrNull()?.url ?: ""
+                                                                } else {
+                                                                    null
+                                                                }
+                                                            }
+                                                        } finally {
+                                                            tempFile.delete()
+                                                        }
                                                     }
                                                 }
+                                                // Back on Main: update state
+                                                if (result != null) {
+                                                    coverUrl = result
+                                                } else {
+                                                    android.widget.Toast.makeText(context, "Error al subir portada", android.widget.Toast.LENGTH_SHORT).show()
+                                                }
+                                            } finally {
+                                                isUploadingCover = false
                                             }
-                                        } finally {
-                                            isUploadingCover = false
                                         }
                                     }
                                 }
-                            }
 
                             val avatarPicker = rememberLauncherForActivityResult(ActivityResultContracts.PickVisualMedia()) { uri ->
-                                if (uri != null) {
-                                    coroutineScope.launch {
-                                        isUploadingAvatar = true
-                                        try {
-                                            val bytes = context.contentResolver.openInputStream(uri)?.readBytes()
-                                            if (bytes != null) {
-                                                val mime = context.contentResolver.getType(uri) ?: "image/jpeg"
-                                                val uid = SupabaseClient.currentUser?.id ?: ""
-                                                // Supabase Storage primero (fuente de verdad), CDN como respaldo.
-                                                val tempFile = java.io.File.createTempFile("channel_avatar_", ".img", context.cacheDir)
-                                                tempFile.writeBytes(bytes)
-                                                val storageUrl = com.example.data.repository.SupabaseStorageRepository().uploadChannelMedia(tempFile, uid, mime, isCover = false)
-                                                tempFile.delete()
-                                                if (storageUrl != null) {
-                                                    avatarUrl = storageUrl
-                                                } else {
-                                                    val result = com.example.data.repository.UploadRepository().uploadVideo(
-                                                        mediaBytes = bytes,
-                                                        mediaMimeType = mime,
-                                                        caption = "avatar",
-                                                        userId = uid,
-                                                        fileNamePrefix = "channel_avatar"
-                                                    )
-                                                    if (result.isSuccess) {
-                                                        avatarUrl = result.getOrNull()?.url ?: ""
-                                                    } else {
-                                                        android.widget.Toast.makeText(context, "Error al subir avatar", android.widget.Toast.LENGTH_SHORT).show()
+                                    if (uri != null) {
+                                        coroutineScope.launch {
+                                            isUploadingAvatar = true
+                                            try {
+                                                // Move all I/O (readBytes, writeBytes, upload) to Dispatchers.IO
+                                                // to avoid blocking the Compose/Main thread
+                                                val result = withContext(Dispatchers.IO) {
+                                                    val bytes = context.contentResolver.openInputStream(uri)?.readBytes()
+                                                    bytes?.let {
+                                                        val mime = context.contentResolver.getType(uri) ?: "image/jpeg"
+                                                        val uid = SupabaseClient.currentUser?.id ?: ""
+                                                        // Supabase Storage primero (fuente de verdad), CDN como respaldo.
+                                                        val tempFile = java.io.File.createTempFile("channel_avatar_", ".img", context.cacheDir)
+                                                        try {
+                                                            tempFile.writeBytes(bytes)
+                                                            val storageUrl = com.example.data.repository.SupabaseStorageRepository().uploadChannelMedia(tempFile, uid, mime, isCover = false)
+                                                            if (storageUrl != null) {
+                                                                storageUrl
+                                                            } else {
+                                                                val uploadResult = com.example.data.repository.UploadRepository().uploadVideo(
+                                                                    mediaBytes = bytes,
+                                                                    mediaMimeType = mime,
+                                                                    caption = "avatar",
+                                                                    userId = uid,
+                                                                    fileNamePrefix = "channel_avatar"
+                                                                )
+                                                                if (uploadResult.isSuccess) {
+                                                                    uploadResult.getOrNull()?.url ?: ""
+                                                                } else {
+                                                                    null
+                                                                }
+                                                            }
+                                                        } finally {
+                                                            tempFile.delete()
+                                                        }
                                                     }
                                                 }
+                                                // Back on Main: update state
+                                                if (result != null) {
+                                                    avatarUrl = result
+                                                } else {
+                                                    android.widget.Toast.makeText(context, "Error al subir avatar", android.widget.Toast.LENGTH_SHORT).show()
+                                                }
+                                            } finally {
+                                                isUploadingAvatar = false
                                             }
-                                        } finally {
-                                            isUploadingAvatar = false
                                         }
                                     }
                                 }
-                            }
 
                             // Portada Preview
                             Box(

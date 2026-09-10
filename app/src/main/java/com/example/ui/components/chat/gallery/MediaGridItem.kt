@@ -10,6 +10,8 @@ import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.produceState
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
@@ -21,6 +23,8 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import coil.compose.AsyncImage
 import com.example.data.repository.CdnManager
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.withContext
 
 @Composable
 fun MediaGridItem(
@@ -28,7 +32,14 @@ fun MediaGridItem(
     onClick: () -> Unit,
     modifier: Modifier = Modifier
 ) {
-    val resolvedUrl = CdnManager.resolveMediaUrlSync(item.thumbnailUrl ?: item.url)
+    // Async resolution: resolveMediaUrlSync can perform VCDN BFF I/O (runBlocking),
+    // so resolve on IO dispatcher to never block Compose/Main thread.
+    val rawUrl = item.thumbnailUrl ?: item.url
+    val resolvedUrl by produceState(rawUrl) {
+        value = withContext(Dispatchers.IO) {
+            CdnManager.resolveMediaUrl(rawUrl)
+        }
+    }
 
     Box(
         modifier = modifier

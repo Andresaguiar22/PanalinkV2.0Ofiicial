@@ -88,7 +88,10 @@ import com.example.util.AudioPlayer
 import com.example.ui.theme.LocalAppColors
 import kotlinx.serialization.json.Json
 import kotlinx.serialization.serializer
+import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
+import kotlinx.coroutines.withContext
+import androidx.compose.runtime.produceState
 import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalConfiguration
@@ -526,7 +529,11 @@ fun MessageBubbleEngine(
                                 } else {
                                     rawAudioUrl
                                 }
-                                val resolvedAudioUrl = CdnManager.resolveMediaUrlSync(cleanAudioUrl)
+                                val resolvedAudioUrl by produceState(cleanAudioUrl) {
+                                    value = withContext(Dispatchers.IO) {
+                                        CdnManager.resolveMediaUrl(cleanAudioUrl) ?: ""
+                                    }
+                                }
                                 val isPlaying = playingAudioUrl == resolvedAudioUrl && isAudioPlaying && resolvedAudioUrl.isNotBlank()
                                 val currentProgress = if (playingAudioUrl == resolvedAudioUrl) audioProgress else 0f
                                 val durationParam = message.duration?.toInt() ?: if (rawAudioUrl.contains("?duration=")) {

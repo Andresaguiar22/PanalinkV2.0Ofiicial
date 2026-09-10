@@ -2,6 +2,7 @@ package com.example.data.repository
 
 import android.net.Uri
 import android.util.Log
+import kotlinx.coroutines.CompletableDeferred
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.runBlocking
 import kotlinx.coroutines.sync.Mutex
@@ -49,7 +50,12 @@ object VcdnUrlResolver {
     private data class FreshUrl(val url: String, val posterUrl: String?, val expiresAt: Long)
 
     private val cache = ConcurrentHashMap<String, FreshUrl>()
-    private val mutex = Mutex()
+    /** Mutex solo protege la manipulación del mapa cache y notFoundUntil (operaciones rápidas de memoria). */
+    private val cacheMutex = Mutex()
+    /** Deduplicación por videoId: si un fetch de BFF ya está en vuelo para un videoId,
+     *  las coroutines concurrentes esperan el mismo resultado en lugar de lanzar
+     *  múltiples requests. Diferente de un mutex global: videos distintos se resuelven en paralelo. */
+    private val inFlightFetches = ConcurrentHashMap<String, CompletableDeferred<FetchResult?>>()
 
     fun isVcdnUrl(url: String?): Boolean {
         val raw = url?.trim().orEmpty()
@@ -85,48 +91,83 @@ object VcdnUrlResolver {
         val raw = originalUrl?.trim().orEmpty()
         if (!isVcdnUrl(raw)) return@withContext raw
         val videoId = videoIdOf(raw) ?: return@withContext raw
-        mutex.withLock {
-            val now = System.currentTimeMillis()
-            cache[videoId]?.let { cached ->
-                if (cached.expiresAt > now) return@withContext cached.url
-            }
-            // Offline: no hay red que consultar al BFF. Servir la URL firme en
-            // caché si sigue válida; si no, fallar rapidísimo sin quemar timeouts.
+        val now = System.currentTimeMillis()
 
-            if (!com.example.util.NetworkMonitor.isOnline.value) {
-                Log.d(TAG, "Offline: skipping vcdn:// resolution for $videoId")
-                return@withContext null
-            }
-            if (notFoundUntil[videoId]?.let { it > now } == true) {
-                Log.d(TAG, "video $videoId in negative cache (not_found); skipping")
-                return@withContext null
-            }
-            try {
-                val fetchResult = fetchConfig(videoId)
-                val fresh = if (fetchResult?.notFound == true) {
-                        notFoundUntil[videoId] = now + NOT_FOUND_COOLDOWN_MS
-                        Log.w(TAG, "resolve failed for $videoId (not found); null")
-                        null
-                    } else {
-                        fetchResult?.fresh
-                    }
-                if (fresh == null) {
-                    // Transient failure: try a stale cached URL (último ok ≤24h) o null.
-                    cache[videoId]?.let { stale ->
-                        if (stale.expiresAt > now - 24L * 60L * 60L * 1000L) return@withContext stale.url
-                    }
-                    return@withContext null
-                }
-                cache[videoId] = fresh
-                fresh.url
+        // 1. Cache hit (in-memory, instant)
+        cache[videoId]?.let { cached ->
+            if (cached.expiresAt > now) return@withContext cached.url
+        }
+
+        // Offline: skip network entirely
+        if (!com.example.util.NetworkMonitor.isOnline.value) {
+            Log.d(TAG, "Offline: skipping vcdn:// resolution for $videoId")
+            return@withContext null
+        }
+
+        // Negative cache
+        if (notFoundUntil[videoId]?.let { it > now } == true) {
+            Log.d(TAG, "video $videoId in negative cache (not_found); skipping")
+            return@withContext null
+        }
+
+        // 2. Deduplicación por videoId: evitar múltiples fetches concurrentes del mismo video
+        val existingDeferred = inFlightFetches[videoId]
+        if (existingDeferred != null) {
+            // Esperar al resultado del fetch en vuelo para este mismo videoId
+            val result = existingDeferred.await()
+            // El resultado se procesa igual que el fetch propio
+            return@withContext processFetchResult(videoId, result, now)
+        }
+
+        // 3. Registrar fetch en vuelo y ejecutar BFF call (NO bajo mutex global)
+        val deferred = CompletableDeferred<FetchResult?>()
+        val previous = inFlightFetches.putIfAbsent(videoId, deferred)
+        if (previous != null) {
+            // Otro coroutine ganó la carrera: esperar su resultado
+            val result = previous.await()
+            return@withContext processFetchResult(videoId, result, now)
+        }
+
+        var fetchResult: FetchResult? = null
+        try {
+            fetchResult = try {
+                fetchConfig(videoId)
             } catch (e: Exception) {
                 Log.w(TAG, "resolve failed for $videoId; trying stale cache", e)
-                cache[videoId]?.let { stale ->
-                    if (stale.expiresAt > now - 24L * 60L * 60L * 1000L) return@withContext stale.url
-                }
                 null
             }
+            // Resolver para esta coroutine
+            processFetchResult(videoId, fetchResult, now)
+        } finally {
+            // Limpiar el estado in-flight siempre, incluso si falla
+            inFlightFetches.remove(videoId)
+            if (!deferred.isCompleted) {
+                deferred.complete(fetchResult)
+            }
         }
+    }
+
+    /** Procesa el resultado del fetch, aplicando negative cache y stale fallback. */
+    private suspend fun processFetchResult(videoId: String, fetchResult: FetchResult?, now: Long): String? {
+        val fresh = if (fetchResult?.notFound == true) {
+            cacheMutex.withLock {
+                notFoundUntil[videoId] = now + NOT_FOUND_COOLDOWN_MS
+            }
+            Log.w(TAG, "resolve failed for $videoId (not found); null")
+            null
+        } else {
+            fetchResult?.fresh
+        }
+        if (fresh == null) {
+            cache[videoId]?.let { stale ->
+                if (stale.expiresAt > now - 24L * 60L * 60L * 1000L) return stale.url
+            }
+            return null
+        }
+        cacheMutex.withLock {
+            cache[videoId] = fresh
+        }
+        return fresh.url
     }
 
     /** True when an VCDN pointer can currently be resolved to a real HTTP URL. */
@@ -140,7 +181,7 @@ object VcdnUrlResolver {
     private suspend fun fetchConfig(videoId: String): FetchResult? {
         // VCDN BFF rejects requests that don't look like a real browser (403 Forbidden
         // with plain OkHttp UA). Send browser-like headers: the streamUrl minted
-        // by this endpoint is public/signed per-video and expires,, so no secrets leak.
+        // by this endpoint is public/signed per-video and expires, so no secrets leak.
 
         val request = Request.Builder()
             .url("$BFF_BASE/api/bff/player-config/${Uri.encode(videoId)}")
@@ -183,7 +224,7 @@ object VcdnUrlResolver {
             val fetchResult = fetchConfig(videoId)
             val fresh = fetchResult?.fresh
             if (fresh != null && fetchResult?.notFound != true) {
-                mutex.withLock { cache[videoId] = fresh }
+                cacheMutex.withLock { cache[videoId] = fresh }
                 return@withContext fresh.posterUrl
             }
             null

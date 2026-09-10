@@ -41,7 +41,9 @@ import androidx.media3.exoplayer.ExoPlayer
 import androidx.media3.ui.PlayerView
 import coil.compose.AsyncImage
 import com.example.data.repository.CdnManager
+import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.delay
+import kotlinx.coroutines.withContext
 
 /**
  * Visor a Pantalla Completa para Fotos y Videos en el Chat.
@@ -72,7 +74,13 @@ fun FullScreenMediaViewer(
                 .fillMaxSize()
                 .background(Color.Black)
         ) {
-            val resolvedMediaUrl = CdnManager.resolveMediaUrlSync(mediaUrl)
+            // Async resolution: resolveMediaUrlSync can perform VCDN BFF I/O (runBlocking),
+            // so resolve on IO dispatcher to never block Compose/Main thread.
+            val resolvedMediaUrl by produceState(mediaUrl) {
+                value = withContext(Dispatchers.IO) {
+                    CdnManager.resolveMediaUrl(mediaUrl)
+                }
+            }
             if (isVideo) {
                 VideoViewerContent(
                     videoUrl = resolvedMediaUrl,

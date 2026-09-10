@@ -151,6 +151,8 @@ fun TikTokVideoFeedScreen(
 
     val context = LocalContext.current
     val dualManager = remember { ReelDualPlayerManager(context) }
+    // Cooldown para evitar duplicación de I/O entre dual-manager prep y byte prefetch
+    val lastPrefetchTime = remember { mutableMapOf<String, Long>() }
     val activity = context as? android.app.Activity
     val coroutineScope = rememberCoroutineScope()
     DisposableEffect(isActive) {
@@ -344,10 +346,17 @@ fun TikTokVideoFeedScreen(
                     val nextIndex = currentIndex + 1
                     if (nextIndex >= 0 && nextIndex < videoStates.size) {
                         val nextState = videoStates[nextIndex].state
-                        // Si el siguiente video ya está preparado en un slot del dual-manager
-                        // (window de preload), NO competir I/O con bytes extra: prioriza
-                        // siempre el vídeo actualmente visible.
-                        if (dualManager.slotFor(nextState.id) != null) return@LaunchedEffect
+                        val nextId = nextState.id
+                        // PLAYER ACTIVO > PLAYER PRELOAD > BYTE PREFETCH:
+                        // Si el siguiente video ya está preparado en un slot del dual-manager (window de preload),
+                        // o está en la cola de preloads pendientes, NO competir I/O con bytes extra.
+                        if (dualManager.slotFor(nextId) != null) return@LaunchedEffect
+                        // El dual-manager no expone pendingPreloads; si ya está resolviéndose en otro
+                        // LaunchedEffect para player prep, skip byte prefetch. Usar un cooldown simple.
+                        val now = System.currentTimeMillis()
+                        val lastPrefetch = lastPrefetchTime[nextId] ?: 0L
+                        if (now - lastPrefetch < 800L) return@LaunchedEffect // 800ms cooldown evita duplicación con dual-manager prep
+                        lastPrefetchTime[nextId] = now
                         val raw = nextState.mediaUrl
                         val url =withContext(Dispatchers.IO) { com.example.data.repository.CdnManager.resolveMediaUrl(raw) }
                         if (!url.isNullOrEmpty() && url.startsWith("http")) {
@@ -923,66 +932,68 @@ fun TikTokPageItem(
     // El feed remoto puede re-emitir la fila con mediaUrl distinta (re-anclaje CDN,
     // URL firmada expirada, refresco de red). Resolver/player solo dependen
     // del puntero estable (vcdn_video_id o copia local): así la reproducción en
-    // curso jamás se reinicia por un mediaUrl rotatorio..
+    // curso jamás se reinicia por un mediaUrl rotatorio.
     val stableMediaUrl = remember(state.id, state.vcdnVideoId, state.localVideoPath, state.mediaUrl) {
         val local = state.localVideoPath?.takeIf { it.isNotBlank() && java.io.File(it).exists() }
         if (local != null) local
         else if (!state.vcdnVideoId.isNullOrBlank()) "vcdn://${state.vcdnVideoId}"
         else state.mediaUrl
     }
-    LaunchedEffect(state.id, stableMediaUrl) {
-        // La resolución vcdn:// puede requerir red (timeouts largos); nunca bloquear
-        // el hilo principal buscando metadata de rotación de un reel..
-        val url = withContext(kotlinx.coroutines.Dispatchers.IO){
-            com.example.data.repository.CdnManager.resolveMediaUrl(stableMediaUrl)
-        } ?: return@LaunchedEffect
-        if (url.isEmpty() || !url.startsWith("http")) return@LaunchedEffect
 
-        // Cached rotation lookup avoids a network metadata fetch on every page
-        // re-composition during fast swipes.
-        val cachedRotation = com.example.core.media.VideoMetadataCache.getRotation(url)
+    // Cached rotation lookup avoids a network metadata fetch on every page
+    // re-composition during fast swipes. Cache key is stableMediaUrl (vcdn_video_id
+    // or local path) so it works even before HTTP resolution completes.
+    val cachedRotation = com.example.core.media.VideoMetadataCache.getRotation(stableMediaUrl ?: "")
+    LaunchedEffect(cachedRotation, stableMediaUrl) {
         if (cachedRotation != null) {
             if (cachedRotation != 0f) forceRotationDegrees = cachedRotation
-            return@LaunchedEffect
-        }
+        } else if (isActivePage && !isPreload && stableMediaUrl != null) {
+            // Metadata remota: secundaria y NO bloquear para preload.
+            // Sólo para páginas activas donde el player necesita rotación correcta.
+            val url = withContext(kotlinx.coroutines.Dispatchers.IO){
+                com.example.data.repository.CdnManager.resolveMediaUrl(stableMediaUrl)
+            } ?: return@LaunchedEffect
+            if (url.isEmpty() || !url.startsWith("http")) return@LaunchedEffect
 
-        withContext(Dispatchers.IO) {
-            var retriever: android.media.MediaMetadataRetriever? = null
-            try {
-                retriever = android.media.MediaMetadataRetriever()
-                retriever.setDataSource(url, HashMap<String, String>())
-                val rotationStr = retriever.extractMetadata(android.media.MediaMetadataRetriever.METADATA_KEY_VIDEO_ROTATION)
-                val widthStr = retriever.extractMetadata(android.media.MediaMetadataRetriever.METADATA_KEY_VIDEO_WIDTH)
-                val heightStr = retriever.extractMetadata(android.media.MediaMetadataRetriever.METADATA_KEY_VIDEO_HEIGHT)
-
-                val rotation = rotationStr?.toIntOrNull() ?: 0
-                val width = widthStr?.toIntOrNull() ?: 0
-                val height = heightStr?.toIntOrNull() ?: 0
-
-                val neededRotation = if (width > height && (rotation == 0 || rotation == 180)) 90f else 0f
-                com.example.core.media.VideoMetadataCache.putRotation(url, neededRotation)
-                if (neededRotation != 0f) {
-                    withContext(Dispatchers.Main) {
-                        forceRotationDegrees = neededRotation
-                    }
-                }
-            } catch (e: Exception) {
-                android.util.Log.e("TikTokVideoFeedScreen", "Error retrieving video metadata for $url", e)
-            } finally {
+            withContext(Dispatchers.IO) {
+                var retriever: android.media.MediaMetadataRetriever? = null
                 try {
-                    retriever?.release()
-                } catch (e: Exception) {}
+                    retriever = android.media.MediaMetadataRetriever()
+                    retriever.setDataSource(url, HashMap<String, String>())
+                    val rotationStr = retriever.extractMetadata(android.media.MediaMetadataRetriever.METADATA_KEY_VIDEO_ROTATION)
+                    val widthStr = retriever.extractMetadata(android.media.MediaMetadataRetriever.METADATA_KEY_VIDEO_WIDTH)
+                    val heightStr = retriever.extractMetadata(android.media.MediaMetadataRetriever.METADATA_KEY_VIDEO_HEIGHT)
+
+                    val rotation = rotationStr?.toIntOrNull() ?: 0
+                    val width = widthStr?.toIntOrNull() ?: 0
+                    val height = heightStr?.toIntOrNull() ?: 0
+
+                    val neededRotation = if (width > height && (rotation == 0 || rotation == 180)) 90f else 0f
+                    com.example.core.media.VideoMetadataCache.putRotation(stableMediaUrl!!, neededRotation)
+                    if (neededRotation != 0f) {
+                        withContext(Dispatchers.Main) {
+                            forceRotationDegrees = neededRotation
+                        }
+                    }
+                } catch (e: Exception) {
+                    android.util.Log.e("TikTokVideoFeedScreen", "Error retrieving video metadata for $url", e)
+                } finally {
+                    try {
+                        retriever?.release()
+                    } catch (e: Exception) {}
+                }
             }
         }
     }
-
-
 
     var resolvedUrl by remember(stableMediaUrl, state.id) { mutableStateOf<String?>(null) }
     var resolveFailed by remember(stableMediaUrl, state.id) { mutableStateOf(false) }
     var retryCount by remember(stableMediaUrl, state.id) { mutableStateOf(0) }
     var activeSlot by remember(stableMediaUrl, state.id) { mutableStateOf<ReelDualPlayerManager.Slot?>(null) }
 
+    // Player acquisition depends ONLY on resolved URL, NOT on metadata.
+    // Metadata extraction is deferred to a secondary LaunchedEffect above so
+    // it never blocks playback preparation.
     LaunchedEffect(stableMediaUrl, state.id,isActivePage,isPreload,retryCount,dualManager) {
 
         // BUGFIX: reiniciar el estado de resolución solo CUANDO el puntero estable
