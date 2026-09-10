@@ -1,3 +1,5 @@
+@file:Suppress("UnusedMaterialScaffoldPaddingParameter")
+
 package com.example.rooms.ui
 
 import androidx.compose.animation.core.*
@@ -27,7 +29,6 @@ import androidx.compose.material.icons.filled.MicOff
 import androidx.compose.material.icons.filled.People
 import androidx.compose.material.icons.filled.Send
 import androidx.compose.material.icons.filled.Settings
-import androidx.compose.material.icons.filled.Share
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import kotlinx.coroutines.launch
@@ -39,6 +40,7 @@ import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.geometry.Size
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.text.font.FontWeight
@@ -47,29 +49,38 @@ import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.IntOffset
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-import androidx.compose.ui.graphics.graphicsLayer
 import coil.compose.AsyncImage
 import com.example.rooms.data.VoiceRoomBanDto
 import com.example.rooms.model.VoiceRoom
 import com.example.rooms.model.VoiceRoomMember
 import com.example.rooms.model.VoiceRoomMessage
 import com.example.rooms.model.VoiceRoomSeat
+import kotlin.math.cos
+import kotlin.math.sin
 import kotlin.random.Random
 
-// === Paleta azul profundo — referencia Starmaker ===
+// === Paleta Starmaker — azul profundo / petróleo ===
 
 internal object VoiceRoomPalette {
-    val Bg            = Color(0xFF0A0F1A)
-    val BgDeep        = Color(0xFF050810)
-    val Surface       = Color(0x1AFFFFFF)
-    val SurfaceDark   = Color(0x0DFFFFFF)
-    val Accent        = Color(0xFF26D0CE)
-    val AccentSoft    = Color(0x3326D0CE)
-    val Pink          = Color(0xFFFF5C7A)
-    val Gold          = Color(0xFFF6C66B)
-    val RedLive       = Color(0xFFEF2D55)
-    val TextPrimary   = Color.White
-    val TextSecondary = Color(0xCCFFFFFF)
+    val MainBlue       = Color(0xFF00557D)
+    val DeepBlue       = Color(0xFF00466A)
+    val SurfaceBlue    = Color(0xFF075D84)
+    val DarkSurface    = Color(0xFF003E5E)
+    val ActiveCyan     = Color(0xFF4FE7EA)
+    val ActiveCyanSoft = Color(0x4D4FE7EA)
+    val Pink           = Color(0xFFFF5C7A)
+    val RedLive        = Color(0xFFEF2D55)
+    val TextPrimary    = Color(0xFFF2F7FA)
+    val TextSecondary  = Color(0xFFA9C5D2)
+
+    // Aliases backward-compat con VoiceRoomScreenV2
+    val Bg             = DeepBlue
+    val BgDeep         = MainBlue
+    val Surface        = SurfaceBlue
+    val SurfaceDark    = DarkSurface
+    val Accent         = ActiveCyan
+    val AccentSoft     = ActiveCyanSoft
+    val Gold           = Color(0xFFF6C66B)
 }
 
 // === Background ===
@@ -84,21 +95,36 @@ fun VoiceRoomBackground(
             .fillMaxSize()
             .background(
                 Brush.verticalGradient(
-                    colors = listOf(VoiceRoomPalette.BgDeep, VoiceRoomPalette.Bg)
+                    colors = listOf(VoiceRoomPalette.MainBlue, VoiceRoomPalette.DeepBlue)
                 )
             )
     ) {
         VoiceRoomNoiseTexture(Modifier.matchParentSize())
+        // Sutil overlay de profundidad
+        Box(
+            modifier = Modifier
+                .matchParentSize()
+                .background(
+                    Brush.radialGradient(
+                        colors = listOf(
+                            Color(0x08FFFFFF),
+                            Color(0x00FFFFFF)
+                        ),
+                        center = Offset.Zero,
+                        radius = 1200f
+                    )
+                )
+        )
         Box(Modifier.matchParentSize()) { content() }
     }
 }
 
 @Composable
 private fun VoiceRoomNoiseTexture(modifier: Modifier = Modifier) {
-    val noiseAlpha = 0.06f
+    val noiseAlpha = 0.04f
     Canvas(modifier = modifier) {
         val area = size.width * size.height
-        val step = 14f
+        val step = 12f
         val count = (area / (step * step)).toInt()
         val rnd = Random(42)
         repeat(count) {
@@ -106,7 +132,7 @@ private fun VoiceRoomNoiseTexture(modifier: Modifier = Modifier) {
             val y = rnd.nextFloat() * size.height
             val a = rnd.nextFloat() * noiseAlpha
             drawRect(
-                color = Color.White.copy(alpha = a),
+                color = VoiceRoomPalette.ActiveCyan.copy(alpha = a),
                 topLeft = Offset(x, y),
                 size = Size(step, step)
             )
@@ -142,8 +168,8 @@ fun VoiceRoomHeader(
             modifier = Modifier
                 .size(34.dp)
                 .clip(CircleShape)
-                .background(VoiceRoomPalette.SurfaceDark)
-                .border(1.5.dp, VoiceRoomPalette.Accent.copy(alpha = 0.4f), CircleShape),
+                .background(VoiceRoomPalette.DarkSurface.copy(alpha = 0.4f))
+                .border(1.5.dp, VoiceRoomPalette.ActiveCyan.copy(alpha = 0.3f), CircleShape),
             contentAlignment = Alignment.Center
         ) {
             if (!hostAvatarUrl.isNullOrBlank()) {
@@ -156,7 +182,7 @@ fun VoiceRoomHeader(
             } else {
                 Text(
                     text = hostDisplayName?.take(1)?.uppercase() ?: "🎤",
-                    color = VoiceRoomPalette.Accent,
+                    color = VoiceRoomPalette.ActiveCyan,
                     fontSize = 14.sp,
                     fontWeight = FontWeight.Bold
                 )
@@ -185,7 +211,7 @@ fun VoiceRoomHeader(
                     Spacer(modifier = Modifier.width(2.dp))
                     Text("Privada", color = VoiceRoomPalette.TextSecondary, fontSize = 11.sp)
                 } else {
-                    VoiceRoomLiveBadge(modifier = Modifier.graphicsLayer(scaleX = 0.8f, scaleY = 0.8f))
+                    VoiceRoomLiveBadge()
                     Spacer(modifier = Modifier.width(4.dp))
                     Text(
                         text = hostDisplayName ?: "Anfitrión",
@@ -203,7 +229,7 @@ fun VoiceRoomHeader(
         Surface(
             onClick = onOpenMembers,
             shape = RoundedCornerShape(20.dp),
-            color = VoiceRoomPalette.SurfaceDark,
+            color = VoiceRoomPalette.DarkSurface.copy(alpha = 0.4f),
             tonalElevation = 2.dp,
             modifier = Modifier
                 .height(32.dp)
@@ -254,8 +280,8 @@ fun VoiceRoomHeader(
         onOpenShare?.let { share ->
             IconButton(onClick = share, modifier = Modifier.size(36.dp)) {
                 Icon(
-                    Icons.Default.Share,
-                    contentDescription = "Compartir",
+                    Icons.Default.People,
+                    contentDescription = "Invitar",
                     tint = VoiceRoomPalette.TextSecondary,
                     modifier = Modifier.size(18.dp)
                 )
@@ -285,7 +311,7 @@ fun VoiceRoomHeader(
 // === Live badge — pequeño, minimal ===
 
 @Composable
-fun VoiceRoomLiveBadge(modifier: Modifier = Modifier) {
+fun VoiceRoomLiveBadge() {
     val transition = rememberInfiniteTransition(label = "liveBadge")
     val dotAlpha by transition.animateFloat(
         initialValue = 0.4f,
@@ -294,7 +320,6 @@ fun VoiceRoomLiveBadge(modifier: Modifier = Modifier) {
         label = "dotAlpha"
     )
     Row(
-        modifier = modifier,
         verticalAlignment = Alignment.CenterVertically,
         horizontalArrangement = Arrangement.spacedBy(3.dp)
     ) {
@@ -341,7 +366,7 @@ fun VoiceRoomSpeakingIndicator(
                     .width(2.dp)
                     .height((h.value * size.value).dp)
                     .clip(RoundedCornerShape(1.dp))
-                    .background(VoiceRoomPalette.Accent)
+                    .background(VoiceRoomPalette.ActiveCyan)
             )
         }
     }
@@ -382,13 +407,13 @@ fun VoiceRoomAudioVisualizer(
                     .width(3.dp)
                     .height((animatedHeights.getOrNull(idx)?.value ?: 4f).dp)
                     .clip(RoundedCornerShape(2.dp))
-                    .background(if (fraction > 0.05f) VoiceRoomPalette.Accent else VoiceRoomPalette.Accent.copy(alpha = 0.25f))
+                    .background(if (fraction > 0.05f) VoiceRoomPalette.ActiveCyan else VoiceRoomPalette.ActiveCyan.copy(alpha = 0.25f))
             )
         }
     }
 }
 
-// === VoiceRoomStageSeat — Host con avatar real + badge "Anfitrión" ===
+// === VoiceRoomStageSeat — Host con avatar real + badge "Anfitrión" separado ===
 
 @Composable
 fun VoiceRoomStageSeat(
@@ -423,17 +448,17 @@ fun VoiceRoomStageSeat(
                 onClick = onClick,
                 onAdmin = onAdmin
             )
-            // Badge "Anfitrión" — NUNCA como nombre
+            // Badge "Anfitrión" — siempre como overlay, NUNCA como nombre
             if (isHost && seat?.isOccupied == true) {
                 Box(
                     modifier = Modifier
                         .align(Alignment.TopCenter)
-                        .offset(y = (-size.value * 0.12f).dp)
+                        .offset(y = (-size.value * 0.1f).dp)
                         .clip(CircleShape)
                         .background(VoiceRoomPalette.Gold)
                         .padding(horizontal = 5.dp, vertical = 1.5.dp)
                 ) {
-                    Text("Anfitrión", color = VoiceRoomPalette.BgDeep, fontSize = 8.sp, fontWeight = FontWeight.Bold)
+                    Text("Anfitrión", color = VoiceRoomPalette.DeepBlue, fontSize = 8.sp, fontWeight = FontWeight.Bold)
                 }
             }
         }
@@ -462,10 +487,10 @@ private fun VoiceRoomSeatCircle(
 ) {
     val speaking = seat?.isSpeaking == true
     val occupied = seat?.isOccupied == true
-    val isMuted = seat?.isMuted == true
+    val isMuted = seat?.isMuted == false
 
-    val circleBg = if (occupied) Color(0xFF1A2A3A) else Color(0x22FFFFFF)
-    val displaySize = if (isHost) size * 1.1f else size
+    val circleBg = if (occupied) VoiceRoomPalette.DarkSurface.copy(alpha = 0.5f) else VoiceRoomPalette.SurfaceBlue.copy(alpha = 0.4f)
+    val displaySize = if (isHost) size * 1.05f else size
 
     Box(
         modifier = Modifier
@@ -474,7 +499,7 @@ private fun VoiceRoomSeatCircle(
             .background(circleBg)
             .border(
                 if (speaking) 2.dp else 1.dp,
-                if (speaking) VoiceRoomPalette.Accent else Color(0x1AFFFFFF),
+                if (speaking) VoiceRoomPalette.ActiveCyan else Color(0x1AFFFFFF),
                 CircleShape
             )
             .shadow(if (occupied) 8.dp else 2.dp, CircleShape, clip = false)
@@ -491,13 +516,13 @@ private fun VoiceRoomSeatCircle(
                 )
             } else {
                 Text(
-                    text = displayName?.takeIf { it.isNotBlank() }?.take(1)?.uppercase() ?: "👤",
-                    color = VoiceRoomPalette.Accent,
+                    text = displayName?.take(1)?.uppercase() ?: "👤",
+                    color = VoiceRoomPalette.ActiveCyan,
                     fontSize = (size.value * 0.35f).sp,
                     fontWeight = FontWeight.Bold
                 )
             }
-            if (speaking && !isMuted) {
+            if (speaking && isMuted) {
                 VoiceRoomSpeakingIndicator(
                     speaking = true,
                     modifier = Modifier.align(Alignment.BottomCenter),
@@ -544,7 +569,7 @@ private fun VoiceRoomSeatCircle(
                 Icon(
                     Icons.Default.Settings,
                     contentDescription = "Administrar",
-                    tint = VoiceRoomPalette.BgDeep,
+                    tint = VoiceRoomPalette.DeepBlue,
                     modifier = Modifier.size((size.value * 0.18f).dp)
                 )
             }
@@ -555,7 +580,7 @@ private fun VoiceRoomSeatCircle(
 private fun VoiceRoomSeat?.isMuteBadgeVisible(): Boolean =
     this != null && this.isOccupied && this.isMuted
 
-// === Chat — burbujas compactas, scroll inteligente ===
+// === Chat — burbujas compactas, scroll inteligente (único owner) ===
 
 @Composable
 fun VoiceRoomTikTokChat(
@@ -568,14 +593,25 @@ fun VoiceRoomTikTokChat(
     val chatMessages = messages.filter { !it.isSystem }
     val systemMessages = messages.filter { it.isSystem }
 
-    // Scroll inteligente: solo auto-scroll si el usuario está cerca del inicio
-    LaunchedEffect(chatMessages.size) {
-        if (chatMessages.isNotEmpty()) {
-            val lastVisible = listState.layoutInfo.visibleItemsInfo.lastOrNull()?.index
-            val shouldScroll = lastVisible == null || lastVisible <= 2
-            if (shouldScroll) {
-                listState.animateScrollToItem(0)
+    // Smart scroll con semántica correcta para reverseLayout:
+    // - visibleItemsInfo.first() = elemento visible más ARRIBA
+    // - visibleItemsInfo.last()  = elemento visible más ABAJO = índice 0 en reverseLayout
+    // - Si el usuario está en la parte inferior (cerca de índice 0), auto-scroll
+    val shouldAutoScroll = remember {
+        derivedStateOf {
+            val visible = listState.layoutInfo.visibleItemsInfo
+            if (visible.isEmpty()) true
+            else {
+                val bottomIndex = visible.lastOrNull()?.index
+                bottomIndex == 0 || bottomIndex == null
             }
+        }
+    }
+
+    // Autoscroll cuando llegan nuevos mensajes y el usuario está en la parte inferior
+    LaunchedEffect(chatMessages.size) {
+        if (chatMessages.isNotEmpty() && shouldAutoScroll.value) {
+            listState.animateScrollToItem(0)
         }
     }
 
@@ -599,7 +635,7 @@ fun VoiceRoomTikTokChat(
                 val member = memberById[message.senderId]
                 val displayName = member?.displayName
                     ?: message.senderName
-                    ?: message.senderId.take(8)
+                    ?: "(sin nombre)"
                 val avatarUrl = member?.avatarUrl
                 VoiceRoomChatMessage(
                     message = message,
@@ -609,26 +645,23 @@ fun VoiceRoomTikTokChat(
                 )
             }
         }
-        Box(
-            modifier = Modifier
-                .align(Alignment.BottomCenter)
-                .fillMaxWidth()
-                .background(
-                    Brush.verticalGradient(
-                        colors = listOf(Color.Transparent, VoiceRoomPalette.BgDeep.copy(alpha = 0.9f))
-                    )
-                )
-        ) {
+        // System bubbles overlay (fixed at top in reverse layout = bottom visually)
+        if (systemMessages.isNotEmpty()) {
             Column(
                 modifier = Modifier
-                    .align(Alignment.BottomStart)
-                    .padding(horizontal = 10.dp, vertical = 4.dp),
+                    .align(Alignment.TopCenter)
+                    .fillMaxWidth(0.8f)
+                    .background(
+                        Brush.verticalGradient(
+                            colors = listOf(Color.Transparent, VoiceRoomPalette.DeepBlue.copy(alpha = 0.9f))
+                        )
+                    )
+                    .padding(vertical = 4.dp),
+                horizontalAlignment = Alignment.CenterHorizontally,
                 verticalArrangement = Arrangement.spacedBy(2.dp)
             ) {
-                systemMessages.forEach { msg ->
-                    key(msg.id) {
-                        VoiceRoomSystemBubble(message = msg)
-                    }
+                systemMessages.takeLast(3).forEach { msg ->
+                    VoiceRoomSystemBubble(message = msg)
                 }
             }
         }
@@ -658,9 +691,9 @@ private fun VoiceRoomChatMessage(
     ) {
         Box(
             modifier = Modifier
-                .size(24.dp)
+                .size(20.dp)
                 .clip(CircleShape)
-                .background(VoiceRoomPalette.SurfaceDark),
+                .background(VoiceRoomPalette.SurfaceBlue.copy(alpha = 0.3f)),
             contentAlignment = Alignment.Center
         ) {
             if (!avatarUrl.isNullOrBlank()) {
@@ -673,8 +706,8 @@ private fun VoiceRoomChatMessage(
             } else {
                 Text(
                     text = senderName?.take(1)?.uppercase() ?: "👤",
-                    color = VoiceRoomPalette.Accent,
-                    fontSize = 9.sp,
+                    color = VoiceRoomPalette.ActiveCyan,
+                    fontSize = 8.sp,
                     fontWeight = FontWeight.Bold
                 )
             }
@@ -683,15 +716,15 @@ private fun VoiceRoomChatMessage(
         Column(
             modifier = Modifier
                 .weight(1f, fill = false)
-                .clip(RoundedCornerShape(12.dp))
-                .background(Color(0x16FFFFFF))
-                .padding(horizontal = 8.dp, vertical = 4.dp),
+                .clip(RoundedCornerShape(10.dp))
+                .background(Color(0x14FFFFFF))
+                .padding(horizontal = 8.dp, vertical = 3.dp),
             horizontalAlignment = Alignment.Start
         ) {
-            if (!senderName.isNullOrBlank()) {
+            if (!senderName.isNullOrBlank() && senderName != "(sin nombre)") {
                 Text(
                     text = senderName,
-                    color = VoiceRoomPalette.Accent,
+                    color = VoiceRoomPalette.ActiveCyan,
                     fontSize = 9.sp,
                     fontWeight = FontWeight.SemiBold,
                     maxLines = 1,
@@ -717,13 +750,12 @@ fun VoiceRoomSystemBubble(message: VoiceRoomMessage, modifier: Modifier = Modifi
         launch { scale.animateTo(1f, tween(300, easing = LinearOutSlowInEasing)) }
     }
     Box(
-        modifier = modifier
-            .graphicsLayer(scaleX = scale.value, scaleY = scale.value, alpha = alpha.value)
+        modifier = modifier.graphicsLayer(scaleX = scale.value, scaleY = scale.value, alpha = alpha.value)
     ) {
         Surface(
-            shape = RoundedCornerShape(14.dp),
-            color = VoiceRoomPalette.Accent.copy(alpha = 0.9f),
-            shadowElevation = 8.dp,
+            shape = RoundedCornerShape(12.dp),
+            color = VoiceRoomPalette.ActiveCyan.copy(alpha = 0.85f),
+            shadowElevation = 4.dp,
             modifier = Modifier.wrapContentSize()
         ) {
             Row(
@@ -734,7 +766,7 @@ fun VoiceRoomSystemBubble(message: VoiceRoomMessage, modifier: Modifier = Modifi
                 Text("👋", fontSize = 11.sp)
                 Text(
                     text = message.content,
-                    color = VoiceRoomPalette.BgDeep,
+                    color = VoiceRoomPalette.DeepBlue,
                     fontSize = 11.sp,
                     fontWeight = FontWeight.Medium
                 )
@@ -771,7 +803,7 @@ fun VoiceRoomFloatingEmojiOverlay(
                         .graphicsLayer(
                             translationX = (emoji.xFraction - 0.5f) * 120f,
                             translationY = -progress.value * 160f,
-                            alpha = (1f - progress.value) * 0.9f,
+                            alpha = 1f - progress.value,
                             scaleX = 0.4f + progress.value * 0.8f,
                             scaleY = 0.4f + progress.value * 0.8f
                         )
@@ -787,7 +819,7 @@ data class VoiceRoomFloatingEmoji(
     val xFraction: Float = 0.5f
 )
 
-// === Up Next — compacto, no roba espacio ===
+// === Up Next — compacto ===
 
 @Composable
 fun VoiceRoomUpNextStrip(
@@ -802,11 +834,7 @@ fun VoiceRoomUpNextStrip(
     }
     if (queue.isEmpty()) return
 
-    Box(
-        modifier = modifier
-            .fillMaxWidth()
-            .padding(vertical = 4.dp)
-    ) {
+    Box(modifier = modifier.fillMaxWidth()) {
         LazyRow(
             modifier = Modifier.padding(horizontal = 8.dp),
             horizontalArrangement = Arrangement.spacedBy(6.dp),
@@ -829,8 +857,8 @@ fun VoiceRoomUpNextStrip(
                     modifier = Modifier
                         .size(22.dp)
                         .clip(CircleShape)
-                        .background(VoiceRoomPalette.SurfaceDark)
-                        .border(0.5.dp, VoiceRoomPalette.Accent.copy(alpha = 0.2f), CircleShape)
+                        .background(VoiceRoomPalette.DarkSurface.copy(alpha = 0.4f))
+                        .border(0.5.dp, VoiceRoomPalette.ActiveCyan.copy(alpha = 0.2f), CircleShape)
                 ) {
                     if (!avatarUrl.isNullOrBlank()) {
                         AsyncImage(
@@ -842,7 +870,7 @@ fun VoiceRoomUpNextStrip(
                     } else {
                         Text(
                             text = displayName?.take(1)?.uppercase() ?: "?",
-                            color = VoiceRoomPalette.Accent,
+                            color = VoiceRoomPalette.ActiveCyan,
                             fontSize = 8.sp,
                             fontWeight = FontWeight.Bold
                         )
@@ -885,17 +913,17 @@ fun VoiceRoomInputBar(
     Box(
         modifier = modifier
             .fillMaxWidth()
-            .padding(horizontal = 12.dp, vertical = 6.dp)
+            .padding(horizontal = 12.dp, vertical = 8.dp)
     ) {
         Surface(
             modifier = Modifier
                 .fillMaxWidth()
                 .height(if (listenOnly || mutedByAdmin) 44.dp else 48.dp),
             shape = RoundedCornerShape(24.dp),
-            color = VoiceRoomPalette.SurfaceDark,
-            border = BorderStroke(1.dp, VoiceRoomPalette.Accent.copy(alpha = 0.2f)),
+            color = VoiceRoomPalette.DarkSurface.copy(alpha = 0.6f),
+            border = BorderStroke(1.dp, VoiceRoomPalette.ActiveCyan.copy(alpha = 0.2f)),
             tonalElevation = 4.dp,
-            shadowElevation = 4.dp
+            shadowElevation = 8.dp
         ) {
             Row(
                 modifier = Modifier
@@ -950,7 +978,7 @@ fun VoiceRoomInputBar(
                     Icon(
                         Icons.Default.Send,
                         contentDescription = "Enviar",
-                        tint = if (value.isNotBlank()) VoiceRoomPalette.Accent else VoiceRoomPalette.TextSecondary.copy(alpha = 0.4f),
+                        tint = if (value.isNotBlank()) VoiceRoomPalette.ActiveCyan else VoiceRoomPalette.TextSecondary.copy(alpha = 0.4f),
                         modifier = Modifier.size(18.dp)
                     )
                 }
@@ -972,18 +1000,32 @@ fun VoiceRoomMicSeatButton(
     val active = isSeated && !isMuted
     val icon = if (needsPermission || (isMuted && isSeated)) Icons.Default.MicOff else Icons.Default.Mic
     val tint = when {
-        needsPermission -> VoiceRoomPalette.Accent
-        !isSeated -> if (pendingRequest) Color(0xFF888888) else VoiceRoomPalette.Accent
+        needsPermission -> VoiceRoomPalette.ActiveCyan
+        !isSeated -> if (pendingRequest) Color(0xFF888888) else VoiceRoomPalette.ActiveCyan
         isMuted -> Color(0xFFFF8A80)
-        else -> VoiceRoomPalette.Accent
+        else -> VoiceRoomPalette.ActiveCyan
     }
     val enabled = needsPermission || isSeated || !pendingRequest
+
+    val pulseTransition = rememberInfiniteTransition(label = "micPulse")
+    val pulseAlpha by pulseTransition.animateFloat(
+        initialValue = 0.3f,
+        targetValue = 0f,
+        animationSpec = infiniteRepeatable(tween(700), RepeatMode.Restart),
+        label = "micPulseAlpha"
+    )
+    val pulseScale by pulseTransition.animateFloat(
+        initialValue = 1f,
+        targetValue = 1.3f,
+        animationSpec = infiniteRepeatable(tween(700), RepeatMode.Restart),
+        label = "micPulseScale"
+    )
 
     Box(
         modifier = Modifier
             .size(34.dp)
             .clip(CircleShape)
-            .background(VoiceRoomPalette.AccentSoft)
+            .background(VoiceRoomPalette.ActiveCyanSoft)
             .clickable(enabled = enabled) {
                 if (needsPermission) onEnableMic()
                 else if (isSeated) onToggleMute()
@@ -992,24 +1034,12 @@ fun VoiceRoomMicSeatButton(
         contentAlignment = Alignment.Center
     ) {
         if (active) {
-            val pulseAlpha by rememberInfiniteTransition(label = "micPulse").animateFloat(
-                initialValue = 0.3f,
-                targetValue = 0f,
-                animationSpec = infiniteRepeatable(tween(700), RepeatMode.Restart),
-                label = "micPulseAlpha"
-            )
-            val pulseScale by rememberInfiniteTransition(label = "micPulseScale").animateFloat(
-                initialValue = 1f,
-                targetValue = 1.2f,
-                animationSpec = infiniteRepeatable(tween(700), RepeatMode.Restart),
-                label = "micPulseScale"
-            )
             Box(
                 modifier = Modifier
                     .matchParentSize()
                     .graphicsLayer(scaleX = pulseScale, scaleY = pulseScale, alpha = pulseAlpha)
                     .clip(CircleShape)
-                    .background(VoiceRoomPalette.Accent)
+                    .background(VoiceRoomPalette.ActiveCyan)
             )
         }
         Icon(imageVector = icon, contentDescription = null, tint = tint, modifier = Modifier.size(18.dp))
@@ -1024,24 +1054,20 @@ fun VoiceRoomMembersSheet(
     members: List<VoiceRoomMember>,
     myUserId: String,
     onDismiss: () -> Unit,
-    onOpenProfile: ((String) -> Unit)? = null,
+    onOpenProfile: ((String) -> Unit)? = null
 ) {
     val sheetState = rememberModalBottomSheetState(skipPartiallyExpanded = true)
     val scope = rememberCoroutineScope()
     ModalBottomSheet(
         onDismissRequest = { scope.launch { sheetState.hide(); onDismiss() } },
-        containerColor = VoiceRoomPalette.BgDeep,
+        containerColor = VoiceRoomPalette.DeepBlue,
         contentColor = Color.White,
         sheetState = sheetState,
         dragHandle = null,
         tonalElevation = 12.dp,
         modifier = Modifier.navigationBarsPadding()
     ) {
-        Column(
-            modifier = Modifier
-                .fillMaxWidth()
-                .padding(horizontal = 16.dp, vertical = 12.dp)
-        ) {
+        Column(Modifier.fillMaxWidth().padding(horizontal = 16.dp, vertical = 12.dp)) {
             Row(verticalAlignment = Alignment.CenterVertically) {
                 Text("Miembros (${members.size})", color = VoiceRoomPalette.TextPrimary, fontWeight = FontWeight.ExtraBold, fontSize = 17.sp)
                 Spacer(modifier = Modifier.weight(1f))
@@ -1050,65 +1076,28 @@ fun VoiceRoomMembersSheet(
                 }
             }
             Spacer(modifier = Modifier.height(12.dp))
-            LazyColumn(
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .heightIn(max = 360.dp),
-                verticalArrangement = Arrangement.spacedBy(4.dp)
-            ) {
+            LazyColumn(Modifier.fillMaxWidth().heightIn(max = 360.dp), verticalArrangement = Arrangement.spacedBy(4.dp)) {
                 items(members, key = { it.userId }) { member ->
-                    Row(
-                        modifier = Modifier
-                            .fillMaxWidth()
-                            .padding(vertical = 6.dp),
-                        verticalAlignment = Alignment.CenterVertically
-                    ) {
-                        Box(
-                            modifier = Modifier
-                                .size(36.dp)
-                                .clip(CircleShape)
-                                .background(VoiceRoomPalette.SurfaceDark),
-                            contentAlignment = Alignment.Center
-                        ) {
+                    Row(Modifier.fillMaxWidth().padding(vertical = 6.dp), verticalAlignment = Alignment.CenterVertically) {
+                        Box(Modifier.size(36.dp).clip(CircleShape).background(VoiceRoomPalette.DarkSurface.copy(alpha = 0.4f)), contentAlignment = Alignment.Center) {
                             if (!member.avatarUrl.isNullOrBlank()) {
-                                AsyncImage(
-                                    model = member.avatarUrl,
-                                    contentDescription = null,
-                                    contentScale = ContentScale.Crop,
-                                    modifier = Modifier.fillMaxSize().clip(CircleShape)
-                                )
+                                AsyncImage(model = member.avatarUrl, contentDescription = null, contentScale = ContentScale.Crop, modifier = Modifier.fillMaxSize().clip(CircleShape))
                             } else {
-                                Text(
-                                    text = member.displayName?.take(1)?.uppercase() ?: "👤",
-                                    color = VoiceRoomPalette.Accent,
-                                    fontSize = 14.sp,
-                                    fontWeight = FontWeight.Bold
-                                )
+                                Text(text = member.displayName?.take(1)?.uppercase() ?: "👤", color = VoiceRoomPalette.ActiveCyan, fontSize = 14.sp, fontWeight = FontWeight.Bold)
                             }
                         }
                         Spacer(modifier = Modifier.width(8.dp))
                         Column(Modifier.weight(1f)) {
-                            Text(
-                                text = member.displayName ?: "Usuario",
-                                color = VoiceRoomPalette.TextPrimary,
-                                fontSize = 14.sp,
-                                fontWeight = FontWeight.Medium,
-                                maxLines = 1,
-                                overflow = TextOverflow.Ellipsis
-                            )
-                            Text(
-                                text = voiceRoomRoleLabel(member.role),
-                                color = if (member.role == "owner" || member.role == "admin") VoiceRoomPalette.Gold else VoiceRoomPalette.Accent,
-                                fontSize = 11.sp
-                            )
+                            Text(text = member.displayName ?: "Usuario", color = VoiceRoomPalette.TextPrimary, fontSize = 14.sp, fontWeight = FontWeight.Medium, maxLines = 1, overflow = TextOverflow.Ellipsis)
+                            Text(text = voiceRoomRoleLabel(member.role), color = if (member.role == "owner" || member.role == "admin") VoiceRoomPalette.Gold else VoiceRoomPalette.ActiveCyan, fontSize = 11.sp)
                         }
                         if (member.userId != myUserId && onOpenProfile != null) {
                             TextButton(onClick = { onOpenProfile(member.userId) }) {
                                 Text("Ver", color = VoiceRoomPalette.TextSecondary, fontSize = 11.sp)
                             }
                         }
+                        HorizontalDivider(color = Color(0x1FFFFFFF))
                     }
-                    HorizontalDivider(color = Color(0x1FFFFFFF))
                 }
             }
         }
@@ -1123,7 +1112,7 @@ fun voiceRoomRoleLabel(role: String): String = when (role) {
 }
 
 @Composable
-fun AnimatedDialog(
+fun VoiceRoomAnimatedDialog(
     onDismiss: () -> Unit,
     title: String,
     modifier: Modifier = Modifier,
@@ -1133,7 +1122,7 @@ fun AnimatedDialog(
     onConfirm: () -> Unit,
     dismissText: String? = null,
     onDismissClick: (() -> Unit)? = null,
-    containerColor: Color = VoiceRoomPalette.BgDeep,
+    containerColor: Color = VoiceRoomPalette.DeepBlue,
     content: (@Composable () -> Unit)? = null
 ) {
     val alpha = remember { Animatable(0f) }
@@ -1148,14 +1137,14 @@ fun AnimatedDialog(
         text = text ?: content,
         confirmButton = {
             TextButton(onClick = onConfirm) {
-                Text(confirmText, color = if (dangerConfirm) Color(0xFFFF6E6E) else VoiceRoomPalette.Accent, fontWeight = FontWeight.SemiBold)
+                Text(confirmText, color = if (dangerConfirm) Color(0xFFFF6E6E) else VoiceRoomPalette.ActiveCyan, fontWeight = FontWeight.SemiBold)
             }
         },
         dismissButton = if (dismissText != null && onDismissClick != null) {
             { TextButton(onClick = onDismissClick) { Text(dismissText, color = VoiceRoomPalette.TextPrimary) } }
         } else null,
         containerColor = containerColor,
-        modifier = modifier.graphicsLayer(alpha = alpha.value, scaleX = scale.value, scaleY = scale.value)
+        modifier = modifier.graphicsLayer(scaleX = scale.value, scaleY = scale.value, alpha = alpha.value)
     )
 }
 
@@ -1197,48 +1186,25 @@ fun VoiceRoomSettingsSheet(
     )
     val categoryLabel = categories.firstOrNull { it.first == category }?.second ?: "General"
 
-    ModalBottomSheet(
-        onDismissRequest = { onClose() },
-        containerColor = VoiceRoomPalette.BgDeep,
-        contentColor = Color.White,
-        tonalElevation = 16.dp,
-        modifier = Modifier.navigationBarsPadding()
-    ) {
-        Column(
-            Modifier.fillMaxWidth().padding(horizontal = 16.dp, vertical = 10.dp)
-        ) {
+    ModalBottomSheet(onDismissRequest = { onClose() }, containerColor = VoiceRoomPalette.DeepBlue, contentColor = Color.White, tonalElevation = 16.dp, modifier = Modifier.navigationBarsPadding()) {
+        Column(Modifier.fillMaxWidth().padding(horizontal = 16.dp, vertical = 10.dp)) {
             Row(verticalAlignment = Alignment.CenterVertically) {
-                Icon(Icons.Default.Settings, null, tint = VoiceRoomPalette.Accent, modifier = Modifier.size(22.dp))
+                Icon(Icons.Default.Settings, null, tint = VoiceRoomPalette.ActiveCyan, modifier = Modifier.size(22.dp))
                 Spacer(modifier = Modifier.width(8.dp))
                 Text("Configuración de la sala", color = VoiceRoomPalette.TextPrimary, fontSize = 18.sp, fontWeight = FontWeight.ExtraBold)
                 Spacer(modifier = Modifier.weight(1f))
-                IconButton(onClick = onClose) {
-                    Icon(Icons.Default.Close, "Cerrar", tint = VoiceRoomPalette.TextPrimary)
-                }
+                IconButton(onClick = onClose) { Icon(Icons.Default.Close, "Cerrar", tint = VoiceRoomPalette.TextPrimary) }
             }
             Spacer(modifier = Modifier.height(6.dp))
             message?.let {
-                Surface(
-                    color = VoiceRoomPalette.Accent.copy(alpha = 0.12f),
-                    shape = RoundedCornerShape(12.dp)
-                ) {
-                    Text(
-                        it, color = VoiceRoomPalette.Accent, fontSize = 12.sp,
-                        modifier = Modifier.padding(horizontal = 10.dp, vertical = 6.dp)
-                    )
+                Surface(color = VoiceRoomPalette.ActiveCyan.copy(alpha = 0.12f), shape = RoundedCornerShape(12.dp)) {
+                    Text(it, color = VoiceRoomPalette.ActiveCyan, fontSize = 12.sp, modifier = Modifier.padding(horizontal = 10.dp, vertical = 6.dp))
                 }
             }
             Spacer(modifier = Modifier.height(4.dp))
-
             if (!isHost) {
-                Text(
-                    "Solo el anfitrión puede editar la configuración de la sala.",
-                    color = VoiceRoomPalette.TextSecondary,
-                    fontSize = 12.sp,
-                    modifier = Modifier.padding(vertical = 6.dp)
-                )
+                Text("Solo el anfitrión puede editar la configuración de la sala.", color = VoiceRoomPalette.TextSecondary, fontSize = 12.sp, modifier = Modifier.padding(vertical = 6.dp))
             }
-
             SettingsSectionTitle("Perfil de la sala", "✏️")
             SettingsCard {
                 SettingsRow("Nombre", name.ifBlank { "Sin nombre" }) { editingField = "name" }
@@ -1249,7 +1215,6 @@ fun VoiceRoomSettingsSheet(
                 SettingsDivider()
                 SettingsRow("Categoría", categoryLabel) { editingField = null; showCategoryPicker = true }
             }
-
             SettingsSectionTitle("Privacidad", "🔒")
             SettingsCard {
                 SettingsRow("Sala pública", "") { visibility = "public" }
@@ -1258,171 +1223,81 @@ fun VoiceRoomSettingsSheet(
                 SettingsDivider()
                 SettingsToggleRow("Bloquear sala", "Nadie nuevo puede entrar", checked = isLocked) { isLocked = it }
             }
-
             if (editingField != null) {
                 SettingsCard {
                     Column(Modifier.padding(vertical = 6.dp)) {
                         OutlinedTextField(
-                            value = when (editingField) {
-                                "name" -> name
-                                "description" -> description
-                                else -> coverUrl
-                            },
-                            onValueChange = { v ->
-                                when (editingField) {
-                                    "name" -> name = v.take(80)
-                                    "description" -> description = v.take(280)
-                                    else -> coverUrl = v.take(500)
-                                }
-                            },
+                            value = when (editingField) { "name" -> name; "description" -> description; else -> coverUrl },
+                            onValueChange = { v -> when (editingField) { "name" -> name = v.take(80); "description" -> description = v.take(280); else -> coverUrl = v.take(500) } },
                             modifier = Modifier.fillMaxWidth(),
                             singleLine = editingField != "description",
                             minLines = if (editingField == "description") 2 else 1,
                             maxLines = if (editingField == "description") 4 else 1,
-                            placeholder = {
-                                Text(
-                                    if (editingField == "cover") "https://..."
-                                    else if (editingField == "description") "Describe tu sala"
-                                    else "Nombre de la sala"
-                                )
-                            },
-                            colors = OutlinedTextFieldDefaults.colors(
-                                focusedBorderColor = VoiceRoomPalette.Accent,
-                                unfocusedBorderColor = Color(0xFF3E3E44),
-                                focusedTextColor = Color.White,
-                                unfocusedTextColor = Color.White
-                            )
+                            placeholder = { Text(if (editingField == "cover") "https://..." else if (editingField == "description") "Describe tu sala" else "Nombre de la sala") },
+                            colors = OutlinedTextFieldDefaults.colors(focusedBorderColor = VoiceRoomPalette.ActiveCyan, unfocusedBorderColor = Color(0xFF3E3E44), focusedTextColor = Color.White, unfocusedTextColor = Color.White)
                         )
                         Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.End) {
-                            TextButton(onClick = { editingField = null }) {
-                                Text("Listo", color = VoiceRoomPalette.Accent)
-                            }
+                            TextButton(onClick = { editingField = null }) { Text("Listo", color = VoiceRoomPalette.ActiveCyan) }
                         }
                     }
                 }
             }
-
-            Button(
-                onClick = { onSaveSettings(name, description, coverUrl.ifBlank { null }, category, visibility, isLocked) },
-                enabled = !isSaving,
-                modifier = Modifier.fillMaxWidth(),
-                colors = ButtonDefaults.buttonColors(
-                    containerColor = VoiceRoomPalette.Accent,
-                    contentColor = VoiceRoomPalette.BgDeep
-                ),
-                shape = RoundedCornerShape(16.dp)
-            ) {
-                Text(
-                    if (isSaving) "Guardando..." else "Guardar cambios",
-                    fontWeight = FontWeight.Bold, fontSize = 15.sp
-                )
+            Button(onClick = { onSaveSettings(name, description, coverUrl.ifBlank { null }, category, visibility, isLocked) }, enabled = !isSaving, modifier = Modifier.fillMaxWidth(), colors = ButtonDefaults.buttonColors(containerColor = VoiceRoomPalette.ActiveCyan, contentColor = VoiceRoomPalette.DeepBlue), shape = RoundedCornerShape(16.dp)) {
+                Text(if (isSaving) "Guardando..." else "Guardar cambios", fontWeight = FontWeight.Bold, fontSize = 15.sp)
             }
             Spacer(modifier = Modifier.height(12.dp))
-
             SettingsSectionTitle("Miembros y administración", "👥")
             SettingsCard {
                 SettingsRow("Miembros (${members.size})", "") { showMembersTab = true }
                 SettingsDivider()
                 SettingsRow("Baneados (${bannedUsers.size})", "") { showBannedTab = true }
             }
-
             if (isHost) {
                 Spacer(modifier = Modifier.height(10.dp))
                 SettingsSectionTitle("Zona peligrosa", "⚠️")
-                SettingsCard {
-                    SettingsRow("Borrar sala", "Esta acción es permanente", danger = true) { showDeleteConfirm = true }
-                }
+                SettingsCard { SettingsRow("Borrar sala", "Esta acción es permanente", danger = true) { showDeleteConfirm = true } }
             }
             Spacer(modifier = Modifier.height(16.dp))
         }
     }
 
     if (showDeleteConfirm) {
-        AnimatedDialog(
+        VoiceRoomAnimatedDialog(
             onDismiss = { showDeleteConfirm = false },
             title = "Eliminar sala",
-            text = {
-                Text(
-                    "¿Seguro que quieres borrar esta sala para siempre? Se eliminarán sillones, mensajes, solicitudes y miembros.",
-                    color = VoiceRoomPalette.TextSecondary
-                )
-            },
+            text = { Text("¿Seguro que quieres borrar esta sala para siempre? Se eliminarán sillones, mensajes, solicitudes y miembros.", color = VoiceRoomPalette.TextSecondary) },
             confirmText = "Eliminar",
             dangerConfirm = true,
             onConfirm = { showDeleteConfirm = false; onDeleteRoom() },
             dismissText = "Cancelar",
             onDismissClick = { showDeleteConfirm = false },
-            containerColor = VoiceRoomPalette.BgDeep
+            containerColor = VoiceRoomPalette.DeepBlue
         )
     }
 
     if (showMembersTab) {
-        AnimatedDialog(
-            onDismiss = { showMembersTab = false },
-            title = "Miembros de la sala",
-            confirmText = "Cerrar",
-            onConfirm = { showMembersTab = false },
-            containerColor = VoiceRoomPalette.BgDeep
-        ) {
+        VoiceRoomAnimatedDialog(onDismiss = { showMembersTab = false }, title = "Miembros de la sala", confirmText = "Cerrar", onConfirm = { showMembersTab = false }, containerColor = VoiceRoomPalette.DeepBlue) {
             Column(Modifier.verticalScroll(rememberScrollState()).heightIn(max = 420.dp)) {
                 members.forEach { member ->
-                    Row(
-                        Modifier.fillMaxWidth().padding(vertical = 8.dp),
-                        verticalAlignment = Alignment.CenterVertically
-                    ) {
-                        Box(
-                            Modifier.size(36.dp).clip(CircleShape).background(VoiceRoomPalette.SurfaceDark),
-                            contentAlignment = Alignment.Center
-                        ) {
+                    Row(Modifier.fillMaxWidth().padding(vertical = 8.dp), verticalAlignment = Alignment.CenterVertically) {
+                        Box(Modifier.size(36.dp).clip(CircleShape).background(VoiceRoomPalette.DarkSurface.copy(alpha = 0.4f)), contentAlignment = Alignment.Center) {
                             if (!member.avatarUrl.isNullOrBlank()) {
-                                AsyncImage(
-                                    model = member.avatarUrl,
-                                    contentDescription = null,
-                                    contentScale = ContentScale.Crop,
-                                    modifier = Modifier.fillMaxSize().clip(CircleShape)
-                                )
+                                AsyncImage(model = member.avatarUrl, contentDescription = null, contentScale = ContentScale.Crop, modifier = Modifier.fillMaxSize().clip(CircleShape))
                             } else {
-                                Text(
-                                    text = member.displayName?.take(1) ?: "?",
-                                    color = VoiceRoomPalette.TextPrimary,
-                                    fontSize = 14.sp
-                                )
+                                Text(text = member.displayName?.take(1) ?: "?", color = VoiceRoomPalette.TextPrimary, fontSize = 14.sp)
                             }
                         }
                         Spacer(modifier = Modifier.width(10.dp))
                         Column(Modifier.weight(1f)) {
-                            Text(
-                                text = member.displayName ?: "Usuario",
-                                color = VoiceRoomPalette.TextPrimary,
-                                fontSize = 14.sp,
-                                fontWeight = FontWeight.Medium
-                            )
-                            Text(
-                                text = voiceRoomRoleLabel(member.role),
-                                color = if (member.role == "owner" || member.role == "admin") VoiceRoomPalette.Gold else VoiceRoomPalette.Accent,
-                                fontSize = 11.sp
-                            )
+                            Text(text = member.displayName ?: "Usuario", color = VoiceRoomPalette.TextPrimary, fontSize = 14.sp, fontWeight = FontWeight.Medium)
+                            Text(text = voiceRoomRoleLabel(member.role), color = if (member.role == "owner" || member.role == "admin") VoiceRoomPalette.Gold else VoiceRoomPalette.ActiveCyan, fontSize = 11.sp)
                         }
                         if (member.userId != myUserId && member.userId != room?.ownerId) {
-                            if (isHost && member.role != "admin") {
-                                TextButton(onClick = { onSetAdmin(member.userId, true) }) {
-                                    Text("Hacer admin", color = VoiceRoomPalette.Accent, fontSize = 11.sp)
-                                }
-                            }
-                            if (isHost && member.role == "admin") {
-                                TextButton(onClick = { onSetAdmin(member.userId, false) }) {
-                                    Text("Quitar admin", color = VoiceRoomPalette.Gold, fontSize = 11.sp)
-                                }
-                            }
-                            TextButton(onClick = { onKick(member.userId) }) {
-                                Text("Expulsar", color = Color(0xFFFF8A80), fontSize = 11.sp)
-                            }
+                            if (isHost && member.role != "admin") TextButton(onClick = { onSetAdmin(member.userId, true) }) { Text("Hacer admin", color = VoiceRoomPalette.ActiveCyan, fontSize = 11.sp) }
+                            if (isHost && member.role == "admin") TextButton(onClick = { onSetAdmin(member.userId, false) }) { Text("Quitar admin", color = VoiceRoomPalette.Gold, fontSize = 11.sp) }
+                            TextButton(onClick = { onKick(member.userId) }) { Text("Expulsar", color = Color(0xFFFF8A80), fontSize = 11.sp) }
                         }
-                        onOpenProfile?.let {
-                            TextButton(onClick = { it(member.userId) }) {
-                                Text("Ver", color = VoiceRoomPalette.TextSecondary, fontSize = 11.sp)
-                            }
-                        }
+                        onOpenProfile?.let { TextButton(onClick = { it(member.userId) }) { Text("Ver", color = VoiceRoomPalette.TextSecondary, fontSize = 11.sp) } }
                         HorizontalDivider(color = Color(0x1FFFFFFF))
                     }
                 }
@@ -1431,53 +1306,22 @@ fun VoiceRoomSettingsSheet(
     }
 
     if (showBannedTab) {
-        AnimatedDialog(
-            onDismiss = { showBannedTab = false },
-            title = "Usuarios baneados",
-            confirmText = "Cerrar",
-            onConfirm = { showBannedTab = false },
-            containerColor = VoiceRoomPalette.BgDeep
-        ) {
+        VoiceRoomAnimatedDialog(onDismiss = { showBannedTab = false }, title = "Usuarios baneados", confirmText = "Cerrar", onConfirm = { showBannedTab = false }, containerColor = VoiceRoomPalette.DeepBlue) {
             if (bannedUsers.isEmpty()) {
                 Text("No hay usuarios baneados.", color = VoiceRoomPalette.TextSecondary)
             } else {
-                Column(
-                    Modifier.verticalScroll(rememberScrollState()).heightIn(max = 420.dp)
-                ) {
+                Column(Modifier.verticalScroll(rememberScrollState()).heightIn(max = 420.dp)) {
                     bannedUsers.forEach { ban ->
-                        Row(
-                            Modifier.fillMaxWidth().padding(vertical = 8.dp),
-                            verticalAlignment = Alignment.CenterVertically
-                        ) {
-                            Box(
-                                Modifier.size(36.dp).clip(CircleShape).background(VoiceRoomPalette.SurfaceDark),
-                                contentAlignment = Alignment.Center
-                            ) {
-                                Text(
-                                    text = ban.displayName.take(1).ifBlank { "?" },
-                                    color = VoiceRoomPalette.TextPrimary,
-                                    fontSize = 14.sp
-                                )
+                        Row(Modifier.fillMaxWidth().padding(vertical = 8.dp), verticalAlignment = Alignment.CenterVertically) {
+                            Box(Modifier.size(36.dp).clip(CircleShape).background(VoiceRoomPalette.DarkSurface.copy(alpha = 0.4f)), contentAlignment = Alignment.Center) {
+                                Text(text = ban.displayName.take(1).ifBlank { "?" }, color = VoiceRoomPalette.TextPrimary, fontSize = 14.sp)
                             }
                             Spacer(modifier = Modifier.width(10.dp))
                             Column(Modifier.weight(1f)) {
-                                Text(
-                                    text = ban.displayName.ifBlank { "Usuario baneado" },
-                                    color = VoiceRoomPalette.TextPrimary,
-                                    fontSize = 14.sp,
-                                    fontWeight = FontWeight.Medium
-                                )
-                                Text(
-                                    text = ban.reason ?: "Sin motivo",
-                                    color = VoiceRoomPalette.TextSecondary,
-                                    fontSize = 11.sp,
-                                    maxLines = 1,
-                                    overflow = TextOverflow.Ellipsis
-                                )
+                                Text(text = ban.displayName.ifBlank { "Usuario baneado" }, color = VoiceRoomPalette.TextPrimary, fontSize = 14.sp, fontWeight = FontWeight.Medium, maxLines = 1, overflow = TextOverflow.Ellipsis)
+                                Text(text = ban.reason ?: "Sin motivo", color = VoiceRoomPalette.TextSecondary, fontSize = 11.sp, maxLines = 1, overflow = TextOverflow.Ellipsis)
                             }
-                            TextButton(onClick = { onRemoveBan(ban.userId) }) {
-                                Text("Desbanear", color = VoiceRoomPalette.Accent, fontSize = 11.sp)
-                            }
+                            TextButton(onClick = { onRemoveBan(ban.userId) }) { Text("Desbanear", color = VoiceRoomPalette.ActiveCyan, fontSize = 11.sp) }
                             HorizontalDivider(color = Color(0x1FFFFFFF))
                         }
                     }
@@ -1489,103 +1333,36 @@ fun VoiceRoomSettingsSheet(
 
 @Composable
 fun SettingsSectionTitle(title: String, emoji: String) {
-    Text(
-        "$emoji $title",
-        color = VoiceRoomPalette.TextSecondary,
-        fontWeight = FontWeight.Bold,
-        fontSize = 13.sp,
-        modifier = Modifier.padding(top = 14.dp, bottom = 6.dp)
-    )
+    Text("$emoji $title", color = VoiceRoomPalette.TextSecondary, fontWeight = FontWeight.Bold, fontSize = 13.sp, modifier = Modifier.padding(top = 14.dp, bottom = 6.dp))
 }
 
 @Composable
 fun SettingsCard(content: @Composable ColumnScope.() -> Unit) {
-    Surface(
-        color = VoiceRoomPalette.SurfaceDark,
-        shape = RoundedCornerShape(18.dp),
-        modifier = Modifier.fillMaxWidth()
-    ) {
-        Column(content = content)
-    }
+    Surface(color = VoiceRoomPalette.DarkSurface.copy(alpha = 0.4f), shape = RoundedCornerShape(18.dp), modifier = Modifier.fillMaxWidth()) { Column(content = content) }
 }
 
 @Composable
-fun SettingsDivider() {
-    HorizontalDivider(color = Color(0x1AFFFFFF), modifier = Modifier.padding(horizontal = 14.dp))
-}
+fun SettingsDivider() { HorizontalDivider(color = Color(0x1AFFFFFF), modifier = Modifier.padding(horizontal = 14.dp)) }
 
 @Composable
-fun SettingsRow(
-    title: String,
-    subtitle: String = "",
-    danger: Boolean = false,
-    onClick: (() -> Unit)? = null
-) {
-    val clickModifier = if (onClick != null) {
-        Modifier.clickable(onClick = onClick!!)
-    } else {
-        Modifier
-    }
-    Row(
-        Modifier.fillMaxWidth().then(clickModifier).padding(horizontal = 16.dp, vertical = 13.dp),
-        verticalAlignment = Alignment.CenterVertically
-    ) {
+fun SettingsRow(title: String, subtitle: String = "", danger: Boolean = false, onClick: (() -> Unit)? = null) {
+    val clickModifier = if (onClick != null) Modifier.clickable(onClick = onClick!!) else Modifier
+    Row(Modifier.fillMaxWidth().then(clickModifier).padding(horizontal = 16.dp, vertical = 13.dp), verticalAlignment = Alignment.CenterVertically) {
         Column(Modifier.weight(1f)) {
-            Text(
-                text = title,
-                color = if (danger) Color(0xFFFF6E6E) else VoiceRoomPalette.TextPrimary,
-                fontSize = 14.sp,
-                fontWeight = FontWeight.Medium
-            )
-            if (subtitle.isNotBlank()) {
-                Text(
-                    text = subtitle,
-                    color = VoiceRoomPalette.TextSecondary,
-                    fontSize = 11.sp,
-                    maxLines = 1,
-                    overflow = TextOverflow.Ellipsis
-                )
-            }
+            Text(text = title, color = if (danger) Color(0xFFFF6E6E) else VoiceRoomPalette.TextPrimary, fontSize = 14.sp, fontWeight = FontWeight.Medium)
+            if (subtitle.isNotBlank()) { Text(text = subtitle, color = VoiceRoomPalette.TextSecondary, fontSize = 11.sp, maxLines = 1, overflow = TextOverflow.Ellipsis) }
         }
-        if (danger) {
-            Text("⚠️", fontSize = 14.sp)
-        } else if (onClick != null) {
-            Icon(
-                Icons.Default.Check,
-                null,
-                tint = VoiceRoomPalette.TextSecondary,
-                modifier = Modifier.size(16.dp)
-            )
-        }
+        if (danger) Text("⚠️", fontSize = 14.sp) else if (onClick != null) Icon(Icons.Default.Check, null, tint = VoiceRoomPalette.TextSecondary, modifier = Modifier.size(16.dp))
     }
 }
 
 @Composable
-fun SettingsToggleRow(
-    title: String,
-    subtitle: String = "",
-    checked: Boolean,
-    onCheckedChange: (Boolean) -> Unit
-) {
-    Row(
-        Modifier.fillMaxWidth().padding(horizontal = 16.dp, vertical = 8.dp),
-        verticalAlignment = Alignment.CenterVertically
-    ) {
+fun SettingsToggleRow(title: String, subtitle: String = "", checked: Boolean, onCheckedChange: (Boolean) -> Unit) {
+    Row(Modifier.fillMaxWidth().padding(horizontal = 16.dp, vertical = 8.dp), verticalAlignment = Alignment.CenterVertically) {
         Column(Modifier.weight(1f)) {
             Text(text = title, color = VoiceRoomPalette.TextPrimary, fontSize = 14.sp, fontWeight = FontWeight.Medium)
-            if (subtitle.isNotBlank()) {
-                Text(text = subtitle, color = VoiceRoomPalette.TextSecondary, fontSize = 11.sp)
-            }
+            if (subtitle.isNotBlank()) { Text(text = subtitle, color = VoiceRoomPalette.TextSecondary, fontSize = 11.sp) }
         }
-        Switch(
-            checked = checked,
-            onCheckedChange = onCheckedChange,
-            colors = SwitchDefaults.colors(
-                checkedThumbColor = VoiceRoomPalette.Accent,
-                checkedTrackColor = VoiceRoomPalette.Accent.copy(alpha = 0.35f),
-                uncheckedThumbColor = Color.White,
-                uncheckedTrackColor = Color(0xFF3E3E44)
-            )
-        )
+        Switch(checked = checked, onCheckedChange = onCheckedChange, colors = SwitchDefaults.colors(checkedThumbColor = VoiceRoomPalette.ActiveCyan, checkedTrackColor = VoiceRoomPalette.ActiveCyan.copy(alpha = 0.35f), uncheckedThumbColor = Color.White, uncheckedTrackColor = Color(0xFF3E3E44)))
     }
 }
