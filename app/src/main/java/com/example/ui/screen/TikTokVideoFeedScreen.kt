@@ -1012,6 +1012,8 @@ fun TikTokPageItem(
     var isRetrying by remember(state.id) { mutableStateOf(false) }
     // Track first READY to report first-frame latency
     val isFirstReady = remember(state.id) { java.util.concurrent.atomic.AtomicBoolean(false) }
+    // Track when buffering state started, for accurate buffering duration
+    var bufferingStartMs by remember(state.id) { mutableStateOf<Long?>(null) }
 
     // Player acquisition depends ONLY on resolved URL, NOT on metadata.
     // Metadata extraction is deferred to a secondary LaunchedEffect above so
@@ -1090,12 +1092,30 @@ fun TikTokPageItem(
             override fun onPlaybackStateChanged(playbackState: Int) {
                 isBuffering = (playbackState == Player.STATE_BUFFERING || playbackState == Player.STATE_IDLE) && !hasError
                 when (playbackState) {
-                    Player.STATE_BUFFERING -> diagnostics.record(
-                        DiagnosticCategory.EXOPLAYER,
-                        "Buffering START",
-                        correlationId = state.id.take(36)
-                    )
+                    Player.STATE_BUFFERING -> {
+                        // Only record BUFFERING START on real transition into buffering
+                        if (bufferingStartMs == null) {
+                            bufferingStartMs = System.currentTimeMillis()
+                            diagnostics.record(
+                                DiagnosticCategory.EXOPLAYER,
+                                "Buffering START",
+                                correlationId = state.id.take(36)
+                            )
+                        }
+                    }
                     Player.STATE_READY -> {
+                        // Record BUFFERING END if we were buffering
+                        val start = bufferingStartMs
+                        if (start != null) {
+                            val duration = System.currentTimeMillis() - start
+                            diagnostics.record(
+                                DiagnosticCategory.EXOPLAYER,
+                                "Buffering END",
+                                correlationId = state.id.take(36),
+                                durationMs = duration
+                            )
+                            bufferingStartMs = null
+                        }
                         hasError = false
                         resolveFailed = false
                         retryCount = 0
