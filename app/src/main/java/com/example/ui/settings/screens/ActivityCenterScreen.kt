@@ -4,7 +4,6 @@ import android.widget.Toast
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
-import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
@@ -30,216 +29,96 @@ import com.example.ui.settings.viewmodel.ActivityViewModel
 @Composable
 fun ActivityCenterScreen(
     onBack: () -> Unit,
+    onNavigateToDiagnostics: () -> Unit,
     viewModel: ActivityViewModel = viewModel()
 ) {
     val uiState by viewModel.uiState.collectAsStateWithLifecycle()
     val context = LocalContext.current
 
     LaunchedEffect(uiState.errorMessage) {
-        uiState.errorMessage?.let { err ->
-            Toast.makeText(context, err, Toast.LENGTH_LONG).show()
-            viewModel.dispatch(ActivityAction.ClearError)
-        }
+        uiState.errorMessage?.let { Toast.makeText(context, it, Toast.LENGTH_LONG).show(); viewModel.dispatch(ActivityAction.ClearError) }
     }
 
     Scaffold(
         topBar = {
             TopAppBar(
                 title = { Text("Centro de Actividad", color = Color.White) },
-                navigationIcon = {
-                    IconButton(onClick = onBack) {
-                        Icon(Icons.AutoMirrored.Filled.ArrowBack, contentDescription = "Regresar", tint = Color.White)
-                    }
-                },
-                actions = {
-                    IconButton(onClick = { viewModel.dispatch(ActivityAction.RefreshSummary) }) {
-                        Icon(Icons.Default.Refresh, contentDescription = "Actualizar", tint = Color.White)
-                    }
-                },
+                navigationIcon = { IconButton(onClick = onBack) { Icon(Icons.AutoMirrored.Filled.ArrowBack, "Regresar", tint = Color.White) } },
+                actions = { IconButton(onClick = { viewModel.dispatch(ActivityAction.RefreshSummary) }) { Icon(Icons.Default.Refresh, "Actualizar", tint = Color.White) } },
                 colors = TopAppBarDefaults.topAppBarColors(containerColor = Color(0xFF121B22))
             )
         },
         containerColor = Color(0xFF121B22)
     ) { padding ->
         if (uiState.isLoading) {
-            Box(
-                modifier = Modifier
-                    .fillMaxSize()
-                    .padding(padding),
-                contentAlignment = Alignment.Center
-            ) {
-                CircularProgressIndicator(color = Color(0xFF25D366))
-            }
+            Box(Modifier.fillMaxSize().padding(padding), contentAlignment = Alignment.Center) { CircularProgressIndicator(color = Color(0xFF25D366)) }
         } else {
             LazyColumn(
-                modifier = Modifier
-                    .fillMaxSize()
-                    .padding(padding),
+                modifier = Modifier.fillMaxSize().padding(padding),
                 contentPadding = PaddingValues(16.dp),
                 verticalArrangement = Arrangement.spacedBy(16.dp)
             ) {
-                // Header: Resumen de Uso Real
                 item {
-                    Text(
-                        text = "Resumen de uso",
-                        color = Color.White,
-                        fontSize = 18.sp,
-                        fontWeight = FontWeight.Bold,
-                        modifier = Modifier.padding(bottom = 8.dp)
-                    )
-
-                    Row(
-                        modifier = Modifier.fillMaxWidth(),
-                        horizontalArrangement = Arrangement.spacedBy(16.dp)
-                    ) {
-                        ActivityStatCard(
-                            modifier = Modifier.weight(1f),
-                            title = "Mensajes",
-                            value = uiState.messagesCount.toString(),
-                            icon = Icons.Default.Chat,
-                            iconColor = Color(0xFF03A9F4)
-                        )
-                        ActivityStatCard(
-                            modifier = Modifier.weight(1f),
-                            title = "Llamadas",
-                            value = uiState.callsCount.toString(),
-                            icon = Icons.Default.Call,
-                            iconColor = Color(0xFF4CAF50)
-                        )
+                    Text("Resumen de uso", color = Color.White, fontSize = 18.sp, fontWeight = FontWeight.Bold, modifier = Modifier.padding(bottom = 8.dp))
+                    Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(16.dp)) {
+                        ActivityStatCard(Modifier.weight(1f), "Mensajes", uiState.messagesCount.toString(), Icons.Default.Chat, Color(0xFF03A9F4))
+                        ActivityStatCard(Modifier.weight(1f), "Llamadas", uiState.callsCount.toString(), Icons.Default.Call, Color(0xFF4CAF50))
                     }
-
-                    Spacer(modifier = Modifier.height(16.dp))
-
-                    Row(
-                        modifier = Modifier.fillMaxWidth(),
-                        horizontalArrangement = Arrangement.spacedBy(16.dp)
-                    ) {
-                        ActivityStatCard(
-                            modifier = Modifier.weight(1f),
-                            title = "Almacenamiento",
-                            value = uiState.storageUsed,
-                            icon = Icons.Default.Storage,
-                            iconColor = Color(0xFFFF9800)
-                        )
-                        ActivityStatCard(
-                            modifier = Modifier.weight(1f),
-                            title = "Red",
-                            value = if (uiState.isOnline) "Conectado" else "Sin red",
-                            icon = Icons.Default.Wifi,
-                            iconColor = if (uiState.isOnline) Color(0xFF25D366) else Color(0xFFFF5252)
-                        )
+                    Spacer(Modifier.height(16.dp))
+                    Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(16.dp)) {
+                        ActivityStatCard(Modifier.weight(1f), "Almacenamiento", uiState.storageUsed, Icons.Default.Storage, Color(0xFFFF9800))
+                        ActivityStatCard(Modifier.weight(1f), "Red", if (uiState.isOnline) "Conectado" else "Sin red", Icons.Default.Wifi, if (uiState.isOnline) Color(0xFF25D366) else Color(0xFFFF5252))
                     }
                 }
 
-                // Desglose de Almacenamiento Local
                 item {
-                    Card(
-                        colors = CardDefaults.cardColors(containerColor = Color(0xFF1E2B33)),
-                        shape = RoundedCornerShape(16.dp),
-                        modifier = Modifier.fillMaxWidth()
-                    ) {
-                        Column(modifier = Modifier.padding(16.dp)) {
-                            Text(
-                                text = "Desglose de Almacenamiento Local",
-                                color = Color.White,
-                                fontSize = 15.sp,
-                                fontWeight = FontWeight.Bold,
-                                modifier = Modifier.padding(bottom = 12.dp)
-                            )
+                    Card(colors = CardDefaults.cardColors(Color(0xFF1E2B33)), shape = RoundedCornerShape(16.dp), modifier = Modifier.fillMaxWidth()) {
+                        Column(Modifier.padding(16.dp)) {
+                            Text("Diagnóstico del sistema", color = Color.White, fontSize = 16.sp, fontWeight = FontWeight.Bold)
+                            Spacer(Modifier.height(6.dp))
+                            Text("Monitoriza procesos de Panalink y captura la línea de tiempo de Reels, VCDN, ExoPlayer, caché, red y errores directamente desde el teléfono.", color = Color(0xFF90A4AE), fontSize = 13.sp)
+                            Spacer(Modifier.height(12.dp))
+                            Button(onClick = onNavigateToDiagnostics, modifier = Modifier.fillMaxWidth(), colors = ButtonDefaults.buttonColors(containerColor = Color(0xFF25D366), contentColor = Color.Black)) {
+                                Icon(Icons.Default.MonitorHeart, null)
+                                Spacer(Modifier.width(8.dp))
+                                Text("Abrir diagnóstico", fontWeight = FontWeight.Bold)
+                            }
+                        }
+                    }
+                }
+
+                item {
+                    Card(colors = CardDefaults.cardColors(Color(0xFF1E2B33)), shape = RoundedCornerShape(16.dp), modifier = Modifier.fillMaxWidth()) {
+                        Column(Modifier.padding(16.dp)) {
+                            Text("Desglose de Almacenamiento Local", color = Color.White, fontSize = 15.sp, fontWeight = FontWeight.Bold, modifier = Modifier.padding(bottom = 12.dp))
                             SystemStatusRow("Base de Datos (Room)", uiState.databaseSize, Icons.Default.Storage, Color(0xFF00E5FF))
-                            Spacer(modifier = Modifier.height(12.dp))
+                            Spacer(Modifier.height(12.dp))
                             SystemStatusRow("Caché y Multimedia", uiState.mediaSize, Icons.Default.Folder, Color(0xFFFFB300))
                         }
                     }
                 }
 
-                // Estado del Sistema
                 item {
-                    Text(
-                        text = "Estado del sistema",
-                        color = Color.White,
-                        fontSize = 18.sp,
-                        fontWeight = FontWeight.Bold,
-                        modifier = Modifier.padding(bottom = 8.dp)
-                    )
-
-                    Card(
-                        colors = CardDefaults.cardColors(containerColor = Color(0xFF1E2B33)),
-                        shape = RoundedCornerShape(16.dp),
-                        modifier = Modifier.fillMaxWidth()
-                    ) {
-                        Column(modifier = Modifier.padding(16.dp)) {
-                            SystemStatusRow(
-                                title = "Sincronización de chats",
-                                subtitle = uiState.lastSynchronization,
-                                icon = Icons.Default.CheckCircle,
-                                iconColor = Color(0xFF4CAF50)
-                            )
-                            Spacer(modifier = Modifier.height(16.dp))
-                            SystemStatusRow(
-                                title = "Calidad de conexión",
-                                subtitle = uiState.connectionStatus,
-                                icon = Icons.Default.Wifi,
-                                iconColor = if (uiState.isOnline) Color(0xFF4CAF50) else Color(0xFFFF5252)
-                            )
-                            Spacer(modifier = Modifier.height(16.dp))
-                            SystemStatusRow(
-                                title = "Caché de datos en disco",
-                                subtitle = uiState.dataUsageToday,
-                                icon = Icons.Default.DataUsage,
-                                iconColor = Color(0xFF03A9F4)
-                            )
+                    Text("Estado del sistema", color = Color.White, fontSize = 18.sp, fontWeight = FontWeight.Bold, modifier = Modifier.padding(bottom = 8.dp))
+                    Card(colors = CardDefaults.cardColors(Color(0xFF1E2B33)), shape = RoundedCornerShape(16.dp), modifier = Modifier.fillMaxWidth()) {
+                        Column(Modifier.padding(16.dp)) {
+                            SystemStatusRow("Sincronización de chats", uiState.lastSynchronization, Icons.Default.CheckCircle, Color(0xFF4CAF50))
+                            Spacer(Modifier.height(16.dp))
+                            SystemStatusRow("Calidad de conexión", uiState.connectionStatus, Icons.Default.Wifi, if (uiState.isOnline) Color(0xFF4CAF50) else Color(0xFFFF5252))
+                            Spacer(Modifier.height(16.dp))
+                            SystemStatusRow("Caché de datos en disco", uiState.dataUsageToday, Icons.Default.DataUsage, Color(0xFF03A9F4))
                         }
                     }
                 }
 
-                // Dispositivos Activos
                 item {
-                    Text(
-                        text = "Dispositivos activos",
-                        color = Color.White,
-                        fontSize = 18.sp,
-                        fontWeight = FontWeight.Bold,
-                        modifier = Modifier.padding(bottom = 8.dp)
-                    )
-                }
-
-                if (uiState.activeDevices.isEmpty()) {
-                    item {
-                        Card(
-                            colors = CardDefaults.cardColors(containerColor = Color(0xFF1E2B33)),
-                            shape = RoundedCornerShape(16.dp),
-                            modifier = Modifier.fillMaxWidth()
-                        ) {
-                            Box(
-                                modifier = Modifier
-                                    .fillMaxWidth()
-                                    .padding(16.dp),
-                                contentAlignment = Alignment.Center
-                            ) {
-                                Text("No hay dispositivos registrados", color = Color(0xFF90A4AE), fontSize = 13.sp)
-                            }
-                        }
-                    }
-                } else {
-                    item {
-                        Card(
-                            colors = CardDefaults.cardColors(containerColor = Color(0xFF1E2B33)),
-                            shape = RoundedCornerShape(16.dp),
-                            modifier = Modifier.fillMaxWidth()
-                        ) {
-                            Column(modifier = Modifier.padding(16.dp)) {
-                                uiState.activeDevices.forEachIndexed { index, device ->
-                                    DeviceRow(
-                                        name = device.name,
-                                        time = device.lastActive,
-                                        icon = if (device.iconType == "computer") Icons.Default.Computer else Icons.Default.Smartphone,
-                                        isCurrent = device.isCurrent
-                                    )
-                                    if (index < uiState.activeDevices.lastIndex) {
-                                        Spacer(modifier = Modifier.height(16.dp))
-                                    }
-                                }
+                    Text("Dispositivos activos", color = Color.White, fontSize = 18.sp, fontWeight = FontWeight.Bold, modifier = Modifier.padding(bottom = 8.dp))
+                    Card(colors = CardDefaults.cardColors(Color(0xFF1E2B33)), shape = RoundedCornerShape(16.dp), modifier = Modifier.fillMaxWidth()) {
+                        Column(Modifier.padding(16.dp)) {
+                            if (uiState.activeDevices.isEmpty()) Text("No hay dispositivos registrados", color = Color(0xFF90A4AE), fontSize = 13.sp)
+                            uiState.activeDevices.forEachIndexed { index, device ->
+                                DeviceRow(device)
+                                if (index < uiState.activeDevices.lastIndex) Spacer(Modifier.height(16.dp))
                             }
                         }
                     }
@@ -250,29 +129,11 @@ fun ActivityCenterScreen(
 }
 
 @Composable
-fun ActivityStatCard(
-    modifier: Modifier = Modifier,
-    title: String,
-    value: String,
-    icon: ImageVector,
-    iconColor: Color
-) {
-    Surface(
-        modifier = modifier,
-        shape = RoundedCornerShape(16.dp),
-        color = Color(0xFF1E2B33),
-        tonalElevation = 2.dp
-    ) {
-        Column(modifier = Modifier.padding(16.dp)) {
-            Box(
-                modifier = Modifier
-                    .size(40.dp)
-                    .background(iconColor.copy(alpha = 0.12f), CircleShape),
-                contentAlignment = Alignment.Center
-            ) {
-                Icon(icon, contentDescription = null, tint = iconColor, modifier = Modifier.size(24.dp))
-            }
-            Spacer(modifier = Modifier.height(12.dp))
+fun ActivityStatCard(modifier: Modifier = Modifier, title: String, value: String, icon: ImageVector, iconColor: Color) {
+    Surface(modifier = modifier, shape = RoundedCornerShape(16.dp), color = Color(0xFF1E2B33), tonalElevation = 2.dp) {
+        Column(Modifier.padding(16.dp)) {
+            Box(Modifier.size(40.dp).background(iconColor.copy(alpha = .12f), CircleShape), contentAlignment = Alignment.Center) { Icon(icon, null, tint = iconColor, modifier = Modifier.size(24.dp)) }
+            Spacer(Modifier.height(12.dp))
             Text(value, color = Color.White, fontSize = 22.sp, fontWeight = FontWeight.Bold)
             Text(title, color = Color(0xFF90A4AE), fontSize = 13.sp)
         }
@@ -282,35 +143,24 @@ fun ActivityStatCard(
 @Composable
 fun SystemStatusRow(title: String, subtitle: String, icon: ImageVector, iconColor: Color) {
     Row(verticalAlignment = Alignment.CenterVertically) {
-        Icon(icon, contentDescription = null, tint = iconColor, modifier = Modifier.size(24.dp))
-        Spacer(modifier = Modifier.width(16.dp))
-        Column {
-            Text(title, color = Color.White, fontSize = 15.sp, fontWeight = FontWeight.Medium)
-            Text(subtitle, color = Color(0xFF90A4AE), fontSize = 13.sp)
-        }
+        Icon(icon, null, tint = iconColor, modifier = Modifier.size(24.dp))
+        Spacer(Modifier.width(16.dp))
+        Column { Text(title, color = Color.White, fontSize = 15.sp, fontWeight = FontWeight.Medium); Text(subtitle, color = Color(0xFF90A4AE), fontSize = 13.sp) }
     }
 }
 
 @Composable
-fun DeviceRow(name: String, time: String, icon: ImageVector, isCurrent: Boolean) {
+private fun DeviceRow(device: DeviceInfo) {
     Row(verticalAlignment = Alignment.CenterVertically) {
-        Box(
-            modifier = Modifier
-                .size(44.dp)
-                .background(Color(0xFF2A3942), CircleShape),
-            contentAlignment = Alignment.Center
-        ) {
-            Icon(icon, contentDescription = null, tint = Color.White, modifier = Modifier.size(22.dp))
+        Box(Modifier.size(44.dp).background(Color(0xFF2A3942), CircleShape), contentAlignment = Alignment.Center) {
+            Icon(if (device.iconType == "computer") Icons.Default.Computer else Icons.Default.Smartphone, null, tint = Color.White, modifier = Modifier.size(22.dp))
         }
-        Spacer(modifier = Modifier.width(16.dp))
-        Column(modifier = Modifier.weight(1f)) {
-            Text(name, color = Color.White, fontSize = 15.sp, fontWeight = FontWeight.Medium)
+        Spacer(Modifier.width(16.dp))
+        Column(Modifier.weight(1f)) {
+            Text(device.name, color = Color.White, fontSize = 15.sp, fontWeight = FontWeight.Medium)
             Row(verticalAlignment = Alignment.CenterVertically) {
-                if (isCurrent) {
-                    Box(modifier = Modifier.size(8.dp).background(Color(0xFF4CAF50), CircleShape))
-                    Spacer(modifier = Modifier.width(6.dp))
-                }
-                Text(time, color = if (isCurrent) Color(0xFF4CAF50) else Color(0xFF90A4AE), fontSize = 12.sp)
+                if (device.isCurrent) { Box(Modifier.size(8.dp).background(Color(0xFF4CAF50), CircleShape)); Spacer(Modifier.width(6.dp)) }
+                Text(device.lastActive, color = if (device.isCurrent) Color(0xFF4CAF50) else Color(0xFF90A4AE), fontSize = 12.sp)
             }
         }
     }
