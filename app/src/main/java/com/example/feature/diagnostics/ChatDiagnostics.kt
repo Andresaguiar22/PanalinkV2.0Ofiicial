@@ -1,6 +1,5 @@
 package com.example.feature.diagnostics
 
-import android.content.Context
 import com.example.PanaApplication
 import com.example.feature.diagnostics.data.DiagnosticsRepository
 import com.example.feature.diagnostics.model.DiagnosticCategory
@@ -21,14 +20,18 @@ object ChatDiagnostics {
         correlationId: String? = null,
         details: String? = null
     ) {
-        repository().record(
-            category = DiagnosticCategory.CHAT,
-            event = name,
-            severity = severity,
-            durationMs = durationMs,
-            correlationId = correlationId,
-            details = details
-        )
+        try {
+            repository().record(
+                category = DiagnosticCategory.CHAT,
+                event = name,
+                severity = severity,
+                durationMs = durationMs,
+                correlationId = correlationId,
+                details = details?.take(220)
+            )
+        } catch (_: Throwable) {
+            // Diagnostics must never affect chat behavior.
+        }
     }
 
     fun started(name: String, correlationId: String? = null, details: String? = null) =
