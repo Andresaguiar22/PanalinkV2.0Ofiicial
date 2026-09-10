@@ -9,6 +9,7 @@ import com.example.ui.settings.screens.ActivityCenterScreen
 import com.example.ui.settings.screens.ChatsCenterScreen
 import com.example.ui.settings.screens.ControlCenterScreen
 import com.example.ui.settings.screens.CustomizationCenterScreen
+import com.example.ui.settings.screens.DiagnosticsScreen
 import com.example.ui.settings.screens.NotificationCenterScreen
 import com.example.ui.settings.screens.PresenceCenterScreen
 import com.example.ui.settings.screens.PrivacyCenterScreen
@@ -45,36 +46,21 @@ fun SettingsNavGraph(
                 onDeleteAccount = onDeleteAccount
             )
         }
-        
-        composable(SettingsDestination.ProfileEdit.route) {
-            ProfileEditScreen(onBack = { navController.popBackStack() })
-        }
-        composable(SettingsDestination.PresenceCenter.route) {
-            PresenceCenterScreen(onBack = { navController.popBackStack() })
-        }
-        composable(SettingsDestination.PrivacyCenter.route) {
-            PrivacyCenterScreen(onBack = { navController.popBackStack() })
-        }
-        composable(SettingsDestination.SecurityCenter.route) {
-            SecurityCenterScreen(onBack = { navController.popBackStack() })
-        }
-        composable(SettingsDestination.ChatsCenter.route) {
-            ChatsCenterScreen(onBack = { navController.popBackStack() })
-        }
-        composable(SettingsDestination.NotificationCenter.route) {
-            NotificationCenterScreen(onBack = { navController.popBackStack() })
-        }
-        composable(SettingsDestination.CustomizationCenter.route) {
-            CustomizationCenterScreen(onBack = { navController.popBackStack() })
-        }
-        composable(SettingsDestination.StorageCenter.route) {
-            StorageCenterScreen(onBack = { navController.popBackStack() })
-        }
+        composable(SettingsDestination.ProfileEdit.route) { ProfileEditScreen(onBack = { navController.popBackStack() }) }
+        composable(SettingsDestination.PresenceCenter.route) { PresenceCenterScreen(onBack = { navController.popBackStack() }) }
+        composable(SettingsDestination.PrivacyCenter.route) { PrivacyCenterScreen(onBack = { navController.popBackStack() }) }
+        composable(SettingsDestination.SecurityCenter.route) { SecurityCenterScreen(onBack = { navController.popBackStack() }) }
+        composable(SettingsDestination.ChatsCenter.route) { ChatsCenterScreen(onBack = { navController.popBackStack() }) }
+        composable(SettingsDestination.NotificationCenter.route) { NotificationCenterScreen(onBack = { navController.popBackStack() }) }
+        composable(SettingsDestination.CustomizationCenter.route) { CustomizationCenterScreen(onBack = { navController.popBackStack() }) }
+        composable(SettingsDestination.StorageCenter.route) { StorageCenterScreen(onBack = { navController.popBackStack() }) }
         composable(SettingsDestination.ActivityCenter.route) {
-            ActivityCenterScreen(onBack = { navController.popBackStack() })
+            ActivityCenterScreen(
+                onBack = { navController.popBackStack() },
+                onNavigateToDiagnostics = { navController.navigate(SettingsDestination.Diagnostics.route) }
+            )
         }
-        composable(SettingsDestination.About.route) {
-            AboutScreen(onBack = { navController.popBackStack() })
-        }
+        composable(SettingsDestination.Diagnostics.route) { DiagnosticsScreen(onBack = { navController.popBackStack() }) }
+        composable(SettingsDestination.About.route) { AboutScreen(onBack = { navController.popBackStack() }) }
     }
 }
