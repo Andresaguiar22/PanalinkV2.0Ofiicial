@@ -102,11 +102,8 @@ class PanaTVRepository(private val context: Context) {
     suspend fun forceSyncChannels(onDebug: (String) -> Unit = {}) {
         withContext(Dispatchers.IO) {
             try {
-                // CLEAR DATABASE BEFORE SYNC
-                dao.clearChannels() 
-                
-                Log.d(TAG, "Descargando data de canales...")
                 onDebug("Descargando data de IPTV-ORG...")
+                Log.d(TAG, "Descargando data de canales...")
                 
                 val blocklistResponse = apiService.getBlocklist()
                 if (!blocklistResponse.isSuccessful) {

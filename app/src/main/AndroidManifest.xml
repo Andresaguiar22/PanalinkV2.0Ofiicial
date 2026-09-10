@@ -118,7 +118,7 @@
             android:name=".panatv.PanaTVActivity"
             android:exported="false"
             android:theme="@style/Theme.MyApplication"
-            android:supportsPictureInPicture="true"
+            android:supportsPictureInPicture="false"
             android:configChanges="screenSize|smallestScreenSize|screenLayout|orientation"
             android:label="PanaTV" />
     </application>

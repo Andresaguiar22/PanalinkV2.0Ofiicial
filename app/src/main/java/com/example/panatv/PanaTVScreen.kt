@@ -353,6 +353,7 @@ fun PanaTVScreen(viewModel: PanaTVViewModel = viewModel()) {
 
     LaunchedEffect(currentChannel) {
         currentChannel?.let { channel ->
+            playerError = ""
             isVideoRendering = false
             isBuffering = true
             exoPlayer.stop()
@@ -379,8 +380,18 @@ fun PanaTVScreen(viewModel: PanaTVViewModel = viewModel()) {
         val observer = LifecycleEventObserver { _, event ->
             when (event) {
                 Lifecycle.Event.ON_PAUSE -> exoPlayer.pause()
+                Lifecycle.Event.ON_STOP -> {
+                    // Backgrounded (HOME, alt-TAB, another Activity over PanaTV): pause
+                    // immediately so no audio leaks into the background. The player
+                    // instance is kept alive (not released) so returning here is cheap;
+                    // it is fully released in onDispose below when the screen is actually
+                    // left/destroyed.
+                    exoPlayer.pause()
+                }
                 Lifecycle.Event.ON_RESUME -> {
-                    exoPlayer.play()
+                    // Do NOT auto-play on resume: prevents ghost playback when the user
+                    // returns to PanaTV. Only rebind the surface so an in-flight item
+                    // keeps rendering if the player still exists.
                     activePlayerView?.let { rebindPlayer(it) }
                 }
                 else -> {}
@@ -390,11 +401,7 @@ fun PanaTVScreen(viewModel: PanaTVViewModel = viewModel()) {
         onDispose {
             lifecycleOwner.lifecycle.removeObserver(observer)
             // No floating bubble: leaving PanaTV always stops and releases the player.
-            com.example.util.AppFloatingPlayerManager.isFloating = false
-            exoPlayer.release()
-            if (com.example.util.AppFloatingPlayerManager.exoPlayer == exoPlayer) {
-                com.example.util.AppFloatingPlayerManager.exoPlayer = null
-            }
+            com.example.util.AppFloatingPlayerManager.releasePlayer()
         }
     }
 
@@ -547,7 +554,7 @@ fun PanaTVScreen(viewModel: PanaTVViewModel = viewModel()) {
                             cursorBrush = SolidColor(TvAccent),
                             decorationBox = { innerTextField ->
                                 if (searchQuery.isEmpty()) {
-                                    Text("Buscar canales y programas...", color = TvTextSecondary, fontSize = 15.sp)
+                                    Text("Buscar canales por nombre o país...", color = TvTextSecondary, fontSize = 15.sp)
                                 }
                                 innerTextField()
                             }
@@ -755,18 +762,11 @@ fun PanaTVScreen(viewModel: PanaTVViewModel = viewModel()) {
                                         .clickable { cycleResizeMode() }
                                         .padding(horizontal = 8.dp, vertical = 6.dp)
                                 )
-                                IconButton(onClick = { isFullscreen = true }) {
-                                    Icon(Icons.Default.Fullscreen, contentDescription = "Pantalla completa", tint = Color.White)
-                                }
-                                IconButton(onClick = {
-                                    if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
-                                        (context as? Activity)?.enterPictureInPictureMode(
-                                            android.app.PictureInPictureParams.Builder().build()
-                                        )
+                                    IconButton(onClick = { isFullscreen = true }) {
+                                        Icon(Icons.Default.Fullscreen, contentDescription = "Pantalla completa", tint = Color.White)
                                     }
-                                }) {
-                                    Icon(Icons.Default.PictureInPictureAlt, contentDescription = "PiP", tint = Color.White)
-                                }
+                                    // PiP entry removed for PanaTV: leaving the screen must stop
+                                    // playback outright (see lifecycle). Reels PiP is unaffected.
                             }
                         }
 
@@ -788,7 +788,7 @@ fun PanaTVScreen(viewModel: PanaTVViewModel = viewModel()) {
                                 )
                                 Box(
                                     modifier = Modifier
-                                        .fillMaxWidth(currentChannel!!.programProgress)
+                                        .fillMaxWidth(currentChannel!!.programProgress.coerceIn(0f, 1f))
                                         .height(3.dp)
                                         .clip(RoundedCornerShape(2.dp))
                                         .background(TvAccent)
@@ -851,6 +851,9 @@ fun PanaTVScreen(viewModel: PanaTVViewModel = viewModel()) {
                 Spacer(modifier = Modifier.height(12.dp))
 
                 // ── Channel grid ──
+                // Lays out BELOW the hero player: the player keeps its intrinsic 16:9
+                // aspect height and the grid fills the remaining (scrollable) space,
+                // so it never overlaps the player (Xuper-TV layout).
                 if (channels.isEmpty()) {
                     Box(
                         modifier = Modifier.fillMaxSize(),
@@ -1107,7 +1110,7 @@ fun PanaTVScreen(viewModel: PanaTVViewModel = viewModel()) {
                                         )
                                         Box(
                                             modifier = Modifier
-                                                .fillMaxWidth(currentChannel!!.programProgress)
+                                                .fillMaxWidth(currentChannel!!.programProgress.coerceIn(0f, 1f))
                                                 .height(4.dp)
                                                 .clip(RoundedCornerShape(2.dp))
                                                 .background(TvAccent)
@@ -1116,8 +1119,9 @@ fun PanaTVScreen(viewModel: PanaTVViewModel = viewModel()) {
                                     Spacer(modifier = Modifier.height(6.dp))
                                 }
 
-                                // Progress bar scrubber
-                                if (duration > 0) {
+                                // Progress bar scrubber: only for seekable/DVR windows;
+                                // suppress the VOD-style slider on non-seekable live streams.
+                                if (duration > 0L && exoPlayer.isCurrentWindowSeekable) {
                                     Box(
                                         modifier = Modifier
                                             .fillMaxWidth()
@@ -1214,16 +1218,8 @@ fun PanaTVScreen(viewModel: PanaTVViewModel = viewModel()) {
                                     IconButton(onClick = toggleOrientation) {
                                         Icon(Icons.Default.ScreenRotation, contentDescription = "Voltear pantalla", tint = Color.White)
                                     }
-                                    // PiP
-                                    IconButton(onClick = {
-                                        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
-                                            (context as? Activity)?.enterPictureInPictureMode(
-                                                android.app.PictureInPictureParams.Builder().build()
-                                            )
-                                        }
-                                    }) {
-                                        Icon(Icons.Default.PictureInPictureAlt, contentDescription = "PiP", tint = Color.White)
-                                    }
+                                    // PiP entry removed for PanaTV: leaving the screen must stop
+                                    // playback outright (see lifecycle). Reels PiP is unaffected.
                                     // Exit fullscreen
                                     IconButton(onClick = { isFullscreen = false }) {
                                         Icon(Icons.Default.FullscreenExit, contentDescription = "Salir", tint = Color.White)
@@ -1546,8 +1542,8 @@ private fun ChannelCard(
                     overflow = TextOverflow.Ellipsis,
                     textAlign = TextAlign.Center,
                     modifier = Modifier.fillMaxWidth()
-                )
+                            )
+                        }
+                    }
+                }
             }
-        }
-    }
-}
