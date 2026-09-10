@@ -6,6 +6,7 @@ import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.setValue
 import androidx.media3.common.MediaItem
 import androidx.media3.common.Player
+import androidx.media3.datasource.DefaultHttpDataSource
 import androidx.media3.exoplayer.ExoPlayer
 import com.example.core.media.PanaRenderersFactory
 import androidx.media3.exoplayer.trackselection.DefaultTrackSelector
@@ -24,6 +25,11 @@ object AppFloatingPlayerManager {
     var exoPlayer by mutableStateOf<ExoPlayer?>(null)
     var isFloating by mutableStateOf(false)
     var isMuted by mutableStateOf(false)
+
+    // The HTTP data-source factory is kept as a reference so that per-stream
+    // headers (User-Agent / Referer) can be updated dynamically between
+    // setMediaItem calls on the shared player — no rebuild required.
+    private var httpDataSourceFactory: DefaultHttpDataSource.Factory? = null
     
     // Track position in screen
     var bubbleOffsetX by mutableStateOf(0f)
@@ -45,7 +51,15 @@ object AppFloatingPlayerManager {
         }
     }
 
-    fun acquirePlayer(context: Context, id: String, url: String, title: String?, type: String): ExoPlayer {
+    fun acquirePlayer(
+        context: Context,
+        id: String,
+        url: String,
+        title: String?,
+        type: String,
+        userAgent: String? = null,
+        referrer: String? = null
+    ): ExoPlayer {
         // If we already have a player with the same video playing, reuse it!
         val currentPlayer = exoPlayer
         if (currentPlayer != null && activeUrl == url) {
@@ -60,6 +74,16 @@ object AppFloatingPlayerManager {
         // avoids full codec teardown + player construction on the main thread,
         // which is what froze the app during fast reel swipes.
         val player = currentPlayer ?: buildPlayer(context.applicationContext)
+
+        // Update per-stream headers on the shared HTTP factory before setMediaItem.
+        // The factory is mutable: subsequent createDataSource() calls pick up the
+        // new properties, so a single prepare() applies the right headers.
+        httpDataSourceFactory?.let { factory ->
+            userAgent?.takeIf { it.isNotBlank() }?.let { factory.setUserAgent(it) }
+            val props = mutableMapOf<String, String>()
+            referrer?.takeIf { it.isNotBlank() }?.let { props["Referer"] = it }
+            if (props.isNotEmpty()) factory.setDefaultRequestProperties(props)
+        }
 
         // CRÍTICO: limpiar surface y reset antes de cambiar media item para evitar
         // frame corrupto residual (causa de pantalla negra después de unos segundos).
@@ -110,11 +134,19 @@ object AppFloatingPlayerManager {
             setParameters(buildUponParameters().clearVideoSizeConstraints()) // Allow high quality
         }
 
-        // DefaultDataSource delegates local files to FileDataSource and http(s) to the
-        // shared cache factory, so one player instance handles both transparently.
+        // Keep a reference to the HTTP factory so acquirePlayer() can update
+        // per-stream headers (User-Agent / Referer) dynamically without rebuilding
+        // the player. The factory is mutable; changes are picked up by new
+        // DefaultHttpDataSource instances created during prepare().
+        httpDataSourceFactory = DefaultHttpDataSource.Factory()
+            .setUserAgent("Mozilla/5.0 (Linux; Android 10; K) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/124.0.0.0 Mobile Safari/537.36 Panalink/1.0")
+            .setConnectTimeoutMs(15000)
+            .setReadTimeoutMs(15000)
+            .setAllowCrossProtocolRedirects(true)
+
         val dataSourceFactory = androidx.media3.datasource.DefaultDataSource.Factory(
             context,
-            CacheDataSourceFactory.getCacheDataSourceFactory(context)
+            CacheDataSourceFactory.getCacheDataSourceFactory(context, httpDataSourceFactory)
         )
 
         return ExoPlayer.Builder(context, PanaRenderersFactory.create(context))
