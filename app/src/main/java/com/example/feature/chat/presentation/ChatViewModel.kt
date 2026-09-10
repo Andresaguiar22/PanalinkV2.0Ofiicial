@@ -5,6 +5,7 @@ import android.net.Uri
 import android.util.Log
 import android.widget.Toast
 import com.example.core.logger.AppLogger
+import com.example.feature.diagnostics.ChatDiagnostics
 import androidx.compose.runtime.Immutable
 import androidx.compose.runtime.Stable
 import androidx.lifecycle.ViewModel
@@ -199,6 +200,9 @@ private var chatJob: kotlinx.coroutines.Job? = null
     private var loadJob: kotlinx.coroutines.Job? = null
 
     fun loadChatHistory(chatId: String, otherUserId: String) {
+        val correlationId = ChatDiagnostics.correlationId()
+        val startedAtMs = System.currentTimeMillis()
+        ChatDiagnostics.started(name = "chat.history.load.started", correlationId = correlationId)
         // UN SOLO chat por pareja: el identificador canónico del DM es thread_id.
         // 1. getChatByThreadId(chatId)
         // 2. Si no existe, getChatById(chatId)
@@ -216,6 +220,7 @@ private var chatJob: kotlinx.coroutines.Job? = null
                     byId?.threadId?.takeIf { it.isNotBlank() } ?: byId?.id ?: chatId
                 }
             }
+            ChatDiagnostics.completed(name = "chat.history.canonical_id.resolved", startedAtMs = startedAtMs, correlationId = correlationId)
             val effectiveChatId = canonicalChatId
             currentChatId = effectiveChatId
 
@@ -252,18 +257,23 @@ private var chatJob: kotlinx.coroutines.Job? = null
 
 
     private fun continueLoadChatHistory(chatId: String, otherUserId: String) {
-
+        val correlationId = ChatDiagnostics.correlationId()
+        val startedAtMs = System.currentTimeMillis()
         // Mark thread read & delivered.
         // "Lectura Inteligente" OFF: no automatic read ack on open — read is only
         // sent when the user replies. Local Room state still clears the badge.
         viewModelScope.launch {
             try {
                 messagesRepo.markThreadDelivered(chatId)
+                ChatDiagnostics.completed(name = "chat.messages.delivered.completed", startedAtMs = startedAtMs, correlationId = correlationId)
                 if (!isSmartReadEnabled()) {
                     messagesRepo.markThreadReadLocally(chatId)
+                    ChatDiagnostics.completed(name = "chat.messages.read.completed", startedAtMs = startedAtMs, correlationId = correlationId)
                 }
             } catch (e: Exception) {
                 Log.e("ChatViewModel", "Error marking thread read/delivered on load", e)
+                ChatDiagnostics.failed(name = "chat.messages.delivered.failed", startedAtMs = startedAtMs, correlationId = correlationId, throwable = e)
+                ChatDiagnostics.failed(name = "chat.messages.read.failed", startedAtMs = startedAtMs, correlationId = correlationId, throwable = e)
             }
         }
 
@@ -302,6 +312,7 @@ private var chatJob: kotlinx.coroutines.Job? = null
                 // Ignore normal cancellation
             } catch (e: Exception) {
                 Log.e("ChatViewModel", "Error collecting typing status", e)
+                ChatDiagnostics.failed(name = "chat.typing.collector.failed", throwable = e)
             }
         }
 
@@ -319,6 +330,7 @@ private var chatJob: kotlinx.coroutines.Job? = null
 
             // 2. Load cached messages list
             val cachedMessages = messagesRepo.getCachedMessages(chatId)
+            ChatDiagnostics.event(name = "chat.history.cache.loaded", details = "count=${cachedMessages.size}")
 
             if (cachedMessages.isNotEmpty()) {
                 // Instantly emit success with the local cache! No spinner!
@@ -380,10 +392,14 @@ private var chatJob: kotlinx.coroutines.Job? = null
         
         // Fetch remote messages in background to update local DB on opening chat
         viewModelScope.launch(Dispatchers.IO) {
+            val remoteStartedAtMs = System.currentTimeMillis()
+            ChatDiagnostics.started(name = "chat.history.remote.started")
             try {
                 messagesRepo.getMessagesForChatPaged(chatId)
+                ChatDiagnostics.completed(name = "chat.history.remote.completed", startedAtMs = remoteStartedAtMs)
             } catch (e: Exception) {
                 Log.e("ChatViewModel", "Error fetching remote paged messages", e)
+                ChatDiagnostics.failed(name = "chat.history.remote.failed", startedAtMs = remoteStartedAtMs, throwable = e)
             }
         }
     }
@@ -565,11 +581,29 @@ private var chatJob: kotlinx.coroutines.Job? = null
         if (context != null) {
             com.example.service.NotificationHelper.playOutgoingSound(context)
         }
+        val correlationId = ChatDiagnostics.correlationId()
+        val startedAtMs = System.currentTimeMillis()
+        ChatDiagnostics.started(
+            name = "chat.message.send.started",
+            correlationId = correlationId,
+            details = "reply=${replyToId != null}, ghost=${_isGhostMode.value}"
+        )
         viewModelScope.launch {
             val result = messagesRepo.sendMessage(chatId, text, replyToId = replyToId, receiverUid = otherId, isGhost = _isGhostMode.value)
             if (result.isSuccess) {
                 _inputMessage.value = ""
+                ChatDiagnostics.completed(
+                    name = "chat.message.send.completed",
+                    startedAtMs = startedAtMs,
+                    correlationId = correlationId
+                )
             } else {
+                ChatDiagnostics.failed(
+                    name = "chat.message.send.failed",
+                    startedAtMs = startedAtMs,
+                    correlationId = correlationId,
+                    throwable = result.exceptionOrNull()
+                )
                 context?.let {
                     Toast.makeText(
                         it,
@@ -594,8 +628,15 @@ private var chatJob: kotlinx.coroutines.Job? = null
         val chatId = currentChatId ?: return
         val otherId = currentOtherUserId
         val json = Json.encodeToString(payload)
+        val correlationId = ChatDiagnostics.correlationId()
+        val startedAtMs = System.currentTimeMillis()
+        ChatDiagnostics.started(
+            name = "chat.playlist.send.started",
+            correlationId = correlationId,
+            details = "hasCover=${!payload.coverPath.isNullOrBlank()}, hasDuration=${payload.durationMs > 0}"
+        )
         viewModelScope.launch {
-            messagesRepo.sendMessage(
+            val result = messagesRepo.sendMessage(
                 chatId = chatId,
                 content = json,
                 receiverUid = otherId,
@@ -603,57 +644,131 @@ private var chatJob: kotlinx.coroutines.Job? = null
                 mediaUrl = payload.coverPath,
                 duration = payload.durationMs
             )
+            if (result.isSuccess) {
+                ChatDiagnostics.completed(name = "chat.playlist.send.completed", startedAtMs = startedAtMs, correlationId = correlationId)
+            } else {
+                ChatDiagnostics.failed(name = "chat.playlist.send.failed", startedAtMs = startedAtMs, correlationId = correlationId, throwable = result.exceptionOrNull())
+            }
         }
     }
 
     fun deleteMessageDefinitively(id: String) {
+        val correlationId = ChatDiagnostics.correlationId()
+        val startedAtMs = System.currentTimeMillis()
+        ChatDiagnostics.started(name = "chat.message.delete_definitive.started", correlationId = correlationId)
         viewModelScope.launch {
-            messagesRepo.deleteMessageDefinitively(id)
+            try {
+                val result = messagesRepo.deleteMessageDefinitively(id)
+                if (result.isSuccess) {
+                    ChatDiagnostics.completed(name = "chat.message.delete_definitive.completed", startedAtMs = startedAtMs, correlationId = correlationId)
+                } else {
+                    ChatDiagnostics.failed(name = "chat.message.delete_definitive.failed", startedAtMs = startedAtMs, correlationId = correlationId, throwable = result.exceptionOrNull())
+                }
+            } catch (e: Exception) {
+                ChatDiagnostics.failed(name = "chat.message.delete_definitive.failed", startedAtMs = startedAtMs, correlationId = correlationId, throwable = e)
+            }
         }
     }
 
     fun deleteMessageForMe(id: String) {
+        val correlationId = ChatDiagnostics.correlationId()
+        val startedAtMs = System.currentTimeMillis()
+        ChatDiagnostics.started(name = "chat.message.delete_for_me.started", correlationId = correlationId)
         viewModelScope.launch {
-            messagesRepo.deleteMessageForMe(id)
+            try {
+                val result = messagesRepo.deleteMessageForMe(id)
+                if (result.isSuccess) {
+                    ChatDiagnostics.completed(name = "chat.message.delete_for_me.completed", startedAtMs = startedAtMs, correlationId = correlationId)
+                } else {
+                    ChatDiagnostics.failed(name = "chat.message.delete_for_me.failed", startedAtMs = startedAtMs, correlationId = correlationId, throwable = result.exceptionOrNull())
+                }
+            } catch (e: Exception) {
+                ChatDiagnostics.failed(name = "chat.message.delete_for_me.failed", startedAtMs = startedAtMs, correlationId = correlationId, throwable = e)
+            }
         }
     }
 
     fun deleteMessageForEveryone(id: String) {
+        val correlationId = ChatDiagnostics.correlationId()
+        val startedAtMs = System.currentTimeMillis()
+        ChatDiagnostics.started(name = "chat.message.delete_for_everyone.started", correlationId = correlationId)
         viewModelScope.launch {
-            messagesRepo.deleteMessageForEveryone(id)
+            try {
+                val result = messagesRepo.deleteMessageForEveryone(id)
+                if (result.isSuccess) {
+                    ChatDiagnostics.completed(name = "chat.message.delete_for_everyone.completed", startedAtMs = startedAtMs, correlationId = correlationId)
+                } else {
+                    ChatDiagnostics.failed(name = "chat.message.delete_for_everyone.failed", startedAtMs = startedAtMs, correlationId = correlationId, throwable = result.exceptionOrNull())
+                }
+            } catch (e: Exception) {
+                ChatDiagnostics.failed(name = "chat.message.delete_for_everyone.failed", startedAtMs = startedAtMs, correlationId = correlationId, throwable = e)
+            }
         }
     }
 
     fun addReaction(msgId: String, emoji: String) {
         val chatId = currentChatId ?: return
         val myUserId = com.example.data.supabase.SupabaseClient.currentUser?.id ?: return
+        val correlationId = ChatDiagnostics.correlationId()
+        val startedAtMs = System.currentTimeMillis()
+        ChatDiagnostics.started(name = "chat.reaction.add.started", correlationId = correlationId, details = "hasEmoji=${!emoji.isNullOrBlank()}")
         viewModelScope.launch {
-            messagesRepo.saveReaction(msgId, chatId, myUserId, emoji)
+            try {
+                messagesRepo.saveReaction(msgId, chatId, myUserId, emoji)
+                ChatDiagnostics.completed(name = "chat.reaction.add.completed", startedAtMs = startedAtMs, correlationId = correlationId)
+            } catch (e: Exception) {
+                ChatDiagnostics.failed(name = "chat.reaction.add.failed", startedAtMs = startedAtMs, correlationId = correlationId, throwable = e)
+            }
         }
     }
 
     fun clearChat() {
         val chatId = currentChatId ?: return
         val current = _uiState.value
+        val count = (current as? ChatUiState.Success)?.messages?.size ?: 0
         if (current is ChatUiState.Success) {
             _uiState.value = current.copy(messages = emptyList())
         }
+        val correlationId = ChatDiagnostics.correlationId()
+        val startedAtMs = System.currentTimeMillis()
+        ChatDiagnostics.started(name = "chat.clear.started", correlationId = correlationId, details = "count=$count")
         viewModelScope.launch {
-            messagesRepo.clearChat(chatId)
+            try {
+                messagesRepo.clearChat(chatId)
+                ChatDiagnostics.completed(name = "chat.clear.completed", startedAtMs = startedAtMs, correlationId = correlationId)
+            } catch (e: Exception) {
+                ChatDiagnostics.failed(name = "chat.clear.failed", startedAtMs = startedAtMs, correlationId = correlationId, throwable = e)
+            }
         }
     }
 
     fun deleteChat(onBack: () -> Unit) {
         val chatId = currentChatId ?: return
+        val correlationId = ChatDiagnostics.correlationId()
+        val startedAtMs = System.currentTimeMillis()
+        ChatDiagnostics.started(name = "chat.delete.started", correlationId = correlationId)
         viewModelScope.launch {
-            chatsRepo.deleteChatLocallyAndRemotely(chatId)
+            val result = chatsRepo.deleteChatLocallyAndRemotely(chatId)
+            if (result.isSuccess) {
+                ChatDiagnostics.completed(name = "chat.delete.completed", startedAtMs = startedAtMs, correlationId = correlationId)
+            } else {
+                ChatDiagnostics.failed(name = "chat.delete.failed", startedAtMs = startedAtMs, correlationId = correlationId, throwable = result.exceptionOrNull())
+            }
             onBack()
         }
     }
     
     fun toggleFavorite(msg: Message) {
+        val correlationId = ChatDiagnostics.correlationId()
+        val startedAtMs = System.currentTimeMillis()
+        ChatDiagnostics.started(name = "chat.favorite.toggle.started", correlationId = correlationId)
         viewModelScope.launch {
-            messagesRepo.toggleMessageFavorite(msg)
+            try {
+                messagesRepo.toggleMessageFavorite(msg)
+                ChatDiagnostics.completed(name = "chat.favorite.toggle.completed", startedAtMs = startedAtMs, correlationId = correlationId)
+            } catch (e: Exception) {
+                ChatDiagnostics.failed(name = "chat.favorite.toggle.failed", startedAtMs = startedAtMs, correlationId = correlationId, throwable = e)
+            }
         }
     }
 
@@ -681,12 +796,14 @@ private var chatJob: kotlinx.coroutines.Job? = null
                 if (file != null) {
                     _recordState.value = RecordState.RECORDING
                     com.example.util.PanaLinkSoundManager.play(context, com.example.util.PanaSoundEvent.VOICE_START)
+                    ChatDiagnostics.event(name = "chat.voice.record.started")
                 }
             }
             com.example.ui.components.chat.voice.VoiceGestureEvent.LockRecording -> {
                 if (_recordState.value == RecordState.RECORDING) {
                     _recordState.value = RecordState.LOCKED_RECORDING
                     com.example.util.PanaLinkSoundManager.play(context, com.example.util.PanaSoundEvent.VOICE_LOCK)
+                    ChatDiagnostics.event(name = "chat.voice.record.locked")
                 }
             }
             com.example.ui.components.chat.voice.VoiceGestureEvent.CancelRecording -> {
@@ -695,6 +812,7 @@ private var chatJob: kotlinx.coroutines.Job? = null
                     _recordState.value = RecordState.IDLE
                     _voiceAmplitudes.value = emptyList()
                     com.example.util.PanaLinkSoundManager.play(context, com.example.util.PanaSoundEvent.VOICE_CANCEL)
+                    ChatDiagnostics.event(name = "chat.voice.record.cancelled")
                 }
             }
             com.example.ui.components.chat.voice.VoiceGestureEvent.FinishRecording -> {
@@ -718,9 +836,11 @@ private var chatJob: kotlinx.coroutines.Job? = null
             }
             com.example.ui.components.chat.voice.VoiceGestureEvent.PauseRecording -> {
                 voiceController.pause()
+                ChatDiagnostics.event(name = "chat.voice.record.paused")
             }
             com.example.ui.components.chat.voice.VoiceGestureEvent.ResumeRecording -> {
                 voiceController.resume()
+                ChatDiagnostics.event(name = "chat.voice.record.resumed")
             }
             com.example.ui.components.chat.voice.VoiceGestureEvent.SendLockedRecording -> {
                 if (_recordState.value == RecordState.LOCKED_RECORDING) {
@@ -744,6 +864,7 @@ private var chatJob: kotlinx.coroutines.Job? = null
                         previewFile = result.file
                         previewDurationSeconds = result.durationSeconds
                         _recordState.value = RecordState.PREVIEWING
+                        ChatDiagnostics.event(name = "chat.voice.record.previewed", details = "duration=${result.durationSeconds}s")
                         viewModelScope.launch {
                             _previewWaveform.value = com.example.ui.components.chat.voice.AudioWaveformAnalyzer.analyze(result.file)
                         }
@@ -816,6 +937,9 @@ private var chatJob: kotlinx.coroutines.Job? = null
             Log.w("ChatViewModel", "sendPreviewRecording ignored: file null/missing or already sending.")
             return
         }
+        val correlationId = ChatDiagnostics.correlationId()
+        val startedAtMs = System.currentTimeMillis()
+        ChatDiagnostics.started(name = "chat.voice.send.queued", correlationId = correlationId, details = "typeLabel=Voice")
         _isPreviewSending.value = true
         _recordState.value = RecordState.SENDING
         com.example.util.PanaLinkSoundManager.play(context, com.example.util.PanaSoundEvent.VOICE_SEND)
@@ -863,6 +987,9 @@ private var chatJob: kotlinx.coroutines.Job? = null
         onProgress: (Boolean) -> Unit
     ) {
         val chatId = currentChatId ?: return
+        val correlationId = ChatDiagnostics.correlationId()
+        val startedAtMs = System.currentTimeMillis()
+        ChatDiagnostics.started(name = "chat.media.album.send.started", correlationId = correlationId)
         viewModelScope.launch(kotlinx.coroutines.Dispatchers.IO) {
             onProgress(true)
             val result = messagesRepo.sendImageAlbum(
@@ -875,7 +1002,10 @@ private var chatJob: kotlinx.coroutines.Job? = null
             kotlinx.coroutines.withContext(kotlinx.coroutines.Dispatchers.Main) {
                 onProgress(false)
                 if (result.isFailure) {
+                    ChatDiagnostics.failed(name = "chat.media.album.send.failed", startedAtMs = startedAtMs, correlationId = correlationId, throwable = result.exceptionOrNull())
                     android.widget.Toast.makeText(context, "Error enviando album", android.widget.Toast.LENGTH_SHORT).show()
+                } else {
+                    ChatDiagnostics.completed(name = "chat.media.album.send.completed", startedAtMs = startedAtMs, correlationId = correlationId)
                 }
             }
         }
@@ -892,6 +1022,13 @@ private var chatJob: kotlinx.coroutines.Job? = null
         onProgress: (Boolean) -> Unit
     ) {
         val chatId = currentChatId ?: return
+        val correlationId = ChatDiagnostics.correlationId()
+        val startedAtMs = System.currentTimeMillis()
+        val isVoice = mimeType.startsWith("audio/") || typeLabel == "Voice"
+        if (isVoice) {
+            ChatDiagnostics.started(name = "chat.voice.send.started", correlationId = correlationId)
+        }
+        ChatDiagnostics.started(name = "chat.media.send.started", correlationId = correlationId)
 
         viewModelScope.launch(kotlinx.coroutines.Dispatchers.IO) {
             onProgress(true)
@@ -930,6 +1067,10 @@ private var chatJob: kotlinx.coroutines.Job? = null
 
                 when {
                     result.isFailure -> {
+                        if (isVoice) {
+                            ChatDiagnostics.failed(name = "chat.voice.send.failed", startedAtMs = startedAtMs, correlationId = correlationId, throwable = result.exceptionOrNull())
+                        }
+                        ChatDiagnostics.failed(name = "chat.media.send.failed", startedAtMs = startedAtMs, correlationId = correlationId, throwable = result.exceptionOrNull())
                         try {
                             android.widget.Toast.makeText(
                                 context,
@@ -939,6 +1080,10 @@ private var chatJob: kotlinx.coroutines.Job? = null
                         } catch (t: Throwable) {}
                     }
                     finalMessage?.status == "failed" -> {
+                        if (isVoice) {
+                            ChatDiagnostics.failed(name = "chat.voice.send.failed", startedAtMs = startedAtMs, correlationId = correlationId)
+                        }
+                        ChatDiagnostics.failed(name = "chat.media.send.failed", startedAtMs = startedAtMs, correlationId = correlationId)
                         try {
                             android.widget.Toast.makeText(
                                 context,
@@ -948,6 +1093,10 @@ private var chatJob: kotlinx.coroutines.Job? = null
                         } catch (t: Throwable) {}
                     }
                     finalMessage == null && message != null -> {
+                        if (isVoice) {
+                            ChatDiagnostics.failed(name = "chat.voice.send.timeout", startedAtMs = startedAtMs, correlationId = correlationId)
+                        }
+                        ChatDiagnostics.failed(name = "chat.media.send.timeout", startedAtMs = startedAtMs, correlationId = correlationId)
                         // The worker remains persisted in WorkManager. Do not
                         // leave a screen-level spinner running forever if the
                         // device is offline or the upload is unusually slow.
@@ -955,6 +1104,12 @@ private var chatJob: kotlinx.coroutines.Job? = null
                             "ChatViewModel",
                             "Media send observer timed out for ${message.clientMessageUuid}; worker continues in background"
                         )
+                    }
+                    finalMessage != null -> {
+                        if (isVoice) {
+                            ChatDiagnostics.completed(name = "chat.voice.send.completed", startedAtMs = startedAtMs, correlationId = correlationId)
+                        }
+                        ChatDiagnostics.completed(name = "chat.media.send.completed", startedAtMs = startedAtMs, correlationId = correlationId)
                     }
                 }
             }
@@ -1021,32 +1176,65 @@ fun sendSticker(url: String, preview: String?, replyToId: String?) {
     val isPinned: StateFlow<Boolean> = _isPinned.asStateFlow()
 
     fun loadChatMuteStatus(chatId: String, context: Context) {
+        val correlationId = ChatDiagnostics.correlationId()
+        val startedAtMs = System.currentTimeMillis()
+        ChatDiagnostics.started(name = "chat.mute.load.started", correlationId = correlationId)
         viewModelScope.launch(Dispatchers.IO) {
             try {
                 val chat = chatsRepo.getLocalChat(chatId)
                 _isMuted.value = chat?.isMuted == true
                 _isPinned.value = chat?.isPinned == true
+                ChatDiagnostics.completed(name = "chat.mute.load.completed", startedAtMs = startedAtMs, correlationId = correlationId)
             } catch (e: Exception) {
                 Log.e("ChatViewModel", "Error loading mute status: ${e.localizedMessage}")
+                ChatDiagnostics.failed(name = "chat.mute.load.failed", startedAtMs = startedAtMs, correlationId = correlationId, throwable = e)
             }
         }
     }
 
     fun loadChatPinStatus(chatId: String, context: Context) {
-        loadChatMuteStatus(chatId, context)
+        val correlationId = ChatDiagnostics.correlationId()
+        val startedAtMs = System.currentTimeMillis()
+        ChatDiagnostics.started(name = "chat.pin.load.started", correlationId = correlationId)
+        viewModelScope.launch(Dispatchers.IO) {
+            try {
+                val chat = chatsRepo.getLocalChat(chatId)
+                _isPinned.value = chat?.isPinned == true
+                ChatDiagnostics.completed(name = "chat.pin.load.completed", startedAtMs = startedAtMs, correlationId = correlationId)
+            } catch (e: Exception) {
+                Log.e("ChatViewModel", "Error loading pin status: ${e.localizedMessage}")
+                ChatDiagnostics.failed(name = "chat.pin.load.failed", startedAtMs = startedAtMs, correlationId = correlationId, throwable = e)
+            }
+        }
     }
 
     fun muteChat(chatId: String, muted: Boolean) {
         _isMuted.value = muted
+        val correlationId = ChatDiagnostics.correlationId()
+        val startedAtMs = System.currentTimeMillis()
+        ChatDiagnostics.started(name = "chat.mute.toggle.started", correlationId = correlationId, details = "muted=$muted")
         viewModelScope.launch(Dispatchers.IO) {
-            chatsRepo.muteChat(chatId, muted)
+            val result = chatsRepo.muteChat(chatId, muted)
+            if (result.isSuccess) {
+                ChatDiagnostics.completed(name = "chat.mute.toggle.completed", startedAtMs = startedAtMs, correlationId = correlationId)
+            } else {
+                ChatDiagnostics.failed(name = "chat.mute.toggle.failed", startedAtMs = startedAtMs, correlationId = correlationId, throwable = result.exceptionOrNull())
+            }
         }
     }
 
     fun pinChat(chatId: String, pinned: Boolean) {
         _isPinned.value = pinned
+        val correlationId = ChatDiagnostics.correlationId()
+        val startedAtMs = System.currentTimeMillis()
+        ChatDiagnostics.started(name = "chat.pin.toggle.started", correlationId = correlationId, details = "pinned=$pinned")
         viewModelScope.launch(Dispatchers.IO) {
-            chatsRepo.pinChat(chatId, pinned)
+            val result = chatsRepo.pinChat(chatId, pinned)
+            if (result.isSuccess) {
+                ChatDiagnostics.completed(name = "chat.pin.toggle.completed", startedAtMs = startedAtMs, correlationId = correlationId)
+            } else {
+                ChatDiagnostics.failed(name = "chat.pin.toggle.failed", startedAtMs = startedAtMs, correlationId = correlationId, throwable = result.exceptionOrNull())
+            }
         }
     }
 
