@@ -210,47 +210,52 @@ private var chatJob: kotlinx.coroutines.Job? = null
         // 4. Solo utilizar el id de Room si ese ID es realmente la identidad local canónica
         loadJob?.cancel()
         loadJob = viewModelScope.launch(Dispatchers.IO) {
-            val dbChats = com.example.data.database.PanalinkDatabase.getDatabase(com.example.PanaApplication.instance).chatDao()
-            val canonicalChatId = kotlinx.coroutines.withContext(kotlinx.coroutines.Dispatchers.IO) {
-                val byThread = dbChats.getChatByThreadId(chatId)
-                if (byThread != null) {
-                    byThread.threadId?.takeIf { it.isNotBlank() } ?: byThread.id
-                } else {
-                    val byId = dbChats.getChatById(chatId)
-                    byId?.threadId?.takeIf { it.isNotBlank() } ?: byId?.id ?: chatId
-                }
-            }
-            ChatDiagnostics.completed(name = "chat.history.canonical_id.resolved", startedAtMs = startedAtMs, correlationId = correlationId)
-            val effectiveChatId = canonicalChatId
-            currentChatId = effectiveChatId
-
-            // Mark active chat globally in SupabaseClient for realtime read updates
-            com.example.data.supabase.SupabaseClient.activeChatId = effectiveChatId
-            com.example.data.supabase.SupabaseClient.isChatScreenActive = true
-
-            var resolvedOtherUserId = otherUserId
-            if (resolvedOtherUserId.isBlank() || resolvedOtherUserId == "unknown") {
-                try {
-                    val chatEntity = dbChats.getChatByThreadId(effectiveChatId) ?: dbChats.getChatById(effectiveChatId)
-
-                    val fromEntity = chatEntity?.otherUserId
-                    if (!fromEntity.isNullOrBlank()) {
-                        resolvedOtherUserId = fromEntity
+            try {
+                val dbChats = com.example.data.database.PanalinkDatabase.getDatabase(com.example.PanaApplication.instance).chatDao()
+                val canonicalChatId = kotlinx.coroutines.withContext(kotlinx.coroutines.Dispatchers.IO) {
+                    val byThread = dbChats.getChatByThreadId(chatId)
+                    if (byThread != null) {
+                        byThread.threadId?.takeIf { it.isNotBlank() } ?: byThread.id
                     } else {
-                        // Last resort: infer from the most recent incoming message's sender
-                        val lastIncoming = kotlinx.coroutines.withContext(kotlinx.coroutines.Dispatchers.IO) {
-                            com.example.data.database.PanalinkDatabase.getDatabase(com.example.PanaApplication.instance).messageDao().getMessagesForChat(effectiveChatId)
-                                .firstOrNull { it.senderId != com.example.data.supabase.SupabaseClient.currentUser?.id && !it.senderId.isNullOrBlank() }?.senderId
-                        }
-                        if (lastIncoming != null) resolvedOtherUserId = lastIncoming
+                        val byId = dbChats.getChatById(chatId)
+                        byId?.threadId?.takeIf { it.isNotBlank() } ?: byId?.id ?: chatId
                     }
-                } catch (e: Exception) {
-                    Log.e("ChatViewModel", "Error resolving otherUserId for chat $effectiveChatId", e)
                 }
-            }
-            withContext(Dispatchers.Main) {
-                currentOtherUserId = resolvedOtherUserId
-                continueLoadChatHistory(effectiveChatId, resolvedOtherUserId)
+                ChatDiagnostics.completed(name = "chat.history.canonical_id.resolved", startedAtMs = startedAtMs, correlationId = correlationId)
+                val effectiveChatId = canonicalChatId
+                currentChatId = effectiveChatId
+
+                // Mark active chat globally in SupabaseClient for realtime read updates
+                com.example.data.supabase.SupabaseClient.activeChatId = effectiveChatId
+                com.example.data.supabase.SupabaseClient.isChatScreenActive = true
+
+                var resolvedOtherUserId = otherUserId
+                if (resolvedOtherUserId.isBlank() || resolvedOtherUserId == "unknown") {
+                    try {
+                        val chatEntity = dbChats.getChatByThreadId(effectiveChatId) ?: dbChats.getChatById(effectiveChatId)
+
+                        val fromEntity = chatEntity?.otherUserId
+                        if (!fromEntity.isNullOrBlank()) {
+                            resolvedOtherUserId = fromEntity
+                        } else {
+                            // Last resort: infer from the most recent incoming message's sender
+                            val lastIncoming = kotlinx.coroutines.withContext(kotlinx.coroutines.Dispatchers.IO) {
+                                com.example.data.database.PanalinkDatabase.getDatabase(com.example.PanaApplication.instance).messageDao().getMessagesForChat(effectiveChatId)
+                                    .firstOrNull { it.senderId != com.example.data.supabase.SupabaseClient.currentUser?.id && !it.senderId.isNullOrBlank() }?.senderId
+                            }
+                            if (lastIncoming != null) resolvedOtherUserId = lastIncoming
+                        }
+                    } catch (e: Exception) {
+                        Log.e("ChatViewModel", "Error resolving otherUserId for chat $effectiveChatId", e)
+                    }
+                }
+                withContext(Dispatchers.Main) {
+                    currentOtherUserId = resolvedOtherUserId
+                    continueLoadChatHistory(effectiveChatId, resolvedOtherUserId)
+                }
+            } catch (e: Exception) {
+                Log.e("ChatViewModel", "Error loading chat history for $chatId", e)
+                ChatDiagnostics.failed(name = "chat.history.load.failed", startedAtMs = startedAtMs, correlationId = correlationId, throwable = e)
             }
         }
     }
@@ -266,14 +271,18 @@ private var chatJob: kotlinx.coroutines.Job? = null
             try {
                 messagesRepo.markThreadDelivered(chatId)
                 ChatDiagnostics.completed(name = "chat.messages.delivered.completed", startedAtMs = startedAtMs, correlationId = correlationId)
-                if (!isSmartReadEnabled()) {
+            } catch (e: Exception) {
+                Log.e("ChatViewModel", "Error marking thread delivered on load", e)
+                ChatDiagnostics.failed(name = "chat.messages.delivered.failed", startedAtMs = startedAtMs, correlationId = correlationId, throwable = e)
+            }
+            if (!isSmartReadEnabled()) {
+                try {
                     messagesRepo.markThreadReadLocally(chatId)
                     ChatDiagnostics.completed(name = "chat.messages.read.completed", startedAtMs = startedAtMs, correlationId = correlationId)
+                } catch (e: Exception) {
+                    Log.e("ChatViewModel", "Error marking thread read on load", e)
+                    ChatDiagnostics.failed(name = "chat.messages.read.failed", startedAtMs = startedAtMs, correlationId = correlationId, throwable = e)
                 }
-            } catch (e: Exception) {
-                Log.e("ChatViewModel", "Error marking thread read/delivered on load", e)
-                ChatDiagnostics.failed(name = "chat.messages.delivered.failed", startedAtMs = startedAtMs, correlationId = correlationId, throwable = e)
-                ChatDiagnostics.failed(name = "chat.messages.read.failed", startedAtMs = startedAtMs, correlationId = correlationId, throwable = e)
             }
         }
 
@@ -989,7 +998,7 @@ private var chatJob: kotlinx.coroutines.Job? = null
         val chatId = currentChatId ?: return
         val correlationId = ChatDiagnostics.correlationId()
         val startedAtMs = System.currentTimeMillis()
-        ChatDiagnostics.started(name = "chat.media.album.send.started", correlationId = correlationId)
+        ChatDiagnostics.started(name = "chat.album.send.started", correlationId = correlationId)
         viewModelScope.launch(kotlinx.coroutines.Dispatchers.IO) {
             onProgress(true)
             val result = messagesRepo.sendImageAlbum(
@@ -1002,10 +1011,10 @@ private var chatJob: kotlinx.coroutines.Job? = null
             kotlinx.coroutines.withContext(kotlinx.coroutines.Dispatchers.Main) {
                 onProgress(false)
                 if (result.isFailure) {
-                    ChatDiagnostics.failed(name = "chat.media.album.send.failed", startedAtMs = startedAtMs, correlationId = correlationId, throwable = result.exceptionOrNull())
+                    ChatDiagnostics.failed(name = "chat.album.send.failed", startedAtMs = startedAtMs, correlationId = correlationId, throwable = result.exceptionOrNull())
                     android.widget.Toast.makeText(context, "Error enviando album", android.widget.Toast.LENGTH_SHORT).show()
                 } else {
-                    ChatDiagnostics.completed(name = "chat.media.album.send.completed", startedAtMs = startedAtMs, correlationId = correlationId)
+                    ChatDiagnostics.completed(name = "chat.album.send.completed", startedAtMs = startedAtMs, correlationId = correlationId)
                 }
             }
         }
@@ -1179,33 +1188,27 @@ fun sendSticker(url: String, preview: String?, replyToId: String?) {
         val correlationId = ChatDiagnostics.correlationId()
         val startedAtMs = System.currentTimeMillis()
         ChatDiagnostics.started(name = "chat.mute.load.started", correlationId = correlationId)
+        // Both muted and pinned state are loaded in a single local lookup,
+        // so pin events are recorded alongside mute events (preserving the
+        // original behavior where loadChatPinStatus delegates to this method).
+        ChatDiagnostics.started(name = "chat.pin.load.started", correlationId = correlationId)
         viewModelScope.launch(Dispatchers.IO) {
             try {
                 val chat = chatsRepo.getLocalChat(chatId)
                 _isMuted.value = chat?.isMuted == true
                 _isPinned.value = chat?.isPinned == true
                 ChatDiagnostics.completed(name = "chat.mute.load.completed", startedAtMs = startedAtMs, correlationId = correlationId)
+                ChatDiagnostics.completed(name = "chat.pin.load.completed", startedAtMs = startedAtMs, correlationId = correlationId)
             } catch (e: Exception) {
-                Log.e("ChatViewModel", "Error loading mute status: ${e.localizedMessage}")
+                Log.e("ChatViewModel", "Error loading mute/pin status: ${e.localizedMessage}")
                 ChatDiagnostics.failed(name = "chat.mute.load.failed", startedAtMs = startedAtMs, correlationId = correlationId, throwable = e)
+                ChatDiagnostics.failed(name = "chat.pin.load.failed", startedAtMs = startedAtMs, correlationId = correlationId, throwable = e)
             }
         }
     }
 
     fun loadChatPinStatus(chatId: String, context: Context) {
-        val correlationId = ChatDiagnostics.correlationId()
-        val startedAtMs = System.currentTimeMillis()
-        ChatDiagnostics.started(name = "chat.pin.load.started", correlationId = correlationId)
-        viewModelScope.launch(Dispatchers.IO) {
-            try {
-                val chat = chatsRepo.getLocalChat(chatId)
-                _isPinned.value = chat?.isPinned == true
-                ChatDiagnostics.completed(name = "chat.pin.load.completed", startedAtMs = startedAtMs, correlationId = correlationId)
-            } catch (e: Exception) {
-                Log.e("ChatViewModel", "Error loading pin status: ${e.localizedMessage}")
-                ChatDiagnostics.failed(name = "chat.pin.load.failed", startedAtMs = startedAtMs, correlationId = correlationId, throwable = e)
-            }
-        }
+        loadChatMuteStatus(chatId, context)
     }
 
     fun muteChat(chatId: String, muted: Boolean) {
