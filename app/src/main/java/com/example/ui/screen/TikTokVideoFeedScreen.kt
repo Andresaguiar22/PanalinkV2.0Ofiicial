@@ -116,7 +116,7 @@ import com.example.ui.components.OfflineEmptyView
 // which must never block Main/UI during compose. produceState runs the resolution in a coroutine.
 @Composable
 private fun resolvedThumbnailUrl(rawUrl: String?): String {
-    val state by produceState(initialValue = rawUrl ?: "") {
+    val state by produceState(initialValue = rawUrl.orEmpty(), rawUrl) {
         value = com.example.data.repository.CdnManager.resolveMediaUrl(rawUrl)
     }
     return state
