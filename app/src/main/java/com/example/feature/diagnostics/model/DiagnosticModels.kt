@@ -18,13 +18,23 @@ data class DiagnosticEvent(
 
 enum class DiagnosticCategory(val label: String) {
     ALL("Todos"),
+    CHAT("Chat"),
+    STORIES("Stories"),
     REELS("Reels"),
+    FEED("Muro/Feed"),
+    CONTACTS("Contactos"),
+    CALLS("Llamadas"),
+    PANA_TV("Pana TV"),
+    LIVE("Live"),
     NETWORK("Red/VCDN"),
     EXOPLAYER("ExoPlayer"),
+    MEDIA("Media"),
     CACHE("Caché"),
+    AUTH("Auth"),
     SUPABASE("Supabase"),
     WORK_MANAGER("WorkManager"),
     ROOM("Room"),
+    SYSTEM("Sistema"),
     ERRORS("Errores")
 }
 
