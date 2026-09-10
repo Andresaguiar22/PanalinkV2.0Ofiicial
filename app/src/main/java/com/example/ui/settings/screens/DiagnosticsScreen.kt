@@ -26,6 +26,7 @@ import com.example.feature.diagnostics.model.DiagnosticCaptureState
 import com.example.feature.diagnostics.model.DiagnosticCategory
 import com.example.feature.diagnostics.model.DiagnosticEvent
 import com.example.feature.diagnostics.model.DiagnosticSeverity
+import com.example.feature.diagnostics.model.matches
 import com.example.ui.settings.viewmodel.DiagnosticsViewModel
 
 private val DiagnosticBackground = Color(0xFF121B22)

@@ -6,6 +6,7 @@ import com.example.feature.diagnostics.data.DiagnosticsRepository
 import com.example.feature.diagnostics.model.DiagnosticCaptureState
 import com.example.feature.diagnostics.model.DiagnosticCategory
 import com.example.feature.diagnostics.model.DiagnosticEvent
+import com.example.feature.diagnostics.model.matches
 import kotlinx.coroutines.flow.StateFlow
 
 class DiagnosticsViewModel(application: Application) : AndroidViewModel(application) {
