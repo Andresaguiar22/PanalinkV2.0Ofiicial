@@ -5,22 +5,24 @@ import com.example.feature.diagnostics.model.DiagnosticCaptureState
 import com.example.feature.diagnostics.model.DiagnosticCategory
 import com.example.feature.diagnostics.model.DiagnosticEvent
 import com.example.feature.diagnostics.model.DiagnosticSeverity
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.SupervisorJob
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.update
+import kotlinx.coroutines.launch
 import org.json.JSONArray
 import org.json.JSONObject
 
-/**
- * Lightweight process timeline for Panalink. It is intentionally independent from Logcat.
- * A bounded in-memory buffer keeps the feature cheap; export is generated from the same buffer.
- */
+/** Lightweight Panalink process timeline. It is independent from Android Logcat. */
 class DiagnosticsRepository private constructor(private val context: Context) {
     companion object {
         private const val MAX_EVENTS = 2000
         private const val PREFS = "panalink_diagnostics"
         private const val KEY_CAPTURE = "capture_enabled"
+        private const val KEY_EVENTS = "events"
 
         @Volatile private var instance: DiagnosticsRepository? = null
 
@@ -32,18 +34,16 @@ class DiagnosticsRepository private constructor(private val context: Context) {
 
     private val _events = MutableStateFlow<List<DiagnosticEvent>>(emptyList())
     val events: StateFlow<List<DiagnosticEvent>> = _events.asStateFlow()
-
     private val prefs = context.getSharedPreferences(PREFS, Context.MODE_PRIVATE)
+    private val ioScope = CoroutineScope(SupervisorJob() + Dispatchers.IO)
+
     private val _captureState = MutableStateFlow(
         if (prefs.getBoolean(KEY_CAPTURE, false)) DiagnosticCaptureState.CAPTURING
         else DiagnosticCaptureState.STOPPED
     )
     val captureState: StateFlow<DiagnosticCaptureState> = _captureState.asStateFlow()
 
-    init {
-        // Keep persisted diagnostics small and restore only the most recent bounded session.
-        _events.value = readPersistedEvents()
-    }
+    init { _events.value = readPersistedEvents() }
 
     fun startCapture() {
         _captureState.value = DiagnosticCaptureState.CAPTURING
@@ -59,7 +59,7 @@ class DiagnosticsRepository private constructor(private val context: Context) {
 
     fun clear() {
         _events.value = emptyList()
-        prefs.edit().remove("events").apply()
+        ioScope.launch { prefs.edit().remove(KEY_EVENTS).commit() }
     }
 
     fun record(
@@ -70,23 +70,19 @@ class DiagnosticsRepository private constructor(private val context: Context) {
         correlationId: String? = null,
         details: String? = null
     ) {
-        // Outside a capture session we only accept ERROR events, so failures remain visible
-        // without continuously collecting a full process trace.
         if (_captureState.value != DiagnosticCaptureState.CAPTURING && severity != DiagnosticSeverity.ERROR) return
-
-        val sanitizedId = correlationId?.take(64)
-        val sanitizedDetails = details?.replace(Regex("(?i)(token|authorization|password|secret|cookie|signedUrl|access[_-]?token)\\s*[:=]\\s*[^,;\\s]+"), "$1=[REDACTED]")?.take(300)
         val item = DiagnosticEvent(
             timestampMs = System.currentTimeMillis(),
             category = category,
             event = event.take(120),
             severity = severity,
             durationMs = durationMs?.coerceAtLeast(0L),
-            correlationId = sanitizedId,
-            details = sanitizedDetails
+            correlationId = correlationId?.take(64),
+            details = sanitizeDetails(details)
         )
         _events.update { (it + item).takeLast(MAX_EVENTS) }
-        persist(_events.value)
+        val snapshot = _events.value
+        ioScope.launch { persist(snapshot) }
     }
 
     fun exportText(): String {
@@ -97,16 +93,27 @@ class DiagnosticsRepository private constructor(private val context: Context) {
             appendLine("Generado: ${java.text.SimpleDateFormat("yyyy-MM-dd HH:mm:ss", java.util.Locale.US).format(java.util.Date())}")
             appendLine("----------------------------------------")
             snapshot.forEach { item ->
-                append(item.displayTime())
-                append(" | ").append(item.category.label)
-                append(" | ").append(item.severity.name)
-                append(" | ").append(item.event)
+                append(item.displayTime()).append(" | ")
+                    .append(item.category.label).append(" | ")
+                    .append(item.severity.name).append(" | ")
+                    .append(item.event)
                 item.durationMs?.let { append(" | ${it}ms") }
                 item.correlationId?.let { append(" | id=$it") }
                 item.details?.let { append(" | $it") }
                 appendLine()
             }
         }
+    }
+
+    private fun sanitizeDetails(details: String?): String? {
+        if (details.isNullOrBlank()) return null
+        var value = details.take(500)
+        value = value.replace(
+            Regex("(?i)(token|authorization|password|secret|cookie|signedUrl|access[_-]?token)\\s*[:=]\\s*[^,;\\s]+"),
+            "$1=[REDACTED]"
+        )
+        value = value.replace(Regex("(?i)https?://\\S+"), "[URL_REDACTED]")
+        return value.take(300)
     }
 
     private fun persist(events: List<DiagnosticEvent>) {
@@ -122,31 +129,25 @@ class DiagnosticsRepository private constructor(private val context: Context) {
                 item.details?.let { put("details", it) }
             })
         }
-        prefs.edit().putString("events", array.toString()).apply()
+        prefs.edit().putString(KEY_EVENTS, array.toString()).commit()
     }
 
-    private fun readPersistedEvents(): List<DiagnosticEvent> {
-        return try {
-            val raw = prefs.getString("events", null) ?: return emptyList()
-            val array = JSONArray(raw)
-            buildList {
-                for (i in 0 until array.length()) {
-                    val item = array.getJSONObject(i)
-                    add(
-                        DiagnosticEvent(
-                            timestampMs = item.getLong("timestampMs"),
-                            category = DiagnosticCategory.valueOf(item.getString("category")),
-                            event = item.getString("event"),
-                            severity = DiagnosticSeverity.valueOf(item.getString("severity")),
-                            durationMs = if (item.has("durationMs")) item.getLong("durationMs") else null,
-                            correlationId = item.optString("correlationId", null),
-                            details = item.optString("details", null)
-                        )
-                    )
-                }
-            }.takeLast(MAX_EVENTS)
-        } catch (_: Exception) {
-            emptyList()
-        }
-    }
+    private fun readPersistedEvents(): List<DiagnosticEvent> = try {
+        val raw = prefs.getString(KEY_EVENTS, null) ?: return emptyList()
+        val array = JSONArray(raw)
+        buildList {
+            for (i in 0 until array.length()) {
+                val item = array.getJSONObject(i)
+                add(DiagnosticEvent(
+                    timestampMs = item.getLong("timestampMs"),
+                    category = DiagnosticCategory.valueOf(item.getString("category")),
+                    event = item.getString("event"),
+                    severity = DiagnosticSeverity.valueOf(item.getString("severity")),
+                    durationMs = if (item.has("durationMs")) item.getLong("durationMs") else null,
+                    correlationId = item.optString("correlationId", null),
+                    details = item.optString("details", null)
+                ))
+            }
+        }.takeLast(MAX_EVENTS)
+    } catch (_: Exception) { emptyList() }
 }
