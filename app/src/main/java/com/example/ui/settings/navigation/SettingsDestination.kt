@@ -11,5 +11,6 @@ sealed class SettingsDestination(val route: String) {
     object CustomizationCenter : SettingsDestination("settings_customization_center")
     object StorageCenter : SettingsDestination("settings_storage_center")
     object ActivityCenter : SettingsDestination("settings_activity_center")
+    object Diagnostics : SettingsDestination("settings_diagnostics")
     object About : SettingsDestination("settings_about")
 }
