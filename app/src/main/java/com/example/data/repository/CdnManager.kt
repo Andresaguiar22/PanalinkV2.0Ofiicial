@@ -10,6 +10,7 @@ import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.sync.Mutex
 import kotlinx.coroutines.sync.withLock
+import kotlinx.coroutines.withContext
 import okhttp3.OkHttpClient
 import okhttp3.Request
 import org.json.JSONArray
@@ -265,25 +266,25 @@ object CdnManager {
         return raw
     }
 
-    suspend fun resolveMediaUrl(originalUrl: String?): String {
+    suspend fun resolveMediaUrl(originalUrl: String?): String = withContext(Dispatchers.IO) {
         val raw = originalUrl?.trim().orEmpty()
-        if (raw.isEmpty()) return ""
+        if (raw.isEmpty()) return@withContext ""
         if (raw.startsWith("content://") || raw.startsWith("file://") ||
-            raw.startsWith("android.resource://") || raw.startsWith("/")) return raw
-        if (isDeadCdnHost(raw)) return ""
+            raw.startsWith("android.resource://") || raw.startsWith("/")) return@withContext raw
+        if (isDeadCdnHost(raw)) return@withContext ""
         
         // 1. Priority: VCDN
-        if (VcdnUrlResolver.isVcdnUrl(raw)) return VcdnUrlResolver.resolve(raw) ?: ""
+        if (VcdnUrlResolver.isVcdnUrl(raw)) return@withContext (VcdnUrlResolver.resolve(raw) ?: "")
         
         // 2. RE-ANCHOR: Restore PanaLink CDN rewrite logic
         if (isCdnRelated(raw)) {
             val activeCdnBase = getCDNUrl()
             if (activeCdnBase.isNotEmpty()) {
-                return reconstructCdnUrl(raw, activeCdnBase)
+                return@withContext reconstructCdnUrl(raw, activeCdnBase)
             }
         }
         
-        return raw
+        return@withContext raw
     }
 
     fun resolveAvatarUrl(rawUrl: String?): String? {
