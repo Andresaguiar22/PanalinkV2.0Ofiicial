@@ -111,6 +111,9 @@ import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.example.util.NetworkMonitor
 import com.example.ui.components.PanaAvatar
 import com.example.ui.components.OfflineEmptyView
+import com.example.feature.diagnostics.data.DiagnosticsRepository
+import com.example.feature.diagnostics.model.DiagnosticCategory
+import com.example.feature.diagnostics.model.DiagnosticSeverity
 
 // Async thumbnail URL resolution: resolveMediaUrlSync can perform VCDN BFF I/O (runBlocking),
 // which must never block Main/UI during compose. produceState runs the resolution in a coroutine.
@@ -151,6 +154,7 @@ fun TikTokVideoFeedScreen(
 
     val context = LocalContext.current
     val dualManager = remember { ReelDualPlayerManager(context) }
+    val diagnostics = remember { DiagnosticsRepository.getInstance(context) }
     // Cooldown para evitar duplicación de I/O entre dual-manager prep y byte prefetch
     val lastPrefetchTime = remember { mutableMapOf<String, Long>() }
     val activity = context as? android.app.Activity
@@ -360,7 +364,19 @@ fun TikTokVideoFeedScreen(
                         val raw = nextState.mediaUrl
                         val url =withContext(Dispatchers.IO) { com.example.data.repository.CdnManager.resolveMediaUrl(raw) }
                         if (!url.isNullOrEmpty() && url.startsWith("http")) {
+                            diagnostics.record(
+                                DiagnosticCategory.CACHE,
+                                "Prefetch iniciado para reel",
+                                correlationId = nextState.id.take(36),
+                                details = "maxBytes=2MB"
+                            )
                             com.example.data.video.CacheDataSourceFactory.prefetchVideo(context, url, maxBytes = 2L * 1024L * 1024L)
+                            diagnostics.record(
+                                DiagnosticCategory.CACHE,
+                                "Prefetch completado para reel",
+                                correlationId = nextState.id.take(36),
+                                details = "maxBytes=2MB"
+                            )
                         }
                     }
                 }
@@ -829,6 +845,8 @@ fun TikTokPageItem(
 ) {
     val state = stateWithUser.state
     val initialProfile = stateWithUser.profile
+    val ctx = androidx.compose.ui.platform.LocalContext.current
+    val diagnostics = com.example.feature.diagnostics.data.DiagnosticsRepository.getInstance(ctx)
 
     val context = androidx.compose.ui.platform.LocalContext.current
     val identityRepository = remember { com.example.identity.bridge.LegacyIdentityBridge(context).identityRepository }
@@ -992,6 +1010,8 @@ fun TikTokPageItem(
     var activeSlot by remember(stableMediaUrl, state.id) { mutableStateOf<ReelDualPlayerManager.Slot?>(null) }
     // Guard against concurrent retry attempts on the same player
     var isRetrying by remember(state.id) { mutableStateOf(false) }
+    // Track first READY to report first-frame latency
+    val isFirstReady = remember(state.id) { java.util.concurrent.atomic.AtomicBoolean(false) }
 
     // Player acquisition depends ONLY on resolved URL, NOT on metadata.
     // Metadata extraction is deferred to a secondary LaunchedEffect above so
@@ -1004,20 +1024,39 @@ fun TikTokPageItem(
         // retryCount NO está en esta key: el retry no debe re-resolver ni re-acquire,
         // solo re-preparar el player existente (ver LaunchedEffect de listener abajo).
         if (state.localVideoPath.isNullOrEmpty() && stableMediaUrl.isNullOrBlank()) return@LaunchedEffect
+        val isVcdn = com.example.data.repository.VcdnUrlResolver.isVcdnUrl(stableMediaUrl)
+        val resolveStart = if (isVcdn) System.currentTimeMillis() else 0L
+        if (isVcdn) diagnostics.record(
+            DiagnosticCategory.NETWORK,
+            "VCDN resolve iniciado",
+            correlationId = state.id.take(36)
+        )
         resolvedUrl = if (state.localVideoPath.isNullOrEmpty()){
             val resolved =withContext(Dispatchers.IO) { com.example.data.repository.CdnManager.resolveMediaUrl(stableMediaUrl)}
             resolved.takeIf { !it.startsWith("vcdn://") }
         } else {
             state.localVideoPath
         }
+        if (isVcdn && resolveStart > 0L) {
+            val duration = System.currentTimeMillis() - resolveStart
+            diagnostics.record(
+                DiagnosticCategory.NETWORK,
+                "VCDN resolve completado",
+                correlationId = state.id.take(36),
+                durationMs = duration,
+                severity = if (resolvedUrl == null) DiagnosticSeverity.WARNING else DiagnosticSeverity.INFO
+            )
+        }
         if (resolvedUrl == null) resolveFailed = true
 
         // BUGFIX: al perder red el sub-guard (isOnline) reinicia esté LaunchedEffect
         // con resolvedUrl ya resuelto; si el slot ya está en A no re-resolvemos world
+        val wasReused = activeSlot != null || exoPlayerRef != null
         val prev = activeSlot
         val hasLivePlayer = exoPlayerRef != null
         if (!hasLivePlayer && prev != null && prev != ReelDualPlayerManager.Slot.B) return@LaunchedEffect
         val url = resolvedUrl ?: return@LaunchedEffect
+        val acquireStart = System.currentTimeMillis()
         val slot = dualManager.acquireOrReuse(
             state.id,
             url,
@@ -1026,6 +1065,12 @@ fun TikTokPageItem(
         ) ?: return@LaunchedEffect
         activeSlot = slot
         exoPlayerRef = dualManager.playerFor(slot)
+        diagnostics.record(
+            DiagnosticCategory.EXOPLAYER,
+            if (wasReused) "Player reuse" else "Player acquire",
+            correlationId = state.id.take(36),
+            durationMs = System.currentTimeMillis() - acquireStart
+        )
     }
 
     LaunchedEffect(state.id, resolvedUrl, stableMediaUrl) {
@@ -1044,20 +1089,52 @@ fun TikTokPageItem(
         val listener = object : Player.Listener {
             override fun onPlaybackStateChanged(playbackState: Int) {
                 isBuffering = (playbackState == Player.STATE_BUFFERING || playbackState == Player.STATE_IDLE) && !hasError
-                if (playbackState == Player.STATE_READY) {
-                    hasError = false
-                    resolveFailed = false
-                    retryCount = 0
-                    isRetrying = false
+                when (playbackState) {
+                    Player.STATE_BUFFERING -> diagnostics.record(
+                        DiagnosticCategory.EXOPLAYER,
+                        "Buffering START",
+                        correlationId = state.id.take(36)
+                    )
+                    Player.STATE_READY -> {
+                        hasError = false
+                        resolveFailed = false
+                        retryCount = 0
+                        isRetrying = false
+                        if (isFirstReady.compareAndSet(false, true)) {
+                            diagnostics.record(
+                                DiagnosticCategory.EXOPLAYER,
+                                "First READY",
+                                correlationId = state.id.take(36)
+                            )
+                        }
+                    }
+                    Player.STATE_ENDED -> diagnostics.record(
+                        DiagnosticCategory.EXOPLAYER,
+                        "Playback END",
+                        correlationId = state.id.take(36)
+                    )
                 }
             }
             override fun onPlayerError(error: androidx.media3.common.PlaybackException) {
                 android.util.Log.e("TikTokVideoFeedScreen", "player error id=${state.id} code=${error.errorCode}", error)
                 isBuffering = false
+                diagnostics.record(
+                    DiagnosticCategory.ERRORS,
+                    "Player error",
+                    severity = DiagnosticSeverity.ERROR,
+                    correlationId = state.id.take(36),
+                    details = "errorCode=${error.errorCode}, retryCount=$retryCount"
+                )
                 // OFFLINE FIX: solo reintentar con red disponible y no si ya está en curso un retry
                 if (!isRetrying && retryCount < 2 && com.example.util.NetworkMonitor.isOnline.value) {
                     isRetrying = true
                     retryCount += 1
+                    diagnostics.record(
+                        DiagnosticCategory.EXOPLAYER,
+                        "Retry iniciado",
+                        correlationId = state.id.take(36),
+                        details = "attempt=$retryCount"
+                    )
                     // Retry REAL: re-preparar el player existente preservando posición.
                     // acquireOrReuse no reprepa si el slot+URL son los mismos, así que
                     // forzamos prepare() explícitamente aquí.
@@ -1066,9 +1143,22 @@ fun TikTokPageItem(
                     player.prepare()
                     player.seekTo(currentPos)
                     player.playWhenReady = isActivePage && !isPaused && wasPlaying
+                    diagnostics.record(
+                        DiagnosticCategory.EXOPLAYER,
+                        "Retry completado (prepare)",
+                        correlationId = state.id.take(36),
+                        details = "pos=$currentPos, wasPlaying=$wasPlaying"
+                    )
                 } else {
                     hasError = true
                     isRetrying = false
+                    diagnostics.record(
+                        DiagnosticCategory.ERRORS,
+                        "Error definitivo después de reintentos",
+                        severity = DiagnosticSeverity.ERROR,
+                        correlationId = state.id.take(36),
+                        details = "retryCount=$retryCount"
+                    )
                 }
             }
         }
