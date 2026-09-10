@@ -1,8 +1,5 @@
 package com.example.panatv
 
-import android.app.PictureInPictureParams
-import android.content.res.Configuration
-import android.os.Build
 import android.os.Bundle
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
@@ -28,16 +25,10 @@ class PanaTVActivity : ComponentActivity() {
         }
     }
 
-    override fun onUserLeaveHint() {
-        super.onUserLeaveHint()
-        val prefs = getSharedPreferences("panalink_prefs", android.content.Context.MODE_PRIVATE)
-        val isPipEnabled = prefs.getBoolean("floating_pip_enabled", true)
-        if (!isPipEnabled) return
-
-        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
-            val params = PictureInPictureParams.Builder()
-                .build()
-            enterPictureInPictureMode(params)
-        }
-    }
+    // PanaTV deliberately does NOT enter PiP automatically on user leave. Leaving
+    // PanaTV always stops+releases playback (see PanaTVScreen lifecycle), so there
+    // is no live player left to hand off to PiP. PiP is intentionally disabled for
+    // PanaTV to keep player ownership simple and avoid ghost playback; Reels PiP
+    // is unaffected. If manual PiP is desired later, it must be an explicit UI
+    // action, never a side-effect of abandoning the screen.
 }
