@@ -990,6 +990,8 @@ fun TikTokPageItem(
     var resolveFailed by remember(stableMediaUrl, state.id) { mutableStateOf(false) }
     var retryCount by remember(stableMediaUrl, state.id) { mutableStateOf(0) }
     var activeSlot by remember(stableMediaUrl, state.id) { mutableStateOf<ReelDualPlayerManager.Slot?>(null) }
+    // Guard against concurrent retry attempts on the same player
+    var isRetrying by remember(state.id) { mutableStateOf(false) }
 
     // Player acquisition depends ONLY on resolved URL, NOT on metadata.
     // Metadata extraction is deferred to a secondary LaunchedEffect above so
@@ -1042,23 +1044,31 @@ fun TikTokPageItem(
         val listener = object : Player.Listener {
             override fun onPlaybackStateChanged(playbackState: Int) {
                 isBuffering = (playbackState == Player.STATE_BUFFERING || playbackState == Player.STATE_IDLE) && !hasError
-                if (playbackState == Player.STATE_READY) { hasError = false; resolveFailed = false }
+                if (playbackState == Player.STATE_READY) {
+                    hasError = false
+                    resolveFailed = false
+                    retryCount = 0
+                    isRetrying = false
+                }
             }
             override fun onPlayerError(error: androidx.media3.common.PlaybackException) {
                 android.util.Log.e("TikTokVideoFeedScreen", "player error id=${state.id} code=${error.errorCode}", error)
                 isBuffering = false
-                // OFFLINE FIX: solo reintentar con red disponible
-                if (retryCount < 2 && com.example.util.NetworkMonitor.isOnline.value) {
+                // OFFLINE FIX: solo reintentar con red disponible y no si ya está en curso un retry
+                if (!isRetrying && retryCount < 2 && com.example.util.NetworkMonitor.isOnline.value) {
+                    isRetrying = true
                     retryCount += 1
                     // Retry REAL: re-preparar el player existente preservando posición.
                     // acquireOrReuse no reprepa si el slot+URL son los mismos, así que
                     // forzamos prepare() explícitamente aquí.
                     val currentPos = player.currentPosition
+                    val wasPlaying = player.playWhenReady
                     player.prepare()
                     player.seekTo(currentPos)
-                    player.playWhenReady = isActivePage && !isPaused
+                    player.playWhenReady = isActivePage && !isPaused && wasPlaying
                 } else {
                     hasError = true
+                    isRetrying = false
                 }
             }
         }
@@ -1183,11 +1193,14 @@ fun TikTokPageItem(
                         onRetry = {
                             hasError = false
                             isBuffering = true
+                            resolveFailed = false
                             retryCount = 0
                             resolvedUrl = null
-                            dualManager.slotFor(state.id)?.let { slot ->
-                                dualManager.playerFor(slot)?.prepare()
-                            }
+                            // Force re-acquisition: clear the slot so the acquisition
+                            // LaunchedEffect runs on next composition cycle.
+                            dualManager.releaseIfOwned(state.id)
+                            activeSlot = null
+                            exoPlayerRef = null
                         }
                     )
                     // Auto-retry: attempt reconnection every 5s while error persists.
@@ -1196,11 +1209,13 @@ fun TikTokPageItem(
                         if (hasError) {
                             hasError = false
                             isBuffering = true
+                            resolveFailed = false
                             retryCount = 0
                             resolvedUrl = null
-                            dualManager.slotFor(state.id)?.let { slot ->
-                                dualManager.playerFor(slot)?.prepare()
-                            }
+                            // Force re-acquisition on auto-retry too
+                            dualManager.releaseIfOwned(state.id)
+                            activeSlot = null
+                            exoPlayerRef = null
                         }
                     }
                 } else {
