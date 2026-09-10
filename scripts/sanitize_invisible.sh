@@ -22,7 +22,7 @@ FILES="$(grep -rlP '\x{200B}|\x{FEFF}' \
   --include='*.md'      --include='*.txt'      \
   --include='*.json'    --include='*.xml'      \
   --include='*.properties' --include='*.gradle'  \
-  . 2>/dev/null | grep -v '/\.git/' | grep -v '/build/' || true)"
+  . 2>/dev/null | grep -v '/\.git/' | grep -v '/build/' | grep -v '/\.gradle-home/' | grep -v '/\.toolchain/' || true)"
 
 if [ -z "$FILES" ]; then
   echo "sanitize: limpio - no files with invisible Unicode found."
