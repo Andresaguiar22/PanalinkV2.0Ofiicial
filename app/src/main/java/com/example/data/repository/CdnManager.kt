@@ -45,7 +45,7 @@ object CdnManager {
                 .getString(KEY_CACHED_CDN_URL, null)
             if (!stored.isNullOrBlank()) cachedCdnUrl = cleanBase(stored)
         } catch (e: Exception) {
-            Log.e(TAG, "Error restoring CDN URL", e)
+            Log.e(TAG, "Error restoring CDN URL: ${e.javaClass.simpleName}")
         }
     }
 
@@ -63,7 +63,7 @@ object CdnManager {
                         if (isValidHttpUrl(clean)) {
                             cachedCdnUrl = clean
                             saveToPrefs(clean)
-                            Log.i(TAG, "CDN URL actualizada por Realtime: '$clean'")
+                            Log.i(TAG, "CDN URL actualizada por Realtime (url redactada)")
                         }
                     }
                 }
@@ -76,7 +76,7 @@ object CdnManager {
             context?.getSharedPreferences(PREFS_NAME, Context.MODE_PRIVATE)
                 ?.edit()?.putString(KEY_CACHED_CDN_URL, cdnUrl)?.apply()
         } catch (e: Exception) {
-            Log.e(TAG, "Error saving CDN URL", e)
+            Log.e(TAG, "Error saving CDN URL: ${e.javaClass.simpleName}")
         }
     }
 
@@ -98,7 +98,7 @@ object CdnManager {
                 response.code in 200..299
             }
         } catch (e: Exception) {
-            Log.w(TAG, "CDN health check failed: ${e.message}")
+            Log.w(TAG, "CDN health check failed: ${e.javaClass.simpleName}")
             false
         }
     }
@@ -130,14 +130,14 @@ object CdnManager {
                                 JSONArray(body).takeIf { it.length() > 0 }?.getJSONObject(0)
                             } else if (body.startsWith("{")) JSONObject(body) else null
                         } catch (e: Exception) {
-                            Log.e(TAG, "Invalid CDN config JSON", e)
+                            Log.e(TAG, "Invalid CDN config JSON: ${e.javaClass.simpleName}")
                             null
                         }
                         val active = json?.optBoolean("active", false) ?: false
                         val cdn = cleanBase(json?.optString("cdn_url", "").orEmpty())
                         if (active && isValidHttpUrl(cdn)) {
                             if (!isCdnReachable(cdn)) {
-                                Log.w(TAG, "CDN health check failed; keeping configured URL: $cdn")
+                                Log.w(TAG, "CDN health check failed; keeping configured CDN (url redacted)")
                             }
                             cachedCdnUrl = cdn
                             saveToPrefs(cdn)
@@ -146,7 +146,7 @@ object CdnManager {
                     }
                 }
             } catch (e: Exception) {
-                Log.w(TAG, "Error obtaining CDN URL: ${e.message}")
+                Log.w(TAG, "Error obtaining CDN URL: ${e.javaClass.simpleName}")
             }
             if (attempts > 0) delay(1000)
         }

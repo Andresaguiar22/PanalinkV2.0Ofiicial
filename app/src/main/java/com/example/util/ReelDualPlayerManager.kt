@@ -278,8 +278,7 @@ class ReelDualPlayerManager(private val context: Context) {
             .also { player ->
                 player.addListener(object : Player.Listener {
                     override fun onPlayerError(error: PlaybackException) {
-                        val uri = player.currentMediaItem?.localConfiguration?.uri?.toString()
-                        Log.e(TAG, "ReelPlayerError: position=${player.currentPosition}, buffered=${player.bufferedPosition}, state=${player.playbackState}, isLoading=${player.isLoading}, playWhenReady=${player.playWhenReady}, errorCode=${error.errorCode}, cause=${error.cause?.message}, uri=$uri")
+                        Log.e(TAG, "ReelPlayerError: position=${player.currentPosition}, buffered=${player.bufferedPosition}, state=${player.playbackState}, isLoading=${player.isLoading}, playWhenReady=${player.playWhenReady}, errorCode=${error.errorCode}, cause=${error.cause?.javaClass?.simpleName}")
                     }
                 })
             }

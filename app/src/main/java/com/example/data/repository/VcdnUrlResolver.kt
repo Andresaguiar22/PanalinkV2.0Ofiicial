@@ -143,7 +143,7 @@ object VcdnUrlResolver {
             fetchResult = try {
                 fetchConfig(videoId)
             } catch (e: Exception) {
-                Log.w(TAG, "resolve failed for $videoId; trying stale cache", e)
+                Log.w(TAG, "resolve failed for $videoId; trying stale cache: ${e.javaClass.simpleName}")
                 null
             }
             // Resolver para esta coroutine
