@@ -1,0 +1,171 @@
+name: patch-panatv-player
+
+on:
+  push:
+    branches: [fix/reels-stable-player]
+
+permissions:
+  contents: write
+
+jobs:
+  patch:
+    if: "!contains(github.event.head_commit.message, 'fix(panatv):')"
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Patch PanaTV
+        shell: python
+        run: |
+          from pathlib import Path
+
+          path = Path('app/src/main/java/com/example/panatv/PanaTVModernScreen.kt')
+          s = path.read_text(encoding='utf-8')
+
+          replacements = [
+              (
+                  'import androidx.compose.ui.viewinterop.AndroidView\n',
+                  'import androidx.compose.ui.viewinterop.AndroidView\n'
+                  'import androidx.compose.ui.input.pointer.pointerInput\n'
+                  'import androidx.compose.foundation.gestures.detectTapGestures\n'
+                  'import androidx.core.view.WindowCompat\n'
+                  'import androidx.core.view.WindowInsetsCompat\n'
+                  'import androidx.core.view.WindowInsetsControllerCompat\n'
+              ),
+              (
+                  '    var showCountries by remember { mutableStateOf(false) }\n',
+                  '    var showCountries by remember { mutableStateOf(false) }\n'
+                  '    var showChannelList by remember { mutableStateOf(false) }\n'
+              ),
+              (
+                  '    BackHandler(enabled = isFullscreen) {\n        isFullscreen = false\n        (context as? Activity)?.requestedOrientation = ActivityInfo.SCREEN_ORIENTATION_UNSPECIFIED\n    }\n',
+                  '    BackHandler(enabled = isFullscreen) {\n'
+                  '        when {\n'
+                  '            showChannelList -> showChannelList = false\n'
+                  '            else -> {\n'
+                  '                isFullscreen = false\n'
+                  '                (context as? Activity)?.requestedOrientation = ActivityInfo.SCREEN_ORIENTATION_UNSPECIFIED\n'
+                  '            }\n'
+                  '        }\n'
+                  '    }\n\n'
+                  '    LaunchedEffect(isFullscreen) {\n'
+                  '        val window = (context as? Activity)?.window ?: return@LaunchedEffect\n'
+                  '        val controller = WindowCompat.getInsetsController(window, view = window.decorView)\n'
+                  '        if (isFullscreen) {\n'
+                  '            controller.hide(WindowInsetsCompat.Type.systemBars())\n'
+                  '            controller.systemBarsBehavior = WindowInsetsControllerCompat.BEHAVIOR_SHOW_TRANSIENT_BARS_BY_SWIPE\n'
+                  '            (context as? Activity)?.requestedOrientation = ActivityInfo.SCREEN_ORIENTATION_SENSOR_LANDSCAPE\n'
+                  '        } else {\n'
+                  '            controller.show(WindowInsetsCompat.Type.systemBars())\n'
+                  '            (context as? Activity)?.requestedOrientation = ActivityInfo.SCREEN_ORIENTATION_UNSPECIFIED\n'
+                  '            showChannelList = false\n'
+                  '        }\n'
+                  '    }\n'
+              ),
+              (
+                  '            playerContent(Modifier.fillMaxWidth().aspectRatio(16f / 9f))\n',
+                  '            if (!isFullscreen) {\n'
+                  '                playerContent(Modifier.fillMaxWidth().aspectRatio(16f / 9f))\n'
+                  '            }\n'
+              ),
+              (
+                  '            Box(Modifier.fillMaxSize().background(Color.Black)) {\n'
+                  '                playerContent(Modifier.fillMaxSize())\n'
+                  '                Row(\n'
+                  '                    modifier = Modifier.align(Alignment.TopStart).fillMaxWidth().background(Color.Black.copy(alpha = 0.45f)).padding(8.dp),\n'
+                  '                    verticalAlignment = Alignment.CenterVertically\n'
+                  '                ) {\n'
+                  '                    IconButton(onClick = {\n'
+                  '                        isFullscreen = false\n'
+                  '                        (context as? Activity)?.requestedOrientation = ActivityInfo.SCREEN_ORIENTATION_UNSPECIFIED\n'
+                  '                    }) {\n'
+                  '                        Icon(Icons.Default.ArrowBack, "Volver", tint = Color.White)\n'
+                  '                    }\n'
+                  '                    Text(currentChannel?.name.orEmpty(), color = Color.White, fontSize = 15.sp, fontWeight = FontWeight.Bold, maxLines = 1, overflow = TextOverflow.Ellipsis, modifier = Modifier.weight(1f))\n'
+                  '                }\n'
+                  '            }\n',
+                  '            Box(Modifier.fillMaxSize().background(Color.Black)) {\n'
+                  '                Box(\n'
+                  '                    modifier = Modifier\n'
+                  '                        .fillMaxSize()\n'
+                  '                        .pointerInput(Unit) {\n'
+                  '                            detectTapGestures(onTap = {\n'
+                  '                                showChannelList = !showChannelList\n'
+                  '                            })\n'
+                  '                        }\n'
+                  '                ) {\n'
+                  '                    playerContent(Modifier.fillMaxSize())\n'
+                  '                }\n\n'
+                  '                AnimatedVisibility(\n'
+                  '                    visible = showChannelList,\n'
+                  '                    enter = fadeIn(),\n'
+                  '                    exit = fadeOut(),\n'
+                  '                    modifier = Modifier.align(Alignment.CenterEnd)\n'
+                  '                ) {\n'
+                  '                    Column(\n'
+                  '                        modifier = Modifier\n'
+                  '                            .fillMaxHeight()\n'
+                  '                            .width(280.dp)\n'
+                  '                            .background(Color(0xF2141414))\n'
+                  '                            .padding(top = 12.dp, bottom = 12.dp)\n'
+                  '                    ) {\n'
+                  '                        Row(\n'
+                  '                            modifier = Modifier.fillMaxWidth().padding(horizontal = 14.dp),\n'
+                  '                            verticalAlignment = Alignment.CenterVertically\n'
+                  '                        ) {\n'
+                  '                            Text("Canales", color = Color.White, fontSize = 18.sp, fontWeight = FontWeight.Bold, modifier = Modifier.weight(1f))\n'
+                  '                            IconButton(onClick = { showChannelList = false }) {\n'
+                  '                                Icon(Icons.Default.Close, "Cerrar canales", tint = Color.White)\n'
+                  '                            }\n'
+                  '                        }\n'
+                  '                        LazyVerticalGrid(\n'
+                  '                            columns = GridCells.Adaptive(minSize = 118.dp),\n'
+                  '                            modifier = Modifier.fillMaxWidth().weight(1f),\n'
+                  '                            contentPadding = PaddingValues(12.dp),\n'
+                  '                            horizontalArrangement = Arrangement.spacedBy(8.dp),\n'
+                  '                            verticalArrangement = Arrangement.spacedBy(8.dp)\n'
+                  '                        ) {\n'
+                  '                            items(channels, key = { it.id }) { channel ->\n'
+                  '                                PanaTvChannelCard(\n'
+                  '                                    channel = channel,\n'
+                  '                                    selected = currentChannel?.id == channel.id,\n'
+                  '                                    favorite = favorites.contains(channel.id),\n'
+                  '                                    onFavorite = { viewModel.toggleFavorite(channel.id) },\n'
+                  '                                    onClick = {\n'
+                  '                                        selectChannel(channel)\n'
+                  '                                        showChannelList = false\n'
+                  '                                    }\n'
+                  '                                )\n'
+                  '                            }\n'
+                  '                        }\n'
+                  '                    }\n'
+                  '                }\n\n'
+                  '                Row(\n'
+                  '                    modifier = Modifier.align(Alignment.TopStart).fillMaxWidth().background(Color.Black.copy(alpha = 0.45f)).padding(8.dp),\n'
+                  '                    verticalAlignment = Alignment.CenterVertically\n'
+                  '                ) {\n'
+                  '                    IconButton(onClick = {\n'
+                  '                        isFullscreen = false\n'
+                  '                        (context as? Activity)?.requestedOrientation = ActivityInfo.SCREEN_ORIENTATION_UNSPECIFIED\n'
+                  '                    }) {\n'
+                  '                        Icon(Icons.Default.ArrowBack, "Volver", tint = Color.White)\n'
+                  '                    }\n'
+                  '                    Text(currentChannel?.name.orEmpty(), color = Color.White, fontSize = 15.sp, fontWeight = FontWeight.Bold, maxLines = 1, overflow = TextOverflow.Ellipsis, modifier = Modifier.weight(1f))\n'
+                  '                }\n'
+                  '            }\n'
+              ),
+          ]
+
+          for old, new in replacements:
+              if old not in s:
+                  raise SystemExit(f'Expected source block not found: {old[:100]!r}')
+              s = s.replace(old, new, 1)
+
+          path.write_text(s, encoding='utf-8')
+      - name: Commit patch
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          rm .github/workflows/patch-panatv.yml
+          git add app/src/main/java/com/example/panatv/PanaTVModernScreen.kt .github/workflows/patch-panatv.yml
+          git commit -m "fix(panatv): restore video surface and fullscreen channel picker"
+          git push
