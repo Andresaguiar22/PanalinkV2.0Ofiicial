@@ -1286,6 +1286,13 @@ fun TikTokPageItem(
             override fun onPlayerError(error: androidx.media3.common.PlaybackException) {
                 android.util.Log.e("TikTokVideoFeedScreen", "player error id=${state.id} code=${error.errorCode}", error)
                 isBuffering = false
+                // Errores en preload: liberar el slot en silencio (sin recovery
+                // visible ni cartel) — el swipe lo re-adquirirá limpio.
+
+                if (isPreload) {
+                    dualManager.releaseIfOwned(state.id)
+                    return
+                }
                 // Issue #12: capturar HTTP status real del error para saber si el
                 // servidor devuelve 403, 404, 416, 5xx, etc. Instrumentación pura:
                 // se inspecciona la cadena de causas del PlaybackException en busca
@@ -1584,8 +1591,6 @@ fun TikTokPageItem(
                     ) {
                         Column(horizontalAlignment = Alignment.CenterHorizontally) {
                             CircularProgressIndicator(color = Color(0xFF00FF85), strokeWidth = 3.dp)
-                            Spacer(modifier = Modifier.height(12.dp))
-                            Text("Recuperando vídeo...", color = Color.White.copy(alpha = 0.8f), fontSize = 13.sp)
                         }
                     }
                 } else if (isActivePage && (hasError || resolveFailed) && !isRecovering) {

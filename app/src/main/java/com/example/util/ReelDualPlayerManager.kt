@@ -221,7 +221,17 @@ class ReelDualPlayerManager(private val context: Context) {
 
     /** True when [error] represents a decoder/codec failure rather than an HTTP/IO error. */
     fun isCodecInitializationError(error: PlaybackException): Boolean {
-        if (error.errorCode == PlaybackException.ERROR_CODE_DECODER_INIT_FAILED) return true
+        // An HTTP/IO error is NEVER a codec failure, even when its cause chain
+        // drags decoder remnants. A signed-URL 401/403/5xx must fall through
+        // to the network/401 retry path, not to player recreation.
+        var h: Throwable? = error.cause
+        while (h != null) {
+            if (h is androidx.media3.datasource.HttpDataSource.InvalidResponseCodeException) return false
+            h = h.cause
+        }
+        if (error.errorCode == PlaybackException.ERROR_CODE_DECODER_INIT_FAILED ||
+            error.errorCode == PlaybackException.ERROR_CODE_DECODER_QUERY_FAILED ||
+            error.errorCode == PlaybackException.ERROR_CODE_DECODING_FORMAT_UNSUPPORTED) return true
         var cause: Throwable? = error.cause
         while (cause != null) {
             if (cause is MediaCodec.CodecException) return true
@@ -229,11 +239,6 @@ class ReelDualPlayerManager(private val context: Context) {
             if (name.endsWith("DecoderInitializationException") ||
                 name.endsWith("CodecException")) return true
             cause = cause.cause
-        }
-        val codeName = error.errorCodeName
-        if (!codeName.isNullOrEmpty() &&
-            (codeName.contains("CODEC", ignoreCase = true) || codeName.contains("DECODER", ignoreCase = true))) {
-            return true
         }
         return false
     }
