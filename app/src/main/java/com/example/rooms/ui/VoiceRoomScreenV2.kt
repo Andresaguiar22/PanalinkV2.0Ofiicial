@@ -98,7 +98,6 @@ fun VoiceRoomScreenV2(
                     .fillMaxSize()
                     .statusBarsPadding()
             ) {
-                // Header
                 VoiceRoomHeader(
                     room = state.room,
                     hostDisplayName = hostMember?.displayName ?: hostSeat?.displayName,
@@ -119,7 +118,7 @@ fun VoiceRoomScreenV2(
                     )
                 }
 
-                // Host (centrado)
+                // Host centrado, con separación vertical compacta.
                 Row(
                     modifier = Modifier.fillMaxWidth(),
                     horizontalArrangement = Arrangement.Center
@@ -135,43 +134,43 @@ fun VoiceRoomScreenV2(
                     )
                 }
 
-                Spacer(modifier = Modifier.height(16.dp))
+                Spacer(modifier = Modifier.height(8.dp))
 
-                // ── Escenario abierto: pares horizontales ──
-                // ROW A: [1] [2]         [5] [6]
+                // Starmaker: cuatro asientos por fila, agrupados cerca del centro.
+                // ROW A: [1] [2]   [5] [6]
                 Row(
-                    modifier = Modifier.fillMaxWidth().padding(horizontal = 16.dp),
-                    horizontalArrangement = Arrangement.SpaceBetween
+                    modifier = Modifier.fillMaxWidth(),
+                    horizontalArrangement = Arrangement.Center,
+                    verticalAlignment = Alignment.Top
                 ) {
-                    // Left pair: seats 1, 2
-                    Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+                    Row(horizontalArrangement = Arrangement.spacedBy(6.dp)) {
                         val s1 = state.seats.getOrNull(1)
                         val s2 = state.seats.getOrNull(2)
                         VoiceRoomStageSeat(
-                            seat = s1, size = 58.dp, isMine = (s1?.userId == state.myUserId),
+                            seat = s1, size = 56.dp, isMine = (s1?.userId == state.myUserId),
                             showAdminAction = (s1?.let { adminCanModerate(it) } == true),
                             onClick = { seatClickHaptic(); viewModel.onSeatClicked(1, hasMic) },
                             onAdmin = { s1?.userId?.let { moderationTarget = it } }
                         )
                         VoiceRoomStageSeat(
-                            seat = s2, size = 58.dp, isMine = (s2?.userId == state.myUserId),
+                            seat = s2, size = 56.dp, isMine = (s2?.userId == state.myUserId),
                             showAdminAction = (s2?.let { adminCanModerate(it) } == true),
                             onClick = { seatClickHaptic(); viewModel.onSeatClicked(2, hasMic) },
                             onAdmin = { s2?.userId?.let { moderationTarget = it } }
                         )
                     }
-                    // Right pair: seats 5, 6
-                    Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+                    Spacer(modifier = Modifier.width(24.dp))
+                    Row(horizontalArrangement = Arrangement.spacedBy(6.dp)) {
                         val s5 = state.seats.getOrNull(5)
                         val s6 = state.seats.getOrNull(6)
                         VoiceRoomStageSeat(
-                            seat = s5, size = 58.dp, isMine = (s5?.userId == state.myUserId),
+                            seat = s5, size = 56.dp, isMine = (s5?.userId == state.myUserId),
                             showAdminAction = (s5?.let { adminCanModerate(it) } == true),
                             onClick = { seatClickHaptic(); viewModel.onSeatClicked(5, hasMic) },
                             onAdmin = { s5?.userId?.let { moderationTarget = it } }
                         )
                         VoiceRoomStageSeat(
-                            seat = s6, size = 58.dp, isMine = (s6?.userId == state.myUserId),
+                            seat = s6, size = 56.dp, isMine = (s6?.userId == state.myUserId),
                             showAdminAction = (s6?.let { adminCanModerate(it) } == true),
                             onClick = { seatClickHaptic(); viewModel.onSeatClicked(6, hasMic) },
                             onAdmin = { s6?.userId?.let { moderationTarget = it } }
@@ -179,42 +178,42 @@ fun VoiceRoomScreenV2(
                     }
                 }
 
-                Spacer(modifier = Modifier.height(12.dp))
+                Spacer(modifier = Modifier.height(6.dp))
 
-                // ROW B: [3] [4]         [7] [8]
+                // ROW B: [3] [4]   [7] [8]
                 Row(
-                    modifier = Modifier.fillMaxWidth().padding(horizontal = 16.dp),
-                    horizontalArrangement = Arrangement.SpaceBetween
+                    modifier = Modifier.fillMaxWidth(),
+                    horizontalArrangement = Arrangement.Center,
+                    verticalAlignment = Alignment.Top
                 ) {
-                    // Left pair: seats 3, 4
-                    Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+                    Row(horizontalArrangement = Arrangement.spacedBy(6.dp)) {
                         val s3 = state.seats.getOrNull(3)
                         val s4 = state.seats.getOrNull(4)
                         VoiceRoomStageSeat(
-                            seat = s3, size = 54.dp, isMine = (s3?.userId == state.myUserId),
+                            seat = s3, size = 56.dp, isMine = (s3?.userId == state.myUserId),
                             showAdminAction = (s3?.let { adminCanModerate(it) } == true),
                             onClick = { seatClickHaptic(); viewModel.onSeatClicked(3, hasMic) },
                             onAdmin = { s3?.userId?.let { moderationTarget = it } }
                         )
                         VoiceRoomStageSeat(
-                            seat = s4, size = 54.dp, isMine = (s4?.userId == state.myUserId),
+                            seat = s4, size = 56.dp, isMine = (s4?.userId == state.myUserId),
                             showAdminAction = (s4?.let { adminCanModerate(it) } == true),
                             onClick = { seatClickHaptic(); viewModel.onSeatClicked(4, hasMic) },
                             onAdmin = { s4?.userId?.let { moderationTarget = it } }
                         )
                     }
-                    // Right pair: seats 7, 8
-                    Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+                    Spacer(modifier = Modifier.width(24.dp))
+                    Row(horizontalArrangement = Arrangement.spacedBy(6.dp)) {
                         val s7 = state.seats.getOrNull(7)
                         val s8 = state.seats.getOrNull(8)
                         VoiceRoomStageSeat(
-                            seat = s7, size = 54.dp, isMine = (s7?.userId == state.myUserId),
+                            seat = s7, size = 56.dp, isMine = (s7?.userId == state.myUserId),
                             showAdminAction = (s7?.let { adminCanModerate(it) } == true),
                             onClick = { seatClickHaptic(); viewModel.onSeatClicked(7, hasMic) },
                             onAdmin = { s7?.userId?.let { moderationTarget = it } }
                         )
                         VoiceRoomStageSeat(
-                            seat = s8, size = 54.dp, isMine = (s8?.userId == state.myUserId),
+                            seat = s8, size = 56.dp, isMine = (s8?.userId == state.myUserId),
                             showAdminAction = (s8?.let { adminCanModerate(it) } == true),
                             onClick = { seatClickHaptic(); viewModel.onSeatClicked(8, hasMic) },
                             onAdmin = { s8?.userId?.let { moderationTarget = it } }
@@ -222,16 +221,15 @@ fun VoiceRoomScreenV2(
                     }
                 }
 
-                // Up Next strip (compacto, no roba espacio)
                 VoiceRoomUpNextStrip(
                     seats = state.seats,
                     members = state.members,
                     modifier = Modifier
                         .fillMaxWidth()
-                        .padding(vertical = 8.dp)
+                        .padding(top = 4.dp, bottom = 4.dp)
                 )
 
-                // Chat — ocupa el espacio restante, detrás del composer
+                // Chat ocupa todo el espacio restante y queda detrás del compositor.
                 Box(modifier = Modifier.weight(1f)) {
                     VoiceRoomTikTokChat(
                         messages = state.messages,
@@ -243,18 +241,17 @@ fun VoiceRoomScreenV2(
                 }
             }
 
-            // ── Emoji reactions flotantes (encima de todo) ──
             VoiceRoomFloatingEmojiOverlay(
                 emojis = floatingEmojis,
                 onDone = { id -> floatingEmojis = floatingEmojis.filterNot { it.id == id } }
             )
 
-            // ── Composer flotante (encima del chat, IME-aware) ──
-            // Solo este elemento recibe imePadding() — el contenido principal NO se comprime
+            // Composer siempre por encima de la barra de navegación y del chat.
             Box(
                 modifier = Modifier
                     .fillMaxWidth()
                     .align(Alignment.BottomCenter)
+                    .navigationBarsPadding()
                     .imePadding()
             ) {
                 VoiceRoomInputBar(
@@ -275,7 +272,6 @@ fun VoiceRoomScreenV2(
                 )
             }
 
-            // ── Snackbar (por encima del composer) ──
             SnackbarHost(
                 hostState = snackbarHostState,
                 modifier = Modifier
@@ -285,7 +281,6 @@ fun VoiceRoomScreenV2(
         }
     }
 
-    // ── Diálogos (por encima de todo) ──
     if (moderationTarget != null) {
         ModerationDialog(
             targetUserId = moderationTarget!!,
