@@ -1538,8 +1538,15 @@ fun TikTokPageItem(
     // que era `remember` sin key y quedaba pegado al salir/vovler, mostrando el
     // ícono de play sobre un vídeo que el usuario no pausó en esta visita.
     LaunchedEffect(isPaused, isActivePage, exoPlayerRef) {
-        if (isActivePage) isPaused = false
         exoPlayerRef?.playWhenReady = isActivePage && !isPaused
+    }
+
+    LaunchedEffect(isActivePage) {
+        // Limpiar la pausa manual SOLO al volver a esta página activa
+        // (transición inactiva->activa); NO en cada toggle del usuario, que
+        // rompía el botón play/pause (el effect anterior estaba keyed en
+        // isPaused y lo reseteaba a false inmediatamente tras pulsarlo).
+        if (isActivePage) isPaused = false
     }
 
     // Update video play position and total duration in real-time
