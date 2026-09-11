@@ -19,16 +19,13 @@ class PanaTVActivity : ComponentActivity() {
                     modifier = Modifier.fillMaxSize(),
                     color = MaterialTheme.colorScheme.background
                 ) {
-                    PanaTVScreen()
+                    PanaTVModernScreen()
                 }
             }
         }
     }
 
     // PanaTV deliberately does NOT enter PiP automatically on user leave. Leaving
-    // PanaTV always stops+releases playback (see PanaTVScreen lifecycle), so there
-    // is no live player left to hand off to PiP. PiP is intentionally disabled for
-    // PanaTV to keep player ownership simple and avoid ghost playback; Reels PiP
-    // is unaffected. If manual PiP is desired later, it must be an explicit UI
-    // action, never a side-effect of abandoning the screen.
+    // PanaTV always stops+releases playback in the screen lifecycle. PiP remains
+    // disabled for PanaTV to keep player ownership simple and avoid ghost playback.
 }
