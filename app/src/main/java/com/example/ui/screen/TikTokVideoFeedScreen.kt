@@ -1643,15 +1643,19 @@ fun TikTokPageItem(
                         }
                     )
                     // Auto-retry: attempt reconnection every 5s while error persists.
-                    // NOTE: this path is intentionally left mirroring the original
-                    // network/401 retry semantics (release + clear) — the
-                    // playerRefreshKey bump is reserved for the manual "Reintentar"
-                    // below so we do not alter the background retry pacing. The only
-                    // addition here is the codec guard: a decoder that is definitively
-                    // unrecoverable (both HW and software recreate attempts failed)
-                    // must NOT auto-loop, otherwise we'd spin forever recreating
-                    // players that can't initialize a codec. Manual "Reintentar"
-                    // resets codecIrrecoverable and is always available.
+                    // Mirrors the original network/401 retry semantics (release the
+                    // slot + bump the acquisition key to re-resolve and re-acquire a
+                    // fresh player). The ONLY additions vs. the original:
+                    //  (a) the codec guard `!codecIrrecoverable` so a decoder that is
+                    //      definitively unrecoverable (both HW and software recreate
+                    //      attempts failed in handleCodecError) does NOT auto-loop —
+                    //      that would spin forever recreating players that can't
+                    //      initialize a codec. Manual "Reintentar" resets
+                    //      codecIrrecoverable and is always available.
+                    // Codec errors never reach this branch: handleCodecError owns
+                    // that path and sets hasError=false on success (so this Effect
+                    // won't fire) or codecIrrecoverable=true on exhaustion (blocked
+                    // by the guard above).
                     LaunchedEffect(hasError) {
                         kotlinx.coroutines.delay(5000)
                         if (hasError && !codecIrrecoverable) {
@@ -1660,12 +1664,19 @@ fun TikTokPageItem(
                             resolveFailed = false
                             retryCount = 0
                             resolvedUrl = null
-                            // Force re-acquisition on auto-retry too
+                            // Force re-acquisition on auto-retry too: releasing the
+                            // slot + nulling exoPlayerRef would leave the reel blank
+                            // with NO re-acquisition, because the acquisition
+                            // LaunchedEffect is keyed on playerRefreshKey. Bump it so
+                            // the feed re-resolves and re-acquires a fresh player.
+                            // (Codec errors never reach here: handleCodecError owns
+                            //  that path and sets codecIrrecoverable=true, which the
+                            //  guard above already blocks.)
                             dualManager.releaseIfOwned(state.id)
                             activeSlot = null
                             exoPlayerRef = null
+                            playerRefreshKey++
                         }
-                    }
                     }
                 } else {
                     Box(
