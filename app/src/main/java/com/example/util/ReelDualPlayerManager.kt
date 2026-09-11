@@ -1,6 +1,7 @@
 package com.example.util
 
 import android.content.Context
+import android.media.MediaCodec
 import android.util.Log
 import androidx.media3.common.MediaItem
 import androidx.media3.common.PlaybackException
@@ -57,6 +58,13 @@ class ReelDualPlayerManager(private val context: Context) {
      *  Applied when the slot transitions to preload/inactive. */
     private val pendingUrlUpdates = mutableMapOf<Slot, String>()
 
+    /** Per-slot codec-recovery attempt counter for the currently-assigned reel.
+     *  Reset whenever a slot is assigned a new reel id (see [acquire]/[clearSlot]).
+     *  Attempt 1 rebuilds with hardware decoders; attempt 2 escalates to the
+     *  FFmpeg/software-preferred renderer set so a poisoned hardware codec instance
+     *  is avoided. */
+    private val recoveryAttempts = mutableMapOf<Slot, Int>()
+
     /** Acquires the player for [slot] and prepares [url]. If the slot already held this
      *  media, it is returned untouched (first frame already rendered. */
     fun acquire(slot: Slot, id: String, url: String, volume: Float): ExoPlayer {
@@ -66,6 +74,9 @@ class ReelDualPlayerManager(private val context: Context) {
         }
         val assigned = if (slot == Slot.A) slotAAssignedId else slotBAssignedId
         if (assigned != id) {
+            // Fresh reel on this slot ⇒ reset the codec-recovery budget so a
+            // brand-new player starts with a clean slate (2 attempts).
+            recoveryAttempts[slot] = 0
             val mediaItem = MediaItem.fromUri(url)
             player.setMediaItem(mediaItem)
             player.repeatMode = Player.REPEAT_MODE_ALL
@@ -105,6 +116,131 @@ class ReelDualPlayerManager(private val context: Context) {
         }
         player.playWhenReady = false
         activeSlot = null
+    }
+
+    /** Result of asking the manager to recover from a playback error. */
+    sealed interface RecoveryResult {
+        /** A brand-new ExoPlayer was built and prepared; hand it to the PlayerView. */
+        data class Recovered(val player: ExoPlayer, val attempt: Int, val rendererMode: String) : RecoveryResult
+        /** The error was not a codec/decoder failure — the caller should handle it as a network error. */
+        object NotACodecError : RecoveryResult
+        /** All automatic recovery attempts are spent; show the definitive error UI. */
+        object Exhausted : RecoveryResult
+    }
+
+    /**
+     * Centralized codec-recovery entry point for the reel feed.
+     *
+     * For a [PlaybackException] that originates in a MediaCodec/decoder failure
+     * ([CodecException] / decoder initialization error), this performs a REAL
+     * recovery — never `player.prepare()` on the same poisoned decoder:
+     *   1. stop() + release() the affected player (its decoder may be in a
+     *      stuck state);
+     *   2. build a fresh ExoPlayer for the same slot;
+     *   3. re-set the MediaItem from the already-resolved URL;
+     *   4. restore playWhenReady according to the prior playing state.
+     *
+     * Attempt 1 reuses the same (hardware + FFmpeg-fallback) renderers that
+     * [build] originally produced. Attempt 2 escalates to a software-preferred
+     * renderer set (FFmpeg decoders preferred over the platform adapter) so a
+     * chip that cannot initialize a specific codec profile falls through to the
+     * bundled native FFmpeg decoder with correct color conversion.
+     *
+     * A per-slot attempt counter (reset on new reel assignment) caps automatic
+     * recovery at 2 attempts to honour the "no infinite loops" rule. Only the
+     * single broken slot is ever rebuilt — the other slot (preload) is never
+     * touched, keeping the dual-buffer invariant.
+     *
+     * @return [RecoveryResult.Recovered] with the new player, or
+     *         [RecoveryResult.Exhausted]/[RecoveryResult.NotACodecError].
+     */
+    fun recoverFromPlaybackError(id: String, error: PlaybackException, volume: Float): RecoveryResult {
+        val slot = slotFor(id) ?: run {
+            Log.w(TAG, "recoverFromPlaybackError: no slot owns id=$id")
+            return RecoveryResult.Exhausted
+        }
+        if (!isCodecInitializationError(error)) {
+            return RecoveryResult.NotACodecError
+        }
+
+        val currentAttempts = recoveryAttempts[slot] ?: 0
+        if (currentAttempts >= 2) {
+            Log.w(TAG, "recoverFromPlaybackError: attempts exhausted for slot $slot (id=$id)")
+            return RecoveryResult.Exhausted
+        }
+        recoveryAttempts[slot] = currentAttempts + 1
+        val attempt = recoveryAttempts[slot]!!
+        // Attempt 1: hardware (with FFmpeg fallback). Attempt 2: FFmpeg preferred.
+        val preferSoftware = attempt >= 2
+
+        val player = playerFor(slot) ?: return RecoveryResult.Exhausted
+        val savedPosition = player.currentPosition
+        val savedPlayWhenReady = player.playWhenReady
+        val url = slotUrls[slot]
+        if (url == null) {
+            Log.w(TAG, "recoverFromPlaybackError: no URL for slot $slot (id=$id)")
+            return RecoveryResult.Exhausted
+        }
+
+        Log.d(TAG, "recoverFromPlaybackError: slot=$slot attempt=$attempt preferSoftware=$preferSoftware id=$id")
+
+        // 1) stop() the affected player cleanly, then 2) release() it so the
+        // decoder/renderers are fully torn down (no lingering codec state).
+        try {
+            player.stop()
+        } catch (e: IllegalStateException) {
+            Log.w(TAG, "recoverFromPlaybackError: player.stop() failed for slot $slot", e)
+        }
+        try {
+            player.release()
+        } catch (e: IllegalStateException) {
+            Log.w(TAG, "recoverFromPlaybackError: player.release() failed for slot $slot", e)
+        }
+
+        // 3) build a fresh player for the SAME slot (slot count stays == 2).
+        val newPlayer = build(preferSoftware = preferSoftware)
+        assignSlot(slot, newPlayer)
+
+        // 4) re-set the MediaItem from the preserved URL; prepare; restore state.
+        val mediaItem = MediaItem.fromUri(url)
+        newPlayer.setMediaItem(mediaItem)
+        newPlayer.repeatMode = Player.REPEAT_MODE_ALL
+        newPlayer.volume = volume
+        newPlayer.playWhenReady = false
+        newPlayer.prepare()
+        if (savedPosition > 0L) {
+            newPlayer.seekTo(savedPosition)
+        }
+        if (activeSlot == slot) {
+            newPlayer.playWhenReady = savedPlayWhenReady
+        }
+
+        val rendererMode = if (preferSoftware) "software-preferred" else "hardware-fallback"
+        return RecoveryResult.Recovered(newPlayer, attempt, rendererMode)
+    }
+
+    /** True when [error] represents a decoder/codec failure rather than an HTTP/IO error. */
+    fun isCodecInitializationError(error: PlaybackException): Boolean {
+        if (error.errorCode == PlaybackException.ERROR_CODE_DECODER_INIT_FAILED) return true
+        var cause: Throwable? = error.cause
+        while (cause != null) {
+            if (cause is MediaCodec.CodecException) return true
+            val name = cause.javaClass.name
+            if (name.endsWith("DecoderInitializationException") ||
+                name.endsWith("CodecException")) return true
+            cause = cause.cause
+        }
+        val codeName = error.errorCodeName
+        if (!codeName.isNullOrEmpty() &&
+            (codeName.contains("CODEC", ignoreCase = true) || codeName.contains("DECODER", ignoreCase = true))) {
+            return true
+        }
+        return false
+    }
+
+    /** Binds a player instance to its slot. */
+    private fun assignSlot(slot: Slot, player: ExoPlayer) {
+        if (slot == Slot.A) slotAPlayer = player else slotBPlayer = player
     }
 
     /**
@@ -244,13 +380,14 @@ class ReelDualPlayerManager(private val context: Context) {
         player?.stop()
         player?.release()
         if (slot == Slot.A) { slotAPlayer = null; slotAAssignedId = null; slotUrls.remove(Slot.A) } else { slotBPlayer = null; slotBAssignedId = null; slotUrls.remove(Slot.B) }
+        recoveryAttempts.remove(slot)
         if (!requeue) return
         val pending = pendingPreloads.pollFirst() ?: return
         acquire(slot, pending.id, pending.url, pending.volume)
         pause(slot)
     }
 
-    private fun build(): ExoPlayer {
+    private fun build(preferSoftware: Boolean = false): ExoPlayer {
         val loadControl = androidx.media3.exoplayer.DefaultLoadControl.Builder()
             .setBufferDurationsMs(
                 8000, // minBufferMs
@@ -268,7 +405,7 @@ class ReelDualPlayerManager(private val context: Context) {
             context,
             CacheDataSourceFactory.getCacheDataSourceFactory(context)
         )
-        return ExoPlayer.Builder(context, PanaRenderersFactory.create(context))
+        return ExoPlayer.Builder(context, PanaRenderersFactory.create(context, preferSoftware = preferSoftware))
             .setTrackSelector(trackSelector)
             .setMediaSourceFactory(
                 DefaultMediaSourceFactory(context).setDataSourceFactory(dataSourceFactory)
@@ -278,7 +415,8 @@ class ReelDualPlayerManager(private val context: Context) {
             .also { player ->
                 player.addListener(object : Player.Listener {
                     override fun onPlayerError(error: PlaybackException) {
-                        Log.e(TAG, "ReelPlayerError: position=${player.currentPosition}, buffered=${player.bufferedPosition}, state=${player.playbackState}, isLoading=${player.isLoading}, playWhenReady=${player.playWhenReady}, errorCode=${error.errorCode}, cause=${error.cause?.javaClass?.simpleName}")
+                        val isCodec = isCodecInitializationError(error)
+                        Log.e(TAG, "ReelPlayerError: position=${player.currentPosition}, buffered=${player.bufferedPosition}, state=${player.playbackState}, isLoading=${player.isLoading}, playWhenReady=${player.playWhenReady}, errorCode=${error.errorCode}, cause=${error.cause?.javaClass?.simpleName}, isCodecError=$isCodec")
                     }
                 })
             }

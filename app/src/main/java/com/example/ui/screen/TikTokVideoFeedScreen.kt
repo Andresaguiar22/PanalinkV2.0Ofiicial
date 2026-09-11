@@ -100,9 +100,11 @@ import androidx.media3.ui.AspectRatioFrameLayout
 import androidx.media3.exoplayer.source.DefaultMediaSourceFactory
 import kotlinx.coroutines.awaitCancellation
 import com.example.data.video.CacheDataSourceFactory
+import kotlinx.coroutines.CompletableDeferred
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
+import kotlinx.coroutines.withTimeoutOrNull
 import com.example.data.repository.ProfilesRepository
 import com.example.data.repository.CdnManager
 import com.example.data.supabase.SupabaseClient
@@ -114,6 +116,11 @@ import com.example.ui.components.OfflineEmptyView
 import com.example.feature.diagnostics.data.DiagnosticsRepository
 import com.example.feature.diagnostics.model.DiagnosticCategory
 import com.example.feature.diagnostics.model.DiagnosticSeverity
+
+/** Max automatic codec-recovery attempts per reel before showing the definitive error. */
+private const val MAX_CODEC_AUTO_RETRIES = 2
+/** How long to wait for a freshly-rebuilt ExoPlayer to reach STATE_READY before escalating. */
+private const val RECOVERY_READY_TIMEOUT_MS = 6000L
 
 // Async thumbnail URL resolution: resolveMediaUrlSync can perform VCDN BFF I/O (runBlocking),
 // which must never block Main/UI during compose. produceState runs the resolution in a coroutine.
@@ -942,10 +949,19 @@ fun TikTokPageItem(
     var scale by remember { mutableStateOf(1f) }
     var offset by remember { mutableStateOf(Offset.Zero) }
     var hasError by remember(state.id) { mutableStateOf(false) }
+    // True while a codec-recovery cycle (player recreation) is in flight; the error
+    // card must NOT be shown during this window, only on definitive failure.
+    var isRecovering by remember(state.id) { mutableStateOf(false) }
+    // True once codec recovery has exhausted both (HW then software) attempts for
+    // this reel. While set, the background auto-retry is suppressed so a
+    // permanently-broken codec does not loop forever (manual "Reintentar" resets it).
+    var codecIrrecoverable by remember(state.id) { mutableStateOf(false) }
 
     var exoPlayerRef by remember { mutableStateOf<ExoPlayer?>(null) }
     var isBuffering by remember { mutableStateOf(true) }
     var forceRotationDegrees by remember(state.id) { mutableStateOf(0f) }
+    // Bumped by manual/auto retry to force the acquisition LaunchedEffect to re-run.
+    var playerRefreshKey by remember(state.id) { mutableStateOf(0) }
 
     // El feed remoto puede re-emitir la fila con mediaUrl distinta (re-anclaje CDN,
     // URL firmada expirada, refresco de red). Resolver/player solo dependen
@@ -1018,7 +1034,7 @@ fun TikTokPageItem(
     // Player acquisition depends ONLY on resolved URL, NOT on metadata.
     // Metadata extraction is deferred to a secondary LaunchedEffect above so
     // it never blocks playback preparation.
-    LaunchedEffect(stableMediaUrl, state.id,isActivePage,isPreload,dualManager) {
+    LaunchedEffect(stableMediaUrl, state.id,isActivePage,isPreload,dualManager,playerRefreshKey) {
 
         // BUGFIX: reiniciar el estado de resolución solo CUANDO el puntero estable
         // cambia (otra fila, copia local nueva, o reel distinto). Un REPLACE de fila
@@ -1086,6 +1102,136 @@ fun TikTokPageItem(
             )
         }
     }
+
+    // ---------------------------------------------------------------------------
+    // Codec/decoder error recovery.
+    //
+    // A MediaCodec/CodecException leaves the ExoPlayer instance in a state where
+    // player.prepare() on the SAME player cannot recover (the decoder is poisoned),
+    // which is the root cause of the "black screen + IllegalStateException 1004"
+    // loop. Recovery here means: release the bad player, build a FRESH one (the
+    // dual manager keeps the slot count at 2), rebind it to the PlayerView, and
+    // consider it recovered ONLY once STATE_READY is reached — never after a bare
+    // prepare(). Attempt 1 uses the normal hardware+FFmpeg-fallback renderers;
+    // attempt 2 escalates to software-preferred (FFmpeg-first) renderers.
+    //
+    // This is intentionally centralized here (driving ReelDualPlayerManager which
+    // does the mechanical recreate) so TikTokPageItem owns the READY-or-escalate
+    // loop and the UI states (RECOVERING -> READY / DEFINITIVE_ERROR).
+    // ---------------------------------------------------------------------------
+    fun handleCodecError(error: androidx.media3.common.PlaybackException) {
+        if (isRetrying || isRecovering) return
+        isRetrying = true
+        isRecovering = true
+        hasError = false
+        codecIrrecoverable = false
+        val volume = if (isMuted) 0f else 1f
+        diagnostics.record(
+            DiagnosticCategory.ERRORS,
+            "CodecException detectado",
+            severity = DiagnosticSeverity.WARNING,
+            correlationId = state.id.take(36),
+            details = "causeType=${error.cause?.javaClass?.simpleName}, errorCode=${error.errorCode}, isCodec=${dualManager.isCodecInitializationError(error)}"
+        )
+
+        scope.launch {
+            var recovered = false
+            var attempt = 0
+            // At most 2 recreations per error event: hardware, then software fallback.
+            while (attempt < 2 && !recovered) {
+                attempt++
+                when (val result = dualManager.recoverFromPlaybackError(state.id, error, volume)) {
+                    is ReelDualPlayerManager.RecoveryResult.Recovered -> {
+                        val newPlayer = result.player
+                        diagnostics.record(
+                            DiagnosticCategory.EXOPLAYER,
+                            "Recovery iniciado",
+                            correlationId = state.id.take(36),
+                            details = "attempt=$attempt, recoveryType=RECREATE_PLAYER, renderer=${result.rendererMode}"
+                        )
+                        // Bind the NEW player to the PlayerView. Reassigning
+                        // exoPlayerRef also re-runs the listener LaunchedEffect below,
+                        // so a fresh listener attaches to the new player — the View
+                        // is never left pointing at the released player.
+                        exoPlayerRef = newPlayer
+                        // Confirm readiness ONLY via STATE_READY (or a fresh error),
+                        // never via prepare() completion. A short-lived listener is
+                        // attached and removed before continuing so the steady-state
+                        // listener LaunchedEffect owns the player going forward.
+                        val ready = run {
+                            val deferred = CompletableDeferred<Boolean>()
+                            val tempListener = object : Player.Listener {
+                                override fun onPlaybackStateChanged(playbackState: Int) {
+                                    if (!deferred.isCompleted && playbackState == Player.STATE_READY) {
+                                        deferred.complete(true)
+                                    }
+                                }
+                                override fun onPlayerError(e: androidx.media3.common.PlaybackException) {
+                                    if (!deferred.isCompleted) deferred.complete(false)
+                                }
+                            }
+                            newPlayer.addListener(tempListener)
+                            try {
+                                withTimeoutOrNull(RECOVERY_READY_TIMEOUT_MS) { deferred.await() } ?: false
+                            } finally {
+                                newPlayer.removeListener(tempListener)
+                            }
+                        }
+                        if (ready) {
+                            recovered = true
+                            diagnostics.record(
+                                DiagnosticCategory.EXOPLAYER,
+                                "Recovery READY",
+                                correlationId = state.id.take(36),
+                                details = "attempt=$attempt, renderer=${result.rendererMode}"
+                            )
+                        } else {
+                            diagnostics.record(
+                                DiagnosticCategory.ERRORS,
+                                "Recovery attempt fallido",
+                                severity = DiagnosticSeverity.WARNING,
+                                correlationId = state.id.take(36),
+                                details = "attempt=$attempt, renderer=${result.rendererMode}"
+                            )
+                            // Loop: the manager escalates the renderer (HW->SW) and/or
+                            // returns Exhausted on the next call.
+                        }
+                    }
+                    is ReelDualPlayerManager.RecoveryResult.Exhausted -> {
+                        diagnostics.record(
+                            DiagnosticCategory.ERRORS,
+                            "Recovery agotado",
+                            severity = DiagnosticSeverity.ERROR,
+                            correlationId = state.id.take(36),
+                            details = "attempt=$attempt"
+                        )
+                        break
+                    }
+                    is ReelDualPlayerManager.RecoveryResult.NotACodecError -> {
+                        // Defensive: we already filtered non-codec errors.
+                        break
+                    }
+                }
+            }
+            isBuffering = false
+            isRecovering = false
+            isRetrying = false
+            if (recovered) {
+                hasError = false
+            } else {
+                codecIrrecoverable = true
+                hasError = true
+                diagnostics.record(
+                    DiagnosticCategory.ERRORS,
+                    "Recovery definitiva fallida",
+                    severity = DiagnosticSeverity.ERROR,
+                    correlationId = state.id.take(36),
+                    details = "attempts=$attempt"
+                )
+            }
+        }
+    }
+
     LaunchedEffect(exoPlayerRef, state.id) {
         val player = exoPlayerRef ?: return@LaunchedEffect
         val listener = object : Player.Listener {
@@ -1120,6 +1266,8 @@ fun TikTokPageItem(
                         resolveFailed = false
                         retryCount = 0
                         isRetrying = false
+                        isRecovering = false
+                        codecIrrecoverable = false
                         if (isFirstReady.compareAndSet(false, true)) {
                             diagnostics.record(
                                 DiagnosticCategory.EXOPLAYER,
@@ -1161,6 +1309,21 @@ fun TikTokPageItem(
                     correlationId = state.id.take(36),
                     details = "causeType=$causeType, httpStatus=${httpStatus ?: "N/A"}, errorCode=${error.errorCode}, retryCount=$retryCount"
                 )
+                // --- Codec/decoder failure (MediaCodec.CodecException / Decoder init) ---
+                // This is NOT a network/HTTP error, so the generic prepare()-retry below
+                // must NEVER run: calling prepare() on a poisoned ExoPlayer (decoder in a
+                // stuck state) yields the CodecException->prepare() -> Buffering ->
+                // IllegalStateException 1004 -> definitive-error loop. Instead, release the
+                // bad player and build a fresh one (delegated to ReelDualPlayerManager),
+                // which rebinds the PlayerView to the new instance and waits for READY.
+                if (dualManager.isCodecInitializationError(error)) {
+                    // If the brand-new player from a previous cycle also failed with a codec
+                    // error, the recovery coroutine is already driving escalation; skip the
+                    // re-entrant call so we never nest prepare()/recreate on the same slot.
+                    if (isRetrying || isRecovering) return
+                    handleCodecError(error)
+                    return // Do NOT fall through to 401/network retry for codec errors.
+                }
                 // Issue #15: 401 recovery for VCDN signed URLs.
                 // The BFF may report a long expiry, but the CDN token actually
                 // expires ~60s into playback. When the CDN returns 401 mid-stream,
@@ -1411,7 +1574,7 @@ fun TikTokPageItem(
         ) {
             if (exoPlayerRef != null && (isActivePage || isPreload)) {
                 val hasLocalCopy = !state.localVideoPath.isNullOrBlank() && java.io.File(state.localVideoPath!!).exists()
-                if (!com.example.util.NetworkMonitor.isOnline.value && (isActivePage || isPreload) && !hasError && !resolveFailed && !hasLocalCopy) {
+                if (!com.example.util.NetworkMonitor.isOnline.value && (isActivePage || isPreload) && !hasError && !resolveFailed && !isRecovering && !codecIrrecoverable && !hasLocalCopy) {
                     Box(
                         modifier = Modifier.fillMaxSize().background(Color(0xFF0F0F10)),
                         contentAlignment = Alignment.Center,
@@ -1440,27 +1603,58 @@ fun TikTokPageItem(
                             modifier = Modifier.fillMaxWidth(),
                         )
                     }
-                } else if (isActivePage && (hasError || resolveFailed)) {
+                } else if (isActivePage && isRecovering) {
+                    // RECOVERING state: a codec recovery cycle (player recreation) is in
+                    // flight. Do NOT show the error card here — only show it once
+                    // recovery has definitively failed (hasError stays false during this).
+                    Box(
+                        modifier = Modifier
+                            .fillMaxSize()
+                            .background(Color(0xFF0F0F10)),
+                        contentAlignment = Alignment.Center
+                    ) {
+                        Column(horizontalAlignment = Alignment.CenterHorizontally) {
+                            CircularProgressIndicator(color = Color(0xFF00FF85), strokeWidth = 3.dp)
+                            Spacer(modifier = Modifier.height(12.dp))
+                            Text("Recuperando vídeo...", color = Color.White.copy(alpha = 0.8f), fontSize = 13.sp)
+                        }
+                    }
+                } else if (isActivePage && (hasError || resolveFailed) && !isRecovering) {
                     ReelsErrorView(
                         avatarUrl = safeAvatarUrl,
                         displayName = safeDisplayName ?: "",
                         onRetry = {
+                            // Manual retry must perform a REAL recovery, not a bare
+                            // prepare() on a potentially-damaged player: release the
+                            // poisoned slot (resets the manager's per-slot attempt budget)
+                            // and bump the acquisition key so the feed re-acquires a fresh
+                            // ExoPlayer; subsequent codec errors are caught by handleCodecError.
                             hasError = false
+                            isRecovering = false
+                            codecIrrecoverable = false
                             isBuffering = true
                             resolveFailed = false
                             retryCount = 0
                             resolvedUrl = null
-                            // Force re-acquisition: clear the slot so the acquisition
-                            // LaunchedEffect runs on next composition cycle.
                             dualManager.releaseIfOwned(state.id)
                             activeSlot = null
                             exoPlayerRef = null
+                            playerRefreshKey++
                         }
                     )
                     // Auto-retry: attempt reconnection every 5s while error persists.
+                    // NOTE: this path is intentionally left mirroring the original
+                    // network/401 retry semantics (release + clear) — the
+                    // playerRefreshKey bump is reserved for the manual "Reintentar"
+                    // below so we do not alter the background retry pacing. The only
+                    // addition here is the codec guard: a decoder that is definitively
+                    // unrecoverable (both HW and software recreate attempts failed)
+                    // must NOT auto-loop, otherwise we'd spin forever recreating
+                    // players that can't initialize a codec. Manual "Reintentar"
+                    // resets codecIrrecoverable and is always available.
                     LaunchedEffect(hasError) {
                         kotlinx.coroutines.delay(5000)
-                        if (hasError) {
+                        if (hasError && !codecIrrecoverable) {
                             hasError = false
                             isBuffering = true
                             resolveFailed = false
@@ -1471,6 +1665,7 @@ fun TikTokPageItem(
                             activeSlot = null
                             exoPlayerRef = null
                         }
+                    }
                     }
                 } else {
                     Box(
