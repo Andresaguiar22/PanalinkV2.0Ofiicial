@@ -12,6 +12,7 @@ import com.example.service.PanalinkRealtimeService
 import com.google.firebase.messaging.FirebaseMessaging
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
 
 object PanalinkInitializationManager {
@@ -19,6 +20,9 @@ object PanalinkInitializationManager {
     
     @Volatile
     private var initializedUserId: String? = null
+
+    @Volatile
+    private var initializingUserId: String? = null
 
     fun initializeCompleteUser(
         context: Context,
@@ -37,8 +41,13 @@ object PanalinkInitializationManager {
             return
         }
 
+        if (initializingUserId == profile.id) {
+            Log.d(TAG, "User ${profile.id} initialization already in progress.")
+            return
+        }
+
+        initializingUserId = profile.id
         Log.i(TAG, "Initializing services for complete profile: ${profile.id} (${profile.displayName})")
-        initializedUserId = profile.id
 
         // 0. Perform Security Audit (Shield System)
         val audit = SecurityManager.getSecurityAudit(context)
@@ -58,20 +67,36 @@ object PanalinkInitializationManager {
             Log.e(TAG, "Failed to initialize CallManager", e)
         }
 
-        // 2. Generate and upload E2EE Public Key (a user_keys; NUNCA a
-        //    device_fingerprint: esa columna la usa save-token para FCM y
-        //    pisarla rompe el fallback de push del servidor)
+        // 2. Generate and register E2EE public key before declaring the user initialized.
+        //    This removes the registration race that allowed a newly created account to
+        //    enter chat without a row in public.user_keys.
         scope.launch(Dispatchers.IO) {
-            try {
-                val result = UserKeysRepository.syncPublicKey()
-                if (result.isSuccess) {
-                    Log.i(TAG, "Successfully registered/uploaded E2EE Public Key!")
-                } else {
-                    Log.e(TAG, "Failed to sync E2EE Public Key: ${result.exceptionOrNull()?.message}")
+            var keySynced = false
+            repeat(3) { attempt ->
+                if (keySynced) return@repeat
+                try {
+                    Log.i(TAG, "E2EE public-key sync attempt ${attempt + 1}/3 for user ${profile.id}")
+                    val result = UserKeysRepository.syncPublicKey()
+                    if (result.isSuccess) {
+                        keySynced = true
+                        Log.i(TAG, "Successfully registered/uploaded E2EE Public Key for ${profile.id}")
+                    } else {
+                        Log.e(TAG, "E2EE public-key sync failed on attempt ${attempt + 1}/3: ${result.exceptionOrNull()?.message}")
+                    }
+                } catch (e: Exception) {
+                    Log.e(TAG, "E2EE public-key sync exception on attempt ${attempt + 1}/3", e)
                 }
-            } catch (e: Exception) {
-                Log.e(TAG, "Failed to register E2EE Public Key", e)
+                if (!keySynced && attempt < 2) delay(1000L * (attempt + 1))
             }
+
+            // Services may still run if the network is unavailable, but do not hide a
+            // failed key registration. The next initialization/foreground cycle can retry.
+            if (keySynced) {
+                initializedUserId = profile.id
+            } else {
+                Log.w(TAG, "E2EE public key is NOT registered for ${profile.id}; initialization remains retryable")
+            }
+            initializingUserId = null
         }
 
         // 3. Start Realtime Service
@@ -134,5 +159,6 @@ object PanalinkInitializationManager {
 
     fun reset() {
         initializedUserId = null
+        initializingUserId = null
     }
 }
