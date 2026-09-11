@@ -123,6 +123,12 @@ android {
             isReturnDefaultValues = true
         }
     }
+
+    packaging {
+        jniLibs {
+            useLegacyPackaging = true
+        }
+    }
 }
 
 secrets {
