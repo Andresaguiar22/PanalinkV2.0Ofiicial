@@ -1083,6 +1083,41 @@ fun TikTokPageItem(
         ) ?: return@LaunchedEffect
         activeSlot = slot
         exoPlayerRef = dualManager.playerFor(slot)
+        // --- FIX: flags de error/buffering pegajosos al volver a una página ya
+        // prepeada. Cuando un reel pasa activo→inactivo→activo (swipe atrás), el
+        // player sigue en STATE_READY (solo se pausó con playWhenReady=false), así que
+        // onPlaybackStateChanged(STATE_READY) no se re-emite y los flags de error/
+        // resolveFailed quedarían pegados mostrando la tarjeta de error sobre un
+        // vídeo que sí está sano y sonando debajo..
+        if (wasReused && isActivePage && !isPreload) {
+            val p = dualManager.playerFor(slot)
+            if (p != null) {
+                when (p.playbackState) {
+                    Player.STATE_READY -> {
+                        hasError = false
+                        resolveFailed = false
+                        isRetrying = false
+                    }
+                    Player.STATE_IDLE, Player.STATE_ENDED -> {
+                        // El player quedó muerto (IDLE tras error fatal, o ENDED). Re-vivirlo
+                        // con un prepare() preservando posición — menos destructivo que
+                        // release+re-acquire; playWhenReady lo aplica el Effect de abajo.
+
+                        val pos = p.currentPosition
+                        try {
+                            p.prepare()
+                            p.seekTo(pos)
+                            hasError = false
+                            resolveFailed = false
+                            isRetrying = false
+                        } catch (e: IllegalStateException) {
+                            android.util.Log.w("TikTokVideoFeedScreen", "reactivar prepare skipped: player stale", e)
+                        }
+                    }
+                    else -> {}
+                }
+            }
+        }
         diagnostics.record(
             DiagnosticCategory.EXOPLAYER,
             if (wasReused) "Player reuse" else "Player acquire",
@@ -1427,12 +1462,23 @@ fun TikTokPageItem(
                         true
                     }
                     if (prepareSkipped) {
+                        // FIX: si el player existente no puede re-prepararse (estado interno
+                        // medio muerto tras el error), NO mostrar error definitivo a secas:
+                        // degradar al MISMO recovery limpio que usa el botón Reintentar —
+                        // release del slot + bump de adquisición para re-resolver/
+                        // re-acquire un player fresco. Así el reintento automático funciona
+                        // donde antes dejaba la tarjeta de error hasta pulsar manualmente.
                         isRetrying = false
-                        hasError = true
+                        hasError = false
+                        isBuffering = true
+                        resolveFailed = false
+                        dualManager.releaseIfOwned(state.id)
+                        activeSlot = null
+                        exoPlayerRef = null
+                        playerRefreshKey++
                         diagnostics.record(
-                            DiagnosticCategory.ERRORS,
-                            "Error definitivo después de reintentos",
-                            severity = DiagnosticSeverity.ERROR,
+                            DiagnosticCategory.EXOPLAYER,
+                            "Retry degradado a re-acquire limpio",
                             correlationId = state.id.take(36),
                             details = "retryCount=$retryCount, stalePlayer=true"
                         )
@@ -1488,7 +1534,11 @@ fun TikTokPageItem(
         exoPlayerRef?.volume = if (isMuted) 0f else 1f
     }
 
+    // FIX: al volver a una página activa, resetear el pausado manual (isPaused(
+    // que era `remember` sin key y quedaba pegado al salir/vovler, mostrando el
+    // ícono de play sobre un vídeo que el usuario no pausó en esta visita.
     LaunchedEffect(isPaused, isActivePage, exoPlayerRef) {
+        if (isActivePage) isPaused = false
         exoPlayerRef?.playWhenReady = isActivePage && !isPaused
     }
 
@@ -1630,9 +1680,14 @@ fun TikTokPageItem(
                     // that path and sets hasError=false on success (so this Effect
                     // won't fire) or codecIrrecoverable=true on exhaustion (blocked
                     // by the guard above).
-                    LaunchedEffect(hasError) {
+                    // FIX: el auto-retry también debe disparar si solo quedó
+                    // resolveFailed=true (resolución BFF falló transitoriamente sin
+                    // stale cache). Antes solo `hasError` lo disparaba, dejando una
+                    // tarjeta de error eterna hasta pulsar Reintentar manual.
+
+                    LaunchedEffect(hasError, resolveFailed) {
                         kotlinx.coroutines.delay(5000)
-                        if (hasError && !codecIrrecoverable) {
+                        if ((hasError || resolveFailed) && !codecIrrecoverable) {
                             hasError = false
                             isBuffering = true
                             resolveFailed = false

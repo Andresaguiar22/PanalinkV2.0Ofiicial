@@ -395,10 +395,10 @@ class ReelDualPlayerManager(private val context: Context) {
     private fun build(preferSoftware: Boolean = false): ExoPlayer {
         val loadControl = androidx.media3.exoplayer.DefaultLoadControl.Builder()
             .setBufferDurationsMs(
-                8000, // minBufferMs
-                20000, // maxBufferMs
-                200,   // bufferForPlaybackMs: instant start
-                400    // bufferForPlaybackAfterRebufferMs
+                12000, // minBufferMs
+                30000, // maxBufferMs
+                1500,   // bufferForPlaybackMs: arranque con ~1.5s para evitar cortes en red móvil
+                3000    // bufferForPlaybackAfterRebufferMs: reanudar con más margen tras re-buffer
             )
             .setBackBuffer(3000, true)
             .setPrioritizeTimeOverSizeThresholds(true)
