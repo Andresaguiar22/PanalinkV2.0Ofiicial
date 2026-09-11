@@ -43,11 +43,14 @@ object UserKeysRepository {
         val localPubKey = CryptoManager.getPublicKeyBase64()
         if (localPubKey.isEmpty()) return@withContext Result.failure(Exception("No se pudo obtener la clave pública local"))
 
+        // Always cache locally first. This makes the local E2EE state ready even if
+        // Supabase is temporarily unavailable; the remote registration is retried later.
         CryptoManager.publicKeyCache[currentUserId] = localPubKey
         if (!SupabaseClient.isConfigured) return@withContext Result.success(true)
 
         try {
-            val service = SupabaseClient.apiService ?: return@withContext Result.failure(Exception("Supabase no configurado"))
+            val service = SupabaseClient.apiService
+                ?: return@withContext Result.failure(Exception("Supabase no configurado"))
             val response = runCall { b ->
                 service.upsertUserKey(
                     apiKey = SupabaseClient.supabaseAnonKey,
@@ -55,10 +58,18 @@ object UserKeysRepository {
                     keyData = mapOf("user_id" to currentUserId, "public_key" to localPubKey)
                 )
             }
-            if (response?.isSuccessful == true) Result.success(true)
-            else Result.failure(Exception("Error al sincronizar llave pública: ${response?.errorBody()?.string() ?: "sin respuesta"}"))
+
+            if (response?.isSuccessful == true) {
+                Log.i(TAG, "E2EE public key registered successfully: user=$currentUserId code=${response.code()}")
+                Result.success(true)
+            } else {
+                val code = response?.code()
+                val body = try { response?.errorBody()?.string() } catch (_: Exception) { null }
+                Log.e(TAG, "E2EE public key registration FAILED: user=$currentUserId code=$code body=${body ?: "<empty>"}")
+                Result.failure(Exception("Error al sincronizar llave pública: ${body ?: "HTTP ${code ?: "sin respuesta"}"}"))
+            }
         } catch (e: Exception) {
-            Log.e(TAG, "Excepción al sincronizar llave pública", e)
+            Log.e(TAG, "Excepción al sincronizar llave pública para user=$currentUserId", e)
             Result.failure(e)
         }
     }
@@ -91,6 +102,10 @@ object UserKeysRepository {
                     CryptoManager.publicKeyCache[userId] = pubKey
                     return@withContext pubKey
                 }
+            } else {
+                val code = response?.code()
+                val errorBody = try { response?.errorBody()?.string() } catch (_: Exception) { null }
+                Log.e(TAG, "E2EE public key lookup FAILED: user=$userId code=$code body=${errorBody ?: "<empty>"}")
             }
         } catch (e: MissingPublicKeyException) {
             throw e
