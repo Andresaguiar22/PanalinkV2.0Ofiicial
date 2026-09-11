@@ -63,7 +63,18 @@ fun FullScreenMediaViewer(
     var showControls by remember { mutableStateOf(true) }
 
     Dialog(
-        onDismissRequest = onClose,
+        onDismissRequest = {
+            // Restaura insets/bars al cerrar el fullscreen: previene pantalla negra
+            // residual en la activity debajo al dar atras repetido.
+
+            (context as? android.app.Activity)?.let { act ->
+                androidx.core.view.WindowCompat.setDecorFitsSystemWindows(act.window, true)
+                val insets = androidx.core.view.WindowCompat.getInsetsController(act.window, act.window.decorView)
+                insets.show(androidx.core.view.WindowInsetsCompat.Type.statusBars() or
+                        androidx.core.view.WindowInsetsCompat.Type.navigationBars())
+            }
+            onClose()
+        },
         properties = DialogProperties(
             usePlatformDefaultWidth = false,
             decorFitsSystemWindows = false

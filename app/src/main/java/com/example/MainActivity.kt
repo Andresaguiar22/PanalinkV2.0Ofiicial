@@ -80,6 +80,30 @@ class MainActivity : androidx.fragment.app.FragmentActivity() {
 
     override fun onResume() {
         super.onResume()
+        // Restaura system bars/insets globalmente al volver al frente: previene
+        // pantallas negras residuales que dejan los fullscreen Dialogs (decorFitsSystemWindows=false
+        // o insets ocultos) tras atras repetido en cualquier seccion.
+
+        try {
+            val w = this.window
+            if (w != null) {
+                androidx.core.view.WindowCompat.setDecorFitsSystemWindows(w, true)
+                val ctrl = androidx.core.view.WindowCompat.getInsetsController(w, w.decorView)
+                ctrl.show(androidx.core.view.WindowInsetsCompat.Type.statusBars() or
+                        androidx.core.view.WindowInsetsCompat.Type.navigationBars())
+            }
+        } catch (e: Throwable) {
+            android.util.Log.e("MainActivity", "Error restoring system bars on resume", e)
+        }
+
+        // Si no estamos REALMENTE en PiP, limpiar el flag stale: previene el
+        // Box negro "Cargando video..." que cubre toda la app cuando el sistema
+        // cierro el PiP sin llamar onPictureInPictureModeChanged(false) o el
+        // player fue liberado mientras el flag quedo true..
+
+        if (!isInPictureInPictureMode) {
+            com.example.util.AppFloatingPlayerManager.isInNativePip = false
+        }
         lifecycleScope.launch {
             try {
                 SessionManager.validateAndRefreshSessionIfNeeded()
@@ -488,7 +512,7 @@ class MainActivity : androidx.fragment.app.FragmentActivity() {
                 var isPlayerFullVisible by remember { mutableStateOf(false) }
                 val playerState by playerViewModel.playerState.collectAsState()
 
-                if (com.example.util.AppFloatingPlayerManager.isInNativePip) {
+                if (isInPictureInPictureMode && com.example.util.AppFloatingPlayerManager.isInNativePip) {
                     val player = com.example.util.AppFloatingPlayerManager.exoPlayer
                     Box(
                         modifier = Modifier.fillMaxSize().background(Color.Black),
