@@ -66,6 +66,8 @@ internal object VoiceRoomPalette {
     val DeepBlue       = Color(0xFF00466A)
     val SurfaceBlue    = Color(0xFF075D84)
     val DarkSurface    = Color(0xFF003E5E)
+    val BgTop          = Color(0xFF001B33)
+    val BgBottom       = Color(0xFF000D18)
     val ActiveCyan     = Color(0xFF4FE7EA)
     val ActiveCyanSoft = Color(0x4D4FE7EA)
     val Pink           = Color(0xFFFF5C7A)
@@ -95,7 +97,7 @@ fun VoiceRoomBackground(
             .fillMaxSize()
             .background(
                 Brush.verticalGradient(
-                    colors = listOf(VoiceRoomPalette.MainBlue, VoiceRoomPalette.DeepBlue)
+                    colors = listOf(VoiceRoomPalette.BgTop, VoiceRoomPalette.BgBottom)
                 )
             )
     ) {
@@ -490,7 +492,7 @@ private fun VoiceRoomSeatCircle(
     val isMuted = seat?.isMuted == true
 
     val circleBg = if (occupied) VoiceRoomPalette.DarkSurface.copy(alpha = 0.5f) else VoiceRoomPalette.SurfaceBlue.copy(alpha = 0.4f)
-    val displaySize = if (isHost) size * 1.05f else size
+    val displaySize = size
 
     Box(
         modifier = Modifier

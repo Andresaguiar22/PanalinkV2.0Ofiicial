@@ -125,7 +125,7 @@ fun VoiceRoomScreenV2(
                 ) {
                     VoiceRoomStageSeat(
                         seat = hostSeat,
-                        size = 72.dp,
+                        size = 56.dp,
                         isHost = true,
                         isMine = (hostSeat?.userId == state.myUserId),
                         showAdminAction = (hostSeat?.let { adminCanModerate(it) } == true),
@@ -143,7 +143,7 @@ fun VoiceRoomScreenV2(
                     horizontalArrangement = Arrangement.Center,
                     verticalAlignment = Alignment.Top
                 ) {
-                    Row(horizontalArrangement = Arrangement.spacedBy(6.dp)) {
+                    Row(horizontalArrangement = Arrangement.spacedBy(16.dp)) {
                         val s1 = state.seats.getOrNull(1)
                         val s2 = state.seats.getOrNull(2)
                         VoiceRoomStageSeat(
@@ -159,8 +159,8 @@ fun VoiceRoomScreenV2(
                             onAdmin = { s2?.userId?.let { moderationTarget = it } }
                         )
                     }
-                    Spacer(modifier = Modifier.width(24.dp))
-                    Row(horizontalArrangement = Arrangement.spacedBy(6.dp)) {
+                    Spacer(modifier = Modifier.width(40.dp))
+                    Row(horizontalArrangement = Arrangement.spacedBy(16.dp)) {
                         val s5 = state.seats.getOrNull(5)
                         val s6 = state.seats.getOrNull(6)
                         VoiceRoomStageSeat(
@@ -186,7 +186,7 @@ fun VoiceRoomScreenV2(
                     horizontalArrangement = Arrangement.Center,
                     verticalAlignment = Alignment.Top
                 ) {
-                    Row(horizontalArrangement = Arrangement.spacedBy(6.dp)) {
+                    Row(horizontalArrangement = Arrangement.spacedBy(16.dp)) {
                         val s3 = state.seats.getOrNull(3)
                         val s4 = state.seats.getOrNull(4)
                         VoiceRoomStageSeat(
@@ -202,8 +202,8 @@ fun VoiceRoomScreenV2(
                             onAdmin = { s4?.userId?.let { moderationTarget = it } }
                         )
                     }
-                    Spacer(modifier = Modifier.width(24.dp))
-                    Row(horizontalArrangement = Arrangement.spacedBy(6.dp)) {
+                    Spacer(modifier = Modifier.width(40.dp))
+                    Row(horizontalArrangement = Arrangement.spacedBy(16.dp)) {
                         val s7 = state.seats.getOrNull(7)
                         val s8 = state.seats.getOrNull(8)
                         VoiceRoomStageSeat(
