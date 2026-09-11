@@ -89,9 +89,9 @@ VERSION_NAME=vX.Y.Z VERSION_CODE=N ./gradlew :app:assembleRelease   # release
 ### Canal OTA (Andresaguiar22/panalink-ota)
 * Repo público de distribución: `https://github.com/Andresaguiar22/panalink-ota` (rama `main`).
 * `manifest.json` en `main` es la fuente de verdad para la app; vivir también se adjunta como asset del release.
-* Convención de versiones: `versionCode` incrementa de 1 en 1;; `versionName` es la tag (`v1.3.x`). Actual: **v1.3.34 / code  ​61** (publicada 2026-09-11).
-* `minimumSupportedVersionCode` = versionCode de la versión anterior publicada ( 60 para v1.3.34);`mandatory` casi siempre `false`.
-* Últimas publicadas(histórico): v1.3.33/code  ​60 (2026-09-11), v1.3.32/code 59 (2026-09-10), v1.3.31/code  ​58 (2026-09-10)y v1.3.30/code  ​⁵⁷ (2026-09-10.
+* Convención de versiones: `versionCode` incrementa de 1 en 1;; `versionName` es la tag (`v1.3.x`). Actual: **v1.3.35 / code  ​62** (publicada 2026-09-11).
+* `minimumSupportedVersionCode` = versionCode de la versión anterior publicada ( 61 para v1.3.35);`mandatory` casi siempre `false`.
+* Últimas publicadas(histórico): v1.3.34/code 61 (2026-09-11), v1.3.33/code  ​60 (2026-09-11), v1.3.32/code 59 (2026-09-10), v1.3.31/code  ​58 (2026-09-10)y v1.3.30/code  ​⁵⁷ (2026-09-10.
 * **Política de build universal (desde v1.3.33):** `app/build.gradle.kts` incluye `packaging { jniLibs { useLegacyPackaging = true } } }` con las 4 ABIs→ el APK sale con `extractNativeLibs=true` (fix de instalación en XOS/Transsion - Infinix/Tecno/itel y ROMs estrictas Android   7-11+) y `Panalink-<versionName>.apk` de ~78 MB. Adjuntar también `manifest.json` al release.
 * `sha256` del APK es obligatorio en el manifest (64 hex).
 
@@ -193,6 +193,20 @@ VERSION_NAME=v1.3.Z VERSION_CODE=N ./gradlew --no-daemon :app:assembleRelease
 * **RLS vCDN NO tocarlo** (correctamente restringido..
 
 ---
+### 📹 Reels (TikTokVideoFeedScreen) — pipeline y fixes (sesión 2026-09-11)
+* **Pipeline de reproducción**: `TikTokVideoFeedScreen` usa `ReelDualPlayerManager` (slot A + slot B, un player por slot, `exoPlayerRef` apunta al activo reciclado) + `CdnManager.resolveMediaUrlFresh` (URL firmada VCDN). El preload solo del **siguiente** reel (`isPreload = page <= pagerState.currentPage + 1`): el slot B queda prepped con URL ya resuelta + primer frame listo → swipe instantáneo tipo TikTok. **NO precargar el anterior** (`abs(page-current)<=1`) — compite el slot y deja a veces al siguiente sin player listo.
+ * **Fix 1 (commit `ee1fdbf`, main, v1.3.35):** se eliminó el **refresh preventivo de URL firmada VCDN** que corría cada ~50s (`setMediaItem+prepare+seekTo` sobre el player en vuelo) — eso destruía el codec hw y causaba `CodecException 4003/4006`, black flashes y cortes a mitad de reproducción. La defensa contra expiración del token (~60s real) es **solo reactiva**: al recibir `httpStatus 401` mid-stream, `onPlayerError` fuerza `resolveMediaUrlFresh` (+`refreshActiveUrl` en el manager, preservando posición/playWhenReady, limitado a 2 intentos). `refreshActiveUrl` **ya trae su propio `try/catch IllegalStateException`** (devuelve `false` si el player fue liberado/reemplazado — no crashea), así que **no necesita** la guarda `exoPlayerRef==player` que sí se usa en el retry genérico.
+ * **Fix 2 (hardening retry):** el retry genérico **debe** ir guardado con `exoPlayerRef == player` (si el codec-recovery reemplazó el player entretanto, `prepare()` sobre el stale arroja `IllegalStateException 1004` → bucle de "error definitivo" falso): envolver `player.prepare()` en try/catch preservando `currentPosition`/`playWhenReady`. El camino `handleCodecError` (codec init errors) **no debe** caer al retry 401/network: se marca `isRetrying || isRecovering` y se delega al dual manager (que recrea player con renderer degrades y escalamiento descentralizado.
+ * **El 401-recovery NO necesita guarda anti-stale**: `refreshActiveUrl` valida internamente (slot/player null → false), y el `finally` solo marca `hasError=true` si no se recuperó — **sin crash ni bucle**.
+ * **Diagnóstico**: `diagnostics.record(DiagnosticCategory.NETWORK/ERRORS...)` con `correlationId=state.id.take(36)` es el rastro estándar para depurar reintentos y 401s en este screen.
+
+
+### 🧹 Lecciones de edición/tooling (sesión 2026-09-11) — aplicar SIEMPRE
+* **`file_editor` corrompe strings largos con backticks** (ej. `` `versionCode` ``): el `old_str` jamás matchea y da error "did not appear verbatim". Cuando un `str_replace` falla así, **no insistir**: dumpear la línea con `od -c` o `sed -n 'Np'`, detectar bytes invisibles (U+200B = `342 200 213` en octal/`\xE2\x80\x8B`) y reemplazar con `sed -i` usando **substrings contiguas** (ej. cambiar `61\*\*`→`62\*\*` y `v1.3.34 `→`v1.3.35 ` por separado) en vez de la cadena larga completa.
+ * **`sed` no matchea U+200B con `[[:space:]]`** — el zero-width space NO es espacio POSIX; hay que matchear el byte literal (`\xE2\x80\x8B` en GNU sed) o anclarse a substrings contiguas sin el byte..
+ * **`awk 'NR>=a && NR<=b {printf ...}'` es fiable** para inspeccionar rangos (muestra el contenido tal cual, sin corromper nada). **`sed -n 'a,bp'` también** OK para lectura. **`cat -A`** para ver finales de línea; **`od -c`** para hexdump exacto.
+ * **Commit messages largos**: usar `git commit -F -` con el mensaje por stdin (heredoc NO — canal sunicode; `printf '%s\n'`) o `file_editor`+`git commit -F <archivo>`. **NO** `git commit -m` con mensaje largo en el terminal — el canal corrompe el texto.
+ * **Construir JSON de payload para APIs**: usar `jq -n --arg/--rawfile` con archivos (base64 a `.b64` + `--rawfile`) y `curl --data-binary @archivo` — **jamás** `jq -n` inline ni heredoc ni concatenaciones en terminal (el canal corrompe). Verificar siempre `jq empty <archivo>` antes de POST/PUT/PATCH..
 
 ## 🧼 Regla Anti-Corrupción de Bytes Invisibles (OBLIGATORIA)
 
