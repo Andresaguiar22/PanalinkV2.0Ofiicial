@@ -453,7 +453,7 @@ fun TikTokVideoFeedScreen(
                             stateWithUser = stateWithUser,
                             viewModel = viewModel,
                             isActivePage = isActive && (pagerState.currentPage == page),
-                            isPreload = kotlin.math.abs(pagerState.currentPage - page) <= 1,
+                            isPreload = (page > pagerState.currentPage && page <= pagerState.currentPage + 1),
                               dualManager = dualManager,
                             isMuted = isMuted,
                             onMuteToggle = { isMuted = !isMuted },
@@ -1396,7 +1396,7 @@ fun TikTokPageItem(
                     return  // Don't fall through to generic retry — URL refresh is in flight
                 }
                 // OFFLINE FIX: solo reintentar con red disponible y no si ya está en curso un retry
-                if (!isRetrying && retryCount < 2 && com.example.util.NetworkMonitor.isOnline.value) {
+                if (!isRetrying && retryCount < 2 && com.example.util.NetworkMonitor.isOnline.value && exoPlayerRef == player) {
                     isRetrying = true
                     retryCount += 1
                     diagnostics.record(
@@ -1410,15 +1410,33 @@ fun TikTokPageItem(
                     // forzamos prepare() explícitamente aquí.
                     val currentPos = player.currentPosition
                     val wasPlaying = player.playWhenReady
-                    player.prepare()
-                    player.seekTo(currentPos)
-                    player.playWhenReady = isActivePage && !isPaused && wasPlaying
-                    diagnostics.record(
-                        DiagnosticCategory.EXOPLAYER,
-                        "Retry completado (prepare)",
-                        correlationId = state.id.take(36),
-                        details = "pos=$currentPos, wasPlaying=$wasPlaying"
-                    )
+                    val prepareSkipped = try {
+                        player.prepare()
+                        player.seekTo(currentPos)
+                        player.playWhenReady = isActivePage && !isPaused && wasPlaying
+                        false
+                    } catch (e: IllegalStateException) {
+                        android.util.Log.w("TikTokVideoFeedScreen", "Retry skipped: player stale/released", e)
+                        true
+                    }
+                    if (prepareSkipped) {
+                        isRetrying = false
+                        hasError = true
+                        diagnostics.record(
+                            DiagnosticCategory.ERRORS,
+                            "Error definitivo después de reintentos",
+                            severity = DiagnosticSeverity.ERROR,
+                            correlationId = state.id.take(36),
+                            details = "retryCount=$retryCount, stalePlayer=true"
+                        )
+                    } else {
+                        diagnostics.record(
+                            DiagnosticCategory.EXOPLAYER,
+                            "Retry completado (prepare)",
+                            correlationId = state.id.take(36),
+                            details = "pos=$currentPos, wasPlaying=$wasPlaying"
+                        )
+                    }
                 } else {
                     hasError = true
                     isRetrying = false
@@ -1440,62 +1458,13 @@ fun TikTokPageItem(
         }
     }
 
-    // Issue #15: Preventive VCDN signed URL refresh.
-    // The BFF reports a long expiry, but the actual CDN token expires ~60s post-start.
-    // For reels longer than ~60s, proactively force a fresh resolution at ~50s to
-    // beat the CDN expiry. Only applies to VCDN URLs (B2 re-signs at DataSource layer,
-    // CDN/Supabase URLs don't expire mid-stream). resolvedUrl is intentionally NOT
-    // a key here to avoid an infinite re-launch loop when the URL is updated.
-    LaunchedEffect(isActivePage, state.id, exoPlayerRef) {
-        if (!isActivePage) return@LaunchedEffect
-        val player = exoPlayerRef ?: return@LaunchedEffect
-        if (!com.example.data.repository.VcdnUrlResolver.isVcdnUrl(stableMediaUrl)) return@LaunchedEffect
-
-        val refreshDelayMs = 50_000L // 50s guard before ~60s CDN token expiry
-        diagnostics.record(
-            DiagnosticCategory.NETWORK,
-            "Signed URL refresh started",
-            correlationId = state.id.take(36),
-            details = "preventive=true, delayMs=$refreshDelayMs"
-        )
-        kotlinx.coroutines.delay(refreshDelayMs)
-        if (!isActivePage || exoPlayerRef == null) return@LaunchedEffect
-
-        val refreshStart = System.currentTimeMillis()
-        val currentPos = player.currentPosition
-        try {
-            val freshUrl = com.example.data.repository.CdnManager.resolveMediaUrlFresh(stableMediaUrl ?: "")
-            if (!freshUrl.isNullOrBlank() && freshUrl.startsWith("http") && freshUrl != resolvedUrl) {
-                val updated = dualManager.refreshActiveUrl(state.id, freshUrl)
-                if (updated) {
-                    resolvedUrl = freshUrl
-                    diagnostics.record(
-                        DiagnosticCategory.NETWORK,
-                        "Signed URL refresh completed",
-                        correlationId = state.id.take(36),
-                        durationMs = System.currentTimeMillis() - refreshStart,
-                        details = "position=$currentPos"
-                    )
-                } else {
-                    diagnostics.record(
-                        DiagnosticCategory.ERRORS,
-                        "Signed URL refresh failed",
-                        severity = DiagnosticSeverity.WARNING,
-                        correlationId = state.id.take(36),
-                        details = "urlNotUpdated=true"
-                    )
-                }
-            }
-        } catch (e: Exception) {
-            diagnostics.record(
-                DiagnosticCategory.ERRORS,
-                "Signed URL refresh failed",
-                severity = DiagnosticSeverity.WARNING,
-                correlationId = state.id.take(36),
-                details = "exception=${e.javaClass.simpleName}"
-            )
-        }
-    }
+    // VCDN signed-URL refresh policy (Issue #15 revisited): NO preventive refresh.
+    // The BFF mints a signed HLS streamUrl with an [expires] in the player-config. The
+    // old preventive mid-playback URL swap tore down the decoder pipeline in flight,
+    // causing CodecException 4003/4006, black flashes and stalls on hardware codecs.
+    // Now playback runs from the CDN long-lived HLS segments; ONLY when the signed token
+    // really expires mid-stream does the reactive 401 handler in onPlayerError resolve
+    // a fresh URL and swap it preserving position, recovering with minimal buffering — safe path.
 
     DisposableEffect(state.id) {
         onDispose {
