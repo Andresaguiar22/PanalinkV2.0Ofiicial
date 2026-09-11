@@ -179,6 +179,20 @@ fun PanaTVModernScreen(viewModel: PanaTVViewModel = viewModel()) {
         // Kept as state so the existing ViewModel diagnostics remain available.
     }
 
+    fun enterFullscreen() {
+        val activity = context as? Activity
+        if (activity != null) {
+            WindowCompat.setDecorFitsSystemWindows(activity.window, false)
+            val ctrl = WindowInsetsControllerCompat(activity.window, activity.window.decorView)
+            ctrl.systemBarsBehavior = WindowInsetsControllerCompat.BEHAVIOR_SHOW_TRANSIENT_BARS_BY_SWIPE
+            ctrl.hide(WindowInsetsCompat.Type.systemBars())
+            if (activity.requestedOrientation != ActivityInfo.SCREEN_ORIENTATION_LANDSCAPE) {
+
+                activity.requestedOrientation = ActivityInfo.SCREEN_ORIENTATION_LANDSCAPE
+            }
+        }
+    }
+
     fun exitFullscreen() {
         isFullscreen = false
         val activity = context as? Activity
@@ -322,8 +336,8 @@ fun PanaTVModernScreen(viewModel: PanaTVViewModel = viewModel()) {
                         modifier = Modifier.padding(horizontal = 6.dp).weight(1f)
                     )
                     IconButton(onClick = {
+                        enterFullscreen()
                         isFullscreen = true
-                        (context as? Activity)?.requestedOrientation = ActivityInfo.SCREEN_ORIENTATION_LANDSCAPE
                     }, modifier = Modifier.size(38.dp)) {
                         Icon(Icons.Default.Fullscreen, "Pantalla completa", tint = Color.White, modifier = Modifier.size(20.dp))
                     }
@@ -456,14 +470,7 @@ fun PanaTVModernScreen(viewModel: PanaTVViewModel = viewModel()) {
     }
 
     if (isFullscreen) {
-        exitFullscreen()
-        val activity = context as? Activity
-        if (activity != null) {
-            WindowCompat.setDecorFitsSystemWindows(activity.window, true)
-            val ctrl = WindowInsetsControllerCompat(activity.window, activity.window.decorView)
-            ctrl.systemBarsBehavior = WindowInsetsControllerCompat.BEHAVIOR_SHOW_TRANSIENT_BARS_BY_SWIPE
-            ctrl.hide(WindowInsetsCompat.Type.systemBars())
-        }
+        enterFullscreen()
         Dialog(
             onDismissRequest = {
                 exitFullscreen()

@@ -362,6 +362,7 @@ class MainActivity : androidx.fragment.app.FragmentActivity() {
 
                 var isSplashActive by remember { mutableStateOf(true) }
                 var lastUserId by remember { mutableStateOf<String?>(null) }
+                var didInitialAuthSync by remember { mutableStateOf(false) }
 
                 LaunchedEffect(Unit) {
                     delay(2000)
@@ -381,16 +382,18 @@ class MainActivity : androidx.fragment.app.FragmentActivity() {
                         val userId = profile.id
                         if (lastUserId != userId) {
                             lastUserId = userId
-                            if (!isSplashActive) {
-                                isSplashActive = true
-                                chatsViewModel.loadChats(forceRefresh = true)
-                                statesViewModel.loadActiveStates(showLoading = false)
-                                delay(1500)
-                                isSplashActive = false
-                            }
+                        }
+                        if (!didInitialAuthSync) {
+                            didInitialAuthSync = true
+                            // Sync inicial silenciosa en background (sin splash adicional):
+                            // el splash solo exists para el cold-start. Al relanzar el proceso,
+                            // la carga inicial ya no bloquea la entrada a la interfaz.
+
+                            chatsViewModel.loadChats(forceRefresh = true)
+                            statesViewModel.loadActiveStates(showLoading = false)
                         }
                     } else {
-                        lastUserId = null
+                        // No resetear lastUserId en estados transitorios: previene re-splash
                     }
                 }
 
