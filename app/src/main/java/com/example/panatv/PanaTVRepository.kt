@@ -35,8 +35,20 @@ data class IptvBlocklist(
 
 data class IptvLogo(
     @Json(name = "channel") val channel: String? = null,
-    @Json(name = "url") val url: String? = null
+    @Json(name = "url") val url: String? = null,
+    @Json(name = "in_use") val in_use: Boolean? = null,
+    @Json(name = "format") val format: String? = null,
+    @Json(name = "width") val width: Int? = null
 )
+
+/** Preferencia de formatos de logo: raster nítido y estándar antes que SVG. */
+private fun formatRank(format: String?): Int = when ((format ?: "").trim().uppercase()) {
+    "PNG" -> 0
+    "WEBP" -> 1
+    "JPG", "JPEG" -> 2
+    "SVG" -> 3
+    else ->  4
+}
 
 interface PanaTVApiService {
     @GET("api/channels.json")
@@ -115,7 +127,26 @@ class PanaTVRepository(private val context: Context) {
                 
                 val logosResponse = apiService.getLogos()
                 val logosMap = if (logosResponse.isSuccessful) {
-                    logosResponse.body()?.associate { (it.channel ?: "") to (it.url ?: "") } ?: emptyMap()
+                    // iptv-org publica varias entradas por canal (PNG/SVG, tamaños). El
+                    // associate() se quedaría con la ÚLTIMA, que suele ser SVG. Preferimos
+                    // PNG/SVG manejable por Coil (ya hay SvgDecoder) y raster ligero.
+                    // Un PNG
+                    // suele verse mejor en la tarjeta que un SVG enorme sin cache.
+                    logosResponse.body()?.let { logos ->
+                        val byChannel = logos.groupBy { it.channel ?: "" }
+                        byChannel.mapValues { (_, entries) ->
+                            entries.sortedWith(
+                                compareBy(
+                                    // primero los que están en uso
+                                    { if (it.in_use == true) 0 else 1 },
+                                    // después, un orden de formato preferido: PNG > WEBP > JPG > SVG
+                                    { formatRank(it.format) },
+                                    // y el más grande (más resolución) dentro del mismo formato
+                                    { -(it.width ?: 0) }
+                                )
+                            ).firstOrNull()?.url ?: ""
+                        }
+                    } ?: emptyMap()
                 } else {
                     onDebug("logos.json: HTTP ${logosResponse.code()}")
                     emptyMap()

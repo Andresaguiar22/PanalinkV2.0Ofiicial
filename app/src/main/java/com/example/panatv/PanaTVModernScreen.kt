@@ -44,6 +44,9 @@ import androidx.compose.ui.unit.sp
 import androidx.compose.ui.viewinterop.AndroidView
 import androidx.compose.ui.window.Dialog
 import androidx.compose.ui.window.DialogProperties
+import androidx.core.view.WindowCompat
+import androidx.core.view.WindowInsetsCompat
+import androidx.core.view.WindowInsetsControllerCompat
 import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.LifecycleEventObserver
 import androidx.lifecycle.viewmodel.compose.viewModel
@@ -126,6 +129,13 @@ fun PanaTVModernScreen(viewModel: PanaTVViewModel = viewModel()) {
             override fun onIsPlayingChanged(value: Boolean) {
                 isPlaying = value
             }
+
+            override fun onVideoSizeChanged(videoSize: androidx.media3.common.VideoSize) {
+                if (videoSize.width > 0 && videoSize.height > 0 && !hasRenderedFrame) {
+                    hasRenderedFrame = true
+                    playerError = null
+                }
+            }
         }
         player?.addListener(listener)
         player?.volume = if (isMuted) 0f else 1f
@@ -169,10 +179,18 @@ fun PanaTVModernScreen(viewModel: PanaTVViewModel = viewModel()) {
         // Kept as state so the existing ViewModel diagnostics remain available.
     }
 
-    BackHandler(enabled = isFullscreen) {
+    fun exitFullscreen() {
         isFullscreen = false
-        (context as? Activity)?.requestedOrientation = ActivityInfo.SCREEN_ORIENTATION_UNSPECIFIED
+        val activity = context as? Activity
+        activity?.requestedOrientation = ActivityInfo.SCREEN_ORIENTATION_UNSPECIFIED
+        if (activity != null) {
+            WindowInsetsControllerCompat(activity.window, activity.window.decorView).show(WindowInsetsCompat.Type.systemBars())
+        }
     }
+    BackHandler(enabled = isFullscreen) {
+        exitFullscreen()
+    }
+
 
     fun selectChannel(channel: PanaTVChannelEntity) {
         if (currentChannel?.id != channel.id) {
@@ -208,7 +226,9 @@ fun PanaTVModernScreen(viewModel: PanaTVViewModel = viewModel()) {
                         PlayerView(ctx).apply {
                             this.player = player
                             useController = false
-                            resizeMode = AspectRatioFrameLayout.RESIZE_MODE_FIT
+                            resizeMode = AspectRatioFrameLayout.RESIZE_MODE_ZOOM
+                            setShutterBackgroundColor(android.graphics.Color.TRANSPARENT)
+                            // SurfaceView es el default de media3; no tocar el setter (privado en esta version)
                             layoutParams = FrameLayout.LayoutParams(
                                 ViewGroup.LayoutParams.MATCH_PARENT,
                                 ViewGroup.LayoutParams.MATCH_PARENT
@@ -217,7 +237,7 @@ fun PanaTVModernScreen(viewModel: PanaTVViewModel = viewModel()) {
                     },
                     update = { view ->
                         view.player = player
-                        view.resizeMode = AspectRatioFrameLayout.RESIZE_MODE_FIT
+                        view.resizeMode = AspectRatioFrameLayout.RESIZE_MODE_ZOOM
                     },
                     modifier = Modifier.fillMaxSize()
                 )
@@ -436,26 +456,52 @@ fun PanaTVModernScreen(viewModel: PanaTVViewModel = viewModel()) {
     }
 
     if (isFullscreen) {
+        exitFullscreen()
+        val activity = context as? Activity
+        if (activity != null) {
+            WindowCompat.setDecorFitsSystemWindows(activity.window, true)
+            val ctrl = WindowInsetsControllerCompat(activity.window, activity.window.decorView)
+            ctrl.systemBarsBehavior = WindowInsetsControllerCompat.BEHAVIOR_SHOW_TRANSIENT_BARS_BY_SWIPE
+            ctrl.hide(WindowInsetsCompat.Type.systemBars())
+        }
         Dialog(
             onDismissRequest = {
-                isFullscreen = false
-                (context as? Activity)?.requestedOrientation = ActivityInfo.SCREEN_ORIENTATION_UNSPECIFIED
+                exitFullscreen()
             },
             properties = DialogProperties(usePlatformDefaultWidth = false, decorFitsSystemWindows = false)
         ) {
             Box(Modifier.fillMaxSize().background(Color.Black)) {
-                playerContent(Modifier.fillMaxSize())
-                Row(
-                    modifier = Modifier.align(Alignment.TopStart).fillMaxWidth().background(Color.Black.copy(alpha = 0.45f)).padding(8.dp),
-                    verticalAlignment = Alignment.CenterVertically
-                ) {
-                    IconButton(onClick = {
-                        isFullscreen = false
-                        (context as? Activity)?.requestedOrientation = ActivityInfo.SCREEN_ORIENTATION_UNSPECIFIED
-                    }) {
+                Column(Modifier.fillMaxSize()) {
+                    // Player principal
+                    Box(Modifier.fillMaxWidth().weight(1f)) {
+                        playerContent(Modifier.fillMaxSize())
+                    }
+                    // Mini catalogo de canales debajo, sin salir del fullscreen
+                    LazyRow(
+                        contentPadding = PaddingValues(horizontal =  10.dp, vertical =  8.dp),
+                        horizontalArrangement = Arrangement.spacedBy(10.dp),
+                        modifier = Modifier.fillMaxWidth().background(Color.Black.copy(alpha =  0.85f))
+                    ) {
+                        items(channels, key = { it.id }) { channel ->
+                            PanaTvChannelCard(
+                                channel = channel,
+                                selected = currentChannel?.id == channel.id,
+                                favorite = favorites.contains(channel.id),
+                                onFavorite = { viewModel.toggleFavorite(channel.id) },
+                                onClick = { selectChannel(channel) }
+                            )
+                        }
+                    }
+                }
+                Row(Modifier.fillMaxWidth().background(Color.Black.copy(alpha =  0.45f)).padding(8.dp), verticalAlignment = Alignment.CenterVertically) {
+                    IconButton(onClick = { exitFullscreen() }) {
                         Icon(Icons.Default.ArrowBack, "Volver", tint = Color.White)
                     }
-                    Text(currentChannel?.name.orEmpty(), color = Color.White, fontSize = 15.sp, fontWeight = FontWeight.Bold, maxLines = 1, overflow = TextOverflow.Ellipsis, modifier = Modifier.weight(1f))
+                    Text(currentChannel?.name.orEmpty(), color = Color.White, fontSize =  15.sp, fontWeight = FontWeight.Bold, maxLines =  1, overflow = TextOverflow.Ellipsis, modifier = Modifier.weight(1f))
+                    Spacer(Modifier.width(6.dp))
+                    IconButton(onClick = { player?.let { if (it.isPlaying) it.pause() else it.play() } }, modifier = Modifier.size(36.dp)) {
+                        Icon(if (isPlaying) Icons.Default.Pause else Icons.Default.PlayArrow, "Reproducir/Pausar", tint = Color.White, modifier = Modifier.size(22.dp))
+                    }
                 }
             }
         }

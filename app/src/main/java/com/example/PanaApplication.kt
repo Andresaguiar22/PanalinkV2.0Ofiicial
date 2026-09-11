@@ -8,6 +8,7 @@ import androidx.work.Configuration
 import coil.ImageLoader
 import coil.ImageLoaderFactory
 import coil.decode.GifDecoder
+import coil.decode.SvgDecoder
 import coil.decode.VideoFrameDecoder
 import com.example.data.supabase.SessionManager
 import com.example.data.supabase.SupabaseClient
@@ -50,6 +51,7 @@ class PanaApplication : Application(), ImageLoaderFactory, DefaultLifecycleObser
             }
             .components {
                 add(GifDecoder.Factory())
+                add(SvgDecoder.Factory())
                 add(VideoFrameDecoder.Factory())
                 add(coil.intercept.Interceptor { chain ->
                     val request = chain.request
