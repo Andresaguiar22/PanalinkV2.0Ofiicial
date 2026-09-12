@@ -528,11 +528,10 @@ fun VoiceRoomHostSeat(
         Box {
             VoiceRoomRedesignedSeatCircle(
                 seat = seat,
-                size = 64.dp,
+                size = 54.dp,
                 avatarUrl = avatarUrl,
                 displayName = displayName,
                 isHost = true,
-                showAdminCog = isAdmin && seat?.isOccupied == true && !isMine,
                 onClick = onClick,
                 onAdmin = onAdmin
             )
@@ -620,7 +619,7 @@ fun VoiceRoomGuestSeatGrid(
             memberById = memberById,
             myUserId = myUserId,
             isAdmin = isAdmin,
-            size = 64.dp,
+            size = 54.dp,
             onSeatClicked = onSeatClicked,
             onModeration = onModeration,
             onOpenProfile = onOpenProfile
@@ -636,7 +635,7 @@ fun VoiceRoomGuestSeatGrid(
             memberById = memberById,
             myUserId = myUserId,
             isAdmin = isAdmin,
-            size = 64.dp,
+            size = 54.dp,
             onSeatClicked = onSeatClicked,
             onModeration = onModeration,
             onOpenProfile = onOpenProfile
