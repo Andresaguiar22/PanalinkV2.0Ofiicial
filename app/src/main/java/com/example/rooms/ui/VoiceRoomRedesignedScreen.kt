@@ -81,6 +81,17 @@ private fun levelFromRole(role: String): Int = when (role) {
 private fun VoiceRoomSeat?.isMuteBadgeVisibleInternal(): Boolean =
     this != null && this.isOccupied && this.isMuted
 
+/**
+ * Parsea el contenido de un mensaje en busca del formato [sticker:RUTA].
+ * Si coincide, devuelve la ruta extraída; si no, devuelve null.
+ */
+private fun parseStickerContent(content: String): String? {
+    if (content.length < 9) return null
+    if (!content.startsWith("[sticker:") || !content.endsWith("]")) return null
+    val path = content.substring(9, content.length - 1)
+    return if (path.isNotEmpty()) path else null
+}
+
 // === MAIN SCREEN ===
 
 @Composable
@@ -517,7 +528,7 @@ fun VoiceRoomHostSeat(
         Box {
             VoiceRoomRedesignedSeatCircle(
                 seat = seat,
-                size = 56.dp,
+                size = 64.dp,
                 avatarUrl = avatarUrl,
                 displayName = displayName,
                 isHost = true,
@@ -609,7 +620,7 @@ fun VoiceRoomGuestSeatGrid(
             memberById = memberById,
             myUserId = myUserId,
             isAdmin = isAdmin,
-            size = 48.dp,
+            size = 64.dp,
             onSeatClicked = onSeatClicked,
             onModeration = onModeration,
             onOpenProfile = onOpenProfile
@@ -625,7 +636,7 @@ fun VoiceRoomGuestSeatGrid(
             memberById = memberById,
             myUserId = myUserId,
             isAdmin = isAdmin,
-            size = 48.dp,
+            size = 64.dp,
             onSeatClicked = onSeatClicked,
             onModeration = onModeration,
             onOpenProfile = onOpenProfile
@@ -779,15 +790,31 @@ fun VoiceRoomRedesignedSeatCircle(
         VoiceRoomPalette.SurfaceBlue.copy(alpha = 0.4f)
     }
 
-    val borderColor = if (speaking) VoiceRoomPalette.ActiveCyan else Color(0x33FFFFFF)
-    val borderWidth = if (speaking) 3.dp else 1.5.dp
+    // Borde animado que pulsa visiblemente cuando el usuario habla
+    val borderWidthAnim = if (speaking && !isMuted) {
+        val borderWidthAnimFloat = rememberInfiniteTransition(label = "speakingBorder")
+            .animateFloat(
+                initialValue = 3f,
+                targetValue = 5f,
+                animationSpec = infiniteRepeatable(
+                    animation = tween(durationMillis = 600, easing = LinearOutSlowInEasing),
+                    repeatMode = RepeatMode.Reverse
+                ),
+                label = "speakingBorderWidth"
+            )
+        borderWidthAnimFloat.value.dp
+    } else {
+        1.5.dp
+    }
+
+    val borderColor = if (speaking && !isMuted) VoiceRoomPalette.ActiveCyan else Color(0x33FFFFFF)
 
     Box(
         modifier = Modifier
             .size(size)
             .clip(CircleShape)
             .background(circleBg)
-            .border(borderWidth, borderColor, CircleShape)
+            .border(borderWidthAnim, borderColor, CircleShape)
             .shadow(if (occupied) 10.dp else 3.dp, CircleShape, clip = false)
             .clickable(onClick = onClick),
         contentAlignment = Alignment.Center
@@ -1030,15 +1057,30 @@ fun VoiceRoomRedesignChatMessage(
                     overflow = TextOverflow.Ellipsis
                 )
             }
-            Text(
-                text = message.content,
-                color = VoiceRoomPalette.TextPrimary,
-                fontSize = 12.sp,
-                lineHeight = 15.sp,
-                modifier = Modifier
-                    .widthIn(max = 200.dp)
-                    .wrapContentHeight()
-            )
+            // Renderizado de stickers: si el contenido coincide con [sticker:PATH],
+            // renderizamos AsyncImage en lugar de Text para soportar .webp/.gif/.png
+            val stickerPath = parseStickerContent(message.content)
+            if (stickerPath != null) {
+                AsyncImage(
+                    model = stickerPath,
+                    contentDescription = "Sticker",
+                    modifier = Modifier
+                        .size(120.dp)
+                        .clip(RoundedCornerShape(16.dp)),
+                    contentScale = ContentScale.Fit,
+                    placeholder = null
+                )
+            } else {
+                Text(
+                    text = message.content,
+                    color = VoiceRoomPalette.TextPrimary,
+                    fontSize = 12.sp,
+                    lineHeight = 15.sp,
+                    modifier = Modifier
+                        .widthIn(max = 200.dp)
+                        .wrapContentHeight()
+                )
+            }
         }
     }
 }
@@ -1100,20 +1142,20 @@ fun VoiceRoomRedesignedBottomBar(
             onValueChange = { onValueChange(it.take(2000)) },
             modifier = Modifier
                 .weight(1f)
-                .heightIn(max = 40.dp)
+                .heightIn(min = 40.dp, max = 40.dp)
                 .background(Color(0xFF1E293B), shape = CircleShape)
                 .focusRequester(focusRequester),
             singleLine = true,
             placeholder = {
                 Text(
                     "Vamos a platicar",
-                    fontSize = 13.sp,
+                    fontSize = 14.sp,
                     color = VoiceRoomPalette.TextSecondary
                 )
             },
             textStyle = TextStyle(
-                fontSize = 13.sp,
-                fontWeight = FontWeight.Medium,
+                fontSize = 14.sp,
+                fontWeight = FontWeight.Normal,
                 color = VoiceRoomPalette.TextPrimary
             ),
             colors = OutlinedTextFieldDefaults.colors(
