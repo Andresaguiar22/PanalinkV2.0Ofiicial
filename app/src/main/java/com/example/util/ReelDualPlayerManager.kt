@@ -11,6 +11,7 @@ import com.example.core.media.PanaRenderersFactory
 import androidx.media3.exoplayer.trackselection.DefaultTrackSelector
 import androidx.media3.exoplayer.source.DefaultMediaSourceFactory
 import com.example.data.video.CacheDataSourceFactory
+import com.example.data.video.VideoCacheManager
 import androidx.annotation.OptIn
 import androidx.media3.common.util.UnstableApi
 
@@ -82,7 +83,11 @@ class ReelDualPlayerManager(private val context: Context) {
             player.repeatMode = Player.REPEAT_MODE_ALL
             player.volume = volume
             player.playWhenReady = false
-            player.prepare()
+            try {
+                player.prepare()
+            } catch (e: IllegalStateException) {
+                Log.w(TAG, "Player prepare failed (stale/released) for slot $slot id=$id", e)
+            }
             slotUrls[slot] = url
             if (slot == Slot.A) slotAAssignedId = id else slotBAssignedId = id
         } else {
@@ -107,12 +112,16 @@ class ReelDualPlayerManager(private val context: Context) {
         if (pendingUrl != null) {
             val savedPosition = player.currentPosition
             val savedPlayWhenReady = player.playWhenReady
-            player.setMediaItem(MediaItem.fromUri(pendingUrl))
-            player.prepare()
-            player.seekTo(savedPosition)
-            player.playWhenReady = savedPlayWhenReady
-            slotUrls[slot] = pendingUrl
-            Log.d(TAG, "Applied deferred URL update for slot $slot") // redacted: signed HLS URL
+            try {
+                player.setMediaItem(MediaItem.fromUri(pendingUrl))
+                player.prepare()
+                player.seekTo(savedPosition)
+                player.playWhenReady = savedPlayWhenReady
+                slotUrls[slot] = pendingUrl
+                Log.d(TAG, "Applied deferred URL update for slot $slot") // redacted: signed HLS URL
+            } catch (e: IllegalStateException) {
+                Log.w(TAG, "Player stale during deferred URL update for slot $slot", e)
+            }
         }
         player.playWhenReady = false
         activeSlot = null
@@ -207,7 +216,11 @@ class ReelDualPlayerManager(private val context: Context) {
         newPlayer.repeatMode = Player.REPEAT_MODE_ALL
         newPlayer.volume = volume
         newPlayer.playWhenReady = false
-        newPlayer.prepare()
+        try {
+            newPlayer.prepare()
+        } catch (e: IllegalStateException) {
+            Log.w(TAG, "Fresh player prepare failed in recoverFromPlaybackError for slot $slot", e)
+        }
         if (savedPosition > 0L) {
             newPlayer.seekTo(savedPosition)
         }
@@ -270,6 +283,16 @@ class ReelDualPlayerManager(private val context: Context) {
 
         // Clear any deferred update — we're applying a fresh URL now
         pendingUrlUpdates.remove(slot)
+
+        // FIX (Acción 1 - VCDN 401 recovery): The CacheDataSourceFactory uses a
+        // path-only cache key (stableCacheKeyFactory), so different signed URLs
+        // with the same path share the same cache entry. If we swap the MediaItem
+        // URI without invalidating the old cache entry, ExoPlayer serves stale
+        // cached data (manifest + segments from the expired token) and the 401
+        // persists. Invalidate the old URL's cache entry before the swap.
+        if (currentUrl != null) {
+            VideoCacheManager.removeVideoCache(currentUrl)
+        }
 
         val player = playerFor(slot) ?: return false
         val savedPosition = player.currentPosition
@@ -339,11 +362,15 @@ class ReelDualPlayerManager(private val context: Context) {
                 } else {
                     val savedPosition = player.currentPosition
                     val savedPlayWhenReady = player.playWhenReady
-                    player.setMediaItem(MediaItem.fromUri(url))
-                    player.prepare()
-                    player.seekTo(savedPosition)
-                    player.playWhenReady = savedPlayWhenReady
-                    slotUrls[existing] = url
+                    try {
+                        player.setMediaItem(MediaItem.fromUri(url))
+                        player.prepare()
+                        player.seekTo(savedPosition)
+                        player.playWhenReady = savedPlayWhenReady
+                        slotUrls[existing] = url
+                    } catch (e: IllegalStateException) {
+                        Log.w(TAG, "Player stale during URL update in acquireOrReuse for slot $existing", e)
+                    }
                 }
             }
             if (active) activate(existing, volume)
@@ -395,12 +422,12 @@ class ReelDualPlayerManager(private val context: Context) {
     private fun build(preferSoftware: Boolean = false): ExoPlayer {
         val loadControl = androidx.media3.exoplayer.DefaultLoadControl.Builder()
             .setBufferDurationsMs(
-                12000, // minBufferMs
-                30000, // maxBufferMs
-                1500,   // bufferForPlaybackMs: arranque con ~1.5s para evitar cortes en red móvil
-                3000    // bufferForPlaybackAfterRebufferMs: reanudar con más margen tras re-buffer
+                30000, // minBufferMs: increased from 12s to 30s for slow/mobile networks
+                60000, // maxBufferMs: increased from 30s to 60s to absorb network spikes
+                2500,  // bufferForPlaybackMs: start playing with ~2.5s buffered
+                5000   // bufferForPlaybackAfterRebufferMs: resume with 5s after re-buffer
             )
-            .setBackBuffer(3000, true)
+            .setBackBuffer(5000, true)
             .setPrioritizeTimeOverSizeThresholds(true)
             .build()
         val trackSelector = DefaultTrackSelector(context, androidx.media3.exoplayer.trackselection.AdaptiveTrackSelection.Factory()).apply {

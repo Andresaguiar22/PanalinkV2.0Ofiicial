@@ -129,24 +129,42 @@ open class PostUploadWorker(
                 }
 
                 val mimeType = if (mediaRow.mimeType.isNotBlank() && mediaRow.mimeType != "application/octet-stream") {
-
-
-
                     mediaRow.mimeType
                 } else {
                     context.contentResolver.getType(uri) ?: "application/octet-stream"
                 }
                 if (mediaKind == null) mediaKind = kindForMime(mimeType)
 
+                // FIX (Acción 2 - codec 4006): Transcode videos (especially HEVC/H.265 10-bit)
+                // to standard H.264/AVC before uploading to VCDN. This prevents hardware codec
+                // failures on devices that don't fully support HEVC/10-bit decode, which causes
+                // MediaCodecVideoDecoderException and freezes the reel feed.
+                var finalUploadFile = tempFile
+                if (mimeType.startsWith("video/") && !tempFile.name.contains("_compressed_")) {
+                    try {
+                        val compressed = com.example.util.VideoCompressorHelper.compressVideo(
+                            context,
+                            uri,
+                            tempFile,
+                            { }
+                        )
+                        if (compressed.exists() && compressed.length() > 0 && compressed.absolutePath != tempFile.absolutePath) {
+                            finalUploadFile = compressed
+                        } else if (compressed.exists() && compressed.absolutePath != tempFile.absolutePath) {
+                            compressed.delete()
+                        }
+                    } catch (e: Exception) {
+                        Log.w(TAG, "Video compression failed, uploading original", e)
+                    }
+                }
 
-
-                val ext = if (tempFile.name.contains(".")) tempFile.name.substringAfterLast(".") else "bin"
+                val ext = if (finalUploadFile.name.contains(".")) finalUploadFile.name.substringAfterLast(".") else "bin"
                 val stableFileName = "post_${pendingPostId}_${mediaRow.mediaIndex}.$ext"
 
-                Log.d(TAG, "Uploading file $tempFile with mimeType $mimeType, stableFileName $stableFileName")
+                Log.d(TAG, "Uploading file $finalUploadFile with mimeType $mimeType, stableFileName $stableFileName")
 
                 val uploadResult = performUpload(
-                    file = tempFile,
+                    file = finalUploadFile,
                     mimeType = mimeType,
                     mediaKind = mediaKind,
                     userId = effectiveUserId,
@@ -181,11 +199,13 @@ open class PostUploadWorker(
                         // el archivo temporal puede limpiarse de forma segura..
 
                         tempFile.delete()
+                        if (finalUploadFile.absolutePath != tempFile.absolutePath) finalUploadFile.delete()
 
                         val completedProgress = (index + 1f) / totalItems
                         pendingPostDao.updateStatusAndProgress(pendingPostId, "uploading", completedProgress)
                     } else {
                         tempFile.delete()
+                        if (finalUploadFile.absolutePath != tempFile.absolutePath) finalUploadFile.delete()
                         mediaDao.markFailed(
                             mediaRow.id,
                             PendingPostMediaStatus.FAILED_RETRYABLE,
@@ -198,6 +218,7 @@ open class PostUploadWorker(
                     }
                 } else {
                     tempFile.delete()
+                    if (finalUploadFile.absolutePath != tempFile.absolutePath) finalUploadFile.delete()
                     val err = uploadResult.exceptionOrNull()?.message ?: "Upload failed"
                     mediaDao.markFailed(
                         mediaRow.id,

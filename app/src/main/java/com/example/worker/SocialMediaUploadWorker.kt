@@ -78,7 +78,7 @@ class SocialMediaUploadWorker(
             var finalUploadFile = file
             var intermediateTempFile: File? = null
 
-            if (uploadedUrl == null && file.exists() && entity.mimeType.startsWith("video/") && entity.uploadType != "REEL" && !file.name.contains("_compressed_")) {
+            if (uploadedUrl == null && file.exists() && entity.mimeType.startsWith("video/") && !file.name.contains("_compressed_")) {
                 setProgress(workDataOf("uploadId" to uploadId, "progress" to 15, "bytesWritten" to 0L, "totalBytes" to file.length(), "status" to "Comprimiendo video...", "uploadType" to entity.uploadType))
                 try {
                     val pendingMediaDir = File(context.filesDir, "pending_media")
