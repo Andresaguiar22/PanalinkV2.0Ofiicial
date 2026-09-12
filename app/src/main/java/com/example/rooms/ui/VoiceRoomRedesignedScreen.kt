@@ -31,11 +31,9 @@ import androidx.compose.material.icons.filled.Menu
 import androidx.compose.material.icons.filled.Mic
 import androidx.compose.material.icons.filled.MicOff
 import androidx.compose.material.icons.filled.Person
-import androidx.compose.material.icons.filled.Send
 import androidx.compose.material.icons.filled.Settings
 import androidx.compose.material.icons.filled.Share
 import androidx.compose.material.icons.filled.Star
-import androidx.compose.material.icons.filled.VolumeUp
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
@@ -45,7 +43,6 @@ import androidx.compose.ui.draw.shadow
 import androidx.compose.ui.geometry.CornerRadius
 import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.geometry.Size
-import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.layout.ContentScale
@@ -53,11 +50,8 @@ import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalView
 import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.text.font.FontWeight
-import androidx.compose.ui.text.font.FontFamily
-import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.Dp
-import androidx.compose.ui.unit.IntOffset
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.core.content.ContextCompat
@@ -246,28 +240,6 @@ fun VoiceRoomRedesignedScreen(
                         modifier = Modifier.fillMaxSize(),
                         listState = chatListState
                     )
-
-                    // Icono de altavoz azul a la izquierda
-                    IconButton(
-                        onClick = { /* altavoz - decorativo */ },
-                        modifier = Modifier
-                            .align(Alignment.CenterStart)
-                            .padding(start = 8.dp)
-                    ) {
-                        Icon(
-                            imageVector = Icons.Default.VolumeUp,
-                            contentDescription = "Altavoz",
-                            tint = VoiceRoomPalette.ActiveCyan,
-                            modifier = Modifier.size(28.dp)
-                        )
-                    }
-
-                    // Widgets del lado derecho
-                    VoiceRoomRightWidgets(
-                        modifier = Modifier
-                            .align(Alignment.TopEnd)
-                            .padding(top = 8.dp, end = 8.dp)
-                    )
                 }
             }
 
@@ -422,7 +394,7 @@ fun VoiceRoomRedesignedHeader(
                     overflow = TextOverflow.Ellipsis
                 )
                 Text(
-                    text = "ID: $roomId",
+                    text = "ID: ${roomId.take(8)}...",
                     color = VoiceRoomPalette.TextSecondary,
                     fontSize = 11.sp,
                     maxLines = 1,
@@ -552,52 +524,47 @@ fun VoiceRoomProgressRow(
     perfumeCount: String,
     modifier: Modifier = Modifier
 ) {
-    Box(modifier = modifier.fillMaxWidth()) {
-        // Iconos flotantes a la izquierda
-        Row(
-            modifier = Modifier
-                .align(Alignment.CenterStart)
-                .padding(start = 8.dp),
-            verticalAlignment = Alignment.CenterVertically,
-            horizontalArrangement = Arrangement.spacedBy(8.dp)
-        ) {
-            VoiceRoomFloatingCounterIcon(emoji = "🐰", count = rabbitCount, index = 0)
-            VoiceRoomFloatingCounterIcon(emoji = "🧴", count = perfumeCount, index = 1)
-        }
+    Row(
+        modifier = modifier
+            .fillMaxWidth()
+            .padding(horizontal = 12.dp),
+        verticalAlignment = Alignment.CenterVertically,
+        horizontalArrangement = Arrangement.spacedBy(8.dp)
+    ) {
+        // Iconos de contador (conejo, poción)
+        VoiceRoomFloatingCounterIcon(emoji = "🐰", count = rabbitCount, index = 0)
+        VoiceRoomFloatingCounterIcon(emoji = "🧴", count = perfumeCount, index = 1)
 
-        // Barra de experiencia central
-        Row(
-            modifier = Modifier.align(Alignment.Center),
-            verticalAlignment = Alignment.CenterVertically,
-            horizontalArrangement = Arrangement.spacedBy(8.dp)
-        ) {
-            Text(
-                text = "PANA-EXP",
-                color = VoiceRoomPalette.TextSecondary,
-                fontSize = 10.sp,
-                fontWeight = FontWeight.Bold
-            )
+        // Etiqueta de nivel
+        Text(
+            text = "NIVEL $level",
+            color = VoiceRoomPalette.Gold,
+            fontSize = 10.sp,
+            fontWeight = FontWeight.Bold
+        )
 
-            VoiceRoomProgressBar(
-                progress = progress,
-                color = VoiceRoomPalette.Pink,
-                trackColor = VoiceRoomPalette.DarkSurface.copy(alpha = 0.5f),
-                modifier = Modifier.width(100.dp).height(6.dp)
-            )
+        // Barra de experiencia
+        VoiceRoomProgressBar(
+            progress = progress,
+            color = VoiceRoomPalette.Pink,
+            trackColor = VoiceRoomPalette.DarkSurface.copy(alpha = 0.5f),
+            modifier = Modifier.weight(1f).height(6.dp)
+        )
 
-            Text(
-                text = expPoints,
-                color = VoiceRoomPalette.Gold,
-                fontSize = 12.sp,
-                fontWeight = FontWeight.Bold
-            )
+        // Puntos de experiencia
+        Text(
+            text = expPoints,
+            color = VoiceRoomPalette.Gold,
+            fontSize = 12.sp,
+            fontWeight = FontWeight.Bold
+        )
 
-            Text(
-                text = "💎",
-                fontSize = 16.sp,
-                color = VoiceRoomPalette.Gold
-            )
-        }
+        // Diamante
+        Text(
+            text = "💎",
+            fontSize = 16.sp,
+            color = VoiceRoomPalette.Gold
+        )
     }
 }
 
@@ -666,53 +633,6 @@ fun VoiceRoomProgressBar(
     }
 }
 
-// === Cascada de corazones ===
-
-@Composable
-fun VoiceRoomHeartCascade(
-    modifier: Modifier = Modifier
-) {
-    val transition = rememberInfiniteTransition(label = "heartCascade")
-    val heartEmojis = listOf("💗", "💕", "💖", "💘", "💝", "💟")
-    val heartColors = listOf(
-        Color(0xFFE63946), Color(0xFFF77F00), Color(0xFF06D6A0),
-        Color(0xFF118AB2), Color(0xFF9B5DE5), Color(0xFFFCBE45)
-    )
-
-    Box(modifier = modifier) {
-        heartEmojis.forEachIndexed { i, emoji ->
-            val offsetY by transition.animateFloat(
-                initialValue = 10f,
-                targetValue = -50f,
-                animationSpec = infiniteRepeatable(
-                    animation = tween(2200, delayMillis = i * 300, easing = LinearOutSlowInEasing),
-                    repeatMode = RepeatMode.Restart
-                ),
-                label = "heartY$i"
-            )
-            val alpha by transition.animateFloat(
-                initialValue = 0.3f,
-                targetValue = 1f,
-                animationSpec = infiniteRepeatable(
-                    animation = tween(2200, delayMillis = i * 300, easing = LinearOutSlowInEasing),
-                    repeatMode = RepeatMode.Restart
-                ),
-                label = "heartAlpha$i"
-            )
-
-            Text(
-                text = emoji,
-                fontSize = 16.sp,
-                color = heartColors[i % heartColors.size],
-                modifier = Modifier
-                    .align(Alignment.BottomCenter)
-                    .offset { IntOffset(((i - 2.5f) * 22).toInt(), offsetY.toInt()) }
-                    .graphicsLayer(alpha = alpha)
-            )
-        }
-    }
-}
-
 // === Sillón del Anfitrión ===
 
 @Composable
@@ -744,7 +664,7 @@ fun VoiceRoomHostSeat(
         Box {
             VoiceRoomRedesignedSeatCircle(
                 seat = seat,
-                size = 92.dp,
+                size = 64.dp,
                 avatarUrl = avatarUrl,
                 displayName = displayName,
                 isHost = true,
@@ -859,7 +779,7 @@ fun VoiceRoomGuestSeatGrid(
             memberById = memberById,
             myUserId = myUserId,
             isAdmin = isAdmin,
-            size = 72.dp,
+            size = 64.dp,
             onSeatClicked = onSeatClicked,
             onModeration = onModeration,
             onOpenProfile = onOpenProfile
@@ -875,7 +795,7 @@ fun VoiceRoomGuestSeatGrid(
             memberById = memberById,
             myUserId = myUserId,
             isAdmin = isAdmin,
-            size = 72.dp,
+            size = 64.dp,
             onSeatClicked = onSeatClicked,
             onModeration = onModeration,
             onOpenProfile = onOpenProfile
@@ -1147,6 +1067,25 @@ fun VoiceRoomRedesignedChat(
     val chatMessages = messages.filter { !it.isSystem }
     val systemMessages = messages.filter { it.isSystem }
 
+    // Mensaje de bienvenida como mensaje de sistema cuando el chat está vacío
+    val welcomeMessage = VoiceRoomMessage(
+        id = "welcome",
+        roomId = "",
+        senderId = "",
+        senderName = null,
+        content = "¡Bienvenido a la sala!",
+        createdAt = "",
+        isSystem = true
+    )
+
+    // Lista combinada: system messages al final (reverseLayout = true → índice 0 = bottom)
+    val allItems: List<Any> = if (chatMessages.isEmpty() && systemMessages.isEmpty()) {
+        listOf(welcomeMessage)
+    } else {
+        // System messages first (bottom of list in reverseLayout), then chat messages (top)
+        systemMessages + chatMessages
+    }
+
     // Lógica de scroll inteligente (misma semántica que VoiceRoomTikTokChat)
     val shouldAutoScroll = remember {
         derivedStateOf {
@@ -1159,98 +1098,43 @@ fun VoiceRoomRedesignedChat(
         }
     }
 
-    LaunchedEffect(chatMessages.size) {
-        if (chatMessages.isNotEmpty() && shouldAutoScroll.value) {
+    LaunchedEffect(allItems.size) {
+        if (allItems.isNotEmpty() && shouldAutoScroll.value) {
             listState.animateScrollToItem(0)
         }
     }
 
-    Box(modifier = modifier) {
-        if (chatMessages.isEmpty() && systemMessages.isEmpty()) {
-            // Mensaje de bienvenida decorativo (reemplaza "Aún no hay mensajes")
-            VoiceRoomWelcomeMessage(modifier = Modifier.align(Alignment.Center))
-        }
-
-        LazyColumn(
-            state = listState,
-            modifier = Modifier.fillMaxSize(),
-            verticalArrangement = Arrangement.spacedBy(2.dp),
-            reverseLayout = true,
-            contentPadding = PaddingValues(horizontal = 10.dp, vertical = 6.dp)
-        ) {
-            items(chatMessages, key = { it.id }) { message ->
-                val member = memberById[message.senderId]
-                val displayName = member?.displayName ?: message.senderName ?: "(sin nombre)"
+    LazyColumn(
+        state = listState,
+        modifier = modifier.fillMaxSize(),
+        verticalArrangement = Arrangement.spacedBy(2.dp),
+        reverseLayout = true,
+        contentPadding = PaddingValues(horizontal = 10.dp, vertical = 6.dp)
+    ) {
+        items(allItems, key = { item ->
+            when (item) {
+                is VoiceRoomMessage -> if (item.isSystem) "sys_${item.id}" else "msg_${item.id}"
+                else -> item.hashCode().toString()
+            }
+        }) { item ->
+            if (item is VoiceRoomMessage && item.isSystem) {
+                VoiceRoomSystemBubble(message = item, modifier = Modifier.fillMaxWidth())
+            } else if (item is VoiceRoomMessage) {
+                val member = memberById[item.senderId]
+                val displayName = member?.displayName ?: item.senderName ?: "(sin nombre)"
                 val avatarUrl = member?.avatarUrl
                 VoiceRoomRedesignChatMessage(
-                    message = message,
+                    message = item,
                     avatarUrl = avatarUrl,
                     senderName = displayName,
-                    isOwnMessage = message.senderId == myUserId,
-                    onOpenProfile = if (message.senderId != myUserId && message.senderId.isNotEmpty() && onOpenProfile != null) {
-                        { onOpenProfile(message.senderId) }
+                    isOwnMessage = item.senderId == myUserId,
+                    onOpenProfile = if (item.senderId != myUserId && item.senderId.isNotEmpty() && onOpenProfile != null) {
+                        { onOpenProfile(item.senderId) }
                     } else null
                 )
             }
         }
-
-        // System bubbles overlay
-        if (systemMessages.isNotEmpty()) {
-            Column(
-                modifier = Modifier
-                    .align(Alignment.TopCenter)
-                    .fillMaxWidth(0.8f)
-                    .background(
-                        Brush.verticalGradient(
-                            colors = listOf(
-                                Color.Transparent,
-                                VoiceRoomPalette.DeepBlue.copy(alpha = 0.9f)
-                            )
-                        )
-                    )
-                    .padding(vertical = 4.dp),
-                horizontalAlignment = Alignment.CenterHorizontally,
-                verticalArrangement = Arrangement.spacedBy(2.dp)
-            ) {
-                systemMessages.takeLast(3).forEach { msg ->
-                    VoiceRoomSystemBubble(message = msg)
-                }
-            }
-        }
     }
-}
-
-// === Mensaje de bienvenida ===
-
-@Composable
-fun VoiceRoomWelcomeMessage(modifier: Modifier = Modifier) {
-    Column(
-        modifier = modifier.padding(horizontal = 24.dp),
-        horizontalAlignment = Alignment.CenterHorizontally
-    ) {
-        Text(
-            text = buildWelcomeArt(),
-            color = VoiceRoomPalette.TextPrimary.copy(alpha = 0.75f),
-            fontSize = 13.sp,
-            fontFamily = FontFamily.Monospace,
-            textAlign = TextAlign.Center,
-            lineHeight = 18.sp
-        )
-
-        Spacer(modifier = Modifier.height(16.dp))
-
-        VoiceRoomHeartCascade(modifier = Modifier.height(60.dp))
-    }
-}
-
-private fun buildWelcomeArt(): String {
-    return "\uD835\uDC00\uD835\uDC2E\uD835\uDC27\uD835\uDC34\uD835\uDC34\uD835\uDC38 " +
-        "\uD83C\uDFA4 \uD835\uDCA2\uD835\uDCA2\uD835\uDCBC\uD835\uDCA2\uD835\uDB67\uD835\uDB74 " +
-        "\uD835\uDC00\uD835\uDC2C\uD835\uDC32 \uD835\uDC2A\uD835\uDC2D\n" +
-        "  ┌─────────────────────────┐\n" +
-        "  │  ¡Bienvenido a la sala! │\n" +
-        "  │  Habla y comparte aquí  │\n" +
-        "  └─────────────────────────┘"
 }
 
 // === Mensaje de chat individual ===
@@ -1341,65 +1225,6 @@ fun VoiceRoomRedesignChatMessage(
     }
 }
 
-// === Widgets del lado derecho del chat ===
-
-@Composable
-fun VoiceRoomRightWidgets(modifier: Modifier = Modifier) {
-    Column(
-        modifier = modifier,
-        verticalArrangement = Arrangement.spacedBy(8.dp)
-    ) {
-        // Banner del evento
-        Surface(
-            shape = RoundedCornerShape(8.dp),
-            color = Color(0xFF2D1A40).copy(alpha = 0.8f),
-            border = BorderStroke(1.dp, VoiceRoomPalette.Pink.copy(alpha = 0.5f)),
-            tonalElevation = 4.dp
-        ) {
-            Text(
-                text = "🎪 Tesoros Del Circo",
-                color = VoiceRoomPalette.Pink,
-                fontSize = 11.sp,
-                fontWeight = FontWeight.SemiBold,
-                modifier = Modifier.padding(horizontal = 8.dp, vertical = 4.dp)
-            )
-        }
-
-        // Caja de temporizador del evento
-        Surface(
-            shape = RoundedCornerShape(8.dp),
-            color = Color(0xFF2D1A40).copy(alpha = 0.8f),
-            border = BorderStroke(1.dp, VoiceRoomPalette.Gold.copy(alpha = 0.5f)),
-            tonalElevation = 4.dp
-        ) {
-            Text(
-                text = "⏰ 02:30",
-                color = VoiceRoomPalette.Gold,
-                fontSize = 11.sp,
-                fontWeight = FontWeight.SemiBold,
-                modifier = Modifier.padding(horizontal = 8.dp, vertical = 4.dp)
-            )
-        }
-
-        // Barra de progreso de regalo
-        Column(horizontalAlignment = Alignment.CenterHorizontally) {
-            Text(
-                text = "🎁 331/1000 Unirse",
-                color = VoiceRoomPalette.TextPrimary,
-                fontSize = 10.sp,
-                fontWeight = FontWeight.SemiBold
-            )
-            Spacer(modifier = Modifier.height(2.dp))
-            VoiceRoomProgressBar(
-                progress = 0.331f,
-                color = VoiceRoomPalette.Pink,
-                trackColor = VoiceRoomPalette.DarkSurface.copy(alpha = 0.5f),
-                modifier = Modifier.width(80.dp).height(4.dp)
-            )
-        }
-    }
-}
-
 // === Barra inferior rediseñada ===
 
 @OptIn(ExperimentalMaterial3Api::class)
@@ -1425,7 +1250,7 @@ fun VoiceRoomRedesignedBottomBar(
         Surface(
             modifier = Modifier.fillMaxWidth(),
             shape = RoundedCornerShape(20.dp),
-            color = VoiceRoomPalette.DarkSurface.copy(alpha = 0.6f),
+            color = Color(0xFF152A3F),
             border = BorderStroke(1.dp, VoiceRoomPalette.ActiveCyan.copy(alpha = 0.2f)),
             tonalElevation = 4.dp,
             shadowElevation = 8.dp
@@ -1459,8 +1284,8 @@ fun VoiceRoomRedesignedBottomBar(
                         unfocusedTextColor = VoiceRoomPalette.TextPrimary,
                         focusedBorderColor = Color.Transparent,
                         unfocusedBorderColor = Color.Transparent,
-                        focusedContainerColor = Color.Transparent,
-                        unfocusedContainerColor = Color.Transparent
+                        focusedContainerColor = Color(0xFF152A3F),
+                        unfocusedContainerColor = Color(0xFF152A3F)
                     ),
                     shape = RoundedCornerShape(20.dp),
                     maxLines = 1
