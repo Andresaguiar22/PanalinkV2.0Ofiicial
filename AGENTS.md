@@ -79,7 +79,7 @@ To confirm Phase 1 success, the following metrics must be tracked and presented:
 source scripts/toolchain_env.sh && ./gradlew :app:assembleDebug            # debug
 VERSION_NAME=vX.Y.Z VERSION_CODE=N ./gradlew :app:assembleRelease   # release
 ```
-* Release requiere credenciales de firma: `KEYSTORE_FILE` (puede ser el keystore mismo base64-codificado — el propio `app/build.gradle.kts` lo decodifica con `Base64.getDecoder()` si la ruta no existe; NO materializar en disco), `KEYSTORE_PASSWORD`, `KEY_ALIAS`, `KEY_PASSWORD`.
+* Release requiere credenciales de firma: `KEYSTORE_FILE` (puede ser el keystore mismo base64-codificado - el propio `app/build.gradle.kts` lo decodifica con `Base64.getDecoder()` si la ruta no existe; NO materializar en disco), `KEYSTORE_PASSWORD`, `KEY_ALIAS`, `KEY_PASSWORD`.
 * En debug el keystore NO es necesario; en release el build FAILS si faltan credenciales.
 * El `google-services.json` real SI se requiere para compilar release: materializarlo desde `GOOGLE_SERVICES_JSON` con `printf '%s' "$GOOGLE_SERVICES_JSON" > app/google-services.json` (gitignoreado, no committear).
 * `./gradlew` puede perder el bit de ejecución tras clonar: `chmod +x gradlew` antes de compilar (caso real en sesión 2026-09-04).
@@ -95,12 +95,12 @@ VERSION_NAME=vX.Y.Z VERSION_CODE=N ./gradlew :app:assembleRelease   # release
 * **Política de build universal (desde v1.3.33):** `app/build.gradle.kts` incluye `packaging { jniLibs { useLegacyPackaging = true } } }` con las 4 ABIs→ el APK sale con `extractNativeLibs=true` (fix de instalación en XOS/Transsion - Infinix/Tecno/itel y ROMs estrictas Android   7-11+) y `Panalink-<versionName>.apk` de ~78 MB. Adjuntar también `manifest.json` al release.
 * `sha256` del APK es obligatorio en el manifest (64 hex).
 
-### Publicación OTA (vía GitHub API — usar `GITHUB_PERSONAL_ACCESS_TOKEN_OTA`)
+### Publicación OTA (vía GitHub API - usar `GITHUB_PERSONAL_ACCESS_TOKEN_OTA`)
 1. Compilar release (ver arriba,)y computar `sha256sum`; verificadar versiones con `aapt dump badging`.
-2. Crear el **cuerpo JSON del release com archivo** (`/tmp/release_body.json` con `file_editor`, NUNCA con heredoc ni `jq -n` en terminal — el canal terminal corrompe concatenaciones). POST `/repos/Andresaguiar22/panalink-ota/releases` (draft=true, tag=`vX.Y.Z`, target=`main`, body=changelog+sha256+nota IA) con `--data-binary @file` y `Accept: application/vnd.github+json`.
+2. Crear el **cuerpo JSON del release com archivo** (`/tmp/release_body.json` con `file_editor`, NUNCA con heredoc ni `jq -n` en terminal - el canal terminal corrompe concatenaciones). POST `/repos/Andresaguiar22/panalink-ota/releases` (draft=true, tag=`vX.Y.Z`, target=`main`, body=changelog+sha256+nota IA) con `--data-binary @file` y `Accept: application/vnd.github+json`.
 3. Subir assets al release (draft): APK (`Panalink-<tag>.apk`, `Content-Type: application/vnd.android.package-archive`) y `manifest.json` (`application/json`), con `--data-binary @file` contra `https://uploads.github.com/repos/.../releases/<id>/assets?name=<name>`.
  El APK de ~140 MB sube en ~5 s..
-4. PUT `/repos/.../contents/manifest.json` en main con el manifest nuevo(usar `sha` actual del blob — obtenerlo con GET contents/ y construir el payload base64 con archivo+jq/`base64`, no inline frágil).
+4. PUT `/repos/.../contents/manifest.json` en main con el manifest nuevo(usar `sha` actual del blob - obtenerlo con GET contents/ y construir el payload base64 con archivo+jq/`base64`, no inline frágil).
 5. PATCH `/repos/.../releases/<id>` → `draft: false` para publicar; verificadar con GET que `draft=false` y 2 assets..
 6. Verificar que `raw.githubusercontent.com/.../main/manifest.json` sirve ya el código/version nuevos (fuente de verdad viva).
 
@@ -169,54 +169,85 @@ VERSION_NAME=v1.3.Z VERSION_CODE=N ./gradlew --no-daemon :app:assembleRelease
 ## 🧠 Conocimiento de arquitectura (mapeado en sesión 2026-09-04)
 
 ### Realtime (Supabase)
-* **Origen de verdad de mensajes DM**: tabla `public.thread_messages` (NO `messages` — esa es una **vista** (`relkind='v'`) sobre `thread_messages`, y **no se puede publicar** en Realtime). `channel_messages` **NO existe** en `public`.
+* **Origen de verdad de mensajes DM**: tabla `public.thread_messages` (NO `messages` - esa es una **vista** (`relkind='v'`) sobre `thread_messages`, y **no se puede publicar** en Realtime). `channel_messages` **NO existe** en `public`.
 * **Broadcast vs Postgres Changes**: el trigger `thread_messages_realtime_broadcast` publica en el canal broadcast `chat:{thread_id}` vía `realtime.broadcast_changes`; los eventos quedan en `realtime.messages` (solo topics `chat:*`), que es el buffer de **Broadcast**, no evidencia de Postgres Changes.
 
 * **Postgres Changes NO pasa por `realtime.messages`**; el server lo emite por WAL y nunca se persiste ahí. NO interpretar `realtime.messages` como prueba del estado de Postgres Changes..
 
 * **Suscripciones activas**: `realtime.subscription` es **efímero** (solo clientes conectados en el instante; refleja los joins de probes/WS también; NO acumula histórico). Campos útiles: `id`, `entity::regclass`, `created_at`.
 * **Verificación empírica del canal (hecha 2026-09-04, con sonda WS `service_role`)**:
-*  - `postgres_changes(public.thread_messages)` → `phx_reply ok` + `system: "Subscribed to PostgreSQL"` — **funciona a nivel de servidor**.,
-*  - `postgres_changes(public.channel_messages)` → `phx_reply ok` pero `system: error "Unable to subscribe ... channel_messages"` — **canal fantasma, rechazado**.,
-*  - `postgres_changes(public.messages)` (vista) → `system: error "Unable to subscribe ... messages"` — **vistas no son publicables**.,
+*  - `postgres_changes(public.thread_messages)` → `phx_reply ok` + `system: "Subscribed to PostgreSQL"` - **funciona a nivel de servidor**.,
+*  - `postgres_changes(public.channel_messages)` → `phx_reply ok` pero `system: error "Unable to subscribe ... channel_messages"` - **canal fantasma, rechazado**.,
+*  - `postgres_changes(public.messages)` (vista) → `system: error "Unable to subscribe ... messages"` - **vistas no son publicables**.,
 *  - **Un join fallido NO corta la conexión ni bloquea otros joins**: cada topic es independiente (error por canal, resto intacto. En Android eso genera solo un log silencioso (no rompe el flujo real)..,
-* **Trigger clave**: `trg_thread_messages_set_chat_id` (BEFORE INSERT,) hace `new.sender_id := auth.uid()` — **el servidor IMPONE el sender con el usuario autenticado**, even para `service_role`(que deja sender NULL al no haber `auth.uid()`) → **los INSERTs de mensajes SOLO funcionan con el JWT del usuario** (no con service_role).
+* **Trigger clave**: `trg_thread_messages_set_chat_id` (BEFORE INSERT,) hace `new.sender_id := auth.uid()` - **el servidor IMPONE el sender con el usuario autenticado**, even para `service_role`(que deja sender NULL al no haber `auth.uid()`) → **los INSERTs de mensajes SOLO funcionan con el JWT del usuario** (no con service_role).
 * **Consumidores del flow realtime( sin duplicación)**:
 *  - `MessageRealtimeHandler` (singleton en `MessagesRepository`, scope eterno) **mergea en Room** (vía `MessageFilter` + `messageDao.mergeAndSaveMessage`). Único mutador de Room.,
 *  - `PanalinkRealtimeService` escucha el mismo flow pero **solo notifica** (NO muta Room) → sin doble merge ni carreras por diseño.,
-* **Parser Android**: responde a topics `realtime:public:*` (`postgres_changes`); **no** a `chat:{thread_id}` (broadcast. El payload del broadcast real viene con columnas camelCase (`text`, `type`, `file_mime`)que el parser no espera (espera snake_case) — riesgo latente si algún día se consume broadcast, no afecta hoy..
+* **Parser Android**: responde a topics `realtime:public:*` (`postgres_changes`); **no** a `chat:{thread_id}` (broadcast. El payload del broadcast real viene con columnas camelCase (`text`, `type`, `file_mime`)que el parser no espera (espera snake_case) - riesgo latente si algún día se consume broadcast, no afecta hoy..
 * **Estado de la investigación(P3):** join + canal + broadcast confirmados; falta demostración end-to-end con `authenticated`+RLS (prueba A: abrir la app real y ver `realtime.subscription` materializar `thread_messages` con `claims_role=authenticated`). **Cero cambios en Supabase hasta cerrarlo** (trigger/RLS/publications intactos).
 
 ### 📹 vCDN (chat)
-* **Flujo verificado en código**: los vídeos de chat se enrutan por `vcdn-upload` (edge function con `SUPABASE_SERVICE_ROLE_KEY`) con **fallback automático a B2** si vCDN falla/interrumpe (commit `388408a` — "route chat video through vCDN with B2 fallback").
+* **Flujo verificado en código**: los vídeos de chat se enrutan por `vcdn-upload` (edge function con `SUPABASE_SERVICE_ROLE_KEY`) con **fallback automático a B2** si vCDN falla/interrumpe (commit `388408a` - "route chat video through vCDN with B2 fallback").
 * **`stable_id`** es la clave de sesión vCDN (claim/heartbeat 60 s; el claim puede recuperarse tras vencimiento; mismo `stable_id` puede reutilizar sesión existente). **No existe TTL/cleanup explícito** para sesiones abandonadas → P2-B auditado (no modificado//cerrado por decisión); el fallback vCDN→B2 **no cancela** la sesión vCDN (stale session riesgo conocido, aceptado por ahora.
 * **RLS vCDN NO tocarlo** (correctamente restringido..
 
 ---
-### 📹 Reels (TikTokVideoFeedScreen) — pipeline y fixes (sesión 2026-09-11)
-* **Pipeline de reproducción**: `TikTokVideoFeedScreen` usa `ReelDualPlayerManager` (slot A + slot B, un player por slot, `exoPlayerRef` apunta al activo reciclado) + `CdnManager.resolveMediaUrlFresh` (URL firmada VCDN). El preload solo del **siguiente** reel (`isPreload = page <= pagerState.currentPage + 1`): el slot B queda prepped con URL ya resuelta + primer frame listo → swipe instantáneo tipo TikTok. **NO precargar el anterior** (`abs(page-current)<=1`) — compite el slot y deja a veces al siguiente sin player listo.
- * **Fix 1 (commit `ee1fdbf`, main, v1.3.35):** se eliminó el **refresh preventivo de URL firmada VCDN** que corría cada ~50s (`setMediaItem+prepare+seekTo` sobre el player en vuelo) — eso destruía el codec hw y causaba `CodecException 4003/4006`, black flashes y cortes a mitad de reproducción. La defensa contra expiración del token (~60s real) es **solo reactiva**: al recibir `httpStatus 401` mid-stream, `onPlayerError` fuerza `resolveMediaUrlFresh` (+`refreshActiveUrl` en el manager, preservando posición/playWhenReady, limitado a 2 intentos). `refreshActiveUrl` **ya trae su propio `try/catch IllegalStateException`** (devuelve `false` si el player fue liberado/reemplazado — no crashea), así que **no necesita** la guarda `exoPlayerRef==player` que sí se usa en el retry genérico.
+### 📹 Reels (TikTokVideoFeedScreen) - pipeline y fixes (sesión 2026-09-11)
+* **Pipeline de reproducción**: `TikTokVideoFeedScreen` usa `ReelDualPlayerManager` (slot A + slot B, un player por slot, `exoPlayerRef` apunta al activo reciclado) + `CdnManager.resolveMediaUrlFresh` (URL firmada VCDN). El preload solo del **siguiente** reel (`isPreload = page <= pagerState.currentPage + 1`): el slot B queda prepped con URL ya resuelta + primer frame listo → swipe instantáneo tipo TikTok. **NO precargar el anterior** (`abs(page-current)<=1`) - compite el slot y deja a veces al siguiente sin player listo.
+ * **Fix 1 (commit `ee1fdbf`, main, v1.3.35):** se eliminó el **refresh preventivo de URL firmada VCDN** que corría cada ~50s (`setMediaItem+prepare+seekTo` sobre el player en vuelo) - eso destruía el codec hw y causaba `CodecException 4003/4006`, black flashes y cortes a mitad de reproducción. La defensa contra expiración del token (~60s real) es **solo reactiva**: al recibir `httpStatus 401` mid-stream, `onPlayerError` fuerza `resolveMediaUrlFresh` (+`refreshActiveUrl` en el manager, preservando posición/playWhenReady, limitado a 2 intentos). `refreshActiveUrl` **ya trae su propio `try/catch IllegalStateException`** (devuelve `false` si el player fue liberado/reemplazado - no crashea), así que **no necesita** la guarda `exoPlayerRef==player` que sí se usa en el retry genérico.
  * **Fix 2 (hardening retry):** el retry genérico **debe** ir guardado con `exoPlayerRef == player` (si el codec-recovery reemplazó el player entretanto, `prepare()` sobre el stale arroja `IllegalStateException 1004` → bucle de "error definitivo" falso): envolver `player.prepare()` en try/catch preservando `currentPosition`/`playWhenReady`. El camino `handleCodecError` (codec init errors) **no debe** caer al retry 401/network: se marca `isRetrying || isRecovering` y se delega al dual manager (que recrea player con renderer degrades y escalamiento descentralizado.
- * **El 401-recovery NO necesita guarda anti-stale**: `refreshActiveUrl` valida internamente (slot/player null → false), y el `finally` solo marca `hasError=true` si no se recuperó — **sin crash ni bucle**.
-* **Falso «Recuperando vídeo...» (hotfix commit `53f9138`, en v1.3.36):** la causa era `isCodecInitializationError()` **demasiado amplio**: matcheaba por `errorCodeName` conteniendo "CODEC"/"DECODER" — así errores de red/IO que arrastraban resto de decoder (y `IllegalStateException` del prepare fallido en preload) se clasificaban como codec y disparaban la recreación visible del player (el cartel + recovery que a veces fallaba). **Regla**: clasificar codec SOLO por `errorCode` real (`ERROR_CODE_DECODER_INIT_FAILED`/`_QUERY_FAILED`/`ERROR_CODE_DECODING_FORMAT_UNSUPPORTED`) o `MediaCodec.CodecException` en la cadena **sin** `InvalidResponseCodeException` aguas arriba; **jamás** por el nombre del error. Además: **errores en preload = silenciosos**: `onPlayerError` con `isPreload` hace `dualManager.releaseIfOwned(state.id)` + return (sin recovery, sin cartel — el swipe re-adquiere limpio). El overlay de recovery queda **solo spinner** (sin texto «Recuperando vídeo...») para no asustar al usuario.
+ * **El 401-recovery NO necesita guarda anti-stale**: `refreshActiveUrl` valida internamente (slot/player null → false), y el `finally` solo marca `hasError=true` si no se recuperó - **sin crash ni bucle**.
+* **Falso «Recuperando vídeo...» (hotfix commit `53f9138`, en v1.3.36):** la causa era `isCodecInitializationError()` **demasiado amplio**: matcheaba por `errorCodeName` conteniendo "CODEC"/"DECODER" - así errores de red/IO que arrastraban resto de decoder (y `IllegalStateException` del prepare fallido en preload) se clasificaban como codec y disparaban la recreación visible del player (el cartel + recovery que a veces fallaba). **Regla**: clasificar codec SOLO por `errorCode` real (`ERROR_CODE_DECODER_INIT_FAILED`/`_QUERY_FAILED`/`ERROR_CODE_DECODING_FORMAT_UNSUPPORTED`) o `MediaCodec.CodecException` en la cadena **sin** `InvalidResponseCodeException` aguas arriba; **jamás** por el nombre del error. Además: **errores en preload = silenciosos**: `onPlayerError` con `isPreload` hace `dualManager.releaseIfOwned(state.id)` + return (sin recovery, sin cartel - el swipe re-adquiere limpio). El overlay de recovery queda **solo spinner** (sin texto «Recuperando vídeo...») para no asustar al usuario.
  * **Diagnóstico**: `diagnostics.record(DiagnosticCategory.NETWORK/ERRORS...)` con `correlationId=state.id.take(36)` es el rastro estándar para depurar reintentos y 401s en este screen.
 
 
-### 🧹 Lecciones de edición/tooling (sesión 2026-09-11) — aplicar SIEMPRE
+### 🧹 Lecciones de edición/tooling (sesión 2026-09-11) - aplicar SIEMPRE
 * **`file_editor` corrompe strings largos con backticks** (ej. `` `versionCode` ``): el `old_str` jamás matchea y da error "did not appear verbatim". Cuando un `str_replace` falla así, **no insistir**: dumpear la línea con `od -c` o `sed -n 'Np'`, detectar bytes invisibles (U+200B = `342 200 213` en octal/`\xE2\x80\x8B`) y reemplazar con `sed -i` usando **substrings contiguas** (ej. cambiar `61\*\*`→`62\*\*` y `v1.3.34 `→`v1.3.35 ` por separado) en vez de la cadena larga completa.
 * **`sed -i` con patrón que matchea en VARIAS zonas borra de más**: en esta sesión, `/Modifier.height(12.dp)/d` eliminó el Spacer del overlay «Sin conexión» ADEMÁS del «Recuperando vídeo...» (el mismo patrón en 2 sitios). **Regla**: tras CADA `sed -i`, revisar SIEMPRE el `git diff` y verificar que el patrón solo tocó la zona deseada; ante la duda, editar con ancla única (file_editor con contexto circundante).
- * **`sed` no matchea U+200B con `[[:space:]]`** — el zero-width space NO es espacio POSIX; hay que matchear el byte literal (`\xE2\x80\x8B` en GNU sed) o anclarse a substrings contiguas sin el byte..
+ * **`sed` no matchea U+200B con `[[:space:]]`** - el zero-width space NO es espacio POSIX; hay que matchear el byte literal (`\xE2\x80\x8B` en GNU sed) o anclarse a substrings contiguas sin el byte..
  * **`awk 'NR>=a && NR<=b {printf ...}'` es fiable** para inspeccionar rangos (muestra el contenido tal cual, sin corromper nada). **`sed -n 'a,bp'` también** OK para lectura. **`cat -A`** para ver finales de línea; **`od -c`** para hexdump exacto.
- * **Commit messages largos**: usar `git commit -F -` con el mensaje por stdin (heredoc NO — canal sunicode; `printf '%s\n'`) o `file_editor`+`git commit -F <archivo>`. **NO** `git commit -m` con mensaje largo en el terminal — el canal corrompe el texto.
- * **Construir JSON de payload para APIs**: usar `jq -n --arg/--rawfile` con archivos (base64 a `.b64` + `--rawfile`) y `curl --data-binary @archivo` — **jamás** `jq -n` inline ni heredoc ni concatenaciones en terminal (el canal corrompe). Verificar siempre `jq empty <archivo>` antes de POST/PUT/PATCH..
+ * **Commit messages largos**: usar `git commit -F -` con el mensaje por stdin (heredoc NO - canal sunicode; `printf '%s\n'`) o `file_editor`+`git commit -F <archivo>`. **NO** `git commit -m` con mensaje largo en el terminal - el canal corrompe el texto.
+ * **Construir JSON de payload para APIs**: usar `jq -n --arg/--rawfile` con archivos (base64 a `.b64` + `--rawfile`) y `curl --data-binary @archivo` - **jamás** `jq -n` inline ni heredoc ni concatenaciones en terminal (el canal corrompe). Verificar siempre `jq empty <archivo>` antes de POST/PUT/PATCH..
 
 ## 🧼 Regla Anti-Corrupción de Bytes Invisibles (OBLIGATORIA)
 
 Los caracteres Unicode invisibles **U+200B (zero-width space)** y **U+FEFF (BOM)** corrompen código silenciosamente: rompen heredocs, generan `SyntaxError` en Python, ensucian diffs y pueden alterar compilación. Esta sesión los detectó inyectados por el canal de generación de texto del agente. Reglas duras para TODAS las sesiones:
 
 1. **CREAR/EDITAR código con `file_editor`, NUNCA con heredoc** (`cat > file <<'EOF'` está prohibido para código). El heredoc pasa por el canal de terminal que inyecta U+200B..
-2. **Después de CADA edición, ejecutar**: `bash scripts/sanitize_invisible.sh` — limpia U+200B/U+FEFF de todos los archivos de texto del repo y reporta si había algo..
+2. **Después de CADA edición, ejecutar**: `bash scripts/sanitize_invisible.sh` - limpia U+200B/U+FEFF de todos los archivos de texto del repo y reporta si había algo..
   Si reporta archivos, **no committear hasta re-verificar** que el diff siga siendo semánticamente correcto..
 3. **Nunca crear scripts Python ni código con `= 0` u otros patrones numéricos inyectados** via terminal;; verificar siempre con `od -c` o `grep -rlP '\x{200B}'` cuando haya duda..
 4. **Verificación de integridad antes de cada commit**: `grep -rlP '\x{200B}|\x{FEFF}' . --include='*.kt' --include='*.kts' --include='*.java' --include='*.sh' --include='*.py' --include='*.md' --include='*.json' --include='*.xml' | grep -v '/.git/' | grep -v '/build/'` debe devolver **vacío**. Si devuelve algo, sanitizar y re-inspeccionar..
 5. **Herramientas de diagnóstico** (nunca en el repo): usar `/tmp` para archivos de prueba y borrarlos después;; si un archivo `/tmp` queda con U+200B, eliminarlo directamente (como `test_editor1.txt`)..
+## 🔀 Modalidad de trabajo (Feature Branch + Beta + Release) - DESDE 2026-09-11
+
+**Esta es la ÚNICA forma de trabajar de ahora en adelante.** El objetivo: **nunca molestar a los usuarios con actualizaciones a cada rato**. El equipo itera internamente y solo cuando algo queda FINO se publica release OTA para todos.
+
+### Flujo obligatorio
+1. **Trabajar SIEMPRE en una rama de feature** (ej. `kilo/fancy-bloom-c6g`) - NUNCA commitear directamente a `main` salvo releases o fixes urgentes aprobados.
+2. **Probar los cambios como app BETA aislada** (package `com.panalink.app.beta`, label `PanaLink Beta`) que NO toca la app real de los usuarios ni sus datos - gracias al `applicationIdSuffix = ".beta"` + overlay debug (label) + `google-services.json` con doble client (ver script).
+3. **Iterar**: el equipo corrige en la rama, el agente refresca el worktree y recompila la beta (script), el usuario/QA prueban en el teléfono, y se repite hasta que quede fino..
+4. **Release SOLO cuando está fino**: se trae la rama a `main` (merge/te cherry-pick), se compila release con las credenciales,y se publica OTA (ver sección "Build & Release" y "Canal OTA" arriba).
+
+### Script BETA (automatizado y versionado)
+* **`scripts/build_beta.sh`** - compila la rama de feature como APK BETA de prueba. **El agente de turno SOLO ejecuta esto y entrega la URL**; no rehacer a mano.
+* Qué hace: refresca la rama remota → recrea worktree limpio → genera `google-services.json` beta (duplica el cliente con `com.panalink.app.beta`) → aplica overlay debug (`PanaLink Beta` + `applicationIdSuffix = ".beta"`) → compila `:app:assembleDebug` con la toolchain del repo → verifica con `aapt` que sea `com.panalink.app.beta` → deja el APK en `$BETA_OUT` (def `/tmp/Panalink-BETA-apk-debug.apk`) y muestra el SHA256..
+* **URL fija para el equipo/QA**: el servidor HTTP local (puerto 12000 en el host work-1) sirve `/Panalink-BETA-apk-debug.apk`. Si el server está caído, relanzar:
+```bash
+cd /tmp && nohup python3 -m http.server 12000 --bind 0.0.0.0 >/tmp/httpserver.log 2>&1 &
+```
+* Variables de entorno del script: `BETA_BRANCH` (def `origin/kilo/fancy-bloom-c6g`), `BETA_WORKTREE` (def `/tmp/panalink_beta`), `BETA_VERSION_NAME`, `BETA_VERSION_CODE`, `BETA_OUT`.
+* **El worktree es PERSISTENTE** (queda en `/tmp/panalink_beta`): entre rondas, el script hace fetch + reset --hard + re-aplica parches → la recompilación es incremental (rápida).
+
+### Cómo se ve una ronda de trabajo (checklist para el agente)
+1. Usuario/QA dice: *"ya corregí en la rama"* → correr:`bash scripts/build_beta.sh`.
+2. Verificar la salida: `package: name='com.panalink.app.beta'` + `application-label:'PanaLink Beta'` + SHA256 visible.
+3. Confirmar que la URL pública salga HTTP 200 y con el tamaño del APK nuevo.
+ 4. Avisar al equipo con la URL fija y el SHA nuevo (NO hace falta re-subir nada - el mismo link sirve el binario nuevo.de.
+5. Cuando el equipo dice *"está fino"* → traer la rama a `main` + compilar release + publicar OTA paso-a-paso (sección "Build & Release").
+
+### Reglas extras de esta modalidad
+* **NUNCA publicar OTA** una rama en progreso ni una beta como release exceto cuando el equipo confirma que está fino.
+* **NUNCA instalar/toquetear** la app real de los usuarios desde la beta (la beta usa paquete aparte, con sus propios datos,y se desinstala con `adb uninstall com.panalink.app.beta` o desde Ajustes → Apps → "PanaLink Beta".)
+* En main, **no queda rastro de la beta**: el script solo toca su worktree en `/tmp` y `app/build.gradle.kts`/`google-services.json` del repo NO se modifican al correr (el patch va al worktree, no al repo).
