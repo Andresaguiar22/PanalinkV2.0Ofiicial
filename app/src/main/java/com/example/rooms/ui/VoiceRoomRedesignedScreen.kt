@@ -1038,39 +1038,39 @@ fun VoiceRoomRedesignChatMessage(
             }
         }
         Spacer(modifier = Modifier.width(6.dp))
-        Column(
-            modifier = Modifier
-                .weight(1f, fill = false)
-                .widthIn(max = 200.dp)
-                .clip(RoundedCornerShape(10.dp))
-                .background(Color(0x14FFFFFF))
-                .padding(horizontal = 8.dp, vertical = 3.dp),
-            horizontalAlignment = Alignment.Start
-        ) {
-            if (!senderName.isNullOrBlank() && senderName != "(sin nombre)") {
-                Text(
-                    text = senderName,
-                    color = if (isOwnMessage) VoiceRoomPalette.ActiveCyan else VoiceRoomPalette.TextSecondary,
-                    fontSize = 9.sp,
-                    fontWeight = FontWeight.SemiBold,
-                    maxLines = 1,
-                    overflow = TextOverflow.Ellipsis
-                )
-            }
-            // Renderizado de stickers: si el contenido coincide con [sticker:PATH],
-            // renderizamos AsyncImage en lugar de Text para soportar .webp/.gif/.png
-            val stickerPath = parseStickerContent(message.content)
-            if (stickerPath != null) {
-                AsyncImage(
-                    model = stickerPath,
-                    contentDescription = "Sticker",
-                    modifier = Modifier
-                        .size(120.dp)
-                        .clip(RoundedCornerShape(16.dp)),
-                    contentScale = ContentScale.Fit,
-                    placeholder = null
-                )
-            } else {
+        val stickerPath = parseStickerContent(message.content)
+        if (stickerPath != null) {
+            // Stickers: render directamente sobre fondo transparente, sin burbuja
+            AsyncImage(
+                model = stickerPath,
+                contentDescription = "Sticker",
+                modifier = Modifier
+                    .size(80.dp)
+                    .clip(RoundedCornerShape(12.dp)),
+                contentScale = ContentScale.Fit,
+                placeholder = null
+            )
+        } else {
+            // Text messages: con burbuja de fondo
+            Column(
+                modifier = Modifier
+                    .weight(1f, fill = false)
+                    .widthIn(max = 200.dp)
+                    .clip(RoundedCornerShape(10.dp))
+                    .background(Color(0x14FFFFFF))
+                    .padding(horizontal = 8.dp, vertical = 3.dp),
+                horizontalAlignment = Alignment.Start
+            ) {
+                if (!senderName.isNullOrBlank() && senderName != "(sin nombre)") {
+                    Text(
+                        text = senderName,
+                        color = if (isOwnMessage) VoiceRoomPalette.ActiveCyan else VoiceRoomPalette.TextSecondary,
+                        fontSize = 9.sp,
+                        fontWeight = FontWeight.SemiBold,
+                        maxLines = 1,
+                        overflow = TextOverflow.Ellipsis
+                    )
+                }
                 Text(
                     text = message.content,
                     color = VoiceRoomPalette.TextPrimary,
@@ -1142,7 +1142,7 @@ fun VoiceRoomRedesignedBottomBar(
             onValueChange = { onValueChange(it.take(2000)) },
             modifier = Modifier
                 .weight(1f)
-                .heightIn(min = 40.dp, max = 40.dp)
+                .defaultMinSize(minHeight = 40.dp)
                 .background(Color(0xFF1E293B), shape = CircleShape)
                 .focusRequester(focusRequester),
             singleLine = true,

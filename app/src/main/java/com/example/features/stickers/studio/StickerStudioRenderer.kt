@@ -282,15 +282,11 @@ object StickerStudioRenderer {
     /** Saves a list of frames as an animated WebP file. */
     private fun saveAnimatedWebp(frames: List<Bitmap>, frameDurationMs: Int, outFile: File): Boolean = try {
         val output = FileOutputStream(outFile)
-        val webp = if (android.os.Build.VERSION.SDK_INT >= android.os.Build.VERSION_CODES.R) {
-            Bitmap.CompressFormat.WEBP_ANIMATED
-        } else {
-            @Suppress("DEPRECATION")
-            Bitmap.CompressFormat.WEBP
+        val webp = Bitmap.CompressFormat.WEBP
+        frames.forEach { frame ->
+            frame.compress(webp, 100, output)
+            output.flush()
         }
-        val first = frames.first()
-        first.compress(webp, 100, output)
-        output.flush()
         output.close()
         outFile.exists() && outFile.length() > 0
     } catch (e: Exception) {

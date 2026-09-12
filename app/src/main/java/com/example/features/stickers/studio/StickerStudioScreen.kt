@@ -150,6 +150,20 @@ fun StickerStudioScreen(
 
     var pendingPhotoFile by remember { mutableStateOf<File?>(null) }
 
+    val takePictureLauncher = rememberLauncherForActivityResult(
+        ActivityResultContracts.TakePicture()
+    ) { success ->
+        if (!success) return@rememberLauncherForActivityResult
+        val photoFile = pendingPhotoFile ?: return@rememberLauncherForActivityResult
+        val bitmap = BitmapFactory.decodeFile(photoFile.absolutePath)
+        if (bitmap != null) {
+            baseBitmap = bitmap
+            imgScale = 1f; imgRotation = 0f; imgOffset = Offset.Zero
+        }
+        photoFile.delete()
+        pendingPhotoFile = null
+    }
+
     val cameraPermissionState = rememberCameraPermissionState(
         onPermissionsGranted = {
             val tempDir = File(context.cacheDir, "sticker_studio_camera").apply { mkdirs() }
@@ -167,21 +181,16 @@ fun StickerStudioScreen(
         }
     )
 
-    val takePictureLauncher = rememberLauncherForActivityResult(
-        ActivityResultContracts.TakePicture()
-    ) { success ->
-        if (!success) return@rememberLauncherForActivityResult
-        val photoFile = pendingPhotoFile ?: return@rememberLauncherForActivityResult
-        val bitmap = BitmapFactory.decodeFile(photoFile.absolutePath)
-        if (bitmap != null) {
-            baseBitmap = bitmap
+    val pickImageLauncher = rememberLauncherForActivityResult(ActivityResultContracts.PickVisualMedia()) { uri: Uri? ->
+        uri ?: return@rememberLauncherForActivityResult
+        val stream = context.contentResolver.openInputStream(uri)
+        val bitmap = BitmapFactory.decodeStream(stream)
+        stream?.close()
+        bitmap?.let {
+            baseBitmap = it
             imgScale = 1f; imgRotation = 0f; imgOffset = Offset.Zero
         }
-        photoFile.delete()
-        pendingPhotoFile = null
     }
-
-    val pickImageLauncher = rememberLauncherForActivityResult(ActivityResultContracts.PickVisualMedia()) { uri: Uri? ->
 
     fun canSave(): Boolean = when (mode) {
         StudioMode.IMAGE -> baseBitmap != null
@@ -195,17 +204,6 @@ fun StickerStudioScreen(
             isProcessing = true
             processingLabel = "Creando tu sticker…"
             try {
-                // For video mode: convert trimmed segment to animated WebP before the when block
-                if (mode == StudioMode.VIDEO && selectedVideoUri != null && gifFile == null) {
-                    processingLabel = "Procesando video…"
-                    gifFile = StickerStudioRenderer.videoToAnimatedWebpSticker(
-                        context = context,
-                        uri = selectedVideoUri!!,
-                        startTimeMs = trimStartMs,
-                        endTimeMs = trimEndMs
-                    )
-                }
-
                 val localFile: File? = when (mode) {
                     StudioMode.IMAGE -> {
                         val bitmap = withContext(Dispatchers.Default) {

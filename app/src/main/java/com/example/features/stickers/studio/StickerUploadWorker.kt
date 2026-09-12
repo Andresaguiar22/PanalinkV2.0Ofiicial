@@ -21,63 +21,65 @@ class StickerUploadWorker(
     params: WorkerParameters
 ) : CoroutineWorker(appContext, params) {
 
-    override suspend fun doWork(): Result = try {
-        val localPath = inputData.getString(KEY_LOCAL_PATH)
-        val previewPath = inputData.getString(KEY_PREVIEW_PATH) ?: localPath
-        val stickerUrl = inputData.getString(KEY_STICKER_URL)
-        val previewUrl = inputData.getString(KEY_PREVIEW_URL)
-        val name = inputData.getString(KEY_NAME) ?: "Panalink Sticker"
-        val emoji = inputData.getString(KEY_EMOJI) ?: ""
+    override suspend fun doWork(): Result {
+        return try {
+            val localPath = inputData.getString(KEY_LOCAL_PATH)
+            val previewPath = inputData.getString(KEY_PREVIEW_PATH) ?: localPath
+            val stickerUrl = inputData.getString(KEY_STICKER_URL)
+            val previewUrl = inputData.getString(KEY_PREVIEW_URL)
+            val name = inputData.getString(KEY_NAME) ?: "Panalink Sticker"
+            val emoji = inputData.getString(KEY_EMOJI) ?: ""
 
-        val localFile = if (localPath != null) File(localPath) else null
-        if (localFile == null || !localFile.exists()) {
-            return Result.failure()
-        }
+            val localFile = if (localPath != null) File(localPath) else null
+            if (localFile == null || !localFile.exists()) {
+                return Result.failure()
+            }
 
-        val mimeType = when (localFile.extension.lowercase()) {
-            "gif" -> "image/gif"
-            "webp" -> "image/webp"
-            "png" -> "image/png"
-            "jpg", "jpeg" -> "image/jpeg"
-            else -> "image/webp"
-        }
+            val mimeType = when (localFile.extension.lowercase()) {
+                "gif" -> "image/gif"
+                "webp" -> "image/webp"
+                "png" -> "image/png"
+                "jpg", "jpeg" -> "image/jpeg"
+                else -> "image/webp"
+            }
 
-        // Si ya tenemos una URL remota (upload previo exitoso), solo persistimos localmente
-        if (!stickerUrl.isNullOrBlank()) {
+            // Si ya tenemos una URL remota (upload previo exitoso), solo persistimos localmente
+            if (!stickerUrl.isNullOrBlank()) {
+                StickerRepository.saveSticker(
+                    applicationContext,
+                    StickerResult(url = stickerUrl, preview = (previewUrl ?: previewPath) ?: "", width = null, height = null)
+                )
+                return Result.success()
+            }
+
+            // Subir a CDN vía PanalinkMediaManager
+            val uploadResult = StickerCreationRepository.uploadAndCreateSticker(
+                context = applicationContext,
+                file = localFile,
+                name = name,
+                emoji = emoji,
+                mimeType = mimeType
+            )
+
+            val finalUrl = uploadResult.getOrNull() ?: localFile.absolutePath
+
+            // Guardar en la base de datos local (SharedPreferences + default dir)
             StickerRepository.saveSticker(
                 applicationContext,
-                StickerResult(url = stickerUrl, preview = previewUrl ?: previewPath, width = null, height = null)
+                StickerResult(url = finalUrl, preview = localFile.absolutePath)
             )
-            return Result.success()
+
+            // Registrar como reciente
+            StickerRepository.addRecentSticker(
+                applicationContext,
+                StickerResult(url = finalUrl, preview = localFile.absolutePath)
+            )
+
+            Result.success()
+        } catch (e: Exception) {
+            AppLogger.e(message = "StickerUploadWorker failed", throwable = e)
+            if (runAttemptCount < 3) Result.retry() else Result.failure()
         }
-
-        // Subir a CDN vía PanalinkMediaManager
-        val uploadResult = StickerCreationRepository.uploadAndCreateSticker(
-            context = applicationContext,
-            file = localFile,
-            name = name,
-            emoji = emoji,
-            mimeType = mimeType
-        )
-
-        val finalUrl = uploadResult.getOrNull() ?: localFile.absolutePath
-
-        // Guardar en la base de datos local (SharedPreferences + default dir)
-        StickerRepository.saveSticker(
-            applicationContext,
-            StickerResult(url = finalUrl, preview = localFile.absolutePath)
-        )
-
-        // Registrar como reciente
-        StickerRepository.addRecentSticker(
-            applicationContext,
-            StickerResult(url = finalUrl, preview = localFile.absolutePath)
-        )
-
-        Result.success()
-    } catch (e: Exception) {
-        AppLogger.e(message = "StickerUploadWorker failed", throwable = e)
-        if (runAttemptCount < 3) Result.retry() else Result.failure()
     }
 
     companion object {

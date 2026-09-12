@@ -61,8 +61,8 @@ fun VideoTrimmerScreen(
     var trimStart by remember { mutableStateOf(0f) }  // 0f to 1f
     var trimEnd by remember { mutableStateOf(0.5f) }  // 0f to 1f
 
-    val startMs: Long get() = (trimStart * durationMs).toLong()
-    val endMs: Long get() = (trimEnd * durationMs).toLong()
+    fun startMs(): Long = (trimStart * durationMs).toLong()
+    fun endMs(): Long = (trimEnd * durationMs).toLong()
 
     LaunchedEffect(player) {
         player.addListener(object : Player.Listener {
@@ -74,8 +74,8 @@ fun VideoTrimmerScreen(
         })
         while (isPlaying) {
             delay(100)
-            if (player.currentPosition >= endMs && endMs > 0) {
-                player.seekTo(startMs)
+            if (player.currentPosition >= endMs() && endMs() > 0) {
+                player.seekTo(startMs())
                 player.play()
             }
         }
@@ -105,23 +105,25 @@ fun VideoTrimmerScreen(
                 Icon(Icons.Default.Close, contentDescription = "Cancelar", tint = Color.White)
             }
             Text(
-                text = "Recortar video (${(endMs - startMs) / 1000f}s)",
+                text = "Recortar video (${(endMs() - startMs()) / 1000f}s)",
                 color = Color.White,
                 fontSize = 16.sp,
                 fontWeight = FontWeight.Medium
             )
             TextButton(
                 onClick = {
-                    val segMs = endMs - startMs
+                    val segMs = endMs() - startMs()
+                    val s = startMs()
+                    val e = endMs()
                     if (segMs < 200L) {
-                        onConfirm(startMs, endMs.coerceAtLeast(startMs + 2000L))
+                        onConfirm(s, e.coerceAtLeast(s + 2000L))
                     } else {
-                        onConfirm(startMs, endMs)
+                        onConfirm(s, e)
                     }
                 },
-                enabled = (endMs - startMs) >= 200L
+                enabled = (endMs() - startMs()) >= 200L
             ) {
-                Icon(Icons.Default.Check, contentDescription = "Confirmar", tint = if ((endMs - startMs) >= 200L) PANA_GREEN else Color.Gray)
+                Icon(Icons.Default.Check, contentDescription = "Confirmar", tint = if ((endMs() - startMs()) >= 200L) PANA_GREEN else Color.Gray)
             }
         }
 
@@ -137,7 +139,6 @@ fun VideoTrimmerScreen(
                     .aspectRatio(1f),
                 factory = {
                     PlayerView(context).apply {
-                        playerView = this
                         this.player = player
                         resizeMode = AspectRatioFrameLayout.RESIZE_MODE_FIT
                         useController = false
@@ -172,8 +173,8 @@ fun VideoTrimmerScreen(
         if (durationMs > 0) {
             TrimTimeline(
                 durationMs = durationMs,
-                startMs = startMs,
-                endMs = endMs,
+                startMs = startMs(),
+                endMs = endMs(),
                 trimStart = trimStart,
                 trimEnd = trimEnd,
                 onTrimStartChange = { trimStart = it.coerceIn(0f, trimEnd - 0.01f) },
@@ -230,21 +231,6 @@ private fun TrimTimeline(
                 strokeWidth = 6.dp.toPx(),
                 cap = StrokeCap.Round
             )
-
-            // Time labels at ends
-            drawContext.canvas.nativeCanvas.apply {
-                val text = "${(endMs - startMs) / 1000f}s"
-                drawText(
-                    text,
-                    (left + right) / 2 - 20f,
-                    height / 2 - 20f,
-                    android.text.TextPaint().apply {
-                        color = android.graphics.Color.WHITE
-                        textSize = 24f
-                        textAlign = android.text.Layout.Alignment.ALIGN_CENTER
-                    }
-                )
-            }
         }
 
         // Start handle
@@ -256,10 +242,10 @@ private fun TrimTimeline(
                 .background(PANA_GREEN, RoundedCornerShape(50))
                 .pointerInput(Unit) {
                     detectDragGestures { change, _ ->
-                        val deltaX = change.delta.x
+                        val deltaX = change.position.x - change.previousPosition.x
                         val newPos = ((trimStart * size.width + deltaX) / size.width).coerceIn(0f, trimEnd - 0.01f)
                         onTrimStartChange(newPos)
-                        change.consumeAllChanges()
+                        change.consume()
                     }
                 }
         )
@@ -273,10 +259,10 @@ private fun TrimTimeline(
                 .background(PANA_GREEN, RoundedCornerShape(50))
                 .pointerInput(Unit) {
                     detectDragGestures { change, _ ->
-                        val deltaX = change.delta.x
+                        val deltaX = change.position.x - change.previousPosition.x
                         val newPos = ((trimEnd * size.width + deltaX) / size.width).coerceIn(trimStart + 0.01f, 1f)
                         onTrimEndChange(newPos)
-                        change.consumeAllChanges()
+                        change.consume()
                     }
                 }
         )
