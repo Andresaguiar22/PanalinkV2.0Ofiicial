@@ -968,9 +968,14 @@ fun TikTokPageItem(
     // del puntero estable (vcdn_video_id o copia local): así la reproducción en
     // curso jamás se reinicia por un mediaUrl rotatorio.
     val stableMediaUrl = remember(state.id, state.vcdnVideoId, state.localVideoPath, state.mediaUrl) {
-        val local = state.localVideoPath?.takeIf { it.isNotBlank() && java.io.File(it).exists() }
-        if (local != null) local
-        else if (!state.vcdnVideoId.isNullOrBlank()) "vcdn://${state.vcdnVideoId}"
+        // La copia local solo se usa OFFLINE. En línea SIEMPRE stream remoto:
+        // una copia dañada/incompleta (descarga cancelada a medias) reproducida
+        // en línea era la causa de CodecException 4006 y "Reintentar" a cada rato..
+        if (!com.example.util.NetworkMonitor.isOnline.value) {
+            val local = state.localVideoPath?.takeIf { it.isNotBlank() && java.io.File(it).exists() && it.length > 100_000L }
+            if (local != null) return@remember local
+        }
+        if (!state.vcdnVideoId.isNullOrBlank()) "vcdn://${state.vcdnVideoId}"
         else state.mediaUrl
     }
 
@@ -1034,7 +1039,7 @@ fun TikTokPageItem(
     // Player acquisition depends ONLY on resolved URL, NOT on metadata.
     // Metadata extraction is deferred to a secondary LaunchedEffect above so
     // it never blocks playback preparation.
-    LaunchedEffect(stableMediaUrl, state.id,isActivePage,isPreload,dualManager,playerRefreshKey) {
+    LaunchedEffect(stableMediaUrl, state.id,isActivePage,isPreload,dualManager,playerRefreshKey,com.example.util.NetworkMonitor.isOnline.value) {
 
         // BUGFIX: reiniciar el estado de resolución solo CUANDO el puntero estable
         // cambia (otra fila, copia local nueva, o reel distinto). Un REPLACE de fila
@@ -1049,11 +1054,16 @@ fun TikTokPageItem(
             "VCDN resolve iniciado",
             correlationId = state.id.take(36)
         )
-        resolvedUrl = if (state.localVideoPath.isNullOrEmpty()){
+        resolvedUrl = if (!com.example.util.NetworkMonitor.isOnline.value && !state.localVideoPath.isNullOrBlank()){
+            val local = state.localVideoPath!!.takeIf { java.io.File(it).exists() && it.length > 100_000L }
+            if (local == null) {
+                resolveFailed = true
+                return@LaunchedEffect
+            }
+            local
+        } else {
             val resolved =withContext(Dispatchers.IO) { com.example.data.repository.CdnManager.resolveMediaUrl(stableMediaUrl)}
             resolved.takeIf { !it.startsWith("vcdn://") }
-        } else {
-            state.localVideoPath
         }
         if (isVcdn && resolveStart > 0L) {
             val duration = System.currentTimeMillis() - resolveStart
@@ -1126,17 +1136,11 @@ fun TikTokPageItem(
         )
     }
 
-    LaunchedEffect(state.id, resolvedUrl, stableMediaUrl) {
-        val url = resolvedUrl
-        // H3 fix: only trigger ensureLocalCopy when the page is active but the
-        // player has buffered enough data (not actively streaming new data),
-        // to avoid competing I/O with the streaming CacheDataSource.
-        if (isActivePage && !url.isNullOrBlank() && url.startsWith("http") && !isBuffering) {
-            com.example.media.social.ReelOfflineMediaManager.ensureLocalCopy(
-                context, state.id, url
-            )
-        }
-    }
+    // NOTE: forced offline copy (ensureLocalCopy) removed 2026-09-11:
+    // it re-downloaded the SAME video in parallel while the player was streaming it,
+    // saturating the network (stutter/slow start) and left half-downloaded copies
+    // that playback preferred, causing CodecException 4006 and "Reintentar".
+    // The player SimpleCache still gives natural offline for what you watched..
 
     // ---------------------------------------------------------------------------
     // Codec/decoder error recovery.
