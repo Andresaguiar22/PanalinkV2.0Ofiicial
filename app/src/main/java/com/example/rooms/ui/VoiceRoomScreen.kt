@@ -15,7 +15,7 @@ fun VoiceRoomScreen(
     viewModel: VoiceRoomViewModel = viewModel(),
     onOpenProfile: ((String) -> Unit)? = null
 ) {
-    if (roomId.isNullOrBlank()) RoomSelectionRequired(onBack) else VoiceRoomScreenV2(
+    if (roomId.isNullOrBlank()) RoomSelectionRequired(onBack) else VoiceRoomRedesignedScreen(
         roomId = roomId,
         onBack = onBack,
         viewModel = viewModel,
