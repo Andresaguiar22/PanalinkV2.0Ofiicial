@@ -48,7 +48,10 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.platform.LocalSoftwareKeyboardController
 import androidx.compose.ui.platform.LocalView
+import androidx.compose.ui.focus.FocusRequester
+import androidx.compose.ui.focus.focusRequester
 import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextOverflow
@@ -62,6 +65,8 @@ import com.example.rooms.model.VoiceRoom
 import com.example.rooms.model.VoiceRoomMember
 import com.example.rooms.model.VoiceRoomMessage
 import com.example.rooms.model.VoiceRoomSeat
+import com.example.features.stickers.domain.Sticker
+import com.example.features.stickers.presentation.StickerPanel
 import kotlinx.coroutines.launch
 
 // === Helpers ===
@@ -260,6 +265,7 @@ fun VoiceRoomRedesignedScreen(
                 onRequestSeat = { viewModel.requestAnySeat() },
                 onToggleMute = { viewModel.toggleMute() },
                 onEnableMic = { permission.launch(Manifest.permission.RECORD_AUDIO) },
+                onStickerSelected = { stickerUrl -> viewModel.sendMessage("[sticker:$stickerUrl]") },
                 onOpenSettings = if (state.isAdmin) { { viewModel.openSettings() } } else null,
                 onLeaveRoom = { viewModel.leaveRoom(); onBack() },
                 isAdmin = state.isAdmin
@@ -396,6 +402,9 @@ fun VoiceRoomRedesignedHeader(
             }
         }
 
+        // Separador flexible: empuja los iconos a la esquina derecha
+        Spacer(modifier = Modifier.weight(1f))
+
         // ── Bloque derecho: usuario+contador, regalo, compartir, cerrar ──
         Row(
             horizontalArrangement = Arrangement.spacedBy(4.dp),
@@ -508,7 +517,7 @@ fun VoiceRoomHostSeat(
         Box {
             VoiceRoomRedesignedSeatCircle(
                 seat = seat,
-                size = 48.dp,
+                size = 56.dp,
                 avatarUrl = avatarUrl,
                 displayName = displayName,
                 isHost = true,
@@ -551,18 +560,10 @@ fun VoiceRoomHostSeat(
                         modifier = Modifier.size(14.dp)
                     )
                 }
-            } else {
-                // Placeholder para sillón del anfitrión vacío
-                Text(
-                    text = "🎤",
-                    fontSize = 28.sp,
-                    color = VoiceRoomPalette.TextSecondary.copy(alpha = 0.5f),
-                    modifier = Modifier.align(Alignment.Center)
-                )
             }
         }
 
-            Spacer(modifier = Modifier.height(10.dp))
+        Spacer(modifier = Modifier.height(10.dp))
 
         // Username o placeholder
         if (seat?.isOccupied == true) {
@@ -738,8 +739,8 @@ fun VoiceRoomRedesignedSeat(
             Text(
                 text = "NO. $seatNumber",
                 color = VoiceRoomPalette.TextSecondary,
-                fontSize = 11.sp,
-                fontWeight = FontWeight.Medium
+                fontSize = 10.sp,
+                fontWeight = FontWeight.Normal
             )
         } else {
             Text(
@@ -1013,6 +1014,7 @@ fun VoiceRoomRedesignChatMessage(
         Column(
             modifier = Modifier
                 .weight(1f, fill = false)
+                .widthIn(max = 200.dp)
                 .clip(RoundedCornerShape(10.dp))
                 .background(Color(0x14FFFFFF))
                 .padding(horizontal = 8.dp, vertical = 3.dp),
@@ -1032,7 +1034,10 @@ fun VoiceRoomRedesignChatMessage(
                 text = message.content,
                 color = VoiceRoomPalette.TextPrimary,
                 fontSize = 12.sp,
-                lineHeight = 15.sp
+                lineHeight = 15.sp,
+                modifier = Modifier
+                    .widthIn(max = 200.dp)
+                    .wrapContentHeight()
             )
         }
     }
@@ -1053,16 +1058,40 @@ fun VoiceRoomRedesignedBottomBar(
     onRequestSeat: () -> Unit,
     onToggleMute: () -> Unit,
     onEnableMic: () -> Unit,
+    onStickerSelected: ((String) -> Unit)? = null,
     onOpenSettings: (() -> Unit)? = null,
     onLeaveRoom: () -> Unit,
     isAdmin: Boolean
 ) {
     var showMenu by remember { mutableStateOf(false) }
+    var showStickers by remember { mutableStateOf(false) }
+
+    val focusRequester = remember { FocusRequester() }
+    val keyboardController = LocalSoftwareKeyboardController.current
+
+    if (showStickers && onStickerSelected != null) {
+        val sheetState = rememberModalBottomSheetState(skipPartiallyExpanded = true)
+        ModalBottomSheet(
+            onDismissRequest = { showStickers = false },
+            sheetState = sheetState
+        ) {
+            StickerPanel(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .height(280.dp),
+                onStickerSelected = { sticker ->
+                    showStickers = false
+                    onStickerSelected(sticker.imageUrl)
+                    keyboardController?.hide()
+                }
+            )
+        }
+    }
 
     Row(
         modifier = modifier
             .fillMaxWidth()
-            .padding(horizontal = 12.dp, vertical = 8.dp),
+            .padding(horizontal = 8.dp, vertical = 8.dp),
         verticalAlignment = Alignment.CenterVertically
     ) {
         // Campo de texto con forma de píldora
@@ -1071,7 +1100,9 @@ fun VoiceRoomRedesignedBottomBar(
             onValueChange = { onValueChange(it.take(2000)) },
             modifier = Modifier
                 .weight(1f)
-                .background(Color(0xFF1E293B), shape = CircleShape),
+                .heightIn(max = 40.dp)
+                .background(Color(0xFF1E293B), shape = CircleShape)
+                .focusRequester(focusRequester),
             singleLine = true,
             placeholder = {
                 Text(
@@ -1097,29 +1128,7 @@ fun VoiceRoomRedesignedBottomBar(
             maxLines = 1
         )
 
-        Spacer(modifier = Modifier.width(6.dp))
-
-        // IconButton para Emojis
-        IconButton(onClick = { /* emoji - no-op */ }, modifier = Modifier.size(36.dp)) {
-            Icon(
-                imageVector = Icons.Default.Face,
-                contentDescription = "Emojis",
-                tint = VoiceRoomPalette.TextSecondary,
-                modifier = Modifier.size(20.dp)
-            )
-        }
-
-        // IconButton para Stickers/GIFs
-        IconButton(onClick = { /* stickers/gifs - no-op */ }, modifier = Modifier.size(36.dp)) {
-            Icon(
-                imageVector = Icons.Default.Gif,
-                contentDescription = "Stickers",
-                tint = VoiceRoomPalette.TextSecondary,
-                modifier = Modifier.size(20.dp)
-            )
-        }
-
-        // IconButton para Enviar
+        // IconButton para Enviar (pegado a la píldora)
         IconButton(
             onClick = onSend,
             enabled = inputText.isNotBlank(),
@@ -1129,6 +1138,35 @@ fun VoiceRoomRedesignedBottomBar(
                 imageVector = Icons.Default.Send,
                 contentDescription = "Enviar",
                 tint = if (inputText.isNotBlank()) VoiceRoomPalette.ActiveCyan else VoiceRoomPalette.TextSecondary.copy(alpha = 0.4f),
+                modifier = Modifier.size(20.dp)
+            )
+        }
+
+        // IconButton para Emojis (abre teclado)
+        IconButton(
+            onClick = {
+                focusRequester.requestFocus()
+                keyboardController?.show()
+            },
+            modifier = Modifier.size(36.dp)
+        ) {
+            Icon(
+                imageVector = Icons.Default.Face,
+                contentDescription = "Emojis",
+                tint = VoiceRoomPalette.TextSecondary,
+                modifier = Modifier.size(20.dp)
+            )
+        }
+
+        // IconButton para Stickers/GIFs
+        IconButton(
+            onClick = { if (onStickerSelected != null) { showStickers = true } },
+            modifier = Modifier.size(36.dp)
+        ) {
+            Icon(
+                imageVector = Icons.Default.Gif,
+                contentDescription = "Stickers",
+                tint = VoiceRoomPalette.TextSecondary,
                 modifier = Modifier.size(20.dp)
             )
         }
