@@ -1,6 +1,7 @@
 package com.example.features.stickers.studio
 
 import android.graphics.Bitmap
+import android.graphics.BitmapFactory
 import android.graphics.Typeface
 import android.net.Uri
 import android.widget.Toast
@@ -40,9 +41,11 @@ import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import androidx.core.content.FileProvider
 import coil.compose.AsyncImage
 import coil.decode.GifDecoder
 import coil.request.ImageRequest
+import com.example.util.rememberCameraPermissionState
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
@@ -119,6 +122,10 @@ fun StickerStudioScreen(
 
     // Video mode state
     var gifFile by remember { mutableStateOf<File?>(null) }
+    var showTrimmer by remember { mutableStateOf(false) }
+    var selectedVideoUri by remember { mutableStateOf<Uri?>(null) }
+    var trimStartMs by remember { mutableStateOf(0L) }
+    var trimEndMs by remember { mutableStateOf(5000L) }
 
     var emojiTag by remember { mutableStateOf("🟢") }
     var isProcessing by remember { mutableStateOf(false) }
@@ -137,29 +144,49 @@ fun StickerStudioScreen(
 
     val pickVideo = rememberLauncherForActivityResult(ActivityResultContracts.PickVisualMedia()) { uri: Uri? ->
         uri ?: return@rememberLauncherForActivityResult
-        scope.launch {
-            isProcessing = true
-            processingLabel = "Convirtiendo video a sticker animado…"
-            val file = StickerStudioRenderer.videoToGifSticker(context, uri)
-            isProcessing = false
-            if (file != null) {
-                gifFile = file
-            } else {
-                Toast.makeText(context, "Usa un video de máximo 6 segundos", Toast.LENGTH_LONG).show()
-            }
-        }
+        showTrimmer = true
+        selectedVideoUri = uri
     }
 
-    val cameraLauncher = rememberLauncherForActivityResult(ActivityResultContracts.TakePicturePreview()) { bitmap ->
-        bitmap ?: return@rememberLauncherForActivityResult
-        baseBitmap = bitmap
-        imgScale = 1f; imgRotation = 0f; imgOffset = Offset.Zero
+    var pendingPhotoFile by remember { mutableStateOf<File?>(null) }
+
+    val cameraPermissionState = rememberCameraPermissionState(
+        onPermissionsGranted = {
+            val tempDir = File(context.cacheDir, "sticker_studio_camera").apply { mkdirs() }
+            val photoFile = File(tempDir, "photo_${System.currentTimeMillis()}.jpg")
+            pendingPhotoFile = photoFile
+            val photoUri = FileProvider.getUriForFile(
+                context,
+                "${context.packageName}.provider",
+                photoFile
+            )
+            takePictureLauncher.launch(photoUri)
+        },
+        onPermissionDenied = {
+            Toast.makeText(context, "Se requiere permiso de cámara", Toast.LENGTH_SHORT).show()
+        }
+    )
+
+    val takePictureLauncher = rememberLauncherForActivityResult(
+        ActivityResultContracts.TakePicture()
+    ) { success ->
+        if (!success) return@rememberLauncherForActivityResult
+        val photoFile = pendingPhotoFile ?: return@rememberLauncherForActivityResult
+        val bitmap = BitmapFactory.decodeFile(photoFile.absolutePath)
+        if (bitmap != null) {
+            baseBitmap = bitmap
+            imgScale = 1f; imgRotation = 0f; imgOffset = Offset.Zero
+        }
+        photoFile.delete()
+        pendingPhotoFile = null
     }
+
+    val pickImageLauncher = rememberLauncherForActivityResult(ActivityResultContracts.PickVisualMedia()) { uri: Uri? ->
 
     fun canSave(): Boolean = when (mode) {
         StudioMode.IMAGE -> baseBitmap != null
         StudioMode.TEXT -> textInput.isNotBlank()
-        StudioMode.VIDEO -> gifFile != null
+        StudioMode.VIDEO -> gifFile != null || selectedVideoUri != null
     }
 
     fun save() {
@@ -168,6 +195,17 @@ fun StickerStudioScreen(
             isProcessing = true
             processingLabel = "Creando tu sticker…"
             try {
+                // For video mode: convert trimmed segment to animated WebP before the when block
+                if (mode == StudioMode.VIDEO && selectedVideoUri != null && gifFile == null) {
+                    processingLabel = "Procesando video…"
+                    gifFile = StickerStudioRenderer.videoToAnimatedWebpSticker(
+                        context = context,
+                        uri = selectedVideoUri!!,
+                        startTimeMs = trimStartMs,
+                        endTimeMs = trimEndMs
+                    )
+                }
+
                 val localFile: File? = when (mode) {
                     StudioMode.IMAGE -> {
                         val bitmap = withContext(Dispatchers.Default) {
@@ -216,7 +254,10 @@ fun StickerStudioScreen(
                         bitmap.recycle()
                         file
                     }
-                    StudioMode.VIDEO -> gifFile
+                    StudioMode.VIDEO -> {
+                        // Use the trimmed and transcoded animated WebP
+                        gifFile
+                    }
                 }
 
                 if (localFile == null) {
@@ -225,21 +266,45 @@ fun StickerStudioScreen(
                     return@launch
                 }
 
-                processingLabel = "Subiendo a Panalink…"
-                val mime = if (localFile.extension == "gif") "image/gif" else "image/webp"
-                val upload = com.example.features.stickers.editor.StickerCreationRepository.uploadAndCreateSticker(
-                    context = context,
-                    file = localFile,
-                    name = "Panalink Sticker",
-                    emoji = emojiTag,
-                    mimeType = mime
-                )
-                // Local path always works offline; remote URL makes it shareable.
-                val finalUrl = upload.getOrNull() ?: localFile.absolutePath
+                processingLabel = "Guardando sticker…"
+                // Guardar localmente primero (offline-first)
                 com.example.data.repository.StickerRepository.saveSticker(
                     context,
-                    com.example.data.model.StickerResult(url = finalUrl, preview = localFile.absolutePath)
+                    com.example.data.model.StickerResult(url = localFile.absolutePath, preview = localFile.absolutePath)
                 )
+                // Registrar como reciente
+                com.example.data.repository.StickerRepository.addRecentSticker(
+                    context,
+                    com.example.data.model.StickerResult(url = localFile.absolutePath, preview = localFile.absolutePath)
+                )
+                // Encolar subida durable con WorkManager (offline-first, reanuda al volver la señal)
+                val uploadData = StickerUploadWorker.createInputData(
+                    localPath = localFile.absolutePath,
+                    previewPath = localFile.absolutePath,
+                    name = "Panalink Sticker",
+                    emoji = emojiTag
+                )
+                val constraints = androidx.work.Constraints.Builder()
+                    .setRequiredNetworkType(androidx.work.NetworkType.CONNECTED)
+                    .build()
+                val workRequest = androidx.work.OneTimeWorkRequestBuilder<StickerUploadWorker>()
+                    .setConstraints(constraints)
+                    .setInputData(uploadData)
+                    .addTag("sticker_upload")
+                    .addTag("sticker_upload_${localFile.name}")
+                    .setBackoffCriteria(
+                        androidx.work.BackoffPolicy.EXPONENTIAL,
+                        androidx.work.WorkRequest.MIN_BACKOFF_MILLIS,
+                        java.util.concurrent.TimeUnit.MILLISECONDS
+                    )
+                    .build()
+                androidx.work.WorkManager.getInstance(context)
+                    .enqueueUniqueWork(
+                        "sticker_upload_${localFile.name}",
+                        androidx.work.ExistingWorkPolicy.KEEP,
+                        workRequest
+                    )
+                val finalUrl = localFile.absolutePath
                 isProcessing = false
                 Toast.makeText(context, "Sticker creado 🎉", Toast.LENGTH_SHORT).show()
                 onStickerCreated(finalUrl)
@@ -248,6 +313,31 @@ fun StickerStudioScreen(
                 Toast.makeText(context, "Error: ${e.localizedMessage}", Toast.LENGTH_SHORT).show()
             }
         }
+    }
+
+    // Video trimmer overlay
+    if (showTrimmer && selectedVideoUri != null) {
+        VideoTrimmerScreen(
+            videoUri = selectedVideoUri!!,
+            onConfirm = { startMs, endMs ->
+                trimStartMs = startMs
+                trimEndMs = endMs
+                showTrimmer = false
+                // Pre-generate the animated sticker in background
+                scope.launch {
+                    isProcessing = true
+                    processingLabel = "Procesando video…"
+                    gifFile = StickerStudioRenderer.videoToAnimatedWebpSticker(
+                        context = context,
+                        uri = selectedVideoUri!!,
+                        startTimeMs = startMs,
+                        endTimeMs = endMs
+                    )
+                    isProcessing = false
+                }
+            },
+            onDismiss = { showTrimmer = false }
+        )
     }
 
     Scaffold(
@@ -341,7 +431,7 @@ fun StickerStudioScreen(
                                         Text("Galería", color = Color.Black)
                                     }
                                     Button(
-                                        onClick = { cameraLauncher.launch(null) },
+                                        onClick = { cameraPermissionState.requestPermissions() },
                                         colors = ButtonDefaults.buttonColors(containerColor = Color(0xFF2A3942))
                                     ) {
                                         Icon(Icons.Filled.CameraAlt, null, tint = Color.White)
@@ -375,7 +465,7 @@ fun StickerStudioScreen(
                             Column(horizontalAlignment = Alignment.CenterHorizontally) {
                                 Text("Convierte tu video en sticker animado", color = Color.White, fontSize = 15.sp, fontWeight = FontWeight.SemiBold)
                                 Spacer(Modifier.height(4.dp))
-                                Text("Máximo 6 segundos · se convierte a GIF en bucle", color = Color(0xFF8596A0), fontSize = 12.sp)
+                                Text("Máximo 5 segundos · recorta y convierte a WebP animado", color = Color(0xFF8596A0), fontSize = 12.sp)
                                 Spacer(Modifier.height(16.dp))
                                 Button(
                                     onClick = { pickVideo.launch(PickVisualMediaRequest(ActivityResultContracts.PickVisualMedia.VideoOnly)) },

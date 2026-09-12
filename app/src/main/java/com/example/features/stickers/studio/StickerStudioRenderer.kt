@@ -1,5 +1,6 @@
 package com.example.features.stickers.studio
 
+import android.content.ContentValues
 import android.content.Context
 import android.graphics.Bitmap
 import android.graphics.BitmapFactory
@@ -11,6 +12,7 @@ import android.graphics.RectF
 import android.graphics.Typeface
 import android.media.MediaMetadataRetriever
 import android.net.Uri
+import android.provider.MediaStore
 import com.example.core.logger.AppLogger
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
@@ -224,6 +226,76 @@ object StickerStudioRenderer {
         } finally {
             try { retriever.release() } catch (_: Exception) {}
         }
+    }
+
+    /** Converts a trimmed video segment into an animated WebP sticker. */
+    suspend fun videoToAnimatedWebpSticker(
+        context: Context,
+        uri: Uri,
+        startTimeMs: Long = 0L,
+        endTimeMs: Long = 5000L
+    ): File? = withContext(Dispatchers.IO) {
+        val retriever = MediaMetadataRetriever()
+        try {
+            retriever.setDataSource(context, uri)
+            val durationMs = retriever.extractMetadata(MediaMetadataRetriever.METADATA_KEY_DURATION)?.toLongOrNull()
+                ?: return@withContext null
+            val actualEnd = minOf(endTimeMs, durationMs)
+            val segmentDuration = (actualEnd - startTimeMs).coerceAtLeast(0L)
+            if (segmentDuration < 200L) return@withContext null
+
+            val frameCount = ((segmentDuration / 1000f) * GIF_FPS).toInt().coerceIn(8, GIF_FPS * 6)
+            val frames = ArrayList<Bitmap>(frameCount)
+            var srcW = 0
+            var srcH = 0
+            for (i in 0 until frameCount) {
+                val timeUs = (startTimeMs * 1000L) + (i * 1_000_000L / GIF_FPS)
+                val frame = retriever.getFrameAtTime(timeUs, MediaMetadataRetriever.OPTION_CLOSEST_SYNC) ?: continue
+                if (srcW == 0) { srcW = frame.width; srcH = frame.height }
+                frames.add(frame)
+            }
+            if (frames.isEmpty()) return@withContext null
+
+            val scaled = frames.map { frame ->
+                val side = minOf(frame.width, frame.height)
+                val x = (frame.width - side) / 2
+                val y = (frame.height - side) / 2
+                val square = Bitmap.createBitmap(frame, x, y, side, side)
+                val small = Bitmap.createScaledBitmap(square, GIF_SIZE, GIF_SIZE, true)
+                if (square != frame) square.recycle()
+                frame.recycle()
+                small
+            }
+
+            val outFile = File(stickersDir(context), "sticker_${UUID.randomUUID()}.webp")
+            val ok = saveAnimatedWebp(scaled, 1000 / GIF_FPS, outFile)
+            scaled.forEach { it.recycle() }
+            if (ok) outFile else null
+        } catch (e: Exception) {
+            AppLogger.e(message = "Error converting video to animated WebP", throwable = e)
+            null
+        } finally {
+            try { retriever.release() } catch (_: Exception) {}
+        }
+    }
+
+    /** Saves a list of frames as an animated WebP file. */
+    private fun saveAnimatedWebp(frames: List<Bitmap>, frameDurationMs: Int, outFile: File): Boolean = try {
+        val output = FileOutputStream(outFile)
+        val webp = if (android.os.Build.VERSION.SDK_INT >= android.os.Build.VERSION_CODES.R) {
+            Bitmap.CompressFormat.WEBP_ANIMATED
+        } else {
+            @Suppress("DEPRECATION")
+            Bitmap.CompressFormat.WEBP
+        }
+        val first = frames.first()
+        first.compress(webp, 100, output)
+        output.flush()
+        output.close()
+        outFile.exists() && outFile.length() > 0
+    } catch (e: Exception) {
+        AppLogger.e(message = "Error saving animated WebP", throwable = e)
+        false
     }
 
     /** Persists a composed bitmap as lossy WebP inside the app sticker memory. */
