@@ -82,27 +82,57 @@ cat > "$WT/app/src/debug/AndroidManifest.xml" <<'EOF'
 </manifest>
 EOF
 
+# Keystore fijo de la beta: firma estable para TODAS las rondas (se instala encima, sin conflicto).
+cp "$REPO/app/panalink-beta.keystore" "$WT/app/panalink-beta.keystore" || { echo "fallo copia keystore"; exit  15; }
+
 python3 - "$WT/app/build.gradle.kts" <<'PY'
 import sys, pathlib, re
 p = pathlib.Path(sys.argv[1])
 s = p.read_text()
+
+debug_signing = '''
+
+    signingConfigs {
+        create("beta") {
+            storeFile = file("panalink-beta.keystore")
+            storePassword = "panalinkbeta"
+            keyAlias = "panalinkbeta"
+            keyPassword = "panalinkbeta"
+            isV1SigningEnabled = true
+            isV2SigningEnabled = true
+        }
+    }
+'''
+if "storeFile = file(\"panalink-beta.keystore\")" not in s:
+    # inserta el signingConfig "beta" justo antes del buildTypes.
+
+    m = re.search(r"\n(\s*)buildTypes\s*\{", s)
+    if not m:
+        print("ERROR: no se encontro 'buildTypes {' en build.gradle.kts")
+        sys.exit(1)
+    indent = m.group(1)
+    block = debug_signing.replace("\n    ", "\n" + indent).rstrip() + "\n"
+    s = s[:m.start(1)] + block + s[m.start(1):]
+
+target = re.compile(r"debug\s*\{\s*\}")
 if "applicationIdSuffix" in s:
     print("   gradle ya tiene suffix .beta; sin cambios")
-    sys.exit(0)
-target = re.compile(r"debug\s*\{\s*\}")
-replacement = ("debug {\n"
+else:
+    replacement = ("debug {\n"
     "            // Variante BETA de prueba: instala como app aparte (com.panalink.app.beta),\n"
     "            // sin chocar con la produccion. Temporal, no commitear.\n"
     "            applicationIdSuffix = \".beta\"\n"
+    "            signingConfig = signingConfigs.getByName(\"beta\")\n"
     "        }")
-s2, n = target.subn(replacement, s, count=1)
-if n == 0:
-    print("ERROR: no se encontro el bloque 'debug { }' en build.gradle.kts")
-    sys.exit(1)
-p.write_text(s2)
-print("   gradle parchado con suffix .beta")
+    s, n = target.subn(replacement, s, count=1)
+    if n == 0:
+        print("ERROR: no se encontro el bloque 'debug { }' en build.gradle.kts")
+        sys.exit(1)
+
+p.write_text(s)
+print("   gradle parchado: firma beta estable + suffix .beta")
 PY
-if [ $? -ne 0 ]; then exit  15; fi
+if [ $? -ne 0 ]; then exit  16; fi
 
 echo "==> [5/7] Compilando APK beta ..."
 cd "$WT" || exit 16
