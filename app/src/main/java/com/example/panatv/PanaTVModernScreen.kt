@@ -90,6 +90,9 @@ fun PanaTVModernScreen(viewModel: PanaTVViewModel = viewModel()) {
     var hasRenderedFrame by remember { mutableStateOf(false) }
     var playerError by remember { mutableStateOf<String?>(null) }
     var showCountries by remember { mutableStateOf(false) }
+    // Canal cuyo surface está conectado al PlayerView compartido: permite detectar
+    // el cambio de canal y forzar el reattach surface (fix imagen congelada).
+    var currentPlayerChannelId by remember { mutableStateOf<String?>(null) }
 
     val player = remember(currentChannel) {
         currentChannel?.let { channel ->
@@ -117,7 +120,6 @@ fun PanaTVModernScreen(viewModel: PanaTVViewModel = viewModel()) {
                 isBuffering = state == Player.STATE_BUFFERING
                 if (state == Player.STATE_READY) {
                     playerError = null
-                    hasRenderedFrame = true
                 }
             }
 
@@ -238,6 +240,10 @@ fun PanaTVModernScreen(viewModel: PanaTVViewModel = viewModel()) {
                 AndroidView(
                     factory = { ctx ->
                         PlayerView(ctx).apply {
+                            // View NUEVO: su surface nunca ha estado conectado a este player con video
+                            // activo. Invalidar el canal actual para que el update que sigue fuerce el
+                            // reattach surface (si no, media3 deja la textura vieja: negro o tarjetas).
+                            currentPlayerChannelId = null
                             this.player = player
                             useController = false
                             resizeMode = AspectRatioFrameLayout.RESIZE_MODE_ZOOM
@@ -250,8 +256,20 @@ fun PanaTVModernScreen(viewModel: PanaTVViewModel = viewModel()) {
                         }
                     },
                     update = { view ->
+                        val channelChanged = currentPlayerChannelId != currentChannel?.id
+                        if (channelChanged && view.player != null) {
+                            // Detach el surface del canal anterior: media3 NO re-conecta
+                            // el mismo Player sola con `view.player = player`, dejando la
+                            // textura congelada del canal previo (audio nuevo + imagen vieja).
+                            view.player = null
+                        }
                         view.player = player
                         view.resizeMode = AspectRatioFrameLayout.RESIZE_MODE_ZOOM
+                        if (channelChanged) {
+                            currentPlayerChannelId = currentChannel?.id
+                            // Descarta la textura residual que persiste en la SurfaceView vieja.
+
+                        }
                     },
                     modifier = Modifier.fillMaxSize()
                 )
@@ -469,8 +487,14 @@ fun PanaTVModernScreen(viewModel: PanaTVViewModel = viewModel()) {
         }
     }
 
+    // Solo automatiza la ENTRADA (rotar a landscape + ocultar bars) en respuesta al
+    // estado; la salida la gestionan el BackHandler y onDismissRequest para no forzar
+    // la orientación al montar la pantalla en portrait.
+    LaunchedEffect(isFullscreen) {
+        if (isFullscreen) enterFullscreen()
+    }
+
     if (isFullscreen) {
-        enterFullscreen()
         Dialog(
             onDismissRequest = {
                 exitFullscreen()

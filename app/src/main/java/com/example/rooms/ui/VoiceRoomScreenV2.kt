@@ -137,13 +137,13 @@ fun VoiceRoomScreenV2(
                 Spacer(modifier = Modifier.height(8.dp))
 
                 // Starmaker: cuatro asientos por fila, agrupados cerca del centro.
-                // ROW A: [1] [2]   [5] [6]
+                // ROW A: [1] [2] [5] [6] (4 sillones espaciados uniformemente)
                 Row(
                     modifier = Modifier.fillMaxWidth(),
                     horizontalArrangement = Arrangement.Center,
                     verticalAlignment = Alignment.Top
                 ) {
-                    Row(horizontalArrangement = Arrangement.spacedBy(16.dp)) {
+                    Row(horizontalArrangement = Arrangement.spacedBy(20.dp)) {
                         val s1 = state.seats.getOrNull(1)
                         val s2 = state.seats.getOrNull(2)
                         VoiceRoomStageSeat(
@@ -158,9 +158,6 @@ fun VoiceRoomScreenV2(
                             onClick = { seatClickHaptic(); viewModel.onSeatClicked(2, hasMic) },
                             onAdmin = { s2?.userId?.let { moderationTarget = it } }
                         )
-                    }
-                    Spacer(modifier = Modifier.width(40.dp))
-                    Row(horizontalArrangement = Arrangement.spacedBy(16.dp)) {
                         val s5 = state.seats.getOrNull(5)
                         val s6 = state.seats.getOrNull(6)
                         VoiceRoomStageSeat(
@@ -180,13 +177,13 @@ fun VoiceRoomScreenV2(
 
                 Spacer(modifier = Modifier.height(6.dp))
 
-                // ROW B: [3] [4]   [7] [8]
+                // ROW B: [3] [4] [7] [8] (4 sillones espaciados uniformemente)
                 Row(
                     modifier = Modifier.fillMaxWidth(),
                     horizontalArrangement = Arrangement.Center,
                     verticalAlignment = Alignment.Top
                 ) {
-                    Row(horizontalArrangement = Arrangement.spacedBy(16.dp)) {
+                    Row(horizontalArrangement = Arrangement.spacedBy(20.dp)) {
                         val s3 = state.seats.getOrNull(3)
                         val s4 = state.seats.getOrNull(4)
                         VoiceRoomStageSeat(
@@ -201,9 +198,6 @@ fun VoiceRoomScreenV2(
                             onClick = { seatClickHaptic(); viewModel.onSeatClicked(4, hasMic) },
                             onAdmin = { s4?.userId?.let { moderationTarget = it } }
                         )
-                    }
-                    Spacer(modifier = Modifier.width(40.dp))
-                    Row(horizontalArrangement = Arrangement.spacedBy(16.dp)) {
                         val s7 = state.seats.getOrNull(7)
                         val s8 = state.seats.getOrNull(8)
                         VoiceRoomStageSeat(
