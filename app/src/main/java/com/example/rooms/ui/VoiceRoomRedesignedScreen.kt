@@ -749,14 +749,14 @@ fun VoiceRoomRedesignedSeat(
             Text(
                 text = "NO. $seatNumber",
                 color = VoiceRoomPalette.TextSecondary,
-                fontSize = 10.sp,
+                fontSize = 5.sp,
                 fontWeight = FontWeight.Normal
             )
         } else {
             Text(
                 text = displayName ?: "",
                 color = if (isMine) VoiceRoomPalette.ActiveCyan else VoiceRoomPalette.TextSecondary,
-                fontSize = 10.sp,
+                fontSize = 5.sp,
                 fontWeight = if (isMine) FontWeight.Bold else FontWeight.Medium,
                 maxLines = 1,
                 overflow = TextOverflow.Ellipsis
@@ -1044,7 +1044,7 @@ fun VoiceRoomRedesignChatMessage(
                 model = stickerPath,
                 contentDescription = "Sticker",
                 modifier = Modifier
-                    .size(80.dp)
+                    .size(90.dp)
                     .clip(RoundedCornerShape(12.dp)),
                 contentScale = ContentScale.Fit,
                 placeholder = null
