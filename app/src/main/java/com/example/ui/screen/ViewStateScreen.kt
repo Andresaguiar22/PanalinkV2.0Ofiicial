@@ -17,12 +17,15 @@ import androidx.compose.foundation.gestures.detectTapGestures
 import androidx.compose.foundation.gestures.detectVerticalDragGestures
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
+import androidx.compose.foundation.lazy.LazyRow
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Close
 import androidx.compose.material.icons.filled.Favorite
+import androidx.compose.material.icons.filled.Visibility
+import androidx.compose.material.icons.filled.VisibilityOff
 import androidx.compose.material.icons.filled.KeyboardArrowUp
 import androidx.compose.material.icons.filled.MoreVert
 import androidx.compose.material.icons.filled.Send
@@ -57,12 +60,15 @@ import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.style.TextOverflow
+import androidx.compose.ui.unit.Dp
+import androidx.compose.ui.unit.IntOffset
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.compose.ui.viewinterop.AndroidView
 import coil.compose.AsyncImage
 import coil.compose.rememberAsyncImagePainter
 import coil.compose.AsyncImagePainter
+import com.example.identity.repository.IdentityRepository
 import com.example.data.model.*
 import com.example.ui.viewmodel.StatesUiState
 import com.example.ui.viewmodel.StatesViewModel
@@ -85,6 +91,15 @@ import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.ui.graphics.SolidColor
 import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.text.input.ImeAction
+
+
+// Acción 4: Floating reaction data
+data class FloatingReactionLog(
+    val id: String,
+    val avatarUrl: String,
+    val emoji: String,
+    val userId: String
+)
 
 data class StateMetadata(
     val baseCaption: String,
@@ -477,6 +492,7 @@ fun UserStoryViewer(
 
     val currentUid = SupabaseClient.currentUser?.id ?: ""
     val isOwner = state.userId == currentUid
+    val isMyStory = isOwner // alias per Acción 2 spec
 
     var isUserPressing by remember { mutableStateOf(false) }
     var isInputFocused by remember { mutableStateOf(false) }
@@ -509,6 +525,47 @@ fun UserStoryViewer(
     // Reply & Reactions State
     var replyText by remember { mutableStateOf("") }
     var reactionMessage by remember { mutableStateOf<String?>(null) }
+
+    // Acción 4: Floating reactions (live-style)
+    var floatingReactions by remember { mutableStateOf(listOf<FloatingReactionLog>()) }
+    val reactionScope = rememberCoroutineScope()
+
+    // Acción 4: Listen for realtime story reactions via Supabase Realtime (social schema)
+    LaunchedEffect(state.id) {
+        if (isMyStory) {
+            SupabaseClient.realtimeLikes.collect { update ->
+                if (update.statusId == state.id && update.eventType == "INSERT") {
+                    reactionScope.launch(Dispatchers.IO) {
+                        val reactingUserId = try {
+                            update.record.optString("user_id", update.record.optString("author_id", ""))
+                        } catch (_: Exception) {
+                            ""
+                        }
+                        val emoji = if (update.eventType == "INSERT") {
+                            "❤️"
+                        } else {
+                            "👍"
+                        }
+                        val avatarUrl = if (reactingUserId.isNotBlank()) {
+                            try {
+                                val resolved = identityRepository.resolveFreshAvatar(reactingUserId)
+                                resolved ?: ""
+                            } catch (_: Exception) {
+                                ""
+                            }
+                        } else ""
+                        val log = FloatingReactionLog(
+                            id = "${System.currentTimeMillis()}_${reactingUserId}",
+                            avatarUrl = avatarUrl,
+                            emoji = emoji,
+                            userId = reactingUserId
+                        )
+                        floatingReactions = floatingReactions + log
+                    }
+                }
+            }
+        }
+    }
 
     // Parse Metadata
     val metadata = remember(state.caption) { parseStateMetadata(state.caption) }
@@ -1071,51 +1128,62 @@ fun UserStoryViewer(
                 }
             }
 
+            // Acción 5: Viewers marquee (owner-only) just below progress bar
+            if (isMyStory) {
+                ViewersMarquee(
+                    spectators = spectatorsList,
+                    modifier = Modifier.padding(bottom = 8.dp)
+                )
+            }
+
             // Profile info
-            Row(
-                modifier = Modifier.fillMaxWidth(),
-                verticalAlignment = Alignment.CenterVertically,
-                horizontalArrangement = Arrangement.SpaceBetween
-            ) {
+            Box(modifier = Modifier.fillMaxWidth()) {
                 Row(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .padding(horizontal = 36.dp), // leave room for centered category text
                     verticalAlignment = Alignment.CenterVertically,
-                    modifier = Modifier.clickable {
-                        val targetUserId = state.userId
-                        if (targetUserId.isNotBlank()) {
-                            onNavigateToUserProfile?.invoke(targetUserId)
+                    horizontalArrangement = Arrangement.SpaceBetween
+                ) {
+                    Row(
+                        verticalAlignment = Alignment.CenterVertically,
+                        modifier = Modifier.clickable {
+                            val targetUserId = state.userId
+                            if (targetUserId.isNotBlank()) {
+                                onNavigateToUserProfile?.invoke(targetUserId)
+                            }
+                        }
+                    ) {
+                        Box(
+                            modifier = Modifier
+                                .size(42.dp)
+                                .clip(CircleShape)
+                                .border(1.5.dp, Color(0xFF00FF85), CircleShape)
+                                .padding(2.dp)
+                        ) {
+                            PanaAvatar(
+                                avatarUrl = identityState?.avatarUrl ?: profile.avatarUrl,
+                                userId = state.userId,
+                                placeholderName = identityState?.displayName ?: (identityState?.displayName ?: profile.displayName),
+                                size = 38.dp,
+                                modifier = Modifier.fillMaxSize()
+                            )
+                        }
+                        Spacer(modifier = Modifier.width(10.dp))
+                        Column {
+                            Text(
+                                text = (identityState?.displayName ?: profile.displayName),
+                                color = Color.White,
+                                fontWeight = FontWeight.SemiBold,
+                                fontSize = 14.sp
+                            )
+                            Text(
+                                text = formattedTime,
+                                color = Color.White.copy(alpha = 0.6f),
+                                fontSize = 11.sp
+                            )
                         }
                     }
-                ) {
-                    Box(
-                        modifier = Modifier
-                            .size(42.dp)
-                            .clip(CircleShape)
-                            .border(1.5.dp, Color(0xFF00FF85), CircleShape)
-                            .padding(2.dp)
-                    ) {
-                        PanaAvatar(
-                            avatarUrl = identityState?.avatarUrl ?: profile.avatarUrl,
-                            userId = state.userId,
-                            placeholderName = identityState?.displayName ?: (identityState?.displayName ?: profile.displayName),
-                            size = 38.dp,
-                            modifier = Modifier.fillMaxSize()
-                        )
-                    }
-                    Spacer(modifier = Modifier.width(10.dp))
-                    Column {
-                        Text(
-                            text = (identityState?.displayName ?: profile.displayName),
-                            color = Color.White,
-                            fontWeight = FontWeight.SemiBold,
-                            fontSize = 14.sp
-                        )
-                        Text(
-                            text = formattedTime,
-                            color = Color.White.copy(alpha = 0.6f),
-                            fontSize = 11.sp
-                        )
-                    }
-                }
 
                 Row(
                     verticalAlignment = Alignment.CenterVertically,
@@ -1212,6 +1280,37 @@ fun UserStoryViewer(
                         Icon(Icons.Default.Close, contentDescription = "Cerrar", tint = Color.White)
                     }
                 }
+                } // closes outer Row (inside Box)
+
+                // Acción 2: Centered category text ("Pana Vídeo" / "Pana Foto")
+                Text(
+                    text = if (state.mediaType == "video") "Pana Vídeo" else "Pana Foto",
+                    color = Color.White.copy(alpha = 0.8f),
+                    fontSize = 12.sp,
+                    fontWeight = FontWeight.SemiBold,
+                    modifier = Modifier.align(Alignment.Center)
+                )
+
+                // Acción 2: Owner-only eye icon for quick spectator access (same row height)
+                if (isMyStory) {
+                    IconButton(
+                        onClick = {
+                            viewModel.loadSpectators(state.id)
+                            showSpectatorsSheet = true
+                        },
+                        modifier = Modifier
+                            .align(Alignment.BottomEnd)
+                            .background(Color.Black.copy(alpha = 0.4f), CircleShape)
+                            .size(32.dp)
+                    ) {
+                        Icon(
+                            imageVector = Icons.Default.Visibility,
+                            contentDescription = "Ver espectadores",
+                            tint = Color.White,
+                            modifier = Modifier.size(16.dp)
+                        )
+                    }
+                }
             }
         }
 
@@ -1275,39 +1374,30 @@ fun UserStoryViewer(
                 )
             }
 
-            // Quick views count display
+            // Quick views count display (Acción 2: eye icon only, owner-only)
             Row(
                 modifier = Modifier.fillMaxWidth(),
                 verticalAlignment = Alignment.CenterVertically,
                 horizontalArrangement = Arrangement.SpaceBetween
             ) {
                 val realViewsCount = spectatorsList.size
-                
-                Surface(
-                    onClick = {
-                        viewModel.loadSpectators(state.id)
-                        showSpectatorsSheet = true
-                    },
-                    shape = RoundedCornerShape(16.dp),
-                    color = Color.White.copy(alpha = 0.18f),
-                    modifier = Modifier.testTag("views_counter_pill")
-                ) {
-                    Row(
-                        verticalAlignment = Alignment.CenterVertically,
-                        horizontalArrangement = Arrangement.spacedBy(6.dp),
-                        modifier = Modifier.padding(horizontal = 10.dp, vertical = 6.dp)
+
+                // Acción 2: Only the owner sees the eye icon; no text "0 vistas"
+                if (isMyStory) {
+                    Surface(
+                        onClick = {
+                            viewModel.loadSpectators(state.id)
+                            showSpectatorsSheet = true
+                        },
+                        shape = RoundedCornerShape(16.dp),
+                        color = Color.White.copy(alpha = 0.18f),
+                        modifier = Modifier.testTag("views_counter_pill")
                     ) {
-                        Text(
-                            text = if (isOwner) "👁 $realViewsCount personas vieron tu estado" else "👁 $realViewsCount vistas",
-                            color = Color.White,
-                            fontSize = 12.sp,
-                            fontWeight = FontWeight.SemiBold
-                        )
                         Icon(
-                            imageVector = Icons.Default.KeyboardArrowUp,
-                            contentDescription = "Ver espectadores",
-                            tint = Color.White.copy(alpha = 0.9f),
-                            modifier = Modifier.size(16.dp)
+                            imageVector = Icons.Default.Visibility,
+                            contentDescription = "$realViewsCount vistas",
+                            tint = Color.White,
+                            modifier = Modifier.size(20.dp)
                         )
                     }
                 }
@@ -1357,7 +1447,9 @@ fun UserStoryViewer(
                                         },
                                         onError = { err ->
                                             android.widget.Toast.makeText(context, "Error DM: $err", android.widget.Toast.LENGTH_SHORT).show()
-                                        }
+                                        },
+                                        storyId = state.id,
+                                        storyThumbnailUrl = state.thumbnailUrl ?: state.mediaUrl
                                     )
                                 } else {
                                     reactionMessage = "¡Reaccionaste con $emoji!"
@@ -1429,7 +1521,9 @@ fun UserStoryViewer(
                                         messageText = textToSend,
                                         onSuccess = {
                                             reactionMessage = "📩 DM enviado a ${(identityState?.displayName ?: profile.displayName)}"
-                                        }
+                                        },
+                                        storyId = state.id,
+                                        storyThumbnailUrl = state.thumbnailUrl ?: state.mediaUrl
                                     )
                                 } else {
                                     viewModel.addComment(state.id, textToSend)
@@ -1464,7 +1558,9 @@ fun UserStoryViewer(
                                     messageText = textToSend,
                                     onSuccess = {
                                         reactionMessage = "📩 DM enviado a ${(identityState?.displayName ?: profile.displayName)}"
-                                    }
+                                    },
+                                    storyId = state.id,
+                                    storyThumbnailUrl = state.thumbnailUrl ?: state.mediaUrl
                                 )
                             } else {
                                 viewModel.addComment(state.id, textToSend)
@@ -1897,6 +1993,123 @@ fun UserStoryViewer(
                             }
                         }
                     }
+                }
+            }
+        }
+
+        // Acción 4: Floating reactions overlay (live-style) — owner only sees incoming reactions
+        if (isMyStory && floatingReactions.isNotEmpty()) {
+            FloatingReactionsContainer(
+                reactions = floatingReactions,
+                onDismiss = { id ->
+                    floatingReactions = floatingReactions.filterNot { it.id == id }
+                },
+                modifier = Modifier.align(Alignment.TopCenter)
+            )
+        }
+    }
+}
+
+// Acción 4: Floating reactions container (live-style)
+@Composable
+fun FloatingReactionsContainer(
+    reactions: List<FloatingReactionLog>,
+    onDismiss: (String) -> Unit,
+    modifier: Modifier = Modifier
+) {
+    if (reactions.isEmpty()) return
+    Box(modifier = modifier.fillMaxSize()) {
+        reactions.forEachIndexed { idx, reaction ->
+            val offsetY = remember { Animatable(0f) }
+            val alpha = remember { Animatable(1f) }
+            LaunchedEffect(reaction.id) {
+                offsetY.animateTo(
+                    targetValue = -200f * (idx / 3f + 1),
+                    animationSpec = tween(durationMillis = 2000, easing = LinearOutSlowInEasing)
+                )
+                alpha.animateTo(
+                    targetValue = 0f,
+                    animationSpec = tween(durationMillis = 2000, easing = LinearOutSlowInEasing)
+                )
+                onDismiss(reaction.id)
+            }
+            Box(
+                modifier = Modifier
+                    .graphicsLayer {
+                        this.alpha = alpha.value
+                        this.translationY = offsetY.value
+                    }
+                    .align(Alignment.BottomCenter)
+                    .padding(bottom = 120.dp, start = 40.dp + (idx * 48f).dp)
+                    .size(40.dp)
+            ) {
+                PanaAvatar(
+                    avatarUrl = reaction.avatarUrl,
+                    userId = reaction.userId,
+                    placeholderName = reaction.userId,
+                    size = 32.dp,
+                    modifier = Modifier
+                        .size(32.dp)
+                        .clip(CircleShape)
+                        .border(1.5.dp, Color.White, CircleShape)
+                )
+                Text(
+                    text = reaction.emoji,
+                    fontSize = 16.sp,
+                    modifier = Modifier
+                        .align(Alignment.BottomEnd)
+                        .offset { IntOffset(8, 8) }
+                )
+            }
+        }
+    }
+}
+
+// Acción 5: Viewers marquee (LazyRow of tiny avatars)
+@Composable
+fun ViewersMarquee(
+    spectators: List<StatusViewer>,
+    modifier: Modifier = Modifier
+) {
+    if (spectators.isEmpty()) return
+    LazyRow(
+        modifier = modifier
+            .fillMaxWidth()
+            .padding(vertical = 4.dp),
+        horizontalArrangement = Arrangement.spacedBy(-4.dp),
+        userScrollEnabled = false
+    ) {
+        items(spectators.take(20)) { spectator ->
+            Box(
+                modifier = Modifier
+                    .size(24.dp)
+                    .clip(CircleShape)
+                    .border(1.5.dp, Color.Black.copy(alpha = 0.3f), CircleShape)
+            ) {
+                PanaAvatar(
+                    avatarUrl = spectator.avatarUrl,
+                    userId = spectator.viewerId,
+                    placeholderName = spectator.name,
+                    size = 22.dp,
+                    modifier = Modifier.fillMaxSize()
+                )
+            }
+        }
+        if (spectators.size > 20) {
+            item {
+                Box(
+                    modifier = Modifier
+                        .size(24.dp)
+                        .clip(CircleShape)
+                        .background(Color.Black.copy(alpha = 0.5f)),
+                    contentAlignment = Alignment.Center
+                ) {
+                    Text(
+                        text = "+${spectators.size - 20}",
+                        color = Color.White,
+                        fontSize = 8.sp,
+                        fontWeight = FontWeight.Bold
+                    )
                 }
             }
         }

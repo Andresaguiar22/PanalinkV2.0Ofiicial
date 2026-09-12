@@ -814,8 +814,9 @@ object SupabaseClient {
                                     !deliveredAt.isNullOrEmpty() -> "delivered"
                                     else -> record.optString("status", "sent")
                                 }
-                                val replyToMessageId = if (record.has("reply_to") && !record.isNull("reply_to")) record.optString("reply_to") else if (record.has("reply_to_message_id") && !record.isNull("reply_to_message_id")) record.optString("reply_to_message_id") else null
-                                val thumbnailUrl = if (record.has("thumbnail_url") && !record.isNull("thumbnail_url")) record.optString("thumbnail_url") else null
+                val replyToMessageId = if (record.has("reply_to") && !record.isNull("reply_to")) record.optString("reply_to") else if (record.has("reply_to_message_id") && !record.isNull("reply_to_message_id")) record.optString("reply_to_message_id") else null
+                val replyStoryId = if (record.has("reply_story_id") && !record.isNull("reply_story_id")) record.optString("reply_story_id") else null
+                val thumbnailUrl = if (record.has("thumbnail_url") && !record.isNull("thumbnail_url")) record.optString("thumbnail_url") else null
                                 val mediaUrl = if (record.has("media_url") && !record.isNull("media_url")) record.optString("media_url") else null
                                 val mediaMime = if (record.has("media_mime") && !record.isNull("media_mime")) record.optString("media_mime") else null
                                 val messageType = if (record.has("message_type") && !record.isNull("message_type")) record.optString("message_type") else null
@@ -841,6 +842,7 @@ object SupabaseClient {
                                         createdAt = createdAt,
                                         status = calculatedStatus,
                                         replyToMessageId = replyToMessageId,
+                                        replyStoryId = replyStoryId,
                                         clientMessageUuid = clientMessageUuid,
                                         deliveredAt = deliveredAt,
                                         seenAt = seenAt,

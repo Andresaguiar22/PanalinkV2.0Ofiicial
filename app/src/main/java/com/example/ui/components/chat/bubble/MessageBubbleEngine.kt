@@ -505,6 +505,54 @@ fun MessageBubbleEngine(
                             }
                         }
                     }
+                    // Acción 3: Story reply thumbnail — render the story preview above the text
+                    if (message.replyStoryId != null && message.thumbnailUrl != null) {
+                        val storyType = if (message.mediaMime?.startsWith("video/") == true || message.mediaUrl?.endsWith(".mp4") == true) "🎥" else "🖼️"
+                        Row(
+                            modifier = Modifier
+                                .fillMaxWidth()
+                                .padding(bottom = 6.dp)
+                                .clip(RoundedCornerShape(8.dp))
+                                .background(if (isMe) Color.White.copy(alpha = 0.45f) else Color(0xFFF0F2F5))
+                                .height(IntrinsicSize.Min)
+                        ) {
+                            Box(
+                                modifier = Modifier
+                                    .width(4.dp)
+                                    .fillMaxHeight()
+                                    .background(Color(0xFFFF2D55))
+                            )
+                            Column(
+                                modifier = Modifier
+                                    .padding(horizontal = 8.dp, vertical = 5.dp)
+                                    .weight(1f)
+                            ) {
+                                val replyAuthorName = if (isMe) "Tú" else (otherUserName?.takeIf { it.isNotBlank() } ?: "Contacto")
+                                Text(
+                                    text = "Historia de $replyAuthorName",
+                                    color = Color(0xFFFF2D55),
+                                    fontWeight = FontWeight.Bold,
+                                    fontSize = 12.5.sp
+                                )
+                                Text(
+                                    text = "$storyType Historia",
+                                    color = Color(0xFF667781),
+                                    fontSize = 11.sp,
+                                    maxLines = 1,
+                                    overflow = TextOverflow.Ellipsis
+                                )
+                            }
+                            AsyncImage(
+                                model = message.thumbnailUrl,
+                                contentDescription = null,
+                                modifier = Modifier
+                                    .padding(4.dp)
+                                    .size(38.dp)
+                                    .clip(RoundedCornerShape(6.dp)),
+                                contentScale = ContentScale.Crop
+                            )
+                        }
+                    }
                     // Multimedia Bubble content rendering switcher (Phase 3.3-A)
                     val isGhostConsumed = message.isGhost && message.ghostOpenedAt != null
 

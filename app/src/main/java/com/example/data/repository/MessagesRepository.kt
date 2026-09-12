@@ -595,17 +595,32 @@ class MessagesRepository private constructor() {
         }
     }
 
-suspend fun insertLocalMessage(msg: Message) = withContext(Dispatchers.IO) {
-        val effectiveClearedAt = getEffectiveClearedAt(msg.chatId, null)
+    suspend fun insertLocalMessage(msg: Message) = withContext(Dispatchers.IO) {
+        // Acción 3: Enrich story reply messages — ensure the story thumbnail
+        // is attached so the chat bubble can display the story preview above the text.
+        val enrichedMsg = if (msg.replyStoryId != null && msg.thumbnailUrl.isNullOrEmpty()) {
+            val state = try {
+                com.example.data.database.PanalinkDatabase.getDatabase(
+                    com.example.PanaApplication.instance
+                ).statesDao().getStateById(msg.replyStoryId!!)
+            } catch (_: Exception) {
+                null
+            }
+            if (state != null) {
+                msg.copy(thumbnailUrl = state.thumbnailUrl ?: state.mediaUrl)
+            } else msg
+        } else msg
+
+        val effectiveClearedAt = getEffectiveClearedAt(enrichedMsg.chatId, null)
         val shouldKeep = com.example.util.MessageFilter.shouldKeepMessage(
-            messageId = msg.id,
-            messageClientUuid = msg.clientMessageUuid,
-            messageCreatedAt = msg.createdAt,
+            messageId = enrichedMsg.id,
+            messageClientUuid = enrichedMsg.clientMessageUuid,
+            messageCreatedAt = enrichedMsg.createdAt,
             lastClearedAt = effectiveClearedAt,
             deletedMessageIds = getUserDeletedMessageIds()
         )
         if (shouldKeep) {
-            messageDao.insertMessage(MessageEntity.fromMessage(msg))
+            messageDao.insertMessage(MessageEntity.fromMessage(enrichedMsg))
         } else {
             Log.d(TAG, "insertLocalMessage: Message filtered out by MessageFilter")
         }
@@ -1215,6 +1230,7 @@ suspend fun insertLocalMessage(msg: Message) = withContext(Dispatchers.IO) {
                     "id" to remoteId,
                     "sender_id" to currentUid,
                     "reply_to" to entity.replyToMessageId?.takeIf { isValidUuid(it) },
+                    "reply_story_id" to entity.replyStoryId,
                     "text_content" to contentToUpload,
                     "client_message_uuid" to entity.clientMessageUuid,
                     "created_at" to entity.createdAt,
@@ -1459,6 +1475,9 @@ suspend fun insertLocalMessage(msg: Message) = withContext(Dispatchers.IO) {
                     )
                     if (entity.replyToMessageId != null && isValidUuid(entity.replyToMessageId)) {
                         legacyMsgMap["reply_to"] = entity.replyToMessageId
+                    }
+                    if (entity.replyStoryId != null) {
+                        legacyMsgMap["reply_story_id"] = entity.replyStoryId
                     }
                     val cleanLegacyMsgMap = legacyMsgMap.filterValues { it != null }
 
@@ -1706,6 +1725,7 @@ suspend fun insertLocalMessage(msg: Message) = withContext(Dispatchers.IO) {
         chatId: String,
         content: String,
         replyToId: String? = null,
+        replyStoryId: String? = null,
         receiverUid: String? = null,
         messageId: String? = null,
         messageType: String = "text",
@@ -1752,6 +1772,7 @@ suspend fun insertLocalMessage(msg: Message) = withContext(Dispatchers.IO) {
             createdAt = nowStr,
             status = "sending",
             replyToMessageId = replyToId,
+            replyStoryId = replyStoryId,
             clientMessageUuid = clientUuid,
             thumbnailUrl = thumbnailUrl,
             mediaUrl = mediaUrl,
@@ -1899,6 +1920,7 @@ suspend fun insertLocalMessage(msg: Message) = withContext(Dispatchers.IO) {
                 "sender_id" to currentUid,
                 "receiver_id" to if (isDm) finalReceiverUid?.takeIf { isValidUuid(it) } else null,
                 "reply_to" to replyToId?.takeIf { isValidUuid(it) },
+                "reply_story_id" to replyStoryId,
                 "text_content" to contentToUpload,
                 "client_message_uuid" to clientUuid,
                 "created_at" to nowStr,
@@ -1984,6 +2006,9 @@ suspend fun insertLocalMessage(msg: Message) = withContext(Dispatchers.IO) {
                     )
                     if (replyToId != null && isValidUuid(replyToId)) {
                         legacyMsgMap["reply_to"] = replyToId
+                    }
+                    if (replyStoryId != null) {
+                        legacyMsgMap["reply_story_id"] = replyStoryId
                     }
                     val cleanLegacyMsgMap = legacyMsgMap.filterValues { it != null }
 

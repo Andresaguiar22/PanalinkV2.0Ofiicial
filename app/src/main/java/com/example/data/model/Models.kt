@@ -90,6 +90,7 @@ data class Message(
     @Json(name = "created_at") val createdAt: String,
     @Json(name = "status") val status: String? = "sent",
     @Json(name = "reply_to_message_id") val replyToMessageId: String? = null,
+    @Json(name = "reply_story_id") val replyStoryId: String? = null,
     @Json(name = "client_message_uuid") val clientMessageUuid: String = "",
     @Json(name = "delivered_at") val deliveredAt: String? = null,
     @Json(name = "seen_at") val seenAt: String? = null,
