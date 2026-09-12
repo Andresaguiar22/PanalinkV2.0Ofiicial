@@ -11,6 +11,8 @@ import androidx.compose.foundation.background
 import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.border
 import androidx.compose.foundation.Canvas
+import androidx.compose.foundation.ExperimentalFoundationApi
+import androidx.compose.foundation.combinedClickable
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
@@ -21,16 +23,15 @@ import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Add
-import androidx.compose.material.icons.filled.ArrowUpward
 import androidx.compose.material.icons.filled.Chair
 import androidx.compose.material.icons.filled.Close
-import androidx.compose.material.icons.filled.Favorite
+import androidx.compose.material.icons.filled.Face
+import androidx.compose.material.icons.filled.Gif
 import androidx.compose.material.icons.filled.Group
-import androidx.compose.material.icons.filled.Lock
-import androidx.compose.material.icons.filled.Menu
 import androidx.compose.material.icons.filled.Mic
 import androidx.compose.material.icons.filled.MicOff
 import androidx.compose.material.icons.filled.Person
+import androidx.compose.material.icons.filled.Send
 import androidx.compose.material.icons.filled.Settings
 import androidx.compose.material.icons.filled.Share
 import androidx.compose.material.icons.filled.Star
@@ -40,9 +41,9 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.draw.shadow
-import androidx.compose.ui.geometry.CornerRadius
 import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.geometry.Size
+import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.layout.ContentScale
@@ -152,139 +153,132 @@ fun VoiceRoomRedesignedScreen(
     val roomName = if (roomObj?.name.isNullOrEmpty()) "PANALINK VOZ" else roomObj.name
     val needsPermission = !hasMic && state.mySeat?.isMuted != true
 
-    VoiceRoomBackground {
-        Box(modifier = Modifier.fillMaxSize()) {
-
-            // ── Contenido principal: header + progreso + sillones + chat ──
-            Column(
-                modifier = Modifier
-                    .fillMaxSize()
-                    .statusBarsPadding()
-            ) {
-                // ── Header rediseñado ──
-                VoiceRoomRedesignedHeader(
-                    roomName = roomName,
-                    roomId = roomId,
-                    userLevel = userLevel,
-                    memberCount = state.memberCount,
-                    isPrivate = state.room?.isPrivate == true,
-                    showRequestsBadge = state.isAdmin && state.seatRequests.any { it.status == "pending" },
-                    onOpenRequests = { showRequests = true },
-                    onOpenMembers = { showMembers = true },
-                    onOpenSettings = if (state.isAdmin) { { viewModel.openSettings() } } else null,
-                    onOpenShare = { /* compartir sala - no-op por ahora */ },
-                    onAddClick = { /* botón central + */ },
-                    onClose = { viewModel.leaveRoom(); onBack() }
+    Box(
+        modifier = Modifier
+            .fillMaxSize()
+            .background(
+                brush = Brush.verticalGradient(
+                    colors = listOf(Color(0xFF0F172A), Color(0xFF020617))
                 )
+            )
+    ) {
+        // ── Contenido principal: header + sillones + chat ──
+        Column(
+            modifier = Modifier
+                .fillMaxSize()
+                .statusBarsPadding()
+        ) {
+            // ── Header rediseñado (sin botón +, sin barra de nivel) ──
+            VoiceRoomRedesignedHeader(
+                roomName = roomName,
+                roomId = roomId,
+                userLevel = userLevel,
+                memberCount = state.memberCount,
+                isPrivate = state.room?.isPrivate == true,
+                showRequestsBadge = state.isAdmin && state.seatRequests.any { it.status == "pending" },
+                onOpenRequests = { showRequests = true },
+                onOpenMembers = { showMembers = true },
+                onOpenSettings = if (state.isAdmin) { { viewModel.openSettings() } } else null,
+                onOpenShare = { /* compartir sala - no-op por ahora */ },
+                onClose = { viewModel.leaveRoom(); onBack() }
+            )
 
-                // ── Barra de progreso / puntos con iconos flotantes ──
-                VoiceRoomProgressRow(
-                    level = userLevel,
-                    expPoints = "248030",
-                    progress = 0.65f,
-                    rabbitCount = "99",
-                    perfumeCount = "5"
-                )
-
-                if (state.isJoining) {
-                    LinearProgressIndicator(
-                        modifier = Modifier
-                            .fillMaxWidth()
-                            .padding(horizontal = 12.dp, vertical = 4.dp),
-                        color = VoiceRoomPalette.ActiveCyan
-                    )
-                }
-
-                // ── Sillón del anfitrión (centrado, expandido) ──
-                VoiceRoomHostSeat(
-                    seat = hostSeat,
-                    member = hostMember,
-                    myUserId = state.myUserId,
-                    isAdmin = state.isAdmin,
-                    onClick = { seatClickHaptic(); viewModel.onSeatClicked(0, hasMic) },
-                    onAdmin = { hostSeat?.userId?.let { moderationTarget = it } }
-                )
-
-                Spacer(modifier = Modifier.height(16.dp))
-
-                // ── Sillones de invitados: 2 filas de 4 (secuenciales 1-4, 5-8) ──
-                VoiceRoomGuestSeatGrid(
-                    seats = state.seats,
-                    memberById = memberById,
-                    myUserId = state.myUserId,
-                    isAdmin = state.isAdmin,
-                    hasMic = hasMic,
-                    onSeatClicked = { index -> seatClickHaptic(); viewModel.onSeatClicked(index, hasMic) },
-                    onModeration = { userId -> moderationTarget = userId },
-                    onOpenProfile = onOpenProfile
-                )
-
-                Spacer(modifier = Modifier.height(12.dp))
-
-                // ── Up Next strip (preservado) ──
-                VoiceRoomUpNextStrip(
-                    seats = state.seats,
-                    members = state.members,
+            if (state.isJoining) {
+                LinearProgressIndicator(
                     modifier = Modifier
                         .fillMaxWidth()
-                        .padding(top = 4.dp, bottom = 4.dp)
+                        .padding(horizontal = 12.dp, vertical = 4.dp),
+                    color = VoiceRoomPalette.ActiveCyan
                 )
-
-                // ── Área de Chat ──
-                Box(modifier = Modifier.weight(1f)) {
-                    VoiceRoomRedesignedChat(
-                        messages = state.messages,
-                        memberById = memberById,
-                        myUserId = state.myUserId,
-                        onOpenProfile = onOpenProfile,
-                        modifier = Modifier.fillMaxSize(),
-                        listState = chatListState
-                    )
-                }
             }
 
-            // ── Barra inferior rediseñada ──
-            Box(
+            // ── Sillón del anfitrión (centrado) ──
+            VoiceRoomHostSeat(
+                seat = hostSeat,
+                member = hostMember,
+                myUserId = state.myUserId,
+                isAdmin = state.isAdmin,
+                onClick = { seatClickHaptic(); viewModel.onSeatClicked(0, hasMic) },
+                onAdmin = { hostSeat?.userId?.let { moderationTarget = it } }
+            )
+
+            // ── Sillones de invitados: 2 filas de 4 (compactas) ──
+            VoiceRoomGuestSeatGrid(
+                seats = state.seats,
+                memberById = memberById,
+                myUserId = state.myUserId,
+                isAdmin = state.isAdmin,
+                hasMic = hasMic,
+                onSeatClicked = { index -> seatClickHaptic(); viewModel.onSeatClicked(index, hasMic) },
+                onModeration = { userId -> moderationTarget = userId },
+                onOpenProfile = onOpenProfile
+            )
+
+            Spacer(modifier = Modifier.height(8.dp))
+
+            // ── Up Next strip (preservado) ──
+            VoiceRoomUpNextStrip(
+                seats = state.seats,
+                members = state.members,
                 modifier = Modifier
                     .fillMaxWidth()
-                    .align(Alignment.BottomCenter)
-                    .navigationBarsPadding()
-            ) {
-                VoiceRoomRedesignedBottomBar(
-                    inputText = inputText,
-                    onValueChange = { inputText = it.take(2000) },
-                    onSend = {
-                        if (inputText.isNotBlank()) {
-                            viewModel.sendMessage(inputText)
-                            inputText = ""
-                        }
-                    },
-                    isSeated = state.isSeated,
-                    isMuted = state.mySeat?.isMuted == true,
-                    needsPermission = needsPermission,
-                    onRequestSeat = { viewModel.requestAnySeat() },
-                    onToggleMute = { viewModel.toggleMute() },
-                    onEnableMic = { permission.launch(Manifest.permission.RECORD_AUDIO) },
-                    onOpenSettings = if (state.isAdmin) { { viewModel.openSettings() } } else null,
-                    onLeaveRoom = { viewModel.leaveRoom(); onBack() },
-                    isAdmin = state.isAdmin
+                    .padding(top = 4.dp, bottom = 4.dp)
+            )
+
+            // ── Área de Chat ──
+            Box(modifier = Modifier.weight(1f)) {
+                VoiceRoomRedesignedChat(
+                    messages = state.messages,
+                    memberById = memberById,
+                    myUserId = state.myUserId,
+                    onOpenProfile = onOpenProfile,
+                    modifier = Modifier.fillMaxSize(),
+                    listState = chatListState
                 )
             }
+        }
 
-            // ── Overlay de emojis flotantes ──
-            VoiceRoomFloatingEmojiOverlay(
-                emojis = floatingEmojis,
-                onDone = { id -> floatingEmojis = floatingEmojis.filterNot { it.id == id } }
-            )
-
-            // ── Snackbar ──
-            SnackbarHost(
-                hostState = snackbarHostState,
-                modifier = Modifier
-                    .align(Alignment.BottomCenter)
-                    .padding(bottom = 100.dp)
+        // ── Barra inferior rediseñada ──
+        Box(
+            modifier = Modifier
+                .fillMaxWidth()
+                .align(Alignment.BottomCenter)
+                .navigationBarsPadding()
+        ) {
+            VoiceRoomRedesignedBottomBar(
+                inputText = inputText,
+                onValueChange = { inputText = it.take(2000) },
+                onSend = {
+                    if (inputText.isNotBlank()) {
+                        viewModel.sendMessage(inputText)
+                        inputText = ""
+                    }
+                },
+                isSeated = state.isSeated,
+                isMuted = state.mySeat?.isMuted == true,
+                needsPermission = needsPermission,
+                onRequestSeat = { viewModel.requestAnySeat() },
+                onToggleMute = { viewModel.toggleMute() },
+                onEnableMic = { permission.launch(Manifest.permission.RECORD_AUDIO) },
+                onOpenSettings = if (state.isAdmin) { { viewModel.openSettings() } } else null,
+                onLeaveRoom = { viewModel.leaveRoom(); onBack() },
+                isAdmin = state.isAdmin
             )
         }
+
+        // ── Overlay de emojis flotantes ──
+        VoiceRoomFloatingEmojiOverlay(
+            emojis = floatingEmojis,
+            onDone = { id -> floatingEmojis = floatingEmojis.filterNot { it.id == id } }
+        )
+
+        // ── Snackbar ──
+        SnackbarHost(
+            hostState = snackbarHostState,
+            modifier = Modifier
+                .align(Alignment.BottomCenter)
+                .padding(bottom = 100.dp)
+        )
     }
 
     // ── Diálogos (reutilizados) ──
@@ -356,7 +350,6 @@ fun VoiceRoomRedesignedHeader(
     onOpenMembers: () -> Unit,
     onOpenSettings: (() -> Unit)? = null,
     onOpenShare: (() -> Unit)? = null,
-    onAddClick: () -> Unit,
     onClose: () -> Unit,
     modifier: Modifier = Modifier
 ) {
@@ -400,34 +393,6 @@ fun VoiceRoomRedesignedHeader(
                     maxLines = 1,
                     overflow = TextOverflow.Ellipsis
                 )
-            }
-        }
-
-        // ── Separador y botón central ──
-        Box(
-            modifier = Modifier.weight(1f),
-            contentAlignment = Alignment.Center
-        ) {
-            IconButton(
-                onClick = onAddClick,
-                modifier = Modifier
-                    .size(48.dp)
-            ) {
-                Box(
-                    modifier = Modifier
-                        .size(40.dp)
-                        .clip(CircleShape)
-                        .background(VoiceRoomPalette.Pink)
-                        .border(2.dp, VoiceRoomPalette.Gold, CircleShape),
-                    contentAlignment = Alignment.Center
-                ) {
-                    Icon(
-                        imageVector = Icons.Default.Add,
-                        contentDescription = "Añadir",
-                        tint = Color.White,
-                        modifier = Modifier.size(22.dp)
-                    )
-                }
             }
         }
 
@@ -513,126 +478,6 @@ fun VoiceRoomRedesignedHeader(
     }
 }
 
-// === Barra de progreso / puntos con iconos flotantes ===
-
-@Composable
-fun VoiceRoomProgressRow(
-    level: Int,
-    expPoints: String,
-    progress: Float,
-    rabbitCount: String,
-    perfumeCount: String,
-    modifier: Modifier = Modifier
-) {
-    Row(
-        modifier = modifier
-            .fillMaxWidth()
-            .padding(horizontal = 12.dp),
-        verticalAlignment = Alignment.CenterVertically,
-        horizontalArrangement = Arrangement.spacedBy(8.dp)
-    ) {
-        // Iconos de contador (conejo, poción)
-        VoiceRoomFloatingCounterIcon(emoji = "🐰", count = rabbitCount, index = 0)
-        VoiceRoomFloatingCounterIcon(emoji = "🧴", count = perfumeCount, index = 1)
-
-        // Etiqueta de nivel
-        Text(
-            text = "NIVEL $level",
-            color = VoiceRoomPalette.Gold,
-            fontSize = 10.sp,
-            fontWeight = FontWeight.Bold
-        )
-
-        // Barra de experiencia
-        VoiceRoomProgressBar(
-            progress = progress,
-            color = VoiceRoomPalette.Pink,
-            trackColor = VoiceRoomPalette.DarkSurface.copy(alpha = 0.5f),
-            modifier = Modifier.weight(1f).height(6.dp)
-        )
-
-        // Puntos de experiencia
-        Text(
-            text = expPoints,
-            color = VoiceRoomPalette.Gold,
-            fontSize = 12.sp,
-            fontWeight = FontWeight.Bold
-        )
-
-        // Diamante
-        Text(
-            text = "💎",
-            fontSize = 16.sp,
-            color = VoiceRoomPalette.Gold
-        )
-    }
-}
-
-@Composable
-fun VoiceRoomFloatingCounterIcon(
-    emoji: String,
-    count: String,
-    index: Int
-) {
-    val transition = rememberInfiniteTransition(label = "floatIcon$index")
-    val offsetY by transition.animateFloat(
-        initialValue = 0f,
-        targetValue = -3f,
-        animationSpec = infiniteRepeatable(
-            animation = tween(1500, delayMillis = index * 200, easing = LinearOutSlowInEasing),
-            repeatMode = RepeatMode.Reverse
-        ),
-        label = "floatOffset$index"
-    )
-
-    Row(
-        verticalAlignment = Alignment.CenterVertically,
-        horizontalArrangement = Arrangement.spacedBy(3.dp)
-    ) {
-        Text(
-            text = emoji,
-            fontSize = 18.sp,
-            modifier = Modifier.graphicsLayer { translationY = offsetY }
-        )
-        Box(
-            modifier = Modifier
-                .clip(CircleShape)
-                .background(VoiceRoomPalette.Gold)
-                .padding(horizontal = 5.dp, vertical = 1.dp)
-        ) {
-            Text(count, color = VoiceRoomPalette.DeepBlue, fontSize = 9.sp, fontWeight = FontWeight.Bold)
-        }
-    }
-}
-
-@Composable
-fun VoiceRoomProgressBar(
-    progress: Float,
-    modifier: Modifier = Modifier,
-    color: Color = VoiceRoomPalette.ActiveCyan,
-    trackColor: Color = Color(0x33FFFFFF)
-) {
-    val clamped = progress.coerceIn(0f, 1f)
-    val barHeight = 6.dp
-    Canvas(modifier = modifier.height(barHeight)) {
-        val cornerR = barHeight.value
-        drawRoundRect(
-            color = trackColor,
-            topLeft = Offset.Zero,
-            size = size,
-            cornerRadius = CornerRadius(cornerR, cornerR)
-        )
-        if (clamped > 0f) {
-            drawRoundRect(
-                color = color,
-                topLeft = Offset.Zero,
-                size = Size(size.width * clamped, size.height),
-                cornerRadius = CornerRadius(cornerR, cornerR)
-            )
-        }
-    }
-}
-
 // === Sillón del Anfitrión ===
 
 @Composable
@@ -647,7 +492,6 @@ fun VoiceRoomHostSeat(
 ) {
     val displayName = when {
         seat?.isOccupied != true -> null
-        seat?.userId == myUserId -> "Tú"
         else -> seat.displayName?.takeIf { !it.isNullOrBlank() } ?: member?.displayName
     }
     val avatarUrl = seat?.avatarUrl ?: member?.avatarUrl
@@ -658,13 +502,13 @@ fun VoiceRoomHostSeat(
     Column(
         modifier = modifier
             .fillMaxWidth()
-            .padding(horizontal = 16.dp),
+            .padding(horizontal = 8.dp),
         horizontalAlignment = Alignment.CenterHorizontally
     ) {
         Box {
             VoiceRoomRedesignedSeatCircle(
                 seat = seat,
-                size = 64.dp,
+                size = 48.dp,
                 avatarUrl = avatarUrl,
                 displayName = displayName,
                 isHost = true,
@@ -678,7 +522,7 @@ fun VoiceRoomHostSeat(
                 Box(
                     modifier = Modifier
                         .align(Alignment.TopCenter)
-                        .offset(y = (-12).dp)
+                        .offset(y = (-8).dp)
                         .clip(CircleShape)
                         .background(VoiceRoomPalette.Gold)
                         .padding(horizontal = 10.dp, vertical = 2.dp)
@@ -718,7 +562,7 @@ fun VoiceRoomHostSeat(
             }
         }
 
-        Spacer(modifier = Modifier.height(10.dp))
+            Spacer(modifier = Modifier.height(10.dp))
 
         // Username o placeholder
         if (seat?.isOccupied == true) {
@@ -730,21 +574,6 @@ fun VoiceRoomHostSeat(
                 maxLines = 1,
                 overflow = TextOverflow.Ellipsis
             )
-            Spacer(modifier = Modifier.height(2.dp))
-            Row(verticalAlignment = Alignment.CenterVertically) {
-                Icon(
-                    imageVector = Icons.Default.Star,
-                    contentDescription = null,
-                    tint = VoiceRoomPalette.Gold,
-                    modifier = Modifier.size(12.dp)
-                )
-                Text(
-                    text = "NIVEL $level",
-                    color = VoiceRoomPalette.Gold,
-                    fontSize = 9.sp,
-                    fontWeight = FontWeight.SemiBold
-                )
-            }
         } else {
             Text(
                 text = "Sin anfitrión",
@@ -779,13 +608,13 @@ fun VoiceRoomGuestSeatGrid(
             memberById = memberById,
             myUserId = myUserId,
             isAdmin = isAdmin,
-            size = 64.dp,
+            size = 48.dp,
             onSeatClicked = onSeatClicked,
             onModeration = onModeration,
             onOpenProfile = onOpenProfile
         )
 
-        Spacer(modifier = Modifier.height(28.dp))
+        Spacer(modifier = Modifier.height(8.dp))
 
         // Fila B: NO. 5, 6, 7, 8
         VoiceRoomSeatRow(
@@ -795,7 +624,7 @@ fun VoiceRoomGuestSeatGrid(
             memberById = memberById,
             myUserId = myUserId,
             isAdmin = isAdmin,
-            size = 64.dp,
+            size = 48.dp,
             onSeatClicked = onSeatClicked,
             onModeration = onModeration,
             onOpenProfile = onOpenProfile
@@ -861,7 +690,6 @@ fun VoiceRoomRedesignedSeat(
 ) {
     val displayName = when {
         seat?.isOccupied != true -> null
-        isMine -> "Tú"
         else -> seat.displayName?.takeIf { !it.isNullOrBlank() } ?: member?.displayName
     }
     val avatarUrl = seat?.avatarUrl ?: member?.avatarUrl
@@ -922,21 +750,6 @@ fun VoiceRoomRedesignedSeat(
                 maxLines = 1,
                 overflow = TextOverflow.Ellipsis
             )
-            Spacer(modifier = Modifier.height(2.dp))
-            Row(verticalAlignment = Alignment.CenterVertically) {
-                Icon(
-                    imageVector = Icons.Default.Star,
-                    contentDescription = null,
-                    tint = VoiceRoomPalette.Gold,
-                    modifier = Modifier.size(10.dp)
-                )
-                Text(
-                    text = "Nv.$level",
-                    color = VoiceRoomPalette.Gold,
-                    fontSize = 8.sp,
-                    fontWeight = FontWeight.SemiBold
-                )
-            }
         }
     }
 }
@@ -1227,7 +1040,7 @@ fun VoiceRoomRedesignChatMessage(
 
 // === Barra inferior rediseñada ===
 
-@OptIn(ExperimentalMaterial3Api::class)
+@OptIn(ExperimentalMaterial3Api::class, ExperimentalFoundationApi::class)
 @Composable
 fun VoiceRoomRedesignedBottomBar(
     modifier: Modifier = Modifier,
@@ -1246,123 +1059,139 @@ fun VoiceRoomRedesignedBottomBar(
 ) {
     var showMenu by remember { mutableStateOf(false) }
 
-    Box(modifier = modifier.fillMaxWidth()) {
-        Surface(
-            modifier = Modifier.fillMaxWidth(),
-            shape = RoundedCornerShape(20.dp),
-            color = Color(0xFF152A3F),
-            border = BorderStroke(1.dp, VoiceRoomPalette.ActiveCyan.copy(alpha = 0.2f)),
-            tonalElevation = 4.dp,
-            shadowElevation = 8.dp
-        ) {
-            Row(
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .padding(horizontal = 12.dp, vertical = 8.dp),
-                verticalAlignment = Alignment.CenterVertically
-            ) {
-                // Campo de texto
-                OutlinedTextField(
-                    value = inputText,
-                    onValueChange = { onValueChange(it.take(2000)) },
-                    modifier = Modifier.weight(1f),
-                    singleLine = true,
-                    placeholder = {
-                        Text(
-                            "Vamos a platicar",
-                            fontSize = 13.sp,
-                            color = VoiceRoomPalette.TextSecondary
-                        )
-                    },
-                    textStyle = TextStyle(
-                        fontSize = 13.sp,
-                        fontWeight = FontWeight.Medium,
-                        color = VoiceRoomPalette.TextPrimary
-                    ),
-                    colors = OutlinedTextFieldDefaults.colors(
-                        focusedTextColor = VoiceRoomPalette.TextPrimary,
-                        unfocusedTextColor = VoiceRoomPalette.TextPrimary,
-                        focusedBorderColor = Color.Transparent,
-                        unfocusedBorderColor = Color.Transparent,
-                        focusedContainerColor = Color(0xFF152A3F),
-                        unfocusedContainerColor = Color(0xFF152A3F)
-                    ),
-                    shape = RoundedCornerShape(20.dp),
-                    maxLines = 1
+    Row(
+        modifier = modifier
+            .fillMaxWidth()
+            .padding(horizontal = 12.dp, vertical = 8.dp),
+        verticalAlignment = Alignment.CenterVertically
+    ) {
+        // Campo de texto con forma de píldora
+        OutlinedTextField(
+            value = inputText,
+            onValueChange = { onValueChange(it.take(2000)) },
+            modifier = Modifier
+                .weight(1f)
+                .background(Color(0xFF1E293B), shape = CircleShape),
+            singleLine = true,
+            placeholder = {
+                Text(
+                    "Vamos a platicar",
+                    fontSize = 13.sp,
+                    color = VoiceRoomPalette.TextSecondary
                 )
+            },
+            textStyle = TextStyle(
+                fontSize = 13.sp,
+                fontWeight = FontWeight.Medium,
+                color = VoiceRoomPalette.TextPrimary
+            ),
+            colors = OutlinedTextFieldDefaults.colors(
+                focusedTextColor = VoiceRoomPalette.TextPrimary,
+                unfocusedTextColor = VoiceRoomPalette.TextPrimary,
+                focusedBorderColor = Color.Transparent,
+                unfocusedBorderColor = Color.Transparent,
+                focusedContainerColor = Color(0xFF1E293B),
+                unfocusedContainerColor = Color(0xFF1E293B)
+            ),
+            shape = CircleShape,
+            maxLines = 1
+        )
 
-                Spacer(modifier = Modifier.width(6.dp))
+        Spacer(modifier = Modifier.width(6.dp))
 
-                // Cluster de iconos a la derecha
-                Row(
-                    horizontalArrangement = Arrangement.spacedBy(6.dp),
-                    verticalAlignment = Alignment.CenterVertically
-                ) {
-                    // Flecha vertical (enviar)
-                    IconButton(
-                        onClick = onSend,
-                        enabled = inputText.isNotBlank(),
-                        modifier = Modifier.size(32.dp)
-                    ) {
-                        Icon(
-                            imageVector = Icons.Default.ArrowUpward,
-                            contentDescription = "Enviar",
-                            tint = if (inputText.isNotBlank()) VoiceRoomPalette.ActiveCyan else VoiceRoomPalette.TextSecondary.copy(alpha = 0.4f),
-                            modifier = Modifier.size(18.dp)
-                        )
-                    }
-
-                    // Botón de menú (tres líneas)
-                    IconButton(
-                        onClick = { showMenu = true },
-                        modifier = Modifier.size(32.dp)
-                    ) {
-                        Icon(
-                            imageVector = Icons.Default.Menu,
-                            contentDescription = "Menú",
-                            tint = VoiceRoomPalette.TextSecondary,
-                            modifier = Modifier.size(18.dp)
-                        )
-                    }
-
-                    // Caja de regalo rosa
-                    IconButton(
-                        onClick = { /* regalo - decorativo */ },
-                        modifier = Modifier.size(32.dp)
-                    ) {
-                        Box(
-                            modifier = Modifier
-                                .size(26.dp)
-                                .clip(CircleShape)
-                                .background(VoiceRoomPalette.Pink.copy(alpha = 0.2f))
-                                .border(1.dp, VoiceRoomPalette.Pink, CircleShape),
-                            contentAlignment = Alignment.Center
-                        ) {
-                            Text(
-                                text = "🎁",
-                                fontSize = 16.sp,
-                                color = VoiceRoomPalette.Pink
-                            )
-                        }
-                    }
-                }
-            }
+        // IconButton para Emojis
+        IconButton(onClick = { /* emoji - no-op */ }, modifier = Modifier.size(36.dp)) {
+            Icon(
+                imageVector = Icons.Default.Face,
+                contentDescription = "Emojis",
+                tint = VoiceRoomPalette.TextSecondary,
+                modifier = Modifier.size(20.dp)
+            )
         }
 
-        // Menú desplegable: micrófono / sillón / configuración
-        DropdownMenu(
-            expanded = showMenu,
-            onDismissRequest = { showMenu = false },
-            containerColor = VoiceRoomPalette.DeepBlue,
-            border = BorderStroke(1.dp, VoiceRoomPalette.ActiveCyan.copy(alpha = 0.2f))
+        // IconButton para Stickers/GIFs
+        IconButton(onClick = { /* stickers/gifs - no-op */ }, modifier = Modifier.size(36.dp)) {
+            Icon(
+                imageVector = Icons.Default.Gif,
+                contentDescription = "Stickers",
+                tint = VoiceRoomPalette.TextSecondary,
+                modifier = Modifier.size(20.dp)
+            )
+        }
+
+        // IconButton para Enviar
+        IconButton(
+            onClick = onSend,
+            enabled = inputText.isNotBlank(),
+            modifier = Modifier.size(36.dp)
         ) {
-            if (!isSeated) {
+            Icon(
+                imageVector = Icons.Default.Send,
+                contentDescription = "Enviar",
+                tint = if (inputText.isNotBlank()) VoiceRoomPalette.ActiveCyan else VoiceRoomPalette.TextSecondary.copy(alpha = 0.4f),
+                modifier = Modifier.size(20.dp)
+            )
+        }
+
+        // IconButton para Micrófono (mutear/desmutear + menú en long-press)
+        Box(
+            modifier = Modifier
+                .size(36.dp)
+                .combinedClickable(
+                    onLongClick = { showMenu = true },
+                    onClick = {
+                        if (needsPermission) onEnableMic()
+                        else if (isSeated) onToggleMute()
+                        else onRequestSeat()
+                    }
+                ),
+            contentAlignment = Alignment.Center
+        ) {
+            val micIcon = if (isMuted) Icons.Default.MicOff else Icons.Default.Mic
+            val micTint = when {
+                needsPermission -> VoiceRoomPalette.ActiveCyan
+                isMuted -> Color(0xFFFF8A80)
+                else -> VoiceRoomPalette.ActiveCyan
+            }
+            Icon(
+                imageVector = micIcon,
+                contentDescription = if (isMuted) "Micrófono silenciado" else "Micrófono activo",
+                tint = micTint,
+                modifier = Modifier.size(20.dp)
+            )
+        }
+    }
+
+    // Menú desplegable: sillón / configuración / salir
+    DropdownMenu(
+        expanded = showMenu,
+        onDismissRequest = { showMenu = false },
+        containerColor = VoiceRoomPalette.DeepBlue,
+        border = BorderStroke(1.dp, VoiceRoomPalette.ActiveCyan.copy(alpha = 0.2f))
+    ) {
+        if (!isSeated) {
+            DropdownMenuItem(
+                onClick = { onRequestSeat(); showMenu = false },
+                text = { Text("Unirme a un sillón", color = VoiceRoomPalette.TextPrimary, fontSize = 13.sp) },
+                leadingIcon = {
+                    Icon(
+                        imageVector = Icons.Default.Add,
+                        contentDescription = null,
+                        tint = VoiceRoomPalette.ActiveCyan,
+                        modifier = Modifier.size(16.dp)
+                    )
+                }
+            )
+        }
+
+        if (isSeated) {
+            if (needsPermission) {
                 DropdownMenuItem(
-                    onClick = { onRequestSeat(); showMenu = false },
-                    text = { Text("Unirme a un sillón", color = VoiceRoomPalette.TextPrimary, fontSize = 13.sp) },
+                    onClick = { onEnableMic(); showMenu = false },
+                    text = { Text("Activar micrófono", color = VoiceRoomPalette.ActiveCyan, fontSize = 13.sp) },
                     leadingIcon = {
                         Icon(
-                            imageVector = Icons.Default.Add,
+                            imageVector = Icons.Default.Mic,
                             contentDescription = null,
                             tint = VoiceRoomPalette.ActiveCyan,
                             modifier = Modifier.size(16.dp)
@@ -1370,68 +1199,53 @@ fun VoiceRoomRedesignedBottomBar(
                     }
                 )
             } else {
-                if (needsPermission) {
-                    DropdownMenuItem(
-                        onClick = { onEnableMic(); showMenu = false },
-                        text = { Text("Activar micrófono", color = VoiceRoomPalette.ActiveCyan, fontSize = 13.sp) },
-                        leadingIcon = {
-                            Icon(
-                                imageVector = Icons.Default.Mic,
-                                contentDescription = null,
-                                tint = VoiceRoomPalette.ActiveCyan,
-                                modifier = Modifier.size(16.dp)
-                            )
-                        }
-                    )
-                } else {
-                    DropdownMenuItem(
-                        onClick = { onToggleMute(); showMenu = false },
-                        text = {
-                            Text(
-                                text = if (isMuted) "Activar micrófono" else "Silenciar micrófono",
-                                color = if (isMuted) Color(0xFFFF8A80) else VoiceRoomPalette.TextPrimary,
-                                fontSize = 13.sp
-                            )
-                        },
-                        leadingIcon = {
-                            Icon(
-                                imageVector = if (isMuted) Icons.Default.MicOff else Icons.Default.Mic,
-                                contentDescription = null,
-                                tint = if (isMuted) Color(0xFFFF8A80) else VoiceRoomPalette.ActiveCyan,
-                                modifier = Modifier.size(16.dp)
-                            )
-                        }
-                    )
-                }
-            }
-
-            if (isAdmin && onOpenSettings != null) {
                 DropdownMenuItem(
-                    onClick = { onOpenSettings(); showMenu = false },
-                    text = { Text("Configuración", color = VoiceRoomPalette.TextPrimary, fontSize = 13.sp) },
+                    onClick = { onToggleMute(); showMenu = false },
+                    text = {
+                        Text(
+                            text = if (isMuted) "Activar micrófono" else "Silenciar micrófono",
+                            color = if (isMuted) Color(0xFFFF8A80) else VoiceRoomPalette.TextPrimary,
+                            fontSize = 13.sp
+                        )
+                    },
                     leadingIcon = {
                         Icon(
-                            imageVector = Icons.Default.Settings,
+                            imageVector = if (isMuted) Icons.Default.MicOff else Icons.Default.Mic,
                             contentDescription = null,
-                            tint = VoiceRoomPalette.TextSecondary,
+                            tint = if (isMuted) Color(0xFFFF8A80) else VoiceRoomPalette.ActiveCyan,
                             modifier = Modifier.size(16.dp)
                         )
                     }
                 )
             }
+        }
 
+        if (isAdmin && onOpenSettings != null) {
             DropdownMenuItem(
-                onClick = { onLeaveRoom(); showMenu = false },
-                text = { Text("Salir de la sala", color = Color(0xFFFF8A80), fontSize = 13.sp) },
+                onClick = { onOpenSettings(); showMenu = false },
+                text = { Text("Configuración", color = VoiceRoomPalette.TextPrimary, fontSize = 13.sp) },
                 leadingIcon = {
                     Icon(
-                        imageVector = Icons.Default.Close,
+                        imageVector = Icons.Default.Settings,
                         contentDescription = null,
-                        tint = Color(0xFFFF8A80),
+                        tint = VoiceRoomPalette.TextSecondary,
                         modifier = Modifier.size(16.dp)
                     )
                 }
             )
         }
+
+        DropdownMenuItem(
+            onClick = { onLeaveRoom(); showMenu = false },
+            text = { Text("Salir de la sala", color = Color(0xFFFF8A80), fontSize = 13.sp) },
+            leadingIcon = {
+                Icon(
+                    imageVector = Icons.Default.Close,
+                    contentDescription = null,
+                    tint = Color(0xFFFF8A80),
+                    modifier = Modifier.size(16.dp)
+                )
+            }
+        )
     }
 }
