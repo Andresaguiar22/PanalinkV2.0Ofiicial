@@ -93,6 +93,7 @@ fun PanaTVModernScreen(viewModel: PanaTVViewModel = viewModel()) {
     var hasRenderedFrame by remember { mutableStateOf(false) }
     var playerError by remember { mutableStateOf<String?>(null) }
     var showCountries by remember { mutableStateOf(false) }
+    var channelPanelVisible by remember { mutableStateOf(true) }
     // Canal cuyo surface está conectado al PlayerView compartido: permite detectar
     // el cambio de canal y forzar el reattach surface (fix imagen congelada).
     var currentPlayerChannelId by remember { mutableStateOf<String?>(null) }
@@ -200,10 +201,10 @@ fun PanaTVModernScreen(viewModel: PanaTVViewModel = viewModel()) {
         }
     }
 
-    fun exitFullscreen() {
+    fun exitToPortrait() {
         val activity = context as? Activity
-        activity?.requestedOrientation = ActivityInfo.SCREEN_ORIENTATION_UNSPECIFIED
         if (activity != null) {
+            activity.requestedOrientation = ActivityInfo.SCREEN_ORIENTATION_PORTRAIT
             WindowInsetsControllerCompat(activity.window, activity.window.decorView).show(WindowInsetsCompat.Type.systemBars())
         }
     }
@@ -213,10 +214,14 @@ fun PanaTVModernScreen(viewModel: PanaTVViewModel = viewModel()) {
 
     // Acción 1: Fix LANDSCAPE — orientation-driven immersive layout
     LaunchedEffect(isLandscape) {
-        if (isLandscape) enterFullscreen() else exitFullscreen()
+        if (isLandscape) enterFullscreen() else exitToPortrait()
     }
     BackHandler(enabled = isLandscape) {
-        exitFullscreen()
+        if (channelPanelVisible) {
+            channelPanelVisible = false
+        } else {
+            exitToPortrait()
+        }
     }
 
     fun selectChannel(channel: PanaTVChannelEntity) {
@@ -389,18 +394,17 @@ fun PanaTVModernScreen(viewModel: PanaTVViewModel = viewModel()) {
             playerContent(Modifier.fillMaxSize())
 
             // Overlay channel panel — animated, translucent, right-aligned
-            var showChannelPanel by remember { mutableStateOf(true) }
             AnimatedVisibility(
-                visible = showChannelPanel,
+                visible = channelPanelVisible,
                 enter = fadeIn(),
                 exit = fadeOut(),
                 modifier = Modifier.align(Alignment.CenterEnd)
             ) {
                 Box(
                     modifier = Modifier
-                        .width(200.dp)
+                        .width(236.dp)
                         .fillMaxHeight()
-                        .background(Color.Black.copy(alpha = 0.7f))
+                        .background(Color.Black.copy(alpha = 0.72f))
                 ) {
                     if (channels.isNotEmpty()) {
                         LazyColumn(
@@ -443,7 +447,7 @@ fun PanaTVModernScreen(viewModel: PanaTVViewModel = viewModel()) {
                 IconButton(onClick = { player?.let { if (it.isPlaying) it.pause() else it.play() } }) {
                     Icon(if (isPlaying) Icons.Default.Pause else Icons.Default.PlayArrow, "Reproducir/Pausar", tint = Color.White, modifier = Modifier.size(22.dp))
                 }
-                IconButton(onClick = { showChannelPanel = !showChannelPanel }) {
+                IconButton(onClick = { channelPanelVisible = !channelPanelVisible }) {
                     Icon(Icons.Default.Menu, "Canales", tint = Color.White, modifier = Modifier.size(22.dp))
                 }
             }
