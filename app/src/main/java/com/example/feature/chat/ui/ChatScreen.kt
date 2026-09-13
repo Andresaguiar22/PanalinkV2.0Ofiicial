@@ -290,6 +290,14 @@ fun ChatScreen(
     val inputFocusRequester = remember { androidx.compose.ui.focus.FocusRequester() }
     var isUploading by remember { mutableStateOf(false) }
     var lightboxImageUrl by remember { mutableStateOf<String?>(null) }
+
+    // Progreso real de subida por messageId (desde MediaUploadWorker via WorkManager)
+    val uploadProgress by viewModel.uploadProgress.collectAsStateWithLifecycle()
+    val stateMessages = (uiState as? com.example.feature.chat.presentation.ChatUiState.Success)?.messages ?: emptyList()
+    LaunchedEffect(stateMessages) {
+        val pendingIds = stateMessages.map { it.id }
+        viewModel.observeUploadProgress(pendingIds)
+    }
     
     // Chat Menu & Background states
     var showBackgroundDialog by remember { mutableStateOf(false) }
@@ -932,7 +940,8 @@ fun ChatScreen(
                                             kotlinx.coroutines.CoroutineScope(kotlinx.coroutines.Dispatchers.IO).launch {
                                                 com.example.data.repository.MessagesRepository.getInstance().retryMessage(msgId)
                                             }
-                                        }
+                                        },
+                                        uploadProgress = uploadProgress
                                     )
                                 }
 

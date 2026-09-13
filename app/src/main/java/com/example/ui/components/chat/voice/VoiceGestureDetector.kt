@@ -10,9 +10,9 @@ import kotlin.math.abs
 fun Modifier.voiceGestureDetector(
     enabled: Boolean = true,
     isLocked: Boolean = false,
-    lockThresholdY: Float = -70f,      // ~50dp: tirón rápido hacia arriba bloquea
-    cancelThresholdX: Float = -70f,    // ~50dp: deslizar a la izquierda cancela
-    flingVelocityY: Float = -1.8f,     // px/ms hacia arriba para fling-lock (incluso en 1 frame)
+    lockThresholdY: Float = -240f,   // ≈ hasta el candado visible: solo se activa al subir del todo
+    cancelThresholdX: Float = -70f,  // ~50dp: deslizar a la izquierda cancela
+    flingVelocityY: Float = 99999f,  // desactivado: nada de activar el candado con un midi-flick
     onPermissionRequired: (() -> Unit)? = null,
     onDrag: ((offsetX: Float, offsetY: Float) -> Unit)? = null,
     onEvent: (VoiceGestureEvent) -> Unit

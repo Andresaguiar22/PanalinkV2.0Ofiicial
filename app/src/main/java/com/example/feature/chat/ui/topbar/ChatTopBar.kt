@@ -220,7 +220,9 @@ fun ChatTopBar(
                                 DropdownMenu(
                                     expanded = showChatMenu,
                                     onDismissRequest = { showChatMenu = false },
-                                    modifier = Modifier.background(Color(0xFF1E293B))
+                                    modifier = Modifier.background(
+                                        Brush.verticalGradient(listOf(glassTop, glassBottom))
+                                    )
                                 ) {
                                     DropdownMenuItem(
                                         text = { Text("Ver contacto", color = Color.White) },

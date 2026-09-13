@@ -139,6 +139,7 @@ fun MessageBubbleEngine(
     onGhostOpen: (Message) -> Unit = {},
     onPlaylistAction: (com.example.media.playlist.PlaylistSharePayload, String) -> Unit = { _, _ -> },
     onRetry: ((String) -> Unit)? = null,
+    uploadProgress: Map<String, Pair<Long, Long>> = emptyMap(),
     modifier: Modifier = Modifier
 ) {
     if (message.isGhost) {
@@ -616,6 +617,8 @@ fun MessageBubbleEngine(
                                     message = message,
                                     bubbleColor = bubbleColor,
                                     senderAvatarUrl = if (isMe) myAvatarUrl else otherAvatarUrl,
+                                    uploadBytesWritten = uploadProgress[message.id]?.first ?: 0L,
+                                    uploadTotalBytes = uploadProgress[message.id]?.second ?: 0L,
                                     onImageClick = onImageClick,
                                     onPlayPauseClick = {
                                         val audioUrl = resolvedAudioUrl

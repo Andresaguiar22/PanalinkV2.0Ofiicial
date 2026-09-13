@@ -44,6 +44,8 @@ fun PremiumVoicePlayer(
     messageStatus: String? = "sent",
     isSending: Boolean = false,
     isVoiceNote: Boolean = true,
+    uploadBytesWritten: Long = 0L,
+    uploadTotalBytes: Long = 0L,
     modifier: Modifier = Modifier,
     backgroundColor: Color = Color(0xFF1E293B)
 ) {
@@ -241,6 +243,8 @@ fun PremiumVoicePlayer(
                 Text(
                     text = when {
                         isFailed -> "Error de envío"
+                        effectiveIsSending && uploadTotalBytes > 0L ->
+                            formatUploadKb(uploadBytesWritten) + " / " + formatUploadKb(uploadTotalBytes)
                         effectiveIsSending -> "Subiendo..."
                         isError -> "Error de descarga"
                         else -> durationLabel
@@ -307,4 +311,9 @@ fun PremiumVoicePlayer(
     }
 }
 
+}
+
+private fun formatUploadKb(bytes: Long): String = when {
+    bytes >= 1024 * 1024 -> String.format("%.1f MB", bytes / (1024f * 1024f))
+    else -> String.format("%.0f KB", bytes / 1024f)
 }

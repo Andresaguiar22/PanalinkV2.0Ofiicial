@@ -37,6 +37,9 @@ fun MediaMessageBubble(
     isDownloading: Boolean = false,
     isUploading: Boolean = false,
     progress: Float? = null,
+    bytesWritten: Long = 0L,
+    totalBytes: Long = 0L,
+    mediaTypeIcon: androidx.compose.ui.graphics.vector.ImageVector? = null,
     onMediaClick: (index: Int, url: String) -> Unit = { _, _ -> },
     onCancelProgress: () -> Unit = {},
     modifier: Modifier = Modifier
@@ -88,7 +91,10 @@ fun MediaMessageBubble(
             progress = progress?.coerceIn(0f, 1f),
             isUploading = isUploading,
             onCancelOrRetryClick = onCancelProgress,
-            statusText = if (isUploading) "Subiendo..." else null
+            statusText = if (isUploading) null else null,
+            bytesWritten = bytesWritten,
+            totalBytes = totalBytes,
+            mediaTypeIcon = mediaTypeIcon
         )
     }
 }

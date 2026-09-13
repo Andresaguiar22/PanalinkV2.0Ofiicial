@@ -67,6 +67,52 @@ class ChatViewModel : ViewModel() {
     private val _uiState = MutableStateFlow<ChatUiState>(ChatUiState.Loading)
     val uiState: StateFlow<ChatUiState> = _uiState.asStateFlow()
 
+    /** Progreso real de subida por messageId: bytesWritten + totalBytes desde MediaUploadWorker. */
+    private val _uploadProgress = MutableStateFlow<Map<String, Pair<Long, Long>>>(emptyMap())
+    val uploadProgress: StateFlow<Map<String, Pair<Long, Long>>> = _uploadProgress.asStateFlow()
+    private var uploadProgressJob: kotlinx.coroutines.Job? = null
+
+    fun observeUploadProgress(messageIds: List<String>, enabled: Boolean = true) {
+        if (!enabled) {
+            uploadProgressJob?.cancel()
+            uploadProgressJob = null
+            _uploadProgress.value = emptyMap()
+            return
+        }
+        val pendingIds = messageIds.filter { id ->
+            _uiState.value.let { it is ChatUiState.Success && it.messages.any { m -> m.id == id && m.isPendingUpload() } }
+        }
+        if (pendingIds.isEmpty()) {
+            uploadProgressJob?.cancel()
+            uploadProgressJob = null
+            _uploadProgress.value = emptyMap()
+            return
+        }
+
+        uploadProgressJob?.cancel()
+        uploadProgressJob = viewModelScope.launch {
+            while (true) {
+                val updates = mutableMapOf<String, Pair<Long, Long>>()
+                try {
+                    pendingIds.forEach { id ->
+                        val infos = androidx.work.WorkManager.getInstance(com.example.PanaApplication.instance)
+                            .getWorkInfosForUniqueWork("upload_$id").get()
+                        val info = infos.firstOrNull() ?: return@forEach
+                        if (info.state != androidx.work.WorkInfo.State.RUNNING) return@forEach
+                        val written = info.progress.getLong("bytesWritten", 0L)
+                        val total = info.progress.getLong("totalBytes", 0L)
+                        if (total > 0) updates[id] = written to total
+                    }
+                } catch (_: Exception) {}
+                _uploadProgress.value = updates
+                kotlinx.coroutines.delay(700)
+            }
+        }
+    }
+
+    private fun Message.isPendingUpload(): Boolean =
+        status == "sending" || status == "pending" || status == "pending_media"
+
     private val _myPlaylists = MutableStateFlow<List<com.example.media.playlist.PlaylistEntity>>(emptyList())
     val myPlaylists: StateFlow<List<com.example.media.playlist.PlaylistEntity>> = _myPlaylists.asStateFlow()
 

@@ -219,6 +219,40 @@ fun ChatComposer(
 
                 Spacer(modifier = Modifier.width(8.dp))
 
+                // Botón DERECHO con doble función:
+                //  - Si hay texto (o emoji) escrito: botón ENVIAR (verde/cian) que manda
+                //    el mensaje de una. Se desactiva solo si el texto es solo espacios.
+                //  - Si el campo está vacío: botón MICRÓFONO (grabación al mantener).
+                // El gesto del micrófono vive SIEMPRE aquí: al mantener y soltar,
+                // FinishRecording llega porque el botón se recompone con el mismo detentor.
+                if (inputMessage.isNotBlank()) {
+                    Box(
+                        modifier = Modifier
+                            .size(52.dp)
+                            .clip(CircleShape)
+                            .background(
+                                Brush.linearGradient(
+                                    colors = listOf(
+                                        androidx.compose.ui.graphics.Color(0xFF38BDF8),
+                                        androidx.compose.ui.graphics.Color(0xFF2563EB)
+                                    )
+                                )
+                            )
+                            .clickable {
+                                viewModel.sendMessage(inputMessage.trim(), replyToId = replyingToMessage?.id, context = context)
+                                viewModel.clearReplyAndEdit()
+                                viewModel.onInputMessageChange("")
+                            },
+                        contentAlignment = Alignment.Center
+                    ) {
+                        Icon(
+                            imageVector = Icons.AutoMirrored.Filled.Send,
+                            contentDescription = "Enviar mensaje",
+                            tint = androidx.compose.ui.graphics.Color.White,
+                            modifier = Modifier.size(22.dp)
+                        )
+                    }
+                } else {
                 // Botón del micrófono FUERA de la píldora. SELECCIONABLE en
                 // recoding (= mantiene el tamaño, muestra ondas, gesto activo).
                 Box(
@@ -309,11 +343,12 @@ fun ChatComposer(
                                     tint = primaryColor,
                                     modifier = Modifier.size(24.dp)
                                 )
-                        }
-                    }
+    }
+                }
                 }
             }
         }
+    }
         // MODO LOCKED_RECORDING (manos libres): píldora azul con borde que
         // muestra la grabación en curso y trae Cancelar, Pausar/Reanudar y
         // Enviar DENTRO de la misma píldora.
@@ -396,6 +431,28 @@ fun ChatComposer(
 
                     Spacer(modifier = Modifier.width(6.dp))
 
+                    // Escuchar (pre-escucha): detiene y abre el reproductor sin enviar
+                    Box(
+                        modifier = Modifier
+                            .size(40.dp)
+                            .clip(CircleShape)
+                            .background(primaryColor.copy(alpha = 0.9f))
+                            .clickable {
+                                triggerLightVibration(context)
+                                onVoiceGestureEvent(VoiceGestureEvent.StopAndPreviewRecording, context, null, null)
+                            },
+                        contentAlignment = Alignment.Center
+                    ) {
+                        Icon(
+                            imageVector = Icons.Default.PlayArrow,
+                            contentDescription = "Escuchar grabación",
+                            tint = androidx.compose.ui.graphics.Color.White,
+                            modifier = Modifier.size(20.dp)
+                        )
+                    }
+
+                    Spacer(modifier = Modifier.width(6.dp))
+
                     // Enviar grabación
                     Box(
                         modifier = Modifier
@@ -425,10 +482,10 @@ fun ChatComposer(
                 }
             }
         }
-        // Previewing / Sending mode: píldora de revisión con borrar, reproducir,
-        // forma de onda y Enviar. Reaparece cuando el usuario suelta el dedo
-        // (envío directo) o cuando usa la pre-escucha del panel manos-libres.
-        else if (recordState == RecordState.PREVIEWING || recordState == RecordState.SENDING) {
+        // Previewing mode: píldora de revisión con borrar, reproducir,
+        // forma de onda y Enviar. Solo llega aquí cuando el usuario usó la
+        // pre-escucha (botón Escuchar del candado = StopAndPreviewRecording).
+        else if (recordState == RecordState.PREVIEWING) {
             Row(
                 modifier = Modifier
                     .fillMaxWidth()
@@ -600,13 +657,54 @@ fun ChatComposer(
                 }
             }
         }
+        // SENDING (envío directo al soltar el dedo): barra slim de estado, sin
+        // pre-escucha. Muestra solo el spinner + "Enviando nota..." + opción de
+        // cancelar el guardado si el envío tarda (vuelve al estado IDLE y borra).
+        else if (recordState == RecordState.SENDING) {
+            Row(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(start = 16.dp, end = 16.dp)
+                    .padding(bottom = 24.dp),
+                verticalAlignment = Alignment.CenterVertically
+            ) {
+                Row(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .heightIn(min = 52.dp)
+                        .background(bubbleColor, RoundedCornerShape(28.dp))
+                        .border(1.dp, primaryColor.copy(alpha = 0.7f), RoundedCornerShape(28.dp))
+                        .padding(horizontal = 16.dp, vertical = 10.dp),
+                    verticalAlignment = Alignment.CenterVertically
+                ) {
+                    CircularProgressIndicator(
+                        modifier = Modifier.size(22.dp),
+                        color = primaryColor,
+                        strokeWidth = 2.dp
+                    )
+                    Spacer(modifier = Modifier.width(10.dp))
+                    Text(
+                        text = "Enviando nota...",
+                        color = androidx.compose.ui.graphics.Color.White,
+                        fontSize = 14.sp,
+                        fontWeight = FontWeight.Medium
+                    )
+                    Spacer(modifier = Modifier.weight(1f))
+                    Text(
+                        text = String.format("%02d:%02d", recordDurationSeconds / 60, recordDurationSeconds % 60),
+                        color = androidx.compose.ui.graphics.Color(0xFF94A3B8),
+                        fontSize = 12.sp
+                    )
+                }
+            }
+        }
         // Acción 6: Lock overlay for mic drag gesture
         // Se dibuja DENTRO del Box raíz del composer, anclado con offset para
         // flotar sobre el chat. NO usar fillMaxSize() aquí: un hijo fillMaxSize()
         // obliga al composer a tomar toda la altura disponible y el panel de
         // grabación termina renderizándose arriba, dejando un hueco negro gigante.
         if (recordState == RecordState.RECORDING) {
-            val lockHighlight = (micDragOffsetY / -70f).coerceIn(0f, 1f)
+            val lockHighlight = (micDragOffsetY / -240f).coerceIn(0f, 1f)
             val bounce = remember { Animatable(0f) }
             LaunchedEffect(lockHighlight) {
                 if (lockHighlight >= 1f && bounce.value == 0f) {
