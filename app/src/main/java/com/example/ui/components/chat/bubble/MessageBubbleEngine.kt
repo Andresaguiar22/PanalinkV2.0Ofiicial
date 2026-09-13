@@ -70,6 +70,7 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.hapticfeedback.HapticFeedbackType
@@ -265,16 +266,17 @@ fun MessageBubbleEngine(
         EmojiHelper.isEmojiOnly(message.textContent)
     }
 
-    // Acción 1: Paleta Premium Glassmorphism
-    // Tú: degradado azul cian a azul oscuro
-    // Otro: gris oscuro translúcido
+    // Accion 5: gradiente diagonal apagado y elegante (cian suave arriba-izq -> azul acero profundo abajo-der).
+    // Entrante: pizarra translucido.
     val outgoingGradient = Brush.linearGradient(
-        colors = listOf(Color(0xFF38BDF8), Color(0xFF1D4ED8))
+        colors = listOf(Color(0xFF53C8DD), Color(0xFF27548F)),
+        start = Offset.Zero,
+        end = Offset.Infinite
     )
-    val incomingColor = Color(0xFF1E293B).copy(alpha = 0.9f)
+    val incomingColor = Color(0xFF39435A).copy(alpha = 0.90f)
     
     val bubbleColor = if (isSticker || isBigEmoji) Color.Transparent 
-                      else if (isMe) Color(0xFF1D4ED8) // Solid dark blue for outgoing
+                      else if (isMe) Color(0xFF27548F) // Solid dark blue for outgoing
                       else incomingColor
     val bubbleBrush = if (isMe && !isSticker && !isBigEmoji) outgoingGradient else null
     val contentTextColor = Color.White

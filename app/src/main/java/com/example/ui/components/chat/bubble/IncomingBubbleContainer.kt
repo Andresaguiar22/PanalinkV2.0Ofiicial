@@ -26,7 +26,7 @@ fun IncomingBubbleContainer(
     avatarUserId: String? = null,
     modifier: Modifier = Modifier,
     shape: Shape = BubbleShapeFactory.createShape(groupPosition, isMe = false),
-    containerColor: Color = Color(0xFF1E293B).copy(alpha = 0.9f),
+    containerColor: Color = Color(0xFF39435A).copy(alpha = 0.90f),
     containerBrush: Brush? = null,
     tonalElevation: Float = 1f,
     content: @Composable () -> Unit

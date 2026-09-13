@@ -20,6 +20,7 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.draw.scale
+import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.SolidColor
 import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.platform.LocalContext
@@ -93,7 +94,7 @@ fun ChatComposer(
     var micDragOffsetY by remember { androidx.compose.runtime.mutableFloatStateOf(0f) }
     val isInputEmpty = inputMessage.trim().isEmpty()
     val primaryColor = androidx.compose.ui.graphics.Color(0xFF38BDF8)
-    val bubbleColor = androidx.compose.ui.graphics.Color(0xFF1E293B).copy(alpha = 0.8f)
+    val bubbleColor = androidx.compose.ui.graphics.Color(0xFF4E6377).copy(alpha = 0.88f)
 
     // Recording pulse animation
     val recordingPulseScale = remember { Animatable(1f) }
@@ -114,28 +115,35 @@ fun ChatComposer(
     Box(
         modifier = Modifier.fillMaxWidth()
     ) {
-        // Idle / text input mode: Floating Pill container
+        // Idle / text input mode: Floating Island container
         if (recordState == RecordState.IDLE) {
-            // Acción 5: La Píldora flotante — isla separada 16dp de los bordes.
-            // El IME ya lo gestiona el Column padre (imePadding), por lo que aquí
-            // NO se repite imePadding para no elevar el composer el doble con el teclado.
+            // Acción 2: La Isla Flotante. Todo (campo, emoji, adjuntos, enviar,
+            // micrófono) vive DENTRO de una única pastilla flotante separada del
+            // borde inferior por el IME + 24dp. Se usa imePadding() (consciente del
+            // consumo de insets) en vez de leer WindowInsets.ime.getBottom() a mano:
+            // el Column padre de ChatScreen YA aplica imePadding(), así que leer el
+            // inset crudo desplazaría la isla el doble de alto con el teclado abierto.
             Row(
                 modifier = Modifier
                     .fillMaxWidth()
-                    .padding(16.dp),
+                    .padding(start = 16.dp, end = 16.dp)
+                    .imePadding()
+                    .padding(bottom = 24.dp),
                 verticalAlignment = Alignment.CenterVertically
             ) {
-                // Floating pill: Row background Color(0xFF1E293B).copy(alpha=0.8f), CircleShape
-                Box(
+                // Única pastilla: Row background Color(0xFF1E293B).copy(alpha=0.8f), CircleShape
+                Row(
                     modifier = Modifier
                         .weight(1f)
                         .background(bubbleColor, CircleShape)
-                        .heightIn(min = 52.dp),
-                    contentAlignment = Alignment.CenterStart
+                        .border(1.dp, androidx.compose.ui.graphics.Color.White.copy(alpha = 0.12f), CircleShape)
+                        .heightIn(min = 52.dp)
+                        .padding(start = 4.dp, end = 6.dp),
+                    verticalAlignment = Alignment.CenterVertically
                 ) {
                     Row(
                         modifier = Modifier
-                            .fillMaxWidth()
+                            .weight(1f)
                             .padding(horizontal = 4.dp),
                         verticalAlignment = Alignment.CenterVertically
                     ) {
@@ -222,77 +230,85 @@ fun ChatComposer(
                                     viewModel.onInputMessageChange("")
                                 },
                                 modifier = Modifier
-                                    .size(36.dp)
-                                    .background(primaryColor, CircleShape)
+                                    .size(38.dp)
+                                    .background(
+                                        Brush.radialGradient(
+                                            colors = listOf(
+                                                primaryColor.copy(alpha = 0.45f),
+                                                androidx.compose.ui.graphics.Color.Transparent
+                                            )
+                                        ),
+                                        CircleShape
+                                    )
                             ) {
                                 Icon(
                                     imageVector = Icons.AutoMirrored.Filled.Send,
                                     contentDescription = "Enviar",
-                                    tint = androidx.compose.ui.graphics.Color.White,
-                                    modifier = Modifier.size(20.dp)
+                                    tint = primaryColor,
+                                    modifier = Modifier.size(24.dp)
+                                )
+                            }
+                        }
+                    }
+
+                        // Botón Micrófono DENTRO de la pastilla, a la derecha del campo,
+                        // solo cuando el texto está vacío (si hay texto se muestra Enviar).
+                        if (isInputEmpty) {
+                            Box(
+                                modifier = Modifier
+                                    .graphicsLayer {
+                                        translationX = micDragOffsetX
+                                        translationY = micDragOffsetY
+                                        alpha = if (recordState == RecordState.LOCKED_RECORDING) 0f else 1f
+                                    }
+                                    .size(if (recordState == RecordState.LOCKED_RECORDING) 0.dp else 42.dp)
+                                    .scale(recordingPulseScale.value)
+                                    .clip(CircleShape)
+                                    .background(androidx.compose.ui.graphics.Color.Transparent)
+                                    .voiceGestureDetector(
+                                        enabled = true,
+                                        isLocked = recordState == RecordState.LOCKED_RECORDING,
+                                        onPermissionRequired = if (!hasMicPermission) {
+                                            { micPermissionLauncher.launch(android.Manifest.permission.RECORD_AUDIO) }
+                                        } else null,
+                                        onDrag = { x, y ->
+                                            micDragOffsetX = x
+                                            micDragOffsetY = y
+                                        },
+                                        onEvent = { event ->
+                                            micDragOffsetX = 0f
+                                            micDragOffsetY = 0f
+
+                                            when (event) {
+                                                is VoiceGestureEvent.StartRecording -> {
+                                                    triggerLightVibration(context)
+                                                }
+                                                is VoiceGestureEvent.LockRecording -> {
+                                                    triggerLightVibration(context)
+                                                }
+                                                is VoiceGestureEvent.CancelRecording -> {
+                                                    triggerLightVibration(context)
+                                                    onShowTrashAnimation()
+                                                    Toast.makeText(context, "Grabación cancelada", Toast.LENGTH_SHORT).show()
+                                                }
+                                                else -> {}
+                                            }
+                                            onVoiceGestureEvent(event, context, replyingToMessage?.id, recordDurationSeconds)
+                                        }
+                                    ),
+                                contentAlignment = Alignment.Center
+                            ) {
+                                Icon(
+                                    imageVector = Icons.Default.Mic,
+                                    contentDescription = "Grabar nota de voz",
+                                    tint = androidx.compose.ui.graphics.Color(0xFFE2E8F0),
+                                    modifier = Modifier.size(24.dp)
                                 )
                             }
                         }
                     }
                 }
-
-                // Botón Micrófono FUERA de la píldora: solo cuando el texto está vacío
-                if (isInputEmpty) {
-                    Spacer(modifier = Modifier.width(8.dp))
-                    Box(
-                        modifier = Modifier
-                            .graphicsLayer {
-                                translationX = micDragOffsetX
-                                translationY = micDragOffsetY
-                                alpha = if (recordState == RecordState.LOCKED_RECORDING) 0f else 1f
-                            }
-                            .size(if (recordState == RecordState.LOCKED_RECORDING) 0.dp else 48.dp)
-                            .scale(recordingPulseScale.value)
-                            .clip(CircleShape)
-                            .background(if (recordState == RecordState.RECORDING) androidx.compose.ui.graphics.Color(0xFF00E5FF) else primaryColor)
-                            .voiceGestureDetector(
-                                enabled = true,
-                                isLocked = recordState == RecordState.LOCKED_RECORDING,
-                                onPermissionRequired = if (!hasMicPermission) {
-                                    { micPermissionLauncher.launch(android.Manifest.permission.RECORD_AUDIO) }
-                                } else null,
-                                onDrag = { x, y ->
-                                    micDragOffsetX = x
-                                    micDragOffsetY = y
-                                },
-                                onEvent = { event ->
-                                    micDragOffsetX = 0f
-                                    micDragOffsetY = 0f
-
-                                    when (event) {
-                                        is VoiceGestureEvent.StartRecording -> {
-                                            triggerLightVibration(context)
-                                        }
-                                        is VoiceGestureEvent.LockRecording -> {
-                                            triggerLightVibration(context)
-                                        }
-                                        is VoiceGestureEvent.CancelRecording -> {
-                                            triggerLightVibration(context)
-                                            onShowTrashAnimation()
-                                            Toast.makeText(context, "Grabación cancelada", Toast.LENGTH_SHORT).show()
-                                        }
-                                        else -> {}
-                                    }
-                                    onVoiceGestureEvent(event, context, replyingToMessage?.id, recordDurationSeconds)
-                                }
-                            ),
-                        contentAlignment = Alignment.Center
-                    ) {
-                        Icon(
-                            imageVector = Icons.Default.Mic,
-                            contentDescription = "Grabar nota de voz",
-                            tint = androidx.compose.ui.graphics.Color.White,
-                            modifier = Modifier.size(22.dp)
-                        )
-                    }
-                }
             }
-        }
         // Recording mode: panel with recording UI
         else if (recordState == RecordState.RECORDING) {
             Row(

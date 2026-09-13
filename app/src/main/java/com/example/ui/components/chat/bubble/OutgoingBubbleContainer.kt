@@ -19,7 +19,7 @@ fun OutgoingBubbleContainer(
     groupPosition: MessageGroupPosition,
     modifier: Modifier = Modifier,
     shape: Shape = BubbleShapeFactory.createShape(groupPosition, isMe = true),
-    containerColor: Color = Color(0xFF1D4ED8),
+    containerColor: Color = Color(0xFF27548F),
     containerBrush: Brush? = null,
     tonalElevation: Float = 1f,
     content: @Composable () -> Unit

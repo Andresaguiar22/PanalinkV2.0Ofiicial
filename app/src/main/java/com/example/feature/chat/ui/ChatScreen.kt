@@ -742,7 +742,7 @@ fun ChatScreen(
                 onNavigateToSearch =onNavigateToSearch,
             )
         },
-        containerColor = Color(0xFF020617)
+        containerColor = Color(0xFF070B18)
     ) { innerPadding ->
         Column(
             modifier = Modifier
@@ -764,8 +764,8 @@ fun ChatScreen(
                      .background(
                          Brush.verticalGradient(
                              colors = listOf(
-                                 Color(0xFF0F172A),
-                                 Color(0xFF020617)
+                                 Color(0xFF0E1730),
+                                 Color(0xFF070B18)
                              )
                          )
                      )
