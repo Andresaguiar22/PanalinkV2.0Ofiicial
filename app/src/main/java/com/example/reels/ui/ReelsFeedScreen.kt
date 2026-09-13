@@ -146,7 +146,6 @@ fun ReelsFeedScreen(
             modifier = Modifier.fillMaxSize()
         ) { page ->
             val reel = reels.getOrNull(page) ?: return@VerticalPager
-            val isActivePage = page == pagerState.currentPage
 
             // Ensure this page's player is acquired with a resolved URL during
             // composition so the surface binds immediately (no black frame).
@@ -162,7 +161,6 @@ fun ReelsFeedScreen(
 
             ReelOverlay(
                 reel = reel,
-                isActivePage = isActivePage,
                 onLikeToggle = { viewModel.toggleLike(reel.state.id, reel.state.likedByMe ?: false) },
                 onFavoriteToggle = { viewModel.toggleFavorite(reel.state.id, reel.state.favoritedByMe ?: false) },
                 onCommentClick = { },
@@ -207,7 +205,6 @@ private fun ensureAcquired(
 @Composable
 private fun ReelOverlay(
     reel: UserStateWithUser,
-    isActivePage: Boolean,
     onLikeToggle: () -> Unit,
     onFavoriteToggle: () -> Unit,
     onCommentClick: () -> Unit,
