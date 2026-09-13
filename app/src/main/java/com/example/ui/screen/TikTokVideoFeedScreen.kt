@@ -94,6 +94,7 @@ import android.widget.Toast
 import androidx.compose.ui.platform.LocalContext
 import androidx.media3.common.Player
 import androidx.media3.common.MediaItem
+import androidx.media3.common.PlaybackParameters
 import androidx.media3.exoplayer.ExoPlayer
 import androidx.media3.ui.PlayerView
 import androidx.media3.ui.AspectRatioFrameLayout
@@ -105,6 +106,8 @@ import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 import kotlinx.coroutines.withTimeoutOrNull
+import kotlinx.coroutines.Job
+import kotlinx.coroutines.isActive
 import com.example.data.repository.ProfilesRepository
 import com.example.data.repository.CdnManager
 import com.example.data.supabase.SupabaseClient
@@ -946,8 +949,17 @@ fun TikTokPageItem(
     var isDraggingSlider by remember { mutableStateOf(false) }
     val hearts = remember { mutableStateListOf<HeartPopState>() }
     var isFocusMode by remember { mutableStateOf(false) }
-    var scale by remember { mutableStateOf(1f) }
-    var offset by remember { mutableStateOf(Offset.Zero) }
+    // Acción 4: Zoom state backed by Animatable for snap-back animation.
+    // scaleAnim/offsetXAnim/offsetYAnim replace the old scale/offset mutableState.
+    val scaleAnim = remember { Animatable(1f) }
+    val offsetXAnim = remember { Animatable(0f) }
+    val offsetYAnim = remember { Animatable(0f) }
+    // Acción 2: Floating reactions for reels (owner-only live reactions)
+    var floatingReactions by remember { mutableStateOf(listOf<FloatingReactionLog>()) }
+    val reactionScope = rememberCoroutineScope()
+    // Acción 3: Smart-press zone state
+    var isRewinding by remember(state.id) { mutableStateOf(false) }
+    var seekJob by remember(state.id) { mutableStateOf<Job?>(null) }
     var hasError by remember(state.id) { mutableStateOf(false) }
     // True while a codec-recovery cycle (player recreation) is in flight; the error
     // card must NOT be shown during this window, only on definitive failure.
@@ -962,6 +974,34 @@ fun TikTokPageItem(
     var forceRotationDegrees by remember(state.id) { mutableStateOf(0f) }
     // Bumped by manual/auto retry to force the acquisition LaunchedEffect to re-run.
     var playerRefreshKey by remember(state.id) { mutableStateOf(0) }
+
+    // Acción 2: Listen for realtime likes on this reel to show floating reactions (owner-only)
+    LaunchedEffect(state.id, isOwner) {
+        if (isOwner) {
+            SupabaseClient.realtimeLikes.collect { update ->
+                if (update.statusId == state.id && update.isReel && update.eventType == "INSERT") {
+                    val reactingUserId = try {
+                        update.record.optString("user_id", update.record.optString("author_id", ""))
+                    } catch (_: Exception) { "" }
+                    val emoji = "❤️"
+                    val avatarUrl = if (reactingUserId.isNotBlank()) {
+                        try {
+                            identityRepository.resolveFreshAvatar(reactingUserId) ?: ""
+                        } catch (_: Exception) { "" }
+                    } else ""
+                    val log = FloatingReactionLog(
+                        id = "${System.currentTimeMillis()}_${reactingUserId}",
+                        avatarUrl = avatarUrl,
+                        emoji = emoji,
+                        userId = reactingUserId
+                    )
+                    reactionScope.launch {
+                        floatingReactions = floatingReactions + log
+                    }
+                }
+            }
+        }
+    }
 
     // El feed remoto puede re-emitir la fila con mediaUrl distinta (re-anclaje CDN,
     // URL firmada expirada, refresco de red). Resolver/player solo dependen
@@ -1592,18 +1632,56 @@ fun TikTokPageItem(
                         },
                         onPress = { offset ->
                             var isReleased = false
-                            val job = coroutineScope.launch {
+                            val screenWidth = size.width
+                            val zone = when {
+                                offset.x < screenWidth * 0.25f -> "rewind"
+                                offset.x > screenWidth * 0.75f -> "forward"
+                                else -> "center"
+                            }
+                            val longPressJob = coroutineScope.launch {
                                 kotlinx.coroutines.delay(350L)
                                 if (!isReleased) {
-                                    isFocusMode = true
+                                    when (zone) {
+                                        "forward" -> {
+                                            exoPlayerRef?.setPlaybackParameters(PlaybackParameters(2f))
+                                        }
+                                        "center" -> {
+                                            isFocusMode = true
+                                        }
+                                        "rewind" -> {
+                                            isRewinding = true
+                                            seekJob?.cancel()
+                                            seekJob = coroutineScope.launch {
+                                                while (isActive) {
+                                                    exoPlayerRef?.let { player ->
+                                                        player.seekTo(kotlin.math.max(0L, player.currentPosition - 1000))
+                                                    }
+                                                    kotlinx.coroutines.delay(100)
+                                                }
+                                            }
+                                        }
+                                    }
                                 }
                             }
                             try {
                                 awaitRelease()
                             } finally {
                                 isReleased = true
-                                job.cancel()
-                                isFocusMode = false
+                                longPressJob.cancel()
+                                // Revert all zone effects on release
+                                when (zone) {
+                                    "forward" -> {
+                                        exoPlayerRef?.setPlaybackParameters(PlaybackParameters(1f))
+                                    }
+                                    "center" -> {
+                                        isFocusMode = false
+                                    }
+                                    "rewind" -> {
+                                        isRewinding = false
+                                        seekJob?.cancel()
+                                        seekJob = null
+                                    }
+                                }
                             }
                         }
                     )
@@ -1723,16 +1801,40 @@ fun TikTokPageItem(
                         modifier = Modifier
                             .fillMaxSize()
                             .pointerInput(state.id) {
-                                detectTransformGesturesCustom(
+                                 detectTransformGesturesCustom(
                                     onGesture = { _, pan, zoom, _ ->
-                                        scale = (scale * zoom).coerceIn(1f, 5f)
-                                        offset = if (scale > 1f) {
-                                            Offset(offset.x + pan.x, offset.y + pan.y)
-                                        } else {
-                                            Offset.Zero
+                                        scope.launch {
+                                            val targetScale = (scaleAnim.value * zoom).coerceIn(1f, 5f)
+                                            scaleAnim.snapTo(targetScale)
+                                            if (targetScale > 1f) {
+                                                offsetXAnim.snapTo(offsetXAnim.value + pan.x)
+                                                offsetYAnim.snapTo(offsetYAnim.value + pan.y)
+                                            } else {
+                                                offsetXAnim.snapTo(0f)
+                                                offsetYAnim.snapTo(0f)
+                                            }
                                         }
                                     },
-                                    currentScale = { scale }
+                                    currentScale = { scaleAnim.value },
+                                    onEnd = {
+                                        // Acción 4: Snap-back to 1f / 0f when all fingers released
+                                        if (scaleAnim.value > 1.01f) {
+                                            scope.launch {
+                                                scaleAnim.animateTo(
+                                                    targetValue = 1f,
+                                                    animationSpec = tween(durationMillis = 300, easing = LinearOutSlowInEasing)
+                                                )
+                                                offsetXAnim.animateTo(
+                                                    targetValue = 0f,
+                                                    animationSpec = tween(durationMillis = 300, easing = LinearOutSlowInEasing)
+                                                )
+                                                offsetYAnim.animateTo(
+                                                    targetValue = 0f,
+                                                    animationSpec = tween(durationMillis = 300, easing = LinearOutSlowInEasing)
+                                                )
+                                            }
+                                        }
+                                    }
                                 )
                             }
                     ) {
@@ -1750,15 +1852,15 @@ fun TikTokPageItem(
                             modifier = Modifier
                                 .fillMaxSize()
                                 .align(Alignment.Center)
-                                .graphicsLayer {
-                                    scaleX = scale
-                                    scaleY = scale
-                                    translationX = offset.x
-                                    translationY = offset.y
-                                    if (forceRotationDegrees != 0f) {
-                                        rotationZ = forceRotationDegrees
-                                    }
-                                }
+                                 .graphicsLayer {
+                                     scaleX = scaleAnim.value
+                                     scaleY = scaleAnim.value
+                                     translationX = offsetXAnim.value
+                                     translationY = offsetYAnim.value
+                                     if (forceRotationDegrees != 0f) {
+                                         rotationZ = forceRotationDegrees
+                                     }
+                                 }
                         )
 
                         if (isBuffering && isActivePage && currentPosition == 0L) {
@@ -1821,6 +1923,17 @@ fun TikTokPageItem(
                     }
                 )
             }
+        }
+
+        // Acción 2: Floating reactions from live likes (owner-only)
+        if (floatingReactions.isNotEmpty()) {
+            FloatingReactionsContainer(
+                reactions = floatingReactions,
+                onDismiss = { id ->
+                    floatingReactions = floatingReactions.filterNot { it.id == id }
+                },
+                modifier = Modifier.align(Alignment.TopCenter)
+            )
         }
 
         // Animated play/pause central overlay icon
@@ -2707,9 +2820,11 @@ private fun formatMmSs(ms: Long): String {
 }
 
 private suspend fun PointerInputScope.detectTransformGesturesCustom(
-    onGesture: (centroid: Offset, pan: Offset, zoom: Float, rotation: Float) -> Unit,
-    currentScale: () -> Float
+    onGesture: PointerInputScope.(centroid: Offset, pan: Offset, zoom: Float, rotation: Float) -> Unit,
+    currentScale: () -> Float,
+    onEnd: (() -> Unit)? = null
 ) {
+    val ptrScope = this
     awaitEachGesture {
         var rotation = 0f
         var zoom = 1f
@@ -2756,7 +2871,7 @@ private suspend fun PointerInputScope.detectTransformGesturesCustom(
                             zoomChange != 1f ||
                             panChange != Offset.Zero
                         ) {
-                            onGesture(centroid, panChange, zoomChange, effectiveRotation)
+                            ptrScope.onGesture(centroid, panChange, zoomChange, effectiveRotation)
                         }
                         event.changes.forEach {
                             if (it.positionChanged()) {
@@ -2767,5 +2882,8 @@ private suspend fun PointerInputScope.detectTransformGesturesCustom(
                 }
             }
         } while (!canceled && event.changes.any { it.pressed })
+
+        // Acción 4: Trigger snap-back when all fingers are lifted
+        onEnd?.invoke()
     }
 }
