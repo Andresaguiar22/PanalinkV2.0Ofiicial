@@ -457,12 +457,10 @@ fun PanaTVModernScreen(viewModel: PanaTVViewModel = viewModel()) {
                     Text("Selecciona un canal para comenzar", color = PanaTvMuted, fontSize = 13.sp)
                 }
             } else {
+                key(playerGeneration) {
                 AndroidView(
                     factory = { ctx ->
                         PlayerView(ctx).apply {
-                            // View NUEVO: su surface nunca ha estado conectado a este player con video
-                            // activo. Invalidar el canal actual para que el update que sigue fuerce el
-                            // reattach surface (si no, media3 deja la textura vieja: negro o tarjetas).
                             currentPlayerChannelId = null
                             this.player = player
                             useController = false
@@ -475,25 +473,31 @@ fun PanaTVModernScreen(viewModel: PanaTVViewModel = viewModel()) {
                         }
                     },
                     update = { view ->
+                        // Cada canal fuerza un SurfaceView NUEVO (key = playerGeneration).
+                        // Con el player REUTILIZADO, media3 solo re-renderiza si además
+                        // el surface cambia; con el mismo SurfaceView el renderer de video
+                        // se queda negro/congelado con el audio nuevo sonando.
                         val channelChanged = currentPlayerChannelId != currentChannel?.id
-                        if (channelChanged && view.player != null) {
-                            // Detach el surface del canal anterior: media3 NO re-conecta
-                            // el mismo Player sola con `view.player = player`, dejando la
-                            // textura congelada del canal previo (audio nuevo + imagen vieja).
-                            // clearVideoSurface() vacía también el surface para que el frame
-                            // viejo no quede colgado como primer fotograma.
-                            view.player?.clearVideoSurface()
-                            view.player = null
-                        }
-                        view.player = player
                         view.resizeMode = AspectRatioFrameLayout.RESIZE_MODE_ZOOM
                         if (channelChanged) {
+                            // El view recién creado ya trae el player conectado (factory);
+                            // NO tocar el surface de un canal anterior porque sería un
+                            // detach innecesario de un frame que ya no le corresponde.
                             currentPlayerChannelId = currentChannel?.id
                             hasRenderedFrame = false
                         }
                     },
+                    onRelease = { view ->
+                        // Al destruir este SurfaceView (ya sea por cambio de canal o por
+                        // rotación), desvinculamos el player para que el renderer de video
+                        // no siga escribiendo en un surface muerto.
+                        if (view.player === player) {
+                            view.player = null
+                        }
+                    },
                     modifier = Modifier.fillMaxSize()
                 )
+                }
 
                 if ((!hasRenderedFrame || isBuffering) && playerError == null) {
                     Box(Modifier.fillMaxSize().background(Color.Black.copy(alpha = 0.45f)), contentAlignment = Alignment.Center) {
