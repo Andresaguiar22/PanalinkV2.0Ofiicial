@@ -13,6 +13,11 @@ import androidx.media3.exoplayer.source.DefaultMediaSourceFactory
 import androidx.media3.datasource.DefaultHttpDataSource
 import androidx.annotation.OptIn
 import androidx.media3.common.util.UnstableApi
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.delay
+import kotlinx.coroutines.launch
+import kotlinx.coroutines.withTimeoutOrNull
 
 /**
  * Double-buffered reel player pool: exactly two ExoPlayer instances are
@@ -124,6 +129,55 @@ class ReelDualPlayerManager(private val context: Context) {
         }
         player.playWhenReady = false
         activeSlot = null
+    }
+
+    /**
+     * Pinta el primer frame del slider en el surface SIN reproducir (preload).
+     *
+     * TikTok muestra el frame del siguiente video ya decodificado cuando deslizas.
+     * Un ExoPlayer en [Player.prepare] con playWhenReady=false decodifica en RAM
+     * pero NO escribe ningún frame al surface (por eso se ve negro hasta activar).
+     * Este "poke" enciende playWhenReady brevemente, espera el primer frame
+     * renderizado (pinta en el surface), y pausa — dejando el frame visible y
+     * congelado. Al activar el slot, playWhenReady=true retoma desde ese frame
+     * con cero latencia de arranque.
+     *
+     * No bloquea: corre en coroutine propia; si el surface aún no está asignado
+     * (el PlayerView se compone un ciclo después) reintenta un par de veces.
+     */
+    @androidx.annotation.OptIn(androidx.media3.common.util.UnstableApi::class)
+    private fun pokeFirstFrame(player: ExoPlayer) {
+        val pool = CoroutineScope(Dispatchers.Main + kotlinx.coroutines.SupervisorJob())
+        pool.launch {
+            // Pequeña espera para que el PlayerView del preload se componga y asigne
+            // su surface al player (pasa un frame de UI tras setear exoPlayerRef).
+            if (player.isCommandAvailable(Player.COMMAND_SET_VIDEO_SURFACE)) {
+                delay(200L)
+            } else {
+                return@launch
+            }
+
+            // Ya está reproduciendo (no es preload): no tocar nada.
+            if (player.playWhenReady) return@launch
+
+            val firstFrame = java.util.concurrent.atomic.AtomicBoolean(false)
+            val listener = object : Player.Listener {
+                override fun onRenderedFirstFrame() {
+                    firstFrame.set(true)
+                }
+            }
+            player.addListener(listener)
+            try {
+                player.playWhenReady = true
+                withTimeoutOrNull(2000L) {
+                    while (!firstFrame.get()) delay(10)
+                }
+            } finally {
+                player.removeListener(listener)
+            }
+            // Congelar en el primer frame (el frame permanece visible en el surface).
+            if (player.playWhenReady) player.playWhenReady = false
+        }
     }
 
     /** Result of asking the manager to recover from a playback error. */
@@ -383,7 +437,12 @@ class ReelDualPlayerManager(private val context: Context) {
             freeSlot ?: (activeSlot ?: Slot.B)
         }
         val player = acquire(slot, id, url, volume)
-        if (active) activate(slot, volume) else pause(slot)
+        if (active) {
+            activate(slot, volume)
+        } else {
+            pause(slot)
+            pokeFirstFrame(player)
+        }
         return slot
     }
 
@@ -404,8 +463,9 @@ class ReelDualPlayerManager(private val context: Context) {
         recoveryAttempts.remove(slot)
         if (!requeue) return
         val pending = pendingPreloads.pollFirst() ?: return
-        acquire(slot, pending.id, pending.url, pending.volume)
+        val preloaded = acquire(slot, pending.id, pending.url, pending.volume)
         pause(slot)
+        pokeFirstFrame(preloaded)
     }
 
     private fun build(preferSoftware: Boolean = false): ExoPlayer {
