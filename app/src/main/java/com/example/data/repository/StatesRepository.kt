@@ -60,6 +60,11 @@ class StatesRepository {
         }
     }
 
+    /** Persiste la ruta del archivo guardado en ROM para un estado/reel (offline). */
+    suspend fun updateLocalVideoPath(stateId: String, path: String?) = withContext(Dispatchers.IO) {
+        statesDao.updateLocalPath(stateId, path)
+    }
+
 
     suspend fun getActiveStates(): Result<Unit> = remoteDataSource.fetchActiveStates()
 

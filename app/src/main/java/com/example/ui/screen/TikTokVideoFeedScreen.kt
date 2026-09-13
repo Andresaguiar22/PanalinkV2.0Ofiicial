@@ -900,6 +900,22 @@ fun TikTokPageItem(
     val focusRequester = remember { FocusRequester() }
     val coroutineScope = rememberCoroutineScope()
 
+    var isSavingOffline by remember { mutableStateOf(false) }
+    var offlineSaveResult by remember { mutableStateOf<String?>(null) }
+    val hasOfflineCopy = !state.localVideoPath.isNullOrBlank() &&
+        java.io.File(state.localVideoPath!!).exists() &&
+        java.io.File(state.localVideoPath!!).length() > 100_000L
+    LaunchedEffect(offlineSaveResult) {
+        if (offlineSaveResult != null) {
+            android.widget.Toast.makeText(
+                context,
+                offlineSaveResult,
+                android.widget.Toast.LENGTH_LONG
+            ).show()
+            offlineSaveResult = null
+        }
+    }
+
     var currentPosition by remember { mutableStateOf(0L) }
     var duration by remember { mutableStateOf(0L) }
     var isDraggingSlider by remember { mutableStateOf(false) }
@@ -2079,7 +2095,38 @@ fun TikTokPageItem(
                     modifier = Modifier.background(Color(0xFF0F0F10))
                 ) {
                     DropdownMenuItem(
-                        text = { Text("Descargar vídeo", color = Color.White, fontSize = 14.sp) },
+                        text = {
+                            Text(
+                                when {
+                                    isSavingOffline -> "Guardando…"
+                                    hasOfflineCopy -> "Guardado ✓ (ver sin datos)"
+                                    else -> "Guardar para ver sin datos"
+                                },
+                                color = Color.White,
+                                fontSize = 14.sp
+                            )
+                        },
+                        enabled = !isSavingOffline && !hasOfflineCopy,
+                        onClick = {
+                            showActionMoreMenu = false
+                            viewModel.saveReelForOffline(
+                                context = context,
+                                stateId = state.id,
+                                mediaUrl = state.mediaUrl,
+                                vcdnVideoId = state.vcdnVideoId,
+                                onProgress = { saving -> isSavingOffline = saving },
+                                onDone = { file ->
+                                    offlineSaveResult = if (file != null) {
+                                        "✅ Vídeo guardado: podrás verlo sin datos"
+                                    } else {
+                                        "❌ No se pudo guardar el vídeo (revisa tu conexión)"
+                                    }
+                                }
+                            )
+                        }
+                    )
+                    DropdownMenuItem(
+                        text = { Text("Descargar vídeo (galería)", color = Color.White, fontSize = 14.sp) },
                         onClick = {
                             // Resolve on IO to avoid blocking Main with VCDN BFF I/O
                             scope.launch(Dispatchers.IO) {

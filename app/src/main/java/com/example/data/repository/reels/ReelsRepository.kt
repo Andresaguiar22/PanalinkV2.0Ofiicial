@@ -78,6 +78,11 @@ class ReelsRepository(
         local.save(com.example.data.database.StateEntity.fromUserStateWithUser(reel))
     }
 
+    /** Persiste la ruta del video en ROM para un reel (usado para reproducción offline). */
+    suspend fun updateLocalVideoPath(reelId: String, path: String?) = withContext(Dispatchers.IO) {
+        local.updateLocalPath(reelId, path)
+    }
+
     suspend fun getLocalReel(reelId: String): UserStateWithUser? =
         local.getById(reelId)?.toUserStateWithUser()
 
