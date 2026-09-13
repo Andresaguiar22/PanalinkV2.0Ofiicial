@@ -341,25 +341,41 @@ fun PanaTVModernScreen(viewModel: PanaTVViewModel = viewModel()) {
         }
     }
 
+    fun startChannel(channel: PanaTVChannelEntity) {
+        // The previous channel is CLOSED and the new one starts clean: a released
+        // player + a rebuilt surface avoids the stale frame of the old channel and
+        // the never-ending spinner (audio of the new channel, picture of the old).
+        playerError = null
+        hasRenderedFrame = false
+        isBuffering = true
+        isPlaying = false
+        com.example.util.AppFloatingPlayerManager.releasePlayer()
+        currentPlayerChannelId = null
+        playerGeneration += 1
+        viewModel.selectChannel(channel)
+    }
+
     fun selectChannel(channel: PanaTVChannelEntity) {
         // Choosing a channel KEEPS the drawer open so the user can keep browsing;
         // it is only dismissed by tapping outside (or back).
-        if (currentChannel?.id != channel.id) {
-            playerError = null
-            hasRenderedFrame = false
-            isBuffering = true
-            viewModel.selectChannel(channel)
-        } else {
-            player?.let {
-                if (it.isPlaying) it.pause() else it.play()
-            }
+        if (currentChannel?.id == channel.id) {
+            player?.let { if (it.isPlaying) it.pause() else it.play() }
+            return
         }
+        startChannel(channel)
     }
 
     fun playPrevious() {
         if (channels.isEmpty()) return
         val idx = channels.indexOfFirst { it.id == currentChannel?.id }
         val target = if (idx > 0) channels[idx - 1] else channels.last()
+        selectChannel(target)
+    }
+
+    fun playNext() {
+        if (channels.isEmpty()) return
+        val idx = channels.indexOfFirst { it.id == currentChannel?.id }
+        val target = if (idx >= 0 && idx < channels.lastIndex) channels[idx + 1] else channels.first()
         selectChannel(target)
     }
 
@@ -431,12 +447,16 @@ fun PanaTVModernScreen(viewModel: PanaTVViewModel = viewModel()) {
                             // Detach el surface del canal anterior: media3 NO re-conecta
                             // el mismo Player sola con `view.player = player`, dejando la
                             // textura congelada del canal previo (audio nuevo + imagen vieja).
+                            // clearVideoSurface() vacía también el surface para que el frame
+                            // viejo no quede colgado como primer fotograma.
+                            view.player?.clearVideoSurface()
                             view.player = null
                         }
                         view.player = player
                         view.resizeMode = AspectRatioFrameLayout.RESIZE_MODE_ZOOM
                         if (channelChanged) {
                             currentPlayerChannelId = currentChannel?.id
+                            hasRenderedFrame = false
                         }
                     },
                     modifier = Modifier.fillMaxSize()
@@ -527,6 +547,20 @@ fun PanaTVModernScreen(viewModel: PanaTVViewModel = viewModel()) {
                             overflow = TextOverflow.Ellipsis,
                             modifier = Modifier.padding(horizontal = 6.dp).weight(1f)
                         )
+                        IconButton(
+                            onClick = {
+                                currentChannel?.let { viewModel.toggleFavorite(it.id) }
+                            },
+                            modifier = Modifier.size(38.dp)
+                        ) {
+                            val fav = currentChannel?.let { favorites.contains(it.id) } == true
+                            Icon(
+                                if (fav) Icons.Default.Favorite else Icons.Default.FavoriteBorder,
+                                "Favorito",
+                                tint = if (fav) PanaTvAccent else Color.White,
+                                modifier = Modifier.size(20.dp)
+                            )
+                        }
                         IconButton(onClick = { enterFullscreen() }, modifier = Modifier.size(38.dp)) {
                             Icon(Icons.Default.Fullscreen, "Pantalla completa", tint = Color.White, modifier = Modifier.size(20.dp))
                         }
@@ -621,6 +655,7 @@ fun PanaTVModernScreen(viewModel: PanaTVViewModel = viewModel()) {
                 ) {
                     LandscapeAction(Icons.Default.List, "Categoría") { drawerOpen = true }
                     LandscapeAction(Icons.Default.SkipPrevious, "Anterior") { playPrevious() }
+                    LandscapeAction(Icons.Default.SkipNext, "Siguiente") { playNext() }
                     LandscapeAction(Icons.Default.Lock, "Bloquear") {
                         // Lock clears every control so the video plays perfectly clean.
                         // Tapping the screen briefly reveals the unlock button again.
@@ -845,7 +880,13 @@ fun PanaTVModernScreen(viewModel: PanaTVViewModel = viewModel()) {
                                 selected = currentChannel?.id == channel.id,
                                 favorite = favorites.contains(channel.id),
                                 onFavorite = { viewModel.toggleFavorite(channel.id) },
-                                onClick = { selectChannel(channel) }
+                                onClick = { selectChannel(channel) },
+                                onWatchNow = {
+                                    // Siempre inicia el canal (aunque ya esté seleccionado,
+                                    // sin toggle play/pause) y abre pantalla completa.
+                                    startChannel(channel)
+                                    enterFullscreen()
+                                }
                             )
                         }
                     }
@@ -935,7 +976,8 @@ private fun ChannelListRow(
     selected: Boolean,
     favorite: Boolean,
     onFavorite: () -> Unit,
-    onClick: () -> Unit
+    onClick: () -> Unit,
+    onWatchNow: () -> Unit
 ) {
     Row(
         Modifier
@@ -979,10 +1021,14 @@ private fun ChannelListRow(
             )
         }
         Box(
-            Modifier.size(34.dp).clip(CircleShape).border(1.5.dp, Color.White.copy(alpha = 0.35f), CircleShape),
+            Modifier
+                .size(34.dp)
+                .clip(CircleShape)
+                .border(1.5.dp, Color.White.copy(alpha = 0.35f), CircleShape)
+                .clickable(onClick = onWatchNow),
             contentAlignment = Alignment.Center
         ) {
-            Icon(Icons.Default.ArrowForward, "Ver", tint = Color.White, modifier = Modifier.size(18.dp))
+            Icon(Icons.Default.ArrowForward, "Ver en pantalla completa", tint = Color.White, modifier = Modifier.size(18.dp))
         }
     }
 }
