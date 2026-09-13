@@ -179,6 +179,23 @@ fun PanaTVModernScreen(viewModel: PanaTVViewModel = viewModel()) {
     DisposableEffect(player) {
         val listener = object : Player.Listener {
             override fun onPlayerError(error: PlaybackException) {
+                val recoveringFromCodec = isCodecError(error)
+                if (recoveringFromCodec && !useSoftwareDecoders) {
+                    // El hardware no acepta este stream (perfil/interlazado/High):
+                    // pasamos a los decodificadores FFmpeg (software) SIN gastar el
+                    // presupuesto de reintentos — es un upgrade de modo, no un fallo.
+                    // Así un canal que solo falla en HW tiene derecho a probar el SW
+                    // y luego, si este también falla, recién ahí cuenta el intento.
+                    playerError = null
+                    isBuffering = true
+                    isPlaying = false
+                    hasRenderedFrame = false
+                    useSoftwareDecoders = true
+                    com.example.util.AppFloatingPlayerManager.releasePlayer()
+                    currentPlayerChannelId = null
+                    playerGeneration += 1
+                    return
+                }
                 if (recoveryAttempts >= MAX_SOURCE_RETRIES) {
                     playerError = error.message ?: "No se pudo cargar el canal"
                     isBuffering = false
@@ -186,17 +203,10 @@ fun PanaTVModernScreen(viewModel: PanaTVViewModel = viewModel()) {
                     return
                 }
                 recoveryAttempts += 1
-                val recoveringFromCodec = isCodecError(error)
                 playerError = null
                 isBuffering = true
                 isPlaying = false
                 hasRenderedFrame = false
-                if (recoveringFromCodec) {
-                    // El hardware ya falló para este canal: el reintento pasa directo
-                    // a los decodificadores FFmpeg (software) en vez de repetir el
-                    // mismo códec de plataforma que acaba de fallar.
-                    useSoftwareDecoders = true
-                }
                 // Un decoder envenenado o una fuente viva que cortó la conexión no se
                 // recuperan con prepare() sobre el mismo player: se libra y se vuelve
                 // a adquirir, que además re-aplica cabeceras y modo (caché/códec).
@@ -363,11 +373,14 @@ fun PanaTVModernScreen(viewModel: PanaTVViewModel = viewModel()) {
         hasRenderedFrame = false
         isBuffering = true
         isPlaying = false
-        // Velocidad: al cambiar de canal REUSAMOS el ExoPlayer compartido cuando el
-        // modo (códec/caché) no cambia — acquirePlayer() reutilizará la instancia y
-        // solo hará setMediaItem+prepare (sin re-crear decoder/renderers). Solo se
-        // libera si cambia el modo (p.ej. escalar a software tras un fallo de códec).
-        if (useSoftwareDecoders) {
+        // Cada canal arranca en hardware: si el anterior escaló a software por un
+        // códec que no soportaba, el nuevo intenta HW limpio (y si falla, la mejora
+        // automática lo vuelve a llevar a SW sin gastar el presupuesto del canal).
+        val wasSoftware = useSoftwareDecoders
+        useSoftwareDecoders = false
+        if (wasSoftware) {
+            // El player actual está en modo software; para probar HW hace falta
+            // reconstruirlo (el mode de renderer no se puede cambiar en caliente).
             com.example.util.AppFloatingPlayerManager.releasePlayer()
         }
         currentPlayerChannelId = null
@@ -524,11 +537,14 @@ fun PanaTVModernScreen(viewModel: PanaTVViewModel = viewModel()) {
                                 onClick = {
                                     // prepare() on a poisoned decoder never recovers:
                                     // tear the shared player down and rebuild it.
+                                    // Se reinicia a hardware: el manual lo intenta limpio
+                                    // (la mejora códec del canal anterior no se arrastra).
                                     playerError = null
                                     isBuffering = true
                                     isPlaying = false
                                     hasRenderedFrame = false
                                     recoveryAttempts = 0
+                                    useSoftwareDecoders = false
                                     com.example.util.AppFloatingPlayerManager.releasePlayer()
                                     currentPlayerChannelId = null
                                     playerGeneration += 1
