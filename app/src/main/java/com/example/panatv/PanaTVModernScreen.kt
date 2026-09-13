@@ -121,8 +121,10 @@ fun PanaTVModernScreen(viewModel: PanaTVViewModel = viewModel()) {
     val searchQuery by viewModel.searchQuery.collectAsState()
     val selectedCountry by viewModel.selectedCountry.collectAsState()
     val selectedCategory by viewModel.selectedCategory.collectAsState()
+    val selectedLanguage by viewModel.selectedLanguage.collectAsState()
     val availableCountries by viewModel.availableCountries.collectAsState()
     val availableCategories by viewModel.availableCategories.collectAsState()
+    val availableLanguages by viewModel.availableLanguages.collectAsState()
     val favorites by viewModel.favorites.collectAsState()
     val showOnlyFavorites by viewModel.showOnlyFavorites.collectAsState()
     val isLoading by viewModel.isLoading.collectAsState()
@@ -130,6 +132,8 @@ fun PanaTVModernScreen(viewModel: PanaTVViewModel = viewModel()) {
     val crashTrace by viewModel.crashTrace.collectAsState()
 
     var isMuted by remember { mutableStateOf(false) }
+    var subtitlesEnabled by remember { mutableStateOf(false) }
+    var hasSubtitleTracks by remember { mutableStateOf(false) }
     var isPlaying by remember { mutableStateOf(false) }
     var isBuffering by remember { mutableStateOf(false) }
     var hasRenderedFrame by remember { mutableStateOf(false) }
@@ -225,6 +229,16 @@ fun PanaTVModernScreen(viewModel: PanaTVViewModel = viewModel()) {
                     hasRenderedFrame = true
                     playerError = null
                 }
+            }
+
+            override fun onTracksChanged(trackGroups: androidx.media3.common.Tracks) {
+                // Compose player reads the track groups of the ACTIVE media item.
+                val hasText = player?.takeIf { it.mediaItemCount > 0 }?.currentTracks
+                    ?.groups
+                    ?.any { it.type == androidx.media3.common.C.TRACK_TYPE_TEXT }
+                    ?: false
+                hasSubtitleTracks = hasText
+                if (!hasText) subtitlesEnabled = false
             }
         }
         player?.addListener(listener)
@@ -349,7 +363,13 @@ fun PanaTVModernScreen(viewModel: PanaTVViewModel = viewModel()) {
         hasRenderedFrame = false
         isBuffering = true
         isPlaying = false
-        com.example.util.AppFloatingPlayerManager.releasePlayer()
+        // Velocidad: al cambiar de canal REUSAMOS el ExoPlayer compartido cuando el
+        // modo (códec/caché) no cambia — acquirePlayer() reutilizará la instancia y
+        // solo hará setMediaItem+prepare (sin re-crear decoder/renderers). Solo se
+        // libera si cambia el modo (p.ej. escalar a software tras un fallo de códec).
+        if (useSoftwareDecoders) {
+            com.example.util.AppFloatingPlayerManager.releasePlayer()
+        }
         currentPlayerChannelId = null
         playerGeneration += 1
         viewModel.selectChannel(channel)
@@ -377,6 +397,19 @@ fun PanaTVModernScreen(viewModel: PanaTVViewModel = viewModel()) {
         val idx = channels.indexOfFirst { it.id == currentChannel?.id }
         val target = if (idx >= 0 && idx < channels.lastIndex) channels[idx + 1] else channels.first()
         selectChannel(target)
+    }
+
+    fun toggleSubtitles() {
+        val p = player ?: return
+        if (!hasSubtitleTracks) return
+        subtitlesEnabled = !subtitlesEnabled
+        try {
+            val params = p.trackSelectionParameters
+                .buildUpon()
+                .setTrackTypeDisabled(androidx.media3.common.C.TRACK_TYPE_TEXT, !subtitlesEnabled)
+                .build()
+            p.trackSelectionParameters = params
+        } catch (_: Throwable) {}
     }
 
     fun applyBrightness(value: Float) {
@@ -656,6 +689,12 @@ fun PanaTVModernScreen(viewModel: PanaTVViewModel = viewModel()) {
                     LandscapeAction(Icons.Default.List, "Categoría") { drawerOpen = true }
                     LandscapeAction(Icons.Default.SkipPrevious, "Anterior") { playPrevious() }
                     LandscapeAction(Icons.Default.SkipNext, "Siguiente") { playNext() }
+                    if (hasSubtitleTracks) {
+                        LandscapeAction(
+                            if (subtitlesEnabled) Icons.Default.CheckCircle else Icons.Default.Subtitles,
+                            if (subtitlesEnabled) "Subtítulos: ON" else "Subtítulos: OFF"
+                        ) { toggleSubtitles() }
+                    }
                     LandscapeAction(Icons.Default.Lock, "Bloquear") {
                         // Lock clears every control so the video plays perfectly clean.
                         // Tapping the screen briefly reveals the unlock button again.
@@ -728,6 +767,23 @@ fun PanaTVModernScreen(viewModel: PanaTVViewModel = viewModel()) {
                         items(availableCategories) { category ->
                             DrawerCategory(tvCategoryLabel(category), selectedCategory == category && !showOnlyFavorites) {
                                 viewModel.updateSelectedCategory(category)
+                                viewModel.setShowOnlyFavorites(false)
+                            }
+                        }
+                        // Idiomas con etiqueta amigable: Todos / Español / Portugués / Inglés...
+                        item {
+                            DrawerCategory(
+                                "Todos los idiomas",
+                                selectedLanguage.isEmpty() && !showOnlyFavorites
+                            ) {
+                                viewModel.updateSelectedLanguage("")
+                                viewModel.setShowOnlyFavorites(false)
+                            }
+                        }
+                        items(availableLanguages) { langCode ->
+                            val langLabel = languageLabel(langCode)
+                            DrawerCategory(langLabel, selectedLanguage == langCode && !showOnlyFavorites) {
+                                viewModel.updateSelectedLanguage(langCode)
                                 viewModel.setShowOnlyFavorites(false)
                             }
                         }
@@ -864,6 +920,28 @@ fun PanaTVModernScreen(viewModel: PanaTVViewModel = viewModel()) {
                             viewModel.setShowOnlyFavorites(false)
                         }
                     }
+                    // Selector de idioma (chips): el primero "Todos" global.
+                    item {
+                        CategoryChip(
+                            "Idioma: Todos",
+                            selectedLanguage.isEmpty() && !showOnlyFavorites,
+                            accent = PanaTvAccent
+                        ) {
+                            viewModel.updateSelectedLanguage("")
+                            viewModel.setShowOnlyFavorites(false)
+                        }
+                    }
+                    items(availableLanguages) { langCode ->
+                        val langLabel = languageLabel(langCode)
+                        CategoryChip(
+                            langLabel,
+                            selectedLanguage == langCode && !showOnlyFavorites,
+                            accent = PanaTvAccent
+                        ) {
+                            viewModel.updateSelectedLanguage(langCode)
+                            viewModel.setShowOnlyFavorites(false)
+                        }
+                    }
                 }
 
                 if (channels.isNotEmpty()) {
@@ -931,11 +1009,11 @@ private fun PortraitTab(label: String, selected: Boolean, modifier: Modifier = M
 }
 
 @Composable
-private fun CategoryChip(label: String, selected: Boolean, onClick: () -> Unit) {
+private fun CategoryChip(label: String, selected: Boolean, accent: Color = PanaTvBlue, onClick: () -> Unit) {
     Box(
         Modifier
             .clip(RoundedCornerShape(20.dp))
-            .background(if (selected) PanaTvBlue else PanaTvSurface)
+            .background(if (selected) accent else PanaTvSurface)
             .clickable(onClick = onClick)
             .padding(horizontal = 18.dp, vertical = 10.dp)
     ) {

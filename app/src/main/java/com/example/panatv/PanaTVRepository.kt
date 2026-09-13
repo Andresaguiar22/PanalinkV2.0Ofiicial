@@ -83,11 +83,13 @@ class PanaTVRepository(private val context: Context) {
             .create(PanaTVApiService::class.java)
     }
 
-    fun getChannels(query: String = "", country: String = "", category: String = ""): Flow<List<PanaTVChannelEntity>> {
-        return dao.searchChannels(query, country, category)
+    fun getChannels(query: String = "", country: String = "", category: String = "", language: String = ""): Flow<List<PanaTVChannelEntity>> {
+        return dao.searchChannels(query, country, category, language)
     }
 
     fun getCategories(): Flow<List<String>> = dao.getDistinctCategories()
+
+    fun getDistinctLanguages(): Flow<List<String>> = dao.getDistinctLanguages()
     
     fun getFavorites(): Flow<List<PanaTVFavoriteEntity>> = favDao.getFavorites()
     
@@ -196,9 +198,9 @@ class PanaTVRepository(private val context: Context) {
 
                 // 4. Filtro LATAM (Países específicos)
                 val latamCountries = setOf(
-                    "AR", "BO", "CL", "CO", "CR", "CU", "DO", "EC", "SV", 
-                    "GT", "HN", "MX", "NI", "PA", "PY", "PE", "PR", "UY", "VE",
-                    "ES", "US"
+                    "AR", "BO", "BR", "CL", "CO", "CR", "CU", "DO", "EC", "SV", 
+                    "GT", "HN", "MX", "NI", "PA", "PY", "PE", "PR", "PT", "UY", "VE",
+                    "ES", "US", "GQ", "PH"
                 )
                 val latamList = distinctJoined.filter { pair ->
                     pair.first.country != null && latamCountries.contains(pair.first.country)
@@ -209,10 +211,10 @@ class PanaTVRepository(private val context: Context) {
                     return@withContext
                 }
 
-                // 5. Filtro Idioma (DESACTIVADO temporalmente por petición del usuario)
-                // val spaList = latamList.filter { it.first.languages?.contains("spa") == true }
+                // 5. No se filtra por idioma al poblar la BD: todos los idiomas
+                //    entran y el usuario filtra desde la UI (Español/Portugués/Inglés).
                 val spaList = latamList
-                onDebug("Filtro idioma: DESACTIVADO (${spaList.size})")
+                onDebug("Idiomas: sin filtro (${spaList.size})")
 
                 // 6. Eliminar Blocklist
                 val finalFiltered = spaList.filter { pair ->
@@ -232,9 +234,17 @@ class PanaTVRepository(private val context: Context) {
                     "family" to 4, "kids" to 5, "animation" to 6, "documentary" to 7,
                     "music" to 8, "sports" to 9, "news" to 10
                 )
-                val prioritized = familySafe.sortedBy { pair ->
-                    categoryPriority[pair.first.categories?.firstOrNull()] ?: 20
-                }
+                // Orden: los canales que hablan español primero (los de habla hispana
+                // entran dentro del límite antes) y luego prioridad de categoría.
+                // Así el catálogo local no se llena con canales de idiomas minoritarios.
+                fun speaksSpanish(langs: List<String>?): Boolean =
+                    langs?.any { it.equals("spa", true) } == true
+                val prioritized = familySafe.sortedWith(
+                    compareBy<Pair<IptvChannel, IptvStream>>(
+                        { if (speaksSpanish(it.first.languages)) 0 else 1 },
+                        { categoryPriority[it.first.categories?.firstOrNull()] ?: 20 }
+                    )
+                )
 
                 // Convertir a entidades finales y limitar a 800
                 var entitiesSoFar = 0
@@ -266,10 +276,11 @@ class PanaTVRepository(private val context: Context) {
                         logoUrl = finalLogo,
                         country = ch.country ?: "",
                         category = ch.categories?.firstOrNull() ?: "",
+                        languages = (ch.languages ?: emptyList()).joinToString(","),
                         userAgent = stream.user_agent,
                         referrer = stream.http_referrer
                     )
-                }.take(1400)
+                }.take(6000)
 
                 onDebug("Total final para Room: ${entities.size}")
 

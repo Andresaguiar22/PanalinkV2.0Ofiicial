@@ -34,8 +34,12 @@ class PanaTVViewModel(application: Application) : AndroidViewModel(application) 
     private val _selectedCategory = MutableStateFlow("")
     val selectedCategory: StateFlow<String> = _selectedCategory.asStateFlow()
 
+    private val _selectedLanguage = MutableStateFlow("")
+    val selectedLanguage: StateFlow<String> = _selectedLanguage.asStateFlow()
+
     val availableCountries = MutableStateFlow<List<String>>(emptyList())
     val availableCategories = MutableStateFlow<List<String>>(emptyList())
+    val availableLanguages = MutableStateFlow<List<String>>(emptyList())
 
     private val _debugMessage = MutableStateFlow("")
     val debugMessage: StateFlow<String> = _debugMessage.asStateFlow()
@@ -87,20 +91,32 @@ class PanaTVViewModel(application: Application) : AndroidViewModel(application) 
         }
 
         viewModelScope.launch {
+            repository.getDistinctLanguages().collectLatest { langs ->
+                // Los idiomas vienen como "spa", "eng", "por"... (los códigos vienen de
+                // iptv-org). Los exponemos con códigos únicos (primer idioma de cada canal).
+                availableLanguages.value = langs
+                    .flatMap { it.split(",").map(String::trim) }
+                    .filter { it.isNotBlank() }
+                    .distinct()
+                    .sorted()
+            }
+        }
+
+        viewModelScope.launch {
             kotlinx.coroutines.flow.combine(
-                _searchQuery, _selectedCountry, _selectedCategory, _showOnlyFavorites
-            ) { q, c, cat, f ->
-                FilterKey(q, c, cat, f)
+                _searchQuery, _selectedCountry, _selectedCategory, _selectedLanguage, _showOnlyFavorites
+            ) { q, c, cat, l, f ->
+                FilterKey(q, c, cat, l, f)
             }.collectLatest { key ->
-                updateChannelList(key.query, key.country, key.category, key.showFavs)
+                updateChannelList(key.query, key.country, key.category, key.language, key.showFavs)
             }
         }
     }
 
-    private data class FilterKey(val query: String, val country: String, val category: String, val showFavs: Boolean)
+    private data class FilterKey(val query: String, val country: String, val category: String, val language: String, val showFavs: Boolean)
 
-    private suspend fun updateChannelList(query: String, country: String, category: String, showFavs: Boolean) {
-        repository.getChannels(query, country, category).collectLatest { dbChannels ->
+    private suspend fun updateChannelList(query: String, country: String, category: String, language: String, showFavs: Boolean) {
+        repository.getChannels(query, country, category, language).collectLatest { dbChannels ->
             val filtered = if (showFavs) {
                 val currentFavs = _favorites.value
                 dbChannels.filter { currentFavs.contains(it.id) }
@@ -124,6 +140,10 @@ class PanaTVViewModel(application: Application) : AndroidViewModel(application) 
 
     fun updateSelectedCategory(category: String) {
         _selectedCategory.value = category
+    }
+
+    fun updateSelectedLanguage(language: String) {
+        _selectedLanguage.value = language
     }
     
     fun toggleShowFavorites() {

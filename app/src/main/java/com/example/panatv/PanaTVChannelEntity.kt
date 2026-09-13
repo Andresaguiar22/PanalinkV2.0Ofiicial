@@ -11,6 +11,7 @@ data class PanaTVChannelEntity(
     val logoUrl: String,
     val country: String,
     val category: String = "",
+    val languages: String = "",   // códigos ISO separados por coma: "spa,eng,por"
     val userAgent: String?,
     val referrer: String?,
     val currentProgram: String? = null,
