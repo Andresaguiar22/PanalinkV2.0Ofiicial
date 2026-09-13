@@ -59,7 +59,7 @@ import com.example.ui.screen.ReelEditorScreen
 import com.example.ui.screen.SearchResultsScreen
 import com.example.ui.screen.SearchUsersScreen
 import com.example.ui.screen.SplashScreen
-import com.example.ui.screen.TikTokVideoFeedScreen
+import com.example.reels.ui.ReelsFeedScreen
 import com.example.ui.screen.UserProfileScreen
 import com.example.ui.screen.ViewStateScreen
 import com.example.ui.viewmodel.AuthViewModel
@@ -858,7 +858,7 @@ fun MainNavHost(
             arguments = listOf(navArgument("stateId") { type = NavType.StringType })
         ) { backStackEntry ->
             val stateId = backStackEntry.arguments?.getString("stateId") ?: ""
-            TikTokVideoFeedScreen(
+            ReelsFeedScreen(
                 viewModel = statesViewModel,
                 initialStateId = stateId,
                 onBack = { mainNavController.popBackStack() },
@@ -868,7 +868,6 @@ fun MainNavHost(
                 onNavigateToHashtag = { tag ->
                     mainNavController.navigate("search_results/$tag") { launchSingleTop = true }
                 },
-                onNavigateToLive = { mainNavController.navigate("live_feed") { launchSingleTop = true } }
             )
         }
 
