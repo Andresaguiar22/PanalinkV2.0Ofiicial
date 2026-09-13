@@ -6,10 +6,13 @@ import com.squareup.moshi.Json
 import com.squareup.moshi.Moshi
 import com.squareup.moshi.kotlin.reflect.KotlinJsonAdapterFactory
 import kotlinx.coroutines.flow.Flow
+import okhttp3.OkHttpClient
 import retrofit2.Retrofit
 import retrofit2.converter.moshi.MoshiConverterFactory
 import retrofit2.http.GET
 import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.async
+import kotlinx.coroutines.coroutineScope
 import kotlinx.coroutines.withContext
 
 data class IptvChannel(
@@ -82,6 +85,53 @@ class PanaTVRepository(private val context: Context) {
             .build()
             .create(PanaTVApiService::class.java)
     }
+
+    private val okHttp = OkHttpClient.Builder()
+        .connectTimeout(20, java.util.concurrent.TimeUnit.SECONDS)
+        .readTimeout(30, java.util.concurrent.TimeUnit.SECONDS)
+        .build()
+
+    /**
+     * channels.json NO publica el idioma por canal (el REST no lo incluye).
+     * iptv-org sí publica listas M3U separadas por idioma:
+     * https://iptv-org.github.io/iptv/languages/{codigo}.m3u
+     * Cada #EXTINF trae tvg-id="<canal>@<calidad>". Normalizamos quitando el
+     * sufijo @... para mapearlo al id base de channels.json y devolvemos
+     * {"CineHispano.us" -> setOf("spa"), ...}. Si alguna lista falla, no
+     * rompe la sincronización: se usa lo que se haya podido descargar.
+     */
+    private suspend fun fetchLanguageMap(): Map<String, Set<String>> =
+        coroutineScope {
+            val langs = listOf("spa", "por", "eng", "fra")
+            val results = langs.map { lang ->
+                async {
+                    val url = "https://iptv-org.github.io/iptv/languages/$lang.m3u"
+                    val ids = try {
+                        val body = okHttp.newCall(
+                            okhttp3.Request.Builder().url(url).build()
+                        ).execute().use { resp ->
+                            if (resp.isSuccessful) resp.body?.string() ?: "" else ""
+                        }
+                        // Normaliza "@SD"/"@HD" -> id base, igual que channels.json
+                        Regex("""tvg-id="([^"]+)"""")
+                            .findAll(body)
+                            .mapNotNull { m ->
+                                m.groupValues.getOrNull(1)?.substringBefore('@')
+                            }
+                            .toList()
+                    } catch (e: Exception) {
+                        Log.w(TAG, "No se pudo descargar $lang.m3u: ${e.message}")
+                        emptyList()
+                    }
+                    ids
+                }
+            }.mapIndexed { i, def ->
+                langs[i] to def.await()
+            }
+            results.flatMap { (lang, ids) -> ids.map { it to lang } }
+                .groupBy({ it.first }, { it.second })
+                .mapValues { (_, v) -> v.toSet() }
+        }
 
     fun getChannels(query: String = "", country: String = "", category: String = "", language: String = ""): Flow<List<PanaTVChannelEntity>> {
         return dao.searchChannels(query, country, category, language)
@@ -173,6 +223,11 @@ class PanaTVRepository(private val context: Context) {
 
                 onDebug("Channels descargados: ${channelsRes.size}")
 
+                // Los REST channels.json/streams.json NO incluyen el idioma por canal:
+                // se descargan las listas M3U por idioma y se mapea el id base -> idiomas.
+                val languageMap = fetchLanguageMap()
+                onDebug("Idiomas mapeados: ${languageMap.size} canales")
+
                 // 2. Unir channels con streams (Cruce inicial)
                 val allChannelsById = channelsRes.filter { it.id != null }.associateBy { it.id!! }
                 val initialJoined = streamsRes.mapNotNull { stream ->
@@ -237,11 +292,13 @@ class PanaTVRepository(private val context: Context) {
                 // Orden: los canales que hablan español primero (los de habla hispana
                 // entran dentro del límite antes) y luego prioridad de categoría.
                 // Así el catálogo local no se llena con canales de idiomas minoritarios.
-                fun speaksSpanish(langs: List<String>?): Boolean =
-                    langs?.any { it.equals("spa", true) } == true
+                fun langsOf(pair: Pair<IptvChannel, IptvStream>): Set<String> =
+                    languageMap[pair.first.id] ?: (pair.first.languages?.toSet() ?: emptySet())
+                fun speaksSpanish(pair: Pair<IptvChannel, IptvStream>): Boolean =
+                    "spa" in langsOf(pair)
                 val prioritized = familySafe.sortedWith(
                     compareBy<Pair<IptvChannel, IptvStream>>(
-                        { if (speaksSpanish(it.first.languages)) 0 else 1 },
+                        { if (speaksSpanish(it)) 0 else 1 },
                         { categoryPriority[it.first.categories?.firstOrNull()] ?: 20 }
                     )
                 )
@@ -276,7 +333,7 @@ class PanaTVRepository(private val context: Context) {
                         logoUrl = finalLogo,
                         country = ch.country ?: "",
                         category = ch.categories?.firstOrNull() ?: "",
-                        languages = (ch.languages ?: emptyList()).joinToString(","),
+                        languages = (languageMap[ch.id] ?: (ch.languages?.toSet() ?: emptySet())).sorted().joinToString(","),
                         userAgent = stream.user_agent,
                         referrer = stream.http_referrer
                     )
