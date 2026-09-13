@@ -23,10 +23,10 @@ import androidx.compose.ui.draw.scale
 import androidx.compose.ui.graphics.SolidColor
 import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.focus.focusRequester
 import androidx.compose.ui.platform.LocalFocusManager
 import androidx.compose.ui.platform.LocalSoftwareKeyboardController
 import androidx.compose.ui.platform.testTag
-import androidx.compose.foundation.layout.imePadding
 import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.input.ImeAction
@@ -62,7 +62,8 @@ fun ChatComposer(
     onToggleAttachmentMenu: () -> Unit,
     onVoiceGestureEvent: (VoiceGestureEvent, android.content.Context, String?, Int?) -> Unit,
     onSendPreviewRecording: (android.content.Context, String?) -> Unit,
-    onShowTrashAnimation: () -> Unit
+    onShowTrashAnimation: () -> Unit,
+    inputFocusRequester: androidx.compose.ui.focus.FocusRequester = androidx.compose.ui.focus.FocusRequester()
 ) {
     val context = LocalContext.current
     val recordState by viewModel.recordState.collectAsStateWithLifecycle()
@@ -115,11 +116,12 @@ fun ChatComposer(
     ) {
         // Idle / text input mode: Floating Pill container
         if (recordState == RecordState.IDLE) {
-            // Acción 5: La Píldora flotante con padding horizontal 16 + ime + 16
+            // Acción 5: La Píldora flotante — isla separada 16dp de los bordes.
+            // El IME ya lo gestiona el Column padre (imePadding), por lo que aquí
+            // NO se repite imePadding para no elevar el composer el doble con el teclado.
             Row(
                 modifier = Modifier
                     .fillMaxWidth()
-                    .imePadding()
                     .padding(16.dp),
                 verticalAlignment = Alignment.CenterVertically
             ) {
@@ -173,6 +175,7 @@ fun ChatComposer(
                             modifier = Modifier
                                 .weight(1f)
                                 .testTag("chat_input_field")
+                                .focusRequester(inputFocusRequester)
                                 .padding(vertical = 12.dp, horizontal = 4.dp),
                             textStyle = TextStyle(color = androidx.compose.ui.graphics.Color.White, fontSize = 16.sp),
                             cursorBrush = SolidColor(primaryColor),
@@ -295,7 +298,6 @@ fun ChatComposer(
             Row(
                 modifier = Modifier
                     .fillMaxWidth()
-                    .imePadding()
                     .padding(16.dp),
                 verticalAlignment = Alignment.CenterVertically
             ) {
@@ -365,7 +367,6 @@ fun ChatComposer(
             Row(
                 modifier = Modifier
                     .fillMaxWidth()
-                    .imePadding()
                     .padding(16.dp),
                 verticalAlignment = Alignment.CenterVertically
             ) {
@@ -476,7 +477,6 @@ fun ChatComposer(
             Row(
                 modifier = Modifier
                     .fillMaxWidth()
-                    .imePadding()
                     .padding(16.dp),
                 verticalAlignment = Alignment.CenterVertically
             ) {
@@ -671,10 +671,9 @@ fun ChatComposer(
                 modifier = Modifier
                     .align(Alignment.BottomEnd)
                     .padding(end = 8.dp)
-                    .imePadding()
                     .height(120.dp)
                     .width(48.dp)
-                    .background(androidx.compose.ui.graphics.Color(0xFF1F2C34), RoundedCornerShape(24.dp)),
+                    .background(androidx.compose.ui.graphics.Color(0xFF1E293B).copy(alpha = 0.92f), RoundedCornerShape(24.dp)),
                 contentAlignment = Alignment.Center
         ) {
             Column(

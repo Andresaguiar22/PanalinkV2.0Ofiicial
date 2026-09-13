@@ -17,7 +17,6 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.SolidColor
-import androidx.compose.ui.draw.blur
 import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.text.TextStyle
@@ -69,13 +68,27 @@ fun ChatTopBar(
 
     val isTyping = typingUsers.contains(otherUser?.id ?: "other_user_id_demo")
 
-    Box(
-        modifier = Modifier
-            .fillMaxWidth()
-            .background(Color.Black.copy(alpha = 0.5f))
-            .blur(16.dp)
-            .padding(top = 4.dp)
-    ) {
+    Box(modifier = Modifier.fillMaxWidth()) {
+        // Fondo glassmorphism: degradado oscuro translúcido con un sutil tinte cian,
+        // aplicado SOLO a la capa de fondo para no desenfocar el contenido (avatar,
+        // nombre, acciones) que se dibuja encima.
+        Box(
+            modifier = Modifier
+                .matchParentSize()
+                .background(
+                    Brush.verticalGradient(
+                        colors = listOf(
+                            Color(0xFF0F172A).copy(alpha = 0.86f),
+                            Color(0xFF020617).copy(alpha = 0.68f)
+                        )
+                    )
+                )
+        )
+        Box(
+            modifier = Modifier
+                .matchParentSize()
+                .background(Color(0xFF38BDF8).copy(alpha = 0.06f))
+        )
         Column(modifier = Modifier.fillMaxWidth()) {
             Row(
                 modifier = Modifier

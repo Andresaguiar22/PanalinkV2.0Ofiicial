@@ -77,6 +77,7 @@ fun MediaPreviewEngine(
                 onPlayPauseClick = onPlayPauseClick,
                 onSeek = onSeek,
                 onSpeedChange = onSpeedChange,
+                backgroundColor = Color.Transparent,
                 modifier = modifier
             )
         }

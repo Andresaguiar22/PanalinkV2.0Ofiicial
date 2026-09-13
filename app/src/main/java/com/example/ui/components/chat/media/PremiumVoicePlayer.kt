@@ -44,10 +44,11 @@ fun PremiumVoicePlayer(
     messageStatus: String? = "sent",
     isSending: Boolean = false,
     isVoiceNote: Boolean = true,
-    modifier: Modifier = Modifier
+    modifier: Modifier = Modifier,
+    backgroundColor: Color = Color(0xFF1E293B)
 ) {
     var playbackSpeed by remember { mutableFloatStateOf(1f) }
-    
+
     // Waveform premium: amplitud variable con picos y valles (como decibeles reales)
     val barCount = 40
     val amplitudes = remember(audioUrl) {
@@ -84,7 +85,9 @@ fun PremiumVoicePlayer(
     val isFailed = messageStatus == "failed"
 
     // Acción 1 & 4: Premium Glassmorphism colors
-    val bubbleBgColor = Color(0xFF1E293B)
+    // El fondo real de la burbuja lo pinta el contenedor (Incoming/OutgoingBubbleContainer);
+    // aquí solo se usa para los bordes del badge del avatar.
+    val bubbleBgColor = backgroundColor
     val contentTextColor = if (isSender) Color.White else Color(0xE6FFFFFF) // 90% white
     val playedColor = if (isVoiceNote || isSender) {
         if (isSender) Color(0xFF00E5FF) else Color(0xFF38BDF8)
@@ -94,23 +97,7 @@ fun PremiumVoicePlayer(
     val unplayedColor = Color(0xFF94A3B8).copy(alpha = 0.35f)
     val secondaryText = Color(0xFF94A3B8)
 
-    // Acción 4: Asymmetric shape (same as message bubbles)
-    val voiceBubbleShape = if (isSender) {
-        RoundedCornerShape(
-            topStart = 24.dp,
-            topEnd = 4.dp,
-            bottomStart = 24.dp,
-            bottomEnd = 24.dp
-        )
-    } else {
-        RoundedCornerShape(
-            topStart = 4.dp,
-            topEnd = 24.dp,
-            bottomStart = 24.dp,
-            bottomEnd = 24.dp
-        )
-    }
-
+    // Acción 4: La forma asimétrica la aplica el contenedor de la burbuja.
     val waveTransition = rememberInfiniteTransition(label = "WaveAnimation")
     val waveOffset by if (isPlaying) {
         waveTransition.animateFloat(
@@ -126,11 +113,11 @@ fun PremiumVoicePlayer(
         remember { mutableStateOf(0f) }
     }
 
-    // Acción 4: Voice note bubble with asymmetric shape + waveform
+    // Acción 4: Voice note bubble with asymmetric shape + waveform.
+    // La forma y el fondo los aplica el contenedor de la burbuja (glassmorphism);
+    // aquí NO se repinta el fondo para evitar un recuadro dentro de la burbuja.
     Box(
         modifier = modifier
-            .clip(if (isSender) voiceBubbleShape else voiceBubbleShape)
-            .background(bubbleBgColor)
             .widthIn(min = 240.dp, max = 320.dp)
             .padding(horizontal = 12.dp, vertical = 8.dp)
     ) {

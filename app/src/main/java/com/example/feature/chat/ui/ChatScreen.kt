@@ -77,7 +77,7 @@ import com.example.data.model.Profile
 import com.example.feature.chat.ui.attachment.ChatAttachmentSheet
 import com.example.feature.chat.ui.background.ChatBackgroundDialog
 import com.example.feature.chat.ui.call.ActiveCallOverlay
- import com.example.feature.chat.ui.components.EncryptionBanner
+ 
 import com.example.feature.chat.ui.contact.ChatContactDetailSheet
 import com.example.feature.chat.ui.emoji.EmojiAndMediaSheet
  import com.example.feature.chat.ui.message.MessageBubble
@@ -287,6 +287,7 @@ fun ChatScreen(
     // Media states
     var isAttachmentMenuOpen by rememberSaveable { mutableStateOf(false) }
     var isStickerPanelOpen by rememberSaveable { mutableStateOf(false) }
+    val inputFocusRequester = remember { androidx.compose.ui.focus.FocusRequester() }
     var isUploading by remember { mutableStateOf(false) }
     var lightboxImageUrl by remember { mutableStateOf<String?>(null) }
     
@@ -808,11 +809,7 @@ fun ChatScreen(
                                 contentPadding = PaddingValues(horizontal = 8.dp, vertical = 8.dp),
                                 verticalArrangement = Arrangement.spacedBy(2.dp)
                             ) {
-                                item {
-                                    if ((uiState as? ChatUiState.Success)?.otherUser != null) {
-                                        EncryptionBanner()
-                                    }
-                                }
+                                
                                 itemsIndexed(
                                     filteredMessages,
                                     key = { _, message ->
@@ -1073,6 +1070,7 @@ fun ChatScreen(
                     )
                 },
                 onShowTrashAnimation = { showTrashAnimation = true },
+                inputFocusRequester = inputFocusRequester,
             )
 
         // ---- Animacion "bote de basura" al cancelar la nota de voz ----
@@ -1151,7 +1149,12 @@ fun ChatScreen(
                 onClose = { isStickerPanelOpen = false }
             )
             LaunchedEffect(isStickerPanelOpen) {
-                if (isStickerPanelOpen) {
+                if (!isStickerPanelOpen) {
+                    // Al cerrar el panel de emojis, el campo de texto recupera el foco
+                    // para seguir escribiendo sin tocar de nuevo el input.
+                    runCatching { inputFocusRequester.requestFocus() }
+                } else {
+                    focusManager.clearFocus()
                     viewModel.loadEmojiStickers(query = null)
                 }
             }
