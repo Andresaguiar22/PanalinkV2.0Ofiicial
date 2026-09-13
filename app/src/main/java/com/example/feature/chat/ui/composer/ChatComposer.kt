@@ -216,99 +216,121 @@ fun ChatComposer(
                             )
                         }
 
-                        // Botón Enviar (Flecha azul) dentro de la píldora, solo cuando hay texto
-                        if (!isInputEmpty) {
-                            IconButton(
-                                onClick = {
-                                    if (editingMessage != null) {
-                                        viewModel.editMessage(editingMessage!!.id, inputMessage)
-                                        viewModel.clearReplyAndEdit()
-                                    } else {
-                                        viewModel.sendMessage(inputMessage, replyToId = replyingToMessage?.id, context = context)
-                                        viewModel.clearReplyAndEdit()
-                                    }
-                                    viewModel.onInputMessageChange("")
-                                },
-                                modifier = Modifier
-                                    .size(38.dp)
-                                    .background(
-                                        Brush.radialGradient(
-                                            colors = listOf(
-                                                primaryColor.copy(alpha = 0.45f),
-                                                androidx.compose.ui.graphics.Color.Transparent
-                                            )
-                                        ),
-                                        CircleShape
-                                    )
-                            ) {
-                                Icon(
-                                    imageVector = Icons.AutoMirrored.Filled.Send,
-                                    contentDescription = "Enviar",
-                                    tint = primaryColor,
-                                    modifier = Modifier.size(24.dp)
-                                )
-                            }
-                        }
                     }
 
-                        // Botón Micrófono DENTRO de la pastilla, a la derecha del campo,
-                        // solo cuando el texto está vacío (si hay texto se muestra Enviar).
-                        if (isInputEmpty) {
-                            Box(
-                                modifier = Modifier
-                                    .graphicsLayer {
-                                        translationX = micDragOffsetX
-                                        translationY = micDragOffsetY
-                                        alpha = if (recordState == RecordState.LOCKED_RECORDING) 0f else 1f
-                                    }
-                                    .size(if (recordState == RecordState.LOCKED_RECORDING) 0.dp else 42.dp)
-                                    .scale(recordingPulseScale.value)
-                                    .clip(CircleShape)
-                                    .background(androidx.compose.ui.graphics.Color.Transparent)
-                                    .voiceGestureDetector(
-                                        enabled = true,
-                                        isLocked = recordState == RecordState.LOCKED_RECORDING,
-                                        onPermissionRequired = if (!hasMicPermission) {
-                                            { micPermissionLauncher.launch(android.Manifest.permission.RECORD_AUDIO) }
-                                        } else null,
-                                        onDrag = { x, y ->
-                                            micDragOffsetX = x
-                                            micDragOffsetY = y
-                                        },
-                                        onEvent = { event ->
-                                            micDragOffsetX = 0f
-                                            micDragOffsetY = 0f
+                    // Costura vertical: divide el campo del micrófono (barra "dividida" de la referencia)
+                    Box(
+                        modifier = Modifier
+                            .width(1.dp)
+                            .height(26.dp)
+                            .background(androidx.compose.ui.graphics.Color.White.copy(alpha = 0.10f))
+                    )
 
-                                            when (event) {
-                                                is VoiceGestureEvent.StartRecording -> {
-                                                    triggerLightVibration(context)
-                                                }
-                                                is VoiceGestureEvent.LockRecording -> {
-                                                    triggerLightVibration(context)
-                                                }
-                                                is VoiceGestureEvent.CancelRecording -> {
-                                                    triggerLightVibration(context)
-                                                    onShowTrashAnimation()
-                                                    Toast.makeText(context, "Grabación cancelada", Toast.LENGTH_SHORT).show()
-                                                }
-                                                else -> {}
-                                            }
-                                            onVoiceGestureEvent(event, context, replyingToMessage?.id, recordDurationSeconds)
-                                        }
-                                    ),
-                                contentAlignment = Alignment.Center
-                            ) {
-                                Icon(
-                                    imageVector = Icons.Default.Mic,
-                                    contentDescription = "Grabar nota de voz",
-                                    tint = androidx.compose.ui.graphics.Color(0xFFE2E8F0),
-                                    modifier = Modifier.size(24.dp)
-                                )
+                    // Micrófono: sub-píldora más clara, siempre visible (sección "dividida" de la referencia)
+                    Box(
+                        modifier = Modifier
+                            .graphicsLayer {
+                                translationX = micDragOffsetX
+                                translationY = micDragOffsetY
+                                alpha = if (recordState == RecordState.LOCKED_RECORDING) 0f else 1f
                             }
-                        }
+                            .size(if (recordState == RecordState.LOCKED_RECORDING) 0.dp else 40.dp)
+                            .scale(recordingPulseScale.value)
+                            .clip(CircleShape)
+                            .background(androidx.compose.ui.graphics.Color(0xFFB9C9D6).copy(alpha = 0.18f))
+                            .voiceGestureDetector(
+                                enabled = true,
+                                isLocked = recordState == RecordState.LOCKED_RECORDING,
+                                onPermissionRequired = if (!hasMicPermission) {
+                                    { micPermissionLauncher.launch(android.Manifest.permission.RECORD_AUDIO) }
+                                } else null,
+                                onDrag = { x, y ->
+                                    micDragOffsetX = x
+                                    micDragOffsetY = y
+                                },
+                                onEvent = { event ->
+                                    micDragOffsetX = 0f
+                                    micDragOffsetY = 0f
+
+                                    when (event) {
+                                        is VoiceGestureEvent.StartRecording -> {
+                                            triggerLightVibration(context)
+                                        }
+                                        is VoiceGestureEvent.LockRecording -> {
+                                            triggerLightVibration(context)
+                                        }
+                                        is VoiceGestureEvent.CancelRecording -> {
+                                            triggerLightVibration(context)
+                                            onShowTrashAnimation()
+                                            Toast.makeText(context, "Grabación cancelada", Toast.LENGTH_SHORT).show()
+                                        }
+                                        else -> {}
+                                    }
+                                    onVoiceGestureEvent(event, context, replyingToMessage?.id, recordDurationSeconds)
+                                }
+                            ),
+                        contentAlignment = Alignment.Center
+                    ) {
+                        Icon(
+                            imageVector = Icons.Default.Mic,
+                            contentDescription = "Grabar nota de voz",
+                            tint = androidx.compose.ui.graphics.Color(0xFFE2E8F0),
+                            modifier = Modifier.size(22.dp)
+                        )
+                    }
+                }
+
+                Spacer(modifier = Modifier.width(8.dp))
+
+                // Botón Enviar SEPARADO de la pastilla (barra "dividida" de la referencia)
+                Box(
+                    modifier = Modifier
+                        .size(52.dp)
+                        .background(
+                            Brush.radialGradient(
+                                colors = listOf(
+                                    primaryColor.copy(alpha = 0.35f),
+                                    androidx.compose.ui.graphics.Color.Transparent
+                                )
+                            ),
+                            CircleShape
+                        ),
+                    contentAlignment = Alignment.Center
+                ) {
+                    Box(
+                        modifier = Modifier
+                            .size(48.dp)
+                            .clip(RoundedCornerShape(16.dp))
+                            .background(
+                                Brush.linearGradient(
+                                    colors = listOf(
+                                        androidx.compose.ui.graphics.Color(0xFF38BDF8),
+                                        androidx.compose.ui.graphics.Color(0xFF2563EB)
+                                    )
+                                )
+                            )
+                            .clickable(enabled = !isInputEmpty) {
+                                if (editingMessage != null) {
+                                    viewModel.editMessage(editingMessage!!.id, inputMessage)
+                                    viewModel.clearReplyAndEdit()
+                                } else {
+                                    viewModel.sendMessage(inputMessage, replyToId = replyingToMessage?.id, context = context)
+                                    viewModel.clearReplyAndEdit()
+                                }
+                                viewModel.onInputMessageChange("")
+                            },
+                        contentAlignment = Alignment.Center
+                    ) {
+                        Icon(
+                            imageVector = Icons.AutoMirrored.Filled.Send,
+                            contentDescription = "Enviar",
+                            tint = androidx.compose.ui.graphics.Color.White.copy(alpha = if (isInputEmpty) 0.45f else 1f),
+                            modifier = Modifier.size(24.dp)
+                        )
                     }
                 }
             }
+        }
         // Recording mode: panel with recording UI
         else if (recordState == RecordState.RECORDING) {
             Row(
@@ -665,61 +687,59 @@ fun ChatComposer(
                 }
             }
         }
-    }
-
-    // Acción 6: Lock overlay for mic drag gesture
-    if (recordState == RecordState.RECORDING) {
-        val lockHighlight = (micDragOffsetY / -70f).coerceIn(0f, 1f)
-        val bounce = remember { Animatable(0f) }
-        LaunchedEffect(lockHighlight) {
-            if (lockHighlight >= 1f && bounce.value == 0f) {
-                bounce.animateTo(
-                    targetValue = 1f,
-                    animationSpec = spring(dampingRatio = Spring.DampingRatioMediumBouncy, stiffness = Spring.StiffnessMedium)
-                )
+        // Acción 6: Lock overlay for mic drag gesture
+        // Se dibuja DENTRO del Box raíz del composer, anclado con offset para
+        // flotar sobre el chat. NO usar fillMaxSize() aquí: un hijo fillMaxSize()
+        // obliga al composer a tomar toda la altura disponible y el panel de
+        // grabación termina renderizándose arriba, dejando un hueco negro gigante.
+        if (recordState == RecordState.RECORDING) {
+            val lockHighlight = (micDragOffsetY / -70f).coerceIn(0f, 1f)
+            val bounce = remember { Animatable(0f) }
+            LaunchedEffect(lockHighlight) {
+                if (lockHighlight >= 1f && bounce.value == 0f) {
+                    bounce.animateTo(
+                        targetValue = 1f,
+                        animationSpec = spring(dampingRatio = Spring.DampingRatioMediumBouncy, stiffness = Spring.StiffnessMedium)
+                    )
+                }
             }
-        }
-        Box(
-            modifier = Modifier
-                .fillMaxSize()
-        ) {
             Box(
                 modifier = Modifier
-                    .align(Alignment.BottomEnd)
-                    .padding(end = 8.dp)
-                    .height(120.dp)
-                    .width(48.dp)
-                    .background(androidx.compose.ui.graphics.Color(0xFF1E293B).copy(alpha = 0.92f), RoundedCornerShape(24.dp)),
+                    .align(Alignment.TopEnd)
+                    .offset(y = (-96).dp)
+                    .padding(end = 10.dp)
+                    .height(88.dp)
+                    .width(44.dp)
+                    .background(androidx.compose.ui.graphics.Color(0xFF1E293B).copy(alpha = 0.92f), RoundedCornerShape(22.dp)),
                 contentAlignment = Alignment.Center
-        ) {
-            Column(
-                horizontalAlignment = Alignment.CenterHorizontally,
-                verticalArrangement = Arrangement.Center
             ) {
-                Icon(
-                    imageVector = Icons.Default.Lock,
-                    contentDescription = "Fijar grabación",
-                    tint = if (lockHighlight > 0.8f) primaryColor else androidx.compose.ui.graphics.Color(0xFF94A3B8),
-                    modifier = Modifier.size(20.dp).graphicsLayer {
-                        val base = 1f + (lockHighlight * 0.2f)
-                        val over = 1f + (bounce.value * 0.35f)
-                        scaleX = base * over
-                        scaleY = base * over
-                    }
-                )
-                Spacer(modifier = Modifier.height(12.dp))
-                Icon(
-                    imageVector = Icons.Default.KeyboardArrowUp,
-                    contentDescription = null,
-                    tint = androidx.compose.ui.graphics.Color(0xFF94A3B8),
-                    modifier = Modifier.size(16.dp).graphicsLayer {
-                        translationY = -10f * lockHighlight
-                        alpha = 1f - lockHighlight
-                    }
-                )
+                Column(
+                    horizontalAlignment = Alignment.CenterHorizontally,
+                    verticalArrangement = Arrangement.Center
+                ) {
+                    Icon(
+                        imageVector = Icons.Default.Lock,
+                        contentDescription = "Fijar grabación",
+                        tint = if (lockHighlight > 0.8f) primaryColor else androidx.compose.ui.graphics.Color(0xFF94A3B8),
+                        modifier = Modifier.size(20.dp).graphicsLayer {
+                            val base = 1f + (lockHighlight * 0.2f)
+                            val over = 1f + (bounce.value * 0.35f)
+                            scaleX = base * over
+                            scaleY = base * over
+                        }
+                    )
+                    Spacer(modifier = Modifier.height(12.dp))
+                    Icon(
+                        imageVector = Icons.Default.KeyboardArrowUp,
+                        contentDescription = null,
+                        tint = androidx.compose.ui.graphics.Color(0xFF94A3B8),
+                        modifier = Modifier.size(16.dp).graphicsLayer {
+                            translationY = -10f * lockHighlight
+                            alpha = 1f - lockHighlight
+                        }
+                    )
+                }
             }
         }
     }
-}
-
 }

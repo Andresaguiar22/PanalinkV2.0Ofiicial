@@ -1,8 +1,15 @@
 package com.example.ui.components.chat.media
 
+import androidx.compose.foundation.background
+import androidx.compose.foundation.border
+import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.unit.dp
 import com.example.data.model.Message
 import com.example.ui.components.chat.bubble.MediaMessageBubble
 
@@ -78,7 +85,11 @@ fun MediaPreviewEngine(
                 onSeek = onSeek,
                 onSpeedChange = onSpeedChange,
                 backgroundColor = Color.Transparent,
-                modifier = modifier
+                modifier = Modifier
+                    .padding(top = 4.dp, bottom = 4.dp, end = 4.dp)
+                    .clip(RoundedCornerShape(18.dp))
+                    .background(Color(0xFF2E3A4D).copy(alpha = 0.92f))
+                    .border(1.dp, Color(0xFF38BDF8).copy(alpha = 0.55f), RoundedCornerShape(18.dp))
             )
         }
         isDocument -> {

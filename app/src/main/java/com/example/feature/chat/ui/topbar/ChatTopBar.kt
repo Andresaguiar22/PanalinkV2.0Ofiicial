@@ -25,6 +25,7 @@ import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.text.font.FontStyle
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.input.ImeAction
+import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
@@ -363,7 +364,7 @@ fun ChatTopBar(
 
                     Spacer(modifier = Modifier.height(6.dp))
 
-                    // Nombre centrado debajo del avatar
+                    // Nombre centrado debajo del avatar (como en la referencia)
                     Text(
                         text = otherUser?.displayName ?: "Cargando pana...",
                         fontWeight = FontWeight.Bold,
@@ -372,6 +373,7 @@ fun ChatTopBar(
                         maxLines = 1,
                         softWrap = false,
                         overflow = TextOverflow.Ellipsis,
+                        textAlign = TextAlign.Center,
                         modifier = Modifier
                             .fillMaxWidth()
                             .basicMarquee()

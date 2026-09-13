@@ -280,6 +280,9 @@ fun MessageBubbleEngine(
                       else incomingColor
     val bubbleBrush = if (isMe && !isSticker && !isBigEmoji) outgoingGradient else null
     val contentTextColor = Color.White
+    // Hora y estado legibles: sobre el gradiente saliente (cian arriba) el gris se
+    // perdia; se usa blanco translucido. En entrantes, gris claro sobre el pizarra.
+    val statusTextColor = if (isMe) Color.White.copy(alpha = 0.92f) else Color(0xFFCBD5E1)
     val elevation = if (isSticker || isBigEmoji) 0f else 1f
 
     var showMenu by remember { mutableStateOf(false) }
@@ -681,7 +684,7 @@ fun MessageBubbleEngine(
                                 isEdited = isEdited,
                                 isFavorited = isFavorited,
                                 isPinned = isPinned,
-                                textColor = Color(0xFF8596A0),
+                                textColor = statusTextColor,
                                 onRetry = { onRetry?.invoke(message.id) }
                             )
                         } else if (isSticker) {
@@ -696,6 +699,7 @@ fun MessageBubbleEngine(
                                     isEdited = isEdited,
                                     isFavorited = isFavorited,
                                     isPinned = isPinned,
+                                    textColor = statusTextColor,
                                     onRetry = { onRetry?.invoke(message.id) }
                                 )
                             }
@@ -759,7 +763,7 @@ fun MessageBubbleEngine(
                             isEdited = isEdited,
                             isFavorited = isFavorited,
                             isPinned = isPinned,
-                            textColor = Color(0xFF667781),
+                            textColor = statusTextColor,
                             onRetry = { onRetry?.invoke(message.id) },
                             modifier = Modifier.align(Alignment.End)
                         )
