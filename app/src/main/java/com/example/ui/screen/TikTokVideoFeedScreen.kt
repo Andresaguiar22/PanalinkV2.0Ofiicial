@@ -100,7 +100,6 @@ import androidx.media3.ui.PlayerView
 import androidx.media3.ui.AspectRatioFrameLayout
 import androidx.media3.exoplayer.source.DefaultMediaSourceFactory
 import kotlinx.coroutines.awaitCancellation
-import com.example.data.video.CacheDataSourceFactory
 import kotlinx.coroutines.CompletableDeferred
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
@@ -165,8 +164,6 @@ fun TikTokVideoFeedScreen(
     val context = LocalContext.current
     val dualManager = remember { ReelDualPlayerManager(context) }
     val diagnostics = remember { DiagnosticsRepository.getInstance(context) }
-    // Cooldown para evitar duplicación de I/O entre dual-manager prep y byte prefetch
-    val lastPrefetchTime = remember { mutableMapOf<String, Long>() }
     val activity = context as? android.app.Activity
     val coroutineScope = rememberCoroutineScope()
     DisposableEffect(isActive) {
@@ -347,49 +344,11 @@ fun TikTokVideoFeedScreen(
             // We use key(searchQuery) so the pager state resets securely to index 0 when the search query changes,
             // preventing IndexOutOfBoundsException and ensuring smooth TikTok-style feed navigation.
             key(searchQuery) {
-                
-                // TikTok-style byte prefetch: only the next video's first bytes into the
-                // shared SimpleCache — the dual-manager ya pre-prepara su media (primer frame);
-                // este byte-warm adicional acelera el seek sin saturar la conexión. Dispara
-                // SOLO cuando el pager se ha detenido (settledPage), nunca en páginas
-                // intermedias de un fling (así las precargas intermedias se cancelan solas.
-                LaunchedEffect(pagerState.settledPage, videoStates, isActive) {
-                    if (!isActive) return@LaunchedEffect
-                    kotlinx.coroutines.delay(250) // Debounce 250ms extra tras asentarse
-                    val currentIndex = pagerState.settledPage
-                    val nextIndex = currentIndex + 1
-                    if (nextIndex >= 0 && nextIndex < videoStates.size) {
-                        val nextState = videoStates[nextIndex].state
-                        val nextId = nextState.id
-                        // PLAYER ACTIVO > PLAYER PRELOAD > BYTE PREFETCH:
-                        // Si el siguiente video ya está preparado en un slot del dual-manager (window de preload),
-                        // o está en la cola de preloads pendientes, NO competir I/O con bytes extra.
-                        if (dualManager.slotFor(nextId) != null) return@LaunchedEffect
-                        // El dual-manager no expone pendingPreloads; si ya está resolviéndose en otro
-                        // LaunchedEffect para player prep, skip byte prefetch. Usar un cooldown simple.
-                        val now = System.currentTimeMillis()
-                        val lastPrefetch = lastPrefetchTime[nextId] ?: 0L
-                        if (now - lastPrefetch < 800L) return@LaunchedEffect // 800ms cooldown evita duplicación con dual-manager prep
-                        lastPrefetchTime[nextId] = now
-                        val raw = nextState.mediaUrl
-                        val url =withContext(Dispatchers.IO) { com.example.data.repository.CdnManager.resolveMediaUrl(raw) }
-                        if (!url.isNullOrEmpty() && url.startsWith("http")) {
-                            diagnostics.record(
-                                DiagnosticCategory.CACHE,
-                                "Prefetch iniciado para reel",
-                                correlationId = nextState.id.take(36),
-                                details = "maxBytes=2MB"
-                            )
-                            com.example.data.video.CacheDataSourceFactory.prefetchVideo(context, url, maxBytes = 2L * 1024L * 1024L)
-                            diagnostics.record(
-                                DiagnosticCategory.CACHE,
-                                "Prefetch completado para reel",
-                                correlationId = nextState.id.take(36),
-                                details = "maxBytes=2MB"
-                            )
-                        }
-                    }
-                }
+
+                // SIN byte-prefetch ni SimpleCache: los reels consumen directo VCDN.
+                // El dual-manager ya pre-prepara el primer frame del siguiente video
+                // (preload del slot), que es lo que da el cambio instantáneo a lo
+                // TikTok sin I/O extra de competencia con la reproducción.
 
             if (videoStates.isEmpty() && !NetworkMonitor.isOnline.value) {
                 // Sin conexión total: un spinner infinito "Cargando..." o "No se
@@ -418,11 +377,8 @@ fun TikTokVideoFeedScreen(
             } else {
                 val context = LocalContext.current
                 val scope = rememberCoroutineScope()
-                // ReelPreloader's full-video parallel download used to run here; it
-                // duplicated the SimpleCache prefetch, burned bandwidth competing with
-                // the playing reel, and its downloaded file was never used by the
-                // player (which streams through CacheDataSource). TikTok only preloads
-                // the next videos' first bytes — that happens above.
+                // Los reels consumen directo VCDN (sin cache): el preload del primer
+                // frame lo hace el dual-manager en el slot inactivo, no este bloque.
 
                 // Filesystem cleaner runs once per screen entry, deferred 400ms cancellable.
                 LaunchedEffect(Unit) {

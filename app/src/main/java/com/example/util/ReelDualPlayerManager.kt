@@ -10,8 +10,7 @@ import androidx.media3.exoplayer.ExoPlayer
 import com.example.core.media.PanaRenderersFactory
 import androidx.media3.exoplayer.trackselection.DefaultTrackSelector
 import androidx.media3.exoplayer.source.DefaultMediaSourceFactory
-import com.example.data.video.CacheDataSourceFactory
-import com.example.data.video.VideoCacheManager
+import androidx.media3.datasource.DefaultHttpDataSource
 import androidx.annotation.OptIn
 import androidx.media3.common.util.UnstableApi
 
@@ -284,16 +283,6 @@ class ReelDualPlayerManager(private val context: Context) {
         // Clear any deferred update — we're applying a fresh URL now
         pendingUrlUpdates.remove(slot)
 
-        // FIX (Acción 1 - VCDN 401 recovery): The CacheDataSourceFactory uses a
-        // path-only cache key (stableCacheKeyFactory), so different signed URLs
-        // with the same path share the same cache entry. If we swap the MediaItem
-        // URI without invalidating the old cache entry, ExoPlayer serves stale
-        // cached data (manifest + segments from the expired token) and the 401
-        // persists. Invalidate the old URL's cache entry before the swap.
-        if (currentUrl != null) {
-            VideoCacheManager.removeVideoCache(currentUrl)
-        }
-
         val player = playerFor(slot) ?: return false
         val savedPosition = player.currentPosition
         val savedPlayWhenReady = player.playWhenReady
@@ -420,12 +409,17 @@ class ReelDualPlayerManager(private val context: Context) {
     }
 
     private fun build(preferSoftware: Boolean = false): ExoPlayer {
+        // Arranque veloz tipo TikTok: buffer mínimo bajo (7.5s) → el primer
+        // frame sale en cuanto hay ~1s listo; los posters grandes de 30s
+        // hacían esperar demasiado antes del STATE_READY. Sin SimpleCache el
+        // player lee directo del socket y con 7.5s de buffer el rebuffer es
+        // imperceptible en redes sanas.
         val loadControl = androidx.media3.exoplayer.DefaultLoadControl.Builder()
             .setBufferDurationsMs(
-                30000, // minBufferMs: increased from 12s to 30s for slow/mobile networks
-                60000, // maxBufferMs: increased from 30s to 60s to absorb network spikes
-                2500,  // bufferForPlaybackMs: start playing with ~2.5s buffered
-                5000   // bufferForPlaybackAfterRebufferMs: resume with 5s after re-buffer
+                7500,  // minBufferMs: 7.5s (rápido a READY)
+                20000, // maxBufferMs: cap de 20s
+                1000,  // bufferForPlaybackMs: arranca con ~1s
+                2000   // bufferForPlaybackAfterRebufferMs: tras rebuffer 2s
             )
             .setBackBuffer(5000, true)
             .setPrioritizeTimeOverSizeThresholds(true)
@@ -433,9 +427,21 @@ class ReelDualPlayerManager(private val context: Context) {
         val trackSelector = DefaultTrackSelector(context, androidx.media3.exoplayer.trackselection.AdaptiveTrackSelection.Factory()).apply {
             setParameters(buildUponParameters().clearVideoSizeConstraints())
         }
+        // CONSUMO DIRECTO VCDN: sin SimpleCache ni intermediarios. Los reels se leen
+        // directo de la URL firmada (HLS VCDN) → nada se escribe a disco, no hay
+        // invalidation de caché por path-key ni 401 stale entre firmas distintas.
+        // El preload del slot B da el primer frame; el byte-prefetch no aplica.
+        val httpFactory = DefaultHttpDataSource.Factory()
+            .setUserAgent(
+                "Mozilla/5.0 (Linux; Android 10; K) AppleWebKit/537.36 " +
+                    "(KHTML, like Gecko) Chrome/124.0.0.0 Mobile Safari/537.36 Panalink/1.0"
+            )
+            .setConnectTimeoutMs(15000)
+            .setReadTimeoutMs(15000)
+            .setAllowCrossProtocolRedirects(true)
         val dataSourceFactory = androidx.media3.datasource.DefaultDataSource.Factory(
             context,
-            CacheDataSourceFactory.getCacheDataSourceFactory(context)
+            httpFactory
         )
         return ExoPlayer.Builder(context, PanaRenderersFactory.create(context, preferSoftware = preferSoftware))
             .setTrackSelector(trackSelector)
