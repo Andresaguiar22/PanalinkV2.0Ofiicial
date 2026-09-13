@@ -106,6 +106,15 @@ fun ChatComposer(
         micToLockDp.toPx()
     }
 
+    // Distancia horizontal (PX) para ELIMINAR al deslizar el mic hacia la izquierda.
+    // Se desliza hasta "mitad de la píldora" (tramo prudencial) y ahí se suelta la
+    // nota (no hay que llegar al bote ni al borde de pantalla).
+    val cancelThresholdPx = with(androidx.compose.ui.platform.LocalDensity.current) {
+        val screenWidthDp = androidx.compose.ui.platform.LocalConfiguration.current.screenWidthDp
+        val pillWidthDp = (screenWidthDp - 32).coerceAtLeast(120) / 2
+        pillWidthDp.dp.toPx()
+    }
+
     // Recording pulse animation
     val recordingPulseScale = remember { Animatable(1f) }
     LaunchedEffect(recordState) {
@@ -122,9 +131,105 @@ fun ChatComposer(
         }
     }
 
-    Box(
+    BoxWithConstraints(
         modifier = Modifier.fillMaxWidth()
     ) {
+        // Acción 7: Slide-to-delete DENTRO de la píldora. Al deslizar el mic
+        // horizontalmente hacia la izquierda aparece la píldora de borrado con el
+        // bote en el extremo opuesto (a la izquierda, dentro de la píldora). La
+        // tapa del bote se abre con el recorrido y la nota se elimina al alcanzar
+        // la MITAD de la píldora (cancelThresholdPx) — sin llegar al bote ni al
+        // borde de pantalla. El mic se desliza recto (viene ya con eje dominante).
+        if (recordState == RecordState.RECORDING && micDragOffsetX < -6f) {
+            val deleteProgress = (micDragOffsetX / -cancelThresholdPx).coerceIn(0f, 1f)
+            val trashOpen = remember { Animatable(0f) }
+            LaunchedEffect(deleteProgress) {
+                trashOpen.animateTo(
+                    targetValue = deleteProgress,
+                    animationSpec = tween(90)
+                )
+            }
+            Box(
+                modifier = Modifier
+                    .align(Alignment.BottomStart)
+                    .fillMaxWidth()
+                    .heightIn(min = 56.dp)
+                    .graphicsLayer { alpha = 0.85f },
+                contentAlignment = Alignment.CenterStart
+            ) {
+                Row(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .heightIn(min = 56.dp)
+                        .padding(start = 0.dp, end = 16.dp)
+                        .background(bubbleColor, RoundedCornerShape(28.dp))
+                        .border(1.dp, androidx.compose.ui.graphics.Color(0xFFE53935).copy(alpha = 0.5f + 0.5f * deleteProgress), RoundedCornerShape(28.dp))
+                        .padding(horizontal = 12.dp, vertical = 10.dp),
+                    verticalAlignment = Alignment.CenterVertically
+                ) {
+                    // Bote en el extremo izquierdo DENTRO de la píldora.
+                    Box(
+                        modifier = Modifier
+                            .padding(start = 4.dp)
+                            .size(44.dp)
+                            .graphicsLayer {
+                                val bounce2 = if (deleteProgress >= 1f) {
+                                    // leve pulso al punto exacto de borrado
+                                    1f + (0.15f * (1f - ((deleteProgress - 1f).coerceAtLeast(0f) * 0f)))
+                                } else 1f
+                                scaleX = 1f + (0.1f * deleteProgress) * bounce2
+                                scaleY = 1f + (0.1f * deleteProgress) * bounce2
+                            },
+                        contentAlignment = Alignment.Center
+                    ) {
+                        Icon(
+                            imageVector = Icons.Default.Delete,
+                            contentDescription = "Eliminar",
+                            tint = androidx.compose.ui.graphics.Color(0xFFE53935),
+                            modifier = Modifier.size(30.dp)
+                        )
+                        // Tapa que se abre con el recorrido
+                        Box(
+                            modifier = Modifier
+                                .align(Alignment.TopCenter)
+                                .graphicsLayer {
+                                    val rot = -deleteProgress * 45f
+                                    rotationZ = rot
+                                    val pivotY = 20f
+                                    transformOrigin = androidx.compose.ui.graphics.TransformOrigin(0.5f, pivotY)
+                                }
+                                .padding(top = 2.dp),
+                            contentAlignment = Alignment.Center
+                        ) {
+                            // Pequeña "tapa": cuadrado pequeño encima del bote
+                            Box(
+                                modifier = Modifier
+                                    .size(width = 20.dp, height = 6.dp)
+                                    .background(androidx.compose.ui.graphics.Color(0xFFE53935), RoundedCornerShape(3.dp))
+                            )
+                        }
+                    }
+
+                    Spacer(modifier = Modifier.width(14.dp))
+
+                    Text(
+                        text = if (deleteProgress < 0.55f) "Desliza para eliminar" else "Suelta para eliminar",
+                        color = androidx.compose.ui.graphics.Color(0xFFFFDADA),
+                        fontSize = 13.sp,
+                        fontWeight = FontWeight.Medium
+                    )
+
+                    Spacer(modifier = Modifier.weight(1f))
+
+                    Text(
+                        text = String.format("%02d:%02d", recordDurationSeconds / 60, recordDurationSeconds % 60),
+                        color = androidx.compose.ui.graphics.Color(0xFF94A3B8),
+                        fontSize = 12.sp
+                    )
+                }
+            }
+        }
+
         // =====================================================================
         // MODO IDLE: píldora azul con borde, emoji+texto+clip dentro,
         // micrófono FUERA (a la derecha). El gesto del micrófono vive SIEMPRE en
@@ -137,7 +242,7 @@ fun ChatComposer(
                     .fillMaxWidth()
                     .padding(start = 16.dp, end = 16.dp)
                     .imePadding()
-                    .padding(bottom = 24.dp),
+                    .padding(bottom = 14.dp),
                 verticalAlignment = Alignment.CenterVertically
             ) {
                 // Pastilla única: campo + emoji + clip
@@ -296,6 +401,7 @@ fun ChatComposer(
                             enabled = true,
                             isLocked = recordState == RecordState.LOCKED_RECORDING,
                             lockThresholdY = -lockThresholdPx,
+                            cancelThresholdX = -cancelThresholdPx,
                             onPermissionRequired = if (!hasMicPermission) {
                                 { micPermissionLauncher.launch(android.Manifest.permission.RECORD_AUDIO) }
                             } else null,
@@ -359,7 +465,7 @@ fun ChatComposer(
                 modifier = Modifier
                     .fillMaxWidth()
                     .padding(start = 16.dp, end = 16.dp)
-                    .padding(bottom = 24.dp),
+                    .padding(bottom = 14.dp),
                 verticalAlignment = Alignment.CenterVertically
             ) {
                 Row(
@@ -443,7 +549,7 @@ fun ChatComposer(
                 modifier = Modifier
                     .fillMaxWidth()
                     .padding(start = 16.dp, end = 16.dp)
-                    .padding(bottom = 24.dp),
+                    .padding(bottom = 14.dp),
                 verticalAlignment = Alignment.CenterVertically
             ) {
                 val previewDuration = viewModel.previewDurationSeconds
@@ -618,7 +724,7 @@ fun ChatComposer(
                 modifier = Modifier
                     .fillMaxWidth()
                     .padding(start = 16.dp, end = 16.dp)
-                    .padding(bottom = 24.dp),
+                    .padding(bottom = 14.dp),
                 verticalAlignment = Alignment.CenterVertically
             ) {
                 Row(
@@ -705,5 +811,6 @@ fun ChatComposer(
                 }
             }
         }
+
     }
 }

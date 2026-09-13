@@ -430,7 +430,7 @@ private fun PresenceLabel(
             )
         } else {
             Text(
-                text = presenceText.ifEmpty { "Sin conexión" },
+                text = presenceText.ifEmpty { "Fuera de línea" },
                 fontSize = 12.sp,
                 color = Color(0xFF94A3B8),
                 maxLines = 1,

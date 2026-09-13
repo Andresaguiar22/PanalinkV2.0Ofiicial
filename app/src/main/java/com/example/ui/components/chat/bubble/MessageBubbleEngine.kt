@@ -692,7 +692,10 @@ fun MessageBubbleEngine(
                             )
                         } else if (isSticker) {
                             val stickerUrl = mediaUrl ?: (if (content.startsWith("[Sticker] ")) content.substringAfter("[Sticker] ").trim() else if (content.startsWith("[GIF] ")) content.substringAfter("[GIF] ").trim() else content)
-                            StickerBubbleContent(stickerUrl = stickerUrl)
+                            StickerBubbleContent(
+                                stickerUrl = stickerUrl,
+                                fallbackUrl = message.thumbnailUrl?.takeIf { it.isNotBlank() }
+                            )
                         } else {
                             val statusIndicatorComposable: @Composable () -> Unit = {
                                 MessageStatusIndicator(

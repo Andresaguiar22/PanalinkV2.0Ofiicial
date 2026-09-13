@@ -1192,7 +1192,12 @@ fun sendSticker(url: String, preview: String?, replyToId: String?) {
             val mType = if (isGif) "gif" else "sticker"
             val mMime = if (isGif) "image/gif" else "image/webp"
 
-            // Optimistic UI for Sticker/GIF (local preview renders instantly)
+            // Optimistic UI for Sticker/GIF (local preview renders instantly).
+            // IMPORTANTE: mediaUrl debe ser la URL DEFINITIVA (la subida al CDN
+            // para stickers locales) para que la burbuja del emisor renderice la
+            // misma imagen que recibirá el destinatario — si se usa la ruta local
+            // original, la burbuja muestra "Sticker no disponible" cuando la ruta
+            // temporal ya no existe tras el sync.
             val optimisticMsg = com.example.data.model.Message(
                 id = msgId,
                 chatId = chatId,
@@ -1201,8 +1206,8 @@ fun sendSticker(url: String, preview: String?, replyToId: String?) {
                 createdAt = nowStr,
                 status = "sending",
                 replyToMessageId = replyToId,
-                mediaUrl = url,
-                thumbnailUrl = preview ?: url,
+                mediaUrl = sendUrl,
+                thumbnailUrl = preview ?: sendUrl,
                 mediaMime = mMime,
                 messageType = mType,
                 isGhost = _isGhostMode.value
