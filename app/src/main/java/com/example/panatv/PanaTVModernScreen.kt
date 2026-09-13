@@ -4,6 +4,7 @@ import android.app.Activity
 import android.content.Intent
 import android.content.pm.ActivityInfo
 import android.content.res.Configuration
+import android.media.MediaCodec
 import android.view.ViewGroup
 import android.widget.FrameLayout
 import android.widget.Toast
@@ -57,10 +58,12 @@ import androidx.lifecycle.LifecycleEventObserver
 import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.media3.common.PlaybackException
 import androidx.media3.common.Player
+import androidx.media3.datasource.HttpDataSource
 import androidx.media3.ui.AspectRatioFrameLayout
 import androidx.media3.ui.PlayerView
 import coil.compose.AsyncImage
 import coil.request.ImageRequest
+import kotlinx.coroutines.delay
 
 private val PanaTvBackground = Color(0xFF0B1017)
 private val PanaTvSurface = Color(0xFF151D26)
@@ -68,6 +71,41 @@ private val PanaTvText = Color(0xFFF4F7FA)
 private val PanaTvMuted = Color(0xFF9CA8B3)
 private val PanaTvAccent = Color(0xFFFF6B00)
 private val PanaTvBlue = Color(0xFF2F6BFF)
+
+/**
+ * True when [error] is a decoder/codec failure (e.g. MediaCodecVideoRenderer
+ * "MediaCodecVideoRenderer error ... video/mp2t, video/avc") rather than an
+ * HTTP/IO problem. A network error is never treated as a codec failure even
+ * when its cause chain drags decoder remnants, so a 401/403/timeout still
+ * follows the normal error path.
+ */
+private fun isCodecError(error: PlaybackException): Boolean {
+    var h: Throwable? = error.cause
+    while (h != null) {
+        if (h is HttpDataSource.InvalidResponseCodeException) return false
+        h = h.cause
+    }
+    // 4001-4006 are the real decoder/renderer codes (init, query, renderer init,
+    // format exceeds capabilities, format unsupported, decoding failed). A decoder
+    // that dies mid-stream surfaces in this range, not only as an init failure.
+    if (error.errorCode in 4001..4006) return true
+    if (error.errorCode == PlaybackException.ERROR_CODE_DECODER_INIT_FAILED ||
+        error.errorCode == PlaybackException.ERROR_CODE_DECODER_QUERY_FAILED ||
+        error.errorCode == PlaybackException.ERROR_CODE_DECODING_FORMAT_UNSUPPORTED
+    ) return true
+    var cause: Throwable? = error.cause
+    while (cause != null) {
+        if (cause is MediaCodec.CodecException) return true
+        val name = cause.javaClass.name
+        if (name.endsWith("DecoderInitializationException") ||
+            name.endsWith("CodecException") ||
+            name.endsWith("MediaCodecDecoderException") ||
+            name.endsWith("DecoderException")
+        ) return true
+        cause = cause.cause
+    }
+    return false
+}
 
 @androidx.annotation.OptIn(androidx.media3.common.util.UnstableApi::class)
 @Composable
@@ -96,13 +134,22 @@ fun PanaTVModernScreen(viewModel: PanaTVViewModel = viewModel()) {
     var showSearch by remember { mutableStateOf(false) }
     var drawerOpen by remember { mutableStateOf(false) }
     var controlsVisible by remember { mutableStateOf(true) }
+    var locked by remember { mutableStateOf(false) }
+    var lockTapVisible by remember { mutableStateOf(false) }
     var brightness by remember { mutableStateOf(1f) }
     var volumeLevel by remember { mutableStateOf(1f) }
+    // Recuperación de códec: un fallo de MediaCodec envenena el decoder del
+    // ExoPlayer compartido, así que hay que liberarlo y reconstruirlo (un prepare()
+    // sobre el mismo decoder no lo salva). El intento 2 pasa a decodificadores
+    // FFmpeg (software). Los contadores se reinician al cambiar de canal.
+    var recoveryAttempts by remember(currentChannel?.id) { mutableStateOf(0) }
+    var useSoftwareDecoders by remember(currentChannel?.id) { mutableStateOf(false) }
+    var playerGeneration by remember { mutableStateOf(0) }
     // Canal cuyo surface está conectado al PlayerView compartido: permite detectar
     // el cambio de canal y forzar el reattach surface (fix imagen congelada).
     var currentPlayerChannelId by remember { mutableStateOf<String?>(null) }
 
-    val player = remember(currentChannel) {
+    val player = remember(currentChannel, playerGeneration) {
         currentChannel?.let { channel ->
             com.example.util.AppFloatingPlayerManager.acquirePlayer(
                 context = context,
@@ -111,7 +158,8 @@ fun PanaTVModernScreen(viewModel: PanaTVViewModel = viewModel()) {
                 title = channel.name,
                 type = "panatv",
                 userAgent = channel.userAgent,
-                referrer = channel.referrer
+                referrer = channel.referrer,
+                preferSoftware = useSoftwareDecoders
             )
         }
     }
@@ -119,9 +167,26 @@ fun PanaTVModernScreen(viewModel: PanaTVViewModel = viewModel()) {
     DisposableEffect(player) {
         val listener = object : Player.Listener {
             override fun onPlayerError(error: PlaybackException) {
-                playerError = error.message ?: "No se pudo cargar el canal"
-                isBuffering = false
-                isPlaying = false
+                if (isCodecError(error) && recoveryAttempts < 2) {
+                    recoveryAttempts += 1
+                    // El hardware ya falló para este canal: el reintento pasa directo
+                    // a los decodificadores FFmpeg (software) en vez de repetir el
+                    // mismo códec de plataforma que acaba de fallar.
+                    useSoftwareDecoders = true
+                    playerError = null
+                    isBuffering = true
+                    isPlaying = false
+                    hasRenderedFrame = false
+                    // Un decoder envenenado NO se recupera con prepare(): hay que
+                    // soltarlo y reconstruir el player compartido.
+                    com.example.util.AppFloatingPlayerManager.releasePlayer()
+                    currentPlayerChannelId = null
+                    playerGeneration += 1
+                } else {
+                    playerError = error.message ?: "No se pudo cargar el canal"
+                    isBuffering = false
+                    isPlaying = false
+                }
             }
 
             override fun onPlaybackStateChanged(state: Int) {
@@ -218,20 +283,48 @@ fun PanaTVModernScreen(viewModel: PanaTVViewModel = viewModel()) {
     val isLandscape = configuration.orientation == Configuration.ORIENTATION_LANDSCAPE
 
     LaunchedEffect(isLandscape) {
-        if (isLandscape) enterFullscreen() else exitFullscreen()
-    }
-
-    BackHandler(enabled = isLandscape) {
-        if (drawerOpen) {
-            drawerOpen = false
-        } else if (controlsVisible) {
-            controlsVisible = false
+        if (isLandscape) {
+            enterFullscreen()
         } else {
+            // Leaving landscape always drops the transient overlays so returning to
+            // portrait never starts with a stale drawer or locked controls.
+            drawerOpen = false
+            locked = false
+            lockTapVisible = false
             exitFullscreen()
         }
     }
 
+    // Auto-hide the on-screen controls so the video stays clean; a tap brings them
+    // back. Never hides while locked or with the channel drawer open.
+    LaunchedEffect(controlsVisible, locked, drawerOpen, isLandscape) {
+        if (isLandscape && controlsVisible && !locked && !drawerOpen) {
+            delay(4000)
+            controlsVisible = false
+        }
+    }
+
+    // While locked, tapping reveals the unlock button only for a few seconds.
+    LaunchedEffect(locked, lockTapVisible) {
+        if (locked && lockTapVisible) {
+            delay(3000)
+            lockTapVisible = false
+        }
+    }
+
+    BackHandler(enabled = isLandscape) {
+        when {
+            drawerOpen -> drawerOpen = false
+            locked -> lockTapVisible = true
+            controlsVisible -> controlsVisible = false
+            else -> exitFullscreen()
+        }
+    }
+
     fun selectChannel(channel: PanaTVChannelEntity) {
+        // Picking a channel always dismisses the landscape drawer so the list does
+        // not stay stuck on top of the video.
+        drawerOpen = false
         if (currentChannel?.id != channel.id) {
             playerError = null
             hasRenderedFrame = false
@@ -353,11 +446,16 @@ fun PanaTVModernScreen(viewModel: PanaTVViewModel = viewModel()) {
                             Spacer(Modifier.height(12.dp))
                             Button(
                                 onClick = {
+                                    // prepare() on a poisoned decoder never recovers:
+                                    // tear the shared player down and rebuild it.
                                     playerError = null
                                     isBuffering = true
+                                    isPlaying = false
                                     hasRenderedFrame = false
-                                    player?.prepare()
-                                    player?.playWhenReady = true
+                                    recoveryAttempts = 0
+                                    com.example.util.AppFloatingPlayerManager.releasePlayer()
+                                    currentPlayerChannelId = null
+                                    playerGeneration += 1
                                 },
                                 shape = RoundedCornerShape(20.dp),
                                 colors = ButtonDefaults.buttonColors(containerColor = PanaTvAccent),
@@ -428,14 +526,23 @@ fun PanaTVModernScreen(viewModel: PanaTVViewModel = viewModel()) {
         ) {
             playerContent(Modifier.fillMaxSize(), false)
 
-            // Tap anywhere to toggle the control overlays.
+            // Tap anywhere: dismisses the drawer first, then reveals the unlock
+            // button while locked, otherwise toggles the control overlays.
             Box(
                 Modifier
                     .fillMaxSize()
-                    .pointerInput(Unit) { detectTapGestures { controlsVisible = !controlsVisible } }
+                    .pointerInput(locked, drawerOpen) {
+                        detectTapGestures {
+                            when {
+                                drawerOpen -> drawerOpen = false
+                                locked -> lockTapVisible = !lockTapVisible
+                                else -> controlsVisible = !controlsVisible
+                            }
+                        }
+                    }
             )
 
-            if (controlsVisible) {
+            if (controlsVisible && !locked) {
                 // Top bar: back + title (left) / share, help, favorite (right)
                 Row(
                     Modifier
@@ -495,16 +602,43 @@ fun PanaTVModernScreen(viewModel: PanaTVViewModel = viewModel()) {
                 ) {
                     LandscapeAction(Icons.Default.List, "Categoría") { drawerOpen = true }
                     LandscapeAction(Icons.Default.SkipPrevious, "Anterior") { playPrevious() }
-                    val fav = currentChannel?.let { favorites.contains(it.id) } == true
-                    LandscapeAction(if (fav) Icons.Default.Lock else Icons.Default.LockOpen, "Fijar") {
-                        currentChannel?.let { viewModel.toggleFavorite(it.id) }
+                    LandscapeAction(Icons.Default.Lock, "Bloquear") {
+                        // Lock clears every control so the video plays perfectly clean.
+                        // Tapping the screen briefly reveals the unlock button again.
+                        drawerOpen = false
+                        controlsVisible = false
+                        locked = true
+                    }
+                }
+            }
+
+            // Locked: a single unlock affordance, shown only after a tap/back press.
+            if (locked && lockTapVisible) {
+                Box(
+                    Modifier
+                        .fillMaxSize()
+                        .pointerInput(Unit) { detectTapGestures { } },
+                    contentAlignment = Alignment.Center
+                ) {
+                    Surface(
+                        shape = RoundedCornerShape(28.dp),
+                        color = Color.Black.copy(alpha = 0.6f),
+                        modifier = Modifier.size(56.dp).clickable {
+                            locked = false
+                            lockTapVisible = false
+                            controlsVisible = true
+                        }
+                    ) {
+                        Box(contentAlignment = Alignment.Center) {
+                            Icon(Icons.Default.LockOpen, "Desbloquear", tint = Color.White, modifier = Modifier.size(26.dp))
+                        }
                     }
                 }
             }
 
             // Slide-in drawer: categories (left) + channel list (right of it), video stays visible
             AnimatedVisibility(
-                visible = drawerOpen,
+                visible = drawerOpen && !locked,
                 enter = slideInHorizontally(initialOffsetX = { -it }) + fadeIn(),
                 exit = slideOutHorizontally(targetOffsetX = { -it }) + fadeOut(),
                 modifier = Modifier
@@ -516,6 +650,9 @@ fun PanaTVModernScreen(viewModel: PanaTVViewModel = viewModel()) {
                     Modifier
                         .fillMaxSize()
                         .background(Color.Black.copy(alpha = 0.9f))
+                        // Swallow taps on empty drawer space so they don't fall through
+                        // to the video and toggle the controls behind the list.
+                        .pointerInput(Unit) { detectTapGestures { } }
                 ) {
                     LazyColumn(
                         Modifier

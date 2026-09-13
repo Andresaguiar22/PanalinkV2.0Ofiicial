@@ -30,6 +30,14 @@ object AppFloatingPlayerManager {
     // headers (User-Agent / Referer) can be updated dynamically between
     // setMediaItem calls on the shared player — no rebuild required.
     private var httpDataSourceFactory: DefaultHttpDataSource.Factory? = null
+
+    // Whether the current ExoPlayer was built preferring the FFmpeg software
+    // decoders. PanaTV escalates to that mode to recover from MediaCodec failures,
+    // and the flag lets acquirePlayer() know a rebuild is required.
+    private var playerPreferSoftware = false
+
+    private const val DEFAULT_USER_AGENT =
+        "Mozilla/5.0 (Linux; Android 10; K) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/124.0.0.0 Mobile Safari/537.36 Panalink/1.0"
     
     // Track position in screen
     var bubbleOffsetX by mutableStateOf(0f)
@@ -58,11 +66,12 @@ object AppFloatingPlayerManager {
         title: String?,
         type: String,
         userAgent: String? = null,
-        referrer: String? = null
+        referrer: String? = null,
+        preferSoftware: Boolean = false
     ): ExoPlayer {
         // If we already have a player with the same video playing, reuse it!
         val currentPlayer = exoPlayer
-        if (currentPlayer != null && activeUrl == url) {
+        if (currentPlayer != null && activeUrl == url && playerPreferSoftware == preferSoftware) {
             isFloating = false // Bring it out of floating mode
             activeId = id
             activeTitle = title
@@ -72,17 +81,26 @@ object AppFloatingPlayerManager {
 
         // Reuse the SAME ExoPlayer instance across videos: swapping the media item
         // avoids full codec teardown + player construction on the main thread,
-        // which is what froze the app during fast reel swipes.
-        val player = currentPlayer ?: buildPlayer(context.applicationContext)
+        // which is what froze the app during fast reel swipes. A different renderer
+        // mode means the decoder set must change, so the player is rebuilt instead.
+        val reuse = currentPlayer?.takeIf { playerPreferSoftware == preferSoftware }
+        if (currentPlayer != null && reuse == null) {
+            try { currentPlayer.stop() } catch (_: Throwable) {}
+            try { currentPlayer.release() } catch (_: Throwable) {}
+        }
+        val player = reuse ?: buildPlayer(context.applicationContext, preferSoftware)
+        playerPreferSoftware = preferSoftware
 
         // Update per-stream headers on the shared HTTP factory before setMediaItem.
         // The factory is mutable: subsequent createDataSource() calls pick up the
-        // new properties, so a single prepare() applies the right headers.
+        // new properties, so a single prepare() applies the right headers. Both the
+        // UA and the referer are ALWAYS reset, otherwise a channel without them
+        // would inherit the previous channel's headers and fail to load.
         httpDataSourceFactory?.let { factory ->
-            userAgent?.takeIf { it.isNotBlank() }?.let { factory.setUserAgent(it) }
+            factory.setUserAgent(userAgent?.takeIf { it.isNotBlank() } ?: DEFAULT_USER_AGENT)
             val props = mutableMapOf<String, String>()
             referrer?.takeIf { it.isNotBlank() }?.let { props["Referer"] = it }
-            if (props.isNotEmpty()) factory.setDefaultRequestProperties(props)
+            factory.setDefaultRequestProperties(props)
         }
 
         // CRÍTICO: limpiar surface y reset antes de cambiar media item para evitar
@@ -117,7 +135,7 @@ object AppFloatingPlayerManager {
         return player
     }
 
-    private fun buildPlayer(context: Context): ExoPlayer {
+    private fun buildPlayer(context: Context, preferSoftware: Boolean = false): ExoPlayer {
         val loadControl = androidx.media3.exoplayer.DefaultLoadControl.Builder()
             .setBufferDurationsMs(
                 10000, // minBufferMs: 10s
@@ -139,7 +157,7 @@ object AppFloatingPlayerManager {
         // the player. The factory is mutable; changes are picked up by new
         // DefaultHttpDataSource instances created during prepare().
         httpDataSourceFactory = DefaultHttpDataSource.Factory()
-            .setUserAgent("Mozilla/5.0 (Linux; Android 10; K) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/124.0.0.0 Mobile Safari/537.36 Panalink/1.0")
+            .setUserAgent(DEFAULT_USER_AGENT)
             .setConnectTimeoutMs(15000)
             .setReadTimeoutMs(15000)
             .setAllowCrossProtocolRedirects(true)
@@ -149,7 +167,7 @@ object AppFloatingPlayerManager {
             CacheDataSourceFactory.getCacheDataSourceFactory(context, httpDataSourceFactory)
         )
 
-        return ExoPlayer.Builder(context, PanaRenderersFactory.create(context))
+        return ExoPlayer.Builder(context, PanaRenderersFactory.create(context, preferSoftware))
             .setTrackSelector(trackSelector)
             .setMediaSourceFactory(
                 DefaultMediaSourceFactory(context)
@@ -183,5 +201,6 @@ object AppFloatingPlayerManager {
         activeType = null
         isFloating = false
         isInNativePip = false
+        playerPreferSoftware = false
     }
 }
