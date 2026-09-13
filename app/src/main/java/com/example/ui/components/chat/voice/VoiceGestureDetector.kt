@@ -5,14 +5,12 @@ import androidx.compose.foundation.gestures.awaitFirstDown
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.input.pointer.pointerInput
 import kotlinx.coroutines.withTimeoutOrNull
-import kotlin.math.abs
 
 fun Modifier.voiceGestureDetector(
     enabled: Boolean = true,
     isLocked: Boolean = false,
     lockThresholdY: Float = -240f,   // ≈ hasta el candado visible: solo se activa al subir del todo
     cancelThresholdX: Float = -70f,  // ~50dp: deslizar a la izquierda cancela
-    flingVelocityY: Float = 99999f,  // desactivado: nada de activar el candado con un midi-flick
     onPermissionRequired: (() -> Unit)? = null,
     onDrag: ((offsetX: Float, offsetY: Float) -> Unit)? = null,
     onEvent: (VoiceGestureEvent) -> Unit
@@ -47,26 +45,13 @@ fun Modifier.voiceGestureDetector(
 
         var totalY = 0f
         var totalX = 0f
-        var lastY = down.position.y
-        var lastTime = System.nanoTime()
-        var recentVelY = 0f
         var handled = false
         var released = false
 
         while (true) {
             val event = awaitPointerEvent()
             val change = event.changes.firstOrNull() ?: break
-            val now = System.nanoTime()
-            val dt = (now - lastTime) / 1_000_000f
             if (!change.pressed) { released = true; break }
-
-            val dy = change.position.y - lastY
-            lastY = change.position.y
-            lastTime = now
-            if (dt > 0.5f) {
-                val instVel = dy / dt
-                recentVelY = recentVelY * 0.4f + instVel * 0.6f
-            }
 
             change.consume()
             val pos = change.position
@@ -74,15 +59,14 @@ fun Modifier.voiceGestureDetector(
             totalY += (pos.y - prev.y)
             totalX += (pos.x - prev.x)
 
-            val clampedY = totalY.coerceIn(-350f, 0f)
+            val clampedY = totalY.coerceIn(-1600f, 0f)
             val clampedX = totalX.coerceIn(-450f, 0f)
             onDrag?.invoke(clampedX, clampedY)
 
-            // Lock: por distancia recorrida O un fling claramente intencional. Antes un
-            // mini-flick de ~20px a velocidad -1.8 disparaba el lock accidentalmente,
-            // lo que hacia dificil ver el recorrido del candado.
-            val flickUp = recentVelY < flingVelocityY * 1.7f && totalY < -30f
-            if ((totalY < lockThresholdY || flickUp) && !handled) {
+            // Lock: SOLO por la distancia recorrida hasta el candado (lockThresholdY).
+            // Sin shortcut por velocidad: antes un mini-flick de ~30px disparaba el
+            // lock sin alcanzar el candado, y el usuario nunca veía el recorrido.
+            if (totalY <= lockThresholdY && !handled) {
                 handled = true
                 onDrag?.invoke(0f, 0f)
                 onEvent(VoiceGestureEvent.LockRecording)

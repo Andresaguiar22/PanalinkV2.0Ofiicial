@@ -76,9 +76,6 @@ fun ChatComposer(
     val keyboardController = LocalSoftwareKeyboardController.current
     var recordDurationSeconds by remember { androidx.compose.runtime.mutableIntStateOf(0) }
     var isRecordingPaused by remember { mutableStateOf(false) }
-    // Fase manos libres: el micrófono fuera de la píldora se oculta (0.dp) y la
-    // píldora del LOCKED_RECORDING muestra enviar/cancelar/pausar.
-    var recordingButtonLocked by remember { mutableStateOf(false) }
 
     LaunchedEffect(recordState) {
         if (recordState == RecordState.RECORDING || recordState == RecordState.LOCKED_RECORDING) {
@@ -90,7 +87,6 @@ fun ChatComposer(
             }
         } else {
             recordDurationSeconds = 0
-            recordingButtonLocked = false
             isRecordingPaused = false
         }
     }
@@ -99,6 +95,14 @@ fun ChatComposer(
     val isInputEmpty = inputMessage.trim().isEmpty()
     val primaryColor = androidx.compose.ui.graphics.Color(0xFF38BDF8)
     val bubbleColor = androidx.compose.ui.graphics.Color(0xFF1E3A5F).copy(alpha = 0.75f)
+    // Distancia en PX que debe recorrer el dedo (con el micrófono) para alcanzar
+    // el candado. El candado vive ~96dp + ~88dp/2 por encima del borde superior del
+    // composer durante RECORDING, y el micrófono parte de la fila inferior; convertimos
+    // la posición del candado en dp a px para que el lock se active justo al tocarlo.
+    val lockThresholdPx = with(androidx.compose.ui.platform.LocalDensity.current) {
+        val micToLockDp = 138.dp // ≈ 88 (mitad candado) + 96 (offset) + 26 (desde centro del mic hasta top del composer)
+        micToLockDp.toPx()
+    }
 
     // Recording pulse animation
     val recordingPulseScale = remember { Animatable(1f) }
@@ -261,7 +265,7 @@ fun ChatComposer(
                             translationX = micDragOffsetX
                             translationY = micDragOffsetY
                         }
-                        .size(if (recordingButtonLocked) 0.dp else 52.dp)
+                        .size(52.dp)
                         .scale(recordingPulseScale.value)
                         .clip(CircleShape)
                         .background(
@@ -289,6 +293,7 @@ fun ChatComposer(
                         .voiceGestureDetector(
                             enabled = true,
                             isLocked = recordState == RecordState.LOCKED_RECORDING,
+                            lockThresholdY = -lockThresholdPx,
                             onPermissionRequired = if (!hasMicPermission) {
                                 { micPermissionLauncher.launch(android.Manifest.permission.RECORD_AUDIO) }
                             } else null,
@@ -306,11 +311,9 @@ fun ChatComposer(
                                         triggerLightVibration(context)
                                     }
                                     is VoiceGestureEvent.LockRecording -> {
-                                        recordingButtonLocked = true
                                         triggerLightVibration(context)
                                     }
                                     is VoiceGestureEvent.CancelRecording -> {
-                                        recordingButtonLocked = false
                                         isRecordingPaused = false
                                         triggerLightVibration(context)
                                         onShowTrashAnimation()
@@ -323,32 +326,27 @@ fun ChatComposer(
                         ),
                     contentAlignment = Alignment.Center
                 ) {
-                    if (recordingButtonLocked) {
-                        // Fase manos libres: el micrófono se oculta; la píldora
-                        // del LOCKED_RECORDING trae sus propios botones.
-                    } else {
-                        when {
-                            recordState == RecordState.SENDING ->
-                                CircularProgressIndicator(
-                                    modifier = Modifier.size(24.dp),
-                                    color = primaryColor,
-                                    strokeWidth = 2.dp
-                                )
-                            recordState == RecordState.RECORDING || recordState == RecordState.LOCKED_RECORDING ->
-                                AnimatedAudioWaves(amplitudes = voiceAmplitudes, isPaused = isRecordingPaused)
-                            else ->
-                                Icon(
-                                    imageVector = Icons.Default.Mic,
-                                    contentDescription = "Grabar nota de voz",
-                                    tint = primaryColor,
-                                    modifier = Modifier.size(24.dp)
-                                )
-    }
+                    when {
+                        recordState == RecordState.SENDING ->
+                            CircularProgressIndicator(
+                                modifier = Modifier.size(24.dp),
+                                color = primaryColor,
+                                strokeWidth = 2.dp
+                            )
+                        recordState == RecordState.RECORDING ->
+                            AnimatedAudioWaves(amplitudes = voiceAmplitudes, isPaused = isRecordingPaused)
+                        else ->
+                            Icon(
+                                imageVector = Icons.Default.Mic,
+                                contentDescription = "Grabar nota de voz",
+                                tint = primaryColor,
+                                modifier = Modifier.size(24.dp)
+                            )
+                    }
                 }
                 }
             }
         }
-    }
         // MODO LOCKED_RECORDING (manos libres): píldora azul con borde que
         // muestra la grabación en curso y trae Cancelar, Pausar/Reanudar y
         // Enviar DENTRO de la misma píldora.
@@ -704,7 +702,7 @@ fun ChatComposer(
         // obliga al composer a tomar toda la altura disponible y el panel de
         // grabación termina renderizándose arriba, dejando un hueco negro gigante.
         if (recordState == RecordState.RECORDING) {
-            val lockHighlight = (micDragOffsetY / -240f).coerceIn(0f, 1f)
+            val lockHighlight = (micDragOffsetY / -lockThresholdPx).coerceIn(0f, 1f)
             val bounce = remember { Animatable(0f) }
             LaunchedEffect(lockHighlight) {
                 if (lockHighlight >= 1f && bounce.value == 0f) {
