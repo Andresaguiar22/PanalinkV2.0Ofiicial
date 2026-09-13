@@ -42,21 +42,21 @@ fun ChatReplyEditBar(
             Row(
                 modifier = Modifier
                     .fillMaxWidth()
-                    .background(Color(0xFF202C33))
-                    .padding(horizontal = 16.dp, vertical = 8.dp),
+                .background(Color(0xFF1E293B))
+                     .padding(horizontal = 16.dp, vertical = 8.dp),
                 verticalAlignment = Alignment.CenterVertically
             ) {
                 Box(
                     modifier = Modifier
                         .width(4.dp)
                         .height(36.dp)
-                        .background(Color(0xFF00A884))
+                        .background(Color(0xFF38BDF8))
                 )
                 Spacer(modifier = Modifier.width(12.dp))
                 Column(modifier = Modifier.weight(1f)) {
                     Text(
                         text = "Respondiendo a $senderName",
-                        color = Color(0xFF00A884),
+                        color = Color(0xFF38BDF8),
                         fontWeight = FontWeight.Bold,
                         fontSize = 12.sp
                     )
@@ -95,21 +95,21 @@ fun ChatReplyEditBar(
             Row(
                 modifier = Modifier
                     .fillMaxWidth()
-                    .background(Color(0xFF202C33))
-                    .padding(horizontal = 16.dp, vertical = 8.dp),
+                     .background(Color(0xFF1E293B))
+                     .padding(horizontal = 16.dp, vertical = 8.dp),
                 verticalAlignment = Alignment.CenterVertically
             ) {
                 Box(
                     modifier = Modifier
                         .width(4.dp)
                         .height(36.dp)
-                        .background(Color(0xFF0080FF))
+                        .background(Color(0xFF38BDF8))
                 )
                 Spacer(modifier = Modifier.width(12.dp))
                 Column(modifier = Modifier.weight(1f)) {
                     Text(
                         text = "Editar mensaje ✏️",
-                        color = Color(0xFF0080FF),
+                        color = Color(0xFF38BDF8),
                         fontWeight = FontWeight.Bold,
                         fontSize = 12.sp
                     )

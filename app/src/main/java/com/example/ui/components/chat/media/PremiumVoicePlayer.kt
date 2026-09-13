@@ -82,15 +82,34 @@ fun PremiumVoicePlayer(
 
     val effectiveIsSending = isSending || messageStatus == "sending" || messageStatus == "pending" || messageStatus == "pending_media"
     val isFailed = messageStatus == "failed"
-    val bubbleBgColor = if (isSender) Color(0xFFE7FFDB) else Color(0xFFFFFFFF)
-    // Verde = nota de voz; Purpura = audio de galeria/musica
-    val playedColor = if (isVoiceNote) {
-        if (isSender) Color(0xFF1EBE71) else Color(0xFF00A3DA)
+
+    // Acción 1 & 4: Premium Glassmorphism colors
+    val bubbleBgColor = Color(0xFF1E293B)
+    val contentTextColor = if (isSender) Color.White else Color(0xE6FFFFFF) // 90% white
+    val playedColor = if (isVoiceNote || isSender) {
+        if (isSender) Color(0xFF00E5FF) else Color(0xFF38BDF8)
     } else {
-        Color(0xFF9C27B0)
+        Color(0xFFA78BFA)
     }
-    val unplayedColor = Color(0xFF8696A0).copy(alpha = 0.2f)
-    val secondaryText = Color(0xFF667781)
+    val unplayedColor = Color(0xFF94A3B8).copy(alpha = 0.35f)
+    val secondaryText = Color(0xFF94A3B8)
+
+    // Acción 4: Asymmetric shape (same as message bubbles)
+    val voiceBubbleShape = if (isSender) {
+        RoundedCornerShape(
+            topStart = 24.dp,
+            topEnd = 4.dp,
+            bottomStart = 24.dp,
+            bottomEnd = 24.dp
+        )
+    } else {
+        RoundedCornerShape(
+            topStart = 4.dp,
+            topEnd = 24.dp,
+            bottomStart = 24.dp,
+            bottomEnd = 24.dp
+        )
+    }
 
     val waveTransition = rememberInfiniteTransition(label = "WaveAnimation")
     val waveOffset by if (isPlaying) {
@@ -107,14 +126,18 @@ fun PremiumVoicePlayer(
         remember { mutableStateOf(0f) }
     }
 
-    // Slim WhatsApp-style voice note: play button + waveform + avatar with mic badge,
-    // flat inside the bubble (no nested surface) to keep the bubble thin
-    Row(
+    // Acción 4: Voice note bubble with asymmetric shape + waveform
+    Box(
         modifier = modifier
+            .clip(if (isSender) voiceBubbleShape else voiceBubbleShape)
+            .background(bubbleBgColor)
             .widthIn(min = 240.dp, max = 320.dp)
-            .padding(horizontal = 2.dp, vertical = 0.dp),
-        verticalAlignment = Alignment.CenterVertically
+            .padding(horizontal = 12.dp, vertical = 8.dp)
     ) {
+        Row(
+            modifier = Modifier.fillMaxWidth(),
+            verticalAlignment = Alignment.CenterVertically
+        ) {
         // Play/Pause button
         Box(
             modifier = Modifier
@@ -139,7 +162,7 @@ fun PremiumVoicePlayer(
                         else -> Icons.Default.PlayArrow
                     },
                     contentDescription = null,
-                    tint = if (isFailed) Color.Red else Color(0xFF54656F),
+                    tint = if (isFailed) Color.Red else playedColor,
                     modifier = Modifier.size(30.dp)
                 )
             }
@@ -252,11 +275,11 @@ fun PremiumVoicePlayer(
                             }
                             onSpeedChange(playbackSpeed)
                         },
-                    color = Color.Black.copy(alpha = 0.05f)
+                    color = Color.White.copy(alpha = 0.08f)
                 ) {
                     Text(
                         text = "${if (playbackSpeed % 1f == 0f) playbackSpeed.toInt() else playbackSpeed}x",
-                        color = secondaryText,
+                        color = playedColor,
                         fontSize = 9.sp,
                         fontWeight = FontWeight.Bold,
                         modifier = Modifier.padding(horizontal = 5.dp, vertical = 2.dp)
@@ -295,4 +318,6 @@ fun PremiumVoicePlayer(
             }
         }
     }
+}
+
 }

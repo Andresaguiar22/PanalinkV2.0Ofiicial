@@ -391,8 +391,8 @@ private fun VideoViewerContent(
                             currentPositionMs = targetMs
                         },
                         colors = SliderDefaults.colors(
-                            thumbColor = Color(0xFF00A884),
-                            activeTrackColor = Color(0xFF00A884),
+                            thumbColor = Color(0xFF38BDF8),
+                            activeTrackColor = Color(0xFF38BDF8),
                             inactiveTrackColor = Color.White.copy(alpha = 0.3f)
                         )
                     )

@@ -70,6 +70,7 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.hapticfeedback.HapticFeedbackType
 import androidx.compose.ui.platform.LocalClipboardManager
@@ -264,10 +265,19 @@ fun MessageBubbleEngine(
         EmojiHelper.isEmojiOnly(message.textContent)
     }
 
+    // Acción 1: Paleta Premium Glassmorphism
+    // Tú: degradado azul cian a azul oscuro
+    // Otro: gris oscuro translúcido
+    val outgoingGradient = Brush.linearGradient(
+        colors = listOf(Color(0xFF38BDF8), Color(0xFF1D4ED8))
+    )
+    val incomingColor = Color(0xFF1E293B).copy(alpha = 0.9f)
+    
     val bubbleColor = if (isSticker || isBigEmoji) Color.Transparent 
-                      else if (isMe) Color(0xFFE7FFDB) 
-                      else Color(0xFFFFFFFF)
-    val contentTextColor = Color(0xFF111B21)
+                      else if (isMe) Color(0xFF1D4ED8) // Solid dark blue for outgoing
+                      else incomingColor
+    val bubbleBrush = if (isMe && !isSticker && !isBigEmoji) outgoingGradient else null
+    val contentTextColor = Color.White
     val elevation = if (isSticker || isBigEmoji) 0f else 1f
 
     var showMenu by remember { mutableStateOf(false) }
@@ -366,7 +376,7 @@ fun MessageBubbleEngine(
         allMessages.find { it.id == message.replyToMessageId }
     }
 
-    val highlightColor = if (isSelected) colors.primary.copy(alpha = 0.15f) else if (isHighlighted) Color(0xFF00A884).copy(alpha = 0.3f) else Color.Transparent
+    val highlightColor = if (isSelected) Color(0xFF38BDF8).copy(alpha = 0.15f) else if (isHighlighted) Color(0xFF38BDF8).copy(alpha = 0.3f) else Color.Transparent
 
     // WhatsApp-style spacing: tight inside a consecutive group, wider between groups
     val groupTopSpacing = if (groupPosition == MessageGroupPosition.FIRST || groupPosition == MessageGroupPosition.SINGLE) 6.dp else 1.dp
@@ -435,8 +445,8 @@ fun MessageBubbleEngine(
                     if (repliedMsg != null) {
                         val repliedByMe = repliedMsg.senderId == (SupabaseClient.currentUser?.id ?: "")
                         val replySenderName = if (repliedByMe) "Tú" else (otherUserName?.takeIf { it.isNotBlank() } ?: "Contacto")
-                        val quoteAccent = if (repliedByMe) Color(0xFF00A884) else Color(0xFF7C4DFF)
-                        val quoteBg = if (isMe) Color.White.copy(alpha = 0.45f) else Color(0xFFF0F2F5)
+                        val quoteAccent = if (repliedByMe) Color(0xFF38BDF8) else Color(0xFFA78BFA)
+                        val quoteBg = if (isMe) Color(0xFF1E293B).copy(alpha = 0.45f) else Color(0xFF1E293B).copy(alpha = 0.3f)
                         val repliedType = repliedMsg.messageType?.lowercase() ?: ""
                         val repliedThumbUrl = repliedMsg.mediaUrl.takeIf {
                             repliedType == "image" || repliedType == "video" ||
@@ -486,7 +496,7 @@ fun MessageBubbleEngine(
                                 }
                                 Text(
                                     text = replyPreviewText,
-                                    color = Color(0xFF667781),
+                                    color = Color(0xFF94A3B8),
                                     fontSize = 12.sp,
                                     maxLines = 1,
                                     overflow = TextOverflow.Ellipsis
@@ -513,7 +523,7 @@ fun MessageBubbleEngine(
                                 .fillMaxWidth()
                                 .padding(bottom = 6.dp)
                                 .clip(RoundedCornerShape(8.dp))
-                                .background(if (isMe) Color.White.copy(alpha = 0.45f) else Color(0xFFF0F2F5))
+                                .background(if (isMe) Color(0xFF1E293B).copy(alpha = 0.45f) else Color(0xFF1E293B).copy(alpha = 0.3f))
                                 .height(IntrinsicSize.Min)
                         ) {
                             Box(
@@ -536,7 +546,7 @@ fun MessageBubbleEngine(
                                 )
                                 Text(
                                     text = "$storyType Historia",
-                                    color = Color(0xFF667781),
+                                    color = Color(0xFF94A3B8),
                                     fontSize = 11.sp,
                                     maxLines = 1,
                                     overflow = TextOverflow.Ellipsis
@@ -719,7 +729,7 @@ fun MessageBubbleEngine(
                             reactionCounts.forEach { (emoji, count) ->
                                 Surface(
                                     modifier = Modifier.clip(RoundedCornerShape(10.dp)),
-                                    color = Color(0xFFF0F2F5),
+                                    color = Color(0xFF1E293B).copy(alpha = 0.5f),
                                     tonalElevation = 1.dp
                                 ) {
                                     Row(
@@ -729,7 +739,7 @@ fun MessageBubbleEngine(
                                     ) {
                                         Text(text = emoji, fontSize = 12.sp)
                                         if (count > 1) {
-                                            Text(text = count.toString(), color = Color(0xFF667781), fontSize = 10.sp)
+                                            Text(text = count.toString(), color = Color(0xFF94A3B8), fontSize = 10.sp)
                                         }
                                     }
                                 }
@@ -821,7 +831,7 @@ fun MessageBubbleEngine(
                                 Spacer(modifier = Modifier.width(3.dp))
                                 Text(
                                     text = "$count",
-                                    color = Color(0xFF667781),
+                                    color = Color(0xFF94A3B8),
                                     fontSize = 9.sp,
                                     fontWeight = FontWeight.Bold
                                 )
@@ -942,6 +952,7 @@ fun MessageBubbleEngine(
                 groupPosition = groupPosition,
                 shape = bubbleShape,
                 containerColor = bubbleColor,
+                containerBrush = bubbleBrush,
                 tonalElevation = selectionElevation,
                 modifier = swipeModifier
             ) {
@@ -954,6 +965,7 @@ fun MessageBubbleEngine(
                 avatarUserId = message.senderId.takeIf { !isMe },
                 shape = bubbleShape,
                 containerColor = bubbleColor,
+                containerBrush = bubbleBrush,
                 tonalElevation = selectionElevation,
                 modifier = swipeModifier
             ) {
@@ -981,7 +993,7 @@ private fun GhostMessageContent(
                 imageVector = Icons.Default.Visibility,
                 contentDescription = null,
                 modifier = Modifier.size(16.dp),
-                tint = Color(0xFF00A884)
+                tint = Color(0xFF38BDF8)
             )
             Spacer(modifier = Modifier.width(8.dp))
             Text(

@@ -25,6 +25,8 @@ import androidx.compose.material.icons.filled.QueueMusic
 import androidx.compose.material.icons.filled.Videocam
 import androidx.compose.material.icons.filled.Visibility
 import androidx.compose.material.icons.filled.VisibilityOff
+import androidx.compose.material.icons.filled.Gif
+import androidx.compose.material.icons.filled.StickyNote2
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.Icon
@@ -40,7 +42,7 @@ import androidx.compose.ui.unit.sp
 
 @Composable
 fun ChatAttachmentSheet(
-    visible: Boolean,
+        visible: Boolean,
     isGhostMode: Boolean,
     onCamera: () -> Unit,
     onImage: () -> Unit,
@@ -48,6 +50,8 @@ fun ChatAttachmentSheet(
     onDocument: () -> Unit,
     onAudio: () -> Unit,
     onPlaylist: () -> Unit,
+    onGif: () -> Unit = {},
+    onSticker: () -> Unit = {},
     onToggleGhostMode: () -> Unit
 ) {
     // Smooth collapsing files attachments drawer
@@ -90,6 +94,12 @@ fun ChatAttachmentSheet(
                     }
                     AttachmentItem(icon = Icons.Default.QueueMusic, label = "Playlist", color = Color(0xFF38BDF8)) {
                         onPlaylist()
+                    }
+                    AttachmentItem(icon = Icons.Default.Gif, label = "GIF", color = Color(0xFFFF9E00)) {
+                        onGif()
+                    }
+                    AttachmentItem(icon = Icons.Default.StickyNote2, label = "Stickers", color = Color(0xFFFF2D55)) {
+                        onSticker()
                     }
                     AttachmentItem(
                         icon = if (isGhostMode) Icons.Default.VisibilityOff else Icons.Default.Visibility,

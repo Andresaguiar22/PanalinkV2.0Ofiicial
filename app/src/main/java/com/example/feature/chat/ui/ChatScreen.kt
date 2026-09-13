@@ -50,7 +50,8 @@ import androidx.compose.ui.draw.clip
 import androidx.compose.ui.draw.scale
 import androidx.compose.foundation.gestures.awaitFirstDown
 import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.graphics.vector.ImageVector
+import androidx.compose.ui.graphics.Brush
+import androidx.compose.ui.graphics.Shape
 import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.hapticfeedback.HapticFeedbackType
 import androidx.compose.ui.input.pointer.pointerInput
@@ -740,7 +741,7 @@ fun ChatScreen(
                 onNavigateToSearch =onNavigateToSearch,
             )
         },
-        containerColor = colors.background
+        containerColor = Color(0xFF020617)
     ) { innerPadding ->
         Column(
             modifier = Modifier
@@ -754,36 +755,20 @@ fun ChatScreen(
             
 
             
-            // Message Area
-            Box(
-                modifier = Modifier
-                    .weight(1f)
-                    .fillMaxWidth()
-                    .background(Color(0xFF0B141A))
-            ) {
-                // Wallpaper background (Doodle pattern) — sutil sobre fondo oscuro
-                AsyncImage(
-                    model = com.example.R.drawable.chat_doodle_bg_1784868638812,
-                    contentDescription = null,
-                    contentScale = ContentScale.Crop,
-                    modifier = Modifier.fillMaxSize(),
-                    alpha = 0.12f
-                )
-
-                // Optional solid color or other wallpaper logic
-                if (chatWallpaperState.startsWith("http")) {
-                    AsyncImage(
-                        model = chatWallpaperState,
-                        contentDescription = null,
-                        contentScale = ContentScale.Crop,
-                        modifier = Modifier.fillMaxSize(),
-                        alpha = 0.3f
-                    )
-                } else if (chatWallpaperState == "color_solid_green") {
-                    Box(Modifier.fillMaxSize().background(Color(0xFF075E54).copy(alpha = 0.15f)))
-                } else if (chatWallpaperState == "color_solid_blue") {
-                    Box(Modifier.fillMaxSize().background(Color(0xFF003366).copy(alpha = 0.15f)))
-                }
+             // Message Area
+             Box(
+                 modifier = Modifier
+                     .weight(1f)
+                     .fillMaxWidth()
+                     .background(
+                         Brush.verticalGradient(
+                             colors = listOf(
+                                 Color(0xFF0F172A),
+                                 Color(0xFF020617)
+                             )
+                         )
+                     )
+             ) {
 
                 when (uiState) {
                     is ChatUiState.Loading -> {
@@ -874,20 +859,20 @@ fun ChatScreen(
                                             "Chat"
                                         }
 
-                                        Box(
+                                            Box(
                                             modifier = Modifier
                                                 .fillMaxWidth()
                                                 .padding(vertical = 8.dp),
                                             contentAlignment = Alignment.Center
                                         ) {
                                             Card(
-                                                colors = CardDefaults.cardColors(containerColor = Color(0xFFF0F2F5)),
+                                                colors = CardDefaults.cardColors(containerColor = Color(0xFF1E293B).copy(alpha = 0.7f)),
                                                 shape = RoundedCornerShape(10.dp),
                                                 elevation = CardDefaults.cardElevation(defaultElevation = 1.dp)
                                             ) {
                                                 Text(
                                                     text = dateText,
-                                                    color = Color(0xFF54656F),
+                                                    color = Color(0xFF94A3B8),
                                                     fontSize = 12.sp,
                                                     modifier = Modifier.padding(horizontal = 14.dp, vertical = 5.dp),
                                                     fontWeight = FontWeight.Medium
@@ -952,17 +937,17 @@ fun ChatScreen(
                                 val isOtherUserTyping = typingUsers.value.contains(otherUser?.id ?: "other_user_id_demo")
                                 if (isOtherUserTyping) {
                                     item(contentType = "typing_indicator") {
-                                        Row(
+                                            Row(
                                             modifier = Modifier
                                                 .padding(horizontal = 16.dp, vertical = 4.dp)
-                                                .background(Color.White, RoundedCornerShape(16.dp, 16.dp, 16.dp, 4.dp))
+                                                .background(Color(0xFF1E293B).copy(alpha = 0.7f), RoundedCornerShape(16.dp, 16.dp, 16.dp, 4.dp))
                                                 .padding(horizontal = 14.dp, vertical = 10.dp),
                                             verticalAlignment = Alignment.CenterVertically,
                                             horizontalArrangement = Arrangement.spacedBy(8.dp)
                                         ) {
                                             Text(
                                                 text = "${otherUser?.displayName ?: "Tu pana"} está escribiendo...",
-                                                color = Color(0xFF00A884),
+                                                color = Color(0xFF38BDF8),
                                                 fontSize = 13.sp,
                                                 fontWeight = FontWeight.Medium
                                             )
@@ -1042,6 +1027,14 @@ fun ChatScreen(
                 onPlaylist = {
                     isAttachmentMenuOpen = false
                     showPlaylistPicker = true
+                },
+                onGif = {
+                    isAttachmentMenuOpen = false
+                    isStickerPanelOpen = true
+                },
+                onSticker = {
+                    isAttachmentMenuOpen = false
+                    isStickerPanelOpen = true
                 },
                 onToggleGhostMode = {
                     isAttachmentMenuOpen = false
@@ -1260,7 +1253,7 @@ fun ChatScreen(
             },
             confirmButton = {
                 TextButton(onClick = { showForwardDialog = false }) {
-                    Text("Cancelar", color = Color(0xFF00A884))
+                    Text("Cancelar", color = Color(0xFF38BDF8))
                 }
             },
             containerColor = Color(0xFF1F2C34)
@@ -1370,7 +1363,7 @@ fun PlaylistPickerDialog(
         },
         confirmButton = {
             TextButton(onClick = onDismiss) {
-                Text("Cancelar", color = Color(0xFF00A884))
+                Text("Cancelar", color = Color(0xFF38BDF8))
             }
         },
         containerColor = Color(0xFF1F2C34),

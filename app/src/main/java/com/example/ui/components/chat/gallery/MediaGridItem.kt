@@ -90,7 +90,7 @@ fun MediaGridItem(
                     Icon(
                         imageVector = Icons.Default.Description,
                         contentDescription = null,
-                        tint = Color(0xFF00A884),
+                        tint = Color(0xFF38BDF8),
                         modifier = Modifier.size(40.dp)
                     )
                     Spacer(modifier = Modifier.height(4.dp))

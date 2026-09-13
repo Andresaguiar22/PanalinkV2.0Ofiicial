@@ -1,13 +1,15 @@
 package com.example.ui.components.chat.bubble
 
+import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxWidth
-import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.Surface
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.clip
+import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.Shape
 import androidx.compose.ui.unit.dp
@@ -17,7 +19,8 @@ fun OutgoingBubbleContainer(
     groupPosition: MessageGroupPosition,
     modifier: Modifier = Modifier,
     shape: Shape = BubbleShapeFactory.createShape(groupPosition, isMe = true),
-    containerColor: Color = MaterialTheme.colorScheme.primaryContainer,
+    containerColor: Color = Color(0xFF1D4ED8),
+    containerBrush: Brush? = null,
     tonalElevation: Float = 1f,
     content: @Composable () -> Unit
 ) {
@@ -26,13 +29,18 @@ fun OutgoingBubbleContainer(
         horizontalArrangement = Arrangement.End,
         verticalAlignment = Alignment.Bottom
     ) {
-        Surface(
-            shape = shape,
-            color = containerColor,
-            tonalElevation = tonalElevation.dp
+        Box(
+            modifier = Modifier
+                .clip(shape)
+                .then(
+                    if (containerBrush != null) {
+                        Modifier.background(containerBrush)
+                    } else {
+                        Modifier.background(containerColor)
+                    }
+                )
         ) {
             content()
         }
     }
 }
-

@@ -82,7 +82,7 @@ private fun ShimmerEffect() {
             modifier = Modifier
                 .size(32.dp)
                 .align(Alignment.Center),
-            color = Color(0xFF00A884).copy(alpha = 0.5f),
+            color = Color(0xFF38BDF8).copy(alpha = 0.5f),
             strokeWidth = 2.dp
         )
     }

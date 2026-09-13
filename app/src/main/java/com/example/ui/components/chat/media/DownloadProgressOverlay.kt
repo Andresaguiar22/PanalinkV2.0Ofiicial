@@ -65,14 +65,14 @@ fun DownloadProgressOverlay(
                             CircularProgressIndicator(
                                 progress = { progress.coerceIn(0f, 1f) },
                                 modifier = Modifier.size(50.dp),
-                                color = Color(0xFF00A884),
+                                color = Color(0xFF38BDF8),
                                 trackColor = Color.White.copy(alpha = 0.2f),
                                 strokeWidth = 3.dp
                             )
                         } else {
                             CircularProgressIndicator(
                                 modifier = Modifier.size(50.dp),
-                                color = Color(0xFF00A884),
+                                color = Color(0xFF38BDF8),
                                 trackColor = Color.White.copy(alpha = 0.2f),
                                 strokeWidth = 3.dp
                             )

@@ -17,7 +17,7 @@ import androidx.compose.ui.unit.sp
 @Composable
 fun TypingIndicator(
     modifier: Modifier = Modifier,
-    color: Color = Color(0xFF00A884)
+    color: Color = Color(0xFF38BDF8)
 ) {
     Row(
         modifier = modifier,
@@ -65,6 +65,6 @@ private fun Dot(index: Int) {
         modifier = Modifier
             .size(3.dp)
             .alpha(alpha)
-            .background(Color(0xFF00A884), CircleShape)
+            .background(Color(0xFF38BDF8), CircleShape)
     )
 }
