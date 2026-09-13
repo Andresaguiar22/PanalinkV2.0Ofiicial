@@ -1,30 +1,31 @@
 package com.example.panatv
 
 import android.app.Activity
+import android.content.Intent
 import android.content.pm.ActivityInfo
 import android.content.res.Configuration
 import android.view.ViewGroup
 import android.widget.FrameLayout
+import android.widget.Toast
 import androidx.activity.compose.BackHandler
 import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.animation.fadeIn
 import androidx.compose.animation.fadeOut
-import androidx.compose.animation.fadeOut
+import androidx.compose.animation.slideInHorizontally
+import androidx.compose.animation.slideOutHorizontally
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
+import androidx.compose.foundation.gestures.detectTapGestures
+import androidx.compose.foundation.gestures.detectVerticalDragGestures
 import androidx.compose.foundation.layout.*
-import androidx.compose.foundation.lazy.LazyRow
 import androidx.compose.foundation.lazy.LazyColumn
+import androidx.compose.foundation.lazy.LazyRow
 import androidx.compose.foundation.lazy.items
-import androidx.compose.foundation.lazy.grid.GridCells
-import androidx.compose.foundation.lazy.grid.LazyVerticalGrid
-import androidx.compose.foundation.lazy.grid.items
-import androidx.compose.foundation.rememberScrollState
+import androidx.compose.foundation.lazy.itemsIndexed
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.text.BasicTextField
-import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.*
 import androidx.compose.material3.*
@@ -34,7 +35,9 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.SolidColor
+import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.graphics.vector.rememberVectorPainter
+import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalConfiguration
 import androidx.compose.ui.platform.LocalContext
@@ -46,8 +49,6 @@ import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.compose.ui.viewinterop.AndroidView
-import androidx.compose.ui.window.Dialog
-import androidx.compose.ui.window.DialogProperties
 import androidx.core.view.WindowCompat
 import androidx.core.view.WindowInsetsCompat
 import androidx.core.view.WindowInsetsControllerCompat
@@ -63,11 +64,10 @@ import coil.request.ImageRequest
 
 private val PanaTvBackground = Color(0xFF0B1017)
 private val PanaTvSurface = Color(0xFF151D26)
-private val PanaTvSurface2 = Color(0xFF1C2732)
-private val PanaTvAccent = Color(0xFFFF6B00)
-private val PanaTvAccentSoft = Color(0x29FF6B00)
 private val PanaTvText = Color(0xFFF4F7FA)
 private val PanaTvMuted = Color(0xFF9CA8B3)
+private val PanaTvAccent = Color(0xFFFF6B00)
+private val PanaTvBlue = Color(0xFF2F6BFF)
 
 @androidx.annotation.OptIn(androidx.media3.common.util.UnstableApi::class)
 @Composable
@@ -93,7 +93,11 @@ fun PanaTVModernScreen(viewModel: PanaTVViewModel = viewModel()) {
     var hasRenderedFrame by remember { mutableStateOf(false) }
     var playerError by remember { mutableStateOf<String?>(null) }
     var showCountries by remember { mutableStateOf(false) }
-    var channelPanelVisible by remember { mutableStateOf(true) }
+    var showSearch by remember { mutableStateOf(false) }
+    var drawerOpen by remember { mutableStateOf(false) }
+    var controlsVisible by remember { mutableStateOf(true) }
+    var brightness by remember { mutableStateOf(1f) }
+    var volumeLevel by remember { mutableStateOf(1f) }
     // Canal cuyo surface está conectado al PlayerView compartido: permite detectar
     // el cambio de canal y forzar el reattach surface (fix imagen congelada).
     var currentPlayerChannelId by remember { mutableStateOf<String?>(null) }
@@ -160,7 +164,7 @@ fun PanaTVModernScreen(viewModel: PanaTVViewModel = viewModel()) {
     }
 
     LaunchedEffect(isMuted, player) {
-        player?.volume = if (isMuted) 0f else 1f
+        player?.volume = if (isMuted) 0f else volumeLevel
     }
 
     DisposableEffect(lifecycleOwner) {
@@ -178,8 +182,7 @@ fun PanaTVModernScreen(viewModel: PanaTVViewModel = viewModel()) {
         onDispose {
             lifecycleOwner.lifecycle.removeObserver(observer)
             // NO releasePlayer() here — the shared ExoPlayer must survive config changes
-            // (rotation). It is only released when the Activity is truly destroyed
-            // (handled in PanaTVActivity.onStop via isChangingConfigurations check).
+            // (rotation). It is only released when the Activity is truly destroyed.
         }
     }
 
@@ -195,7 +198,6 @@ fun PanaTVModernScreen(viewModel: PanaTVViewModel = viewModel()) {
             ctrl.systemBarsBehavior = WindowInsetsControllerCompat.BEHAVIOR_SHOW_TRANSIENT_BARS_BY_SWIPE
             ctrl.hide(WindowInsetsCompat.Type.systemBars())
             if (activity.requestedOrientation != ActivityInfo.SCREEN_ORIENTATION_LANDSCAPE) {
-
                 activity.requestedOrientation = ActivityInfo.SCREEN_ORIENTATION_LANDSCAPE
             }
         }
@@ -212,13 +214,15 @@ fun PanaTVModernScreen(viewModel: PanaTVViewModel = viewModel()) {
     val configuration = LocalConfiguration.current
     val isLandscape = configuration.orientation == Configuration.ORIENTATION_LANDSCAPE
 
-    // Acción 1: Fix LANDSCAPE — orientation-driven immersive layout
     LaunchedEffect(isLandscape) {
         if (isLandscape) enterFullscreen() else exitToPortrait()
     }
+
     BackHandler(enabled = isLandscape) {
-        if (channelPanelVisible) {
-            channelPanelVisible = false
+        if (drawerOpen) {
+            drawerOpen = false
+        } else if (controlsVisible) {
+            controlsVisible = false
         } else {
             exitToPortrait()
         }
@@ -237,10 +241,46 @@ fun PanaTVModernScreen(viewModel: PanaTVViewModel = viewModel()) {
         }
     }
 
-    val playerContent: @Composable (Modifier) -> Unit = { modifier ->
+    fun playPrevious() {
+        if (channels.isEmpty()) return
+        val idx = channels.indexOfFirst { it.id == currentChannel?.id }
+        val target = if (idx > 0) channels[idx - 1] else channels.last()
+        selectChannel(target)
+    }
+
+    fun applyBrightness(value: Float) {
+        brightness = value.coerceIn(0.05f, 1f)
+        val activity = context as? Activity ?: return
+        val lp = activity.window.attributes
+        lp.screenBrightness = brightness
+        activity.window.attributes = lp
+    }
+
+    fun applyVolume(value: Float) {
+        volumeLevel = value.coerceIn(0f, 1f)
+        isMuted = volumeLevel == 0f
+        player?.volume = volumeLevel
+    }
+
+    val shareChannel = {
+        val channel = currentChannel
+        if (channel != null) {
+            val send = Intent(Intent.ACTION_SEND).apply {
+                type = "text/plain"
+                putExtra(Intent.EXTRA_TEXT, channel.name + "\n" + channel.streamUrl)
+            }
+            context.startActivity(Intent.createChooser(send, "Compartir canal"))
+        }
+    }
+
+    val showHelp = {
+        Toast.makeText(context, "Toca el video para mostrar u ocultar los controles. Usa los deslizadores laterales para brillo y volumen.", Toast.LENGTH_LONG).show()
+    }
+
+    val playerContent: @Composable (Modifier, Boolean) -> Unit = { modifier, withOverlay ->
         Box(
             modifier = modifier
-                .clip(RoundedCornerShape(14.dp))
+                .clip(RoundedCornerShape(if (withOverlay) 14.dp else 0.dp))
                 .background(Color.Black)
         ) {
             if (currentChannel == null) {
@@ -264,7 +304,6 @@ fun PanaTVModernScreen(viewModel: PanaTVViewModel = viewModel()) {
                             useController = false
                             resizeMode = AspectRatioFrameLayout.RESIZE_MODE_ZOOM
                             setShutterBackgroundColor(android.graphics.Color.TRANSPARENT)
-                            // SurfaceView es el default de media3; no tocar el setter (privado en esta version)
                             layoutParams = FrameLayout.LayoutParams(
                                 ViewGroup.LayoutParams.MATCH_PARENT,
                                 ViewGroup.LayoutParams.MATCH_PARENT
@@ -283,8 +322,6 @@ fun PanaTVModernScreen(viewModel: PanaTVViewModel = viewModel()) {
                         view.resizeMode = AspectRatioFrameLayout.RESIZE_MODE_ZOOM
                         if (channelChanged) {
                             currentPlayerChannelId = currentChannel?.id
-                            // Descarta la textura residual que persiste en la SurfaceView vieja.
-
                         }
                     },
                     modifier = Modifier.fillMaxSize()
@@ -331,331 +368,583 @@ fun PanaTVModernScreen(viewModel: PanaTVViewModel = viewModel()) {
                     }
                 }
 
-                Row(
-                    modifier = Modifier
-                        .align(Alignment.TopStart)
-                        .fillMaxWidth()
-                        .background(Color.Black.copy(alpha = 0.38f))
-                        .padding(horizontal = 10.dp, vertical = 7.dp),
-                    verticalAlignment = Alignment.CenterVertically
-                ) {
-                    Surface(shape = RoundedCornerShape(5.dp), color = Color(0xFFE53935)) {
-                        Text("EN VIVO", color = Color.White, fontSize = 8.sp, fontWeight = FontWeight.Bold, modifier = Modifier.padding(horizontal = 6.dp, vertical = 3.dp))
+                if (withOverlay) {
+                    Row(
+                        modifier = Modifier
+                            .align(Alignment.TopStart)
+                            .fillMaxWidth()
+                            .background(Color.Black.copy(alpha = 0.38f))
+                            .padding(horizontal = 10.dp, vertical = 7.dp),
+                        verticalAlignment = Alignment.CenterVertically
+                    ) {
+                        Surface(shape = RoundedCornerShape(5.dp), color = Color(0xFFE53935)) {
+                            Text("EN VIVO", color = Color.White, fontSize = 8.sp, fontWeight = FontWeight.Bold, modifier = Modifier.padding(horizontal = 6.dp, vertical = 3.dp))
+                        }
+                        Spacer(Modifier.width(8.dp))
+                        Text(currentChannel?.name.orEmpty(), color = Color.White, fontSize = 12.sp, fontWeight = FontWeight.SemiBold, maxLines = 1, overflow = TextOverflow.Ellipsis, modifier = Modifier.weight(1f))
                     }
-                    Spacer(Modifier.width(8.dp))
-                    Text(currentChannel?.name.orEmpty(), color = Color.White, fontSize = 12.sp, fontWeight = FontWeight.SemiBold, maxLines = 1, overflow = TextOverflow.Ellipsis, modifier = Modifier.weight(1f))
-                }
 
-                Row(
-                    modifier = Modifier
-                        .align(Alignment.BottomStart)
-                        .fillMaxWidth()
-                        .background(Color.Black.copy(alpha = 0.5f))
-                        .padding(horizontal = 6.dp, vertical = 3.dp),
-                    verticalAlignment = Alignment.CenterVertically
-                ) {
-                    IconButton(onClick = { player?.let { if (it.isPlaying) it.pause() else it.play() } }, modifier = Modifier.size(38.dp)) {
-                        Icon(if (isPlaying) Icons.Default.Pause else Icons.Default.PlayArrow, "Reproducir", tint = Color.White, modifier = Modifier.size(22.dp))
-                    }
-                    IconButton(onClick = { isMuted = !isMuted }, modifier = Modifier.size(38.dp)) {
-                        Icon(if (isMuted) Icons.Default.VolumeOff else Icons.Default.VolumeUp, "Volumen", tint = Color.White, modifier = Modifier.size(20.dp))
-                    }
-                    Spacer(Modifier.weight(1f))
-                    Text(
-                        if (currentChannel?.currentProgram.isNullOrBlank()) "EN DIRECTO" else currentChannel?.currentProgram.orEmpty(),
-                        color = PanaTvMuted,
-                        fontSize = 9.sp,
-                        maxLines = 1,
-                        overflow = TextOverflow.Ellipsis,
-                        modifier = Modifier.padding(horizontal = 6.dp).weight(1f)
-                    )
-                    IconButton(onClick = {
-                        enterFullscreen()
-                    }, modifier = Modifier.size(38.dp)) {
-                        Icon(Icons.Default.Fullscreen, "Pantalla completa", tint = Color.White, modifier = Modifier.size(20.dp))
+                    Row(
+                        modifier = Modifier
+                            .align(Alignment.BottomStart)
+                            .fillMaxWidth()
+                            .background(Color.Black.copy(alpha = 0.5f))
+                            .padding(horizontal = 6.dp, vertical = 3.dp),
+                        verticalAlignment = Alignment.CenterVertically
+                    ) {
+                        IconButton(onClick = { player?.let { if (it.isPlaying) it.pause() else it.play() } }, modifier = Modifier.size(38.dp)) {
+                            Icon(if (isPlaying) Icons.Default.Pause else Icons.Default.PlayArrow, "Reproducir", tint = Color.White, modifier = Modifier.size(22.dp))
+                        }
+                        IconButton(onClick = { isMuted = !isMuted }, modifier = Modifier.size(38.dp)) {
+                            Icon(if (isMuted) Icons.Default.VolumeOff else Icons.Default.VolumeUp, "Volumen", tint = Color.White, modifier = Modifier.size(20.dp))
+                        }
+                        Spacer(Modifier.weight(1f))
+                        Text(
+                            if (currentChannel?.currentProgram.isNullOrBlank()) "EN DIRECTO" else currentChannel?.currentProgram.orEmpty(),
+                            color = PanaTvMuted,
+                            fontSize = 9.sp,
+                            maxLines = 1,
+                            overflow = TextOverflow.Ellipsis,
+                            modifier = Modifier.padding(horizontal = 6.dp).weight(1f)
+                        )
+                        IconButton(onClick = { enterFullscreen() }, modifier = Modifier.size(38.dp)) {
+                            Icon(Icons.Default.Fullscreen, "Pantalla completa", tint = Color.White, modifier = Modifier.size(20.dp))
+                        }
                     }
                 }
             }
         }
     }
 
-    // Acción 3: ExoPlayer survives config changes — no releasePlayer() on dispose.
-    // The player instance is retained across rotation thanks to AppFloatingPlayerManager
-    // holding a stable reference keyed by channel id.
-
     if (isLandscape) {
-        // === LANDSCAPE: Immersive full-screen player with overlay channel panel ===
+        // === LANDSCAPE: immersive full-screen player with translucent controls ===
         Box(
             modifier = Modifier
                 .fillMaxSize()
                 .background(Color.Black)
         ) {
-            // Player fills entire screen
-            playerContent(Modifier.fillMaxSize())
+            playerContent(Modifier.fillMaxSize(), false)
 
-            // Overlay channel panel — animated, translucent, right-aligned
-            AnimatedVisibility(
-                visible = channelPanelVisible,
-                enter = fadeIn(),
-                exit = fadeOut(),
-                modifier = Modifier.align(Alignment.CenterEnd)
-            ) {
-                Box(
-                    modifier = Modifier
-                        .width(236.dp)
-                        .fillMaxHeight()
-                        .background(Color.Black.copy(alpha = 0.72f))
+            // Tap anywhere to toggle the control overlays.
+            Box(
+                Modifier
+                    .fillMaxSize()
+                    .pointerInput(Unit) { detectTapGestures { controlsVisible = !controlsVisible } }
+            )
+
+            if (controlsVisible) {
+                // Top bar: back + title (left) / share, help, favorite (right)
+                Row(
+                    Modifier
+                        .align(Alignment.TopStart)
+                        .fillMaxWidth()
+                        .background(Color.Black.copy(alpha = 0.35f))
+                        .padding(horizontal = 6.dp, vertical = 4.dp),
+                    verticalAlignment = Alignment.CenterVertically
                 ) {
-                    if (channels.isNotEmpty()) {
-                        LazyColumn(
-                            modifier = Modifier.padding(8.dp),
-                            contentPadding = PaddingValues(bottom = 60.dp),
-                            verticalArrangement = Arrangement.spacedBy(6.dp)
+                    IconButton(onClick = { exitToPortrait() }) {
+                        Icon(Icons.Default.ArrowBack, "Atrás", tint = Color.White, modifier = Modifier.size(24.dp))
+                    }
+                    Text(
+                        currentChannel?.name.orEmpty(),
+                        color = Color.White,
+                        fontSize = 16.sp,
+                        fontWeight = FontWeight.SemiBold,
+                        maxLines = 1,
+                        overflow = TextOverflow.Ellipsis,
+                        modifier = Modifier.weight(1f)
+                    )
+                    IconButton(onClick = shareChannel) {
+                        Icon(Icons.Default.Share, "Compartir", tint = Color.White, modifier = Modifier.size(22.dp))
+                    }
+                    IconButton(onClick = showHelp) {
+                        Icon(Icons.Default.HelpOutline, "Ayuda", tint = Color.White, modifier = Modifier.size(22.dp))
+                    }
+                    IconButton(onClick = { currentChannel?.let { viewModel.toggleFavorite(it.id) } }) {
+                        val fav = currentChannel?.let { favorites.contains(it.id) } == true
+                        Icon(if (fav) Icons.Default.Favorite else Icons.Default.FavoriteBorder, "Favorito", tint = if (fav) PanaTvAccent else Color.White, modifier = Modifier.size(22.dp))
+                    }
+                }
+
+                // Left brightness slider
+                VerticalSlider(
+                    value = brightness,
+                    onValueChange = { applyBrightness(it) },
+                    icon = Icons.Default.BrightnessHigh,
+                    modifier = Modifier.align(Alignment.CenterStart).padding(start = 12.dp)
+                )
+
+                // Right volume slider
+                VerticalSlider(
+                    value = volumeLevel,
+                    onValueChange = { applyVolume(it) },
+                    icon = if (isMuted) Icons.Default.VolumeOff else Icons.Default.VolumeUp,
+                    modifier = Modifier.align(Alignment.CenterEnd).padding(end = 12.dp)
+                )
+
+                // Bottom center actions: Categoría / Anterior / Fijar
+                Row(
+                    Modifier
+                        .align(Alignment.BottomCenter)
+                        .padding(bottom = 20.dp),
+                    horizontalArrangement = Arrangement.spacedBy(46.dp),
+                    verticalAlignment = Alignment.CenterVertically
+                ) {
+                    LandscapeAction(Icons.Default.List, "Categoría") { drawerOpen = true }
+                    LandscapeAction(Icons.Default.SkipPrevious, "Anterior") { playPrevious() }
+                    val fav = currentChannel?.let { favorites.contains(it.id) } == true
+                    LandscapeAction(if (fav) Icons.Default.Lock else Icons.Default.LockOpen, "Fijar") {
+                        currentChannel?.let { viewModel.toggleFavorite(it.id) }
+                    }
+                }
+            }
+
+            // Slide-in drawer: categories (left) + channel list (right of it), video stays visible
+            AnimatedVisibility(
+                visible = drawerOpen,
+                enter = slideInHorizontally(initialOffsetX = { -it }) + fadeIn(),
+                exit = slideOutHorizontally(targetOffsetX = { -it }) + fadeOut(),
+                modifier = Modifier
+                    .align(Alignment.CenterStart)
+                    .fillMaxHeight()
+                    .fillMaxWidth(0.64f)
+            ) {
+                Row(
+                    Modifier
+                        .fillMaxSize()
+                        .background(Color.Black.copy(alpha = 0.9f))
+                ) {
+                    LazyColumn(
+                        Modifier
+                            .width(150.dp)
+                            .fillMaxHeight()
+                            .padding(vertical = 6.dp)
+                    ) {
+                        item {
+                            DrawerCategory("ChannelList", selectedCategory.isBlank() && !showOnlyFavorites) {
+                                viewModel.updateSelectedCategory("")
+                                viewModel.setShowOnlyFavorites(false)
+                            }
+                        }
+                        item {
+                            DrawerCategory("Favoritos", showOnlyFavorites) {
+                                viewModel.setShowOnlyFavorites(true)
+                            }
+                        }
+                        items(availableCategories) { category ->
+                            DrawerCategory(tvCategoryLabel(category), selectedCategory == category && !showOnlyFavorites) {
+                                viewModel.updateSelectedCategory(category)
+                                viewModel.setShowOnlyFavorites(false)
+                            }
+                        }
+                        items(availableCountries) { country ->
+                            DrawerCategory(country, selectedCountry == country) {
+                                viewModel.updateSelectedCountry(country)
+                            }
+                        }
+                    }
+
+                    Box(Modifier.width(1.dp).fillMaxHeight().background(Color.White.copy(alpha = 0.12f)))
+
+                    LazyColumn(
+                        Modifier
+                            .fillMaxHeight()
+                            .padding(vertical = 6.dp)
+                    ) {
+                        itemsIndexed(channels, key = { _, channel -> channel.id }) { index, channel ->
+                            LandscapeChannelRow(
+                                number = index + 1,
+                                channel = channel,
+                                selected = currentChannel?.id == channel.id,
+                                onClick = { selectChannel(channel) }
+                            )
+                        }
+                    }
+                }
+            }
+        }
+    } else {
+        // === PORTRAIT: header + video + tabs + category chips + channel list ===
+        Scaffold(containerColor = PanaTvBackground) { padding ->
+            Column(
+                modifier = Modifier
+                    .fillMaxSize()
+                    .padding(padding)
+            ) {
+                Row(
+                    Modifier
+                        .fillMaxWidth()
+                        .padding(horizontal = 14.dp, vertical = 8.dp),
+                    verticalAlignment = Alignment.CenterVertically
+                ) {
+                    Text("Pana", color = PanaTvText, fontSize = 21.sp, fontWeight = FontWeight.ExtraBold)
+                    Text("TV", color = PanaTvAccent, fontSize = 21.sp, fontWeight = FontWeight.ExtraBold)
+                    Spacer(Modifier.weight(1f))
+                    Box {
+                        Row(
+                            Modifier
+                                .clip(RoundedCornerShape(18.dp))
+                                .background(PanaTvSurface)
+                                .clickable { showCountries = true }
+                                .padding(horizontal = 10.dp, vertical = 6.dp),
+                            verticalAlignment = Alignment.CenterVertically
                         ) {
-                            items(channels, key = { it.id }) { channel ->
-                                PanaTvChannelCard(
-                                    channel = channel,
-                                    selected = currentChannel?.id == channel.id,
-                                    favorite = favorites.contains(channel.id),
-                                    onFavorite = { viewModel.toggleFavorite(channel.id) },
-                                    onClick = { selectChannel(channel) },
-                                    compact = true
-                                )
+                            Icon(Icons.Default.Public, null, tint = PanaTvAccent, modifier = Modifier.size(15.dp))
+                            Spacer(Modifier.width(5.dp))
+                            Text(selectedCountry.ifBlank { "Todos" }, color = PanaTvMuted, fontSize = 11.sp, maxLines = 1)
+                        }
+                        DropdownMenu(expanded = showCountries, onDismissRequest = { showCountries = false }, modifier = Modifier.background(PanaTvSurface)) {
+                            DropdownMenuItem(text = { Text("Todos los países", color = Color.White) }, onClick = { viewModel.updateSelectedCountry(""); showCountries = false })
+                            availableCountries.forEach { country ->
+                                DropdownMenuItem(text = { Text(country, color = Color.White) }, onClick = { viewModel.updateSelectedCountry(country); showCountries = false })
+                            }
+                        }
+                    }
+                    IconButton(onClick = { showSearch = !showSearch }) {
+                        Icon(if (showSearch) Icons.Default.Close else Icons.Default.Search, "Buscar", tint = PanaTvText, modifier = Modifier.size(22.dp))
+                    }
+                }
+
+                if (showSearch) {
+                    Box(
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .padding(horizontal = 14.dp, vertical = 4.dp)
+                            .height(42.dp)
+                            .clip(RoundedCornerShape(21.dp))
+                            .background(PanaTvSurface)
+                            .padding(horizontal = 13.dp),
+                        contentAlignment = Alignment.CenterStart
+                    ) {
+                        Row(verticalAlignment = Alignment.CenterVertically) {
+                            Icon(Icons.Default.Search, null, tint = PanaTvMuted, modifier = Modifier.size(19.dp))
+                            Spacer(Modifier.width(9.dp))
+                            BasicTextField(
+                                value = searchQuery,
+                                onValueChange = viewModel::updateSearchQuery,
+                                modifier = Modifier.weight(1f),
+                                textStyle = TextStyle(color = PanaTvText, fontSize = 13.sp),
+                                singleLine = true,
+                                cursorBrush = SolidColor(PanaTvAccent),
+                                decorationBox = { inner ->
+                                    if (searchQuery.isBlank()) Text("Buscar canales...", color = PanaTvMuted, fontSize = 13.sp)
+                                    inner()
+                                }
+                            )
+                        }
+                    }
+                }
+
+                playerContent(Modifier.fillMaxWidth().aspectRatio(16f / 9f), true)
+
+                Row(
+                    Modifier
+                        .fillMaxWidth()
+                        .padding(top = 4.dp),
+                    horizontalArrangement = Arrangement.spacedBy(4.dp)
+                ) {
+                    PortraitTab("Categoría", selected = !showOnlyFavorites, modifier = Modifier.weight(1f)) {
+                        viewModel.setShowOnlyFavorites(false)
+                    }
+                    PortraitTab("Favoritos", selected = showOnlyFavorites, modifier = Modifier.weight(1f)) {
+                        viewModel.setShowOnlyFavorites(true)
+                    }
+                }
+
+                LazyRow(
+                    Modifier
+                        .fillMaxWidth()
+                        .padding(top = 10.dp, bottom = 6.dp),
+                    horizontalArrangement = Arrangement.spacedBy(8.dp),
+                    contentPadding = PaddingValues(horizontal = 14.dp)
+                ) {
+                    item {
+                        CategoryChip("ChannelList", selectedCategory.isBlank() && !showOnlyFavorites) {
+                            viewModel.updateSelectedCategory("")
+                            viewModel.setShowOnlyFavorites(false)
+                        }
+                    }
+                    items(availableCategories) { category ->
+                        CategoryChip(tvCategoryLabel(category), selectedCategory == category && !showOnlyFavorites) {
+                            viewModel.updateSelectedCategory(category)
+                            viewModel.setShowOnlyFavorites(false)
+                        }
+                    }
+                }
+
+                if (channels.isNotEmpty()) {
+                    LazyColumn(
+                        Modifier
+                            .weight(1f)
+                            .fillMaxWidth(),
+                        contentPadding = PaddingValues(bottom = 18.dp)
+                    ) {
+                        itemsIndexed(channels, key = { _, channel -> channel.id }) { index, channel ->
+                            ChannelListRow(
+                                number = index + 1,
+                                channel = channel,
+                                selected = currentChannel?.id == channel.id,
+                                favorite = favorites.contains(channel.id),
+                                onFavorite = { viewModel.toggleFavorite(channel.id) },
+                                onClick = { selectChannel(channel) }
+                            )
+                        }
+                    }
+                } else {
+                    Box(Modifier.weight(1f).fillMaxWidth(), contentAlignment = Alignment.Center) {
+                        if (isLoading) {
+                            CircularProgressIndicator(color = PanaTvAccent, modifier = Modifier.size(30.dp))
+                        } else {
+                            Column(horizontalAlignment = Alignment.CenterHorizontally) {
+                                Icon(Icons.Default.TvOff, null, tint = PanaTvMuted, modifier = Modifier.size(34.dp))
+                                Spacer(Modifier.height(7.dp))
+                                Text(debugMessage.ifBlank { "No se encontraron canales" }, color = PanaTvMuted, fontSize = 12.sp, textAlign = TextAlign.Center)
                             }
                         }
                     }
                 }
             }
-
-            // Top bar overlay
-            Row(
-                Modifier
-                    .fillMaxWidth()
-                    .background(Color.Black.copy(alpha = 0.45f))
-                    .padding(horizontal = 8.dp, vertical = 6.dp),
-                verticalAlignment = Alignment.CenterVertically
-            ) {
-                IconButton(onClick = {
-                    if (isMuted) { isMuted = false } else { isMuted = true }
-                    player?.volume = if (isMuted) 0f else 1f
-                }) {
-                    Icon(if (isMuted) Icons.Default.VolumeOff else Icons.Default.VolumeUp, "Volumen", tint = Color.White, modifier = Modifier.size(20.dp))
-                }
-                Spacer(Modifier.weight(1f))
-                Text(currentChannel?.name.orEmpty(), color = Color.White, fontSize = 15.sp, fontWeight = FontWeight.Bold, maxLines = 1, overflow = TextOverflow.Ellipsis)
-                Spacer(Modifier.width(6.dp))
-                IconButton(onClick = { player?.let { if (it.isPlaying) it.pause() else it.play() } }) {
-                    Icon(if (isPlaying) Icons.Default.Pause else Icons.Default.PlayArrow, "Reproducir/Pausar", tint = Color.White, modifier = Modifier.size(22.dp))
-                }
-                IconButton(onClick = { channelPanelVisible = !channelPanelVisible }) {
-                    Icon(Icons.Default.Menu, "Canales", tint = Color.White, modifier = Modifier.size(22.dp))
-                }
-            }
-        }
-    } else {
-        // === PORTRAIT: Split-screen with player on top + channel grid ===
-    Scaffold(containerColor = PanaTvBackground) { padding ->
-        Column(
-            modifier = Modifier
-                .fillMaxSize()
-                .padding(padding)
-                .padding(horizontal = 12.dp, vertical = 8.dp),
-            verticalArrangement = Arrangement.spacedBy(8.dp)
-        ) {
-            Row(verticalAlignment = Alignment.CenterVertically, modifier = Modifier.fillMaxWidth()) {
-                Box(Modifier.size(34.dp).clip(RoundedCornerShape(9.dp)).background(PanaTvAccent), contentAlignment = Alignment.Center) {
-                    Icon(Icons.Default.LiveTv, null, tint = Color.White, modifier = Modifier.size(20.dp))
-                }
-                Spacer(Modifier.width(9.dp))
-                Text("Pana", color = PanaTvText, fontSize = 21.sp, fontWeight = FontWeight.ExtraBold)
-                Text("TV", color = PanaTvAccent, fontSize = 21.sp, fontWeight = FontWeight.ExtraBold)
-                Spacer(Modifier.weight(1f))
-                Box {
-                    Row(
-                        modifier = Modifier.clip(RoundedCornerShape(18.dp)).background(PanaTvSurface).clickable { showCountries = true }.padding(horizontal = 10.dp, vertical = 6.dp),
-                        verticalAlignment = Alignment.CenterVertically
-                    ) {
-                        Icon(Icons.Default.Public, null, tint = PanaTvAccent, modifier = Modifier.size(15.dp))
-                        Spacer(Modifier.width(5.dp))
-                        Text(selectedCountry.ifBlank { "Todos" }, color = PanaTvMuted, fontSize = 11.sp, maxLines = 1)
-                    }
-                    DropdownMenu(expanded = showCountries, onDismissRequest = { showCountries = false }, modifier = Modifier.background(PanaTvSurface)) {
-                        DropdownMenuItem(text = { Text("Todos los países", color = Color.White) }, onClick = { viewModel.updateSelectedCountry(""); showCountries = false })
-                        availableCountries.forEach { country ->
-                            DropdownMenuItem(text = { Text(country, color = Color.White) }, onClick = { viewModel.updateSelectedCountry(country); showCountries = false })
-                        }
-                    }
-                }
-            }
-
-            Box(
-                modifier = Modifier.fillMaxWidth().height(42.dp).clip(RoundedCornerShape(21.dp)).background(PanaTvSurface).padding(horizontal = 13.dp),
-                contentAlignment = Alignment.CenterStart
-            ) {
-                Row(verticalAlignment = Alignment.CenterVertically) {
-                    Icon(Icons.Default.Search, null, tint = PanaTvMuted, modifier = Modifier.size(19.dp))
-                    Spacer(Modifier.width(9.dp))
-                    BasicTextField(
-                        value = searchQuery,
-                        onValueChange = viewModel::updateSearchQuery,
-                        modifier = Modifier.weight(1f),
-                        textStyle = TextStyle(color = PanaTvText, fontSize = 13.sp),
-                        singleLine = true,
-                        cursorBrush = SolidColor(PanaTvAccent),
-                        decorationBox = { inner ->
-                            if (searchQuery.isBlank()) Text("Buscar canales...", color = PanaTvMuted, fontSize = 13.sp)
-                            inner()
-                        }
-                    )
-                }
-            }
-
-            playerContent(Modifier.fillMaxWidth().aspectRatio(16f / 9f))
-
-            Row(verticalAlignment = Alignment.CenterVertically, modifier = Modifier.fillMaxWidth().padding(horizontal = 2.dp)) {
-                Text("Canales", color = PanaTvText, fontSize = 15.sp, fontWeight = FontWeight.Bold)
-                Spacer(Modifier.width(7.dp))
-                Text("${channels.size}", color = PanaTvMuted, fontSize = 11.sp)
-                Spacer(Modifier.weight(1f))
-                if (currentChannel != null) Text("Ahora: ${currentChannel!!.name}", color = PanaTvMuted, fontSize = 10.sp, maxLines = 1, overflow = TextOverflow.Ellipsis)
-            }
-
-            LazyRow(horizontalArrangement = Arrangement.spacedBy(7.dp), contentPadding = PaddingValues(horizontal = 1.dp)) {
-                item {
-                    TvFilterChip("Todos", selectedCategory.isBlank() && !showOnlyFavorites) {
-                        viewModel.updateSelectedCategory("")
-                        viewModel.setShowOnlyFavorites(false)
-                    }
-                }
-                item {
-                    TvFilterChip("Favoritos", showOnlyFavorites) {
-                        viewModel.updateSelectedCategory("")
-                        viewModel.setShowOnlyFavorites(true)
-                    }
-                }
-                items(availableCategories) { category ->
-                    TvFilterChip(tvCategoryLabel(category), selectedCategory == category && !showOnlyFavorites) {
-                        viewModel.updateSelectedCategory(category)
-                        viewModel.setShowOnlyFavorites(false)
-                    }
-                }
-            }
-
-            playerContent(Modifier.fillMaxWidth().aspectRatio(16f / 9f))
-
-            Row(verticalAlignment = Alignment.CenterVertically, modifier = Modifier.fillMaxWidth().padding(horizontal = 2.dp)) {
-                Text("Canales", color = PanaTvText, fontSize = 15.sp, fontWeight = FontWeight.Bold)
-                Spacer(Modifier.width(7.dp))
-                Text("${channels.size}", color = PanaTvMuted, fontSize = 11.sp)
-                Spacer(Modifier.weight(1f))
-                if (currentChannel != null) Text("Ahora: ${currentChannel!!.name}", color = PanaTvMuted, fontSize = 10.sp, maxLines = 1, overflow = TextOverflow.Ellipsis)
-            }
-
-            // Acción 2: Grid with reduced minSize for 3+ columns
-            if (channels.isNotEmpty()) {
-                LazyVerticalGrid(
-                    columns = GridCells.Adaptive(minSize = 96.dp),
-                    modifier = Modifier.weight(1f),
-                    contentPadding = PaddingValues(start = 1.dp, end = 1.dp, bottom = 18.dp),
-                    horizontalArrangement = Arrangement.spacedBy(8.dp),
-                    verticalArrangement = Arrangement.spacedBy(8.dp)
-                ) {
-                    items(channels, key = { it.id }) { channel ->
-                        PanaTvChannelCard(
-                            channel = channel,
-                            selected = currentChannel?.id == channel.id,
-                            favorite = favorites.contains(channel.id),
-                            onFavorite = { viewModel.toggleFavorite(channel.id) },
-                            onClick = { selectChannel(channel) }
-                        )
-                    }
-                }
-            } else {
-                Box(Modifier.weight(1f).fillMaxWidth(), contentAlignment = Alignment.Center) {
-                    if (isLoading) {
-                        CircularProgressIndicator(color = PanaTvAccent, modifier = Modifier.size(30.dp))
-                    } else {
-                        Column(horizontalAlignment = Alignment.CenterHorizontally) {
-                            Icon(Icons.Default.TvOff, null, tint = PanaTvMuted, modifier = Modifier.size(34.dp))
-                            Spacer(Modifier.height(7.dp))
-                            Text(debugMessage.ifBlank { "No se encontraron canales" }, color = PanaTvMuted, fontSize = 12.sp, textAlign = TextAlign.Center)
-                        }
-                    }
-                }
-            }
         }
     }
 }
-}
 
 @Composable
-private fun TvFilterChip(label: String, selected: Boolean, onClick: () -> Unit) {
-    Surface(
-        onClick = onClick,
-        shape = RoundedCornerShape(18.dp),
-        color = if (selected) PanaTvAccent else PanaTvSurface,
-        contentColor = if (selected) Color.White else PanaTvMuted,
-        modifier = Modifier.height(34.dp)
+private fun PortraitTab(label: String, selected: Boolean, modifier: Modifier = Modifier, onClick: () -> Unit) {
+    Column(
+        modifier = modifier.clickable(onClick = onClick),
+        horizontalAlignment = Alignment.CenterHorizontally
     ) {
-        Box(Modifier.padding(horizontal = 13.dp), contentAlignment = Alignment.Center) {
-            Text(label, fontSize = 11.sp, fontWeight = if (selected) FontWeight.Bold else FontWeight.Medium)
+        Text(
+            label,
+            color = if (selected) PanaTvBlue else PanaTvMuted,
+            fontSize = 17.sp,
+            fontWeight = if (selected) FontWeight.Bold else FontWeight.Medium,
+            modifier = Modifier.padding(vertical = 10.dp)
+        )
+        Box(
+            Modifier
+                .fillMaxWidth()
+                .height(2.dp)
+                .background(if (selected) PanaTvBlue else Color.Transparent)
+        )
+    }
+}
+
+@Composable
+private fun CategoryChip(label: String, selected: Boolean, onClick: () -> Unit) {
+    Box(
+        Modifier
+            .clip(RoundedCornerShape(20.dp))
+            .background(if (selected) PanaTvBlue else PanaTvSurface)
+            .clickable(onClick = onClick)
+            .padding(horizontal = 18.dp, vertical = 10.dp)
+    ) {
+        Text(
+            label,
+            color = if (selected) Color.White else PanaTvMuted,
+            fontSize = 14.sp,
+            fontWeight = if (selected) FontWeight.SemiBold else FontWeight.Normal
+        )
+    }
+}
+
+@Composable
+private fun ChannelLogo(channel: PanaTVChannelEntity, size: Int, padding: Int) {
+    Box(
+        Modifier.size(size.dp).clip(RoundedCornerShape(8.dp)).background(Color(0xFF10161D)),
+        contentAlignment = Alignment.Center
+    ) {
+        if (channel.logoUrl.isNotBlank()) {
+            AsyncImage(
+                model = ImageRequest.Builder(LocalContext.current).data(channel.logoUrl).crossfade(true).build(),
+                contentDescription = channel.name,
+                modifier = Modifier.fillMaxSize().padding(padding.dp),
+                contentScale = ContentScale.Fit,
+                error = rememberVectorPainter(image = Icons.Default.Tv),
+                placeholder = rememberVectorPainter(image = Icons.Default.Tv)
+            )
+        } else {
+            Icon(Icons.Default.Tv, null, tint = PanaTvMuted, modifier = Modifier.size((size - 20).dp))
         }
     }
 }
 
 @Composable
-private fun PanaTvChannelCard(
+private fun ChannelListRow(
+    number: Int,
     channel: PanaTVChannelEntity,
     selected: Boolean,
     favorite: Boolean,
     onFavorite: () -> Unit,
-    onClick: () -> Unit,
-    compact: Boolean = false
+    onClick: () -> Unit
 ) {
+    Row(
+        Modifier
+            .fillMaxWidth()
+            .clickable(onClick = onClick)
+            .padding(horizontal = 14.dp, vertical = 10.dp),
+        verticalAlignment = Alignment.CenterVertically
+    ) {
+        ChannelLogo(channel, size = 52, padding = 4)
+        Spacer(Modifier.width(14.dp))
+        Column(Modifier.weight(1f)) {
+            Row(verticalAlignment = Alignment.CenterVertically) {
+                Text(String.format("%03d", number), color = PanaTvBlue, fontSize = 15.sp, fontWeight = FontWeight.Bold)
+                Spacer(Modifier.width(12.dp))
+                Text(
+                    channel.name,
+                    color = if (selected) PanaTvBlue else PanaTvText,
+                    fontSize = 16.sp,
+                    fontWeight = FontWeight.SemiBold,
+                    maxLines = 1,
+                    overflow = TextOverflow.Ellipsis
+                )
+            }
+            if (!channel.currentProgram.isNullOrBlank()) {
+                Spacer(Modifier.height(3.dp))
+                Text(
+                    channel.currentProgram.orEmpty(),
+                    color = PanaTvMuted,
+                    fontSize = 12.sp,
+                    maxLines = 1,
+                    overflow = TextOverflow.Ellipsis
+                )
+            }
+        }
+        IconButton(onClick = onFavorite, modifier = Modifier.size(34.dp)) {
+            Icon(
+                if (favorite) Icons.Default.Favorite else Icons.Default.FavoriteBorder,
+                "Favorito",
+                tint = if (favorite) PanaTvAccent else PanaTvMuted,
+                modifier = Modifier.size(18.dp)
+            )
+        }
+        Box(
+            Modifier.size(34.dp).clip(CircleShape).border(1.5.dp, Color.White.copy(alpha = 0.35f), CircleShape),
+            contentAlignment = Alignment.Center
+        ) {
+            Icon(Icons.Default.ArrowForward, "Ver", tint = Color.White, modifier = Modifier.size(18.dp))
+        }
+    }
+}
+
+@Composable
+private fun LandscapeChannelRow(
+    number: Int,
+    channel: PanaTVChannelEntity,
+    selected: Boolean,
+    onClick: () -> Unit
+) {
+    Row(
+        Modifier
+            .fillMaxWidth()
+            .clickable(onClick = onClick)
+            .padding(horizontal = 12.dp, vertical = 8.dp),
+        verticalAlignment = Alignment.CenterVertically
+    ) {
+        ChannelLogo(channel, size = 38, padding = 3)
+        Spacer(Modifier.width(10.dp))
+        Text(String.format("%03d", number), color = if (selected) PanaTvBlue else PanaTvMuted, fontSize = 12.sp, fontWeight = FontWeight.Bold)
+        Spacer(Modifier.width(10.dp))
+        Text(
+            channel.name,
+            color = if (selected) PanaTvBlue else PanaTvText,
+            fontSize = 14.sp,
+            fontWeight = FontWeight.SemiBold,
+            maxLines = 1,
+            overflow = TextOverflow.Ellipsis,
+            modifier = Modifier.weight(1f)
+        )
+    }
+}
+
+@Composable
+private fun DrawerCategory(label: String, selected: Boolean, onClick: () -> Unit) {
+    Box(
+        Modifier
+            .fillMaxWidth()
+            .background(if (selected) PanaTvBlue else Color.Transparent)
+            .clickable(onClick = onClick)
+            .padding(horizontal = 16.dp, vertical = 13.dp)
+    ) {
+        Text(
+            label,
+            color = if (selected) Color.White else PanaTvText,
+            fontSize = 15.sp,
+            fontWeight = if (selected) FontWeight.SemiBold else FontWeight.Normal,
+            maxLines = 1,
+            overflow = TextOverflow.Ellipsis
+        )
+    }
+}
+
+@Composable
+private fun LandscapeAction(icon: ImageVector, label: String, onClick: () -> Unit) {
     Column(
-         modifier = Modifier
-             .fillMaxWidth()
-             .clip(RoundedCornerShape(if (compact) 6.dp else 11.dp))
-             .background(if (selected) PanaTvSurface2 else PanaTvSurface)
-             .then(if (selected) Modifier.border(1.5.dp, PanaTvAccent, RoundedCornerShape(if (compact) 6.dp else 11.dp)) else Modifier)
-             .clickable(onClick = onClick)
-             .padding(if (compact) 4.dp else 7.dp)
-     ) {
-         Box(
-             modifier = Modifier.fillMaxWidth().aspectRatio(if (compact) 1.2f else 1.42f).clip(RoundedCornerShape(8.dp)).background(Color(0xFF0D141B)),
-             contentAlignment = Alignment.Center
-         ) {
-             if (channel.logoUrl.isNotBlank()) {
-                 AsyncImage(
-                     model = ImageRequest.Builder(LocalContext.current).data(channel.logoUrl).crossfade(true).build(),
-                     contentDescription = channel.name,
-                     modifier = Modifier.fillMaxSize().padding(if (compact) 4.dp else 8.dp),
-                     contentScale = ContentScale.Fit,
-                     error = rememberVectorPainter(image = Icons.Default.Tv),
-                     placeholder = rememberVectorPainter(image = Icons.Default.Tv)
-                 )
-             } else {
-                 Icon(Icons.Default.Tv, null, tint = PanaTvMuted, modifier = Modifier.size(if (compact) 20.dp else 30.dp))
-             }
-             if (channel.name.contains("HD", ignoreCase = true)) {
-                 Surface(shape = RoundedCornerShape(3.dp), color = PanaTvAccent, modifier = Modifier.align(Alignment.TopEnd).padding(3.dp)) {
-                     Text("HD", color = Color.White, fontSize = 6.sp, fontWeight = FontWeight.Bold, modifier = Modifier.padding(horizontal = 3.dp, vertical = 1.dp))
-                 }
-             }
-             IconButton(onClick = onFavorite, modifier = Modifier.align(Alignment.TopStart).size(if (compact) 22.dp else 28.dp)) {
-                 Icon(if (favorite) Icons.Default.Favorite else Icons.Default.FavoriteBorder, "Favorito", tint = if (favorite) PanaTvAccent else Color.White.copy(alpha = 0.85f), modifier = Modifier.size(if (compact) 12.dp else 15.dp))
-             }
-             if (!channel.currentProgram.isNullOrBlank()) {
-                 Box(Modifier.align(Alignment.BottomStart).fillMaxWidth().height(2.dp).background(Color.White.copy(alpha = 0.15f))) {
-                     Box(Modifier.fillMaxWidth(channel.programProgress.coerceIn(0f, 1f)).fillMaxHeight().background(PanaTvAccent))
-                 }
-             }
-         }
-         Spacer(Modifier.height(if (compact) 3.dp else 6.dp))
-         Text(channel.name, color = if (selected) Color.White else PanaTvText, fontSize = if (compact) 9.sp else 11.sp, fontWeight = FontWeight.SemiBold, maxLines = 1, overflow = TextOverflow.Ellipsis, textAlign = TextAlign.Center, modifier = Modifier.fillMaxWidth())
-         if (!channel.currentProgram.isNullOrBlank()) {
-             Spacer(Modifier.height(2.dp))
-             Text(channel.currentProgram.orEmpty(), color = PanaTvMuted, fontSize = if (compact) 7.sp else 8.sp, maxLines = 1, overflow = TextOverflow.Ellipsis, textAlign = TextAlign.Center, modifier = Modifier.fillMaxWidth())
-         }
-     }
+        horizontalAlignment = Alignment.CenterHorizontally,
+        modifier = Modifier
+            .clip(RoundedCornerShape(10.dp))
+            .clickable(onClick = onClick)
+            .padding(horizontal = 10.dp, vertical = 6.dp)
+    ) {
+        Icon(icon, label, tint = Color.White, modifier = Modifier.size(24.dp))
+        Spacer(Modifier.height(5.dp))
+        Text(label, color = Color.White, fontSize = 12.sp)
+    }
+}
+
+@Composable
+private fun VerticalSlider(
+    value: Float,
+    onValueChange: (Float) -> Unit,
+    icon: ImageVector,
+    modifier: Modifier = Modifier
+) {
+    val v = value.coerceIn(0f, 1f)
+    Column(modifier, horizontalAlignment = Alignment.CenterHorizontally) {
+        Icon(icon, null, tint = Color.White, modifier = Modifier.size(20.dp))
+        Spacer(Modifier.height(10.dp))
+        Box(
+            Modifier
+                .width(32.dp)
+                .height(150.dp)
+                .pointerInput(Unit) {
+                    detectTapGestures { pos ->
+                        onValueChange((1f - pos.y / size.height).coerceIn(0f, 1f))
+                    }
+                }
+                .pointerInput(Unit) {
+                    detectVerticalDragGestures { change, _ ->
+                        onValueChange((1f - change.position.y / size.height).coerceIn(0f, 1f))
+                    }
+                },
+            contentAlignment = Alignment.Center
+        ) {
+            Box(
+                Modifier
+                    .width(3.dp)
+                    .fillMaxHeight()
+                    .clip(RoundedCornerShape(2.dp))
+                    .background(Color.White.copy(alpha = 0.35f))
+            )
+            if (v > 0f) {
+                Box(
+                    Modifier
+                        .width(3.dp)
+                        .fillMaxHeight(v)
+                        .align(Alignment.BottomCenter)
+                        .clip(RoundedCornerShape(2.dp))
+                        .background(Color.White)
+                )
+            }
+            Box(
+                Modifier
+                    .align(Alignment.TopCenter)
+                    .offset(y = ((1f - v) * 140f).dp)
+                    .size(14.dp)
+                    .clip(CircleShape)
+                    .background(Color.White)
+            )
+        }
+    }
 }
