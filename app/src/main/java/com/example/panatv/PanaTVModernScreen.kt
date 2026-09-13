@@ -72,6 +72,10 @@ private val PanaTvMuted = Color(0xFF9CA8B3)
 private val PanaTvAccent = Color(0xFFFF6B00)
 private val PanaTvBlue = Color(0xFF2F6BFF)
 
+// Automatic source retries per channel: a live server that drops the connection
+// is re-attached silently (2 tries), then the error UI ("Reintentar") appears.
+private const val MAX_SOURCE_RETRIES = 2
+
 /**
  * True when [error] is a decoder/codec failure (e.g. MediaCodecVideoRenderer
  * "MediaCodecVideoRenderer error ... video/mp2t, video/avc") rather than an
@@ -138,10 +142,11 @@ fun PanaTVModernScreen(viewModel: PanaTVViewModel = viewModel()) {
     var lockTapVisible by remember { mutableStateOf(false) }
     var brightness by remember { mutableStateOf(1f) }
     var volumeLevel by remember { mutableStateOf(1f) }
-    // Recuperación de códec: un fallo de MediaCodec envenena el decoder del
-    // ExoPlayer compartido, así que hay que liberarlo y reconstruirlo (un prepare()
-    // sobre el mismo decoder no lo salva). El intento 2 pasa a decodificadores
-    // FFmpeg (software). Los contadores se reinician al cambiar de canal.
+    // Recuperación: un fallo de MediaCodec envenena el decoder del ExoPlayer
+    // compartido y una fuente viva puede cortar la conexión; en ambos casos se
+    // libra el player y se re-adquiere. El primer fallo de códec pasa a
+    // decodificadores FFmpeg (software). Los contadores se reinician al cambiar
+    // de canal para que los reintentos siempre queden disponibles.
     var recoveryAttempts by remember(currentChannel?.id) { mutableStateOf(0) }
     var useSoftwareDecoders by remember(currentChannel?.id) { mutableStateOf(false) }
     var playerGeneration by remember { mutableStateOf(0) }
@@ -159,7 +164,10 @@ fun PanaTVModernScreen(viewModel: PanaTVViewModel = viewModel()) {
                 type = "panatv",
                 userAgent = channel.userAgent,
                 referrer = channel.referrer,
-                preferSoftware = useSoftwareDecoders
+                preferSoftware = useSoftwareDecoders,
+                // Live IPTV reads the network directly — the disk cache would grow
+                // unboundedly on an infinite stream and evict in-flight spans.
+                useCache = false
             )
         }
     }
@@ -167,32 +175,39 @@ fun PanaTVModernScreen(viewModel: PanaTVViewModel = viewModel()) {
     DisposableEffect(player) {
         val listener = object : Player.Listener {
             override fun onPlayerError(error: PlaybackException) {
-                if (isCodecError(error) && recoveryAttempts < 2) {
-                    recoveryAttempts += 1
+                if (recoveryAttempts >= MAX_SOURCE_RETRIES) {
+                    playerError = error.message ?: "No se pudo cargar el canal"
+                    isBuffering = false
+                    isPlaying = false
+                    return
+                }
+                recoveryAttempts += 1
+                val recoveringFromCodec = isCodecError(error)
+                playerError = null
+                isBuffering = true
+                isPlaying = false
+                hasRenderedFrame = false
+                if (recoveringFromCodec) {
                     // El hardware ya falló para este canal: el reintento pasa directo
                     // a los decodificadores FFmpeg (software) en vez de repetir el
                     // mismo códec de plataforma que acaba de fallar.
                     useSoftwareDecoders = true
-                    playerError = null
-                    isBuffering = true
-                    isPlaying = false
-                    hasRenderedFrame = false
-                    // Un decoder envenenado NO se recupera con prepare(): hay que
-                    // soltarlo y reconstruir el player compartido.
-                    com.example.util.AppFloatingPlayerManager.releasePlayer()
-                    currentPlayerChannelId = null
-                    playerGeneration += 1
-                } else {
-                    playerError = error.message ?: "No se pudo cargar el canal"
-                    isBuffering = false
-                    isPlaying = false
                 }
+                // Un decoder envenenado o una fuente viva que cortó la conexión no se
+                // recuperan con prepare() sobre el mismo player: se libra y se vuelve
+                // a adquirir, que además re-aplica cabeceras y modo (caché/códec).
+                com.example.util.AppFloatingPlayerManager.releasePlayer()
+                currentPlayerChannelId = null
+                playerGeneration += 1
             }
 
             override fun onPlaybackStateChanged(state: Int) {
                 isBuffering = state == Player.STATE_BUFFERING
                 if (state == Player.STATE_READY) {
+                    // Playback achieved: the error budget resets so a later transient
+                    // drop can still auto-recover instead of falling to the error UI.
                     playerError = null
+                    recoveryAttempts = 0
                 }
             }
 
@@ -218,7 +233,12 @@ fun PanaTVModernScreen(viewModel: PanaTVViewModel = viewModel()) {
         onDispose { player?.removeListener(listener) }
     }
 
-    LaunchedEffect(player, currentChannel?.id) {
+    // A fresh channel always starts with a clean retry budget AND fresh media mode:
+    // re-acquired from the network (no stale cached bytes from the previous
+    // channel, no stale software-decoder flag).
+    LaunchedEffect(currentChannel?.id) {
+        recoveryAttempts = 0
+        useSoftwareDecoders = false
         if (player != null) {
             playerError = null
             isBuffering = true
@@ -322,9 +342,8 @@ fun PanaTVModernScreen(viewModel: PanaTVViewModel = viewModel()) {
     }
 
     fun selectChannel(channel: PanaTVChannelEntity) {
-        // Picking a channel always dismisses the landscape drawer so the list does
-        // not stay stuck on top of the video.
-        drawerOpen = false
+        // Choosing a channel KEEPS the drawer open so the user can keep browsing;
+        // it is only dismissed by tapping outside (or back).
         if (currentChannel?.id != channel.id) {
             playerError = null
             hasRenderedFrame = false

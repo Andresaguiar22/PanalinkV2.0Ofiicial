@@ -6,6 +6,7 @@ import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.setValue
 import androidx.media3.common.MediaItem
 import androidx.media3.common.Player
+import androidx.media3.datasource.DataSource
 import androidx.media3.datasource.DefaultHttpDataSource
 import androidx.media3.exoplayer.ExoPlayer
 import com.example.core.media.PanaRenderersFactory
@@ -35,6 +36,11 @@ object AppFloatingPlayerManager {
     // decoders. PanaTV escalates to that mode to recover from MediaCodec failures,
     // and the flag lets acquirePlayer() know a rebuild is required.
     private var playerPreferSoftware = false
+
+    // Whether the current ExoPlayer reads through the disk cache. Live IPTV
+    // streams must NOT use it: an infinite MPEG-TS grows the cache unboundedly
+    // and SimpleCache evicts spans the player is still reading -> "source error".
+    private var playerUseCache = true
 
     private const val DEFAULT_USER_AGENT =
         "Mozilla/5.0 (Linux; Android 10; K) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/124.0.0.0 Mobile Safari/537.36 Panalink/1.0"
@@ -67,11 +73,12 @@ object AppFloatingPlayerManager {
         type: String,
         userAgent: String? = null,
         referrer: String? = null,
-        preferSoftware: Boolean = false
+        preferSoftware: Boolean = false,
+        useCache: Boolean = true
     ): ExoPlayer {
         // If we already have a player with the same video playing, reuse it!
         val currentPlayer = exoPlayer
-        if (currentPlayer != null && activeUrl == url && playerPreferSoftware == preferSoftware) {
+        if (currentPlayer != null && activeUrl == url && playerPreferSoftware == preferSoftware && playerUseCache == useCache) {
             isFloating = false // Bring it out of floating mode
             activeId = id
             activeTitle = title
@@ -82,14 +89,15 @@ object AppFloatingPlayerManager {
         // Reuse the SAME ExoPlayer instance across videos: swapping the media item
         // avoids full codec teardown + player construction on the main thread,
         // which is what froze the app during fast reel swipes. A different renderer
-        // mode means the decoder set must change, so the player is rebuilt instead.
-        val reuse = currentPlayer?.takeIf { playerPreferSoftware == preferSoftware }
+        // mode or cache mode means the player must be rebuilt instead.
+        val reuse = currentPlayer?.takeIf { playerPreferSoftware == preferSoftware && playerUseCache == useCache }
         if (currentPlayer != null && reuse == null) {
             try { currentPlayer.stop() } catch (_: Throwable) {}
             try { currentPlayer.release() } catch (_: Throwable) {}
         }
-        val player = reuse ?: buildPlayer(context.applicationContext, preferSoftware)
+        val player = reuse ?: buildPlayer(context.applicationContext, preferSoftware, useCache)
         playerPreferSoftware = preferSoftware
+        playerUseCache = useCache
 
         // Update per-stream headers on the shared HTTP factory before setMediaItem.
         // The factory is mutable: subsequent createDataSource() calls pick up the
@@ -135,7 +143,7 @@ object AppFloatingPlayerManager {
         return player
     }
 
-    private fun buildPlayer(context: Context, preferSoftware: Boolean = false): ExoPlayer {
+    private fun buildPlayer(context: Context, preferSoftware: Boolean = false, useCache: Boolean = true): ExoPlayer {
         val loadControl = androidx.media3.exoplayer.DefaultLoadControl.Builder()
             .setBufferDurationsMs(
                 10000, // minBufferMs: 10s
@@ -156,16 +164,20 @@ object AppFloatingPlayerManager {
         // per-stream headers (User-Agent / Referer) dynamically without rebuilding
         // the player. The factory is mutable; changes are picked up by new
         // DefaultHttpDataSource instances created during prepare().
-        httpDataSourceFactory = DefaultHttpDataSource.Factory()
+        val httpFactory = DefaultHttpDataSource.Factory()
             .setUserAgent(DEFAULT_USER_AGENT)
             .setConnectTimeoutMs(15000)
             .setReadTimeoutMs(15000)
             .setAllowCrossProtocolRedirects(true)
+        httpDataSourceFactory = httpFactory
 
-        val dataSourceFactory = androidx.media3.datasource.DefaultDataSource.Factory(
-            context,
-            CacheDataSourceFactory.getCacheDataSourceFactory(context, httpDataSourceFactory)
-        )
+        // Live IPTV must read the network directly (no disk cache), otherwise the
+        // unbounded SimpleCache growth evicts in-flight spans. VOD keeps caching.
+        val upstream: DataSource.Factory =
+            if (useCache) CacheDataSourceFactory.getCacheDataSourceFactory(context, httpFactory)
+            else httpFactory
+
+        val dataSourceFactory = androidx.media3.datasource.DefaultDataSource.Factory(context, upstream)
 
         return ExoPlayer.Builder(context, PanaRenderersFactory.create(context, preferSoftware))
             .setTrackSelector(trackSelector)
@@ -202,5 +214,6 @@ object AppFloatingPlayerManager {
         isFloating = false
         isInNativePip = false
         playerPreferSoftware = false
+        playerUseCache = true
     }
 }
