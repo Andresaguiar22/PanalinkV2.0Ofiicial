@@ -52,7 +52,7 @@ object ReelPreloadController {
      */
     fun adaptAndPrefetch(
         context: Context,
-        reels: List<Any>,
+        reels: List<com.example.data.model.UserStateWithUser>,
         currentIndex: Int,
         swipeVelocity: Float,
         avgDurationMs: Long?
@@ -109,18 +109,9 @@ object ReelPreloadController {
     }
 
     /** Extracts the stable (vcdn:// or already-http) URL from a reel payload. */
-    private fun extractStableUrl(reel: Any): String? {
-        // The reel is a UserStateWithUser in Compose-land; to avoid a compile-time
-        // dependency here we accept a generic and resolve via reflection-lite:
-        // the engine works with the mediaUrl value only.
-        return when (reel) {
-            is com.example.data.model.UserStateWithUser ->
-                reel.state.vcdnVideoId?.let { "vcdn://$it" }
-                    ?: reel.state.mediaUrl
-            is com.example.data.database.StateEntity ->
-                reel.vcdnVideoId?.let { "vcdn://$it" } ?: reel.mediaUrl
-            else -> null
-        }
+    private fun extractStableUrl(reel: com.example.data.model.UserStateWithUser): String? {
+        return reel.state.vcdnVideoId?.let { "vcdn://$it" }
+            ?: reel.state.mediaUrl
     }
 
     /** Safe diagnostic summary for the preload state (no URLs leaked). */
