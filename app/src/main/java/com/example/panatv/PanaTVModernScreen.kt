@@ -203,10 +203,13 @@ fun PanaTVModernScreen(viewModel: PanaTVViewModel = viewModel()) {
         }
     }
 
-    fun exitToPortrait() {
+    // Releases the orientation lock so the sensor decides again. Setting PORTRAIT here
+    // would pin the Activity to portrait and permanently prevent rotating back into
+    // landscape, so UNSPECIFIED is required for the rotation-driven flow to work.
+    fun exitFullscreen() {
         val activity = context as? Activity
         if (activity != null) {
-            activity.requestedOrientation = ActivityInfo.SCREEN_ORIENTATION_PORTRAIT
+            activity.requestedOrientation = ActivityInfo.SCREEN_ORIENTATION_UNSPECIFIED
             WindowInsetsControllerCompat(activity.window, activity.window.decorView).show(WindowInsetsCompat.Type.systemBars())
         }
     }
@@ -215,7 +218,7 @@ fun PanaTVModernScreen(viewModel: PanaTVViewModel = viewModel()) {
     val isLandscape = configuration.orientation == Configuration.ORIENTATION_LANDSCAPE
 
     LaunchedEffect(isLandscape) {
-        if (isLandscape) enterFullscreen() else exitToPortrait()
+        if (isLandscape) enterFullscreen() else exitFullscreen()
     }
 
     BackHandler(enabled = isLandscape) {
@@ -224,7 +227,7 @@ fun PanaTVModernScreen(viewModel: PanaTVViewModel = viewModel()) {
         } else if (controlsVisible) {
             controlsVisible = false
         } else {
-            exitToPortrait()
+            exitFullscreen()
         }
     }
 
@@ -442,7 +445,7 @@ fun PanaTVModernScreen(viewModel: PanaTVViewModel = viewModel()) {
                         .padding(horizontal = 6.dp, vertical = 4.dp),
                     verticalAlignment = Alignment.CenterVertically
                 ) {
-                    IconButton(onClick = { exitToPortrait() }) {
+                    IconButton(onClick = { exitFullscreen() }) {
                         Icon(Icons.Default.ArrowBack, "Atrás", tint = Color.White, modifier = Modifier.size(24.dp))
                     }
                     Text(
