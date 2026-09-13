@@ -85,63 +85,6 @@ class StatesViewModel(private val statesRepository: StatesRepository = StatesRep
         viewModelScope.launch(errorHandler + Dispatchers.IO) { try { val currentState = findState(stateId) ?: return@launch; statesRepository.toggleFavorite(stateId, currentFavState, isReelState(currentState.state)).onFailure { onError?.invoke(it.localizedMessage ?: "Error al guardar favorito") } } finally { processingIds.remove(stateId) } }
     }
 
-    private val offlineSaveIds = java.util.Collections.synchronizedSet(mutableSetOf<String>())
-
-    /**
-     * Guarda el video de un reel en la ROM (filesDir/media/reels) para poder
-     * verlo SIN DATOS. Descarga limpia con MediaStorageManager (validación de
-     * seguridad + dedup, timeouts cortos) y persiste la ruta en Room; el
-     * reelsState de Room se auto-actualiza y el reproductor usa la copia local
-     * solamente cuando no hay conexión. NO toca el player ni el caché en línea.
-     * I/O en Dispatchers.IO, nunca bloquea Main.
-     */
-    fun saveReelForOffline(
-        context: android.content.Context,
-        stateId: String,
-        mediaUrl: String?,
-        vcdnVideoId: String?,
-        onProgress: ((Boolean) -> Unit)? = null,
-        onDone: ((java.io.File?) -> Unit)? = null
-    ) {
-        if (offlineSaveIds.contains(stateId)) return
-        offlineSaveIds.add(stateId)
-        viewModelScope.launch(errorHandler + Dispatchers.IO) {
-            onProgress?.invoke(true)
-            try {
-                val currentState = findState(stateId) ?: run {
-                    onDone?.invoke(null); return@launch
-                }
-                // Ya guardado en ROM: no re-descargar.
-                val existing = currentState.state.localVideoPath?.takeIf { it.isNotBlank() && java.io.File(it).exists() && java.io.File(it).length() > 100_000L }
-                if (existing != null) {
-                    onDone?.invoke(java.io.File(existing)); return@launch
-                }
-                // Resolver URL firmada (vcdn:// -> https) y descargar a ROM.
-                val raw = when {
-                    !vcdnVideoId.isNullOrBlank() -> "vcdn://$vcdnVideoId"
-                    !mediaUrl.isNullOrBlank() -> mediaUrl
-                    else -> null
-                }
-                val url = if (!raw.isNullOrBlank()) com.example.data.repository.CdnManager.resolveMediaUrl(raw) else null
-                if (url.isNullOrBlank() || !url.startsWith("http")) {
-                    onDone?.invoke(null); return@launch
-                }
-                val file = com.example.media.storage.MediaStorageManager(context.applicationContext)
-                    .downloadMediaSafely(url, "REEL", stateId)
-                if (file != null) {
-                    statesRepository.updateLocalVideoPath(stateId, file.absolutePath)
-                }
-                onDone?.invoke(file)
-            } catch (e: Exception) {
-                Log.e("StatesViewModel", "saveReelForOffline failed", e)
-                onDone?.invoke(null)
-            } finally {
-                offlineSaveIds.remove(stateId)
-                onProgress?.invoke(false)
-            }
-        }
-    }
-
     fun incrementShare(stateId: String, onError: ((String) -> Unit)? = null) { viewModelScope.launch(errorHandler + Dispatchers.IO) { val currentState = findState(stateId) ?: return@launch; statesRepository.incrementShare(stateId, isReelState(currentState.state)).onFailure { onError?.invoke(it.localizedMessage ?: "Error al registrar compartir") } } }
     fun addComment(stateId: String, commentText: String, parentId: String? = null, onError: ((String) -> Unit)? = null) {
         if (commentText.isBlank()) return

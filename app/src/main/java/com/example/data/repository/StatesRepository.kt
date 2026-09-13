@@ -60,12 +60,6 @@ class StatesRepository {
         }
     }
 
-    /** Persiste la ruta del archivo guardado en ROM para un estado/reel (offline). */
-    suspend fun updateLocalVideoPath(stateId: String, path: String?) = withContext(Dispatchers.IO) {
-        statesDao.updateLocalPath(stateId, path)
-    }
-
-
     suspend fun getActiveStates(): Result<Unit> = remoteDataSource.fetchActiveStates()
 
     suspend fun toggleLike(stateId: String, currentLikeState: Boolean, isReel: Boolean): Result<com.example.data.model.ToggleLikeResponseDto> = interactionDataSource.toggleLike(stateId, currentLikeState, isReel)

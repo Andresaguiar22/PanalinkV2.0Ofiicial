@@ -32,6 +32,8 @@ import androidx.compose.material.icons.rounded.BookmarkBorder
 import androidx.compose.material.icons.rounded.ChatBubble
 import androidx.compose.material.icons.rounded.Favorite
 import androidx.compose.material.icons.rounded.FavoriteBorder
+import androidx.compose.material.icons.rounded.FastForward
+import androidx.compose.material.icons.rounded.FastRewind
 import androidx.compose.material.icons.rounded.MoreHoriz
 import androidx.compose.material.icons.filled.PlayArrow
 import androidx.compose.material.icons.filled.Search
@@ -412,7 +414,11 @@ fun TikTokVideoFeedScreen(
                             stateWithUser = stateWithUser,
                             viewModel = viewModel,
                             isActivePage = isActive && (pagerState.currentPage == page),
-                            isPreload = (page > pagerState.currentPage && page <= pagerState.currentPage + 1),
+                            // Ventana de preload = los 2 siguientes reels: el inmediato
+                            // (slot en preload-muted, frame ya decodificándose) y el
+                            // siguiente-siguiente (encola slot libre cuando se libera y
+                            // va cargando en segundo plano mientras el usuario mira).
+                            isPreload = (page > pagerState.currentPage && page <= pagerState.currentPage + 2),
                               dualManager = dualManager,
                             isMuted = isMuted,
                             onMuteToggle = { isMuted = !isMuted },
@@ -900,22 +906,6 @@ fun TikTokPageItem(
     val focusRequester = remember { FocusRequester() }
     val coroutineScope = rememberCoroutineScope()
 
-    var isSavingOffline by remember { mutableStateOf(false) }
-    var offlineSaveResult by remember { mutableStateOf<String?>(null) }
-    val hasOfflineCopy = !state.localVideoPath.isNullOrBlank() &&
-        java.io.File(state.localVideoPath!!).exists() &&
-        java.io.File(state.localVideoPath!!).length() > 100_000L
-    LaunchedEffect(offlineSaveResult) {
-        if (offlineSaveResult != null) {
-            android.widget.Toast.makeText(
-                context,
-                offlineSaveResult,
-                android.widget.Toast.LENGTH_LONG
-            ).show()
-            offlineSaveResult = null
-        }
-    }
-
     var currentPosition by remember { mutableStateOf(0L) }
     var duration by remember { mutableStateOf(0L) }
     var isDraggingSlider by remember { mutableStateOf(false) }
@@ -931,6 +921,7 @@ fun TikTokPageItem(
     val reactionScope = rememberCoroutineScope()
     // Acción 3: Smart-press zone state
     var isRewinding by remember(state.id) { mutableStateOf(false) }
+    var isFastForwarding by remember(state.id) { mutableStateOf(false) }
     var seekJob by remember(state.id) { mutableStateOf<Job?>(null) }
     var hasError by remember(state.id) { mutableStateOf(false) }
     // True while a codec-recovery cycle (player recreation) is in flight; the error
@@ -1097,12 +1088,31 @@ fun TikTokPageItem(
         if (!hasLivePlayer && prev != null && prev != ReelDualPlayerManager.Slot.B) return@LaunchedEffect
         val url = resolvedUrl ?: return@LaunchedEffect
         val acquireStart = System.currentTimeMillis()
-        val slot = dualManager.acquireOrReuse(
+        // Con la ventana de preload ampliada a +2, una página preload puede no
+        // encontrar slot libre al primer intento (ambos slots ocupados). Reintentar
+        // en un loop corto: cuando el slot del reel anterior se libere (al avanzar),
+        // esta página lo toma en <200ms y arranca su preload-muted en segundo plano.
+        // El effect se cancela solo al cambiar isPreload/isActivePage (la página
+        // sale del window) o si la clave del ID cambia.
+        var slot = dualManager.acquireOrReuse(
             state.id,
             url,
             isActivePage,
             if (isMuted) 0f else  1f
-        ) ?: return@LaunchedEffect
+        )
+        var retryTicks = 0
+        while (slot == null && !isActivePage) {
+            if (retryTicks >= 100) return@LaunchedEffect
+            kotlinx.coroutines.delay(120L)
+            slot = dualManager.acquireOrReuse(
+                state.id,
+                url,
+                false,
+                if (isMuted) 0f else 1f
+            )
+            retryTicks++
+        }
+        if (slot == null) return@LaunchedEffect
         activeSlot = slot
         exoPlayerRef = dualManager.playerFor(slot)
         // --- FIX: flags de error/buffering pegajosos al volver a una página ya
@@ -1546,15 +1556,27 @@ fun TikTokPageItem(
         }
     }
 
-    LaunchedEffect(isMuted) {
-        exoPlayerRef?.volume = if (isMuted) 0f else 1f
+    LaunchedEffect(isMuted, isActivePage, exoPlayerRef) {
+        // El volumen real solo aplica a la página ACTIVA. Los preloads se quedan
+        // a volume=0 SIEMPRE (preload-muted del manager) para que nada se oiga en
+        // segundo plano mientras el reel actual reproduce.
+        if (exoPlayerRef != null) {
+            exoPlayerRef?.volume = if (isActivePage && !isMuted) 1f else 0f
+        }
     }
 
     // FIX: al volver a una página activa, resetear el pausado manual (isPaused(
     // que era `remember` sin key y quedaba pegado al salir/vovler, mostrando el
     // ícono de play sobre un vídeo que el usuario no pausó en esta visita.
-    LaunchedEffect(isPaused, isActivePage, exoPlayerRef) {
-        exoPlayerRef?.playWhenReady = isActivePage && !isPaused
+    // Los preloads NO se tocan: el manager los deja en preload-muted
+    // (playWhenReady=true, volume=0) para que su frame ya esté decodificado
+    // cuando la página se vuelva activa (cambio instantáneo sin black screen).
+    LaunchedEffect(isPaused, isActivePage, isPreload, exoPlayerRef) {
+        when {
+            isActivePage -> exoPlayerRef?.playWhenReady = !isPaused
+            !isPreload -> exoPlayerRef?.playWhenReady = false
+            // else: página en preload → no tocar (el manager controla su mute/play)
+        }
     }
 
     LaunchedEffect(isActivePage) {
@@ -1615,6 +1637,7 @@ fun TikTokPageItem(
                                 if (!isReleased) {
                                     when (zone) {
                                         "forward" -> {
+                                            isFastForwarding = true
                                             exoPlayerRef?.setPlaybackParameters(PlaybackParameters(2f))
                                         }
                                         "center" -> {
@@ -1624,7 +1647,7 @@ fun TikTokPageItem(
                                             isRewinding = true
                                             seekJob?.cancel()
                                             seekJob = coroutineScope.launch {
-                                                while (isActive) {
+                                                while (isActive && !isReleased) {
                                                     exoPlayerRef?.let { player ->
                                                         player.seekTo(kotlin.math.max(0L, player.currentPosition - 1000))
                                                     }
@@ -1643,6 +1666,7 @@ fun TikTokPageItem(
                                 // Revert all zone effects on release
                                 when (zone) {
                                     "forward" -> {
+                                        isFastForwarding = false
                                         exoPlayerRef?.setPlaybackParameters(PlaybackParameters(1f))
                                     }
                                     "center" -> {
@@ -1926,6 +1950,41 @@ fun TikTokPageItem(
             }
         }
 
+        // Smart-press feedback: manteniendo un lateral se adelanta (⏩ 2x) o
+        // retrocede (⏪); el video NUNCA se pausa por este gesto (solo cambia la
+        // velocidad/posición, y el volumen/playWhenReady de los reels son ajenos).
+        if (isFastForwarding || isRewinding) {
+            Box(
+                modifier = Modifier
+                    .align(Alignment.Center)
+                    .size(96.dp)
+                    .background(Color.Black.copy(alpha = 0.55f), CircleShape),
+                contentAlignment = Alignment.Center
+            ) {
+                Column(horizontalAlignment = Alignment.CenterHorizontally) {
+                    if (isFastForwarding) {
+                        Icon(
+                            imageVector = Icons.Rounded.FastForward,
+                            contentDescription = "Adelantando",
+                            tint = Color.White,
+                            modifier = Modifier.size(48.dp)
+                        )
+                        Spacer(modifier = Modifier.height(4.dp))
+                        Text("2x", color = Color.White, fontWeight = FontWeight.Bold, fontSize = 16.sp)
+                    } else {
+                        Icon(
+                            imageVector = Icons.Rounded.FastRewind,
+                            contentDescription = "Retrocediendo",
+                            tint = Color.White,
+                            modifier = Modifier.size(48.dp)
+                        )
+                        Spacer(modifier = Modifier.height(4.dp))
+                        Text("⏪", color = Color.White, fontSize = 16.sp)
+                    }
+                }
+            }
+        }
+
         // Bottom and Right content overlay with a smooth cinematic gradient vignette
         Box(
             modifier = Modifier
@@ -2095,38 +2154,7 @@ fun TikTokPageItem(
                     modifier = Modifier.background(Color(0xFF0F0F10))
                 ) {
                     DropdownMenuItem(
-                        text = {
-                            Text(
-                                when {
-                                    isSavingOffline -> "Guardando…"
-                                    hasOfflineCopy -> "Guardado ✓ (ver sin datos)"
-                                    else -> "Guardar para ver sin datos"
-                                },
-                                color = Color.White,
-                                fontSize = 14.sp
-                            )
-                        },
-                        enabled = !isSavingOffline && !hasOfflineCopy,
-                        onClick = {
-                            showActionMoreMenu = false
-                            viewModel.saveReelForOffline(
-                                context = context,
-                                stateId = state.id,
-                                mediaUrl = state.mediaUrl,
-                                vcdnVideoId = state.vcdnVideoId,
-                                onProgress = { saving -> isSavingOffline = saving },
-                                onDone = { file ->
-                                    offlineSaveResult = if (file != null) {
-                                        "✅ Vídeo guardado: podrás verlo sin datos"
-                                    } else {
-                                        "❌ No se pudo guardar el vídeo (revisa tu conexión)"
-                                    }
-                                }
-                            )
-                        }
-                    )
-                    DropdownMenuItem(
-                        text = { Text("Descargar vídeo (galería)", color = Color.White, fontSize = 14.sp) },
+                        text = { Text("Descargar vídeo", color = Color.White, fontSize = 14.sp) },
                         onClick = {
                             // Resolve on IO to avoid blocking Main with VCDN BFF I/O
                             scope.launch(Dispatchers.IO) {
