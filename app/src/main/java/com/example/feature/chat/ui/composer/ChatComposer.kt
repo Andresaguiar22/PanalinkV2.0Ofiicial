@@ -75,7 +75,10 @@ fun ChatComposer(
     val focusManager = LocalFocusManager.current
     val keyboardController = LocalSoftwareKeyboardController.current
     var recordDurationSeconds by remember { androidx.compose.runtime.mutableIntStateOf(0) }
-
+    var isRecordingPaused by remember { mutableStateOf(false) }
+    // Fase manos libres: el micrófono fuera de la píldora se oculta (0.dp) y la
+    // píldora del LOCKED_RECORDING muestra enviar/cancelar/pausar.
+    var recordingButtonLocked by remember { mutableStateOf(false) }
 
     LaunchedEffect(recordState) {
         if (recordState == RecordState.RECORDING || recordState == RecordState.LOCKED_RECORDING) {
@@ -87,14 +90,15 @@ fun ChatComposer(
             }
         } else {
             recordDurationSeconds = 0
+            recordingButtonLocked = false
+            isRecordingPaused = false
         }
     }
-    var isRecordingPaused by remember { mutableStateOf(false) }
     var micDragOffsetX by remember { androidx.compose.runtime.mutableFloatStateOf(0f) }
     var micDragOffsetY by remember { androidx.compose.runtime.mutableFloatStateOf(0f) }
     val isInputEmpty = inputMessage.trim().isEmpty()
     val primaryColor = androidx.compose.ui.graphics.Color(0xFF38BDF8)
-    val bubbleColor = androidx.compose.ui.graphics.Color(0xFF4E6377).copy(alpha = 0.88f)
+    val bubbleColor = androidx.compose.ui.graphics.Color(0xFF1E3A5F).copy(alpha = 0.75f)
 
     // Recording pulse animation
     val recordingPulseScale = remember { Animatable(1f) }
@@ -115,14 +119,13 @@ fun ChatComposer(
     Box(
         modifier = Modifier.fillMaxWidth()
     ) {
-        // Idle / text input mode: Floating Island container
-        if (recordState == RecordState.IDLE) {
-            // Acción 2: La Isla Flotante. Todo (campo, emoji, adjuntos, enviar,
-            // micrófono) vive DENTRO de una única pastilla flotante separada del
-            // borde inferior por el IME + 24dp. Se usa imePadding() (consciente del
-            // consumo de insets) en vez de leer WindowInsets.ime.getBottom() a mano:
-            // el Column padre de ChatScreen YA aplica imePadding(), así que leer el
-            // inset crudo desplazaría la isla el doble de alto con el teclado abierto.
+        // =====================================================================
+        // MODO IDLE: píldora azul con borde, emoji+texto+clip dentro,
+        // micrófono FUERA (a la derecha). El gesto del micrófono vive SIEMPRE en
+        // este estado: if (IDLE) no reemplaza el botón, solo cambia su contenido.
+        // Soltar el dedo → FinishRecording → envío inmediato.
+        // =====================================================================
+        if (recordState == RecordState.IDLE || recordState == RecordState.RECORDING) {
             Row(
                 modifier = Modifier
                     .fillMaxWidth()
@@ -131,26 +134,24 @@ fun ChatComposer(
                     .padding(bottom = 24.dp),
                 verticalAlignment = Alignment.CenterVertically
             ) {
-                // Única pastilla: Row background Color(0xFF1E293B).copy(alpha=0.8f), CircleShape
+                // Pastilla única: campo + emoji + clip
                 Row(
                     modifier = Modifier
                         .weight(1f)
-                        .background(bubbleColor, CircleShape)
-                        .border(1.dp, androidx.compose.ui.graphics.Color.White.copy(alpha = 0.12f), CircleShape)
                         .heightIn(min = 52.dp)
-                        .padding(start = 4.dp, end = 6.dp),
+                        .background(bubbleColor, CircleShape)
+                        .border(1.dp, primaryColor.copy(alpha = 0.7f), CircleShape)
+                        .padding(start = 4.dp, end = 4.dp),
                     verticalAlignment = Alignment.CenterVertically
                 ) {
                     Row(
                         modifier = Modifier
                             .weight(1f)
-                            .padding(horizontal = 4.dp),
+                            .padding(horizontal = 2.dp),
                         verticalAlignment = Alignment.CenterVertically
                     ) {
                         // Botón Emoji
-                        IconButton(onClick = {
-                            onToggleStickerPanel()
-                        }) {
+                        IconButton(onClick = { onToggleStickerPanel() }) {
                             Icon(
                                 imageVector = if (isStickerPanelOpen) Icons.Default.Keyboard else Icons.Default.SentimentSatisfied,
                                 contentDescription = "Emojis, GIFs y Stickers",
@@ -204,10 +205,8 @@ fun ChatComposer(
                             }
                         )
 
-                        // Botón Adjuntar (Clip) dentro de la píldora - abre modal compacto
-                        IconButton(onClick = {
-                            onToggleAttachmentMenu()
-                        }) {
+                        // Botón Adjuntar (Clip) dentro de la píldora
+                        IconButton(onClick = { onToggleAttachmentMenu() }) {
                             Icon(
                                 imageVector = if (isAttachmentMenuOpen) Icons.Default.Close else Icons.Default.AttachFile,
                                 contentDescription = "Menú Adjuntos",
@@ -215,92 +214,193 @@ fun ChatComposer(
                                 modifier = Modifier.size(24.dp)
                             )
                         }
-
-                    }
-
-                    // Costura vertical: divide el campo del micrófono (barra "dividida" de la referencia)
-                    Box(
-                        modifier = Modifier
-                            .width(1.dp)
-                            .height(26.dp)
-                            .background(androidx.compose.ui.graphics.Color.White.copy(alpha = 0.10f))
-                    )
-
-                    // Micrófono: sub-píldora más clara, siempre visible (sección "dividida" de la referencia)
-                    Box(
-                        modifier = Modifier
-                            .graphicsLayer {
-                                translationX = micDragOffsetX
-                                translationY = micDragOffsetY
-                                alpha = if (recordState == RecordState.LOCKED_RECORDING) 0f else 1f
-                            }
-                            .size(if (recordState == RecordState.LOCKED_RECORDING) 0.dp else 40.dp)
-                            .scale(recordingPulseScale.value)
-                            .clip(CircleShape)
-                            .background(androidx.compose.ui.graphics.Color(0xFFB9C9D6).copy(alpha = 0.18f))
-                            .voiceGestureDetector(
-                                enabled = true,
-                                isLocked = recordState == RecordState.LOCKED_RECORDING,
-                                onPermissionRequired = if (!hasMicPermission) {
-                                    { micPermissionLauncher.launch(android.Manifest.permission.RECORD_AUDIO) }
-                                } else null,
-                                onDrag = { x, y ->
-                                    micDragOffsetX = x
-                                    micDragOffsetY = y
-                                },
-                                onEvent = { event ->
-                                    micDragOffsetX = 0f
-                                    micDragOffsetY = 0f
-
-                                    when (event) {
-                                        is VoiceGestureEvent.StartRecording -> {
-                                            triggerLightVibration(context)
-                                        }
-                                        is VoiceGestureEvent.LockRecording -> {
-                                            triggerLightVibration(context)
-                                        }
-                                        is VoiceGestureEvent.CancelRecording -> {
-                                            triggerLightVibration(context)
-                                            onShowTrashAnimation()
-                                            Toast.makeText(context, "Grabación cancelada", Toast.LENGTH_SHORT).show()
-                                        }
-                                        else -> {}
-                                    }
-                                    onVoiceGestureEvent(event, context, replyingToMessage?.id, recordDurationSeconds)
-                                }
-                            ),
-                        contentAlignment = Alignment.Center
-                    ) {
-                        Icon(
-                            imageVector = Icons.Default.Mic,
-                            contentDescription = "Grabar nota de voz",
-                            tint = androidx.compose.ui.graphics.Color(0xFFE2E8F0),
-                            modifier = Modifier.size(22.dp)
-                        )
                     }
                 }
 
                 Spacer(modifier = Modifier.width(8.dp))
 
-                // Botón Enviar SEPARADO de la pastilla (barra "dividida" de la referencia)
+                // Botón del micrófono FUERA de la píldora. SELECCIONABLE en
+                // recoding (= mantiene el tamaño, muestra ondas, gesto activo).
                 Box(
                     modifier = Modifier
-                        .size(52.dp)
+                        .graphicsLayer {
+                            translationX = micDragOffsetX
+                            translationY = micDragOffsetY
+                        }
+                        .size(if (recordingButtonLocked) 0.dp else 52.dp)
+                        .scale(recordingPulseScale.value)
+                        .clip(CircleShape)
                         .background(
-                            Brush.radialGradient(
-                                colors = listOf(
-                                    primaryColor.copy(alpha = 0.35f),
-                                    androidx.compose.ui.graphics.Color.Transparent
+                            when {
+                                recordState == RecordState.RECORDING || recordState == RecordState.LOCKED_RECORDING ->
+                                    Brush.radialGradient(
+                                        colors = listOf(
+                                            androidx.compose.ui.graphics.Color(0xFF2A3546).copy(alpha = 0.95f),
+                                            androidx.compose.ui.graphics.Color(0xFF131A26)
+                                        )
+                                    )
+                                else -> Brush.radialGradient(
+                                    colors = listOf(
+                                        primaryColor.copy(alpha = 0.45f),
+                                        androidx.compose.ui.graphics.Color.Transparent
+                                    )
                                 )
-                            ),
-                            CircleShape
+                            }
+                        )
+                        .border(
+                            width = if (recordState == RecordState.RECORDING || recordState == RecordState.LOCKED_RECORDING) 2.dp else 0.dp,
+                            color = androidx.compose.ui.graphics.Color.White.copy(alpha = 0.2f),
+                            shape = CircleShape
+                        )
+                        .voiceGestureDetector(
+                            enabled = true,
+                            isLocked = recordState == RecordState.LOCKED_RECORDING,
+                            onPermissionRequired = if (!hasMicPermission) {
+                                { micPermissionLauncher.launch(android.Manifest.permission.RECORD_AUDIO) }
+                            } else null,
+                            onDrag = { x, y ->
+                                micDragOffsetX = x
+                                micDragOffsetY = y
+                            },
+                            onEvent = { event ->
+                                micDragOffsetX = 0f
+                                micDragOffsetY = 0f
+
+                                when (event) {
+                                    is VoiceGestureEvent.StartRecording -> {
+                                        isRecordingPaused = false
+                                        triggerLightVibration(context)
+                                    }
+                                    is VoiceGestureEvent.LockRecording -> {
+                                        recordingButtonLocked = true
+                                        triggerLightVibration(context)
+                                    }
+                                    is VoiceGestureEvent.CancelRecording -> {
+                                        recordingButtonLocked = false
+                                        isRecordingPaused = false
+                                        triggerLightVibration(context)
+                                        onShowTrashAnimation()
+                                        Toast.makeText(context, "Grabación cancelada", Toast.LENGTH_SHORT).show()
+                                    }
+                                    else -> {}
+                                }
+                                onVoiceGestureEvent(event, context, replyingToMessage?.id, recordDurationSeconds)
+                            }
                         ),
                     contentAlignment = Alignment.Center
                 ) {
+                    if (recordingButtonLocked) {
+                        // Fase manos libres: el micrófono se oculta; la píldora
+                        // del LOCKED_RECORDING trae sus propios botones.
+                    } else {
+                        when {
+                            recordState == RecordState.SENDING ->
+                                CircularProgressIndicator(
+                                    modifier = Modifier.size(24.dp),
+                                    color = primaryColor,
+                                    strokeWidth = 2.dp
+                                )
+                            recordState == RecordState.RECORDING || recordState == RecordState.LOCKED_RECORDING ->
+                                AnimatedAudioWaves(amplitudes = voiceAmplitudes, isPaused = isRecordingPaused)
+                            else ->
+                                Icon(
+                                    imageVector = Icons.Default.Mic,
+                                    contentDescription = "Grabar nota de voz",
+                                    tint = primaryColor,
+                                    modifier = Modifier.size(24.dp)
+                                )
+                        }
+                    }
+                }
+            }
+        }
+        // MODO LOCKED_RECORDING (manos libres): píldora azul con borde que
+        // muestra la grabación en curso y trae Cancelar, Pausar/Reanudar y
+        // Enviar DENTRO de la misma píldora.
+        else if (recordState == RecordState.LOCKED_RECORDING) {
+            Row(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(start = 16.dp, end = 16.dp)
+                    .padding(bottom = 24.dp),
+                verticalAlignment = Alignment.CenterVertically
+            ) {
+                Row(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .heightIn(min = 56.dp)
+                        .background(bubbleColor, RoundedCornerShape(28.dp))
+                        .border(1.dp, primaryColor.copy(alpha = 0.7f), RoundedCornerShape(28.dp))
+                        .padding(start = 8.dp, end = 8.dp),
+                    verticalAlignment = Alignment.CenterVertically
+                ) {
+                    // Cancelar (rojo)
                     Box(
                         modifier = Modifier
-                            .size(48.dp)
-                            .clip(RoundedCornerShape(16.dp))
+                            .size(40.dp)
+                            .clip(CircleShape)
+                            .background(androidx.compose.ui.graphics.Color(0xFFFCE8E6))
+                            .clickable {
+                                triggerLightVibration(context)
+                                onVoiceGestureEvent(VoiceGestureEvent.CancelRecording, context, null, null)
+                            },
+                        contentAlignment = Alignment.Center
+                    ) {
+                        Icon(
+                            imageVector = Icons.Default.Close,
+                            contentDescription = "Cancelar grabación",
+                            tint = androidx.compose.ui.graphics.Color(0xFFE11D48),
+                            modifier = Modifier.size(22.dp)
+                        )
+                    }
+
+                    Spacer(modifier = Modifier.width(8.dp))
+
+                    Text(
+                        text = String.format("%02d:%02d", recordDurationSeconds / 60, recordDurationSeconds % 60),
+                        color = androidx.compose.ui.graphics.Color.White,
+                        fontSize = 14.sp,
+                        fontWeight = FontWeight.Bold
+                    )
+
+                    Spacer(modifier = Modifier.width(12.dp))
+
+                    AnimatedAudioWaves(amplitudes = voiceAmplitudes, isPaused = isRecordingPaused)
+
+                    Spacer(modifier = Modifier.weight(1f))
+
+                    // Pausar / Reanudar
+                    Box(
+                        modifier = Modifier
+                            .size(40.dp)
+                            .clip(CircleShape)
+                            .background(androidx.compose.ui.graphics.Color.White.copy(alpha = 0.15f))
+                            .clickable {
+                                if (isRecordingPaused) {
+                                    isRecordingPaused = false
+                                    onVoiceGestureEvent(VoiceGestureEvent.ResumeRecording, context, null, null)
+                                } else {
+                                    isRecordingPaused = true
+                                    onVoiceGestureEvent(VoiceGestureEvent.PauseRecording, context, null, null)
+                                }
+                            },
+                        contentAlignment = Alignment.Center
+                    ) {
+                        Icon(
+                            imageVector = if (isRecordingPaused) Icons.Default.PlayArrow else Icons.Default.Pause,
+                            contentDescription = if (isRecordingPaused) "Reanudar" else "Pausar",
+                            tint = androidx.compose.ui.graphics.Color.White,
+                            modifier = Modifier.size(20.dp)
+                        )
+                    }
+
+                    Spacer(modifier = Modifier.width(6.dp))
+
+                    // Enviar grabación
+                    Box(
+                        modifier = Modifier
+                            .size(42.dp)
+                            .clip(RoundedCornerShape(14.dp))
                             .background(
                                 Brush.linearGradient(
                                     colors = listOf(
@@ -309,353 +409,166 @@ fun ChatComposer(
                                     )
                                 )
                             )
-                            .clickable(enabled = !isInputEmpty) {
-                                if (editingMessage != null) {
-                                    viewModel.editMessage(editingMessage!!.id, inputMessage)
-                                    viewModel.clearReplyAndEdit()
-                                } else {
-                                    viewModel.sendMessage(inputMessage, replyToId = replyingToMessage?.id, context = context)
-                                    viewModel.clearReplyAndEdit()
-                                }
-                                viewModel.onInputMessageChange("")
+                            .clickable {
+                                triggerLightVibration(context)
+                                onVoiceGestureEvent(VoiceGestureEvent.SendLockedRecording, context, replyingToMessage?.id, recordDurationSeconds)
                             },
                         contentAlignment = Alignment.Center
                     ) {
                         Icon(
                             imageVector = Icons.AutoMirrored.Filled.Send,
-                            contentDescription = "Enviar",
-                            tint = androidx.compose.ui.graphics.Color.White.copy(alpha = if (isInputEmpty) 0.45f else 1f),
-                            modifier = Modifier.size(24.dp)
+                            contentDescription = "Enviar grabación",
+                            tint = androidx.compose.ui.graphics.Color.White,
+                            modifier = Modifier.size(20.dp)
                         )
                     }
                 }
             }
         }
-        // Recording mode: panel with recording UI
-        else if (recordState == RecordState.RECORDING) {
-            Row(
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .padding(16.dp),
-                verticalAlignment = Alignment.CenterVertically
-            ) {
-                // Panel de grabación premium
-                Box(
-                    modifier = Modifier
-                        .weight(1f)
-                        .background(androidx.compose.ui.graphics.Color(0xFF1E293B).copy(alpha = 0.9f), RoundedCornerShape(28.dp))
-                        .height(56.dp)
-                        .padding(horizontal = 16.dp, vertical = 8.dp),
-                    contentAlignment = Alignment.CenterStart
-                ) {
-                    Row(verticalAlignment = Alignment.CenterVertically) {
-                        val redDotAlpha = remember { Animatable(1f) }
-                        LaunchedEffect(Unit) {
-                            redDotAlpha.animateTo(
-                                targetValue = 0.2f,
-                                animationSpec = infiniteRepeatable(
-                                    animation = tween(600),
-                                    repeatMode = RepeatMode.Reverse
-                                )
-                            )
-                        }
-                        Box(
-                            modifier = Modifier
-                                .size(10.dp)
-                                .background(androidx.compose.ui.graphics.Color.Red.copy(alpha = redDotAlpha.value), CircleShape)
-                        )
-                        Spacer(modifier = Modifier.width(8.dp))
-                        Text(
-                            text = String.format("%02d:%02d", recordDurationSeconds / 60, recordDurationSeconds % 60),
-                            color = androidx.compose.ui.graphics.Color.White,
-                            fontSize = 14.sp,
-                            fontWeight = FontWeight.Bold
-                        )
-                        Spacer(modifier = Modifier.width(16.dp))
-                        AnimatedAudioWaves(amplitudes = voiceAmplitudes)
-                    }
-                }
-
-                // Cancel button outside the pill (red)
-                Spacer(modifier = Modifier.width(8.dp))
-                Box(
-                    modifier = Modifier
-                        .size(48.dp)
-                        .clip(CircleShape)
-                        .background(androidx.compose.ui.graphics.Color(0xFFFF2D55))
-                        .clickable {
-                            triggerLightVibration(context)
-                            isRecordingPaused = false
-                            Toast.makeText(context, "Grabación cancelada", Toast.LENGTH_SHORT).show()
-                            onVoiceGestureEvent(VoiceGestureEvent.CancelRecording, context, null, null)
-                        },
-                    contentAlignment = Alignment.Center
-                ) {
-                    Icon(
-                        imageVector = Icons.Default.Close,
-                        contentDescription = "Cancelar",
-                        tint = androidx.compose.ui.graphics.Color.White,
-                        modifier = Modifier.size(24.dp)
-                    )
-                }
-            }
-        }
-        // Locked recording mode
-        else if (recordState == RecordState.LOCKED_RECORDING) {
-            Row(
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .padding(16.dp),
-                verticalAlignment = Alignment.CenterVertically
-            ) {
-                Box(
-                    modifier = Modifier
-                        .weight(1f)
-                        .background(androidx.compose.ui.graphics.Color(0xFF1E293B).copy(alpha = 0.9f), RoundedCornerShape(28.dp))
-                        .height(56.dp)
-                        .padding(horizontal = 10.dp, vertical = 8.dp),
-                    contentAlignment = Alignment.CenterStart
-                ) {
-                    Row(verticalAlignment = Alignment.CenterVertically) {
-                        // Trash button (left, red)
-                        Box(
-                            modifier = Modifier
-                                .size(36.dp)
-                                .clip(CircleShape)
-                                .background(androidx.compose.ui.graphics.Color(0xFFFCE8E6))
-                                .clickable {
-                                    triggerLightVibration(context)
-                                    isRecordingPaused = false
-                                    Toast.makeText(context, "Grabación descartada", Toast.LENGTH_SHORT).show()
-                                    onVoiceGestureEvent(VoiceGestureEvent.CancelRecording, context, null, null)
-                                },
-                            contentAlignment = Alignment.Center
-                        ) {
-                            Icon(
-                                imageVector = Icons.Default.Delete,
-                                contentDescription = "Eliminar",
-                                tint = androidx.compose.ui.graphics.Color.Red,
-                                modifier = Modifier.size(20.dp)
-                            )
-                        }
-                        Spacer(modifier = Modifier.width(8.dp))
-                        Text(
-                            text = String.format("%02d:%02d", recordDurationSeconds / 60, recordDurationSeconds % 60),
-                            color = androidx.compose.ui.graphics.Color.White,
-                            fontSize = 14.sp,
-                            fontWeight = FontWeight.Bold
-                        )
-                        Spacer(modifier = Modifier.width(16.dp))
-                        AnimatedAudioWaves(amplitudes = voiceAmplitudes, isPaused = isRecordingPaused)
-                    }
-                }
-
-                // Pause/Resume pill
-                Spacer(modifier = Modifier.width(6.dp))
-                Surface(
-                    modifier = Modifier
-                        .clip(RoundedCornerShape(20.dp))
-                        .clickable {
-                            if (isRecordingPaused) {
-                                isRecordingPaused = false
-                                onVoiceGestureEvent(VoiceGestureEvent.ResumeRecording, context, null, null)
-                            } else {
-                                isRecordingPaused = true
-                                onVoiceGestureEvent(VoiceGestureEvent.PauseRecording, context, null, null)
-                            }
-                        }
-                        .padding(horizontal = 10.dp, vertical = 6.dp),
-                    color = androidx.compose.ui.graphics.Color.White,
-                    shape = RoundedCornerShape(20.dp)
-                ) {
-                    Row(
-                        verticalAlignment = Alignment.CenterVertically,
-                        horizontalArrangement = Arrangement.spacedBy(4.dp)
-                    ) {
-                        Icon(
-                            imageVector = if (isRecordingPaused) Icons.Default.PlayArrow else Icons.Default.Pause,
-                            contentDescription = null,
-                            tint = androidx.compose.ui.graphics.Color.Black,
-                            modifier = Modifier.size(14.dp)
-                        )
-                        Text(
-                            text = if (isRecordingPaused) "Reanudar" else "Pausar",
-                            color = androidx.compose.ui.graphics.Color.Black,
-                            fontSize = 12.sp,
-                            fontWeight = FontWeight.Bold
-                        )
-                    }
-                }
-
-                Spacer(modifier = Modifier.width(6.dp))
-
-                // Send button for locked recording
-                Box(
-                    modifier = Modifier
-                        .size(36.dp)
-                        .clip(CircleShape)
-                        .background(primaryColor)
-                        .clickable {
-                            isRecordingPaused = false
-                            onVoiceGestureEvent(VoiceGestureEvent.SendLockedRecording, context, replyingToMessage?.id, recordDurationSeconds)
-                        },
-                    contentAlignment = Alignment.Center
-                ) {
-                    Icon(
-                        imageVector = Icons.Default.Send,
-                        contentDescription = "Enviar grabación",
-                        tint = androidx.compose.ui.graphics.Color.White,
-                        modifier = Modifier.size(20.dp)
-                    )
-                }
-            }
-        }
-        // Previewing / Sending mode
+        // Previewing / Sending mode: píldora de revisión con borrar, reproducir,
+        // forma de onda y Enviar. Reaparece cuando el usuario suelta el dedo
+        // (envío directo) o cuando usa la pre-escucha del panel manos-libres.
         else if (recordState == RecordState.PREVIEWING || recordState == RecordState.SENDING) {
             Row(
                 modifier = Modifier
                     .fillMaxWidth()
-                    .padding(16.dp),
+                    .padding(start = 16.dp, end = 16.dp)
+                    .padding(bottom = 24.dp),
                 verticalAlignment = Alignment.CenterVertically
             ) {
                 val previewDuration = viewModel.previewDurationSeconds
 
-                Box(
+                Row(
                     modifier = Modifier
                         .weight(1f)
-                        .background(androidx.compose.ui.graphics.Color(0xFF1E293B).copy(alpha = 0.9f), RoundedCornerShape(28.dp))
-                        .height(56.dp)
-                        .padding(horizontal = 12.dp, vertical = 6.dp),
-                    contentAlignment = Alignment.CenterStart
+                        .heightIn(min = 56.dp)
+                        .background(bubbleColor, RoundedCornerShape(28.dp))
+                        .border(1.dp, primaryColor.copy(alpha = 0.7f), RoundedCornerShape(28.dp))
+                        .padding(start = 8.dp, end = 8.dp),
+                    verticalAlignment = Alignment.CenterVertically
                 ) {
-                    Row(verticalAlignment = Alignment.CenterVertically) {
-                        // Trash button
-                        Box(
-                            modifier = Modifier
-                                .size(36.dp)
-                                .clip(CircleShape)
-                                .background(androidx.compose.ui.graphics.Color(0xFFFCE8E6))
-                                .clickable {
-                                    triggerLightVibration(context)
-                                    viewModel.cancelPreviewRecording(context)
-                                    Toast.makeText(context, "Nota de voz descartada", Toast.LENGTH_SHORT).show()
-                                },
-                            contentAlignment = Alignment.Center
-                        ) {
-                            Icon(
-                                imageVector = Icons.Default.Delete,
-                                contentDescription = "Eliminar",
-                                tint = androidx.compose.ui.graphics.Color.Red,
-                                modifier = Modifier.size(20.dp)
-                            )
-                        }
-                        Spacer(modifier = Modifier.width(8.dp))
+                    // Trash (cancelar)
+                    Box(
+                        modifier = Modifier
+                            .size(36.dp)
+                            .clip(CircleShape)
+                            .background(androidx.compose.ui.graphics.Color(0xFFFCE8E6))
+                            .clickable {
+                                triggerLightVibration(context)
+                                viewModel.cancelPreviewRecording(context)
+                                Toast.makeText(context, "Nota de voz descartada", Toast.LENGTH_SHORT).show()
+                            },
+                        contentAlignment = Alignment.Center
+                    ) {
+                        Icon(
+                            imageVector = Icons.Default.Delete,
+                            contentDescription = "Eliminar",
+                            tint = androidx.compose.ui.graphics.Color.Red,
+                            modifier = Modifier.size(20.dp)
+                        )
+                    }
+                    Spacer(modifier = Modifier.width(8.dp))
 
-                        // Play/Pause button
-                        Box(
-                            modifier = Modifier
-                                .size(36.dp)
-                                .clip(CircleShape)
-                                .background(primaryColor)
-                                .clickable {
-                                    if (previewPlayerState.isPlaying) {
-                                        viewModel.pausePreviewAudio()
-                                    } else {
-                                        viewModel.playPreviewAudio()
-                                    }
-                                },
-                            contentAlignment = Alignment.Center
-                        ) {
-                            Icon(
-                                imageVector = if (previewPlayerState.isPlaying) Icons.Default.Pause else Icons.Default.PlayArrow,
-                                contentDescription = "Reproducir / Pausar",
-                                tint = androidx.compose.ui.graphics.Color.White,
-                                modifier = Modifier.size(22.dp)
-                            )
-                        }
-
-                        Spacer(modifier = Modifier.width(8.dp))
-
-                        // Waveform & Time display
-                        Column(
-                            modifier = Modifier.weight(1f),
-                            verticalArrangement = Arrangement.Center
-                        ) {
-                            Row(
-                                modifier = Modifier.fillMaxWidth(),
-                                horizontalArrangement = Arrangement.SpaceBetween,
-                                verticalAlignment = Alignment.CenterVertically
-                            ) {
-                                val currentSecs = (previewPlayerState.currentPositionMs / 1000).toInt()
-                                val totalSecs = if (previewPlayerState.durationMs > 0) {
-                                    (previewPlayerState.durationMs / 1000).toInt()
+                    // Play/Pause botón
+                    Box(
+                        modifier = Modifier
+                            .size(36.dp)
+                            .clip(CircleShape)
+                            .background(primaryColor)
+                            .clickable {
+                                if (previewPlayerState.isPlaying) {
+                                    viewModel.pausePreviewAudio()
                                 } else {
-                                    previewDuration
+                                    viewModel.playPreviewAudio()
+                                }
+                            },
+                        contentAlignment = Alignment.Center
+                    ) {
+                        Icon(
+                            imageVector = if (previewPlayerState.isPlaying) Icons.Default.Pause else Icons.Default.PlayArrow,
+                            contentDescription = "Reproducir / Pausar",
+                            tint = androidx.compose.ui.graphics.Color.White,
+                            modifier = Modifier.size(22.dp)
+                        )
+                    }
+
+                    Spacer(modifier = Modifier.width(8.dp))
+
+                    // Forma de onda + tiempo
+                    Column(
+                        modifier = Modifier.weight(1f),
+                        verticalArrangement = Arrangement.Center
+                    ) {
+                        Row(
+                            modifier = Modifier.fillMaxWidth(),
+                            horizontalArrangement = Arrangement.SpaceBetween,
+                            verticalAlignment = Alignment.CenterVertically
+                        ) {
+                            val currentSecs = (previewPlayerState.currentPositionMs / 1000).toInt()
+                            val totalSecs = if (previewPlayerState.durationMs > 0) {
+                                (previewPlayerState.durationMs / 1000).toInt()
+                            } else {
+                                previewDuration
+                            }
+                            Text(
+                                text = String.format("%02d:%02d", currentSecs / 60, currentSecs % 60),
+                                color = androidx.compose.ui.graphics.Color.White,
+                                fontSize = 11.sp,
+                                fontWeight = FontWeight.Bold
+                            )
+
+                            // Speed
+                            Box(
+                                modifier = Modifier
+                                    .clip(RoundedCornerShape(12.dp))
+                                    .background(primaryColor.copy(alpha = 0.15f))
+                                    .clickable { viewModel.togglePreviewSpeed() }
+                                    .padding(horizontal = 6.dp, vertical = 2.dp),
+                                contentAlignment = Alignment.Center
+                            ) {
+                                val speedLabel = when {
+                                    previewPlayerState.playbackSpeed >= 1.9f -> "2x"
+                                    previewPlayerState.playbackSpeed >= 1.4f -> "1.5x"
+                                    else -> "1x"
                                 }
                                 Text(
-                                    text = String.format("%02d:%02d", currentSecs / 60, currentSecs % 60),
-                                    color = androidx.compose.ui.graphics.Color.White,
+                                    text = speedLabel,
+                                    color = primaryColor,
                                     fontSize = 11.sp,
                                     fontWeight = FontWeight.Bold
                                 )
-
-                                // Speed button
-                                Box(
-                                    modifier = Modifier
-                                        .clip(RoundedCornerShape(12.dp))
-                                        .background(primaryColor.copy(alpha = 0.15f))
-                                        .clickable {
-                                            viewModel.togglePreviewSpeed()
-                                        }
-                                        .padding(horizontal = 6.dp, vertical = 2.dp),
-                                    contentAlignment = Alignment.Center
-                                ) {
-                                    val speedLabel = when {
-                                        previewPlayerState.playbackSpeed >= 1.9f -> "2x"
-                                        previewPlayerState.playbackSpeed >= 1.4f -> "1.5x"
-                                        else -> "1x"
-                                    }
-                                    Text(
-                                        text = speedLabel,
-                                        color = primaryColor,
-                                        fontSize = 11.sp,
-                                        fontWeight = FontWeight.Bold
-                                    )
-                                }
-
-                                Text(
-                                    text = String.format("%02d:%02d", totalSecs / 60, totalSecs % 60),
-                                    color = androidx.compose.ui.graphics.Color(0xFF94A3B8),
-                                    fontSize = 11.sp
-                                )
                             }
 
-                            Spacer(modifier = Modifier.height(2.dp))
-
-                            val totalDurationMs = if (previewPlayerState.durationMs > 0) {
-                                previewPlayerState.durationMs
-                            } else {
-                                (previewDuration * 1000L).coerceAtLeast(1000L)
-                            }
-
-                            PreviewAudioWaveform(
-                                waveform = previewWaveform,
-                                currentPositionMs = previewPlayerState.currentPositionMs,
-                                durationMs = totalDurationMs,
-                                onSeek = { posMs ->
-                                    viewModel.seekPreviewAudio(posMs)
-                                },
-                                modifier = Modifier
-                                    .fillMaxWidth()
-                                    .height(24.dp)
+                            Text(
+                                text = String.format("%02d:%02d", totalSecs / 60, totalSecs % 60),
+                                color = androidx.compose.ui.graphics.Color(0xFF94A3B8),
+                                fontSize = 11.sp
                             )
                         }
+
+                        Spacer(modifier = Modifier.height(2.dp))
+
+                        val totalDurationMs = if (previewPlayerState.durationMs > 0) {
+                            previewPlayerState.durationMs
+                        } else {
+                            (previewDuration * 1000L).coerceAtLeast(1000L)
+                        }
+
+                        PreviewAudioWaveform(
+                            waveform = previewWaveform,
+                            currentPositionMs = previewPlayerState.currentPositionMs,
+                            durationMs = totalDurationMs,
+                            onSeek = { posMs -> viewModel.seekPreviewAudio(posMs) },
+                            modifier = Modifier
+                                .fillMaxWidth()
+                                .height(24.dp)
+                        )
                     }
                 }
 
                 Spacer(modifier = Modifier.width(8.dp))
 
-                // Enviar nota de voz preview
+                // Enviar nota (fuera del pill)
                 val isSending = recordState == RecordState.SENDING || isPreviewSending
                 Box(
                     modifier = Modifier

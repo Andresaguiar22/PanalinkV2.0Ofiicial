@@ -135,7 +135,7 @@ fun ChatTopBar(
                 modifier = Modifier
                     .fillMaxWidth()
                     .windowInsetsPadding(WindowInsets.statusBars)
-                    .padding(start = 12.dp, end = 12.dp, top = 6.dp, bottom = 8.dp)
+                    .padding(start = 12.dp, end = 12.dp, top = 4.dp, bottom = 5.dp)
             ) {
                 Column(
                     modifier = Modifier
@@ -144,7 +144,7 @@ fun ChatTopBar(
                         .background(Brush.verticalGradient(listOf(glassTop, glassBottom)))
                         .border(1.dp, glassBorder, RoundedCornerShape(28.dp))
                         .clickable(enabled = otherUser != null) { onShowContactDetail() }
-                        .padding(horizontal = 10.dp, vertical = 10.dp),
+                        .padding(horizontal = 10.dp, vertical = 5.dp),
                     horizontalAlignment = Alignment.CenterHorizontally
                 ) {
                     Row(
@@ -176,24 +176,24 @@ fun ChatTopBar(
                         Box(contentAlignment = Alignment.Center) {
                             Box(
                                 modifier = Modifier
-                                    .size(54.dp)
+                                    .size(44.dp)
                                     .clip(CircleShape)
                                     .border(2.dp, accentCyan, CircleShape)
-                                    .padding(3.dp),
+                                    .padding(2.dp),
                                 contentAlignment = Alignment.Center
                             ) {
                                 com.example.ui.components.PanaAvatar(
                                     avatarUrl = otherUser?.avatarUrl,
                                     userId = otherUser?.id,
                                     placeholderName = otherUser?.displayName ?: "",
-                                    size = 48.dp,
+                                    size = 40.dp,
                                     borderWidth = 0.dp
                                 )
                             }
                             Box(
                                 modifier = Modifier
                                     .align(Alignment.BottomEnd)
-                                    .size(14.dp)
+                                    .size(11.dp)
                                     .clip(CircleShape)
                                     .background(if (isOnlineReal) Color(0xFF4ADE80) else Color(0xFF94A3B8))
                                     .border(2.dp, Color(0xFF3A4759), CircleShape)
@@ -368,7 +368,7 @@ fun ChatTopBar(
                     Text(
                         text = otherUser?.displayName ?: "Cargando pana...",
                         fontWeight = FontWeight.Bold,
-                        fontSize = 17.sp,
+                        fontSize = 15.sp,
                         color = Color.White,
                         maxLines = 1,
                         softWrap = false,

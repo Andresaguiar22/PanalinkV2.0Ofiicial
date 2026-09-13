@@ -653,11 +653,29 @@ fun ChatScreen(
 
     Scaffold(
         contentWindowInsets = WindowInsets(0, 0, 0, 0),
-        topBar = {
-            val state = uiState as? ChatUiState.Success
-            val otherUser = state?.otherUser
+        containerColor = Color(0xFF070B18)
+    ) { innerPadding ->
+        Column(
+            modifier = Modifier
+                .fillMaxSize()
+                .padding(top = innerPadding.calculateTopPadding())
+                .navigationBarsPadding()
+                .imePadding()
+                .background(
+                    Brush.verticalGradient(
+                        colors = listOf(
+                            Color(0xFF0E1730),
+                            Color(0xFF070B18)
+                        )
+                    )
+                )
+        ) {
+            // Topbar DENTRO del content: así el fondo de chat corre TAMBIÉN debajo
+            // de la barra del perfil (referencia).
+            val stateTop = uiState as? ChatUiState.Success
+            val otherUserTop = stateTop?.otherUser
             ChatTopBar(
-                otherUser = otherUser,
+                otherUser = otherUserTop,
                 isMuted = isMuted,
                 isPinned = isPinned,
                 isLocalSearching = isLocalSearching,
@@ -665,25 +683,25 @@ fun ChatScreen(
                 typingUsers = typingUsers.value,
                 userPresence = userPresence.value,
                 isBlockedUser = isBlockedUser,
-                onBack =onBack,
+                onBack = onBack,
                 onVideoCall = {
-                    if (otherUser != null) {
+                    if (otherUserTop != null) {
                         com.example.call.CallPermissionGate.startCallIfPermitted(
                             activity = null,
                             context = context,
-                            targetUserId = otherUser.id,
-                            targetUserName = otherUser.displayName,
+                            targetUserId = otherUserTop.id,
+                            targetUserName = otherUserTop.displayName,
                             type = com.example.call.CallType.VIDEO
                         )
                     }
                 },
                 onAudioCall = {
-                    if (otherUser != null) {
+                    if (otherUserTop != null) {
                         com.example.call.CallPermissionGate.startCallIfPermitted(
                             activity = null,
                             context = context,
-                            targetUserId = otherUser.id,
-                            targetUserName = otherUser.displayName,
+                            targetUserId = otherUserTop.id,
+                            targetUserName = otherUserTop.displayName,
                             type = com.example.call.CallType.AUDIO
                         )
                     }
@@ -738,19 +756,9 @@ fun ChatScreen(
                         }
                     }
                 },
-                onNavigateToChatMedia =onNavigateToChatMedia,
-                onNavigateToSearch =onNavigateToSearch,
+                onNavigateToChatMedia = onNavigateToChatMedia,
+                onNavigateToSearch = onNavigateToSearch,
             )
-        },
-        containerColor = Color(0xFF070B18)
-    ) { innerPadding ->
-        Column(
-            modifier = Modifier
-                .fillMaxSize()
-                .padding(top = innerPadding.calculateTopPadding())
-                .navigationBarsPadding()
-                .imePadding()
-        ) {
             // Pinned Message Bar
             val state = uiState as? ChatUiState.Success
             
@@ -770,7 +778,6 @@ fun ChatScreen(
                          )
                      )
              ) {
-
                 when (uiState) {
                     is ChatUiState.Loading -> {
                         CircularProgressIndicator(
