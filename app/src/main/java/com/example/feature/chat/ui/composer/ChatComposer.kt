@@ -95,12 +95,14 @@ fun ChatComposer(
     val isInputEmpty = inputMessage.trim().isEmpty()
     val primaryColor = androidx.compose.ui.graphics.Color(0xFF38BDF8)
     val bubbleColor = androidx.compose.ui.graphics.Color(0xFF1E3A5F).copy(alpha = 0.75f)
-    // Distancia en PX que debe recorrer el dedo (con el micrófono) para alcanzar
-    // el candado. El candado vive ~96dp + ~88dp/2 por encima del borde superior del
-    // composer durante RECORDING, y el micrófono parte de la fila inferior; convertimos
-    // la posición del candado en dp a px para que el lock se active justo al tocarlo.
+    // Distancia en PX que debe recorrer el dedo (con el micrófono) para que el
+    // candado atrape el mic. Geometría real: el candado vive en el top-end del
+    // composer con offset(y=-96.dp) y alto 88dp (su centro queda ~52dp por encima
+    // del borde superior del composer); el mic parte de la fila con su centro a
+    // ~26dp de ese mismo borde. Distancia dedo->candado = 26 + 52 = 78dp.
+    // 90dp da una pisada ligera SEGURA sobre el candado (sin pasarse de largo).
     val lockThresholdPx = with(androidx.compose.ui.platform.LocalDensity.current) {
-        val micToLockDp = 138.dp // ≈ 88 (mitad candado) + 96 (offset) + 26 (desde centro del mic hasta top del composer)
+        val micToLockDp = 90.dp
         micToLockDp.toPx()
     }
 
@@ -348,8 +350,10 @@ fun ChatComposer(
             }
         }
         // MODO LOCKED_RECORDING (manos libres): píldora azul con borde que
-        // muestra la grabación en curso y trae Cancelar, Pausar/Reanudar y
-        // Enviar DENTRO de la misma píldora.
+        // muestra la grabación en curso encerrada entre dos acciones claras:
+        //    [■ STOP]  ...  00:12  ^^^^^  ...  [➤ ENVIAR]
+        // Stop detiene la nota y pasa a la píldora de pre-escucha (donde aparecen
+        // eliminar + play/pausa para escuchar). Enviar manda la nota directamente.
         else if (recordState == RecordState.LOCKED_RECORDING) {
             Row(
                 modifier = Modifier
@@ -367,7 +371,7 @@ fun ChatComposer(
                         .padding(start = 8.dp, end = 8.dp),
                     verticalAlignment = Alignment.CenterVertically
                 ) {
-                    // Cancelar (rojo)
+                    // STOP (rojo): detiene la grabación y abre la pre-escucha
                     Box(
                         modifier = Modifier
                             .size(40.dp)
@@ -375,19 +379,19 @@ fun ChatComposer(
                             .background(androidx.compose.ui.graphics.Color(0xFFFCE8E6))
                             .clickable {
                                 triggerLightVibration(context)
-                                onVoiceGestureEvent(VoiceGestureEvent.CancelRecording, context, null, null)
+                                onVoiceGestureEvent(VoiceGestureEvent.StopAndPreviewRecording, context, null, null)
                             },
                         contentAlignment = Alignment.Center
                     ) {
                         Icon(
-                            imageVector = Icons.Default.Close,
-                            contentDescription = "Cancelar grabación",
+                            imageVector = Icons.Default.Stop,
+                            contentDescription = "Detener grabación",
                             tint = androidx.compose.ui.graphics.Color(0xFFE11D48),
-                            modifier = Modifier.size(22.dp)
+                            modifier = Modifier.size(20.dp)
                         )
                     }
 
-                    Spacer(modifier = Modifier.width(8.dp))
+                    Spacer(modifier = Modifier.width(10.dp))
 
                     Text(
                         text = String.format("%02d:%02d", recordDurationSeconds / 60, recordDurationSeconds % 60),
@@ -401,55 +405,6 @@ fun ChatComposer(
                     AnimatedAudioWaves(amplitudes = voiceAmplitudes, isPaused = isRecordingPaused)
 
                     Spacer(modifier = Modifier.weight(1f))
-
-                    // Pausar / Reanudar
-                    Box(
-                        modifier = Modifier
-                            .size(40.dp)
-                            .clip(CircleShape)
-                            .background(androidx.compose.ui.graphics.Color.White.copy(alpha = 0.15f))
-                            .clickable {
-                                if (isRecordingPaused) {
-                                    isRecordingPaused = false
-                                    onVoiceGestureEvent(VoiceGestureEvent.ResumeRecording, context, null, null)
-                                } else {
-                                    isRecordingPaused = true
-                                    onVoiceGestureEvent(VoiceGestureEvent.PauseRecording, context, null, null)
-                                }
-                            },
-                        contentAlignment = Alignment.Center
-                    ) {
-                        Icon(
-                            imageVector = if (isRecordingPaused) Icons.Default.PlayArrow else Icons.Default.Pause,
-                            contentDescription = if (isRecordingPaused) "Reanudar" else "Pausar",
-                            tint = androidx.compose.ui.graphics.Color.White,
-                            modifier = Modifier.size(20.dp)
-                        )
-                    }
-
-                    Spacer(modifier = Modifier.width(6.dp))
-
-                    // Escuchar (pre-escucha): detiene y abre el reproductor sin enviar
-                    Box(
-                        modifier = Modifier
-                            .size(40.dp)
-                            .clip(CircleShape)
-                            .background(primaryColor.copy(alpha = 0.9f))
-                            .clickable {
-                                triggerLightVibration(context)
-                                onVoiceGestureEvent(VoiceGestureEvent.StopAndPreviewRecording, context, null, null)
-                            },
-                        contentAlignment = Alignment.Center
-                    ) {
-                        Icon(
-                            imageVector = Icons.Default.PlayArrow,
-                            contentDescription = "Escuchar grabación",
-                            tint = androidx.compose.ui.graphics.Color.White,
-                            modifier = Modifier.size(20.dp)
-                        )
-                    }
-
-                    Spacer(modifier = Modifier.width(6.dp))
 
                     // Enviar grabación
                     Box(
