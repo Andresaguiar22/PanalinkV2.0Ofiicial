@@ -52,6 +52,8 @@ import androidx.compose.material.icons.filled.StarBorder
 import androidx.compose.material.icons.filled.VolumeOff
 import androidx.compose.material.icons.filled.VolumeUp
 import androidx.compose.material3.ExperimentalMaterial3Api
+import androidx.compose.material3.AlertDialog
+import androidx.compose.material3.TextButton
 import androidx.compose.material3.FilterChip
 import androidx.compose.material3.FilterChipDefaults
 import androidx.compose.material3.DropdownMenu
@@ -98,6 +100,7 @@ import com.example.data.supabase.SupabaseClient
 import com.example.reels.engine.ReelPlayerPool
 import com.example.reels.engine.ReelPreloadController
 import com.example.ui.components.PanaAvatar
+import com.example.ui.components.TextAnnotator
 import com.example.ui.screen.parseStateMetadata
 import com.example.ui.viewmodel.StatesUiState
 import com.example.ui.viewmodel.StatesViewModel
@@ -144,6 +147,7 @@ fun ReelsFeedScreen(
     var commentsReelId by remember { mutableStateOf<String?>(null) }
     var heartReelId by remember { mutableStateOf<String?>(null) }
     var notInterestedReelId by remember { mutableStateOf<String?>(null) }
+    var deleteReelId by remember { mutableStateOf<String?>(null) }
     // Per-reel user pause toggle (tap center toggles play/pause).
     val userPausedIds = remember { mutableStateMapOf<String, Boolean>() }
 
@@ -229,7 +233,7 @@ fun ReelsFeedScreen(
 
     if (filteredReels.isEmpty()) {
         Box(modifier = Modifier.fillMaxSize().background(Color.Black), contentAlignment = Alignment.Center) {
-            Text("Sin reels todavía", color = Color.White)
+            Text("Sin reels todavГӯa", color = Color.White)
         }
         return
     }
@@ -256,7 +260,7 @@ fun ReelsFeedScreen(
             // Per-page overlay drawn INSIDE the pager item. Now that the video
             // surface is a TextureView (not a SurfaceView), Compose siblings can
             // draw above it without punch-through, which lets the tap/double-tap
-            // layer and the content overlay live inside the item — so the content
+            // layer and the content overlay live inside the item вҖ” so the content
             // scrolls with the video and the pager keeps receiving vertical drags.
             Box(modifier = Modifier.fillMaxSize()) {
                 ReelPlayerSurface(
@@ -307,6 +311,7 @@ fun ReelsFeedScreen(
                     onHashtag = { onNavigateToHashtag?.invoke(it) },
                     onNotInterested = { notInterestedReelId = reel.state.id },
                     onCopyLink = { copyReelLinkV2(context, reel) },
+                    onDelete = { deleteReelId = reel.state.id },
                     onMute = { muted = !muted },
                     onTogglePlayPause = {
                         val next = !(userPausedIds[reel.state.id] ?: false)
@@ -318,7 +323,7 @@ fun ReelsFeedScreen(
         }
 
         // ------------------------------------------------------------------
-        // WHOLE-FEED OVERLAY — the header pill, heart animation and per-reel
+        // WHOLE-FEED OVERLAY вҖ” the header pill, heart animation and per-reel
         // content (rail/caption/progress) used to live here ABOVE the pager.
         // That feed-level tap layer blocked the pager's vertical drags, so the
         // feed could never scroll. ReelsFeedOverlay is now rendered inside each
@@ -425,6 +430,27 @@ fun ReelsFeedScreen(
             viewModel.deleteStateForMe(reelId) { notInterestedReelId = null }
         }
     }
+
+    // Author-only delete: confirm, then remove the video remotely + locally
+    // (same wiring as the old player: viewModel.deleteState(id) { toast }).
+    deleteReelId?.let { reelId ->
+        AlertDialog(
+            onDismissRequest = { deleteReelId = null },
+            title = { Text("Eliminar vídeo") },
+            text = { Text("¿Seguro que quieres eliminar este vídeo? Esta acción no se puede deshacer.") },
+            confirmButton = {
+                TextButton(onClick = {
+                    deleteReelId = null
+                    viewModel.deleteState(reelId) {
+                        android.widget.Toast.makeText(context, "Publicación eliminada", android.widget.Toast.LENGTH_SHORT).show()
+                    }
+                }) { Text("Eliminar", color = Color(0xFFFF5252)) }
+            },
+            dismissButton = {
+                TextButton(onClick = { deleteReelId = null }) { Text("Cancelar") }
+            },
+        )
+    }
 }
 
 /** Resolves the stable URL for [reel] off the main thread and acquires it in the pool. */
@@ -440,7 +466,7 @@ private fun ensureAcquired(
 }
 
 private enum class ReelFilterV2(val label: String) {
-    EXPLORE("Explorar"), NEW("Nuevos"), TRENDING("Tendencias"), MOST_VIEWED("Más vistos")
+    EXPLORE("Explorar"), NEW("Nuevos"), TRENDING("Tendencias"), MOST_VIEWED("MГЎs vistos")
 }
 
 @Composable
@@ -459,6 +485,7 @@ private fun ReelFeedOverlay(
     onHashtag: (String) -> Unit,
     onNotInterested: () -> Unit,
     onCopyLink: () -> Unit,
+    onDelete: () -> Unit,
     onMute: () -> Unit,
     onTogglePlayPause: () -> Unit,
 ) {
@@ -467,6 +494,7 @@ private fun ReelFeedOverlay(
     val overlayScope = rememberCoroutineScope()
     val profilesRepo = remember { ProfilesRepository() }
     val currentUid = SupabaseClient.currentUser?.id
+    val isOwner = !currentUid.isNullOrBlank() && state.userId == currentUid
     var isFollowing by remember(state.userId) { mutableStateOf(false) }
 
     // Track local optimistic values so the toggles feel instant.
@@ -515,7 +543,7 @@ private fun ReelFeedOverlay(
                 IconButton(onClick = onTogglePlayPause) {
                     Icon(
                         if (paused) Icons.Filled.PlayArrow else Icons.Filled.Pause,
-                        "Reproducción",
+                        "ReproducciГіn",
                         tint = Color.White,
                         modifier = Modifier.size(30.dp)
                     )
@@ -530,45 +558,71 @@ private fun ReelFeedOverlay(
             modifier = Modifier
                 .align(Alignment.BottomEnd)
                 .navigationBarsPadding()
-                .padding(end = 6.dp, bottom = 40.dp),
+                .padding(end = 6.dp, bottom = 30.dp),
             horizontalAlignment = Alignment.CenterHorizontally,
-            verticalArrangement = Arrangement.spacedBy(1.dp),
+            verticalArrangement = Arrangement.spacedBy(2.dp),
         ) {
-            ReelActionButtonV2(if (liked) Icons.Filled.Favorite else Icons.Filled.FavoriteBorder, liked) {
+            ReelActionButtonV2(
+                icon = if (liked) Icons.Filled.Favorite else Icons.Filled.FavoriteBorder,
+                count = compactCountV2(localLikes),
+                selected = liked,
+                selectedColor = Color(0xFFFF2B54),
+            ) {
                 val next = !liked
                 liked = next
                 localLikes = (localLikes + if (next) 1 else -1).coerceAtLeast(0)
                 onLike()
             }
-            ReelActionButtonV2(Icons.Filled.ChatBubbleOutline, false, onComments)
-            ReelActionButtonV2(if (favorited) Icons.Filled.Star else Icons.Filled.StarBorder, favorited) {
+            ReelActionButtonV2(
+                icon = Icons.Filled.ChatBubbleOutline,
+                count = compactCountV2(commentsCount),
+            ) { onComments() }
+            ReelActionButtonV2(
+                icon = if (favorited) Icons.Filled.Star else Icons.Filled.StarBorder,
+                count = compactCountV2(localFavorites),
+                selected = favorited,
+                selectedColor = Color(0xFFF9C74F),
+            ) {
                 val next = !favorited
                 favorited = next
                 localFavorites = (localFavorites + if (next) 1 else -1).coerceAtLeast(0)
                 onFavorite()
             }
-            ReelActionButtonV2(Icons.Filled.Share, false) {
+            ReelActionButtonV2(
+                icon = Icons.Filled.Share,
+                count = compactCountV2(localShares),
+            ) {
                 localShares += 1
                 onShare()
             }
-            ReelActionButtonV2(if (muted) Icons.Filled.VolumeOff else Icons.Filled.VolumeUp, false, onMute)
+            ReelActionButtonV2(
+                icon = if (muted) Icons.Filled.VolumeOff else Icons.Filled.VolumeUp,
+            ) { onMute() }
             Box {
-                ReelActionButtonV2(Icons.Filled.MoreVert, false) { menuExpanded = true }
+                ReelActionButtonV2(icon = Icons.Filled.MoreVert) { menuExpanded = true }
                 DropdownMenu(expanded = menuExpanded, onDismissRequest = { menuExpanded = false }) {
                     DropdownMenuItem(text = { Text("Compartir") }, onClick = { menuExpanded = false; onShare() })
                     DropdownMenuItem(text = { Text("Copiar enlace") }, onClick = { menuExpanded = false; onCopyLink() })
                     DropdownMenuItem(text = { Text("No me interesa") }, onClick = { menuExpanded = false; onNotInterested() })
                     DropdownMenuItem(text = { Text("Ver perfil") }, onClick = { menuExpanded = false; onProfile() })
+                    if (isOwner) {
+                        HorizontalDivider(color = Color.White.copy(alpha = 0.14f))
+                        DropdownMenuItem(
+                            text = { Text("Eliminar vídeo", color = Color(0xFFFF5252)) },
+                            onClick = { menuExpanded = false; onDelete() },
+                        )
+                    }
                 }
             }
         }
 
-        // Bottom-left profile + caption + hashtags.
+        // Bottom-left profile + caption (hashtags rendered inline, no duplicate row).
         Column(
             modifier = Modifier
                 .align(Alignment.BottomStart)
                 .navigationBarsPadding()
-                .padding(start = 16.dp, end = 90.dp, bottom = 46.dp)
+                .padding(start = 16.dp, end = 90.dp, bottom = 30.dp),
+            verticalArrangement = Arrangement.spacedBy(4.dp),
         ) {
             Row(verticalAlignment = Alignment.CenterVertically) {
                 PanaAvatar(
@@ -615,24 +669,18 @@ private fun ReelFeedOverlay(
             // Technical editor tags stored in the caption ([Transition: ...],
             // [CoverFrame: ...], [Music: ...], [Scheduled: ...], [Overlays: ...], …)
             // are metadata: strip them so viewers only see what the author wrote.
+            // Hashtags/mentions are rendered once, inline and clickable (as in the
+            // old player) — no separate row, which used to duplicate them.
             val cleanCaption = remember(state.caption) { parseStateMetadata(state.caption).baseCaption }
-            cleanCaption.takeIf(String::isNotBlank)?.let {
-                Spacer(Modifier.height(5.dp))
-                Text(it, color = Color.White, maxLines = 3, style = MaterialTheme.typography.bodyMedium)
-            }
-            val hashtags = Regex("#[A-Za-z0-9_ÁÉÍÓÚáéíóúÑñ]+").findAll(cleanCaption).map { it.value }.distinct().toList()
-            if (hashtags.isNotEmpty()) {
-                Spacer(Modifier.height(3.dp))
-                Row(horizontalArrangement = Arrangement.spacedBy(7.dp)) {
-                    hashtags.take(4).forEach { tag ->
-                        Text(
-                            tag,
-                            color = Color.White,
-                            fontWeight = FontWeight.SemiBold,
-                            modifier = Modifier.clickable { onHashtag(tag.removePrefix("#")) }
-                        )
-                    }
-                }
+            if (cleanCaption.isNotBlank()) {
+                TextAnnotator.AnnotatedClickableText(
+                    text = cleanCaption,
+                    style = TextStyle(color = Color.White, fontSize = 14.sp),
+                    hashtagColor = Color(0xFF69F0AE),
+                    mentionColor = Color(0xFFE040FB),
+                    onHashtagClick = { onHashtag(it) },
+                    onMentionClick = { },
+                )
             }
         }
 
@@ -663,14 +711,37 @@ private fun ReelFeedOverlay(
 }
 
 @Composable
-private fun ReelActionButtonV2(icon: androidx.compose.ui.graphics.vector.ImageVector, selected: Boolean = false, onClick: () -> Unit) {
-    IconButton(onClick = onClick, modifier = Modifier.size(44.dp)) {
-        Icon(
-            icon,
-            contentDescription = null,
-            tint = if (selected) Color(0xFFF9D700) else Color.White,
-            modifier = Modifier.size(30.dp)
-        )
+private fun ReelActionButtonV2(
+    icon: androidx.compose.ui.graphics.vector.ImageVector,
+    count: String? = null,
+    selected: Boolean = false,
+    selectedColor: Color = Color(0xFFF9C74F),
+    onClick: () -> Unit,
+) {
+    Column(horizontalAlignment = Alignment.CenterHorizontally) {
+        IconButton(onClick = onClick, modifier = Modifier.size(42.dp)) {
+            Icon(
+                icon,
+                contentDescription = null,
+                tint = if (selected) selectedColor else Color.White,
+                modifier = Modifier.size(29.dp)
+            )
+        }
+        if (!count.isNullOrBlank()) {
+            Text(
+                count,
+                color = Color.White,
+                fontSize = 12.sp,
+                fontWeight = FontWeight.SemiBold,
+                style = TextStyle(
+                    shadow = androidx.compose.ui.graphics.Shadow(
+                        color = Color.Black.copy(alpha = 0.6f),
+                        offset = androidx.compose.ui.geometry.Offset(0.5f, 0.5f),
+                        blurRadius = 2f
+                    )
+                ),
+            )
+        }
     }
 }
 
@@ -804,7 +875,7 @@ private fun ReelsCommentsSheetV2(
                             ) {
                                 if (isReply) {
                                     Text(
-                                        text = "└─ ",
+                                        text = "в””в”Җ ",
                                         color = Color.White.copy(alpha = 0.3f),
                                         fontSize = 14.sp,
                                         modifier = Modifier.padding(end = 4.dp, top = 2.dp)
@@ -857,7 +928,7 @@ private fun ReelsCommentsSheetV2(
                                         )
                                         if (comment.deletedAt == null) {
                                             Text(
-                                                text = "• Responder",
+                                                text = "вҖў Responder",
                                                 color = Color(0xFF25D366),
                                                 fontSize = 11.sp,
                                                 fontWeight = FontWeight.SemiBold,
