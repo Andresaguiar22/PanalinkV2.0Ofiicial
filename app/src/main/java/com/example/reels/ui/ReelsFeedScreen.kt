@@ -37,6 +37,7 @@ import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.setValue
+import androidx.compose.runtime.snapshotFlow
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
@@ -55,10 +56,10 @@ import com.example.reels.engine.ReelPlayerPool
 import com.example.reels.engine.ReelPreloadController
 import com.example.ui.viewmodel.StatesUiState
 import com.example.ui.viewmodel.StatesViewModel
-import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.delay
+import kotlinx.coroutines.flow.collect
+import kotlinx.coroutines.flow.distinctUntilChanged
 import kotlinx.coroutines.launch
-import kotlinx.coroutines.withContext
 
 /**
  * TikTok-style Reels feed, rebuilt from scratch.
@@ -87,7 +88,6 @@ fun ReelsFeedScreen(
     }
 
     val pool = remember { ReelPlayerPool(context) }
-    val scope = rememberCoroutineScope()
 
     val initialIndex = remember(reels, initialStateId) {
         val idx = reels.indexOfFirst { it.state.id == initialStateId }
@@ -99,6 +99,15 @@ fun ReelsFeedScreen(
     )
 
     var currentIndex by remember { mutableIntStateOf(initialIndex) }
+
+    // Follow the pager's settled page. This is the SOURCE of truth for
+    // play/pause: previously currentIndex was never updated, so swiping changed
+    // the pager but no LaunchedEffect re-ran (all reels stayed frozen).
+    LaunchedEffect(pagerState) {
+        snapshotFlow { pagerState.currentPage }
+            .distinctUntilChanged()
+            .collect { currentIndex = it }
+    }
 
     // Register a view whenever the active page changes.
     LaunchedEffect(currentIndex) {
@@ -147,15 +156,18 @@ fun ReelsFeedScreen(
         ) { page ->
             val reel = reels.getOrNull(page) ?: return@VerticalPager
 
-            // Ensure this page's player is acquired with a resolved URL during
-            // composition so the surface binds immediately (no black frame).
-            remember(reel.state.id, pool) {
-                ensureAcquired(pool, context, reel, scope)
+            // Ensure this page's player is acquired (URL resolved off the main
+            // thread) as soon as it is composed.
+            LaunchedEffect(reel.state.id, pool) {
+                ensureAcquired(pool, context, reel)
             }
 
+            // Observe the pool: the livePlayers snapshot map is Compose-state, so this
+            // recomposes as soon as the pool assigns a player for this reel.
+            val player = pool.playerFor(reel.state.id)
+
             ReelPlayerSurface(
-                reelId = reel.state.id,
-                pool = pool,
+                player = player,
                 modifier = Modifier.fillMaxSize(),
             )
 
@@ -187,19 +199,11 @@ private fun ensureAcquired(
     pool: ReelPlayerPool,
     context: android.content.Context,
     reel: UserStateWithUser,
-    scope: kotlinx.coroutines.CoroutineScope,
 ) {
     if (pool.playerFor(reel.state.id) != null) return
     val stable = reel.state.vcdnVideoId?.let { "vcdn://$it" } ?: reel.state.mediaUrl
     if (stable.isNullOrBlank()) return
-    scope.launch {
-        val resolved = withContext(Dispatchers.IO) {
-            com.example.data.repository.CdnManager.resolveMediaUrl(stable)
-        }
-        if (!resolved.isNullOrBlank()) {
-            pool.acquire(reel.state.id, resolved, 0f, stableUrl = stable)
-        }
-    }
+    pool.acquireAsync(reel.state.id, stable)
 }
 
 @Composable

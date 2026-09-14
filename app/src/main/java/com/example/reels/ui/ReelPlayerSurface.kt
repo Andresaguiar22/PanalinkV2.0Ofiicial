@@ -4,21 +4,21 @@ import android.view.ViewGroup
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.viewinterop.AndroidView
+import androidx.media3.common.Player
 import androidx.media3.ui.AspectRatioFrameLayout
 import androidx.media3.ui.PlayerView
-import com.example.reels.engine.ReelPlayerPool
 
 /**
- * Binds a [PlayerView] to the player that the pool already holds for [reelId].
+ * Binds a [PlayerView] to [player].
  *
- * The parent is responsible for acquiring the reel in the pool before this is
- * composed. The AndroidView re-attaches only when the bound player instance
- * changes, so swipes never flicker or black-screen.
+ * The caller passes an observed (state-backed) player reference. When it changes
+ * from null (still acquiring) to a real player, the [AndroidView.update] rebinds —
+ * otherwise the view would stay stuck on the first frame / black until the next
+ * recomposition.
  */
 @Composable
 fun ReelPlayerSurface(
-    reelId: String,
-    pool: ReelPlayerPool,
+    player: Player?,
     modifier: Modifier = Modifier,
 ) {
     AndroidView(
@@ -31,12 +31,11 @@ fun ReelPlayerSurface(
                 )
                 resizeMode = AspectRatioFrameLayout.RESIZE_MODE_ZOOM
                 useController = false
-                player = pool.playerFor(reelId)
+                this.player = player
             }
         },
         update = { view ->
-            val fresh = pool.playerFor(reelId)
-            if (view.player !== fresh) view.player = fresh
+            if (view.player !== player) view.player = player
         }
     )
 }

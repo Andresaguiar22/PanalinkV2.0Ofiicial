@@ -3,6 +3,8 @@ package com.example.reels.engine
 import android.content.Context
 import android.util.Log
 import androidx.annotation.OptIn
+import androidx.compose.runtime.mutableStateMapOf
+import androidx.compose.runtime.snapshots.SnapshotStateMap
 import androidx.media3.common.MediaItem
 import androidx.media3.common.PlaybackException
 import androidx.media3.common.Player
@@ -60,12 +62,28 @@ class ReelPlayerPool(private val context: Context) {
 
     private val players = arrayOfNulls<ExoPlayer>(POOL_SIZE)
 
+    /**
+     * Compose-observable: reelId → player. Populated on acquire/eviction so the
+     * UI recomposes the moment a reel's player becomes available.
+     */
+    private val livePlayers: SnapshotStateMap<String, ExoPlayer> = mutableStateMapOf()
+
     /** Maps a reel id to the slot that currently owns it (null = not owned). */
     private val ownerByReelId = HashMap<String, Int>()
     private val reelIdBySlot = arrayOfNulls<String>(POOL_SIZE)
     private val urlBySlot = arrayOfNulls<String>(POOL_SIZE)
     private val stableUrlBySlot = arrayOfNulls<String>(POOL_SIZE)
     private val acquiredAtBySlot = LongArray(POOL_SIZE)
+
+    /**
+     * The reel the UI intends to be playing right now. Acquisition is async
+     * (URL resolution happens off the main thread), so `play()` may be called
+     * before the slot exists. When a player whose reel is the target reaches
+     * [Player.STATE_READY] we flip `playWhenReady` ourselves — eliminating the
+     * race where an acquired player would otherwise freeze on its first frame.
+     */
+    private var targetReelId: String? = null
+
     private val scope = CoroutineScope(SupervisorJob() + Dispatchers.Main)
 
     /** Builds a fresh, correctly-tuned ExoPlayer. This is the ONLY place players are created. */
@@ -107,6 +125,12 @@ class ReelPlayerPool(private val context: Context) {
                 player.playWhenReady = false
                 player.repeatMode = Player.REPEAT_MODE_ALL
                 player.addListener(object : Player.Listener {
+                    override fun onPlaybackStateChanged(playbackState: Int) {
+                        if (playbackState == Player.STATE_READY && reelIdBySlot[slot] == targetReelId) {
+                            player.playWhenReady = true
+                        }
+                    }
+
                     override fun onPlayerError(error: PlaybackException) {
                         Log.e(TAG, "slot=$slot player error code=${error.errorCode} cause=${error.cause?.javaClass?.simpleName}")
                         handlePlayerError(slot, error)
@@ -115,11 +139,22 @@ class ReelPlayerPool(private val context: Context) {
             }
     }
 
-    /** Returns the player owning [reelId], or null if none. */
-    fun playerFor(reelId: String): ExoPlayer? {
-        val slot = ownerByReelId[reelId] ?: return null
-        return players[slot]
+    /**
+     * Resolves [stableUrl] (off the main thread) and acquires the reel.
+     * Safe to call any time: if the reel is already owned it is a no-op.
+     * The Target mechanism (see [setTarget]) starts it as soon as it is READY.
+     */
+    fun acquireAsync(reelId: String, stableUrl: String, volume: Float = 0f) {
+        if (livePlayers[reelId] != null) return
+        scope.launch {
+            val resolved = runCatching { CdnManager.resolveMediaUrl(stableUrl) }.getOrNull()
+            if (resolved.isNullOrBlank()) return@launch
+            acquire(reelId, resolved, volume, stableUrl = stableUrl)
+        }
     }
+
+    /** Returns the player owning [reelId], or null if none. */
+    fun playerFor(reelId: String): ExoPlayer? = livePlayers[reelId]
 
     /**
      * Returns a slot and its player after preparing [reelId] with [url].
@@ -140,7 +175,10 @@ class ReelPlayerPool(private val context: Context) {
 
         // Evict the previous owner of this slot.
         val previousId = reelIdBySlot[slot]
-        if (previousId != null) ownerByReelId.remove(previousId)
+        if (previousId != null) {
+            ownerByReelId.remove(previousId)
+            livePlayers.remove(previousId)
+        }
 
         player.setMediaItem(MediaItem.fromUri(url))
         player.volume = volume
@@ -152,6 +190,8 @@ class ReelPlayerPool(private val context: Context) {
         stableUrlBySlot[slot] = stableUrl
         acquiredAtBySlot[slot] = System.currentTimeMillis()
         ownerByReelId[reelId] = slot
+        livePlayers[reelId] = player
+        setTarget(reelId)
         return SlotPlayer(slot, player)
     }
 
@@ -167,6 +207,7 @@ class ReelPlayerPool(private val context: Context) {
      * that keeps TikTok-like uninterrupted playback on signed HLS.
      */
     fun play(reelId: String, volume: Float): Boolean {
+        targetReelId = reelId
         val slot = ownerByReelId[reelId] ?: return false
         val player = players[slot] ?: return false
         player.volume = volume
@@ -177,6 +218,19 @@ class ReelPlayerPool(private val context: Context) {
         }
         player.playWhenReady = true
         return true
+    }
+
+    /**
+     * Marks [reelId] as the intended-playing reel without requiring the player to
+     * exist yet (used by [acquire] after async resolution). If the slot is already
+     * READY the player starts immediately; otherwise the listener starts it when
+     * it becomes ready.
+     */
+    private fun setTarget(reelId: String) {
+        targetReelId = reelId
+        val slot = ownerByReelId[reelId] ?: return
+        val player = players[slot] ?: return
+        if (player.playbackState == Player.STATE_READY) player.playWhenReady = true
     }
 
     private fun isUrlStale(slot: Int): Boolean {
@@ -230,6 +284,8 @@ class ReelPlayerPool(private val context: Context) {
 
     /** Releases everything. Called when leaving the feed. */
     fun releaseAll() {
+        targetReelId = null
+        livePlayers.clear()
         for (i in players.indices) {
             players[i]?.release()
             players[i] = null
