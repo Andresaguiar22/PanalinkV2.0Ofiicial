@@ -530,38 +530,73 @@ fun UserStoryViewer(
     var floatingReactions by remember { mutableStateOf(listOf<FloatingReactionLog>()) }
     val reactionScope = rememberCoroutineScope()
 
-    // Acción 4: Listen for realtime story reactions via Supabase Realtime (social schema)
-    LaunchedEffect(state.id) {
-        if (isMyStory) {
+    // Acción 4: Resolve the reactor's fresh avatar off the main thread and publish
+    // the floating bubble on Main (Compose state must not be mutated from IO).
+    fun pushFloatingReaction(reactingUserId: String, emoji: String) {
+        reactionScope.launch(Dispatchers.IO) {
+            val avatarUrl = if (reactingUserId.isNotBlank()) {
+                try {
+                    identityRepository.resolveFreshAvatar(reactingUserId) ?: ""
+                } catch (_: Exception) {
+                    ""
+                }
+            } else ""
+            withContext(Dispatchers.Main) {
+                floatingReactions = floatingReactions + FloatingReactionLog(
+                    id = "${System.currentTimeMillis()}_${reactingUserId}_${emoji.hashCode()}",
+                    avatarUrl = avatarUrl,
+                    emoji = emoji,
+                    userId = reactingUserId
+                )
+            }
+        }
+    }
+
+    // Acción 4: Listen for realtime story reactions via Supabase Realtime (social schema).
+    // "Me gusta" arrive on the likes table; emoji reactions arrive as story_comments
+    // inserts (the quick-reaction bar publishes emojis as comments).
+    LaunchedEffect(state.id, isMyStory) {
+        if (!isMyStory) return@LaunchedEffect
+
+        launch {
             SupabaseClient.realtimeLikes.collect { update ->
                 if (update.statusId == state.id && update.eventType == "INSERT") {
-                    reactionScope.launch(Dispatchers.IO) {
-                        val reactingUserId = try {
-                            update.record.optString("user_id", update.record.optString("author_id", ""))
-                        } catch (_: Exception) {
-                            ""
-                        }
-                        val emoji = if (update.eventType == "INSERT") {
-                            "❤️"
-                        } else {
-                            "👍"
-                        }
-                        val avatarUrl = if (reactingUserId.isNotBlank()) {
-                            try {
-                                val resolved = identityRepository.resolveFreshAvatar(reactingUserId)
-                                resolved ?: ""
-                            } catch (_: Exception) {
-                                ""
-                            }
-                        } else ""
-                        val log = FloatingReactionLog(
-                            id = "${System.currentTimeMillis()}_${reactingUserId}",
-                            avatarUrl = avatarUrl,
-                            emoji = emoji,
-                            userId = reactingUserId
-                        )
-                        floatingReactions = floatingReactions + log
+                    val reactingUserId = try {
+                        update.record.optString("user_id", update.record.optString("author_id", ""))
+                    } catch (_: Exception) {
+                        ""
                     }
+                    if (reactingUserId != currentUid) {
+                        pushFloatingReaction(reactingUserId, "❤️")
+                    }
+                }
+            }
+        }
+
+        launch {
+            SupabaseClient.realtimeComments.collect { update ->
+                if (update.statusId != state.id || update.eventType != "INSERT") return@collect
+                val reactingUserId = try {
+                    update.record.optString("author_id", update.record.optString("user_id", ""))
+                } catch (_: Exception) {
+                    ""
+                }
+                val rawText = try {
+                    update.record.optString(
+                        "body",
+                        update.record.optString(
+                            "content",
+                            update.record.optString("comment_text", update.record.optString("text", ""))
+                        )
+                    )
+                } catch (_: Exception) {
+                    ""
+                }
+                val clean = rawText.trim()
+                // Only bubble emoji-only reactions; real text replies stay in the comments sheet.
+                val isEmojiReaction = clean.isNotEmpty() && clean.length <= 8 && clean.none { it.isLetterOrDigit() }
+                if (isEmojiReaction && reactingUserId != currentUid) {
+                    pushFloatingReaction(reactingUserId, clean)
                 }
             }
         }
@@ -1139,9 +1174,7 @@ fun UserStoryViewer(
             // Profile info
             Box(modifier = Modifier.fillMaxWidth()) {
                 Row(
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .padding(horizontal = 36.dp), // leave room for centered category text
+                    modifier = Modifier.fillMaxWidth(),
                     verticalAlignment = Alignment.CenterVertically,
                     horizontalArrangement = Arrangement.SpaceBetween
                 ) {
@@ -1281,36 +1314,6 @@ fun UserStoryViewer(
                     }
                 }
                 } // closes outer Row (inside Box)
-
-                // Acción 2: Centered category text ("Pana Vídeo" / "Pana Foto")
-                Text(
-                    text = if (state.mediaType == "video") "Pana Vídeo" else "Pana Foto",
-                    color = Color.White.copy(alpha = 0.8f),
-                    fontSize = 12.sp,
-                    fontWeight = FontWeight.SemiBold,
-                    modifier = Modifier.align(Alignment.Center)
-                )
-
-                // Acción 2: Owner-only eye icon for quick spectator access (same row height)
-                if (isMyStory) {
-                    IconButton(
-                        onClick = {
-                            viewModel.loadSpectators(state.id)
-                            showSpectatorsSheet = true
-                        },
-                        modifier = Modifier
-                            .align(Alignment.BottomEnd)
-                            .background(Color.Black.copy(alpha = 0.4f), CircleShape)
-                            .size(32.dp)
-                    ) {
-                        Icon(
-                            imageVector = Icons.Default.Visibility,
-                            contentDescription = "Ver espectadores",
-                            tint = Color.White,
-                            modifier = Modifier.size(16.dp)
-                        )
-                    }
-                }
             }
         }
 
@@ -1374,15 +1377,10 @@ fun UserStoryViewer(
                 )
             }
 
-            // Quick views count display (Acción 2: eye icon only, owner-only)
-            Row(
-                modifier = Modifier.fillMaxWidth(),
-                verticalAlignment = Alignment.CenterVertically,
-                horizontalArrangement = Arrangement.SpaceBetween
-            ) {
-                val realViewsCount = spectatorsList.size
-
-                // Acción 2: Only the owner sees the eye icon; no text "0 vistas"
+            // Acción 2: Owner-only eye icon (left) + centered category text at the
+            // same height. The category lives here ONCE (never duplicated in the
+            // top HUD) and nobody but the author sees the views control.
+            Box(modifier = Modifier.fillMaxWidth()) {
                 if (isMyStory) {
                     Surface(
                         onClick = {
@@ -1391,20 +1389,31 @@ fun UserStoryViewer(
                         },
                         shape = RoundedCornerShape(16.dp),
                         color = Color.White.copy(alpha = 0.18f),
-                        modifier = Modifier.testTag("views_counter_pill")
+                        modifier = Modifier
+                            .align(Alignment.CenterStart)
+                            .testTag("views_counter_pill")
                     ) {
                         Icon(
                             imageVector = Icons.Default.Visibility,
-                            contentDescription = "$realViewsCount vistas",
+                            contentDescription = "Ver espectadores",
                             tint = Color.White,
-                            modifier = Modifier.size(20.dp)
+                            modifier = Modifier.padding(6.dp).size(20.dp)
                         )
                     }
                 }
 
+                Text(
+                    text = if (state.mediaType == "video") "Pana Vídeo" else "Pana Foto",
+                    color = Color.White.copy(alpha = 0.8f),
+                    fontSize = 12.sp,
+                    fontWeight = FontWeight.SemiBold,
+                    modifier = Modifier.align(Alignment.Center)
+                )
+
                 if (metadata.musicName != null) {
                     Row(
                         modifier = Modifier
+                            .align(Alignment.CenterEnd)
                             .background(Color(0xFF00FF85).copy(alpha = 0.12f), RoundedCornerShape(12.dp))
                             .border(1.dp, Color(0xFF00FF85).copy(alpha = 0.35f), RoundedCornerShape(12.dp))
                             .padding(horizontal = 8.dp, vertical = 4.dp),
