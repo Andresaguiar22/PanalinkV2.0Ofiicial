@@ -5,7 +5,6 @@ import androidx.compose.animation.fadeIn
 import androidx.compose.animation.fadeOut
 import androidx.compose.animation.scaleIn
 import androidx.compose.animation.scaleOut
-import androidx.compose.foundation.ExperimentalFoundationApi
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.gestures.detectTapGestures
@@ -73,17 +72,21 @@ import androidx.compose.runtime.setValue
 import androidx.compose.runtime.snapshotFlow
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
-import androidx.compose.ui.zIndex
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.example.data.model.UserStateWithUser
+import com.example.data.repository.ProfilesRepository
+import com.example.data.supabase.SupabaseClient
 import com.example.reels.engine.ReelPlayerPool
 import com.example.reels.engine.ReelPreloadController
 import com.example.ui.components.PanaAvatar
+import com.example.ui.screen.parseStateMetadata
 import com.example.ui.viewmodel.StatesUiState
 import com.example.ui.viewmodel.StatesViewModel
 import kotlinx.coroutines.delay
@@ -449,6 +452,15 @@ private fun ReelFeedOverlay(
 ) {
     val state = reel.state
     val profile = reel.profile
+    val overlayScope = rememberCoroutineScope()
+    val profilesRepo = remember { ProfilesRepository() }
+    val currentUid = SupabaseClient.currentUser?.id
+    var isFollowing by remember(state.userId) { mutableStateOf(false) }
+    LaunchedEffect(state.userId) {
+        if (!currentUid.isNullOrBlank() && state.userId.isNotBlank()) {
+            profilesRepo.isFollowing(currentUid, state.userId).onSuccess { isFollowing = it }
+        }
+    }
     var liked by remember(state.id) { mutableStateOf(state.likedByMe ?: false) }
     var favorited by remember(state.id) { mutableStateOf(state.favoritedByMe ?: false) }
     var localLikes by remember(state.id) { mutableIntStateOf(state.likesCount ?: 0) }
@@ -462,31 +474,50 @@ private fun ReelFeedOverlay(
         player?.volume = if (muted) 0f else 1f
     }
 
+    // Center play/pause affordance: it stays visible while paused but only
+    // flashes briefly when playback resumes, then fades out (TikTok behaviour).
+    var showCenterIcon by remember(state.id) { mutableStateOf(false) }
+    LaunchedEffect(paused, state.id) {
+        if (paused) {
+            showCenterIcon = true
+        } else if (showCenterIcon) {
+            delay(700)
+            showCenterIcon = false
+        }
+    }
+
     Box(modifier = Modifier.fillMaxSize()) {
-        Surface(
-            modifier = Modifier
-                .align(Alignment.Center)
-                .size(56.dp),
-            shape = CircleShape,
-            color = Color.Black.copy(alpha = if (paused) 0.74f else 0.28f),
+        AnimatedVisibility(
+            visible = showCenterIcon,
+            modifier = Modifier.align(Alignment.Center),
+            enter = fadeIn() + scaleIn(initialScale = 0.7f),
+            exit = fadeOut() + scaleOut(targetScale = 0.7f),
         ) {
-            IconButton(onClick = onTogglePlayPause) {
-                Icon(
-                    if (paused) Icons.Filled.PlayArrow else Icons.Filled.Pause,
-                    "Reproducción",
-                    tint = Color.White,
-                    modifier = Modifier.size(30.dp)
-                )
+            Surface(
+                modifier = Modifier.size(56.dp),
+                shape = CircleShape,
+                color = Color.Black.copy(alpha = if (paused) 0.74f else 0.28f),
+            ) {
+                IconButton(onClick = onTogglePlayPause) {
+                    Icon(
+                        if (paused) Icons.Filled.PlayArrow else Icons.Filled.Pause,
+                        "Reproducción",
+                        tint = Color.White,
+                        modifier = Modifier.size(30.dp)
+                    )
+                }
             }
         }
 
-        // Center-right action rail (like/comment/favorite/share/mute/menu).
+        // Bottom-right action rail (like/comment/favorite/share/mute/menu).
+        // Anchored just above the progress bar, tight spacing, hugging the edge.
         Column(
             modifier = Modifier
-                .align(Alignment.CenterEnd)
-                .padding(end = 10.dp),
+                .align(Alignment.BottomEnd)
+                .navigationBarsPadding()
+                .padding(end = 6.dp, bottom = 44.dp),
             horizontalAlignment = Alignment.CenterHorizontally,
-            verticalArrangement = Arrangement.spacedBy(8.dp),
+            verticalArrangement = Arrangement.spacedBy(2.dp),
         ) {
             ReelActionButtonV2(if (liked) Icons.Filled.Favorite else Icons.Filled.FavoriteBorder, compactCountV2(localLikes), liked) {
                 val next = !liked
@@ -538,14 +569,43 @@ private fun ReelFeedOverlay(
                     color = Color.White,
                     style = MaterialTheme.typography.titleMedium,
                     fontWeight = FontWeight.Bold,
-                    modifier = Modifier.clickable(onClick = onProfile)
+                    maxLines = 1,
+                    overflow = TextOverflow.Ellipsis,
+                    modifier = Modifier.weight(1f, fill = false).clickable(onClick = onProfile)
                 )
+                if (!currentUid.isNullOrBlank() && state.userId.isNotBlank() && state.userId != currentUid) {
+                    Spacer(Modifier.width(8.dp))
+                    Text(
+                        if (isFollowing) "Siguiendo" else "Seguir",
+                        color = Color.White,
+                        fontWeight = FontWeight.Bold,
+                        style = MaterialTheme.typography.labelMedium,
+                        modifier = Modifier
+                            .clip(RoundedCornerShape(6.dp))
+                            .background(if (isFollowing) Color.White.copy(alpha = 0.16f) else Color(0xFFFF2B54))
+                            .clickable {
+                                if (currentUid.isNullOrBlank()) return@clickable
+                                overlayScope.launch {
+                                    if (isFollowing) {
+                                        profilesRepo.unfollowUser(currentUid, state.userId).onSuccess { isFollowing = false }
+                                    } else {
+                                        profilesRepo.followUser(currentUid, state.userId).onSuccess { isFollowing = true }
+                                    }
+                                }
+                            }
+                            .padding(horizontal = 12.dp, vertical = 5.dp),
+                    )
+                }
             }
-            state.caption?.takeIf(String::isNotBlank)?.let {
+            // Technical editor tags stored in the caption ([Transition: ...],
+            // [CoverFrame: ...], [Music: ...], [Scheduled: ...], [Overlays: ...], …)
+            // are metadata: strip them so viewers only see what the author wrote.
+            val cleanCaption = remember(state.caption) { parseStateMetadata(state.caption).baseCaption }
+            cleanCaption.takeIf(String::isNotBlank)?.let {
                 Spacer(Modifier.height(5.dp))
                 Text(it, color = Color.White, maxLines = 3, style = MaterialTheme.typography.bodyMedium)
             }
-            val hashtags = Regex("#[A-Za-z0-9_ÁÉÍÓÚáéíóúÑñ]+").findAll(state.caption.orEmpty()).map { it.value }.distinct().toList()
+            val hashtags = Regex("#[A-Za-z0-9_ÁÉÍÓÚáéíóúÑñ]+").findAll(cleanCaption).map { it.value }.distinct().toList()
             if (hashtags.isNotEmpty()) {
                 Spacer(Modifier.height(3.dp))
                 Row(horizontalArrangement = Arrangement.spacedBy(7.dp)) {
@@ -590,7 +650,7 @@ private fun ReelFeedOverlay(
 @Composable
 private fun ReelActionButtonV2(icon: androidx.compose.ui.graphics.vector.ImageVector, count: String, selected: Boolean = false, onClick: () -> Unit) {
     Column(horizontalAlignment = Alignment.CenterHorizontally) {
-        IconButton(onClick = onClick, modifier = Modifier.size(52.dp)) {
+        IconButton(onClick = onClick, modifier = Modifier.size(48.dp)) {
             Icon(
                 icon,
                 contentDescription = null,
@@ -598,7 +658,12 @@ private fun ReelActionButtonV2(icon: androidx.compose.ui.graphics.vector.ImageVe
                 modifier = Modifier.size(30.dp)
             )
         }
-        if (count.isNotBlank()) Text(count, color = Color.White, fontWeight = FontWeight.SemiBold)
+        if (count.isNotBlank()) Text(
+            count,
+            color = Color.White,
+            fontWeight = FontWeight.SemiBold,
+            style = MaterialTheme.typography.labelMedium,
+        )
     }
 }
 
