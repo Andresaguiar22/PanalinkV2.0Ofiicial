@@ -68,6 +68,33 @@ class ReelPlayerPool(private val context: Context) {
      */
     private val livePlayers: SnapshotStateMap<String, ExoPlayer> = mutableStateMapOf()
 
+    /**
+     * Compose-observable playback timing per reel, refreshed on a periodic tick
+     * (like the old overlay's 150 ms polling loop). Drives the bottom progress
+     * bar and the play/pause icon.
+     */
+    data class PlayerTiming(val positionMs: Long, val durationMs: Long, val playing: Boolean)
+    private val timings: SnapshotStateMap<String, PlayerTiming> = mutableStateMapOf()
+
+    /** Starts periodic timing updates for every live player while the feed is open. */
+    fun startTimingUpdates() {
+        tickerJob = scope.launch {
+            while (true) {
+                for ((reelId, player) in livePlayers) {
+                    if (reelId == targetReelId) {
+                        val dur = runCatching { player.duration }.getOrDefault(0L)
+                        val pos = runCatching { player.currentPosition }.getOrDefault(0L).coerceAtLeast(0L)
+                        timings[reelId] = PlayerTiming(pos, dur, player.playWhenReady)
+                    }
+                }
+                kotlinx.coroutines.delay(150)
+            }
+        }
+    }
+
+    var tickerJob: kotlinx.coroutines.Job? = null
+        private set
+
     /** Maps a reel id to the slot that currently owns it (null = not owned). */
     private val ownerByReelId = HashMap<String, Int>()
     private val reelIdBySlot = arrayOfNulls<String>(POOL_SIZE)
@@ -89,6 +116,10 @@ class ReelPlayerPool(private val context: Context) {
 
     /** Reel ids that must NOT be evicted (current + upcoming pages). */
     private val protectedReels = HashSet<String>()
+
+    /** Reels the user manually paused via the play/pause tap. The target-start
+     *  mechanism respects this so a paused reel stays paused until toggled. */
+    private val userPausedReels = HashSet<String>()
 
     private val scope = CoroutineScope(SupervisorJob() + Dispatchers.Main)
 
@@ -132,9 +163,13 @@ class ReelPlayerPool(private val context: Context) {
                 player.repeatMode = Player.REPEAT_MODE_ALL
                 player.addListener(object : Player.Listener {
                     override fun onPlaybackStateChanged(playbackState: Int) {
-                        if (playbackState == Player.STATE_READY && reelIdBySlot[slot] == targetReelId) {
+                        val id = reelIdBySlot[slot]
+                        if (playbackState == Player.STATE_READY &&
+                            id == targetReelId && id != null &&
+                            !userPausedReels.contains(id)
+                        ) {
                             // Starts from 0 whenever a freshly-prepared target reaches READY.
-                            if (lastPlayedReelId != reelIdBySlot[slot]) player.seekTo(0)
+                            if (lastPlayedReelId != id) player.seekTo(0)
                             player.playWhenReady = true
                         }
                     }
@@ -163,6 +198,9 @@ class ReelPlayerPool(private val context: Context) {
 
     /** Returns the player owning [reelId], or null if none. */
     fun playerFor(reelId: String): ExoPlayer? = livePlayers[reelId]
+
+    /** Compose-observable timing for [reelId] (progress bar / play-pause icon). */
+    fun timingFor(reelId: String): PlayerTiming? = timings[reelId]
 
     /**
      * Returns a slot and its player after preparing [reelId] with [url].
@@ -221,6 +259,21 @@ class ReelPlayerPool(private val context: Context) {
     }
 
     /**
+     * User-explicit play/pause toggled by tapping the video. Marks/clears the
+     * userPaused flag so the target-start mechanism does not fight the tap.
+     */
+    fun setUserPaused(reelId: String, paused: Boolean) {
+        if (paused) {
+            userPausedReels.add(reelId)
+            playerFor(reelId)?.playWhenReady = false
+        } else {
+            userPausedReels.remove(reelId)
+            // If the reel is the current target, resume; otherwise just clear flag.
+            playerFor(reelId)?.playWhenReady = reelId == targetReelId
+        }
+    }
+
+    /**
      * Sets the reels that must keep their players (current page + the ones about
      * to be shown when scrolling fast). Eviction only touches other slots, so a
      * page that is about to come on screen never loses its ready player — that
@@ -240,6 +293,7 @@ class ReelPlayerPool(private val context: Context) {
     fun play(reelId: String, volume: Float): Boolean {
         lastPlayedReelId = reelId
         targetReelId = reelId
+        userPausedReels.remove(reelId)
         val slot = ownerByReelId[reelId] ?: return false
         val player = players[slot] ?: return false
         player.volume = volume
@@ -265,7 +319,7 @@ class ReelPlayerPool(private val context: Context) {
         val slot = ownerByReelId[reelId] ?: return
         val player = players[slot] ?: return
         val isTarget = reelId == targetReelId
-        if (isTarget && player.playbackState == Player.STATE_READY) {
+        if (isTarget && player.playbackState == Player.STATE_READY && !userPausedReels.contains(reelId)) {
             player.seekTo(0)
             player.playWhenReady = true
         } else if (!isTarget) {
@@ -328,7 +382,11 @@ class ReelPlayerPool(private val context: Context) {
         targetReelId = null
         lastPlayedReelId = null
         protectedReels.clear()
+        userPausedReels.clear()
+        tickerJob?.cancel()
+        tickerJob = null
         livePlayers.clear()
+        timings.clear()
         for (i in players.indices) {
             players[i]?.release()
             players[i] = null
