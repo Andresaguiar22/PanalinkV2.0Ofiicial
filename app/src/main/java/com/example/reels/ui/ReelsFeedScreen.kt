@@ -129,9 +129,18 @@ fun ReelsFeedScreen(
         }
     }
 
-    // When the page changes, play the page's reel and pause others.
+    // When the page changes, play the page's reel and pause others. Protect the
+    // current page + the ones likely to be shown next from eviction so fast
+    // swipes never land on a page whose player was just discarded (black frame).
     LaunchedEffect(currentIndex) {
         if (currentIndex in reels.indices) {
+            val protect = buildSet {
+                add(currentIndex)
+                add(currentIndex - 1)
+                add(currentIndex + 1)
+            }.mapNotNull { reels.getOrNull(it)?.state?.id }.toSet()
+            pool.setProtectedReels(protect)
+
             for (i in reels.indices) {
                 if (i == currentIndex) pool.play(reels[i].state.id, 1f) else pool.pause(reels[i].state.id)
             }
@@ -157,8 +166,10 @@ fun ReelsFeedScreen(
             val reel = reels.getOrNull(page) ?: return@VerticalPager
 
             // Ensure this page's player is acquired (URL resolved off the main
-            // thread) as soon as it is composed.
-            LaunchedEffect(reel.state.id, pool) {
+            // thread) as soon as it is composed. `player` in the key re-runs the
+            // effect if the player is later evicted, so the page re-acquires
+            // instead of staying on a black frame.
+            LaunchedEffect(reel.state.id, pool, pool.playerFor(reel.state.id)) {
                 ensureAcquired(pool, context, reel)
             }
 

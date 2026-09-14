@@ -84,6 +84,12 @@ class ReelPlayerPool(private val context: Context) {
      */
     private var targetReelId: String? = null
 
+    /** The reel that was last requested to play. Used to restart from 0 on navigation. */
+    private var lastPlayedReelId: String? = null
+
+    /** Reel ids that must NOT be evicted (current + upcoming pages). */
+    private val protectedReels = HashSet<String>()
+
     private val scope = CoroutineScope(SupervisorJob() + Dispatchers.Main)
 
     /** Builds a fresh, correctly-tuned ExoPlayer. This is the ONLY place players are created. */
@@ -127,6 +133,8 @@ class ReelPlayerPool(private val context: Context) {
                 player.addListener(object : Player.Listener {
                     override fun onPlaybackStateChanged(playbackState: Int) {
                         if (playbackState == Player.STATE_READY && reelIdBySlot[slot] == targetReelId) {
+                            // Starts from 0 whenever a freshly-prepared target reaches READY.
+                            if (lastPlayedReelId != reelIdBySlot[slot]) player.seekTo(0)
                             player.playWhenReady = true
                         }
                     }
@@ -169,8 +177,20 @@ class ReelPlayerPool(private val context: Context) {
             return SlotPlayer(existingSlot, p)
         }
 
-        // Pick the slot with no owner, else evict the oldest-assigned populated slot.
-        val slot = firstFreeSlot() ?: evictionSlot()
+        // Pick a free slot, else evict the oldest-assigned populated slot that is
+        // NOT protected (protected = current/upcoming page).
+        var slot = firstFreeSlot()
+        if (slot == null) {
+            slot = evictionSlot()
+            // If the only eviction candidates are protected (pool too small for the
+            // protected set), fall back to the oldest slot — playback is better than
+            // perfect protection during hyper-fast swipes.
+            val prev = reelIdBySlot[slot]
+            if (prev != null && protectedReels.contains(prev)) {
+                val alt = firstUnprotectedSlot() ?: slot
+                if (alt != slot) slot = alt
+            }
+        }
         val player = players[slot] ?: buildSlot(slot).also { players[slot] = it }
 
         // Evict the previous owner of this slot.
@@ -201,12 +221,24 @@ class ReelPlayerPool(private val context: Context) {
     }
 
     /**
+     * Sets the reels that must keep their players (current page + the ones about
+     * to be shown when scrolling fast). Eviction only touches other slots, so a
+     * page that is about to come on screen never loses its ready player — that
+     * used to cause a black/frozen frame during fast swipes.
+     */
+    fun setProtectedReels(ids: Set<String>) {
+        protectedReels.clear()
+        protectedReels.addAll(ids)
+    }
+
+    /**
      * Starts playback for [reelId] on whatever slot owns it.
      * Before starting, if the cached VCDN URL is older than [URL_TTL_MS] a fresh
      * URL is minted asynchronously and swapped in — a cheap preventive measure
      * that keeps TikTok-like uninterrupted playback on signed HLS.
      */
     fun play(reelId: String, volume: Float): Boolean {
+        lastPlayedReelId = reelId
         targetReelId = reelId
         val slot = ownerByReelId[reelId] ?: return false
         val player = players[slot] ?: return false
@@ -216,6 +248,9 @@ class ReelPlayerPool(private val context: Context) {
             // Start with the existing (still-valid) URL right away; the refresh
             // swaps in the new one as soon as it is minted.
         }
+        // TikTok behavior: the reel always starts from 0 when you land on it
+        // (fresh visit, swiping back, or after it ended and is revisited).
+        player.seekTo(0)
         player.playWhenReady = true
         return true
     }
@@ -227,10 +262,16 @@ class ReelPlayerPool(private val context: Context) {
      * it becomes ready.
      */
     private fun setTarget(reelId: String) {
-        targetReelId = reelId
         val slot = ownerByReelId[reelId] ?: return
         val player = players[slot] ?: return
-        if (player.playbackState == Player.STATE_READY) player.playWhenReady = true
+        val isTarget = reelId == targetReelId
+        if (isTarget && player.playbackState == Player.STATE_READY) {
+            player.seekTo(0)
+            player.playWhenReady = true
+        } else if (!isTarget) {
+            // A preloaded (non-active) reel should stay frozen on its first frame.
+            player.playWhenReady = false
+        }
     }
 
     private fun isUrlStale(slot: Int): Boolean {
@@ -285,6 +326,8 @@ class ReelPlayerPool(private val context: Context) {
     /** Releases everything. Called when leaving the feed. */
     fun releaseAll() {
         targetReelId = null
+        lastPlayedReelId = null
+        protectedReels.clear()
         livePlayers.clear()
         for (i in players.indices) {
             players[i]?.release()
@@ -310,6 +353,15 @@ class ReelPlayerPool(private val context: Context) {
             if (reelIdBySlot[i] != null) return i
         }
         return 0
+    }
+
+    /** Lowest-index populated slot that is not in [protectedReels], or null. */
+    private fun firstUnprotectedSlot(): Int? {
+        for (i in 0 until POOL_SIZE) {
+            val id = reelIdBySlot[i] ?: continue
+            if (!protectedReels.contains(id)) return i
+        }
+        return null
     }
 
     fun debugDump(): String = buildString {
