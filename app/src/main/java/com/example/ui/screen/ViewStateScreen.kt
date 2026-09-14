@@ -2042,17 +2042,21 @@ fun FloatingReactionsContainer(
     if (reactions.isEmpty()) return
     Box(modifier = modifier.fillMaxSize()) {
         reactions.forEachIndexed { _, reaction ->
+            val lane = remember(reaction.id) { (reaction.id.hashCode() % 4) }
+            val isLeftLane = remember(reaction.id) { lane % 2 == 0 }
             val offsetY = remember(reaction.id) { Animatable(0f) }
+            val offsetX = remember(reaction.id) { Animatable(0f) }
             val alpha = remember(reaction.id) { Animatable(0f) }
             val scale = remember(reaction.id) { Animatable(0.5f) }
             LaunchedEffect(reaction.id) {
-                // Pop-in + float UP (bottom → top). fadeIn/scaleIn, slide,
-                // fadeOut. Live reactions must rise from the bottom of the
-                // viewer, never fall from the top.
+                // Pop-in + float UP along a NARROW lateral lane. Each reaction stays
+                // close to its edge of the screen and never drifts across the media
+                // center, so the publication's content isn't blocked.
                 alpha.animateTo(1f, tween(180, easing = LinearOutSlowInEasing))
-                val riseDistance = (-170 - (reaction.id.hashCode() % 3) * 40).toFloat()
+                val riseDistance = (-160 - (reaction.id.hashCode() % 3) * 36).toFloat()
                 scale.animateTo(1f, tween(220, easing = LinearOutSlowInEasing))
-                offsetY.animateTo(riseDistance, tween(2400, easing = LinearOutSlowInEasing))
+                offsetX.animateTo(34f * if (isLeftLane) -1f else 1f, tween(2600, easing = LinearOutSlowInEasing))
+                offsetY.animateTo(riseDistance, tween(2600, easing = LinearOutSlowInEasing))
                 alpha.animateTo(0f, tween(500, easing = FastOutLinearInEasing))
                 onDismiss(reaction.id)
             }
@@ -2061,12 +2065,16 @@ fun FloatingReactionsContainer(
                     .graphicsLayer {
                         this.alpha = alpha.value
                         this.translationY = offsetY.value
+                        this.translationX = offsetX.value
                         this.scaleX = scale.value
                         this.scaleY = scale.value
                     }
-                    .align(Alignment.BottomCenter)
-                    .padding(start = 40.dp + (reaction.id.hashCode() % 4 * 30f).dp)
-                    .offset(y = (-110).dp)
+                    .align(if (isLeftLane) Alignment.BottomStart else Alignment.BottomEnd)
+                    .padding(
+                        bottom = 110.dp,
+                        start = if (isLeftLane) 24.dp else 0.dp,
+                        end = if (!isLeftLane) 24.dp else 0.dp
+                    )
                     .size(40.dp)
             ) {
                 PanaAvatar(
