@@ -57,6 +57,7 @@ fun ChatTopBar(
     onSearchQueryChange: (String) -> Unit,
     onShowContactDetail: () -> Unit,
     onShowBackgroundDialog: () -> Unit,
+    onShowBubblePaletteDialog: () -> Unit,
     onToggleMute: () -> Unit,
     onTogglePin: () -> Unit,
     onClearChat: () -> Unit,
@@ -322,6 +323,16 @@ fun ChatTopBar(
                                         },
                                         leadingIcon = {
                                             Icon(Icons.Default.Wallpaper, contentDescription = null, tint = Color(0xFF94A3B8))
+                                        }
+                                    )
+                                    DropdownMenuItem(
+                                        text = { Text("Color de burbujas", color = Color.White) },
+                                        onClick = {
+                                            showChatMenu = false
+                                            onShowBubblePaletteDialog()
+                                        },
+                                        leadingIcon = {
+                                            Icon(Icons.Default.Palette, contentDescription = null, tint = Color(0xFF94A3B8))
                                         }
                                     )
                                     DropdownMenuItem(
