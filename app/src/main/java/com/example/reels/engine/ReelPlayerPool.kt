@@ -45,11 +45,12 @@ class ReelPlayerPool(private val context: Context) {
         const val POOL_SIZE = 3
 
         // Fast-start friendly: begin playback almost immediately (300 ms) once
-        // enough data is buffered; after a rebuffer allow more margin (3 s).
+        // enough data is buffered; after a rebuffer allow a wider margin so a
+        // long video does not stall while the player refills after a URL swap.
         private const val MIN_BUFFER_MS = 10_000
-        private const val MAX_BUFFER_MS = 40_000
+        private const val MAX_BUFFER_MS = 60_000
         private const val BUFFER_FOR_PLAYBACK_MS = 300
-        private const val BUFFER_FOR_PLAYBACK_AFTER_REBUFFER_MS = 3_000
+        private const val BUFFER_FOR_PLAYBACK_AFTER_REBUFFER_MS = 6_000
 
         // VCDN signed URLs expire ~60s (BFF TTL). Any cached URL older than this
         // is force-refreshed BEFORE playback starts to avoid a mid-playback 401.
@@ -286,9 +287,13 @@ class ReelPlayerPool(private val context: Context) {
 
     /**
      * Starts playback for [reelId] on whatever slot owns it.
-     * Before starting, if the cached VCDN URL is older than [URL_TTL_MS] a fresh
-     * URL is minted asynchronously and swapped in — a cheap preventive measure
-     * that keeps TikTok-like uninterrupted playback on signed HLS.
+     *
+     * A stale VCDN URL is only force-refreshed while the player is NOT actively
+     * rendering (STATE_READY with playWhenReady=true). Swapping the media item
+     * mid-playback discards the buffered ranges and recreates the codec, which
+     * makes long videos freeze/stall right around the signed-URL expiry (~60 s).
+     * For an already-playing reel we keep the current URL and rely on the reactive
+     * 401 recovery (see [handlePlayerError]) instead.
      */
     fun play(reelId: String, volume: Float): Boolean {
         lastPlayedReelId = reelId
@@ -297,14 +302,17 @@ class ReelPlayerPool(private val context: Context) {
         val slot = ownerByReelId[reelId] ?: return false
         val player = players[slot] ?: return false
         player.volume = volume
-        if (isUrlStale(slot)) {
+        val isActivelyPlaying = player.playbackState == Player.STATE_READY && player.playWhenReady
+        if (isUrlStale(slot) && !isActivelyPlaying) {
             refreshUrlAsync(slot)
-            // Start with the existing (still-valid) URL right away; the refresh
-            // swaps in the new one as soon as it is minted.
         }
-        // TikTok behavior: the reel always starts from 0 when you land on it
-        // (fresh visit, swiping back, or after it ended and is revisited).
-        player.seekTo(0)
+        // TikTok behavior: the reel starts from 0 on a fresh visit (it already
+        // ended or was never played in this session). Re-visiting a reel that is
+        // mid-way keeps its position so long playback is never forced to restart.
+        val wasActivelyPlaying = isActivelyPlaying
+        if (!wasActivelyPlaying || player.currentPosition >= player.duration - 1_000L) {
+            player.seekTo(0)
+        }
         player.playWhenReady = true
         return true
     }
@@ -360,12 +368,19 @@ class ReelPlayerPool(private val context: Context) {
         val player = players[slot] ?: return false
         if (urlBySlot[slot] == newUrl) return false
         val playing = player.playWhenReady
-        player.setMediaItem(MediaItem.fromUri(newUrl))
-        player.prepare()
-        player.seekTo(positionMs)
-        player.playWhenReady = playing
-        urlBySlot[slot] = newUrl
-        return true
+        return try {
+            player.setMediaItem(MediaItem.fromUri(newUrl))
+            player.prepare()
+            player.seekTo(positionMs)
+            player.playWhenReady = playing
+            urlBySlot[slot] = newUrl
+            true
+        } catch (e: IllegalStateException) {
+            // The slot may have been released/evicted between the check and the
+            // swap (e.g. a swipe landed on this reel). Do not crash the feed.
+            Log.w(TAG, "refreshUrl: player released mid-swap for $reelId", e)
+            false
+        }
     }
 
     /** Handles a player error: HTTP 401 (2004) => refresh signed URL and resume. */

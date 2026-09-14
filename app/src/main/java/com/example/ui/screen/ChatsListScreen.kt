@@ -926,8 +926,7 @@ fun ChatsListScreen(
                                         tabNavController.navigate("chats") { popUpTo(tabNavController.graph.startDestinationId) { saveState = true }; launchSingleTop = true; restoreState = true }
                                     },
                                     onNavigateToUserProfile = onNavigateToUserProfile,
-                                    onNavigateToHashtag = null,
-                                    onSearchResults = null
+                                    onNavigateToHashtag = null
                                 )
                             }
                         }

@@ -42,7 +42,6 @@ import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.rounded.Send
 import androidx.compose.material.icons.filled.ArrowBack
-import androidx.compose.material.icons.filled.ArrowForward
 import androidx.compose.material.icons.filled.ChatBubbleOutline
 import androidx.compose.material.icons.filled.Close
 import androidx.compose.material.icons.filled.Delete
@@ -52,7 +51,6 @@ import androidx.compose.material.icons.filled.MoreVert
 import androidx.compose.material.icons.filled.Pause
 import androidx.compose.material.icons.filled.PlayArrow
 import androidx.compose.material.icons.filled.Refresh
-import androidx.compose.material.icons.filled.Search
 import androidx.compose.material.icons.filled.Share
 import androidx.compose.material.icons.filled.Star
 import androidx.compose.material.icons.filled.StarBorder
@@ -74,8 +72,6 @@ import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.OutlinedTextFieldDefaults
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
-import androidx.compose.material3.TextField
-import androidx.compose.material3.TextFieldDefaults
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.DisposableEffect
 import androidx.compose.runtime.LaunchedEffect
@@ -93,7 +89,6 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.focus.FocusRequester
 import androidx.compose.ui.focus.focusRequester
-import androidx.compose.ui.focus.onFocusChanged
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.input.pointer.PointerEventPass
@@ -145,8 +140,6 @@ fun ReelsFeedScreen(
     onBack: () -> Unit,
     onNavigateToUserProfile: ((String) -> Unit)? = null,
     onNavigateToHashtag: ((String) -> Unit)? = null,
-    onSearchResults: ((String) -> Unit)? = null,
-    onSearch: (() -> Unit)? = null,
 ) {
     val context = LocalContext.current.applicationContext
     val reelsState by viewModel.reelsState.collectAsStateWithLifecycle()
@@ -186,16 +179,6 @@ fun ReelsFeedScreen(
                     (it.state.viewsCount ?: 0).toLong()
             }
         }
-    }
-
-    // Query stats for the top search field: scope the count to the reels the
-    // current filter is showing (TikTok shows "resultados para …" in the field)
-    // while the menu is closed, and to all reels once the user starts typing.
-    var searchQuery by remember { mutableStateOf("") }
-    val searchScope = when {
-        searchQuery.isNotBlank() -> reels
-        filter == ReelFilterV2.EXPLORE -> reels
-        else -> filteredReels
     }
 
     val initialIndex = remember(filteredReels, initialStateId) {
@@ -483,206 +466,6 @@ fun ReelsFeedScreen(
                     modifier = Modifier.size(40.dp)
                 ) {
                     Icon(Icons.Default.Refresh, "Actualizar Reels", tint = Color.White)
-                }
-            }
-        }
-
-        // Floating search pill (TikTok style): focused field with live results
-        // filtered from the local Room cache, Enter → full search screen if the
-        // caller registered one. Tap-away and IME actions dismiss it.
-        Box(
-            modifier = Modifier
-                .align(Alignment.TopCenter)
-                .statusBarsPadding()
-                .padding(horizontal = 12.dp, vertical = 56.dp),
-        ) {
-            var searchExpanded by remember { mutableStateOf(false) }
-            var searchFocused by remember { mutableStateOf(false) }
-            val searchFocus = remember { FocusRequester() }
-
-            // Tap-away: taps outside the search pill close the focused field.
-            // Drawn first (below the pill) so clicks in the pill itself work.
-            if (searchFocused || searchExpanded) {
-                Box(
-                    Modifier
-                        .matchParentSize()
-                        .background(Color.Black.copy(alpha = 0.30f))
-                        .pointerInput(Unit) {
-                            awaitEachGesture {
-                                awaitFirstDown(requireUnconsumed = false)
-                                searchExpanded = false
-                                searchFocused = false
-                                searchFocus.freeFocus()
-                            }
-                        },
-                )
-            }
-
-            // Tapping anywhere in the pill focuses the field (which opens the keyboard).
-            fun focusSearch() {
-                searchFocus.requestFocus()
-            }
-
-            // Normalize (lowercase) the query for accents-insensitive matching.
-            val normalizedQuery = searchQuery.trim().lowercase()
-            val searchMatches = remember(normalizedQuery, searchScope) {
-                if (normalizedQuery.isBlank()) emptyList()
-                else searchScope.filter { item ->
-                    val caption = item.state.caption?.lowercase().orEmpty()
-                    val tags = Regex("#[A-Za-z0-9_áéíóúÁÉÍÓÚñÑ]+").findAll(caption).map { it.value.filter { c -> c.isLetterOrDigit() || c == '_' } }.toSet()
-                    val mentions = Regex("@[A-Za-z0-9_.áéíóúÁÉÍÓÚñÑ]+").findAll(caption).map { it.value }.toSet()
-                    val display = item.profile.displayName?.lowercase().orEmpty()
-                    val toLowerNoAccent: (String) -> String = { s ->
-                        s.replace(Regex("[áéíóúüñ]")) { m -> when (m.value) { "á" -> "a"; "é" -> "e"; "í" -> "i"; "ó" -> "o"; "ú", "ü" -> "u"; "ñ" -> "n"; else -> m.value } }
-                    }
-                    val norm = toLowerNoAccent(caption + " " + tags.joinToString(" ") { it.removePrefix("#") } + " " + mentions.joinToString(" ") { it.trimStart('@') } + " " + display)
-                    val hq = toLowerNoAccent(normalizedQuery)
-                    caption.isNotBlank() && (
-                        norm.contains(hq) ||
-                            caption.contains(normalizedQuery) ||
-                            display.contains(normalizedQuery)
-                        )
-                }.take(8)
-            }
-
-            val submitSearch: (String) -> Unit = { raw ->
-                val q = raw.trim()
-                if (q.isNotEmpty()) {
-                    searchExpanded = false
-                    searchFocused = false
-                    if (onSearchResults != null) onSearchResults(q) else if (onSearch != null) onSearch()
-                }
-            }
-
-            Column {
-                Surface(
-                    shape = RoundedCornerShape(22.dp),
-                    color = Color(0x80333333),
-                    modifier = Modifier.fillMaxWidth().clickable(interactionSource = remember { MutableInteractionSource() }, indication = null) { focusSearch() },
-                ) {
-                    Row(
-                        modifier = Modifier
-                            .fillMaxWidth()
-                            .padding(horizontal = 14.dp, vertical = 2.dp),
-                        verticalAlignment = Alignment.CenterVertically,
-                    ) {
-                        Icon(Icons.Filled.Search, "Buscar", tint = if (searchFocused) Color.White else Color.White.copy(alpha = 0.55f), modifier = Modifier.size(19.dp))
-                        Spacer(Modifier.width(8.dp))
-                        TextField(
-                            value = searchQuery,
-                            onValueChange = {
-                                searchQuery = it
-                                searchExpanded = it.isNotBlank() || searchFocused
-                                searchFocused = true
-                            },
-                            modifier = Modifier
-                                .weight(1f)
-                                .focusRequester(searchFocus)
-                                .onFocusChanged { searchFocused = it.isFocused; if (it.isFocused && searchQuery.isNotBlank()) searchExpanded = true }
-                                .imePadding(),
-                            placeholder = { Text("Buscar en reels…", color = Color.White.copy(alpha = 0.4f), fontSize = 14.sp) },
-                            singleLine = true,
-                            textStyle = androidx.compose.ui.text.TextStyle(color = Color.White, fontSize = 15.sp),
-                            colors = TextFieldDefaults.colors(
-                                focusedContainerColor = Color.Transparent,
-                                unfocusedContainerColor = Color.Transparent,
-                                disabledContainerColor = Color.Transparent,
-                                focusedIndicatorColor = Color.Transparent,
-                                unfocusedIndicatorColor = Color.Transparent,
-                                disabledIndicatorColor = Color.Transparent,
-                            ),
-                            keyboardOptions = androidx.compose.foundation.text.KeyboardOptions(
-                                keyboardType = androidx.compose.ui.text.input.KeyboardType.Text,
-                                imeAction = androidx.compose.ui.text.input.ImeAction.Search,
-                            ),
-                            keyboardActions = androidx.compose.foundation.text.KeyboardActions(
-                                onSearch = { submitSearch(searchQuery) },
-                            ),
-                            interactionSource = remember { androidx.compose.foundation.interaction.MutableInteractionSource() },
-                        )
-                    }
-                }
-                if (searchExpanded) {
-                    Surface(
-                        shape = RoundedCornerShape(16.dp),
-                        color = Color(0xFF1C1C1E),
-                        shadowElevation = 8.dp,
-                        modifier = Modifier.fillMaxWidth().padding(top = 6.dp),
-                    ) {
-                        Column(Modifier.fillMaxWidth()) {
-                            LazyColumn(Modifier.fillMaxWidth().heightIn(max = 280.dp), contentPadding = PaddingValues(vertical = 4.dp)) {
-                                if (searchMatches.isEmpty()) {
-                                    if (normalizedQuery.isNotEmpty()) {
-                                        item(key = "no_results") {
-                                            Text(
-                                                "Sin resultados para \"$normalizedQuery\"",
-                                                color = Color.Gray,
-                                                fontSize = 13.sp,
-                                                modifier = Modifier.fillMaxWidth().padding(horizontal = 14.dp, vertical = 10.dp),
-                                            )
-                                        }
-                                    }
-                                }
-                                items(searchMatches, key = { it.state.id }) { item ->
-                                    Row(
-                                        modifier = Modifier
-                                            .fillMaxWidth()
-                                            .clickable { submitSearch(searchQuery) }
-                                            .padding(horizontal = 14.dp, vertical = 9.dp),
-                                        verticalAlignment = Alignment.CenterVertically,
-                                    ) {
-                                        PanaAvatar(
-                                            avatarUrl = item.profile.avatarUrl,
-                                            userId = item.state.userId,
-                                            placeholderName = item.profile.displayName,
-                                            size = 30.dp,
-                                        )
-                                        Spacer(Modifier.width(10.dp))
-                                        Column(Modifier.weight(1f)) {
-                                            Text(
-                                                "@${item.profile.displayName ?: "pana"}",
-                                                color = Color.White,
-                                                fontSize = 14.sp,
-                                                fontWeight = FontWeight.SemiBold,
-                                                maxLines = 1,
-                                                overflow = TextOverflow.Ellipsis,
-                                            )
-                                            Text(
-                                                item.state.caption?.let { parseStateMetadata(it).baseCaption }?.take(52) ?: "Vídeo",
-                                                color = Color.White.copy(alpha = 0.55f),
-                                                fontSize = 12.sp,
-                                                maxLines = 1,
-                                                overflow = TextOverflow.Ellipsis,
-                                            )
-                                        }
-                                        Spacer(Modifier.width(8.dp))
-                                        Icon(
-                                            Icons.Filled.ArrowForward,
-                                            "Abrir resultados",
-                                            tint = Color.White.copy(alpha = 0.5f),
-                                            modifier = Modifier.size(17.dp),
-                                        )
-                                    }
-                                    HorizontalDivider(color = Color.White.copy(alpha = 0.08f))
-                                }
-                            }
-                            Row(
-                                modifier = Modifier
-                                    .fillMaxWidth()
-                                    .clickable { submitSearch(searchQuery) }
-                                    .padding(horizontal = 14.dp, vertical = 12.dp),
-                                verticalAlignment = Alignment.CenterVertically,
-                            ) {
-                                Icon(Icons.Filled.Search, "Buscar todo", tint = Color(0xFFFF2B54), modifier = Modifier.size(19.dp))
-                                Spacer(Modifier.width(10.dp))
-                                Text(
-                                    if (normalizedQuery.isNotEmpty()) "Ver todos los resultados de \"$normalizedQuery\"" else "Buscar en reels",
-                                    color = Color.White,
-                                    fontSize = 14.sp,
-                                )
-                            }
-                        }
-                    }
                 }
             }
         }
