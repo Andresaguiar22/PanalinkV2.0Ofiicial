@@ -1,0 +1,1120 @@
+package com.example.reels.ui
+
+import androidx.compose.animation.AnimatedVisibility
+import androidx.compose.animation.core.animate
+import androidx.compose.animation.core.spring
+import androidx.compose.animation.fadeIn
+import androidx.compose.animation.fadeOut
+import androidx.compose.animation.scaleIn
+import androidx.compose.animation.scaleOut
+import androidx.compose.foundation.background
+import androidx.compose.foundation.clickable
+import androidx.compose.foundation.gestures.awaitEachGesture
+import androidx.compose.foundation.gestures.awaitFirstDown
+import androidx.compose.foundation.gestures.calculateZoom
+import androidx.compose.foundation.gestures.detectTapGestures
+import androidx.compose.foundation.horizontalScroll
+import androidx.compose.foundation.interaction.MutableInteractionSource
+import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.PaddingValues
+import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.fillMaxHeight
+import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.heightIn
+import androidx.compose.foundation.layout.imePadding
+import androidx.compose.foundation.layout.navigationBarsPadding
+import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.layout.statusBarsPadding
+import androidx.compose.foundation.layout.width
+import androidx.compose.foundation.lazy.LazyColumn
+import androidx.compose.foundation.lazy.items
+import androidx.compose.foundation.pager.VerticalPager
+import androidx.compose.foundation.pager.rememberPagerState
+import androidx.compose.foundation.rememberScrollState
+import androidx.compose.foundation.shape.CircleShape
+import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.automirrored.rounded.Send
+import androidx.compose.material.icons.filled.ArrowBack
+import androidx.compose.material.icons.filled.ChatBubbleOutline
+import androidx.compose.material.icons.filled.Close
+import androidx.compose.material.icons.filled.Delete
+import androidx.compose.material.icons.filled.Favorite
+import androidx.compose.material.icons.filled.FavoriteBorder
+import androidx.compose.material.icons.filled.MoreVert
+import androidx.compose.material.icons.filled.Pause
+import androidx.compose.material.icons.filled.PlayArrow
+import androidx.compose.material.icons.filled.Refresh
+import androidx.compose.material.icons.filled.Share
+import androidx.compose.material.icons.filled.Star
+import androidx.compose.material.icons.filled.StarBorder
+import androidx.compose.material.icons.filled.VolumeOff
+import androidx.compose.material.icons.filled.VolumeUp
+import androidx.compose.material3.ExperimentalMaterial3Api
+import androidx.compose.material3.AlertDialog
+import androidx.compose.material3.TextButton
+import androidx.compose.material3.FilterChip
+import androidx.compose.material3.FilterChipDefaults
+import androidx.compose.material3.DropdownMenu
+import androidx.compose.material3.DropdownMenuItem
+import androidx.compose.material3.HorizontalDivider
+import androidx.compose.material3.Icon
+import androidx.compose.material3.IconButton
+import androidx.compose.material3.LinearProgressIndicator
+import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.OutlinedTextField
+import androidx.compose.material3.OutlinedTextFieldDefaults
+import androidx.compose.material3.Surface
+import androidx.compose.material3.Text
+import androidx.compose.runtime.Composable
+import androidx.compose.runtime.DisposableEffect
+import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableFloatStateOf
+import androidx.compose.runtime.mutableIntStateOf
+import androidx.compose.runtime.mutableStateMapOf
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.rememberCoroutineScope
+import androidx.compose.runtime.setValue
+import androidx.compose.runtime.snapshotFlow
+import androidx.compose.ui.Alignment
+import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.clip
+import androidx.compose.ui.focus.FocusRequester
+import androidx.compose.ui.focus.focusRequester
+import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.graphicsLayer
+import androidx.compose.ui.input.pointer.PointerEventPass
+import androidx.compose.ui.input.pointer.pointerInput
+import androidx.compose.ui.layout.ContentScale
+import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.text.TextStyle
+import androidx.compose.ui.text.font.FontStyle
+import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.style.TextOverflow
+import androidx.compose.ui.unit.dp
+import androidx.compose.ui.unit.sp
+import androidx.lifecycle.compose.collectAsStateWithLifecycle
+import com.example.data.model.UserStateWithUser
+import com.example.data.repository.ProfilesRepository
+import com.example.data.repository.PublicProfileResolver
+import com.example.data.supabase.SupabaseClient
+import com.example.reels.engine.ReelPlayerPool
+import com.example.reels.engine.ReelPreloadController
+import com.example.ui.components.PanaAvatar
+import com.example.ui.components.TextAnnotator
+import com.example.ui.screen.parseStateMetadata
+import com.example.ui.viewmodel.StatesUiState
+import com.example.ui.viewmodel.StatesViewModel
+import coil.compose.AsyncImage
+import kotlinx.coroutines.delay
+import kotlinx.coroutines.flow.collect
+import kotlinx.coroutines.flow.distinctUntilChanged
+import kotlinx.coroutines.launch
+
+private const val MIN_REEL_SCALE = 1f
+private const val MAX_REEL_SCALE = 4f
+
+/**
+ * TikTok-style Reels feed, rebuilt from scratch.
+ *
+ * - VerticalPager over the full reels list.
+ * - Exactly [ReelPlayerPool.POOL_SIZE] ExoPlayers reused; each page binds to the
+ *   pool via [ReelPlayerSurface].
+ * - Adaptive preload (ReelPreloadController) prefetches the next reel bytes and
+ *   resolves fresh VCDN URLs.
+ * - Full TikTok overlay: author, caption, right rail (like/favorite/comment/share),
+ *   double-tap to like, and back button.
+ */
+@Composable
+fun ReelsFeedScreen(
+    viewModel: StatesViewModel,
+    initialStateId: String? = null,
+    onBack: () -> Unit,
+    onNavigateToUserProfile: ((String) -> Unit)? = null,
+    onNavigateToHashtag: ((String) -> Unit)? = null,
+) {
+    val context = LocalContext.current.applicationContext
+    val reelsState by viewModel.reelsState.collectAsStateWithLifecycle()
+    val reels: List<UserStateWithUser> = when (reelsState) {
+        is StatesUiState.Success -> (reelsState as StatesUiState.Success).states
+        else -> emptyList()
+    }
+
+    val pool = remember { ReelPlayerPool(context) }
+
+    // Local scope for one-off UI actions (refresh spinner, etc.).
+    val scope = rememberCoroutineScope()
+
+    // TikTok overlay state (shared across pages).
+    var muted by remember { mutableStateOf(false) }
+    var filter by remember { mutableStateOf(ReelFilterV2.EXPLORE) }
+    var refreshing by remember { mutableStateOf(false) }
+    var commentsReelId by remember { mutableStateOf<String?>(null) }
+    var heartReelId by remember { mutableStateOf<String?>(null) }
+    var notInterestedReelId by remember { mutableStateOf<String?>(null) }
+    var deleteReelId by remember { mutableStateOf<String?>(null) }
+    // When the refresh button is pressed we scroll the feed back to the top.
+    var refreshKey by remember { mutableIntStateOf(0) }
+    // Per-reel user pause toggle (tap center toggles play/pause).
+    val userPausedIds = remember { mutableStateMapOf<String, Boolean>() }
+
+    val filteredReels = remember(reels, filter) {
+        when (filter) {
+            ReelFilterV2.EXPLORE -> reels
+            ReelFilterV2.NEW -> reels.sortedByDescending { it.state.createdAt ?: "" }
+            ReelFilterV2.MOST_VIEWED -> reels.sortedByDescending { it.state.viewsCount ?: 0 }
+            ReelFilterV2.TRENDING -> reels.sortedByDescending {
+                (it.state.likesCount ?: 0).toLong() * 3 +
+                    (it.state.commentsCount ?: 0).toLong() * 4 +
+                    (it.state.favoritesCount ?: 0).toLong() * 5 +
+                    (it.state.sharesCount ?: 0).toLong() * 6 +
+                    (it.state.viewsCount ?: 0).toLong()
+            }
+        }
+    }
+
+    val initialIndex = remember(filteredReels, initialStateId) {
+        val idx = filteredReels.indexOfFirst { it.state.id == initialStateId }
+        if (idx != -1) idx else 0
+    }
+    val pagerState = rememberPagerState(
+        initialPage = initialIndex,
+        pageCount = { filteredReels.size }
+    )
+
+    // Periodic progress/play-state tick for the active page.
+    LaunchedEffect(pool) { pool.startTimingUpdates() }
+
+    var currentIndex by remember { mutableIntStateOf(initialIndex) }
+
+    // Follow the pager's settled page. This is the SOURCE of truth for
+    // play/pause: previously currentIndex was never updated, so swiping changed
+    // the pager but no LaunchedEffect re-ran (all reels stayed frozen).
+    LaunchedEffect(pagerState) {
+        snapshotFlow { pagerState.currentPage }
+            .distinctUntilChanged()
+            .collect { currentIndex = it }
+    }
+
+    // Register a view whenever the active page changes.
+    LaunchedEffect(currentIndex) {
+        if (currentIndex in filteredReels.indices) {
+            viewModel.registerView(filteredReels[currentIndex].state.id)
+        }
+    }
+
+    // Adaptive preload on page change.
+    LaunchedEffect(currentIndex, filteredReels.size) {
+        if (currentIndex in filteredReels.indices) {
+            ReelPreloadController.adaptAndPrefetch(
+                context = context,
+                reels = filteredReels,
+                currentIndex = currentIndex,
+                swipeVelocity = 0.7f,
+                avgDurationMs = null,
+            )
+        }
+    }
+
+    // When the page changes, play the page's reel and pause others. Protect the
+    // current page + the ones likely to be shown next from eviction so fast
+    // swipes never land on a page whose player was just discarded (black frame).
+    LaunchedEffect(currentIndex) {
+        if (currentIndex in filteredReels.indices) {
+            val protect = buildSet {
+                add(currentIndex)
+                add(currentIndex - 1)
+                add(currentIndex + 1)
+            }.mapNotNull { filteredReels.getOrNull(it)?.state?.id }.toSet()
+            pool.setProtectedReels(protect)
+
+            for (i in filteredReels.indices) {
+                if (i == currentIndex) pool.play(filteredReels[i].state.id, 1f) else pool.pause(filteredReels[i].state.id)
+            }
+        }
+    }
+
+    // When the refresh button is pressed, scroll the feed back to the top so the
+    // newly fetched reels are immediately visible.
+    LaunchedEffect(refreshKey) {
+        if (refreshKey > 0 && filteredReels.isNotEmpty()) {
+            pagerState.scrollToPage(0)
+        }
+    }
+
+    DisposableEffect(Unit) {
+        onDispose { pool.releaseAll() }
+    }
+
+    if (filteredReels.isEmpty()) {
+        Box(modifier = Modifier.fillMaxSize().background(Color.Black), contentAlignment = Alignment.Center) {
+            Text("Sin reels todavГӯa", color = Color.White)
+        }
+        return
+    }
+
+    Box(modifier = Modifier.fillMaxSize().background(Color.Black)) {
+        VerticalPager(
+            state = pagerState,
+            modifier = Modifier.fillMaxSize()
+        ) { page ->
+            val reel = filteredReels.getOrNull(page) ?: return@VerticalPager
+
+            // Ensure this page's player is acquired (URL resolved off the main
+            // thread) as soon as it is composed. `player` in the key re-runs the
+            // effect if the player is later evicted, so the page re-acquires
+            // instead of staying on a black frame.
+            LaunchedEffect(reel.state.id, pool, pool.playerFor(reel.state.id)) {
+                ensureAcquired(pool, context, reel)
+            }
+
+            // Observe the pool: the livePlayers snapshot map is Compose-state, so this
+            // recomposes as soon as the pool assigns a player for this reel.
+            val player = pool.playerFor(reel.state.id)
+
+            // Per-page overlay drawn INSIDE the pager item. Now that the video
+            // surface is a TextureView (not a SurfaceView), Compose siblings can
+            // draw above it without punch-through, which lets the tap/double-tap
+            // layer and the content overlay live inside the item вҖ” so the content
+            // scrolls with the video and the pager keeps receiving vertical drags.
+            Box(modifier = Modifier.fillMaxSize()) {
+                // Pinch-to-zoom: the texture keeps its authored size by default;
+                // while pinching, scale it up to 4x. Releasing springs it back to
+                // 1f (the user asked "zoom and on release it returns to normal").
+                val pageScale = remember(reel.state.id) { mutableFloatStateOf(1f) }
+                val pageScope = rememberCoroutineScope()
+                ReelPlayerSurface(
+                    player = player,
+                    modifier = Modifier
+                        .fillMaxSize()
+                        .graphicsLayer {
+                            scaleX = pageScale.floatValue
+                            scaleY = pageScale.floatValue
+                        },
+                )
+
+                // Double-tap → like (big heart). Single tap → play/pause.
+                Box(
+                    modifier = Modifier
+                        .fillMaxSize()
+                        .pointerInput(reel.state.id) {
+                            detectTapGestures(
+                                onDoubleTap = {
+                                    if (pageScale.floatValue <= 1.05f) {
+                                        heartReelId = reel.state.id
+                                        viewModel.toggleLike(reel.state.id, reel.state.likedByMe ?: false)
+                                    }
+                                },
+                                onTap = {
+                                    if (pageScale.floatValue <= 1.05f) {
+                                        val next = !(userPausedIds[reel.state.id] ?: false)
+                                        userPausedIds[reel.state.id] = next
+                                        pool.setUserPaused(reel.state.id, next)
+                                    }
+                                }
+                            )
+                        }
+                        .pointerInput(reel.state.id) {
+                            awaitEachGesture {
+                                awaitFirstDown(requireUnconsumed = false)
+                                var consumed = false
+                                var currentScale = pageScale.floatValue
+                                do {
+                                    val event = awaitPointerEvent()
+                                    if (event.changes.size >= 2) {
+                                        val newZoom = event.calculateZoom()
+                                        if (kotlin.math.abs(newZoom - 1f) > 0.02f) {
+                                            consumed = true
+                                            event.changes.forEach { it.consume() }
+                                        }
+                                        currentScale = (currentScale * newZoom).coerceIn(MIN_REEL_SCALE, MAX_REEL_SCALE)
+                                        pageScale.floatValue = currentScale
+                                    }
+                                } while (event.changes.any { it.pressed })
+                                if (consumed) {
+                                    pageScope.launch {
+                                        animate(
+                                            initialValue = currentScale,
+                                            targetValue = 1f,
+                                            animationSpec = spring(dampingRatio = 0.6f, stiffness = 380f),
+                                        ) { value, _ ->
+                                            pageScale.floatValue = value
+                                        }
+                                    }
+                                }
+                            }
+                        }
+                )
+
+                val isThisPaused = userPausedIds[reel.state.id] ?: false
+
+                // Reel content (rail + caption + progress + play/pause pill),
+                // drawn per page so it stays glued to its video.
+                ReelFeedOverlay(
+                    reel = reel,
+                    pool = pool,
+                    player = player,
+                    paused = isThisPaused,
+                    muted = muted,
+                    commentsCount = reel.state.commentsCount ?: 0,
+                    onLike = {
+                        heartReelId = reel.state.id
+                        viewModel.toggleLike(reel.state.id, reel.state.likedByMe ?: false)
+                    },
+                    onFavorite = { viewModel.toggleFavorite(reel.state.id, reel.state.favoritedByMe ?: false) },
+                    onShare = {
+                        viewModel.incrementShare(reel.state.id)
+                        shareReelV2(context, reel)
+                    },
+                    onComments = { commentsReelId = reel.state.id },
+                    onProfile = { onNavigateToUserProfile?.invoke(reel.state.userId) },
+                    onHashtag = { onNavigateToHashtag?.invoke(it) },
+                    onNotInterested = { notInterestedReelId = reel.state.id },
+                    onCopyLink = { copyReelLinkV2(context, reel) },
+                    onDelete = { deleteReelId = reel.state.id },
+                    onMute = { muted = !muted },
+                    onTogglePlayPause = {
+                        val next = !(userPausedIds[reel.state.id] ?: false)
+                        userPausedIds[reel.state.id] = next
+                        pool.setUserPaused(reel.state.id, next)
+                    },
+                )
+            }
+        }
+
+        // ------------------------------------------------------------------
+        // WHOLE-FEED OVERLAY вҖ” the header pill, heart animation and per-reel
+        // content (rail/caption/progress) used to live here ABOVE the pager.
+        // That feed-level tap layer blocked the pager's vertical drags, so the
+        // feed could never scroll. ReelsFeedOverlay is now rendered inside each
+        // pager item; only the shared bits (header, heart, loading) remain here.
+        // ------------------------------------------------------------------
+
+        // Big heart on double-tap (like). Re-animates on each new reel id set.
+        heartReelId?.let { heartId ->
+            androidx.compose.animation.AnimatedVisibility(
+                visible = true,
+                modifier = Modifier.align(Alignment.Center),
+                enter = fadeIn() + scaleIn(initialScale = 0.3f),
+                exit = fadeOut() + scaleOut(targetScale = 1.5f),
+            ) {
+                Icon(
+                    Icons.Filled.Favorite,
+                    "Me gusta",
+                    tint = Color(0xFFFF2D55),
+                    modifier = Modifier.size(150.dp)
+                )
+            }
+            LaunchedEffect(heartId) {
+                delay(600)
+                if (heartReelId == heartId) heartReelId = null
+            }
+        }
+
+        // Top "Explorar" pill header (back + Reels + filter chips + refresh).
+        Surface(
+            modifier = Modifier
+                .align(Alignment.TopCenter)
+                .statusBarsPadding()
+                .padding(horizontal = 10.dp),
+            color = Color.Black.copy(alpha = 0.42f),
+            shape = RoundedCornerShape(28.dp),
+        ) {
+            Row(
+                Modifier.height(46.dp).padding(horizontal = 2.dp),
+                verticalAlignment = Alignment.CenterVertically
+            ) {
+                IconButton(onClick = onBack, modifier = Modifier.size(40.dp)) {
+                    Icon(Icons.Default.ArrowBack, "Volver", tint = Color.White)
+                }
+                Text("Reels", color = Color.White, fontWeight = FontWeight.Bold)
+                Spacer(Modifier.width(3.dp))
+                Row(
+                    Modifier.weight(1f).horizontalScroll(rememberScrollState()),
+                    horizontalArrangement = Arrangement.spacedBy(1.dp),
+                    verticalAlignment = Alignment.CenterVertically,
+                ) {
+                    ReelFilterV2.values().forEach { option ->
+                        FilterChip(
+                            selected = filter == option,
+                            onClick = { filter = option },
+                            label = { Text(option.label, maxLines = 1) },
+                            colors = FilterChipDefaults.filterChipColors(
+                                labelColor = Color.White,
+                                selectedLabelColor = Color.White,
+                                containerColor = Color.Transparent,
+                                selectedContainerColor = Color.White.copy(alpha = 0.22f),
+                            ),
+                            border = null,
+                        )
+                    }
+                }
+                IconButton(
+                    enabled = !refreshing,
+                    onClick = {
+                        refreshing = true
+                        viewModel.refreshReels { refreshing = false; refreshKey += 1 }
+                    },
+                    modifier = Modifier.size(40.dp)
+                ) {
+                    Icon(Icons.Default.Refresh, "Actualizar Reels", tint = Color.White)
+                }
+            }
+        }
+
+        if (refreshing) {
+            LinearProgressIndicator(
+                modifier = Modifier
+                    .align(Alignment.TopCenter)
+                    .statusBarsPadding()
+                    .padding(top = 50.dp)
+                    .fillMaxWidth(0.86f)
+            )
+        }
+    }
+
+    // Comments sheet (custom Box, mirrors the old ReelsCommentsSheet).
+    commentsReelId?.let { reelId ->
+        val currentComments by viewModel.currentComments.collectAsStateWithLifecycle()
+        ReelsCommentsSheetV2(
+            viewModel = viewModel,
+            reelId = reelId,
+            comments = currentComments,
+            onDismiss = { commentsReelId = null }
+        )
+    }
+
+    // "No me interesa" → hide the reel from the local feed.
+    notInterestedReelId?.let { reelId ->
+        LaunchedEffect(reelId) {
+            viewModel.deleteStateForMe(reelId) { notInterestedReelId = null }
+        }
+    }
+
+    // Author-only delete: confirm, then remove the video remotely + locally
+    // (same wiring as the old player: viewModel.deleteState(id) { toast }).
+    deleteReelId?.let { reelId ->
+        AlertDialog(
+            onDismissRequest = { deleteReelId = null },
+            title = { Text("Eliminar vídeo") },
+            text = { Text("¿Seguro que quieres eliminar este vídeo? Esta acción no se puede deshacer.") },
+            confirmButton = {
+                TextButton(onClick = {
+                    deleteReelId = null
+                    viewModel.deleteState(reelId) {
+                        android.widget.Toast.makeText(context, "Publicación eliminada", android.widget.Toast.LENGTH_SHORT).show()
+                    }
+                }) { Text("Eliminar", color = Color(0xFFFF5252)) }
+            },
+            dismissButton = {
+                TextButton(onClick = { deleteReelId = null }) { Text("Cancelar") }
+            },
+        )
+    }
+}
+
+/** Resolves the stable URL for [reel] off the main thread and acquires it in the pool. */
+private fun ensureAcquired(
+    pool: ReelPlayerPool,
+    context: android.content.Context,
+    reel: UserStateWithUser,
+) {
+    if (pool.playerFor(reel.state.id) != null) return
+    val stable = reel.state.vcdnVideoId?.let { "vcdn://$it" } ?: reel.state.mediaUrl
+    if (stable.isNullOrBlank()) return
+    pool.acquireAsync(reel.state.id, stable)
+}
+
+private enum class ReelFilterV2(val label: String) {
+    EXPLORE("Explorar"), NEW("Nuevos"), TRENDING("Tendencias"), MOST_VIEWED("MГЎs vistos")
+}
+
+@Composable
+private fun ReelFeedOverlay(
+    reel: UserStateWithUser,
+    pool: ReelPlayerPool,
+    player: androidx.media3.common.Player?,
+    paused: Boolean,
+    muted: Boolean,
+    commentsCount: Int,
+    onLike: () -> Unit,
+    onFavorite: () -> Unit,
+    onShare: () -> Unit,
+    onComments: () -> Unit,
+    onProfile: () -> Unit,
+    onHashtag: (String) -> Unit,
+    onNotInterested: () -> Unit,
+    onCopyLink: () -> Unit,
+    onDelete: () -> Unit,
+    onMute: () -> Unit,
+    onTogglePlayPause: () -> Unit,
+) {
+    val state = reel.state
+    val profile = reel.profile
+    val overlayScope = rememberCoroutineScope()
+    val profilesRepo = remember { ProfilesRepository() }
+    val currentUid = SupabaseClient.currentUser?.id
+    val isOwner = !currentUid.isNullOrBlank() && state.userId == currentUid
+    var isFollowing by remember(state.userId) { mutableStateOf(false) }
+
+    // Track local optimistic values so the toggles feel instant.
+    var liked by remember(state.id) { mutableStateOf(state.likedByMe ?: false) }
+    var favorited by remember(state.id) { mutableStateOf(state.favoritedByMe ?: false) }
+    var localLikes by remember(state.id) { mutableIntStateOf(state.likesCount ?: 0) }
+    var localFavorites by remember(state.id) { mutableIntStateOf(state.favoritesCount ?: 0) }
+    var localShares by remember(state.id) { mutableIntStateOf(state.sharesCount ?: 0) }
+    var menuExpanded by remember { mutableStateOf(false) }
+    LaunchedEffect(state.userId) {
+        if (!currentUid.isNullOrBlank() && state.userId.isNotBlank()) {
+            profilesRepo.isFollowing(currentUid, state.userId).onSuccess { isFollowing = it }
+        }
+    }
+
+    val timing = pool.timingFor(state.id)
+
+    LaunchedEffect(player, muted, state.id) {
+        player?.volume = if (muted) 0f else 1f
+    }
+
+    // Center play/pause affordance: it stays visible while paused but only
+    // flashes briefly when playback resumes, then fades out (TikTok behaviour).
+    var showCenterIcon by remember(state.id) { mutableStateOf(false) }
+    LaunchedEffect(paused, state.id) {
+        if (paused) {
+            showCenterIcon = true
+        } else if (showCenterIcon) {
+            delay(700)
+            showCenterIcon = false
+        }
+    }
+
+    Box(modifier = Modifier.fillMaxSize()) {
+        AnimatedVisibility(
+            visible = showCenterIcon,
+            modifier = Modifier.align(Alignment.Center),
+            enter = fadeIn() + scaleIn(initialScale = 0.7f),
+            exit = fadeOut() + scaleOut(targetScale = 0.7f),
+        ) {
+            Surface(
+                modifier = Modifier.size(56.dp),
+                shape = CircleShape,
+                color = Color.Black.copy(alpha = if (paused) 0.74f else 0.28f),
+            ) {
+                IconButton(onClick = onTogglePlayPause) {
+                    Icon(
+                        if (paused) Icons.Filled.PlayArrow else Icons.Filled.Pause,
+                        "ReproducciГіn",
+                        tint = Color.White,
+                        modifier = Modifier.size(30.dp)
+                    )
+                }
+            }
+        }
+
+        // Bottom-right action rail (like/comment/favorite/share/mute/menu).
+        // Rendered inside the pager item so it hugs the bottom edge tightly,
+        // right above the progress/time block, buttons tight together.
+        Column(
+            modifier = Modifier
+                .align(Alignment.BottomEnd)
+                .navigationBarsPadding()
+                .padding(end = 6.dp, bottom = 30.dp),
+            horizontalAlignment = Alignment.CenterHorizontally,
+            verticalArrangement = Arrangement.spacedBy(2.dp),
+        ) {
+            ReelActionButtonV2(
+                icon = if (liked) Icons.Filled.Favorite else Icons.Filled.FavoriteBorder,
+                count = compactCountV2(localLikes),
+                selected = liked,
+                selectedColor = Color(0xFFFF2B54),
+            ) {
+                val next = !liked
+                liked = next
+                localLikes = (localLikes + if (next) 1 else -1).coerceAtLeast(0)
+                onLike()
+            }
+            ReelActionButtonV2(
+                icon = Icons.Filled.ChatBubbleOutline,
+                count = compactCountV2(commentsCount),
+            ) { onComments() }
+            ReelActionButtonV2(
+                icon = if (favorited) Icons.Filled.Star else Icons.Filled.StarBorder,
+                count = compactCountV2(localFavorites),
+                selected = favorited,
+                selectedColor = Color(0xFFF9C74F),
+            ) {
+                val next = !favorited
+                favorited = next
+                localFavorites = (localFavorites + if (next) 1 else -1).coerceAtLeast(0)
+                onFavorite()
+            }
+            ReelActionButtonV2(
+                icon = Icons.Filled.Share,
+                count = compactCountV2(localShares),
+            ) {
+                localShares += 1
+                onShare()
+            }
+            ReelActionButtonV2(
+                icon = if (muted) Icons.Filled.VolumeOff else Icons.Filled.VolumeUp,
+            ) { onMute() }
+            Box {
+                ReelActionButtonV2(icon = Icons.Filled.MoreVert) { menuExpanded = true }
+                DropdownMenu(expanded = menuExpanded, onDismissRequest = { menuExpanded = false }) {
+                    DropdownMenuItem(text = { Text("Compartir") }, onClick = { menuExpanded = false; onShare() })
+                    DropdownMenuItem(text = { Text("Copiar enlace") }, onClick = { menuExpanded = false; onCopyLink() })
+                    DropdownMenuItem(text = { Text("No me interesa") }, onClick = { menuExpanded = false; onNotInterested() })
+                    DropdownMenuItem(text = { Text("Ver perfil") }, onClick = { menuExpanded = false; onProfile() })
+                    if (isOwner) {
+                        HorizontalDivider(color = Color.White.copy(alpha = 0.14f))
+                        DropdownMenuItem(
+                            text = { Text("Eliminar vídeo", color = Color(0xFFFF5252)) },
+                            onClick = { menuExpanded = false; onDelete() },
+                        )
+                    }
+                }
+            }
+        }
+
+        // Bottom-left profile + caption (hashtags rendered inline, no duplicate row).
+        Column(
+            modifier = Modifier
+                .align(Alignment.BottomStart)
+                .navigationBarsPadding()
+                .padding(start = 16.dp, end = 90.dp, bottom = 30.dp),
+            verticalArrangement = Arrangement.spacedBy(4.dp),
+        ) {
+            Row(verticalAlignment = Alignment.CenterVertically) {
+                PanaAvatar(
+                    avatarUrl = profile.avatarUrl,
+                    userId = state.userId,
+                    placeholderName = profile.displayName,
+                    size = 40.dp,
+                    modifier = Modifier.clickable(onClick = onProfile)
+                )
+                Spacer(Modifier.width(9.dp))
+                Text(
+                    "@${profile.displayName?.ifBlank { "pana" } ?: "pana"}",
+                    color = Color.White,
+                    style = MaterialTheme.typography.titleMedium,
+                    fontWeight = FontWeight.Bold,
+                    maxLines = 1,
+                    overflow = TextOverflow.Ellipsis,
+                    modifier = Modifier.weight(1f, fill = false).clickable(onClick = onProfile)
+                )
+                if (!currentUid.isNullOrBlank() && state.userId.isNotBlank() && state.userId != currentUid) {
+                    Spacer(Modifier.width(8.dp))
+                    Text(
+                        if (isFollowing) "Siguiendo" else "Seguir",
+                        color = Color.White,
+                        fontWeight = FontWeight.Bold,
+                        style = MaterialTheme.typography.labelMedium,
+                        modifier = Modifier
+                            .clip(RoundedCornerShape(6.dp))
+                            .background(if (isFollowing) Color.White.copy(alpha = 0.16f) else Color(0xFFFF2B54))
+                            .clickable {
+                                if (currentUid.isNullOrBlank()) return@clickable
+                                overlayScope.launch {
+                                    if (isFollowing) {
+                                        profilesRepo.unfollowUser(currentUid, state.userId).onSuccess { isFollowing = false }
+                                    } else {
+                                        profilesRepo.followUser(currentUid, state.userId).onSuccess { isFollowing = true }
+                                    }
+                                }
+                            }
+                            .padding(horizontal = 12.dp, vertical = 5.dp),
+                    )
+                }
+            }
+            // Technical editor tags stored in the caption ([Transition: ...],
+            // [CoverFrame: ...], [Music: ...], [Scheduled: ...], [Overlays: ...], …)
+            // are metadata: strip them so viewers only see what the author wrote.
+            // Hashtags/mentions are rendered once, inline and clickable (as in the
+            // old player) — no separate row, which used to duplicate them.
+            val cleanCaption = remember(state.caption) { parseStateMetadata(state.caption).baseCaption }
+            if (cleanCaption.isNotBlank()) {
+                TextAnnotator.AnnotatedClickableText(
+                    text = cleanCaption,
+                    style = TextStyle(color = Color.White, fontSize = 14.sp),
+                    hashtagColor = Color(0xFF69F0AE),
+                    mentionColor = Color(0xFFE040FB),
+                    onHashtagClick = { onHashtag(it) },
+                    onMentionClick = { },
+                )
+            }
+        }
+
+        // Bottom progress bar + time (m:ss).
+        if (timing != null && timing.durationMs > 0L) {
+            val fraction = (timing.positionMs.toFloat() / timing.durationMs.toFloat()).coerceIn(0f, 1f)
+            Column(
+                Modifier
+                    .align(Alignment.BottomCenter)
+                    .navigationBarsPadding()
+                    .fillMaxWidth()
+                    .padding(start = 12.dp, end = 12.dp, bottom = 8.dp),
+                verticalArrangement = Arrangement.spacedBy(2.dp),
+            ) {
+                Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween) {
+                    Text(formatTimeV2(timing.positionMs), color = Color.White, style = MaterialTheme.typography.labelSmall)
+                    Text(formatTimeV2(timing.durationMs), color = Color.White.copy(alpha = 0.72f), style = MaterialTheme.typography.labelSmall)
+                }
+                LinearProgressIndicator(
+                    progress = { fraction },
+                    modifier = Modifier.fillMaxWidth().height(3.dp),
+                    color = Color.White,
+                    trackColor = Color.White.copy(alpha = 0.25f)
+                )
+            }
+        }
+    }
+}
+
+@Composable
+private fun ReelActionButtonV2(
+    icon: androidx.compose.ui.graphics.vector.ImageVector,
+    count: String? = null,
+    selected: Boolean = false,
+    selectedColor: Color = Color(0xFFF9C74F),
+    onClick: () -> Unit,
+) {
+    Column(horizontalAlignment = Alignment.CenterHorizontally) {
+        IconButton(onClick = onClick, modifier = Modifier.size(42.dp)) {
+            Icon(
+                icon,
+                contentDescription = null,
+                tint = if (selected) selectedColor else Color.White,
+                modifier = Modifier.size(29.dp)
+            )
+        }
+        if (!count.isNullOrBlank()) {
+            Text(
+                count,
+                color = Color.White,
+                fontSize = 12.sp,
+                fontWeight = FontWeight.SemiBold,
+                style = TextStyle(
+                    shadow = androidx.compose.ui.graphics.Shadow(
+                        color = Color.Black.copy(alpha = 0.6f),
+                        offset = androidx.compose.ui.geometry.Offset(0.5f, 0.5f),
+                        blurRadius = 2f
+                    )
+                ),
+            )
+        }
+    }
+}
+
+fun compactCountV2(value: Int): String = when {
+    value >= 1_000_000 -> String.format(java.util.Locale.US, "%.1fM", value / 1_000_000f).removeSuffix(".0M")
+    value >= 1_000 -> String.format(java.util.Locale.US, "%.1fK", value / 1_000f).removeSuffix(".0K")
+    else -> value.toString()
+}
+
+fun formatTimeV2(milliseconds: Long): String {
+    val totalSeconds = (milliseconds.coerceAtLeast(0L) / 1000L).toInt()
+    return String.format(java.util.Locale.US, "%d:%02d", totalSeconds / 60, totalSeconds % 60)
+}
+
+private fun reelShareLink(reel: UserStateWithUser): String = "panalink://reel/${reel.state.id}"
+
+fun shareReelV2(context: android.content.Context, reel: UserStateWithUser) {
+    val link = reelShareLink(reel)
+    val caption = reel.state.caption?.takeIf { it.isNotBlank() }
+    val text = if (caption != null) "$caption\n$link" else link
+    context.startActivity(android.content.Intent.createChooser(android.content.Intent(android.content.Intent.ACTION_SEND).apply {
+        type = "text/plain"
+        putExtra(android.content.Intent.EXTRA_TEXT, text)
+    }, "Compartir Reel"))
+}
+
+fun copyReelLinkV2(context: android.content.Context, reel: UserStateWithUser) {
+    val link = reelShareLink(reel)
+    (context.getSystemService(android.content.Context.CLIPBOARD_SERVICE) as? android.content.ClipboardManager)
+        ?.setPrimaryClip(android.content.ClipData.newPlainText("Enlace del Reel", link))
+    android.widget.Toast.makeText(context, "Enlace copiado", android.widget.Toast.LENGTH_SHORT).show()
+}
+
+@Composable
+private fun ReelsCommentsSheetV2(
+    viewModel: StatesViewModel,
+    reelId: String,
+    comments: List<com.example.data.model.Comment>,
+    onDismiss: () -> Unit,
+) {
+    var commentText by remember(reelId) { mutableStateOf("") }
+    var replyingTo by remember(reelId) { mutableStateOf<com.example.data.model.Comment?>(null) }
+    val focusRequester = remember { FocusRequester() }
+    val scope = rememberCoroutineScope()
+
+    LaunchedEffect(reelId) { viewModel.loadComments(reelId) }
+
+    val structured = remember(comments) {
+        val parents = comments.filter { it.parentCommentId == null }
+        val children = comments.filter { it.parentCommentId != null }.groupBy { it.parentCommentId }
+        buildList {
+            parents.forEach { parent ->
+                add(parent)
+                children[parent.id]?.filter { it.deletedAt == null }?.forEach { add(it) }
+            }
+        }
+    }
+
+    // TikTok-style: semi-transparent dark panel over the video without stopping it.
+    Box(Modifier.fillMaxSize()) {
+        // Scrim: tap outside dismisses.
+        Box(
+            modifier = Modifier
+                .fillMaxSize()
+                .background(Color.Black.copy(alpha = 0.5f))
+                .clickable(interactionSource = remember { MutableInteractionSource() }, indication = null, onClick = onDismiss)
+        )
+        AnimatedVisibility(
+            visible = true,
+            enter = fadeIn(),
+            modifier = Modifier.align(Alignment.BottomCenter)
+        ) {
+            Box(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .fillMaxHeight(0.72f)
+                    .background(color = Color(0xF2101D24), shape = RoundedCornerShape(topStart = 24.dp, topEnd = 24.dp))
+                    .clickable(enabled = true, onClick = {})
+                    .imePadding()
+            ) {
+                Column(
+                    modifier = Modifier
+                        .fillMaxSize()
+                        .navigationBarsPadding()
+                ) {
+                    // Drag handle
+                    Box(
+                        modifier = Modifier
+                            .align(Alignment.CenterHorizontally)
+                            .padding(top = 8.dp, bottom = 12.dp)
+                            .size(width = 40.dp, height = 4.dp)
+                            .background(Color.Gray.copy(alpha = 0.5f), CircleShape)
+                    )
+
+                    // Header
+                    Row(
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .padding(horizontal = 16.dp).padding(bottom = 8.dp),
+                        horizontalArrangement = Arrangement.SpaceBetween,
+                        verticalAlignment = Alignment.CenterVertically
+                    ) {
+                        Text(
+                            text = "Comentarios (${comments.size})",
+                            color = Color.White,
+                            fontWeight = FontWeight.Bold,
+                            fontSize = 16.sp
+                        )
+                        IconButton(onClick = onDismiss) {
+                            Icon(Icons.Filled.Close, contentDescription = "Cerrar", tint = Color.White)
+                        }
+                    }
+
+                    HorizontalDivider(color = Color.White.copy(alpha = 0.1f))
+
+                    // Scrollable comment list (threaded replies inline).
+                    LazyColumn(
+                        modifier = Modifier
+                            .weight(1f)
+                            .fillMaxWidth(),
+                        contentPadding = PaddingValues(bottom = 16.dp),
+                        verticalArrangement = Arrangement.spacedBy(12.dp)
+                    ) {
+                        items(structured, key = { it.id }) { comment ->
+                            val isReply = comment.parentCommentId != null
+                            Row(
+                                modifier = Modifier
+                                    .fillMaxWidth()
+                                    .padding(start = if (isReply) 48.dp else 16.dp, end = 16.dp, top = 6.dp, bottom = 6.dp),
+                                verticalAlignment = Alignment.Top
+                            ) {
+                                if (isReply) {
+                                    Text(
+                                        text = "в””в”Җ ",
+                                        color = Color.White.copy(alpha = 0.3f),
+                                        fontSize = 14.sp,
+                                        modifier = Modifier.padding(end = 4.dp, top = 2.dp)
+                                    )
+                                }
+                                Box(modifier = Modifier.clickable { }) {
+                                    PanaAvatar(
+                                        avatarUrl = comment.avatarUrl,
+                                        userId = comment.userId,
+                                        size = if (isReply) 28.dp else 36.dp,
+                                        borderWidth = 0.dp,
+                                        placeholderName = comment.authorName
+                                    )
+                                }
+                                Spacer(modifier = Modifier.width(10.dp))
+                                Column(modifier = Modifier.weight(1f)) {
+                                    Row(
+                                        verticalAlignment = Alignment.CenterVertically,
+                                        horizontalArrangement = Arrangement.spacedBy(8.dp)
+                                    ) {
+                                        Text(
+                                            text = if (comment.deletedAt != null) "Eliminado"
+                                                else PublicProfileResolver.formatForUi(comment.authorName, "Pana"),
+                                            color = Color.White.copy(alpha = 0.9f),
+                                            fontWeight = FontWeight.Bold,
+                                            fontSize = if (isReply) 12.sp else 13.sp,
+                                            modifier = Modifier.clickable { }
+                                        )
+                                        val timeStr = remember(comment.createdAt) {
+                                            try {
+                                                val parser = java.text.SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss", java.util.Locale.US)
+                                                parser.timeZone = java.util.TimeZone.getTimeZone("UTC")
+                                                val date = parser.parse(comment.createdAt)
+                                                val diff = System.currentTimeMillis() - (date?.time ?: System.currentTimeMillis())
+                                                val minutes = (diff / 60000).toInt()
+                                                when {
+                                                    minutes < 1 -> "ahora"
+                                                    minutes < 60 -> "hace ${minutes}m"
+                                                    minutes < 1440 -> "hace ${minutes / 60}h"
+                                                    else -> "hace ${minutes / 1440}d"
+                                                }
+                                            } catch (e: Exception) {
+                                                "hace poco"
+                                            }
+                                        }
+                                        Text(
+                                            text = timeStr,
+                                            color = Color.White.copy(alpha = 0.5f),
+                                            fontSize = 11.sp
+                                        )
+                                        if (comment.deletedAt == null) {
+                                            Text(
+                                                text = "вҖў Responder",
+                                                color = Color(0xFF25D366),
+                                                fontSize = 11.sp,
+                                                fontWeight = FontWeight.SemiBold,
+                                                modifier = Modifier
+                                                    .clickable {
+                                                        replyingTo = if (isReply) {
+                                                            comments.find { it.id == comment.parentCommentId } ?: comment
+                                                        } else {
+                                                            comment
+                                                        }
+                                                        scope.launch { focusRequester.requestFocus() }
+                                                    }
+                                                    .padding(horizontal = 4.dp)
+                                            )
+                                        }
+                                    }
+                                    Spacer(modifier = Modifier.height(2.dp))
+                                    Text(
+                                        text = if (comment.deletedAt != null) "Este comentario ha sido eliminado" else comment.text,
+                                        color = if (comment.deletedAt != null) Color.White.copy(alpha = 0.4f) else Color.White,
+                                        fontSize = if (isReply) 13.sp else 14.sp,
+                                        fontStyle = if (comment.deletedAt != null) FontStyle.Italic else FontStyle.Normal
+                                    )
+                                    if (comment.deletedAt != null) {
+                                        IconButton(onClick = { viewModel.deleteComment(reelId, comment.id) }) {
+                                            Icon(Icons.Filled.Delete, contentDescription = "Eliminar", tint = Color.White.copy(alpha = 0.5f))
+                                        }
+                                    }
+                                }
+                            }
+                        }
+                    }
+
+                    HorizontalDivider(color = Color.White.copy(alpha = 0.1f))
+
+                    // Replying banner
+                    val currentReplyingTo = replyingTo
+                    if (currentReplyingTo != null) {
+                        Row(
+                            modifier = Modifier
+                                .fillMaxWidth()
+                                .background(Color(0xFF1E2D35))
+                                .padding(horizontal = 16.dp, vertical = 8.dp),
+                            verticalAlignment = Alignment.CenterVertically,
+                            horizontalArrangement = Arrangement.SpaceBetween
+                        ) {
+                            Text(
+                                text = "Respondiendo a @${PublicProfileResolver.formatForUi(currentReplyingTo.authorName, "Pana")}",
+                                color = Color(0xFF25D366),
+                                fontSize = 12.sp,
+                                fontWeight = FontWeight.SemiBold
+                            )
+                            IconButton(
+                                onClick = { replyingTo = null },
+                                modifier = Modifier.size(18.dp)
+                            ) {
+                                Icon(
+                                    imageVector = Icons.Filled.Close,
+                                    contentDescription = "Cancelar respuesta",
+                                    tint = Color.LightGray,
+                                    modifier = Modifier.size(14.dp)
+                                )
+                            }
+                        }
+                    }
+
+                    // Fixed input (rounded, green send button).
+                    Row(
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .padding(12.dp),
+                        verticalAlignment = Alignment.CenterVertically,
+                        horizontalArrangement = Arrangement.spacedBy(8.dp)
+                    ) {
+                        OutlinedTextField(
+                            value = commentText,
+                            onValueChange = { commentText = it },
+                            placeholder = {
+                                val hint = if (replyingTo != null) "Escribe tu respuesta..." else "Escribe tu comentario de pana..."
+                                Text(hint, color = Color.Gray)
+                            },
+                            modifier = Modifier
+                                .weight(1f)
+                                .focusRequester(focusRequester),
+                            textStyle = TextStyle(color = Color.White, fontSize = 14.sp),
+                            maxLines = 2,
+                            colors = OutlinedTextFieldDefaults.colors(
+                                focusedTextColor = Color.White,
+                                unfocusedTextColor = Color.White,
+                                focusedContainerColor = Color(0xFF1E2D35),
+                                unfocusedContainerColor = Color(0xFF1E2D35),
+                                focusedBorderColor = Color(0xFF25D366),
+                                unfocusedBorderColor = Color.Transparent
+                            ),
+                            shape = RoundedCornerShape(24.dp)
+                        )
+                        IconButton(
+                            onClick = {
+                                if (commentText.isNotBlank()) {
+                                    viewModel.addComment(reelId, commentText, parentId = replyingTo?.id)
+                                    commentText = ""
+                                    replyingTo = null
+                                }
+                            },
+                            modifier = Modifier
+                                .background(Color(0xFF25D366), CircleShape)
+                                .size(40.dp)
+                        ) {
+                            Icon(
+                                imageVector = Icons.AutoMirrored.Rounded.Send,
+                                contentDescription = "Enviar",
+                                tint = Color(0xFF101D24),
+                                modifier = Modifier.size(18.dp)
+                            )
+                        }
+                    }
+                }
+            }
+        }
+    }
+}

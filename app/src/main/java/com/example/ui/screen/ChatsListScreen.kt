@@ -919,15 +919,14 @@ fun ChatsListScreen(
                         }
                     composable("clips") {
                             Box(modifier = Modifier.fillMaxSize()) {
-                                com.example.ui.screen.TikTokVideoFeedScreen(
+                                com.example.reels.ui.ReelsFeedScreen(
                                     viewModel = statesViewModel,
                                     initialStateId = "",
-                                    isActive = currentPageIndex == 2,
                                     onBack = {
                                         tabNavController.navigate("chats") { popUpTo(tabNavController.graph.startDestinationId) { saveState = true }; launchSingleTop = true; restoreState = true }
                                     },
-                                    onNavigateToUserProfile =onNavigateToUserProfile,
-                                    onNavigateToLive =onNavigateToLive
+                                    onNavigateToUserProfile = onNavigateToUserProfile,
+                                    onNavigateToHashtag = null
                                 )
                             }
                         }

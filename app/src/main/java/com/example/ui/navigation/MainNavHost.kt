@@ -59,7 +59,7 @@ import com.example.ui.screen.ReelEditorScreen
 import com.example.ui.screen.SearchResultsScreen
 import com.example.ui.screen.SearchUsersScreen
 import com.example.ui.screen.SplashScreen
-import com.example.ui.screen.TikTokVideoFeedScreen
+import com.example.reels.ui.ReelsFeedScreen
 import com.example.ui.screen.UserProfileScreen
 import com.example.ui.screen.ViewStateScreen
 import com.example.ui.viewmodel.AuthViewModel
@@ -858,7 +858,7 @@ fun MainNavHost(
             arguments = listOf(navArgument("stateId") { type = NavType.StringType })
         ) { backStackEntry ->
             val stateId = backStackEntry.arguments?.getString("stateId") ?: ""
-            TikTokVideoFeedScreen(
+            ReelsFeedScreen(
                 viewModel = statesViewModel,
                 initialStateId = stateId,
                 onBack = { mainNavController.popBackStack() },
@@ -866,9 +866,8 @@ fun MainNavHost(
                     mainNavController.navigate("userProfile/$userId") { launchSingleTop = true }
                 },
                 onNavigateToHashtag = { tag ->
-                    mainNavController.navigate("search_results/$tag") { launchSingleTop = true }
+                    mainNavController.navigate("search_results/${android.net.Uri.encode(tag)}") { launchSingleTop = true }
                 },
-                onNavigateToLive = { mainNavController.navigate("live_feed") { launchSingleTop = true } }
             )
         }
 
@@ -877,7 +876,7 @@ fun MainNavHost(
             route = "search_results/{tag}",
             arguments = listOf(navArgument("tag") { type = NavType.StringType })
         ) { backStackEntry ->
-            val tag = backStackEntry.arguments?.getString("tag") ?: ""
+            val tag = android.net.Uri.decode(backStackEntry.arguments?.getString("tag") ?: "")
             com.example.ui.screen.SearchResultsScreen(
                 tag = tag,
                 viewModel = statesViewModel,
