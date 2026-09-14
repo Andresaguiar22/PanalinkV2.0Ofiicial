@@ -58,73 +58,67 @@ class StoryVideoPlayerSession(private val context: Context) {
      * fake 100% frame while the player is already looping back to the trim start.
      */
      private val trimRunnable = object : Runnable {
-         override fun run() {
-             if (isReleased.get()) return
-             try {
-                 val p = this@StoryVideoPlayerSession.player
-                 val trim = lastTrim
-                 val current = p.currentPosition
-                 val rawPlayerDuration = p.duration
-                 val isPlaying = p.isPlaying
+        override fun run() {
+            // Deferred: the renderer's period notification arrives on a background
+            // looper; keep the fast loop here and commit the real work on the main
+            // handler so progress is always published on the UI thread.
+            mainHandler.post {
+                if (isReleased.get()) {
+                    return@post
+                }
+                try {
+                    val p = this@StoryVideoPlayerSession.player
+                    val trim = lastTrim
+                    val current = p.currentPosition
+                    val rawPlayerDuration = p.duration
+                    val isActuallyPlaying = p.isPlaying && p.playbackState == Player.STATE_READY
 
-                 if (trim != null) {
-                     val startMs = (trim.first * 1000).toLong().coerceAtLeast(0L)
-                     val requestedEndMs = (trim.second * 1000).toLong()
-                     val actualEndMs = if (rawPlayerDuration > startMs) {
-                         requestedEndMs.coerceIn(startMs, rawPlayerDuration)
-                     } else {
-                         requestedEndMs.coerceAtLeast(startMs)
-                     }
-                     val effectiveDuration = (actualEndMs - startMs).coerceAtLeast(0L)
+                    if (trim != null) {
+                        val startMs = (trim.first * 1000).toLong().coerceAtLeast(0L)
+                        val requestedEndMs = (trim.second * 1000).toLong()
+                        val actualEndMs = if (rawPlayerDuration > startMs) {
+                            requestedEndMs.coerceIn(startMs, rawPlayerDuration)
+                        } else {
+                            requestedEndMs.coerceAtLeast(startMs)
+                        }
+                        val effectiveDuration = (actualEndMs - startMs).coerceAtLeast(0L)
 
-                     if (effectiveDuration > 0L) {
-                         onDurationReady?.invoke(effectiveDuration.coerceAtMost(Int.MAX_VALUE.toLong()).toInt())
+                        if (effectiveDuration > 0L) {
+                            onDurationReady?.invoke(effectiveDuration.coerceAtMost(Int.MAX_VALUE.toLong()).toInt())
 
-                         // Acción 1: Only emit progress when the player is truly playing.
-                         // This prevents the progress bar from advancing before the first
-                         // frame renders or while buffering/paused.
-                         if (isPlaying) {
-                             // Hit 100% exactly when the trimmed clip ends, THEN loop back to the
-                             // trim start. Emitting 0 here would reset the bar without ever
-                             // showing the end position.
-                             if (p.playbackState == Player.STATE_READY && current >= actualEndMs) {
-                                 onPositionChanged?.invoke(effectiveDuration)
-                                 p.seekTo(startMs)
-                             } else {
-                                 val relativePosition = (current - startMs)
-                                     .coerceIn(0L, effectiveDuration)
-                                 onPositionChanged?.invoke(relativePosition)
-                             }
-                         }
-                     } else {
-                         onDurationReady?.invoke(0)
-                         if (isPlaying) onPositionChanged?.invoke(0L)
-                     }
-                 } else {
-                     // No trim: always use the player's current duration, not a stale
-                     // duration captured only when STATE_READY fired. This matters for
-                     // HLS/streamed stories whose duration can settle after READY.
-                     val effectiveDuration = rawPlayerDuration.coerceAtLeast(0L)
-                     if (effectiveDuration > 0L) {
-                         onDurationReady?.invoke(effectiveDuration.coerceAtMost(Int.MAX_VALUE.toLong()).toInt())
-                     }
-                     // Acción 1: Only emit progress when playing
-                     if (isPlaying) {
-                         val boundedCurrent = current.coerceIn(0L, effectiveDuration.takeIf { it > 0L } ?: Long.MAX_VALUE)
-                         onPositionChanged?.invoke(boundedCurrent)
-                         if (effectiveDuration > 0L && boundedCurrent >= effectiveDuration && p.playbackState == Player.STATE_READY) {
-                             p.seekTo(0L)
-                             onMediaEnded?.invoke()
-                         }
-                     }
-                 }
-             } catch (_: Exception) {
-                 // Session released or player tearing down; do not reschedule from a fatal access.
-             } finally {
-                 if (!isReleased.get()) mainHandler.postDelayed(this, 100)
-             }
-         }
-     }
+                            if (isActuallyPlaying && current >= actualEndMs) {
+                                onPositionChanged?.invoke(effectiveDuration)
+                                p.seekTo(startMs)
+                            } else if (isActuallyPlaying) {
+                                val relativePosition = (current - startMs)
+                                    .coerceIn(0L, effectiveDuration)
+                                onPositionChanged?.invoke(relativePosition)
+                            }
+                        } else {
+                            onDurationReady?.invoke(0)
+                        }
+                    } else {
+                        val effectiveDuration = rawPlayerDuration.coerceAtLeast(0L)
+                        if (effectiveDuration > 0L) {
+                            onDurationReady?.invoke(effectiveDuration.coerceAtMost(Int.MAX_VALUE.toLong()).toInt())
+                        }
+                        if (isActuallyPlaying) {
+                            val boundedCurrent = current.coerceIn(0L, effectiveDuration.takeIf { it > 0L } ?: Long.MAX_VALUE)
+                            onPositionChanged?.invoke(boundedCurrent)
+                            if (effectiveDuration > 0L && boundedCurrent >= effectiveDuration) {
+                                p.seekTo(0L)
+                                onMediaEnded?.invoke()
+                            }
+                        }
+                    }
+                } catch (_: Exception) {
+                    // Session released or player tearing down.
+                } finally {
+                    if (!isReleased.get()) mainHandler.post(this)
+                }
+            }
+        }
+    }
 
     init {
         mainHandler.post(trimRunnable)
@@ -195,6 +189,9 @@ class StoryVideoPlayerSession(private val context: Context) {
                         player.seekTo(start)
                     }
                 } else if (playbackState == Player.STATE_ENDED) {
+                    // The trim loop boundary is handled in trimRunnable (emits 100%
+                    // then seeks back to start BEFORE the player ever enters ENDED),
+                    // so the only genuine ENDED here is the natural clip end.
                     onMediaEnded?.invoke()
                 }
 

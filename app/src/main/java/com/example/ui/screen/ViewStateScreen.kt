@@ -1163,14 +1163,6 @@ fun UserStoryViewer(
                 }
             }
 
-            // Acción 5: Viewers marquee (owner-only) just below progress bar
-            if (isMyStory) {
-                ViewersMarquee(
-                    spectators = spectatorsList,
-                    modifier = Modifier.padding(bottom = 8.dp)
-                )
-            }
-
             // Profile info
             Box(modifier = Modifier.fillMaxWidth()) {
                 Row(
@@ -1315,6 +1307,16 @@ fun UserStoryViewer(
                 }
                 } // closes outer Row (inside Box)
             }
+
+            // Acción 5: Viewers marquee (owner-only) — BELOW the author name, never
+            // above it. Auto-scrolling carousel: avatars slide in from the right and
+            // slide out on the left.
+            if (isMyStory) {
+                ViewersMarquee(
+                    spectators = spectatorsList,
+                    modifier = Modifier.padding(top = 10.dp, bottom = 2.dp)
+                )
+            }
         }
 
         // Large animated heart popped on double tap
@@ -1361,26 +1363,14 @@ fun UserStoryViewer(
                 .padding(start = 16.dp, end = 16.dp, bottom = 16.dp, top = 24.dp),
             verticalArrangement = Arrangement.spacedBy(10.dp)
         ) {
-            // Caption overlay
-            if (state.mediaType != "text" && cleanCaption.isNotBlank()) {
-                Text(
-                    text = cleanCaption,
-                    color = Color.White,
-                    fontSize = 14.sp,
-                    fontWeight = FontWeight.Normal,
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .padding(horizontal = 4.dp),
-                    textAlign = TextAlign.Start,
-                    maxLines = 3,
-                    overflow = TextOverflow.Ellipsis
-                )
-            }
+            // Caption overlay — the caption is rendered CENTERED in the row below,
+            // so it is not repeated here (avoiding the duplicated text).
 
-            // Acción 2: Owner-only eye icon (left) + centered category text at the
-            // same height. The category lives here ONCE (never duplicated in the
-            // top HUD) and nobody but the author sees the views control.
+            // Acción 2: Owner-only eye icon + views count (left) and the CENTERED
+            // caption the author wrote for the publication (no hardcoded "Pana Vídeo").
             Box(modifier = Modifier.fillMaxWidth()) {
+                val realViewsCount = spectatorsList.size
+
                 if (isMyStory) {
                     Surface(
                         onClick = {
@@ -1393,22 +1383,42 @@ fun UserStoryViewer(
                             .align(Alignment.CenterStart)
                             .testTag("views_counter_pill")
                     ) {
-                        Icon(
-                            imageVector = Icons.Default.Visibility,
-                            contentDescription = "Ver espectadores",
-                            tint = Color.White,
-                            modifier = Modifier.padding(6.dp).size(20.dp)
-                        )
+                        Row(
+                            verticalAlignment = Alignment.CenterVertically,
+                            horizontalArrangement = Arrangement.spacedBy(5.dp),
+                            modifier = Modifier.padding(horizontal = 9.dp, vertical = 5.dp)
+                        ) {
+                            Icon(
+                                imageVector = Icons.Default.Visibility,
+                                contentDescription = "Ver espectadores",
+                                tint = Color.White,
+                                modifier = Modifier.size(18.dp)
+                            )
+                            Text(
+                                text = "$realViewsCount",
+                                color = Color.White,
+                                fontSize = 12.sp,
+                                fontWeight = FontWeight.SemiBold
+                            )
+                        }
                     }
                 }
 
-                Text(
-                    text = if (state.mediaType == "video") "Pana Vídeo" else "Pana Foto",
-                    color = Color.White.copy(alpha = 0.8f),
-                    fontSize = 12.sp,
-                    fontWeight = FontWeight.SemiBold,
-                    modifier = Modifier.align(Alignment.Center)
-                )
+                // Centered publication caption (the comment the author wrote).
+                if (state.mediaType != "text" && cleanCaption.isNotBlank()) {
+                    Text(
+                        text = cleanCaption,
+                        color = Color.White,
+                        fontSize = 13.sp,
+                        fontWeight = FontWeight.SemiBold,
+                        textAlign = TextAlign.Center,
+                        maxLines = 2,
+                        overflow = TextOverflow.Ellipsis,
+                        modifier = Modifier
+                            .align(Alignment.Center)
+                            .padding(horizontal = 64.dp)
+                    )
+                }
 
                 if (metadata.musicName != null) {
                     Row(
@@ -2028,18 +2038,19 @@ fun FloatingReactionsContainer(
 ) {
     if (reactions.isEmpty()) return
     Box(modifier = modifier.fillMaxSize()) {
-        reactions.forEachIndexed { idx, reaction ->
-            val offsetY = remember { Animatable(0f) }
-            val alpha = remember { Animatable(1f) }
+        reactions.forEachIndexed { _, reaction ->
+            val offsetY = remember(reaction.id) { Animatable(0f) }
+            val alpha = remember(reaction.id) { Animatable(0f) }
+            val scale = remember(reaction.id) { Animatable(0.5f) }
             LaunchedEffect(reaction.id) {
-                offsetY.animateTo(
-                    targetValue = -200f * (idx / 3f + 1),
-                    animationSpec = tween(durationMillis = 2000, easing = LinearOutSlowInEasing)
-                )
-                alpha.animateTo(
-                    targetValue = 0f,
-                    animationSpec = tween(durationMillis = 2000, easing = LinearOutSlowInEasing)
-                )
+                // Pop-in + float UP (bottom → top). fadeIn/scaleIn, slide,
+                // fadeOut. Live reactions must rise from the bottom of the
+                // viewer, never fall from the top.
+                alpha.animateTo(1f, tween(180, easing = LinearOutSlowInEasing))
+                val riseDistance = (-170 - (reaction.id.hashCode() % 3) * 40).toFloat()
+                scale.animateTo(1f, tween(220, easing = LinearOutSlowInEasing))
+                offsetY.animateTo(riseDistance, tween(2400, easing = LinearOutSlowInEasing))
+                alpha.animateTo(0f, tween(500, easing = FastOutLinearInEasing))
                 onDismiss(reaction.id)
             }
             Box(
@@ -2047,9 +2058,12 @@ fun FloatingReactionsContainer(
                     .graphicsLayer {
                         this.alpha = alpha.value
                         this.translationY = offsetY.value
+                        this.scaleX = scale.value
+                        this.scaleY = scale.value
                     }
                     .align(Alignment.BottomCenter)
-                    .padding(bottom = 120.dp, start = 40.dp + (idx * 48f).dp)
+                    .padding(start = 40.dp + (reaction.id.hashCode() % 4 * 30f).dp)
+                    .offset(y = (-110).dp)
                     .size(40.dp)
             ) {
                 PanaAvatar(
@@ -2170,6 +2184,12 @@ fun VideoPlayer(
             return@LaunchedEffect
         }
         session.onReady = { onReady?.invoke() }
+        // Acción 1 (fix): sin estas dos conexiones la barra usaba la duración por
+        // defecto (6 s) y terminaba antes que el vídeo, además de no avanzar la
+        // historia al acabar el clip. La sesión ya emite la duración real
+        // (ajustada al trim) y el fin de media; aquí solo se propagan a la UI.
+        session.onDurationReady = { durationMs -> onDurationReady(durationMs) }
+        session.onMediaEnded = { onMediaEnded?.invoke() }
         session.onStateChanged = { stateName, pos, buffered, pct, duration ->
             isBuffering = (stateName == "BUFFERING" || stateName == "IDLE")
         }
