@@ -3,7 +3,6 @@ package com.example.reels.ui
 import android.view.ViewGroup
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.viewinterop.AndroidView
 import androidx.media3.common.Player
 import androidx.media3.ui.AspectRatioFrameLayout
@@ -23,12 +22,7 @@ fun ReelPlayerSurface(
     modifier: Modifier = Modifier,
 ) {
     AndroidView(
-        // graphicsLayer(alpha < 1f) forces the AndroidView — and the SurfaceView
-        // inside PlayerView — to be composited into a Compose texture layer.
-        // Without it, inside a scrollable pager the SurfaceView punches through
-        // and draws OVER the Compose overlay siblings (rail/caption/progress
-        // become invisible) even though they come after it in the page Box.
-        modifier = modifier.graphicsLayer { alpha = 0.99f },
+        modifier = modifier,
         factory = { ctx ->
             PlayerView(ctx).apply {
                 layoutParams = ViewGroup.LayoutParams(

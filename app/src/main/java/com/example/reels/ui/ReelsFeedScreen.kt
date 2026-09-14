@@ -65,6 +65,7 @@ import androidx.compose.runtime.DisposableEffect
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableIntStateOf
+import androidx.compose.runtime.mutableStateMapOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
@@ -126,6 +127,7 @@ fun ReelsFeedScreen(
     var filter by remember { mutableStateOf(ReelFilterV2.EXPLORE) }
     var refreshing by remember { mutableStateOf(false) }
     var commentsReelId by remember { mutableStateOf<String?>(null) }
+    var heartReelId by remember { mutableStateOf<String?>(null) }
     var notInterestedReelId by remember { mutableStateOf<String?>(null) }
 
     val filteredReels = remember(reels, filter) {
@@ -238,25 +240,94 @@ fun ReelsFeedScreen(
                 player = player,
                 modifier = Modifier.fillMaxSize(),
             )
+        }
 
-            ReelOverlayV2(
-                reel = reel,
+        // ------------------------------------------------------------------
+        // WHOLE-FEED OVERLAY — drawn ABOVE the pager (later sibling in this Box).
+        // Kept at feed level (not per page) so the SurfaceView of the video can
+        // never punch over it: a SurfaceView only overdraws siblings within the
+        // same scrollable container. That's also how TikTok lays its feed out.
+        // ------------------------------------------------------------------
+
+        // Active reel for the overlay content.
+        val activeReel = filteredReels.getOrNull(currentIndex)
+        val activePlayer = activeReel?.let { pool.playerFor(it.state.id) }
+
+        // Tap-to-pause editing a per-reel userPaused state kept at feed level.
+        val userPausedIds = remember { mutableStateMapOf<String, Boolean>() }
+        val isPaused = activeReel?.let { userPausedIds[it.state.id] ?: false } ?: false
+
+        // Whole-surface tap/double-tap for play/pause + like (TikTok).
+        Box(
+            modifier = Modifier
+                .fillMaxSize()
+                .pointerInput(activeReel?.state?.id) {
+                    detectTapGestures(
+                        onDoubleTap = {
+                            val r = activeReel ?: return@detectTapGestures
+                            heartReelId = r.state.id
+                            viewModel.toggleLike(r.state.id, r.state.likedByMe ?: false)
+                        },
+                        onTap = {
+                            val r = activeReel ?: return@detectTapGestures
+                            val next = !(userPausedIds[r.state.id] ?: false)
+                            userPausedIds[r.state.id] = next
+                            pool.setUserPaused(r.state.id, next)
+                        }
+                    )
+                }
+        )
+
+        // Big heart on double-tap (like). Re-animates on each new reel id set.
+        heartReelId?.let { heartId ->
+            androidx.compose.animation.AnimatedVisibility(
+                visible = true,
+                modifier = Modifier.align(Alignment.Center),
+                enter = fadeIn() + scaleIn(initialScale = 0.3f),
+                exit = fadeOut() + scaleOut(targetScale = 1.5f),
+            ) {
+                Icon(
+                    Icons.Filled.Favorite,
+                    "Me gusta",
+                    tint = Color(0xFFFF2D55),
+                    modifier = Modifier.size(150.dp)
+                )
+            }
+            LaunchedEffect(heartId) {
+                delay(600)
+                if (heartReelId == heartId) heartReelId = null
+            }
+        }
+
+        // Feed overlay content (rail + caption + progress + pause pill).
+        if (activeReel != null) {
+            ReelFeedOverlay(
+                reel = activeReel,
                 pool = pool,
-                player = player,
+                player = activePlayer,
+                paused = isPaused,
                 muted = muted,
-                commentsCount = reel.state.commentsCount ?: 0,
-                onMute = { muted = !muted },
-                onLike = { viewModel.toggleLike(reel.state.id, reel.state.likedByMe ?: false) },
-                onFavorite = { viewModel.toggleFavorite(reel.state.id, reel.state.favoritedByMe ?: false) },
-                onShare = {
-                    viewModel.incrementShare(reel.state.id)
-                    shareReelV2(context, reel)
+                commentsCount = activeReel.state.commentsCount ?: 0,
+                onLike = {
+                    heartReelId = activeReel.state.id
+                    viewModel.toggleLike(activeReel.state.id, activeReel.state.likedByMe ?: false)
                 },
-                onComments = { commentsReelId = reel.state.id },
-                onProfile = { onNavigateToUserProfile?.invoke(reel.state.userId) },
+                onFavorite = { viewModel.toggleFavorite(activeReel.state.id, activeReel.state.favoritedByMe ?: false) },
+                onShare = {
+                    viewModel.incrementShare(activeReel.state.id)
+                    shareReelV2(context, activeReel)
+                },
+                onComments = { commentsReelId = activeReel.state.id },
+                onProfile = { onNavigateToUserProfile?.invoke(activeReel.state.userId) },
                 onHashtag = { onNavigateToHashtag?.invoke(it) },
-                onNotInterested = { notInterestedReelId = reel.state.id },
-                onCopyLink = { copyReelLinkV2(context, reel) },
+                onNotInterested = { notInterestedReelId = activeReel.state.id },
+                onCopyLink = { copyReelLinkV2(context, activeReel) },
+                onMute = { muted = !muted },
+                onTogglePlayPause = {
+                    val next = !(userPausedIds[activeReel.state.id] ?: false)
+                    userPausedIds[activeReel.state.id] = next
+                    pool.setUserPaused(activeReel.state.id, next)
+                },
             )
         }
 
@@ -267,7 +338,7 @@ fun ReelsFeedScreen(
                 .statusBarsPadding()
                 .padding(horizontal = 10.dp),
             color = Color.Black.copy(alpha = 0.42f),
-            shape = androidx.compose.foundation.shape.RoundedCornerShape(28.dp),
+            shape = RoundedCornerShape(28.dp),
         ) {
             Row(
                 Modifier.height(46.dp).padding(horizontal = 2.dp),
@@ -358,13 +429,13 @@ private enum class ReelFilterV2(val label: String) {
 }
 
 @Composable
-private fun ReelOverlayV2(
+private fun ReelFeedOverlay(
     reel: UserStateWithUser,
     pool: ReelPlayerPool,
     player: androidx.media3.common.Player?,
+    paused: Boolean,
     muted: Boolean,
     commentsCount: Int,
-    onMute: () -> Unit,
     onLike: () -> Unit,
     onFavorite: () -> Unit,
     onShare: () -> Unit,
@@ -373,83 +444,25 @@ private fun ReelOverlayV2(
     onHashtag: (String) -> Unit,
     onNotInterested: () -> Unit,
     onCopyLink: () -> Unit,
+    onMute: () -> Unit,
+    onTogglePlayPause: () -> Unit,
 ) {
     val state = reel.state
     val profile = reel.profile
-    val overlayScope = rememberCoroutineScope()
     var liked by remember(state.id) { mutableStateOf(state.likedByMe ?: false) }
     var favorited by remember(state.id) { mutableStateOf(state.favoritedByMe ?: false) }
     var localLikes by remember(state.id) { mutableIntStateOf(state.likesCount ?: 0) }
     var localFavorites by remember(state.id) { mutableIntStateOf(state.favoritesCount ?: 0) }
     var localShares by remember(state.id) { mutableIntStateOf(state.sharesCount ?: 0) }
     var menuExpanded by remember { mutableStateOf(false) }
-    var paused by remember(state.id) { mutableStateOf(false) }
-    var showHeartBurst by remember(state.id) { mutableStateOf(false) }
 
     val timing = pool.timingFor(state.id)
 
-    // Keep player volume in sync with the global mute toggle.
     LaunchedEffect(player, muted, state.id) {
         player?.volume = if (muted) 0f else 1f
     }
 
-    // Reset paused state when landing on this page again.
-    LaunchedEffect(state.id, player) {
-        if (player != null) paused = !player.playWhenReady && player.playbackState == androidx.media3.common.Player.STATE_READY
-    }
-
-    fun togglePlayPause() {
-        if (player == null) return
-        val next = !paused
-        paused = next
-        pool.setUserPaused(state.id, next)
-    }
-
-    fun doubleTapLike() {
-        showHeartBurst = true
-        if (!liked) {
-            liked = true
-            localLikes += 1
-        }
-        onLike()
-        overlayScope.launch { delay(620); showHeartBurst = false }
-    }
-
-    Box(modifier = Modifier.fillMaxSize().zIndex(1f)) {
-        // Full-surface tap/double-tap gestures: double-tap like, tap play/pause.
-        @OptIn(ExperimentalFoundationApi::class)
-        Box(
-            modifier = Modifier
-                .fillMaxSize()
-                .pointerInput(state.id) {
-                    detectTapGestures(
-                        onDoubleTap = { if (player != null) doubleTapLike() },
-                        onTap = { if (player != null) togglePlayPause() }
-                    )
-                }
-        )
-
-        // Center heart burst on double-tap.
-        androidx.compose.animation.AnimatedVisibility(
-            visible = showHeartBurst,
-            modifier = Modifier
-                .align(Alignment.Center)
-                .padding(bottom = 48.dp),
-            enter = androidx.compose.animation.fadeIn() + androidx.compose.animation.scaleIn(initialScale = 0.35f),
-            exit = androidx.compose.animation.fadeOut() + androidx.compose.animation.scaleOut(targetScale = 1.45f),
-        ) {
-            Icon(
-                Icons.Filled.Favorite,
-                "Me gusta",
-                tint = Color(0xFFFF2D55),
-                modifier = Modifier.size(150.dp)
-            )
-        }
-        LaunchedEffect(showHeartBurst) {
-            if (showHeartBurst) { delay(620); showHeartBurst = false }
-        }
-
-        // Center play/pause pill.
+    Box(modifier = Modifier.fillMaxSize()) {
         Surface(
             modifier = Modifier
                 .align(Alignment.Center)
@@ -457,7 +470,7 @@ private fun ReelOverlayV2(
             shape = CircleShape,
             color = Color.Black.copy(alpha = if (paused) 0.74f else 0.28f),
         ) {
-            IconButton(onClick = { if (player != null) togglePlayPause() }) {
+            IconButton(onClick = onTogglePlayPause) {
                 Icon(
                     if (paused) Icons.Filled.PlayArrow else Icons.Filled.Pause,
                     "Reproducción",
@@ -467,7 +480,7 @@ private fun ReelOverlayV2(
             }
         }
 
-        // Center-right action rail.
+        // Center-right action rail (like/comment/favorite/share/mute/menu).
         Column(
             modifier = Modifier
                 .align(Alignment.CenterEnd)
@@ -509,7 +522,7 @@ private fun ReelOverlayV2(
             modifier = Modifier
                 .align(Alignment.BottomStart)
                 .navigationBarsPadding()
-                .padding(start = 16.dp, end = 90.dp, bottom = 34.dp)
+                .padding(start = 16.dp, end = 90.dp, bottom = 46.dp)
         ) {
             Row(verticalAlignment = Alignment.CenterVertically) {
                 PanaAvatar(
@@ -548,7 +561,7 @@ private fun ReelOverlayV2(
             }
         }
 
-        // Bottom progress bar + time.
+        // Bottom progress bar + time (m:ss).
         if (timing != null && timing.durationMs > 0L) {
             val fraction = (timing.positionMs.toFloat() / timing.durationMs.toFloat()).coerceIn(0f, 1f)
             Column(
