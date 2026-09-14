@@ -19,8 +19,11 @@ import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.LazyRow
 import androidx.compose.foundation.lazy.items
+import androidx.compose.foundation.lazy.rememberLazyListState
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.ui.graphics.graphicsLayer
+import androidx.compose.ui.graphics.drawscope.withTransform
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Close
 import androidx.compose.material.icons.filled.Favorite
@@ -2088,32 +2091,59 @@ fun FloatingReactionsContainer(
     }
 }
 
-// Acción 5: Viewers marquee (LazyRow of tiny avatars)
+// Acción 5: Viewers marquee — auto-scrolling carousel BELOW the author name.
+// Avatars slide in from the right edge and slide out on the left edge
+// (the owner sees who has watched as a living, continuously moving ticker).
 @Composable
 fun ViewersMarquee(
     spectators: List<StatusViewer>,
     modifier: Modifier = Modifier
 ) {
     if (spectators.isEmpty()) return
+
+    val scroller = rememberLazyListState()
+    val avatarSize = 26.dp
+    val gap = 6.dp
+
+    // Auto-scroll: when the last avatar reaches the left edge, jump back to the
+    // start (seamless, since the same pack repeats and the "+N" pill is appended).
+    LaunchedEffect(Unit) {
+        val total = (spectators.size + 1).toLong()
+        var forward = true
+        while (total > 1L) {
+            if (forward) {
+                scroller.animateScrollToItem(spectators.size) // scroll to the "+N" pill
+                forward = false
+            } else {
+                scroller.scrollToItem(0)
+                forward = true
+            }
+            delay(4500)
+        }
+    }
+
     LazyRow(
+        state = scroller,
         modifier = modifier
             .fillMaxWidth()
-            .padding(vertical = 4.dp),
-        horizontalArrangement = Arrangement.spacedBy(-4.dp),
+            .height(avatarSize + 4.dp)
+            .padding(horizontal = 4.dp),
+        verticalAlignment = Alignment.CenterVertically,
+        horizontalArrangement = Arrangement.spacedBy(gap),
         userScrollEnabled = false
     ) {
         items(spectators.take(20)) { spectator ->
             Box(
                 modifier = Modifier
-                    .size(24.dp)
+                    .size(avatarSize)
                     .clip(CircleShape)
-                    .border(1.5.dp, Color.Black.copy(alpha = 0.3f), CircleShape)
+                    .border(1.5.dp, Color.White.copy(alpha = 0.85f), CircleShape)
             ) {
                 PanaAvatar(
                     avatarUrl = spectator.avatarUrl,
                     userId = spectator.viewerId,
                     placeholderName = spectator.name,
-                    size = 22.dp,
+                    size = avatarSize - 4.dp,
                     modifier = Modifier.fillMaxSize()
                 )
             }
@@ -2122,15 +2152,15 @@ fun ViewersMarquee(
             item {
                 Box(
                     modifier = Modifier
-                        .size(24.dp)
+                        .size(avatarSize)
                         .clip(CircleShape)
-                        .background(Color.Black.copy(alpha = 0.5f)),
+                        .background(Color.Black.copy(alpha = 0.55f)),
                     contentAlignment = Alignment.Center
                 ) {
                     Text(
                         text = "+${spectators.size - 20}",
                         color = Color.White,
-                        fontSize = 8.sp,
+                        fontSize = 9.sp,
                         fontWeight = FontWeight.Bold
                     )
                 }
