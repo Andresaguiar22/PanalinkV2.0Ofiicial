@@ -77,6 +77,7 @@ import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
+import androidx.compose.ui.zIndex
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.example.data.model.UserStateWithUser
 import com.example.reels.engine.ReelPlayerPool
@@ -414,7 +415,7 @@ private fun ReelOverlayV2(
         overlayScope.launch { delay(620); showHeartBurst = false }
     }
 
-    Box(modifier = Modifier.fillMaxSize()) {
+    Box(modifier = Modifier.fillMaxSize().zIndex(1f)) {
         // Full-surface tap/double-tap gestures: double-tap like, tap play/pause.
         @OptIn(ExperimentalFoundationApi::class)
         Box(
