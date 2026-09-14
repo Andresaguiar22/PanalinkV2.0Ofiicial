@@ -84,11 +84,12 @@ class StoryVideoPlayerSession(private val context: Context) {
                          // This prevents the progress bar from advancing before the first
                          // frame renders or while buffering/paused.
                          if (isPlaying) {
-                             // Reset BEFORE publishing the end position. This prevents the
-                             // progress bar from reaching 100% while the video is still looping.
+                             // Hit 100% exactly when the trimmed clip ends, THEN loop back to the
+                             // trim start. Emitting 0 here would reset the bar without ever
+                             // showing the end position.
                              if (p.playbackState == Player.STATE_READY && current >= actualEndMs) {
+                                 onPositionChanged?.invoke(effectiveDuration)
                                  p.seekTo(startMs)
-                                 onPositionChanged?.invoke(0L)
                              } else {
                                  val relativePosition = (current - startMs)
                                      .coerceIn(0L, effectiveDuration)
