@@ -32,6 +32,7 @@ fun SearchResultsScreen(
     val reelsState by viewModel.reelsState.collectAsState()
     
     val filteredVideos = remember(reelsState, tag) {
+        val query = tag.trim().lowercase()
         if (reelsState is StatesUiState.Success) {
             val allVideos = (reelsState as StatesUiState.Success).states.filter { 
                 it.state.mediaType.equals("video", ignoreCase = true) || 
@@ -39,7 +40,21 @@ fun SearchResultsScreen(
                 it.state.isReel || 
                 it.state.type.equals("reel", ignoreCase = true)
             }
-            allVideos.filter { it.state.caption?.contains("#$tag", ignoreCase = true) == true }
+            if (query.isBlank()) {
+                allVideos
+            } else {
+                allVideos.filter { item ->
+                    val caption = item.state.caption?.lowercase().orEmpty()
+                    val tags = Regex("#[A-Za-z0-9_áéíóúÁÉÍÓÚñÑ]+").findAll(caption).map { it.value.removePrefix("#") }.toSet()
+                    val mentions = Regex("@[A-Za-z0-9_.áéíóúÁÉÍÓÚñÑ]+").findAll(caption).map { it.value }.toSet()
+                    val display = item.profile.displayName?.lowercase().orEmpty()
+                    caption.contains(query) ||
+                        tags.any { it.contains(query, ignoreCase = true) } ||
+                        mentions.any { it.trimStart('@').contains(query, ignoreCase = true) } ||
+                        display.contains(query, ignoreCase = true) ||
+                        item.state.userId == tag
+                }
+            }
         } else {
             emptyList()
         }

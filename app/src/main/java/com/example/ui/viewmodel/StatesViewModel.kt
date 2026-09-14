@@ -75,6 +75,27 @@ class StatesViewModel(private val statesRepository: StatesRepository = StatesRep
         }
     }
 
+    // Forced reels refresh: bypasses the "already loading" guard so the feed's
+    // refresh button always re-fetches, and reports completion to the caller so
+    // the UI spinner reflects the real network round-trip.
+    fun refreshReels(onComplete: () -> Unit = {}) {
+        viewModelScope.launch(errorHandler + Dispatchers.IO) {
+            if (!com.example.util.NetworkMonitor.isOnline.value) {
+                Log.d("StatesViewModel", "Offline, skipping forced reels refresh")
+            } else {
+                isActiveStatesLoading = true
+                try {
+                    statesRepository.getActiveStates()
+                } catch (e: Exception) {
+                    Log.e("StatesViewModel", "Forced reels refresh failed", e)
+                } finally {
+                    isActiveStatesLoading = false
+                }
+            }
+            kotlinx.coroutines.withContext(Dispatchers.Main) { onComplete() }
+        }
+    }
+
     fun toggleLike(stateId: String, currentLikeState: Boolean, onError: ((String) -> Unit)? = null) {
         val now = System.currentTimeMillis(); if (now - (localActionTimestamps[stateId] ?: 0L) < 500) return; localActionTimestamps[stateId] = now
         if (!processingIds.add(stateId)) return

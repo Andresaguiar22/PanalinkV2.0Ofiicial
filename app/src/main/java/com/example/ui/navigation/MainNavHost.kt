@@ -866,8 +866,27 @@ fun MainNavHost(
                     mainNavController.navigate("userProfile/$userId") { launchSingleTop = true }
                 },
                 onNavigateToHashtag = { tag ->
-                    mainNavController.navigate("search_results/$tag") { launchSingleTop = true }
+                    mainNavController.navigate("search_results/${android.net.Uri.encode(tag)}") { launchSingleTop = true }
                 },
+                onSearchResults = { query ->
+                    mainNavController.navigate("search_reels/${android.net.Uri.encode(query)}") { launchSingleTop = true }
+                },
+            )
+        }
+
+        // Full reels search (opened from the feed search field).
+        composable(
+            route = "search_reels/{query}",
+            arguments = listOf(navArgument("query") { type = NavType.StringType })
+        ) { backStackEntry ->
+            val query = android.net.Uri.decode(backStackEntry.arguments?.getString("query") ?: "")
+            SearchResultsScreen(
+                tag = query,
+                viewModel = statesViewModel,
+                onBack = { mainNavController.popBackStack() },
+                onVideoClick = { stateId ->
+                    mainNavController.navigate("tiktok/$stateId") { launchSingleTop = true }
+                }
             )
         }
 
@@ -876,7 +895,7 @@ fun MainNavHost(
             route = "search_results/{tag}",
             arguments = listOf(navArgument("tag") { type = NavType.StringType })
         ) { backStackEntry ->
-            val tag = backStackEntry.arguments?.getString("tag") ?: ""
+            val tag = android.net.Uri.decode(backStackEntry.arguments?.getString("tag") ?: "")
             com.example.ui.screen.SearchResultsScreen(
                 tag = tag,
                 viewModel = statesViewModel,
