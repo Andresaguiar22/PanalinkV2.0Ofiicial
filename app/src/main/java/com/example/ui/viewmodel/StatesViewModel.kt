@@ -44,6 +44,8 @@ class StatesViewModel(private val statesRepository: StatesRepository = StatesRep
     val reelsState: StateFlow<StatesUiState> = statesRepository.getLocalStatesFlow(isReel = true).map { StatesUiState.Success(it) }.stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), StatesUiState.Loading)
     private val _reelsTimeline = MutableStateFlow<List<UserStateWithUser>>(emptyList())
     val reelsTimeline: StateFlow<List<UserStateWithUser>> = _reelsTimeline.asStateFlow()
+    private val _searchResults = MutableStateFlow<List<UserStateWithUser>>(emptyList())
+    val searchResults: StateFlow<List<UserStateWithUser>> = _searchResults.asStateFlow()
     private val _createStateFlow = MutableStateFlow<CreateStateUiState>(CreateStateUiState.Idle)
     val createStateFlow: StateFlow<CreateStateUiState> = _createStateFlow
     private val commentsJobs = java.util.concurrent.ConcurrentHashMap<String, kotlinx.coroutines.Job>()
@@ -113,6 +115,30 @@ class StatesViewModel(private val statesRepository: StatesRepository = StatesRep
                 }
             } catch (e: Exception) {
                 Log.e("StatesViewModel", "loadReelsTimeline failed", e)
+            } finally {
+                kotlinx.coroutines.withContext(Dispatchers.Main) { onComplete() }
+            }
+        }
+    }
+
+    fun clearReelSearch() {
+        _searchResults.value = emptyList()
+    }
+
+    // TikTok-style search-as-you-type: queries Supabase directly (caption ilike /
+    // hashtag match) and publishes the results in [searchResults].
+    fun searchReels(query: String? = null, tag: String? = null, onComplete: () -> Unit = {}) {
+        viewModelScope.launch(errorHandler + Dispatchers.IO) {
+            try {
+                if (!com.example.util.NetworkMonitor.isOnline.value) {
+                    Log.d("StatesViewModel", "Offline, skipping reels search")
+                } else {
+                    statesRepository.searchReels(query = query, tag = tag).onSuccess { list ->
+                        _searchResults.value = list
+                    }
+                }
+            } catch (e: Exception) {
+                Log.e("StatesViewModel", "searchReels failed", e)
             } finally {
                 kotlinx.coroutines.withContext(Dispatchers.Main) { onComplete() }
             }

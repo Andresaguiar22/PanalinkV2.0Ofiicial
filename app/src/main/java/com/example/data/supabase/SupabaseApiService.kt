@@ -370,6 +370,9 @@ interface SupabaseApiService {
         @Query("author_id") authorFilter: String? = null,
         @Query("id") idFilter: String? = null,
         @Query("order") orderBy: String? = null,
+        @Query("or") orFilter: String? = null,
+        @Query("hashtags") hashtagFilter: String? = null,
+        @Query("limit") limit: Int? = null,
         @Header("Accept-Profile") acceptProfile: String = "social"
     ): Response<List<UserState>>
 

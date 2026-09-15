@@ -245,6 +245,7 @@ fun ChatsListScreen(
     onNavigateToCreateReel: () -> Unit = {},
     onNavigateToViewState: (String) -> Unit, // stateId
     onNavigateToTikTok: (String) -> Unit, // stateId
+    onNavigateToSearchReels: () -> Unit = {},
     onNavigateToProfile: () -> Unit,
     onNavigateToUserProfile: ((String) -> Unit)? = null,
     onNavigateToNotifications: () -> Unit = {},
@@ -920,6 +921,7 @@ fun ChatsListScreen(
                     composable("clips") {
                             Box(modifier = Modifier.fillMaxSize()) {
                                 com.example.reels.ui.ReelsFeedScreen(
+                                    onSearchReels = { onNavigateToSearchReels() },
                                     viewModel = statesViewModel,
                                     initialStateId = "",
                                     onBack = {

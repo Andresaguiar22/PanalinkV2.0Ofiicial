@@ -16,6 +16,8 @@ import androidx.compose.foundation.gestures.awaitEachGesture
 import androidx.compose.foundation.gestures.awaitFirstDown
 import androidx.compose.foundation.gestures.calculateZoom
 import androidx.compose.foundation.gestures.detectTapGestures
+import androidx.compose.foundation.horizontalScroll
+import androidx.compose.foundation.rememberScrollState
 
 import androidx.compose.foundation.interaction.MutableInteractionSource
 import androidx.compose.foundation.layout.Arrangement
@@ -50,6 +52,8 @@ import androidx.compose.material.icons.filled.Delete
 import androidx.compose.material.icons.filled.Favorite
 import androidx.compose.material.icons.filled.Pause
 import androidx.compose.material.icons.filled.PlayArrow
+import androidx.compose.material.icons.filled.Refresh
+import androidx.compose.material.icons.filled.Search
 
 import androidx.compose.material.icons.rounded.Bookmark
 import androidx.compose.material.icons.rounded.BookmarkBorder
@@ -143,6 +147,7 @@ fun ReelsFeedScreen(
     viewModel: StatesViewModel,
     initialStateId: String? = null,
     onBack: () -> Unit,
+    onSearchReels: () -> Unit = {},
     onNavigateToUserProfile: ((String) -> Unit)? = null,
     onNavigateToHashtag: ((String) -> Unit)? = null,
 ) {
@@ -479,46 +484,73 @@ fun ReelsFeedScreen(
                     .padding(horizontal = 2.dp),
                 verticalAlignment = Alignment.CenterVertically
             ) {
-                IconButton(onClick = onBack, modifier = Modifier.size(38.dp)) {
+                IconButton(onClick = onBack, modifier = Modifier.size(36.dp)) {
                     Icon(Icons.Default.ArrowBack, "Volver", tint = Color.White)
+                }
+                IconButton(
+                    onClick = onSearchReels,
+                    modifier = Modifier.size(34.dp)
+                ) {
+                    Icon(Icons.Default.Search, "Buscar", tint = Color.White)
                 }
                 Text(
                     "Reels",
                     color = Color.White,
                     fontWeight = FontWeight.Bold,
                     style = MaterialTheme.typography.titleSmall,
-                    modifier = Modifier.padding(end = 4.dp)
+                    modifier = Modifier.padding(end = 2.dp)
                 )
-                ReelFilterV2.values().forEach { option ->
-                    val selected = filter == option
-                    Box(
-                        modifier = Modifier
-                            .clip(RoundedCornerShape(18.dp))
-                            .background(
-                                if (selected) Color.White.copy(alpha = 0.28f) else Color.Transparent
-                            )
-                            .clickable {
-                                if (!selected) {
-                                    filter = option
-                                    refreshing = true
-                                    viewModel.loadReelsTimeline(option.orderBy) {
-                                        refreshing = false
-                                        refreshKey += 1
-                                        scope.launch { pagerState.scrollToPage(0) }
+                Row(
+                    modifier = Modifier
+                        .weight(1f, fill = false)
+                        .horizontalScroll(rememberScrollState()),
+                    verticalAlignment = Alignment.CenterVertically
+                ) {
+                    ReelFilterV2.values().forEach { option ->
+                        val selected = filter == option
+                        Box(
+                            modifier = Modifier
+                                .clip(RoundedCornerShape(18.dp))
+                                .background(
+                                    if (selected) Color.White.copy(alpha = 0.28f) else Color.Transparent
+                                )
+                                .clickable {
+                                    if (!selected) {
+                                        filter = option
+                                        refreshing = true
+                                        viewModel.loadReelsTimeline(option.orderBy) {
+                                            refreshing = false
+                                            refreshKey += 1
+                                            scope.launch { pagerState.scrollToPage(0) }
+                                        }
                                     }
                                 }
-                            }
-                            .padding(horizontal = 10.dp, vertical = 8.dp),
-                        contentAlignment = Alignment.Center,
-                    ) {
-                        Text(
-                            option.label,
-                            color = Color.White,
-                            fontSize = 13.sp,
-                            fontWeight = if (selected) FontWeight.Bold else FontWeight.Medium,
-                            maxLines = 1,
-                        )
+                                .padding(horizontal = 8.dp, vertical = 8.dp),
+                            contentAlignment = Alignment.Center,
+                        ) {
+                            Text(
+                                option.label,
+                                color = Color.White,
+                                fontSize = 12.sp,
+                                fontWeight = if (selected) FontWeight.Bold else FontWeight.Medium,
+                                maxLines = 1,
+                            )
+                        }
                     }
+                }
+                IconButton(
+                    enabled = !refreshing,
+                    onClick = {
+                        refreshing = true
+                        viewModel.refreshReels {
+                            refreshing = false
+                            refreshKey += 1
+                            scope.launch { pagerState.scrollToPage(0) }
+                        }
+                    },
+                    modifier = Modifier.size(34.dp)
+                ) {
+                    Icon(Icons.Default.Refresh, "Actualizar reels", tint = Color.White)
                 }
             }
         }
