@@ -250,10 +250,14 @@ Los caracteres Unicode invisibles **U+200B (zero-width space)** y **U+FEFF (BOM)
 ### Script BETA (automatizado y versionado)
 * **`scripts/build_beta.sh`** - compila la rama de feature como APK BETA de prueba. **El agente de turno SOLO ejecuta esto y entrega la URL**; no rehacer a mano.
 * Qué hace: refresca la rama remota → recrea worktree limpio → genera `google-services.json` beta (duplica el cliente con `com.panalink.app.beta`) → aplica overlay debug (`PanaLink Beta` + `applicationIdSuffix = ".beta"`) → compila `:app:assembleDebug` con la toolchain del repo → verifica con `aapt` que sea `com.panalink.app.beta` → deja el APK en `$BETA_OUT` (def `/tmp/Panalink-BETA-apk-debug.apk`) y muestra el SHA256..
-* **URL fija para el equipo/QA**: el servidor HTTP local (puerto 12000 en el host work-1) sirve `/Panalink-BETA-apk-debug.apk`. Si el server está caído, relanzar:
+* **URL fija para el equipo/QA**: en ESTA sandbox el APK se sirve en el **puerto 12001** (el 12000 es el servidor de subida de capturas y responde 501 al APK). Ojo: el host y los puertos cambian por sesion - comprobar con `curl -sI` antes de entregar el link. Relanzar el servidor:
 ```bash
-cd /tmp && nohup python3 -m http.server 12000 --bind 0.0.0.0 >/tmp/httpserver.log 2>&1 &
+cd /workspace/project/PanalinkV2.0Ofiicial/.toolchain && nohup python3 serve_range.py 12001 /workspace/project/PanalinkV2.0Ofiicial/.toolchain/serve_apk >/tmp/range_srv.log 2>&1 &
 ```
+* **`serve_range.py` (NO `python -m http.server`)**: la version de `http.server` NO soporta `Range`, y con el APK de ~93 MB la descarga del movil se cortaba (`ConnectionResetError: Connection reset by peer` en el log del server) -> el APK llegaba incompleto y Android decia **"paquete invalido"**. `serve_range.py` manda `Accept-Ranges: bytes` y responde **206**, asi el navegador del telefono **reanuda** donde quedo. Verificar con `curl -r 0-99 -w '%{http_code}'` (debe dar 206).
+* **APK beta solo con ABIs ARM (desde 2026-09-15)**: `build_beta.sh` inyecta `ndk { abiFilters += listOf("arm64-v8a","armeabi-v7a") }`. Las ABIs de emulador (`x86`/`x86_64`) eran ~29 MB (31% del APK) y solo alargaban la descarga. La beta baja de ~93 MB a ~65 MB.
+* **Diagnostico de "paquete invalido" (checklist)**: 1) `sha256sum` del archivo descargado vs. el compilado (si difiere = descarga corrupta/cortada); 2) `apksigner verify --print-certs` (debe ser `CN=Panalink Beta`, SHA-256 `450a76c1...`); 3) `aapt dump xmltree ... | grep extractNativeLibs` (debe ser `0xffffffff` = true); 4) `python3 -c` listando `lib/` para ver las ABIs; 5) revisar el log del servidor por `ConnectionResetError`.
+
 * Variables de entorno del script: `BETA_BRANCH` (def `origin/kilo/fancy-bloom-c6g`), `BETA_WORKTREE` (def `/tmp/panalink_beta`), `BETA_VERSION_NAME`, `BETA_VERSION_CODE`, `BETA_OUT`.
 * **El worktree es PERSISTENTE** (queda en `/tmp/panalink_beta`): entre rondas, el script hace fetch + reset --hard + re-aplica parches → la recompilación es incremental (rápida).
 
