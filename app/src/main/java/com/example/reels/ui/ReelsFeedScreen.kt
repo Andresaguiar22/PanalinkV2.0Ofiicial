@@ -27,20 +27,15 @@ import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
-import androidx.compose.foundation.layout.WindowInsets
-import androidx.compose.foundation.layout.asPaddingValues
-import androidx.compose.foundation.layout.displayCutout
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.heightIn
 import androidx.compose.foundation.layout.imePadding
-import androidx.compose.foundation.layout.navigationBarsPadding
 import androidx.compose.foundation.layout.offset
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
-import androidx.compose.foundation.layout.statusBars
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
@@ -183,15 +178,15 @@ fun ReelsFeedScreen(
 
     // System bars stay VISIBLE in the feed: the user always sees the status bar
     // (clock, notifications, signal, battery) and the native navigation buttons.
-    // The window still draws edge-to-edge (the video runs behind the bars) and
-    // every overlay applies its own inset padding — the header uses the top inset,
-    // and the rail/caption/progress use navigationBarsPadding — so nothing hides
-    // underneath them.
+    // The window is NOT edge-to-edge here: decorFitsSystemWindows stays true, so the
+    // system already reserves the bar space. The overlay must therefore NOT apply
+    // window insets again — doing so floated the pill and the progress bar a whole
+    // status-bar / nav-bar height away from the screen edges.
     val feedActivity = LocalContext.current as? android.app.Activity
     DisposableEffect(feedActivity) {
         val window = feedActivity?.window
         if (window != null) {
-            androidx.core.view.WindowCompat.setDecorFitsSystemWindows(window, false)
+            androidx.core.view.WindowCompat.setDecorFitsSystemWindows(window, true)
             val controller = androidx.core.view.WindowCompat.getInsetsController(window, window.decorView)
             controller.show(androidx.core.view.WindowInsetsCompat.Type.statusBars() or
                 androidx.core.view.WindowInsetsCompat.Type.navigationBars())
@@ -444,14 +439,9 @@ fun ReelsFeedScreen(
         // pager item; only the shared bits (header, heart, loading) remain here.
         // ------------------------------------------------------------------
 
-        // The feed runs in immersive mode, so the status bar is hidden and
-        // statusBarsPadding() collapses to 0 — which left the pill tucked under the
-        // front camera on notched/punch-hole phones. Base the inset on the display
-        // cutout (reported regardless of bar visibility) with a floor that clears
-        // the camera on every device.
-        val cutoutTop = WindowInsets.displayCutout.asPaddingValues().calculateTopPadding()
-        val statusTop = WindowInsets.statusBars.asPaddingValues().calculateTopPadding()
-        val headerTopInset = maxOf(cutoutTop, statusTop, 40.dp)
+        // The system already reserves the status bar area (decorFitsSystemWindows is
+        // true below), so the pill only needs a small gap under it.
+        val headerTopInset = 8.dp
 
         // Big heart on double-tap (like). Re-animates on each new reel id set.
         heartReelId?.let { heartId ->
@@ -481,7 +471,7 @@ fun ReelsFeedScreen(
         Surface(
             modifier = Modifier
                 .align(Alignment.TopCenter)
-                .padding(top = headerTopInset + 8.dp, start = 10.dp, end = 10.dp),
+                .padding(top = headerTopInset, start = 10.dp, end = 10.dp),
             shape = RoundedCornerShape(30.dp),
             color = Color.Transparent,
         ) {
@@ -732,8 +722,7 @@ private fun ReelFeedOverlay(
         Column(
             modifier = Modifier
                 .align(Alignment.BottomEnd)
-                .navigationBarsPadding()
-                .padding(end = 6.dp, bottom = 30.dp),
+                .padding(end = 6.dp, bottom = 50.dp),
             horizontalAlignment = Alignment.CenterHorizontally,
             verticalArrangement = Arrangement.spacedBy(2.dp),
         ) {
@@ -845,8 +834,7 @@ private fun ReelFeedOverlay(
         Column(
             modifier = Modifier
                 .align(Alignment.BottomStart)
-                .navigationBarsPadding()
-                .padding(start = 16.dp, end = 90.dp, bottom = 34.dp),
+                .padding(start = 16.dp, end = 90.dp, bottom = 50.dp),
             verticalArrangement = Arrangement.spacedBy(4.dp),
         ) {
             // Author row: avatar + display name + follow pill.
@@ -985,9 +973,8 @@ private fun ReelFeedOverlay(
                 onSeek = { target -> pool.playerFor(state.id)?.seekTo(target.coerceAtLeast(0L)) },
                 modifier = Modifier
                     .align(Alignment.BottomCenter)
-                    .navigationBarsPadding()
                     .fillMaxWidth()
-                    .padding(start = 12.dp, end = 12.dp, bottom = 8.dp),
+                    .padding(start = 12.dp, end = 12.dp, bottom = 4.dp),
             )
         }
     }
@@ -1018,7 +1005,7 @@ private fun ReelProgressBar(
         Box(
             modifier = Modifier
                 .fillMaxWidth()
-                .height(24.dp)
+                .height(20.dp)
                 .pointerInput(durationMs) {
                     val width = size.width.toFloat().coerceAtLeast(1f)
                     awaitEachGesture {
@@ -1037,7 +1024,7 @@ private fun ReelProgressBar(
                         onSeek((target * durationMs).toLong())
                     }
                 },
-            contentAlignment = Alignment.Center,
+            contentAlignment = Alignment.CenterStart,
         ) {
             Box(Modifier.fillMaxWidth().height(3.dp).clip(CircleShape).background(Color.White.copy(alpha = 0.25f)))
             Box(Modifier.fillMaxWidth(fraction).height(3.dp).clip(CircleShape).background(Color.White))
@@ -1188,7 +1175,6 @@ private fun ReelsCommentsSheetV2(
                 Column(
                     modifier = Modifier
                         .fillMaxSize()
-                        .navigationBarsPadding()
                 ) {
                     // Drag handle
                     Box(
