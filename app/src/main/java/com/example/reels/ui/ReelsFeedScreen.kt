@@ -27,6 +27,9 @@ import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.WindowInsets
+import androidx.compose.foundation.layout.asPaddingValues
+import androidx.compose.foundation.layout.displayCutout
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.fillMaxWidth
@@ -37,7 +40,7 @@ import androidx.compose.foundation.layout.navigationBarsPadding
 import androidx.compose.foundation.layout.offset
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
-import androidx.compose.foundation.layout.statusBarsPadding
+import androidx.compose.foundation.layout.statusBars
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
@@ -440,6 +443,15 @@ fun ReelsFeedScreen(
         // pager item; only the shared bits (header, heart, loading) remain here.
         // ------------------------------------------------------------------
 
+        // The feed runs in immersive mode, so the status bar is hidden and
+        // statusBarsPadding() collapses to 0 — which left the pill tucked under the
+        // front camera on notched/punch-hole phones. Base the inset on the display
+        // cutout (reported regardless of bar visibility) with a floor that clears
+        // the camera on every device.
+        val cutoutTop = WindowInsets.displayCutout.asPaddingValues().calculateTopPadding()
+        val statusTop = WindowInsets.statusBars.asPaddingValues().calculateTopPadding()
+        val headerTopInset = maxOf(cutoutTop, statusTop, 40.dp)
+
         // Big heart on double-tap (like). Re-animates on each new reel id set.
         heartReelId?.let { heartId ->
             androidx.compose.animation.AnimatedVisibility(
@@ -468,8 +480,7 @@ fun ReelsFeedScreen(
         Surface(
             modifier = Modifier
                 .align(Alignment.TopCenter)
-                .statusBarsPadding()
-                .padding(top = 8.dp, start = 10.dp, end = 10.dp),
+                .padding(top = headerTopInset + 8.dp, start = 10.dp, end = 10.dp),
             shape = RoundedCornerShape(30.dp),
             color = Color.Transparent,
         ) {
@@ -479,11 +490,12 @@ fun ReelsFeedScreen(
                     .background(
                         Brush.horizontalGradient(
                             listOf(
-                                Color.White.copy(alpha = 0.16f),
-                                Color.White.copy(alpha = 0.07f)
+                                Color(0xFF0B1620).copy(alpha = 0.90f),
+                                Color(0xFF0B1620).copy(alpha = 0.74f)
                             )
                         )
                     )
+                    .border(1.dp, Color.White.copy(alpha = 0.10f), RoundedCornerShape(30.dp))
                     .height(44.dp)
                     .padding(horizontal = 2.dp),
                 verticalAlignment = Alignment.CenterVertically
@@ -563,8 +575,7 @@ fun ReelsFeedScreen(
             LinearProgressIndicator(
                 modifier = Modifier
                     .align(Alignment.TopCenter)
-                    .statusBarsPadding()
-                    .padding(top = 58.dp)
+                    .padding(top = headerTopInset + 56.dp)
                     .fillMaxWidth(0.86f)
             )
         }
