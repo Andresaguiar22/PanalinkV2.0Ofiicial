@@ -129,8 +129,19 @@ else:
         print("ERROR: no se encontro el bloque 'debug { }' en build.gradle.kts")
         sys.exit(1)
 
+# Solo ABIs de telefonos reales: las de emulador (x86/x86_64) son ~29 MB y el
+# APK de 93 MB se cortaba al descargar en el movil ("paquete invalido").
+if "abiFilters" not in s:
+    m2 = re.search(r"defaultConfig\s*\{", s)
+    if not m2:
+        print("ERROR: no se encontro 'defaultConfig {' en build.gradle.kts")
+        sys.exit(1)
+    s = (s[:m2.end()]
+         + '\n        ndk {\n            abiFilters += listOf("arm64-v8a", "armeabi-v7a")\n        }'
+         + s[m2.end():])
+
 p.write_text(s)
-print("   gradle parchado: firma beta estable + suffix .beta")
+print("   gradle parchado: firma beta estable + suffix .beta + ABIs ARM")
 PY
 if [ $? -ne 0 ]; then exit  16; fi
 
