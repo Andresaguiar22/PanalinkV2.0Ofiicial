@@ -32,11 +32,14 @@ interface PanaTVFavoriteDao {
 
 @Dao
 interface PanaTVChannelDao {
-    @Query("SELECT * FROM panatv_channels WHERE (name LIKE '%' || :query || '%' OR country LIKE '%' || :query || '%') AND (country = :country OR :country = '') AND (category = :category OR :category = '')")
-    fun searchChannels(query: String, country: String, category: String = ""): Flow<List<PanaTVChannelEntity>>
+    @Query("SELECT * FROM panatv_channels WHERE (name LIKE '%' || :query || '%' OR country LIKE '%' || :query || '%') AND (country = :country OR :country = '') AND (category = :category OR :category = '') AND (languages LIKE '%' || :language || '%' OR :language = '')")
+    fun searchChannels(query: String, country: String, category: String = "", language: String = ""): Flow<List<PanaTVChannelEntity>>
 
     @Query("SELECT DISTINCT category FROM panatv_channels WHERE category != ''")
     fun getDistinctCategories(): Flow<List<String>>
+
+    @Query("SELECT DISTINCT languages FROM panatv_channels WHERE languages != ''")
+    fun getDistinctLanguages(): Flow<List<String>>
 
     @Insert(onConflict = OnConflictStrategy.REPLACE)
     suspend fun insertChannels(channels: List<PanaTVChannelEntity>)
@@ -60,7 +63,7 @@ interface PanaTVChannelDao {
     suspend fun clearChannels()
 }
 
-@Database(entities = [PanaTVChannelEntity::class, PanaTVFavoriteEntity::class], version = 5, exportSchema = false)
+@Database(entities = [PanaTVChannelEntity::class, PanaTVFavoriteEntity::class], version = 6, exportSchema = false)
 abstract class PanaTVDatabase : RoomDatabase() {
     abstract fun channelDao(): PanaTVChannelDao
     abstract fun favoriteDao(): PanaTVFavoriteDao

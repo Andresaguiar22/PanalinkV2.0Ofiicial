@@ -50,7 +50,8 @@ import androidx.compose.ui.draw.clip
 import androidx.compose.ui.draw.scale
 import androidx.compose.foundation.gestures.awaitFirstDown
 import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.graphics.vector.ImageVector
+import androidx.compose.ui.graphics.Brush
+import androidx.compose.ui.graphics.Shape
 import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.hapticfeedback.HapticFeedbackType
 import androidx.compose.ui.input.pointer.pointerInput
@@ -75,8 +76,11 @@ import com.example.data.model.Message
 import com.example.data.model.Profile
 import com.example.feature.chat.ui.attachment.ChatAttachmentSheet
 import com.example.feature.chat.ui.background.ChatBackgroundDialog
+import com.example.feature.chat.ui.background.ChatPersonalizationStore
+import com.example.feature.chat.ui.background.ChatBubblePaletteDialog
+import com.example.feature.chat.ui.background.ChatWallpaperSpec
 import com.example.feature.chat.ui.call.ActiveCallOverlay
- import com.example.feature.chat.ui.components.EncryptionBanner
+ 
 import com.example.feature.chat.ui.contact.ChatContactDetailSheet
 import com.example.feature.chat.ui.emoji.EmojiAndMediaSheet
  import com.example.feature.chat.ui.message.MessageBubble
@@ -246,9 +250,13 @@ fun ChatScreen(
     val chatTextSize = remember { prefs.getFloat("chat_text_size_${currentUid}", 16f) }
     // "Enter para enviar" (Ajustes > Chats): activa el botón IME de enviar.
     val enterSendsMessage = remember { prefs.getBoolean("chat_enter_sends_${currentUid}", false) }
-    var chatWallpaperState by remember { 
-        mutableStateOf(prefs.getString("chat_wallpaper_${currentUid}", "dark_slate") ?: "dark_slate") 
-    }
+    // Personalización reactiva del chat: fondo (wallpaper) + paleta de burbujas.
+    val personalization = remember(currentUid, chatId) {
+        ChatPersonalizationStore.observePersonalization(context, currentUid, chatId)
+    }.collectAsStateWithLifecycle()
+    val chatWallpaperState = personalization.value.wallpaperId
+    val chatWallpaperCustomUri = personalization.value.wallpaperCustomUri
+    val bubblePaletteState = personalization.value.bubblePalette
 
     val colors = com.example.ui.theme.LocalAppColors.current
     val coroutineScope = rememberCoroutineScope()
@@ -286,11 +294,21 @@ fun ChatScreen(
     // Media states
     var isAttachmentMenuOpen by rememberSaveable { mutableStateOf(false) }
     var isStickerPanelOpen by rememberSaveable { mutableStateOf(false) }
+    val inputFocusRequester = remember { androidx.compose.ui.focus.FocusRequester() }
     var isUploading by remember { mutableStateOf(false) }
     var lightboxImageUrl by remember { mutableStateOf<String?>(null) }
+
+    // Progreso real de subida por messageId (desde MediaUploadWorker via WorkManager)
+    val uploadProgress by viewModel.uploadProgress.collectAsStateWithLifecycle()
+    val stateMessages = (uiState as? com.example.feature.chat.presentation.ChatUiState.Success)?.messages ?: emptyList()
+    LaunchedEffect(stateMessages) {
+        val pendingIds = stateMessages.map { it.id }
+        viewModel.observeUploadProgress(pendingIds)
+    }
     
     // Chat Menu & Background states
     var showBackgroundDialog by remember { mutableStateOf(false) }
+    var showBubblePaletteDialog by remember { mutableStateOf(false) }
     var showPlaylistPicker by remember { mutableStateOf(false) }
 
     val recordState by viewModel.recordState.collectAsStateWithLifecycle()
@@ -349,6 +367,9 @@ fun ChatScreen(
     val profilesRepository = remember { com.example.data.repository.ProfilesRepository() }
     val chatsRepository = remember { com.example.data.repository.ChatsRepository() }
     var isBlockedUser by remember(otherUserId) { mutableStateOf(profilesRepository.isUserBlocked(otherUserId)) }
+    var blockedAtEpochMs by remember(otherUserId) {
+        mutableStateOf(prefs.getLong("blocked_at_$otherUserId", 0L))
+    }
 
     // Compose Performance Engine: Derived state for scroll-to-bottom FAB
     val showScrollToBottom by remember {
@@ -651,11 +672,29 @@ fun ChatScreen(
 
     Scaffold(
         contentWindowInsets = WindowInsets(0, 0, 0, 0),
-        topBar = {
-            val state = uiState as? ChatUiState.Success
-            val otherUser = state?.otherUser
+        containerColor = Color(0xFF070B18)
+    ) { innerPadding ->
+        Column(
+            modifier = Modifier
+                .fillMaxSize()
+                .padding(top = innerPadding.calculateTopPadding())
+                .navigationBarsPadding()
+                .imePadding()
+                .background(
+                    Brush.verticalGradient(
+                        colors = listOf(
+                            Color(0xFF0E1730),
+                            Color(0xFF070B18)
+                        )
+                    )
+                )
+        ) {
+            // Topbar DENTRO del content: así el fondo de chat corre TAMBIÉN debajo
+            // de la barra del perfil (referencia).
+            val stateTop = uiState as? ChatUiState.Success
+            val otherUserTop = stateTop?.otherUser
             ChatTopBar(
-                otherUser = otherUser,
+                otherUser = otherUserTop,
                 isMuted = isMuted,
                 isPinned = isPinned,
                 isLocalSearching = isLocalSearching,
@@ -663,25 +702,25 @@ fun ChatScreen(
                 typingUsers = typingUsers.value,
                 userPresence = userPresence.value,
                 isBlockedUser = isBlockedUser,
-                onBack =onBack,
+                onBack = onBack,
                 onVideoCall = {
-                    if (otherUser != null) {
+                    if (otherUserTop != null) {
                         com.example.call.CallPermissionGate.startCallIfPermitted(
                             activity = null,
                             context = context,
-                            targetUserId = otherUser.id,
-                            targetUserName = otherUser.displayName,
+                            targetUserId = otherUserTop.id,
+                            targetUserName = otherUserTop.displayName,
                             type = com.example.call.CallType.VIDEO
                         )
                     }
                 },
                 onAudioCall = {
-                    if (otherUser != null) {
+                    if (otherUserTop != null) {
                         com.example.call.CallPermissionGate.startCallIfPermitted(
                             activity = null,
                             context = context,
-                            targetUserId = otherUser.id,
-                            targetUserName = otherUser.displayName,
+                            targetUserId = otherUserTop.id,
+                            targetUserName = otherUserTop.displayName,
                             type = com.example.call.CallType.AUDIO
                         )
                     }
@@ -694,6 +733,7 @@ fun ChatScreen(
                 onSearchQueryChange = { localSearchQuery = it },
                 onShowContactDetail = { showContactDetail = true },
                 onShowBackgroundDialog = { showBackgroundDialog = true },
+                onShowBubblePaletteDialog = { showBubblePaletteDialog = true },
                 onToggleMute = {
                     val newMutedState = !isMuted
                     viewModel.muteChat(chatId, newMutedState)
@@ -727,64 +767,34 @@ fun ChatScreen(
                             if (currentlyBlocked) {
                                 profilesRepository.unblockUser(otherUserId)
                                 isBlockedUser = false
+                                prefs.edit().remove("blocked_at_$otherUserId").apply()
+                                blockedAtEpochMs = 0L
                                 Toast.makeText(context, "Contacto desbloqueado ✅", Toast.LENGTH_SHORT).show()
                             } else {
                                 profilesRepository.blockUser(otherUserId)
                                 isBlockedUser = true
+                                val nowMs = System.currentTimeMillis()
+                                prefs.edit().putLong("blocked_at_$otherUserId", nowMs).apply()
+                                blockedAtEpochMs = nowMs
                                 Toast.makeText(context, "Contacto bloqueado 🚫", Toast.LENGTH_SHORT).show()
                             }
                         }
                     }
                 },
-                onNavigateToChatMedia =onNavigateToChatMedia,
-                onNavigateToSearch =onNavigateToSearch,
+                onNavigateToChatMedia = onNavigateToChatMedia,
+                onNavigateToSearch = onNavigateToSearch,
             )
-        },
-        containerColor = colors.background
-    ) { innerPadding ->
-        Column(
-            modifier = Modifier
-                .fillMaxSize()
-                .padding(top = innerPadding.calculateTopPadding())
-                .navigationBarsPadding()
-                .imePadding()
-        ) {
             // Pinned Message Bar
             val state = uiState as? ChatUiState.Success
             
 
             
-            // Message Area
-            Box(
-                modifier = Modifier
-                    .weight(1f)
-                    .fillMaxWidth()
-                    .background(Color(0xFF0B141A))
-            ) {
-                // Wallpaper background (Doodle pattern) — sutil sobre fondo oscuro
-                AsyncImage(
-                    model = com.example.R.drawable.chat_doodle_bg_1784868638812,
-                    contentDescription = null,
-                    contentScale = ContentScale.Crop,
-                    modifier = Modifier.fillMaxSize(),
-                    alpha = 0.12f
-                )
-
-                // Optional solid color or other wallpaper logic
-                if (chatWallpaperState.startsWith("http")) {
-                    AsyncImage(
-                        model = chatWallpaperState,
-                        contentDescription = null,
-                        contentScale = ContentScale.Crop,
-                        modifier = Modifier.fillMaxSize(),
-                        alpha = 0.3f
-                    )
-                } else if (chatWallpaperState == "color_solid_green") {
-                    Box(Modifier.fillMaxSize().background(Color(0xFF075E54).copy(alpha = 0.15f)))
-                } else if (chatWallpaperState == "color_solid_blue") {
-                    Box(Modifier.fillMaxSize().background(Color(0xFF003366).copy(alpha = 0.15f)))
-                }
-
+             // Message Area
+             val wallpaperActiveSpec = ChatWallpaperSpec.fromId(chatWallpaperState, chatWallpaperCustomUri)
+             com.example.feature.chat.ui.background.ChatWallpaperBackground(
+                 spec = wallpaperActiveSpec,
+                 modifier = Modifier.weight(1f).fillMaxWidth()
+             ) {
                 when (uiState) {
                     is ChatUiState.Loading -> {
                         CircularProgressIndicator(
@@ -799,9 +809,20 @@ fun ChatScreen(
                         } else {
                             state.messages.filter { it.textContent.contains(localSearchQuery, ignoreCase = true) }
                         }
-                        val filteredMessages = rawMessages.distinctBy { message ->
-                            if (!message.clientMessageUuid.isNullOrBlank()) message.clientMessageUuid else message.id
-                        }
+                        val filteredMessages = rawMessages
+                            .filter { message ->
+                                // Contacto bloqueado: se oculta solo lo llegado DESPUES del bloqueo.
+                                // El historial anterior permanece visible (comportamiento tipo WhatsApp).
+                                if (isBlockedUser && blockedAtEpochMs > 0L && message.senderId != currentUid) {
+                                    val msgTs = com.example.util.TimeUtils.parseToEpochMilli(message.createdAt)
+                                    msgTs <= 0L || msgTs > blockedAtEpochMs
+                                } else {
+                                    true
+                                }
+                            }
+                            .distinctBy { message ->
+                                if (!message.clientMessageUuid.isNullOrBlank()) message.clientMessageUuid else message.id
+                            }
                         if (filteredMessages.isEmpty()) {
                             Column(
                                 modifier = Modifier
@@ -823,11 +844,7 @@ fun ChatScreen(
                                 contentPadding = PaddingValues(horizontal = 8.dp, vertical = 8.dp),
                                 verticalArrangement = Arrangement.spacedBy(2.dp)
                             ) {
-                                item {
-                                    if ((uiState as? ChatUiState.Success)?.otherUser != null) {
-                                        EncryptionBanner()
-                                    }
-                                }
+                                
                                 itemsIndexed(
                                     filteredMessages,
                                     key = { _, message ->
@@ -874,20 +891,20 @@ fun ChatScreen(
                                             "Chat"
                                         }
 
-                                        Box(
+                                            Box(
                                             modifier = Modifier
                                                 .fillMaxWidth()
                                                 .padding(vertical = 8.dp),
                                             contentAlignment = Alignment.Center
                                         ) {
                                             Card(
-                                                colors = CardDefaults.cardColors(containerColor = Color(0xFFF0F2F5)),
+                                                colors = CardDefaults.cardColors(containerColor = Color(0xFF1E293B).copy(alpha = 0.7f)),
                                                 shape = RoundedCornerShape(10.dp),
                                                 elevation = CardDefaults.cardElevation(defaultElevation = 1.dp)
                                             ) {
                                                 Text(
                                                     text = dateText,
-                                                    color = Color(0xFF54656F),
+                                                    color = Color(0xFF94A3B8),
                                                     fontSize = 12.sp,
                                                     modifier = Modifier.padding(horizontal = 14.dp, vertical = 5.dp),
                                                     fontWeight = FontWeight.Medium
@@ -914,6 +931,7 @@ fun ChatScreen(
                                         otherAvatarUrl = state.otherUser?.avatarUrl,
                                         otherUserName = state.otherUser?.displayName,
                                         textSizeSp = chatTextSize,
+                                        outgoingBubbleColors = bubblePaletteState.colors,
                                         allMessages = state.messages,
                                         onReply = onReplyCallback,
                                         onDeleteForMe = onDeleteForMeCallback,
@@ -943,7 +961,8 @@ fun ChatScreen(
                                             kotlinx.coroutines.CoroutineScope(kotlinx.coroutines.Dispatchers.IO).launch {
                                                 com.example.data.repository.MessagesRepository.getInstance().retryMessage(msgId)
                                             }
-                                        }
+                                        },
+                                        uploadProgress = uploadProgress
                                     )
                                 }
 
@@ -952,17 +971,17 @@ fun ChatScreen(
                                 val isOtherUserTyping = typingUsers.value.contains(otherUser?.id ?: "other_user_id_demo")
                                 if (isOtherUserTyping) {
                                     item(contentType = "typing_indicator") {
-                                        Row(
+                                            Row(
                                             modifier = Modifier
                                                 .padding(horizontal = 16.dp, vertical = 4.dp)
-                                                .background(Color.White, RoundedCornerShape(16.dp, 16.dp, 16.dp, 4.dp))
+                                                .background(Color(0xFF1E293B).copy(alpha = 0.7f), RoundedCornerShape(16.dp, 16.dp, 16.dp, 4.dp))
                                                 .padding(horizontal = 14.dp, vertical = 10.dp),
                                             verticalAlignment = Alignment.CenterVertically,
                                             horizontalArrangement = Arrangement.spacedBy(8.dp)
                                         ) {
                                             Text(
                                                 text = "${otherUser?.displayName ?: "Tu pana"} está escribiendo...",
-                                                color = Color(0xFF00A884),
+                                                color = Color(0xFF38BDF8),
                                                 fontSize = 13.sp,
                                                 fontWeight = FontWeight.Medium
                                             )
@@ -1043,6 +1062,14 @@ fun ChatScreen(
                     isAttachmentMenuOpen = false
                     showPlaylistPicker = true
                 },
+                onGif = {
+                    isAttachmentMenuOpen = false
+                    isStickerPanelOpen = true
+                },
+                onSticker = {
+                    isAttachmentMenuOpen = false
+                    isStickerPanelOpen = true
+                },
                 onToggleGhostMode = {
                     isAttachmentMenuOpen = false
                     viewModel.toggleGhostMode()
@@ -1080,6 +1107,7 @@ fun ChatScreen(
                     )
                 },
                 onShowTrashAnimation = { showTrashAnimation = true },
+                inputFocusRequester = inputFocusRequester,
             )
 
         // ---- Animacion "bote de basura" al cancelar la nota de voz ----
@@ -1158,7 +1186,12 @@ fun ChatScreen(
                 onClose = { isStickerPanelOpen = false }
             )
             LaunchedEffect(isStickerPanelOpen) {
-                if (isStickerPanelOpen) {
+                if (!isStickerPanelOpen) {
+                    // Al cerrar el panel de emojis, el campo de texto recupera el foco
+                    // para seguir escribiendo sin tocar de nuevo el input.
+                    runCatching { inputFocusRequester.requestFocus() }
+                } else {
+                    focusManager.clearFocus()
                     viewModel.loadEmojiStickers(query = null)
                 }
             }
@@ -1260,7 +1293,7 @@ fun ChatScreen(
             },
             confirmButton = {
                 TextButton(onClick = { showForwardDialog = false }) {
-                    Text("Cancelar", color = Color(0xFF00A884))
+                    Text("Cancelar", color = Color(0xFF38BDF8))
                 }
             },
             containerColor = Color(0xFF1F2C34)
@@ -1299,11 +1332,21 @@ fun ChatScreen(
     ChatBackgroundDialog(
         visible = showBackgroundDialog,
         chatWallpaperState = chatWallpaperState,
+        wallpaperCustomUri = chatWallpaperCustomUri,
         onDismiss = { showBackgroundDialog = false },
-        onSelect = { url ->
-            chatWallpaperState = url
-            prefs.edit().putString("chat_wallpaper_${currentUid}", url).apply()
+        onSelect = { spec ->
+            ChatPersonalizationStore.setWallpaper(context, currentUid, chatId, spec)
             showBackgroundDialog = false
+        },
+    )
+
+    ChatBubblePaletteDialog(
+        visible = showBubblePaletteDialog,
+        currentPalette = bubblePaletteState,
+        onDismiss = { showBubblePaletteDialog = false },
+        onSelect = { palette ->
+            ChatPersonalizationStore.setBubblePalette(context, currentUid, chatId, palette)
+            showBubblePaletteDialog = false
         },
     )
 }
@@ -1370,7 +1413,7 @@ fun PlaylistPickerDialog(
         },
         confirmButton = {
             TextButton(onClick = onDismiss) {
-                Text("Cancelar", color = Color(0xFF00A884))
+                Text("Cancelar", color = Color(0xFF38BDF8))
             }
         },
         containerColor = Color(0xFF1F2C34),

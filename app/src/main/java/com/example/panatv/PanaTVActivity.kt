@@ -25,7 +25,13 @@ class PanaTVActivity : ComponentActivity() {
         }
     }
 
-    // PanaTV deliberately does NOT enter PiP automatically on user leave. Leaving
-    // PanaTV always stops+releases playback in the screen lifecycle. PiP remains
-    // disabled for PanaTV to keep player ownership simple and avoid ghost playback.
+    // Acción 3: Release the shared ExoPlayer only when the Activity is truly
+    // destroyed (not during config changes like rotation). isChangingConfigurations
+    // is true during rotation so the player survives and avoids rebuffering.
+    override fun onDestroy() {
+        super.onDestroy()
+        if (!isChangingConfigurations) {
+            com.example.util.AppFloatingPlayerManager.releasePlayer()
+        }
+    }
 }

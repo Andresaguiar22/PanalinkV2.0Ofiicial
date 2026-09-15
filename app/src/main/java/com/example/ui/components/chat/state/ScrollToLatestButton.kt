@@ -56,7 +56,7 @@ fun ScrollToLatestButton(
                     modifier = Modifier
                         .offset(x = 4.dp, y = (-4).dp)
                         .sizeIn(minWidth = 18.dp, minHeight = 18.dp)
-                        .background(Color(0xFF00A884), CircleShape)
+                        .background(Color(0xFF38BDF8), CircleShape)
                         .padding(horizontal = 4.dp),
                     contentAlignment = Alignment.Center
                 ) {

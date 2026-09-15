@@ -70,6 +70,8 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.geometry.Offset
+import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.hapticfeedback.HapticFeedbackType
 import androidx.compose.ui.platform.LocalClipboardManager
@@ -135,8 +137,11 @@ fun MessageBubbleEngine(
     isChannel: Boolean = false,
     onOpenComments: ((String) -> Unit)? = null,
     onGhostOpen: (Message) -> Unit = {},
+    /** Colores (2+) para el gradiente de la burbuja saliente. Null = paleta por defecto. */
+    outgoingBubbleColors: List<Color>? = null,
     onPlaylistAction: (com.example.media.playlist.PlaylistSharePayload, String) -> Unit = { _, _ -> },
     onRetry: ((String) -> Unit)? = null,
+    uploadProgress: Map<String, Pair<Long, Long>> = emptyMap(),
     modifier: Modifier = Modifier
 ) {
     if (message.isGhost) {
@@ -264,10 +269,28 @@ fun MessageBubbleEngine(
         EmojiHelper.isEmojiOnly(message.textContent)
     }
 
+    // Accion 5: gradiente diagonal apagado y elegante (cian suave arriba-izq -> azul acero profundo abajo-der).
+    // Entrante: pizarra translucido.
+    val paletteColors = if (outgoingBubbleColors != null && outgoingBubbleColors.size >= 2) {
+        outgoingBubbleColors
+    } else {
+        listOf(Color(0xFF53C8DD), Color(0xFF27548F))
+    }
+    val outgoingGradient = Brush.linearGradient(
+        colors = paletteColors,
+        start = Offset.Zero,
+        end = Offset.Infinite
+    )
+    val incomingColor = Color(0xFF39435A).copy(alpha = 0.90f)
+    
     val bubbleColor = if (isSticker || isBigEmoji) Color.Transparent 
-                      else if (isMe) Color(0xFFE7FFDB) 
-                      else Color(0xFFFFFFFF)
-    val contentTextColor = Color(0xFF111B21)
+                      else if (isMe) paletteColors.last()
+                      else incomingColor
+    val bubbleBrush = if (isMe && !isSticker && !isBigEmoji) outgoingGradient else null
+    val contentTextColor = Color.White
+    // Hora y estado legibles: sobre el gradiente saliente (cian arriba) el gris se
+    // perdia; se usa blanco translucido. En entrantes, gris claro sobre el pizarra.
+    val statusTextColor = if (isMe) Color.White.copy(alpha = 0.92f) else Color(0xFFCBD5E1)
     val elevation = if (isSticker || isBigEmoji) 0f else 1f
 
     var showMenu by remember { mutableStateOf(false) }
@@ -366,7 +389,7 @@ fun MessageBubbleEngine(
         allMessages.find { it.id == message.replyToMessageId }
     }
 
-    val highlightColor = if (isSelected) colors.primary.copy(alpha = 0.15f) else if (isHighlighted) Color(0xFF00A884).copy(alpha = 0.3f) else Color.Transparent
+    val highlightColor = if (isSelected) Color(0xFF38BDF8).copy(alpha = 0.15f) else if (isHighlighted) Color(0xFF38BDF8).copy(alpha = 0.3f) else Color.Transparent
 
     // WhatsApp-style spacing: tight inside a consecutive group, wider between groups
     val groupTopSpacing = if (groupPosition == MessageGroupPosition.FIRST || groupPosition == MessageGroupPosition.SINGLE) 6.dp else 1.dp
@@ -435,8 +458,8 @@ fun MessageBubbleEngine(
                     if (repliedMsg != null) {
                         val repliedByMe = repliedMsg.senderId == (SupabaseClient.currentUser?.id ?: "")
                         val replySenderName = if (repliedByMe) "Tú" else (otherUserName?.takeIf { it.isNotBlank() } ?: "Contacto")
-                        val quoteAccent = if (repliedByMe) Color(0xFF00A884) else Color(0xFF7C4DFF)
-                        val quoteBg = if (isMe) Color.White.copy(alpha = 0.45f) else Color(0xFFF0F2F5)
+                        val quoteAccent = if (repliedByMe) Color(0xFF38BDF8) else Color(0xFFA78BFA)
+                        val quoteBg = if (isMe) Color(0xFF1E293B).copy(alpha = 0.45f) else Color(0xFF1E293B).copy(alpha = 0.3f)
                         val repliedType = repliedMsg.messageType?.lowercase() ?: ""
                         val repliedThumbUrl = repliedMsg.mediaUrl.takeIf {
                             repliedType == "image" || repliedType == "video" ||
@@ -486,7 +509,7 @@ fun MessageBubbleEngine(
                                 }
                                 Text(
                                     text = replyPreviewText,
-                                    color = Color(0xFF667781),
+                                    color = Color(0xFF94A3B8),
                                     fontSize = 12.sp,
                                     maxLines = 1,
                                     overflow = TextOverflow.Ellipsis
@@ -503,6 +526,54 @@ fun MessageBubbleEngine(
                                     contentScale = ContentScale.Crop
                                 )
                             }
+                        }
+                    }
+                    // Acción 3: Story reply thumbnail — render the story preview above the text
+                    if (message.replyStoryId != null && message.thumbnailUrl != null) {
+                        val storyType = if (message.mediaMime?.startsWith("video/") == true || message.mediaUrl?.endsWith(".mp4") == true) "🎥" else "🖼️"
+                        Row(
+                            modifier = Modifier
+                                .fillMaxWidth()
+                                .padding(bottom = 6.dp)
+                                .clip(RoundedCornerShape(8.dp))
+                                .background(if (isMe) Color(0xFF1E293B).copy(alpha = 0.45f) else Color(0xFF1E293B).copy(alpha = 0.3f))
+                                .height(IntrinsicSize.Min)
+                        ) {
+                            Box(
+                                modifier = Modifier
+                                    .width(4.dp)
+                                    .fillMaxHeight()
+                                    .background(Color(0xFFFF2D55))
+                            )
+                            Column(
+                                modifier = Modifier
+                                    .padding(horizontal = 8.dp, vertical = 5.dp)
+                                    .weight(1f)
+                            ) {
+                                val replyAuthorName = if (isMe) "Tú" else (otherUserName?.takeIf { it.isNotBlank() } ?: "Contacto")
+                                Text(
+                                    text = "Historia de $replyAuthorName",
+                                    color = Color(0xFFFF2D55),
+                                    fontWeight = FontWeight.Bold,
+                                    fontSize = 12.5.sp
+                                )
+                                Text(
+                                    text = "$storyType Historia",
+                                    color = Color(0xFF94A3B8),
+                                    fontSize = 11.sp,
+                                    maxLines = 1,
+                                    overflow = TextOverflow.Ellipsis
+                                )
+                            }
+                            AsyncImage(
+                                model = message.thumbnailUrl,
+                                contentDescription = null,
+                                modifier = Modifier
+                                    .padding(4.dp)
+                                    .size(38.dp)
+                                    .clip(RoundedCornerShape(6.dp)),
+                                contentScale = ContentScale.Crop
+                            )
                         }
                     }
                     // Multimedia Bubble content rendering switcher (Phase 3.3-A)
@@ -553,6 +624,8 @@ fun MessageBubbleEngine(
                                     message = message,
                                     bubbleColor = bubbleColor,
                                     senderAvatarUrl = if (isMe) myAvatarUrl else otherAvatarUrl,
+                                    uploadBytesWritten = uploadProgress[message.id]?.first ?: 0L,
+                                    uploadTotalBytes = uploadProgress[message.id]?.second ?: 0L,
                                     onImageClick = onImageClick,
                                     onPlayPauseClick = {
                                         val audioUrl = resolvedAudioUrl
@@ -621,12 +694,15 @@ fun MessageBubbleEngine(
                                 isEdited = isEdited,
                                 isFavorited = isFavorited,
                                 isPinned = isPinned,
-                                textColor = Color(0xFF8596A0),
+                                textColor = statusTextColor,
                                 onRetry = { onRetry?.invoke(message.id) }
                             )
                         } else if (isSticker) {
                             val stickerUrl = mediaUrl ?: (if (content.startsWith("[Sticker] ")) content.substringAfter("[Sticker] ").trim() else if (content.startsWith("[GIF] ")) content.substringAfter("[GIF] ").trim() else content)
-                            StickerBubbleContent(stickerUrl = stickerUrl)
+                            StickerBubbleContent(
+                                stickerUrl = stickerUrl,
+                                fallbackUrl = message.thumbnailUrl?.takeIf { it.isNotBlank() }
+                            )
                         } else {
                             val statusIndicatorComposable: @Composable () -> Unit = {
                                 MessageStatusIndicator(
@@ -636,6 +712,7 @@ fun MessageBubbleEngine(
                                     isEdited = isEdited,
                                     isFavorited = isFavorited,
                                     isPinned = isPinned,
+                                    textColor = statusTextColor,
                                     onRetry = { onRetry?.invoke(message.id) }
                                 )
                             }
@@ -671,7 +748,7 @@ fun MessageBubbleEngine(
                             reactionCounts.forEach { (emoji, count) ->
                                 Surface(
                                     modifier = Modifier.clip(RoundedCornerShape(10.dp)),
-                                    color = Color(0xFFF0F2F5),
+                                    color = Color(0xFF1E293B).copy(alpha = 0.5f),
                                     tonalElevation = 1.dp
                                 ) {
                                     Row(
@@ -681,7 +758,7 @@ fun MessageBubbleEngine(
                                     ) {
                                         Text(text = emoji, fontSize = 12.sp)
                                         if (count > 1) {
-                                            Text(text = count.toString(), color = Color(0xFF667781), fontSize = 10.sp)
+                                            Text(text = count.toString(), color = Color(0xFF94A3B8), fontSize = 10.sp)
                                         }
                                     }
                                 }
@@ -699,7 +776,7 @@ fun MessageBubbleEngine(
                             isEdited = isEdited,
                             isFavorited = isFavorited,
                             isPinned = isPinned,
-                            textColor = Color(0xFF667781),
+                            textColor = statusTextColor,
                             onRetry = { onRetry?.invoke(message.id) },
                             modifier = Modifier.align(Alignment.End)
                         )
@@ -773,7 +850,7 @@ fun MessageBubbleEngine(
                                 Spacer(modifier = Modifier.width(3.dp))
                                 Text(
                                     text = "$count",
-                                    color = Color(0xFF667781),
+                                    color = Color(0xFF94A3B8),
                                     fontSize = 9.sp,
                                     fontWeight = FontWeight.Bold
                                 )
@@ -894,6 +971,7 @@ fun MessageBubbleEngine(
                 groupPosition = groupPosition,
                 shape = bubbleShape,
                 containerColor = bubbleColor,
+                containerBrush = bubbleBrush,
                 tonalElevation = selectionElevation,
                 modifier = swipeModifier
             ) {
@@ -906,6 +984,7 @@ fun MessageBubbleEngine(
                 avatarUserId = message.senderId.takeIf { !isMe },
                 shape = bubbleShape,
                 containerColor = bubbleColor,
+                containerBrush = bubbleBrush,
                 tonalElevation = selectionElevation,
                 modifier = swipeModifier
             ) {
@@ -933,7 +1012,7 @@ private fun GhostMessageContent(
                 imageVector = Icons.Default.Visibility,
                 contentDescription = null,
                 modifier = Modifier.size(16.dp),
-                tint = Color(0xFF00A884)
+                tint = Color(0xFF38BDF8)
             )
             Spacer(modifier = Modifier.width(8.dp))
             Text(

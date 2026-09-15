@@ -32,6 +32,8 @@ import androidx.compose.material.icons.rounded.BookmarkBorder
 import androidx.compose.material.icons.rounded.ChatBubble
 import androidx.compose.material.icons.rounded.Favorite
 import androidx.compose.material.icons.rounded.FavoriteBorder
+import androidx.compose.material.icons.rounded.FastForward
+import androidx.compose.material.icons.rounded.FastRewind
 import androidx.compose.material.icons.rounded.MoreHoriz
 import androidx.compose.material.icons.filled.PlayArrow
 import androidx.compose.material.icons.filled.Search
@@ -94,17 +96,19 @@ import android.widget.Toast
 import androidx.compose.ui.platform.LocalContext
 import androidx.media3.common.Player
 import androidx.media3.common.MediaItem
+import androidx.media3.common.PlaybackParameters
 import androidx.media3.exoplayer.ExoPlayer
 import androidx.media3.ui.PlayerView
 import androidx.media3.ui.AspectRatioFrameLayout
 import androidx.media3.exoplayer.source.DefaultMediaSourceFactory
 import kotlinx.coroutines.awaitCancellation
-import com.example.data.video.CacheDataSourceFactory
 import kotlinx.coroutines.CompletableDeferred
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 import kotlinx.coroutines.withTimeoutOrNull
+import kotlinx.coroutines.Job
+import kotlinx.coroutines.isActive
 import com.example.data.repository.ProfilesRepository
 import com.example.data.repository.CdnManager
 import com.example.data.supabase.SupabaseClient
@@ -162,8 +166,6 @@ fun TikTokVideoFeedScreen(
     val context = LocalContext.current
     val dualManager = remember { ReelDualPlayerManager(context) }
     val diagnostics = remember { DiagnosticsRepository.getInstance(context) }
-    // Cooldown para evitar duplicación de I/O entre dual-manager prep y byte prefetch
-    val lastPrefetchTime = remember { mutableMapOf<String, Long>() }
     val activity = context as? android.app.Activity
     val coroutineScope = rememberCoroutineScope()
     DisposableEffect(isActive) {
@@ -344,49 +346,11 @@ fun TikTokVideoFeedScreen(
             // We use key(searchQuery) so the pager state resets securely to index 0 when the search query changes,
             // preventing IndexOutOfBoundsException and ensuring smooth TikTok-style feed navigation.
             key(searchQuery) {
-                
-                // TikTok-style byte prefetch: only the next video's first bytes into the
-                // shared SimpleCache — the dual-manager ya pre-prepara su media (primer frame);
-                // este byte-warm adicional acelera el seek sin saturar la conexión. Dispara
-                // SOLO cuando el pager se ha detenido (settledPage), nunca en páginas
-                // intermedias de un fling (así las precargas intermedias se cancelan solas.
-                LaunchedEffect(pagerState.settledPage, videoStates, isActive) {
-                    if (!isActive) return@LaunchedEffect
-                    kotlinx.coroutines.delay(250) // Debounce 250ms extra tras asentarse
-                    val currentIndex = pagerState.settledPage
-                    val nextIndex = currentIndex + 1
-                    if (nextIndex >= 0 && nextIndex < videoStates.size) {
-                        val nextState = videoStates[nextIndex].state
-                        val nextId = nextState.id
-                        // PLAYER ACTIVO > PLAYER PRELOAD > BYTE PREFETCH:
-                        // Si el siguiente video ya está preparado en un slot del dual-manager (window de preload),
-                        // o está en la cola de preloads pendientes, NO competir I/O con bytes extra.
-                        if (dualManager.slotFor(nextId) != null) return@LaunchedEffect
-                        // El dual-manager no expone pendingPreloads; si ya está resolviéndose en otro
-                        // LaunchedEffect para player prep, skip byte prefetch. Usar un cooldown simple.
-                        val now = System.currentTimeMillis()
-                        val lastPrefetch = lastPrefetchTime[nextId] ?: 0L
-                        if (now - lastPrefetch < 800L) return@LaunchedEffect // 800ms cooldown evita duplicación con dual-manager prep
-                        lastPrefetchTime[nextId] = now
-                        val raw = nextState.mediaUrl
-                        val url =withContext(Dispatchers.IO) { com.example.data.repository.CdnManager.resolveMediaUrl(raw) }
-                        if (!url.isNullOrEmpty() && url.startsWith("http")) {
-                            diagnostics.record(
-                                DiagnosticCategory.CACHE,
-                                "Prefetch iniciado para reel",
-                                correlationId = nextState.id.take(36),
-                                details = "maxBytes=2MB"
-                            )
-                            com.example.data.video.CacheDataSourceFactory.prefetchVideo(context, url, maxBytes = 2L * 1024L * 1024L)
-                            diagnostics.record(
-                                DiagnosticCategory.CACHE,
-                                "Prefetch completado para reel",
-                                correlationId = nextState.id.take(36),
-                                details = "maxBytes=2MB"
-                            )
-                        }
-                    }
-                }
+
+                // SIN byte-prefetch ni SimpleCache: los reels consumen directo VCDN.
+                // El dual-manager ya pre-prepara el primer frame del siguiente video
+                // (preload del slot), que es lo que da el cambio instantáneo a lo
+                // TikTok sin I/O extra de competencia con la reproducción.
 
             if (videoStates.isEmpty() && !NetworkMonitor.isOnline.value) {
                 // Sin conexión total: un spinner infinito "Cargando..." o "No se
@@ -415,11 +379,8 @@ fun TikTokVideoFeedScreen(
             } else {
                 val context = LocalContext.current
                 val scope = rememberCoroutineScope()
-                // ReelPreloader's full-video parallel download used to run here; it
-                // duplicated the SimpleCache prefetch, burned bandwidth competing with
-                // the playing reel, and its downloaded file was never used by the
-                // player (which streams through CacheDataSource). TikTok only preloads
-                // the next videos' first bytes — that happens above.
+                // Los reels consumen directo VCDN (sin cache): el preload del primer
+                // frame lo hace el dual-manager en el slot inactivo, no este bloque.
 
                 // Filesystem cleaner runs once per screen entry, deferred 400ms cancellable.
                 LaunchedEffect(Unit) {
@@ -453,7 +414,11 @@ fun TikTokVideoFeedScreen(
                             stateWithUser = stateWithUser,
                             viewModel = viewModel,
                             isActivePage = isActive && (pagerState.currentPage == page),
-                            isPreload = (page > pagerState.currentPage && page <= pagerState.currentPage + 1),
+                            // Ventana de preload = los 2 siguientes reels: el inmediato
+                            // (slot en preload-muted, frame ya decodificándose) y el
+                            // siguiente-siguiente (encola slot libre cuando se libera y
+                            // va cargando en segundo plano mientras el usuario mira).
+                            isPreload = (page > pagerState.currentPage && page <= pagerState.currentPage + 2),
                               dualManager = dualManager,
                             isMuted = isMuted,
                             onMuteToggle = { isMuted = !isMuted },
@@ -946,8 +911,18 @@ fun TikTokPageItem(
     var isDraggingSlider by remember { mutableStateOf(false) }
     val hearts = remember { mutableStateListOf<HeartPopState>() }
     var isFocusMode by remember { mutableStateOf(false) }
-    var scale by remember { mutableStateOf(1f) }
-    var offset by remember { mutableStateOf(Offset.Zero) }
+    // Acción 4: Zoom state backed by Animatable for snap-back animation.
+    // scaleAnim/offsetXAnim/offsetYAnim replace the old scale/offset mutableState.
+    val scaleAnim = remember { Animatable(1f) }
+    val offsetXAnim = remember { Animatable(0f) }
+    val offsetYAnim = remember { Animatable(0f) }
+    // Acción 2: Floating reactions for reels (owner-only live reactions)
+    var floatingReactions by remember { mutableStateOf(listOf<FloatingReactionLog>()) }
+    val reactionScope = rememberCoroutineScope()
+    // Acción 3: Smart-press zone state
+    var isRewinding by remember(state.id) { mutableStateOf(false) }
+    var isFastForwarding by remember(state.id) { mutableStateOf(false) }
+    var seekJob by remember(state.id) { mutableStateOf<Job?>(null) }
     var hasError by remember(state.id) { mutableStateOf(false) }
     // True while a codec-recovery cycle (player recreation) is in flight; the error
     // card must NOT be shown during this window, only on definitive failure.
@@ -962,6 +937,34 @@ fun TikTokPageItem(
     var forceRotationDegrees by remember(state.id) { mutableStateOf(0f) }
     // Bumped by manual/auto retry to force the acquisition LaunchedEffect to re-run.
     var playerRefreshKey by remember(state.id) { mutableStateOf(0) }
+
+    // Acción 2: Listen for realtime likes on this reel to show floating reactions (owner-only)
+    LaunchedEffect(state.id, isOwner) {
+        if (isOwner) {
+            SupabaseClient.realtimeLikes.collect { update ->
+                if (update.statusId == state.id && update.isReel && update.eventType == "INSERT") {
+                    val reactingUserId = try {
+                        update.record.optString("user_id", update.record.optString("author_id", ""))
+                    } catch (_: Exception) { "" }
+                    val emoji = "❤️"
+                    val avatarUrl = if (reactingUserId.isNotBlank()) {
+                        try {
+                            identityRepository.resolveFreshAvatar(reactingUserId) ?: ""
+                        } catch (_: Exception) { "" }
+                    } else ""
+                    val log = FloatingReactionLog(
+                        id = "${System.currentTimeMillis()}_${reactingUserId}",
+                        avatarUrl = avatarUrl,
+                        emoji = emoji,
+                        userId = reactingUserId
+                    )
+                    reactionScope.launch {
+                        floatingReactions = floatingReactions + log
+                    }
+                }
+            }
+        }
+    }
 
     // El feed remoto puede re-emitir la fila con mediaUrl distinta (re-anclaje CDN,
     // URL firmada expirada, refresco de red). Resolver/player solo dependen
@@ -1085,12 +1088,31 @@ fun TikTokPageItem(
         if (!hasLivePlayer && prev != null && prev != ReelDualPlayerManager.Slot.B) return@LaunchedEffect
         val url = resolvedUrl ?: return@LaunchedEffect
         val acquireStart = System.currentTimeMillis()
-        val slot = dualManager.acquireOrReuse(
+        // Con la ventana de preload ampliada a +2, una página preload puede no
+        // encontrar slot libre al primer intento (ambos slots ocupados). Reintentar
+        // en un loop corto: cuando el slot del reel anterior se libere (al avanzar),
+        // esta página lo toma en <200ms y arranca su preload-muted en segundo plano.
+        // El effect se cancela solo al cambiar isPreload/isActivePage (la página
+        // sale del window) o si la clave del ID cambia.
+        var slot = dualManager.acquireOrReuse(
             state.id,
             url,
             isActivePage,
             if (isMuted) 0f else  1f
-        ) ?: return@LaunchedEffect
+        )
+        var retryTicks = 0
+        while (slot == null && !isActivePage) {
+            if (retryTicks >= 100) return@LaunchedEffect
+            kotlinx.coroutines.delay(120L)
+            slot = dualManager.acquireOrReuse(
+                state.id,
+                url,
+                false,
+                if (isMuted) 0f else 1f
+            )
+            retryTicks++
+        }
+        if (slot == null) return@LaunchedEffect
         activeSlot = slot
         exoPlayerRef = dualManager.playerFor(slot)
         // --- FIX: flags de error/buffering pegajosos al volver a una página ya
@@ -1534,15 +1556,27 @@ fun TikTokPageItem(
         }
     }
 
-    LaunchedEffect(isMuted) {
-        exoPlayerRef?.volume = if (isMuted) 0f else 1f
+    LaunchedEffect(isMuted, isActivePage, exoPlayerRef) {
+        // El volumen real solo aplica a la página ACTIVA. Los preloads se quedan
+        // a volume=0 SIEMPRE (preload-muted del manager) para que nada se oiga en
+        // segundo plano mientras el reel actual reproduce.
+        if (exoPlayerRef != null) {
+            exoPlayerRef?.volume = if (isActivePage && !isMuted) 1f else 0f
+        }
     }
 
     // FIX: al volver a una página activa, resetear el pausado manual (isPaused(
     // que era `remember` sin key y quedaba pegado al salir/vovler, mostrando el
     // ícono de play sobre un vídeo que el usuario no pausó en esta visita.
-    LaunchedEffect(isPaused, isActivePage, exoPlayerRef) {
-        exoPlayerRef?.playWhenReady = isActivePage && !isPaused
+    // Los preloads NO se tocan: el manager los deja en preload-muted
+    // (playWhenReady=true, volume=0) para que su frame ya esté decodificado
+    // cuando la página se vuelva activa (cambio instantáneo sin black screen).
+    LaunchedEffect(isPaused, isActivePage, isPreload, exoPlayerRef) {
+        when {
+            isActivePage -> exoPlayerRef?.playWhenReady = !isPaused
+            !isPreload -> exoPlayerRef?.playWhenReady = false
+            // else: página en preload → no tocar (el manager controla su mute/play)
+        }
     }
 
     LaunchedEffect(isActivePage) {
@@ -1592,18 +1626,58 @@ fun TikTokPageItem(
                         },
                         onPress = { offset ->
                             var isReleased = false
-                            val job = coroutineScope.launch {
+                            val screenWidth = size.width
+                            val zone = when {
+                                offset.x < screenWidth * 0.25f -> "rewind"
+                                offset.x > screenWidth * 0.75f -> "forward"
+                                else -> "center"
+                            }
+                            val longPressJob = coroutineScope.launch {
                                 kotlinx.coroutines.delay(350L)
                                 if (!isReleased) {
-                                    isFocusMode = true
+                                    when (zone) {
+                                        "forward" -> {
+                                            isFastForwarding = true
+                                            exoPlayerRef?.setPlaybackParameters(PlaybackParameters(2f))
+                                        }
+                                        "center" -> {
+                                            isFocusMode = true
+                                        }
+                                        "rewind" -> {
+                                            isRewinding = true
+                                            seekJob?.cancel()
+                                            seekJob = coroutineScope.launch {
+                                                while (isActive && !isReleased) {
+                                                    exoPlayerRef?.let { player ->
+                                                        player.seekTo(kotlin.math.max(0L, player.currentPosition - 1000))
+                                                    }
+                                                    kotlinx.coroutines.delay(100)
+                                                }
+                                            }
+                                        }
+                                    }
                                 }
                             }
                             try {
                                 awaitRelease()
                             } finally {
                                 isReleased = true
-                                job.cancel()
-                                isFocusMode = false
+                                longPressJob.cancel()
+                                // Revert all zone effects on release
+                                when (zone) {
+                                    "forward" -> {
+                                        isFastForwarding = false
+                                        exoPlayerRef?.setPlaybackParameters(PlaybackParameters(1f))
+                                    }
+                                    "center" -> {
+                                        isFocusMode = false
+                                    }
+                                    "rewind" -> {
+                                        isRewinding = false
+                                        seekJob?.cancel()
+                                        seekJob = null
+                                    }
+                                }
                             }
                         }
                     )
@@ -1723,16 +1797,40 @@ fun TikTokPageItem(
                         modifier = Modifier
                             .fillMaxSize()
                             .pointerInput(state.id) {
-                                detectTransformGesturesCustom(
+                                 detectTransformGesturesCustom(
                                     onGesture = { _, pan, zoom, _ ->
-                                        scale = (scale * zoom).coerceIn(1f, 5f)
-                                        offset = if (scale > 1f) {
-                                            Offset(offset.x + pan.x, offset.y + pan.y)
-                                        } else {
-                                            Offset.Zero
+                                        scope.launch {
+                                            val targetScale = (scaleAnim.value * zoom).coerceIn(1f, 5f)
+                                            scaleAnim.snapTo(targetScale)
+                                            if (targetScale > 1f) {
+                                                offsetXAnim.snapTo(offsetXAnim.value + pan.x)
+                                                offsetYAnim.snapTo(offsetYAnim.value + pan.y)
+                                            } else {
+                                                offsetXAnim.snapTo(0f)
+                                                offsetYAnim.snapTo(0f)
+                                            }
                                         }
                                     },
-                                    currentScale = { scale }
+                                    currentScale = { scaleAnim.value },
+                                    onEnd = {
+                                        // Acción 4: Snap-back to 1f / 0f when all fingers released
+                                        if (scaleAnim.value > 1.01f) {
+                                            scope.launch {
+                                                scaleAnim.animateTo(
+                                                    targetValue = 1f,
+                                                    animationSpec = tween(durationMillis = 300, easing = LinearOutSlowInEasing)
+                                                )
+                                                offsetXAnim.animateTo(
+                                                    targetValue = 0f,
+                                                    animationSpec = tween(durationMillis = 300, easing = LinearOutSlowInEasing)
+                                                )
+                                                offsetYAnim.animateTo(
+                                                    targetValue = 0f,
+                                                    animationSpec = tween(durationMillis = 300, easing = LinearOutSlowInEasing)
+                                                )
+                                            }
+                                        }
+                                    }
                                 )
                             }
                     ) {
@@ -1750,15 +1848,15 @@ fun TikTokPageItem(
                             modifier = Modifier
                                 .fillMaxSize()
                                 .align(Alignment.Center)
-                                .graphicsLayer {
-                                    scaleX = scale
-                                    scaleY = scale
-                                    translationX = offset.x
-                                    translationY = offset.y
-                                    if (forceRotationDegrees != 0f) {
-                                        rotationZ = forceRotationDegrees
-                                    }
-                                }
+                                 .graphicsLayer {
+                                     scaleX = scaleAnim.value
+                                     scaleY = scaleAnim.value
+                                     translationX = offsetXAnim.value
+                                     translationY = offsetYAnim.value
+                                     if (forceRotationDegrees != 0f) {
+                                         rotationZ = forceRotationDegrees
+                                     }
+                                 }
                         )
 
                         if (isBuffering && isActivePage && currentPosition == 0L) {
@@ -1823,6 +1921,17 @@ fun TikTokPageItem(
             }
         }
 
+        // Acción 2: Floating reactions from live likes (owner-only)
+        if (floatingReactions.isNotEmpty()) {
+            FloatingReactionsContainer(
+                reactions = floatingReactions,
+                onDismiss = { id ->
+                    floatingReactions = floatingReactions.filterNot { it.id == id }
+                },
+                modifier = Modifier.align(Alignment.TopCenter)
+            )
+        }
+
         // Animated play/pause central overlay icon
         if (isPaused && !hasError) {
             Box(
@@ -1838,6 +1947,41 @@ fun TikTokPageItem(
                     tint = Color.White,
                     modifier = Modifier.size(48.dp)
                 )
+            }
+        }
+
+        // Smart-press feedback: manteniendo un lateral se adelanta (⏩ 2x) o
+        // retrocede (⏪); el video NUNCA se pausa por este gesto (solo cambia la
+        // velocidad/posición, y el volumen/playWhenReady de los reels son ajenos).
+        if (isFastForwarding || isRewinding) {
+            Box(
+                modifier = Modifier
+                    .align(Alignment.Center)
+                    .size(96.dp)
+                    .background(Color.Black.copy(alpha = 0.55f), CircleShape),
+                contentAlignment = Alignment.Center
+            ) {
+                Column(horizontalAlignment = Alignment.CenterHorizontally) {
+                    if (isFastForwarding) {
+                        Icon(
+                            imageVector = Icons.Rounded.FastForward,
+                            contentDescription = "Adelantando",
+                            tint = Color.White,
+                            modifier = Modifier.size(48.dp)
+                        )
+                        Spacer(modifier = Modifier.height(4.dp))
+                        Text("2x", color = Color.White, fontWeight = FontWeight.Bold, fontSize = 16.sp)
+                    } else {
+                        Icon(
+                            imageVector = Icons.Rounded.FastRewind,
+                            contentDescription = "Retrocediendo",
+                            tint = Color.White,
+                            modifier = Modifier.size(48.dp)
+                        )
+                        Spacer(modifier = Modifier.height(4.dp))
+                        Text("⏪", color = Color.White, fontSize = 16.sp)
+                    }
+                }
             }
         }
 
@@ -2707,9 +2851,11 @@ private fun formatMmSs(ms: Long): String {
 }
 
 private suspend fun PointerInputScope.detectTransformGesturesCustom(
-    onGesture: (centroid: Offset, pan: Offset, zoom: Float, rotation: Float) -> Unit,
-    currentScale: () -> Float
+    onGesture: PointerInputScope.(centroid: Offset, pan: Offset, zoom: Float, rotation: Float) -> Unit,
+    currentScale: () -> Float,
+    onEnd: (() -> Unit)? = null
 ) {
+    val ptrScope = this
     awaitEachGesture {
         var rotation = 0f
         var zoom = 1f
@@ -2756,7 +2902,7 @@ private suspend fun PointerInputScope.detectTransformGesturesCustom(
                             zoomChange != 1f ||
                             panChange != Offset.Zero
                         ) {
-                            onGesture(centroid, panChange, zoomChange, effectiveRotation)
+                            ptrScope.onGesture(centroid, panChange, zoomChange, effectiveRotation)
                         }
                         event.changes.forEach {
                             if (it.positionChanged()) {
@@ -2767,5 +2913,8 @@ private suspend fun PointerInputScope.detectTransformGesturesCustom(
                 }
             }
         } while (!canceled && event.changes.any { it.pressed })
+
+        // Acción 4: Trigger snap-back when all fingers are lifted
+        onEnd?.invoke()
     }
 }

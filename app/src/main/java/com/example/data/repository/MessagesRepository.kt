@@ -297,7 +297,7 @@ class MessagesRepository private constructor() {
         }
 
         val cachedEntities = messageDao.getMessagesForChatPaged(chatId, limit, oldestTimestamp)
-        var messagesList = cachedEntities.map { it.toMessage() }.sortedBy { it.createdAt }
+        var messagesList = cachedEntities.map { it.toMessage() }.stableSortedByCreatedAt()
 
         val lastSync = lastSyncTimestamps[chatId] ?: 0L
         val now = System.currentTimeMillis()
@@ -317,7 +317,7 @@ class MessagesRepository private constructor() {
 
         if (!SupabaseClient.isConfigured) {
             if (oldestTimestamp == null && newestTimestamp == null && messagesList.isEmpty()) {
-                val demoList = SupabaseClient.demoMessages.filter { it.chatId == chatId }.sortedBy { it.createdAt }
+                val demoList = SupabaseClient.demoMessages.filter { it.chatId == chatId }.sortedBy { timestampEpochMilli(it.createdAt) }
                 val entities = demoList.map { MessageEntity.fromMessage(it) }
                 messageDao.insertOrMergeMessages(entities)
                 messagesList = demoList.takeLast(limit)
@@ -408,7 +408,7 @@ class MessagesRepository private constructor() {
                             deletedMessageIds = userDeletedIds
                         )
                     }
-                    return@withContext Result.success(validLocal.map { it.toMessage() }.sortedBy { it.createdAt })
+                    return@withContext Result.success(validLocal.map { it.toMessage() }.stableSortedByCreatedAt())
                 } else {
                     val errBody = response.errorBody()?.string() ?: "No error body"
                     Log.e(TAG, "🚨 getMessagesForChatPaged (thread_messages) FAILED: code=${response.code()}, error=$errBody")
@@ -469,7 +469,7 @@ class MessagesRepository private constructor() {
                             deletedMessageIds = userDeletedIds
                         )
                     }
-                    return@withContext Result.success(validLocal.map { it.toMessage() }.sortedBy { it.createdAt })
+                    return@withContext Result.success(validLocal.map { it.toMessage() }.stableSortedByCreatedAt())
                 } else {
                     val errBody = legacyResponse?.errorBody()?.string() ?: "No error body"
                     Log.e(TAG, "getMessagesForChatPaged (legacy messages) FAILED: code=${legacyResponse?.code()}, error=$errBody")
@@ -595,17 +595,32 @@ class MessagesRepository private constructor() {
         }
     }
 
-suspend fun insertLocalMessage(msg: Message) = withContext(Dispatchers.IO) {
-        val effectiveClearedAt = getEffectiveClearedAt(msg.chatId, null)
+    suspend fun insertLocalMessage(msg: Message) = withContext(Dispatchers.IO) {
+        // Acción 3: Enrich story reply messages — ensure the story thumbnail
+        // is attached so the chat bubble can display the story preview above the text.
+        val enrichedMsg = if (msg.replyStoryId != null && msg.thumbnailUrl.isNullOrEmpty()) {
+            val state = try {
+                com.example.data.database.PanalinkDatabase.getDatabase(
+                    com.example.PanaApplication.instance
+                ).statesDao().getStateById(msg.replyStoryId!!)
+            } catch (_: Exception) {
+                null
+            }
+            if (state != null) {
+                msg.copy(thumbnailUrl = state.thumbnailUrl ?: state.mediaUrl)
+            } else msg
+        } else msg
+
+        val effectiveClearedAt = getEffectiveClearedAt(enrichedMsg.chatId, null)
         val shouldKeep = com.example.util.MessageFilter.shouldKeepMessage(
-            messageId = msg.id,
-            messageClientUuid = msg.clientMessageUuid,
-            messageCreatedAt = msg.createdAt,
+            messageId = enrichedMsg.id,
+            messageClientUuid = enrichedMsg.clientMessageUuid,
+            messageCreatedAt = enrichedMsg.createdAt,
             lastClearedAt = effectiveClearedAt,
             deletedMessageIds = getUserDeletedMessageIds()
         )
         if (shouldKeep) {
-            messageDao.insertMessage(MessageEntity.fromMessage(msg))
+            messageDao.insertMessage(MessageEntity.fromMessage(enrichedMsg))
         } else {
             Log.d(TAG, "insertLocalMessage: Message filtered out by MessageFilter")
         }
@@ -617,13 +632,16 @@ suspend fun insertLocalMessage(msg: Message) = withContext(Dispatchers.IO) {
 
     fun getMessagesFlow(chatId: String): kotlinx.coroutines.flow.Flow<List<Message>> {
         return messageDao.getMessagesForChatFlow(chatId).map { entities: List<MessageEntity> ->
-            entities.map { it.toMessage() }
+            // Sort in memory by EPOCH (not string). SQLite ORDER BY on ISO-8601
+            // strings mis-orders messages sent in the same minute when PostgreSQL
+            // mixes 'Z' with '+00:00' or drops the millis.
+            entities.map { it.toMessage() }.stableSortedByCreatedAt()
         }
     }
 
     suspend fun getCachedMessages(chatId: String): List<Message> = withContext(Dispatchers.IO) {
         val entities = messageDao.getMessagesForChat(chatId)
-        entities.map { it.toMessage() }.sortedBy { it.createdAt }
+        entities.map { it.toMessage() }.stableSortedByCreatedAt()
     }
 
     fun scheduleSync(chatId: String? = null) {
@@ -1215,6 +1233,7 @@ suspend fun insertLocalMessage(msg: Message) = withContext(Dispatchers.IO) {
                     "id" to remoteId,
                     "sender_id" to currentUid,
                     "reply_to" to entity.replyToMessageId?.takeIf { isValidUuid(it) },
+                    "reply_story_id" to entity.replyStoryId,
                     "text_content" to contentToUpload,
                     "client_message_uuid" to entity.clientMessageUuid,
                     "created_at" to entity.createdAt,
@@ -1459,6 +1478,9 @@ suspend fun insertLocalMessage(msg: Message) = withContext(Dispatchers.IO) {
                     )
                     if (entity.replyToMessageId != null && isValidUuid(entity.replyToMessageId)) {
                         legacyMsgMap["reply_to"] = entity.replyToMessageId
+                    }
+                    if (entity.replyStoryId != null) {
+                        legacyMsgMap["reply_story_id"] = entity.replyStoryId
                     }
                     val cleanLegacyMsgMap = legacyMsgMap.filterValues { it != null }
 
@@ -1706,6 +1728,7 @@ suspend fun insertLocalMessage(msg: Message) = withContext(Dispatchers.IO) {
         chatId: String,
         content: String,
         replyToId: String? = null,
+        replyStoryId: String? = null,
         receiverUid: String? = null,
         messageId: String? = null,
         messageType: String = "text",
@@ -1752,6 +1775,7 @@ suspend fun insertLocalMessage(msg: Message) = withContext(Dispatchers.IO) {
             createdAt = nowStr,
             status = "sending",
             replyToMessageId = replyToId,
+            replyStoryId = replyStoryId,
             clientMessageUuid = clientUuid,
             thumbnailUrl = thumbnailUrl,
             mediaUrl = mediaUrl,
@@ -1899,6 +1923,7 @@ suspend fun insertLocalMessage(msg: Message) = withContext(Dispatchers.IO) {
                 "sender_id" to currentUid,
                 "receiver_id" to if (isDm) finalReceiverUid?.takeIf { isValidUuid(it) } else null,
                 "reply_to" to replyToId?.takeIf { isValidUuid(it) },
+                "reply_story_id" to replyStoryId,
                 "text_content" to contentToUpload,
                 "client_message_uuid" to clientUuid,
                 "created_at" to nowStr,
@@ -1936,6 +1961,7 @@ suspend fun insertLocalMessage(msg: Message) = withContext(Dispatchers.IO) {
             }
 
             var returnedId: String? = null
+            var returnedCreatedAtRaw: String? = null
             if (response != null && response.isSuccessful) {
                 successful = true
                 try {
@@ -1944,6 +1970,7 @@ suspend fun insertLocalMessage(msg: Message) = withContext(Dispatchers.IO) {
                         val jsonArray = org.json.JSONArray(bodyStr)
                         if (jsonArray.length() > 0) {
                             returnedId = jsonArray.getJSONObject(0).optString("id", null)
+                            returnedCreatedAtRaw = jsonArray.getJSONObject(0).optString("created_at", null)
                         }
                     }
                 } catch (e: Exception) {
@@ -1985,6 +2012,9 @@ suspend fun insertLocalMessage(msg: Message) = withContext(Dispatchers.IO) {
                     if (replyToId != null && isValidUuid(replyToId)) {
                         legacyMsgMap["reply_to"] = replyToId
                     }
+                    if (replyStoryId != null) {
+                        legacyMsgMap["reply_story_id"] = replyStoryId
+                    }
                     val cleanLegacyMsgMap = legacyMsgMap.filterValues { it != null }
 
                     val legacyResponse = runCall { auth ->
@@ -2003,6 +2033,7 @@ suspend fun insertLocalMessage(msg: Message) = withContext(Dispatchers.IO) {
                                 val jsonArray = org.json.JSONArray(bodyStr)
                                 if (jsonArray.length() > 0) {
                                     returnedId = jsonArray.getJSONObject(0).optString("id", null)
+                                    returnedCreatedAtRaw = jsonArray.getJSONObject(0).optString("created_at", null)
                                 }
                             }
                         } catch (e: Exception) {
@@ -2021,7 +2052,17 @@ suspend fun insertLocalMessage(msg: Message) = withContext(Dispatchers.IO) {
 
             if (successful) {
                 val finalId = returnedId?.takeIf { it.isNotBlank() } ?: remoteId
-                val updated = message.copy(id = finalId, status = "sent")
+
+                // Adopt the server's authoritative createdAt (the "real" inserted
+                // timestamp), so optimistic/local and post-sync versions share the
+                // same instant as every Realtime/HTTP peer. Postgres may also
+                // normalize the format ('.SSS Z' vs '+00:00'), which otherwise
+                // breaks string ordering in Room for same-minute messages.
+                val updated = message.copy(
+                    id = finalId,
+                    status = "sent",
+                    createdAt = returnedCreatedAtRaw?.takeIf { it.isNotBlank() } ?: message.createdAt
+                )
                 val effectiveClearedAt = getEffectiveClearedAt(updated.chatId, null)
                 val shouldKeep = com.example.util.MessageFilter.shouldKeepMessage(
                     messageId = updated.id,
@@ -2592,26 +2633,52 @@ suspend fun deleteMessageForEveryone(messageId: String): Result<Boolean> = withC
         Log.d(TAG, "[DIAGNOSTIC_LOG] $etapa: $info")
     }
 
-    private fun parseToEpochMilli(ts: String?): Long {
+    // In-memory chronological ordering. SQLite orders by the raw ISO string,
+    // which breaks when Postgres mixes 'Z' and '+00:00' suffixes or drops the
+    // millis for fast messages. This re-sorts by epoch and is STABLE: messages
+    // with equal/unparseable timestamps keep their insertion order (the local
+    // optimistic message is created before its in-flight mirror, so the
+    // optimistic one wins the position when the timestamps tie).
+    private fun List<Message>.stableSortedByCreatedAt(): List<Message> {
+        val comparator: java.util.Comparator<Message> = java.util.Comparator { a: Message, b: Message ->
+            val t = timestampEpochMilli(a.createdAt).compareTo(timestampEpochMilli(b.createdAt))
+            if (t != 0) {
+                t
+            } else {
+                // Stability fallback: tie-break by a composite of uuid+content so
+                // the sort stays deterministic even for identical timestamps.
+                val byUuid = a.clientMessageUuid.compareTo(b.clientMessageUuid)
+                if (byUuid != 0) byUuid else a.id.compareTo(b.id)
+            }
+        }
+        return sortedWith(comparator)
+    }
+
+    private fun timestampEpochMilli(ts: String?): Long {
         if (ts.isNullOrEmpty()) return 0L
         return try {
             java.time.Instant.parse(ts).toEpochMilli()
-        } catch (e1: Exception) {
+        } catch (_: Exception) {
             try {
                 java.time.OffsetDateTime.parse(ts).toInstant().toEpochMilli()
-            } catch (e2: Exception) {
+            } catch (_: Exception) {
                 try {
                     val cleaned = ts.replace(" ", "T")
-                    if (!cleaned.contains("Z") && !cleaned.contains("+") && !cleaned.contains("-")) {
+                    if (!cleaned.contains("Z") && !cleaned.contains("+")) {
                         java.time.LocalDateTime.parse(cleaned).toInstant(java.time.ZoneOffset.UTC).toEpochMilli()
                     } else {
                         java.time.OffsetDateTime.parse(cleaned).toInstant().toEpochMilli()
                     }
-                } catch (e3: Exception) {
+                } catch (_: Exception) {
                     0L
                 }
             }
         }
+    }
+
+    private fun parseToEpochMilli(ts: String?): Long {
+        if (ts.isNullOrEmpty()) return 0L
+        return timestampEpochMilli(ts)
     }
 
     private fun isTimestampBeforeOrEqual(ts1: String?, ts2: String?): Boolean {

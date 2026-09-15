@@ -10,7 +10,7 @@ import androidx.media3.exoplayer.ExoPlayer
 import com.example.core.media.PanaRenderersFactory
 import androidx.media3.exoplayer.trackselection.DefaultTrackSelector
 import androidx.media3.exoplayer.source.DefaultMediaSourceFactory
-import com.example.data.video.CacheDataSourceFactory
+import androidx.media3.datasource.DefaultHttpDataSource
 import androidx.annotation.OptIn
 import androidx.media3.common.util.UnstableApi
 
@@ -82,7 +82,11 @@ class ReelDualPlayerManager(private val context: Context) {
             player.repeatMode = Player.REPEAT_MODE_ALL
             player.volume = volume
             player.playWhenReady = false
-            player.prepare()
+            try {
+                player.prepare()
+            } catch (e: IllegalStateException) {
+                Log.w(TAG, "Player prepare failed (stale/released) for slot $slot id=$id", e)
+            }
             slotUrls[slot] = url
             if (slot == Slot.A) slotAAssignedId = id else slotBAssignedId = id
         } else {
@@ -107,12 +111,16 @@ class ReelDualPlayerManager(private val context: Context) {
         if (pendingUrl != null) {
             val savedPosition = player.currentPosition
             val savedPlayWhenReady = player.playWhenReady
-            player.setMediaItem(MediaItem.fromUri(pendingUrl))
-            player.prepare()
-            player.seekTo(savedPosition)
-            player.playWhenReady = savedPlayWhenReady
-            slotUrls[slot] = pendingUrl
-            Log.d(TAG, "Applied deferred URL update for slot $slot") // redacted: signed HLS URL
+            try {
+                player.setMediaItem(MediaItem.fromUri(pendingUrl))
+                player.prepare()
+                player.seekTo(savedPosition)
+                player.playWhenReady = savedPlayWhenReady
+                slotUrls[slot] = pendingUrl
+                Log.d(TAG, "Applied deferred URL update for slot $slot") // redacted: signed HLS URL
+            } catch (e: IllegalStateException) {
+                Log.w(TAG, "Player stale during deferred URL update for slot $slot", e)
+            }
         }
         player.playWhenReady = false
         activeSlot = null
@@ -207,7 +215,11 @@ class ReelDualPlayerManager(private val context: Context) {
         newPlayer.repeatMode = Player.REPEAT_MODE_ALL
         newPlayer.volume = volume
         newPlayer.playWhenReady = false
-        newPlayer.prepare()
+        try {
+            newPlayer.prepare()
+        } catch (e: IllegalStateException) {
+            Log.w(TAG, "Fresh player prepare failed in recoverFromPlaybackError for slot $slot", e)
+        }
         if (savedPosition > 0L) {
             newPlayer.seekTo(savedPosition)
         }
@@ -315,13 +327,21 @@ class ReelDualPlayerManager(private val context: Context) {
     }
 
     /**
-     * Acquires [id] s media on the appropriate slot (reusing the slot where it
-     * already lives). Active pages play; preload pages stay prepped but
-     * paused with their first frame already rendered into their PlayerView.
+     * Acquires [id]'s media on the appropriate slot (reusing the slot where it
+     * already lives).
+     *
+     * Active pages play with real volume. Preload pages enter "preload-muted":
+     * the player is set to playWhenReady=true with volume=0 so it DECODES and
+     * renders its first frame into its PlayerView while advancing silently in
+     * the background. This is the mechanism that makes the next reel appear
+     * instantly with its frame already visible (TikTok-style), and it never
+     * leaks audio because the preload volume is zero.
+     *
+     * When there is no free slot for a preload, null is returned and the caller
+     * (the feed page) retries until a slot frees up or the page leaves the
+     * window. There is NO hidden pending queue: a page only ever sees a player
+     * once it actually owns a slot, so no "prepared but never attached" state.
      */
-    private data class ReelPreloadEntry(val id: String, val url: String, val volume: Float)
-    private val pendingPreloads = java.util.ArrayDeque<ReelPreloadEntry>()
-
     fun acquireOrReuse(id: String, url: String, active: Boolean, volume: Float): Slot? {
         val existing = slotFor(id)
         if (existing != null) {
@@ -339,36 +359,55 @@ class ReelDualPlayerManager(private val context: Context) {
                 } else {
                     val savedPosition = player.currentPosition
                     val savedPlayWhenReady = player.playWhenReady
-                    player.setMediaItem(MediaItem.fromUri(url))
-                    player.prepare()
-                    player.seekTo(savedPosition)
-                    player.playWhenReady = savedPlayWhenReady
-                    slotUrls[existing] = url
+                    try {
+                        player.setMediaItem(MediaItem.fromUri(url))
+                        player.prepare()
+                        player.seekTo(savedPosition)
+                        player.playWhenReady = savedPlayWhenReady
+                        slotUrls[existing] = url
+                    } catch (e: IllegalStateException) {
+                        Log.w(TAG, "Player stale during URL update in acquireOrReuse for slot $existing", e)
+                    }
                 }
             }
-            if (active) activate(existing, volume)
+            if (active) activate(existing, volume) else promotePreload(existing)
             return existing
         }
-        val freeSlot = freeSlot()
-        if (!active && freeSlot == null) {
-            if (pendingPreloads.none { it.id == id }) {
-                pendingPreloads.addLast(ReelPreloadEntry(id, url, volume))
+
+        // Active pages always win a slot: take the free one, or steal the slot
+        // that is currently in preload (never the actively-playing slot).
+        if (active) {
+            val free = freeSlot()
+            val slot = free ?: if (activeSlot == Slot.A) Slot.B else Slot.A
+            if (free == null && assignedId(slot) != null) {
+                clearSlot(slot, requeue = false)
             }
-            return null
+            acquire(slot, id, url, volume)
+            activate(slot, volume)
+            return slot
         }
-        val slot = if (active) {
-            val candidate = when (activeSlot) {
-                Slot.A -> Slot.B
-                Slot.B -> Slot.A
-                null -> freeSlot ?: Slot.A
-            }
-            candidate
-        } else {
-            freeSlot ?: (activeSlot ?: Slot.B)
+
+        // Preload: use a free slot if available, otherwise let the caller retry.
+        val free = freeSlot()
+        if (free != null) {
+            acquire(free, id, url, volume)
+            promotePreload(free)
+            return free
         }
-        val player = acquire(slot, id, url, volume)
-        if (active) activate(slot, volume) else pause(slot)
-        return slot
+        return null
+    }
+
+    /**
+     * Preloads [slot] silently: starts playback at volume 0 so the first frame
+     * is decoded and the video advances in the background without making sound.
+     * When the page turns active, [activate] just unmutes it.
+     */
+    fun promotePreload(slot: Slot) {
+        val player = if (slot == Slot.A) slotAPlayer else slotBPlayer
+        if (player == null) return
+        player.volume = 0f
+        player.playWhenReady = true
+        activeSlot = null
     }
 
     /** Releases the slot owning [id] (real ExoPlayer release when page left the window). */
@@ -380,35 +419,49 @@ class ReelDualPlayerManager(private val context: Context) {
     }
 
 
-    private fun clearSlot(slot: Slot, requeue: Boolean = true) {
+    /** Reclaims [slot] — stops, releases the underlying ExoPlayer and forgets its assignment. */
+    private fun clearSlot(slot: Slot, requeue: Boolean = false) {
         val player = if (slot == Slot.A) slotAPlayer else slotBPlayer
         player?.stop()
         player?.release()
         if (slot == Slot.A) { slotAPlayer = null; slotAAssignedId = null; slotUrls.remove(Slot.A) } else { slotBPlayer = null; slotBAssignedId = null; slotUrls.remove(Slot.B) }
         recoveryAttempts.remove(slot)
-        if (!requeue) return
-        val pending = pendingPreloads.pollFirst() ?: return
-        acquire(slot, pending.id, pending.url, pending.volume)
-        pause(slot)
     }
 
     private fun build(preferSoftware: Boolean = false): ExoPlayer {
+        // Arranque veloz tipo TikTok: buffer mínimo bajo (7.5s) → el primer
+        // frame sale en cuanto hay ~1s listo; los posters grandes de 30s
+        // hacían esperar demasiado antes del STATE_READY. Sin SimpleCache el
+        // player lee directo del socket y con 7.5s de buffer el rebuffer es
+        // imperceptible en redes sanas.
         val loadControl = androidx.media3.exoplayer.DefaultLoadControl.Builder()
             .setBufferDurationsMs(
-                12000, // minBufferMs
-                30000, // maxBufferMs
-                1500,   // bufferForPlaybackMs: arranque con ~1.5s para evitar cortes en red móvil
-                3000    // bufferForPlaybackAfterRebufferMs: reanudar con más margen tras re-buffer
+                7500,  // minBufferMs: 7.5s (rápido a READY)
+                20000, // maxBufferMs: cap de 20s
+                1000,  // bufferForPlaybackMs: arranca con ~1s
+                2000   // bufferForPlaybackAfterRebufferMs: tras rebuffer 2s
             )
-            .setBackBuffer(3000, true)
+            .setBackBuffer(5000, true)
             .setPrioritizeTimeOverSizeThresholds(true)
             .build()
         val trackSelector = DefaultTrackSelector(context, androidx.media3.exoplayer.trackselection.AdaptiveTrackSelection.Factory()).apply {
             setParameters(buildUponParameters().clearVideoSizeConstraints())
         }
+        // CONSUMO DIRECTO VCDN: sin SimpleCache ni intermediarios. Los reels se leen
+        // directo de la URL firmada (HLS VCDN) → nada se escribe a disco, no hay
+        // invalidation de caché por path-key ni 401 stale entre firmas distintas.
+        // El preload del slot B da el primer frame; el byte-prefetch no aplica.
+        val httpFactory = DefaultHttpDataSource.Factory()
+            .setUserAgent(
+                "Mozilla/5.0 (Linux; Android 10; K) AppleWebKit/537.36 " +
+                    "(KHTML, like Gecko) Chrome/124.0.0.0 Mobile Safari/537.36 Panalink/1.0"
+            )
+            .setConnectTimeoutMs(15000)
+            .setReadTimeoutMs(15000)
+            .setAllowCrossProtocolRedirects(true)
         val dataSourceFactory = androidx.media3.datasource.DefaultDataSource.Factory(
             context,
-            CacheDataSourceFactory.getCacheDataSourceFactory(context)
+            httpFactory
         )
         return ExoPlayer.Builder(context, PanaRenderersFactory.create(context, preferSoftware = preferSoftware))
             .setTrackSelector(trackSelector)
@@ -428,7 +481,6 @@ class ReelDualPlayerManager(private val context: Context) {
     }
 
     fun releaseAll() {
-        pendingPreloads.clear()
         clearSlot(Slot.A, requeue = false)
         clearSlot(Slot.B, requeue = false)
     }

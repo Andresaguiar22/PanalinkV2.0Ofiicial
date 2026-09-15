@@ -42,6 +42,10 @@ class StatesViewModel(private val statesRepository: StatesRepository = StatesRep
     val statesState: StateFlow<StatesUiState> = statesRepository.getLocalStatesFlow(isReel = false).map { list -> StatesUiState.Success(list) }.stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), StatesUiState.Loading)
     val storiesState: StateFlow<StatesUiState> = statesRepository.getLocalStatesFlow(isReel = false).map { StatesUiState.Success(it) }.stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), StatesUiState.Loading)
     val reelsState: StateFlow<StatesUiState> = statesRepository.getLocalStatesFlow(isReel = true).map { StatesUiState.Success(it) }.stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), StatesUiState.Loading)
+    private val _reelsTimeline = MutableStateFlow<List<UserStateWithUser>>(emptyList())
+    val reelsTimeline: StateFlow<List<UserStateWithUser>> = _reelsTimeline.asStateFlow()
+    private val _searchResults = MutableStateFlow<List<UserStateWithUser>>(emptyList())
+    val searchResults: StateFlow<List<UserStateWithUser>> = _searchResults.asStateFlow()
     private val _createStateFlow = MutableStateFlow<CreateStateUiState>(CreateStateUiState.Idle)
     val createStateFlow: StateFlow<CreateStateUiState> = _createStateFlow
     private val commentsJobs = java.util.concurrent.ConcurrentHashMap<String, kotlinx.coroutines.Job>()
@@ -75,6 +79,72 @@ class StatesViewModel(private val statesRepository: StatesRepository = StatesRep
         }
     }
 
+    // Forced reels refresh: bypasses the "already loading" guard so the feed's
+    // refresh button always re-fetches, and reports completion to the caller so
+    // the UI spinner reflects the real network round-trip.
+    fun refreshReels(onComplete: () -> Unit = {}) {
+        viewModelScope.launch(errorHandler + Dispatchers.IO) {
+            if (!com.example.util.NetworkMonitor.isOnline.value) {
+                Log.d("StatesViewModel", "Offline, skipping forced reels refresh")
+            } else {
+                isActiveStatesLoading = true
+                try {
+                    statesRepository.getActiveStates()
+                } catch (e: Exception) {
+                    Log.e("StatesViewModel", "Forced reels refresh failed", e)
+                } finally {
+                    isActiveStatesLoading = false
+                }
+            }
+            kotlinx.coroutines.withContext(Dispatchers.Main) { onComplete() }
+        }
+    }
+
+    // Reels timeline tabs: fetches the reel list straight from Supabase with a
+    // PostgREST order query (E2E), then persists into Room and publishes the
+    // server-ordered list in [reelsTimeline] for the feed to render verbatim.
+    fun loadReelsTimeline(orderBy: String?, onComplete: () -> Unit = {}) {
+        viewModelScope.launch(errorHandler + Dispatchers.IO) {
+            try {
+                if (!com.example.util.NetworkMonitor.isOnline.value) {
+                    Log.d("StatesViewModel", "Offline, skipping reels timeline fetch")
+                } else {
+                    statesRepository.fetchReelsTimeline(orderBy).onSuccess { list ->
+                        _reelsTimeline.value = list
+                    }
+                }
+            } catch (e: Exception) {
+                Log.e("StatesViewModel", "loadReelsTimeline failed", e)
+            } finally {
+                kotlinx.coroutines.withContext(Dispatchers.Main) { onComplete() }
+            }
+        }
+    }
+
+    fun clearReelSearch() {
+        _searchResults.value = emptyList()
+    }
+
+    // TikTok-style search-as-you-type: queries Supabase directly (caption ilike /
+    // hashtag match) and publishes the results in [searchResults].
+    fun searchReels(query: String? = null, tag: String? = null, onComplete: () -> Unit = {}) {
+        viewModelScope.launch(errorHandler + Dispatchers.IO) {
+            try {
+                if (!com.example.util.NetworkMonitor.isOnline.value) {
+                    Log.d("StatesViewModel", "Offline, skipping reels search")
+                } else {
+                    statesRepository.searchReels(query = query, tag = tag).onSuccess { list ->
+                        _searchResults.value = list
+                    }
+                }
+            } catch (e: Exception) {
+                Log.e("StatesViewModel", "searchReels failed", e)
+            } finally {
+                kotlinx.coroutines.withContext(Dispatchers.Main) { onComplete() }
+            }
+        }
+    }
+
     fun toggleLike(stateId: String, currentLikeState: Boolean, onError: ((String) -> Unit)? = null) {
         val now = System.currentTimeMillis(); if (now - (localActionTimestamps[stateId] ?: 0L) < 500) return; localActionTimestamps[stateId] = now
         if (!processingIds.add(stateId)) return
@@ -84,14 +154,15 @@ class StatesViewModel(private val statesRepository: StatesRepository = StatesRep
         if (!processingIds.add(stateId)) return
         viewModelScope.launch(errorHandler + Dispatchers.IO) { try { val currentState = findState(stateId) ?: return@launch; statesRepository.toggleFavorite(stateId, currentFavState, isReelState(currentState.state)).onFailure { onError?.invoke(it.localizedMessage ?: "Error al guardar favorito") } } finally { processingIds.remove(stateId) } }
     }
+
     fun incrementShare(stateId: String, onError: ((String) -> Unit)? = null) { viewModelScope.launch(errorHandler + Dispatchers.IO) { val currentState = findState(stateId) ?: return@launch; statesRepository.incrementShare(stateId, isReelState(currentState.state)).onFailure { onError?.invoke(it.localizedMessage ?: "Error al registrar compartir") } } }
     fun addComment(stateId: String, commentText: String, parentId: String? = null, onError: ((String) -> Unit)? = null) {
         if (commentText.isBlank()) return
         viewModelScope.launch(errorHandler + Dispatchers.IO) { val currentState = findState(stateId) ?: return@launch; val isReel = isReelState(currentState.state); val authorId = currentState.state.userId; statesRepository.addComment(stateId, commentText.trim(), isReel, parentId).onSuccess { if (authorId.isNotEmpty() && authorId != SupabaseClient.currentUser?.id) com.example.data.repository.NotificationsRepository().createNotification(authorId, "comment", stateId) }.onFailure { onError?.invoke(it.localizedMessage ?: "Error al comentar") } }
     }
-    fun sendQuickReplyToAuthor(authorId: String, messageText: String, onSuccess: () -> Unit = {}, onError: ((String) -> Unit)? = null) {
+    fun sendQuickReplyToAuthor(authorId: String, messageText: String, onSuccess: () -> Unit = {}, onError: ((String) -> Unit)? = null, storyId: String? = null, storyThumbnailUrl: String? = null) {
         if (messageText.isBlank()) return
-        viewModelScope.launch { try { val chatsRepo = com.example.data.repository.ChatsRepository(); val messagesRepo = com.example.data.repository.MessagesRepository.getInstance(); val chatResult = chatsRepo.createDirectChat(authorId); if (chatResult.isSuccess) { val chat = chatResult.getOrThrow(); val sendResult = messagesRepo.sendMessage(chatId = chat.id, content = messageText, receiverUid = authorId); if (sendResult.isSuccess) onSuccess() else onError?.invoke(sendResult.exceptionOrNull()?.localizedMessage ?: "Error al enviar mensaje por DM") } else onError?.invoke(chatResult.exceptionOrNull()?.localizedMessage ?: "No se pudo iniciar el chat con el autor") } catch (e: Exception) { onError?.invoke(e.localizedMessage ?: "Error inesperado al enviar DM") } }
+        viewModelScope.launch { try { val chatsRepo = com.example.data.repository.ChatsRepository(); val messagesRepo = com.example.data.repository.MessagesRepository.getInstance(); val chatResult = chatsRepo.createDirectChat(authorId); if (chatResult.isSuccess) { val chat = chatResult.getOrThrow(); val sendResult = messagesRepo.sendMessage(chatId = chat.id, content = messageText, receiverUid = authorId, replyStoryId = storyId, thumbnailUrl = storyThumbnailUrl); if (sendResult.isSuccess) onSuccess() else onError?.invoke(sendResult.exceptionOrNull()?.localizedMessage ?: "Error al enviar mensaje por DM") } else onError?.invoke(chatResult.exceptionOrNull()?.localizedMessage ?: "No se pudo iniciar el chat con el autor") } catch (e: Exception) { onError?.invoke(e.localizedMessage ?: "Error inesperado al enviar DM") } }
     }
     fun loadComments(stateId: String) {
         activeCommentsId = stateId

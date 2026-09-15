@@ -34,6 +34,9 @@ fun DownloadProgressOverlay(
     isError: Boolean = false,
     onCancelOrRetryClick: () -> Unit = {},
     statusText: String? = null,
+    bytesWritten: Long = 0L,
+    totalBytes: Long = 0L,
+    mediaTypeIcon: androidx.compose.ui.graphics.vector.ImageVector? = null,
     modifier: Modifier = Modifier
 ) {
     AnimatedVisibility(
@@ -65,25 +68,34 @@ fun DownloadProgressOverlay(
                             CircularProgressIndicator(
                                 progress = { progress.coerceIn(0f, 1f) },
                                 modifier = Modifier.size(50.dp),
-                                color = Color(0xFF00A884),
+                                color = Color(0xFF38BDF8),
                                 trackColor = Color.White.copy(alpha = 0.2f),
                                 strokeWidth = 3.dp
                             )
                         } else {
                             CircularProgressIndicator(
                                 modifier = Modifier.size(50.dp),
-                                color = Color(0xFF00A884),
+                                color = Color(0xFF38BDF8),
                                 trackColor = Color.White.copy(alpha = 0.2f),
                                 strokeWidth = 3.dp
                             )
                         }
 
-                        Icon(
-                            imageVector = Icons.Default.Close,
-                            contentDescription = if (isUploading) "Cancelar subida" else "Cancelar descarga",
-                            tint = Color.White,
-                            modifier = Modifier.size(22.dp)
-                        )
+                        if (isUploading && mediaTypeIcon != null) {
+                            Icon(
+                                imageVector = mediaTypeIcon,
+                                contentDescription = "Subiendo",
+                                tint = Color.White,
+                                modifier = Modifier.size(20.dp)
+                            )
+                        } else {
+                            Icon(
+                                imageVector = Icons.Default.Close,
+                                contentDescription = if (isUploading) "Cancelar subida" else "Cancelar descarga",
+                                tint = Color.White,
+                                modifier = Modifier.size(22.dp)
+                            )
+                        }
                     } else {
                         Icon(
                             imageVector = Icons.Default.Refresh,
@@ -104,6 +116,16 @@ fun DownloadProgressOverlay(
                     )
                 }
 
+                if (isUploading && totalBytes > 0) {
+                    Spacer(modifier = Modifier.height(4.dp))
+                    Text(
+                        text = "${formatKb(bytesWritten)} / ${formatKb(totalBytes)}",
+                        color = Color.White.copy(alpha = 0.8f),
+                        fontSize = 11.sp,
+                        fontWeight = FontWeight.Medium
+                    )
+                }
+
                 if (!statusText.isNullOrEmpty()) {
                     Spacer(modifier = Modifier.height(4.dp))
                     Text(
@@ -116,4 +138,9 @@ fun DownloadProgressOverlay(
             }
         }
     }
+}
+
+private fun formatKb(bytes: Long): String = when {
+    bytes >= 1024 * 1024 -> String.format("%.1f MB", bytes / (1024f * 1024f))
+    else -> String.format("%.0f KB", bytes / 1024f)
 }

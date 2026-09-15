@@ -34,7 +34,8 @@ import coil.request.ImageRequest
 @Composable
 fun StickerBubbleContent(
     stickerUrl: String,
-    modifier: Modifier = Modifier
+    modifier: Modifier = Modifier,
+    fallbackUrl: String? = null
 ) {
     val scaleAnim = remember { Animatable(0.7f) }
     LaunchedEffect(stickerUrl) {
@@ -47,6 +48,18 @@ fun StickerBubbleContent(
         )
     }
     var isError by remember { mutableStateOf(false) }
+    var usedFallback by remember { mutableStateOf(false) }
+
+    // Fuente activa: la principal o (si falló) el fallback/thumbnail.
+    val activeUrl = when {
+        isError && fallbackUrl != null && !usedFallback && fallbackUrl != stickerUrl -> fallbackUrl
+        else -> stickerUrl
+    }
+    // Determina si la fuente es un archivo local existente o una URL remota.
+    val isLocalFile = !activeUrl.startsWith("http://") && !activeUrl.startsWith("https://")
+    val loadable = remember(activeUrl, isLocalFile) {
+        if (isLocalFile) java.io.File(activeUrl).exists() else true
+    }
 
     Box(
         modifier = modifier
@@ -57,23 +70,41 @@ fun StickerBubbleContent(
             },
         contentAlignment = Alignment.Center
     ) {
-        if (isError) {
+        if (isError && (fallbackUrl == null || usedFallback || fallbackUrl == stickerUrl) || !loadable) {
             // Fallback elegante: nunca dejar un espacio vacío
-            Column(horizontalAlignment = Alignment.CenterHorizontally) {
-                Text("😢", fontSize = 28.sp)
-                Text("Sticker no disponible", color = Color(0xFF8696A0), fontSize = 9.sp)
+            if (!loadable) {
+                // La fuente local no existe y no hay alternativa: se intentó pero
+                // no hay imagen — usar un icono discreto en vez de romper.
+                Icon(
+                    imageVector = Icons.Default.BrokenImage,
+                    contentDescription = null,
+                    tint = Color(0xFF8696A0),
+                    modifier = Modifier.size(36.dp)
+                )
+            } else {
+                Column(horizontalAlignment = Alignment.CenterHorizontally) {
+                    Text("😢", fontSize = 28.sp)
+                    Text("Sticker no disponible", color = Color(0xFF8696A0), fontSize = 9.sp)
+                }
             }
         } else {
             AsyncImage(
                 model = ImageRequest.Builder(LocalContext.current)
                     .data(
-                        if (stickerUrl.startsWith("http://") || stickerUrl.startsWith("https://")) stickerUrl
-                        else java.io.File(stickerUrl)
+                        if (isLocalFile) java.io.File(activeUrl)
+                        else activeUrl
                     )
                     .decoderFactory(if (Build.VERSION.SDK_INT >= 28) ImageDecoderDecoder.Factory() else GifDecoder.Factory())
                     .crossfade(true)
                     .listener(
-                        onError = { _, _ -> isError = true }
+                        onError = { _, _ ->
+                            if (!usedFallback && fallbackUrl != null && fallbackUrl != stickerUrl) {
+                                usedFallback = true
+                                isError = false
+                            } else {
+                                isError = true
+                            }
+                        }
                     )
                     .build(),
                 contentDescription = "Sticker",

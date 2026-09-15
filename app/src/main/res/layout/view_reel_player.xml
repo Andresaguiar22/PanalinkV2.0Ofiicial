@@ -1,0 +1,16 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!--
+  Reel video surface.
+  surface_type="texture_view" is deliberate: a SurfaceView inside the
+  VerticalPager neither scrolls with the content (surfaces are composited by
+  SurfaceFlinger, not by the pager) nor lets Compose overlays draw above it
+  (punch-through). TextureView participates in the normal view/Compose draw
+  order, so the reel moves with the swipe and the feed overlay stays visible.
+  resize_mode/use_controller are set from ReelPlayerSurface.
+-->
+<androidx.media3.ui.PlayerView xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:background="@android:color/black"
+    app:surface_type="texture_view" />

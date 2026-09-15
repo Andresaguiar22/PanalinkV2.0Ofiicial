@@ -56,10 +56,9 @@ import com.example.ui.screen.NotificationsScreen
 import com.example.ui.screen.PostDetailScreen
 import com.example.ui.screen.ProfileScreen
 import com.example.ui.screen.ReelEditorScreen
-import com.example.ui.screen.SearchResultsScreen
 import com.example.ui.screen.SearchUsersScreen
 import com.example.ui.screen.SplashScreen
-import com.example.ui.screen.TikTokVideoFeedScreen
+import com.example.reels.ui.ReelsFeedScreen
 import com.example.ui.screen.UserProfileScreen
 import com.example.ui.screen.ViewStateScreen
 import com.example.ui.viewmodel.AuthViewModel
@@ -319,6 +318,7 @@ fun MainNavHost(
                 onNavigateToTikTok = { stateId ->
                     mainNavController.navigate("tiktok/$stateId") { launchSingleTop = true }
                 },
+                onNavigateToSearchReels = { mainNavController.navigate("reelSearch") { launchSingleTop = true } },
                 onNavigateToProfile = { mainNavController.navigate("profile") { launchSingleTop = true } },
                 onNavigateToUserProfile = { userId ->
                     mainNavController.navigate("userProfile/$userId") { launchSingleTop = true }
@@ -858,32 +858,59 @@ fun MainNavHost(
             arguments = listOf(navArgument("stateId") { type = NavType.StringType })
         ) { backStackEntry ->
             val stateId = backStackEntry.arguments?.getString("stateId") ?: ""
-            TikTokVideoFeedScreen(
+            ReelsFeedScreen(
                 viewModel = statesViewModel,
                 initialStateId = stateId,
                 onBack = { mainNavController.popBackStack() },
+                onSearchReels = {
+                    mainNavController.navigate("reelSearch") { launchSingleTop = true }
+                },
                 onNavigateToUserProfile = { userId ->
                     mainNavController.navigate("userProfile/$userId") { launchSingleTop = true }
                 },
                 onNavigateToHashtag = { tag ->
-                    mainNavController.navigate("search_results/$tag") { launchSingleTop = true }
+                    mainNavController.navigate("search_results/${android.net.Uri.encode(tag)}") { launchSingleTop = true }
                 },
-                onNavigateToLive = { mainNavController.navigate("live_feed") { launchSingleTop = true } }
             )
         }
 
-        // Search Results for Hashtag
+        // Reels search (TikTok-style search-as-you-type); opened from the
+        // magnifier icon on the floating feed pill.
+        composable("reelSearch") {
+            com.example.reels.ui.ReelSearchScreen(
+                viewModel = statesViewModel,
+                initialTag = null,
+                onBack = { mainNavController.popBackStack() },
+                onVideoClick = { stateId ->
+                    mainNavController.navigate("tiktok/$stateId") { launchSingleTop = true }
+                },
+                onHashtagClick = { tag ->
+                    mainNavController.navigate("search_results/${android.net.Uri.encode(tag)}") { launchSingleTop = true }
+                },
+                onUserClick = { userId ->
+                    mainNavController.navigate("userProfile/$userId") { launchSingleTop = true }
+                }
+            )
+        }
+
+        // Search Results for Hashtag (grid of videos under #tag).
         composable(
             route = "search_results/{tag}",
             arguments = listOf(navArgument("tag") { type = NavType.StringType })
         ) { backStackEntry ->
-            val tag = backStackEntry.arguments?.getString("tag") ?: ""
-            com.example.ui.screen.SearchResultsScreen(
-                tag = tag,
+            val tag = android.net.Uri.decode(backStackEntry.arguments?.getString("tag") ?: "")
+            com.example.reels.ui.ReelSearchScreen(
                 viewModel = statesViewModel,
+                initialTag = tag,
                 onBack = { mainNavController.popBackStack() },
                 onVideoClick = { stateId ->
                     mainNavController.navigate("tiktok/$stateId") { launchSingleTop = true }
+                },
+                onHashtagClick = { newTag ->
+                    mainNavController.navigate("search_results/${android.net.Uri.encode(newTag)}") { launchSingleTop = true }
+                },
+                onUserClick = { userId ->
+                    mainNavController.navigate("userProfile/$userId") { launchSingleTop = true }
                 }
             )
         }

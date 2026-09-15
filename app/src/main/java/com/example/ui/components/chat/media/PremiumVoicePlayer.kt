@@ -44,10 +44,13 @@ fun PremiumVoicePlayer(
     messageStatus: String? = "sent",
     isSending: Boolean = false,
     isVoiceNote: Boolean = true,
-    modifier: Modifier = Modifier
+    uploadBytesWritten: Long = 0L,
+    uploadTotalBytes: Long = 0L,
+    modifier: Modifier = Modifier,
+    backgroundColor: Color = Color(0xFF1E293B)
 ) {
     var playbackSpeed by remember { mutableFloatStateOf(1f) }
-    
+
     // Waveform premium: amplitud variable con picos y valles (como decibeles reales)
     val barCount = 40
     val amplitudes = remember(audioUrl) {
@@ -82,16 +85,21 @@ fun PremiumVoicePlayer(
 
     val effectiveIsSending = isSending || messageStatus == "sending" || messageStatus == "pending" || messageStatus == "pending_media"
     val isFailed = messageStatus == "failed"
-    val bubbleBgColor = if (isSender) Color(0xFFE7FFDB) else Color(0xFFFFFFFF)
-    // Verde = nota de voz; Purpura = audio de galeria/musica
-    val playedColor = if (isVoiceNote) {
-        if (isSender) Color(0xFF1EBE71) else Color(0xFF00A3DA)
-    } else {
-        Color(0xFF9C27B0)
-    }
-    val unplayedColor = Color(0xFF8696A0).copy(alpha = 0.2f)
-    val secondaryText = Color(0xFF667781)
 
+    // Acción 1 & 4: Premium Glassmorphism colors
+    // El fondo real de la burbuja lo pinta el contenedor (Incoming/OutgoingBubbleContainer);
+    // aquí solo se usa para los bordes del badge del avatar.
+    val bubbleBgColor = backgroundColor
+    val contentTextColor = if (isSender) Color.White else Color(0xE6FFFFFF) // 90% white
+    val playedColor = if (isVoiceNote || isSender) {
+        if (isSender) Color(0xFF00E5FF) else Color(0xFF38BDF8)
+    } else {
+        Color(0xFFA78BFA)
+    }
+    val unplayedColor = Color(0xFF94A3B8).copy(alpha = 0.35f)
+    val secondaryText = Color(0xFF94A3B8)
+
+    // Acción 4: La forma asimétrica la aplica el contenedor de la burbuja.
     val waveTransition = rememberInfiniteTransition(label = "WaveAnimation")
     val waveOffset by if (isPlaying) {
         waveTransition.animateFloat(
@@ -107,14 +115,18 @@ fun PremiumVoicePlayer(
         remember { mutableStateOf(0f) }
     }
 
-    // Slim WhatsApp-style voice note: play button + waveform + avatar with mic badge,
-    // flat inside the bubble (no nested surface) to keep the bubble thin
-    Row(
+    // Acción 4: Voice note bubble with asymmetric shape + waveform.
+    // La forma y el fondo los aplica el contenedor de la burbuja (glassmorphism);
+    // aquí NO se repinta el fondo para evitar un recuadro dentro de la burbuja.
+    Box(
         modifier = modifier
             .widthIn(min = 240.dp, max = 320.dp)
-            .padding(horizontal = 2.dp, vertical = 0.dp),
-        verticalAlignment = Alignment.CenterVertically
+            .padding(horizontal = 12.dp, vertical = 8.dp)
     ) {
+        Row(
+            modifier = Modifier.fillMaxWidth(),
+            verticalAlignment = Alignment.CenterVertically
+        ) {
         // Play/Pause button
         Box(
             modifier = Modifier
@@ -139,7 +151,7 @@ fun PremiumVoicePlayer(
                         else -> Icons.Default.PlayArrow
                     },
                     contentDescription = null,
-                    tint = if (isFailed) Color.Red else Color(0xFF54656F),
+                    tint = if (isFailed) Color.Red else playedColor,
                     modifier = Modifier.size(30.dp)
                 )
             }
@@ -231,6 +243,8 @@ fun PremiumVoicePlayer(
                 Text(
                     text = when {
                         isFailed -> "Error de envío"
+                        effectiveIsSending && uploadTotalBytes > 0L ->
+                            formatUploadKb(uploadBytesWritten) + " / " + formatUploadKb(uploadTotalBytes)
                         effectiveIsSending -> "Subiendo..."
                         isError -> "Error de descarga"
                         else -> durationLabel
@@ -252,11 +266,11 @@ fun PremiumVoicePlayer(
                             }
                             onSpeedChange(playbackSpeed)
                         },
-                    color = Color.Black.copy(alpha = 0.05f)
+                    color = Color.White.copy(alpha = 0.08f)
                 ) {
                     Text(
                         text = "${if (playbackSpeed % 1f == 0f) playbackSpeed.toInt() else playbackSpeed}x",
-                        color = secondaryText,
+                        color = playedColor,
                         fontSize = 9.sp,
                         fontWeight = FontWeight.Bold,
                         modifier = Modifier.padding(horizontal = 5.dp, vertical = 2.dp)
@@ -295,4 +309,11 @@ fun PremiumVoicePlayer(
             }
         }
     }
+}
+
+}
+
+private fun formatUploadKb(bytes: Long): String = when {
+    bytes >= 1024 * 1024 -> String.format("%.1f MB", bytes / (1024f * 1024f))
+    else -> String.format("%.0f KB", bytes / 1024f)
 }

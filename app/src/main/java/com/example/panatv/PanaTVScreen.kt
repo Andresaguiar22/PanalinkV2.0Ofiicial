@@ -106,6 +106,29 @@ internal fun tvCategoryLabel(category: String): String = when (category) {
     else -> category.replaceFirstChar { it.uppercase() }
 }
 
+/** Nombre amigable para códigos ISO-639 de idioma (iptv-org). */
+internal fun languageLabel(code: String): String = when (code.trim().lowercase()) {
+    "spa", "es" -> "Español"
+    "eng", "en" -> "Inglés"
+    "por", "pt" -> "Portugués"
+    "fra", "fr" -> "Francés"
+    "deu", "de" -> "Alemán"
+    "ita", "it" -> "Italiano"
+    "rus", "ru" -> "Ruso"
+    "jpn", "ja" -> "Japonés"
+    "zho", "zh" -> "Chino"
+    "kor", "ko" -> "Coreano"
+    "ara", "ar" -> "Árabe"
+    "hin", "hi" -> "Hindi"
+    "tur", "tr" -> "Turco"
+    "nld", "nl" -> "Neerlandés"
+    "pol", "pl" -> "Polaco"
+    "cat", "ca" -> "Catalán"
+    "eus", "eu" -> "Euskera"
+    "glg", "gl" -> "Gallego"
+    else -> code.replaceFirstChar { it.uppercase() }
+}
+
 @androidx.annotation.OptIn(androidx.media3.common.util.UnstableApi::class)
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable

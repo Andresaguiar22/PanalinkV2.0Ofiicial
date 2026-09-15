@@ -48,8 +48,13 @@ fun VoiceMessageBubble(
     senderAvatarUrl: String? = null
 ) {
     val appColors = com.example.ui.theme.LocalAppColors.current
-    val bubbleColor = if (isSender) appColors.bubbleMe else appColors.bubbleOther
-    val contentColor = if (isSender) Color.White else Color.White.copy(alpha = 0.9f)
+    val isVoiceNote = true // Acción 4: always voice note style
+    
+    // Acción 1 & 4: Premium Glassmorphism colors
+    val bubbleColor = if (isSender) Color(0xFF1D4ED8) else Color(0xFF1E293B).copy(alpha = 0.9f)
+    val contentColor = if (isSender) Color.White else Color(0xE6FFFFFF)
+    val playedColor = if (isSender) Color(0xFF00E5FF) else Color(0xFF38BDF8)
+    val unplayedColor = Color(0xFF94A3B8).copy(alpha = 0.3f)
     
     // Waveform configuration
     val barCount = 35
@@ -74,16 +79,25 @@ fun VoiceMessageBubble(
     Row(
         modifier = modifier
             .clip(
-                RoundedCornerShape(
-                    topStart = 16.dp,
-                    topEnd = 16.dp,
-                    bottomStart = if (isSender) 16.dp else 4.dp,
-                    bottomEnd = if (isSender) 4.dp else 16.dp
-                )
+                if (isSender) {
+                    RoundedCornerShape(
+                        topStart = 24.dp,
+                        topEnd = 4.dp,
+                        bottomStart = 24.dp,
+                        bottomEnd = 24.dp
+                    )
+                } else {
+                    RoundedCornerShape(
+                        topStart = 4.dp,
+                        topEnd = 24.dp,
+                        bottomStart = 24.dp,
+                        bottomEnd = 24.dp
+                    )
+                }
             )
             .background(bubbleColor)
-            .padding(horizontal = 10.dp, vertical = 8.dp)
-            .widthIn(max = 300.dp),
+            .widthIn(min = 240.dp, max = 300.dp)
+            .padding(horizontal = 10.dp, vertical = 6.dp),
         verticalAlignment = Alignment.CenterVertically
     ) {
         // ... (Profile photo Box)
@@ -98,40 +112,40 @@ fun VoiceMessageBubble(
                 borderWidth = 0.dp,
                 contentDescription = "Avatar de remitente"
             )
-            // Green microphone badge
+            // Premium microphone badge (cyan for voice notes)
             Box(
                 modifier = Modifier
-                    .size(14.dp)
+                    .size(16.dp)
                     .clip(CircleShape)
-                    .background(Color(0xFF00A884))
+                    .background(playedColor)
                     .align(Alignment.BottomEnd)
-                    .padding(2.dp),
+                    .padding(1.dp),
                 contentAlignment = Alignment.Center
             ) {
                 Icon(
                     imageVector = Icons.Filled.Mic,
                     contentDescription = null,
                     tint = Color.White,
-                    modifier = Modifier.size(9.dp)
+                    modifier = Modifier.size(8.dp)
                 )
             }
         }
 
         Spacer(modifier = Modifier.width(8.dp))
 
-        // Play/Pause circular button
+        // Play/Pause circular button (premium cyan)
         Box(
             modifier = Modifier
                 .size(36.dp)
                 .clip(CircleShape)
-                .background(Color.White.copy(alpha = 0.12f))
+                .background(playedColor.copy(alpha = 0.15f))
                 .clickable { onPlayPauseClick() },
             contentAlignment = Alignment.Center
         ) {
             Icon(
                 imageVector = if (isPlaying) Icons.Filled.Pause else Icons.Filled.PlayArrow,
                 contentDescription = if (isPlaying) "Pausar nota de voz" else "Reproducir nota de voz",
-                tint = Color.White,
+                tint = playedColor,
                 modifier = Modifier.size(20.dp)
             )
         }
@@ -191,9 +205,9 @@ fun VoiceMessageBubble(
                         val isPlayed = barProgressFraction <= progress
                         
                         val barColor = if (isPlayed) {
-                            Color(0xFF00E5FF) // Vibrant Cyan
+                            playedColor
                         } else {
-                            contentColor.copy(alpha = 0.35f) // Unplayed part dimmed
+                            unplayedColor
                         }
 
                         drawRoundRect(
@@ -236,16 +250,16 @@ fun VoiceMessageBubble(
                             horizontalArrangement = Arrangement.spacedBy((-4).dp),
                             verticalAlignment = Alignment.CenterVertically
                         ) {
-                            Icon(
+                             Icon(
                                 imageVector = Icons.Filled.Check,
                                 contentDescription = "Leído",
-                                tint = Color(0xFF34B7F1),
+                                tint = Color(0xFF38BDF8),
                                 modifier = Modifier.size(11.dp)
                             )
                             Icon(
                                 imageVector = Icons.Filled.Check,
                                 contentDescription = "Leído",
-                                tint = Color(0xFF34B7F1),
+                                tint = Color(0xFF38BDF8),
                                 modifier = Modifier.size(11.dp)
                             )
                         }

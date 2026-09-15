@@ -18,7 +18,7 @@ import androidx.compose.ui.unit.sp
 fun NewMessagesDivider(
     modifier: Modifier = Modifier,
     text: String = "Mensajes nuevos",
-    color: Color = Color(0xFF00A884).copy(alpha = 0.9f)
+    color: Color = Color(0xFF38BDF8).copy(alpha = 0.9f)
 ) {
     Box(
         modifier = modifier

@@ -16,10 +16,12 @@ import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.ui.layout.ContentScale
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import coil.compose.AsyncImage
+import coil.request.ImageRequest
 import com.example.data.supabase.SupabaseClient
 import com.example.ui.components.rememberAsyncMediaUrl
 import com.example.ui.viewmodel.ProfileViewModel
@@ -62,36 +64,50 @@ fun ReelsGrid(viewModel: ProfileViewModel, onNavigateToReel: (String) -> Unit) {
                 modifier = Modifier.fillMaxWidth(),
                 verticalArrangement = Arrangement.spacedBy(4.dp)
             ) {
-                chunkedReels.forEach { rowReels ->
-                    Row(
-                        modifier = Modifier.fillMaxWidth(),
-                        horizontalArrangement = Arrangement.spacedBy(4.dp)
-                    ) {
-                        for (i in 0 until 3) {
-                            if (i < rowReels.size) {
-                                val reel = rowReels[i]
-                                val resolvedMediaUrl = rememberAsyncMediaUrl(reel.state.mediaUrl)
-                                Box(
-                                    modifier = Modifier
-                                        .weight(1f)
-                                        .aspectRatio(0.75f)
-                                        .clip(RoundedCornerShape(8.dp))
-                                        .background(Color(0xFF1E1E24))
-                                        .clickable { onNavigateToReel(reel.state.id) }
-                                        .pointerInput(reel.state.id) {
-                                            detectTapGestures(
-                                                onLongPress = {
-                                                    reelToDelete = reel.state
-                                                }
-                                            )
-                                        }
-                                ) {
-                                    AsyncImage(
-                                        model = resolvedMediaUrl,
-                                        contentDescription = "Reel",
-                                        modifier = Modifier.fillMaxSize(),
-                                        contentScale = ContentScale.Crop
-                                    )
+            chunkedReels.forEach { rowReels ->
+                Row(
+                    modifier = Modifier.fillMaxWidth(),
+                    horizontalArrangement = Arrangement.spacedBy(4.dp)
+                ) {
+                    for (i in 0 until 3) {
+                        if (i < rowReels.size) {
+                            val reel = rowReels[i]
+                            // FIX (Acción 1): Use cached thumbnailUrl or vcdnPosterUrl for grid
+                            // thumbnails — NOT the full video URL. The previous code resolved
+                            // mediaUrl (a vcdn:// pointer or HLS stream) via Coil as an image,
+                            // which failed silently for videos, leaving gray placeholders
+                            // (e.g. image_1000420472.jpg).
+                            val thumbnailUrl = reel.state.thumbnailUrl ?: reel.state.vcdnPosterUrl
+                            val resolvedThumbnail = rememberAsyncMediaUrl(thumbnailUrl)
+                            val context = LocalContext.current
+                            val imageRequest = remember(resolvedThumbnail) {
+                                ImageRequest.Builder(context)
+                                    .data(resolvedThumbnail.ifBlank { reel.state.mediaUrl })
+                                    .crossfade(true)
+                                    .diskCachePolicy(coil.request.CachePolicy.ENABLED)
+                                    .build()
+                            }
+                            Box(
+                                modifier = Modifier
+                                    .weight(1f)
+                                    .aspectRatio(0.75f)
+                                    .clip(RoundedCornerShape(8.dp))
+                                    .background(Color(0xFF1E1E24))
+                                    .clickable { onNavigateToReel(reel.state.id) }
+                                    .pointerInput(reel.state.id) {
+                                        detectTapGestures(
+                                            onLongPress = {
+                                                reelToDelete = reel.state
+                                            }
+                                        )
+                                    }
+                            ) {
+                                AsyncImage(
+                                    model = imageRequest,
+                                    contentDescription = "Reel thumbnail",
+                                    modifier = Modifier.fillMaxSize(),
+                                    contentScale = ContentScale.Crop
+                                )
 
                                     Box(
                                         modifier = Modifier

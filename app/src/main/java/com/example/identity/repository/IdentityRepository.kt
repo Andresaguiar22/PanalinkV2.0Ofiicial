@@ -156,6 +156,28 @@ class IdentityRepository(context: Context) {
      * Mirrors a fetched public profile into the local identity cache (local_profiles)
      * to that avatars/names survive cold starts and fully offline opens of any screen.
      */
+    /**
+     * Resolves the freshest available avatar URL for a user, preferring the
+     * public profile's avatar (CDN-resolved) over stale local cache.
+     * Used by floating reactions to always show a current avatar.
+     */
+    suspend fun resolveFreshAvatar(userId: String): String? {
+        val localEntity = profileDao.getProfileById(userId)
+        val localHasAvatar = !localEntity?.avatarUrl.isNullOrEmpty()
+        val mustResolvePublic = !localHasAvatar
+        return if (mustResolvePublic) {
+            val result = publicProfileRepository.getPublicProfile(userId)
+            if (result is PublicProfileFetchResult.Success) {
+                val pub = result.data
+                CdnManager.resolveAvatarUrl(pub.avatarUrl) ?: localEntity?.avatarUrl
+            } else {
+                localEntity?.avatarUrl
+            }
+        } else {
+            localEntity?.avatarUrl
+        }
+    }
+
     private suspend fun persistPublicProfile(
         pub: com.example.data.model.PublicProfile,
         resolvedName: String,

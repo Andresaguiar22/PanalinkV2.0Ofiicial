@@ -4,4 +4,6 @@
     <files-path name="internal_docs" path="pending_media/" />
     <cache-path name="cache_docs" path="docs/" />
     <cache-path name="app_updates" path="updates/" />
+    <!-- Camera capture temp files for Sticker Studio -->
+    <cache-path name="camera_capture" path="sticker_studio_camera/" />
 </paths>

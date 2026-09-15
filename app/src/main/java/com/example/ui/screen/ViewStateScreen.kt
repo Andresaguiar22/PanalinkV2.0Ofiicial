@@ -17,12 +17,18 @@ import androidx.compose.foundation.gestures.detectTapGestures
 import androidx.compose.foundation.gestures.detectVerticalDragGestures
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
+import androidx.compose.foundation.lazy.LazyRow
 import androidx.compose.foundation.lazy.items
+import androidx.compose.foundation.lazy.rememberLazyListState
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.ui.graphics.graphicsLayer
+import androidx.compose.ui.graphics.drawscope.withTransform
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Close
 import androidx.compose.material.icons.filled.Favorite
+import androidx.compose.material.icons.filled.Visibility
+import androidx.compose.material.icons.filled.VisibilityOff
 import androidx.compose.material.icons.filled.KeyboardArrowUp
 import androidx.compose.material.icons.filled.MoreVert
 import androidx.compose.material.icons.filled.Send
@@ -57,12 +63,15 @@ import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.style.TextOverflow
+import androidx.compose.ui.unit.Dp
+import androidx.compose.ui.unit.IntOffset
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.compose.ui.viewinterop.AndroidView
 import coil.compose.AsyncImage
 import coil.compose.rememberAsyncImagePainter
 import coil.compose.AsyncImagePainter
+import com.example.identity.repository.IdentityRepository
 import com.example.data.model.*
 import com.example.ui.viewmodel.StatesUiState
 import com.example.ui.viewmodel.StatesViewModel
@@ -85,6 +94,15 @@ import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.ui.graphics.SolidColor
 import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.text.input.ImeAction
+
+
+// Acción 4: Floating reaction data
+data class FloatingReactionLog(
+    val id: String,
+    val avatarUrl: String,
+    val emoji: String,
+    val userId: String
+)
 
 data class StateMetadata(
     val baseCaption: String,
@@ -477,6 +495,7 @@ fun UserStoryViewer(
 
     val currentUid = SupabaseClient.currentUser?.id ?: ""
     val isOwner = state.userId == currentUid
+    val isMyStory = isOwner // alias per Acción 2 spec
 
     var isUserPressing by remember { mutableStateOf(false) }
     var isInputFocused by remember { mutableStateOf(false) }
@@ -509,6 +528,82 @@ fun UserStoryViewer(
     // Reply & Reactions State
     var replyText by remember { mutableStateOf("") }
     var reactionMessage by remember { mutableStateOf<String?>(null) }
+
+    // Acción 4: Floating reactions (live-style)
+    var floatingReactions by remember { mutableStateOf(listOf<FloatingReactionLog>()) }
+    val reactionScope = rememberCoroutineScope()
+
+    // Acción 4: Resolve the reactor's fresh avatar off the main thread and publish
+    // the floating bubble on Main (Compose state must not be mutated from IO).
+    fun pushFloatingReaction(reactingUserId: String, emoji: String) {
+        reactionScope.launch(Dispatchers.IO) {
+            val avatarUrl = if (reactingUserId.isNotBlank()) {
+                try {
+                    identityRepository.resolveFreshAvatar(reactingUserId) ?: ""
+                } catch (_: Exception) {
+                    ""
+                }
+            } else ""
+            withContext(Dispatchers.Main) {
+                floatingReactions = floatingReactions + FloatingReactionLog(
+                    id = "${System.currentTimeMillis()}_${reactingUserId}_${emoji.hashCode()}",
+                    avatarUrl = avatarUrl,
+                    emoji = emoji,
+                    userId = reactingUserId
+                )
+            }
+        }
+    }
+
+    // Acción 4: Listen for realtime story reactions via Supabase Realtime (social schema).
+    // "Me gusta" arrive on the likes table; emoji reactions arrive as story_comments
+    // inserts (the quick-reaction bar publishes emojis as comments).
+    LaunchedEffect(state.id, isMyStory) {
+        if (!isMyStory) return@LaunchedEffect
+
+        launch {
+            SupabaseClient.realtimeLikes.collect { update ->
+                if (update.statusId == state.id && update.eventType == "INSERT") {
+                    val reactingUserId = try {
+                        update.record.optString("user_id", update.record.optString("author_id", ""))
+                    } catch (_: Exception) {
+                        ""
+                    }
+                    if (reactingUserId != currentUid) {
+                        pushFloatingReaction(reactingUserId, "❤️")
+                    }
+                }
+            }
+        }
+
+        launch {
+            SupabaseClient.realtimeComments.collect { update ->
+                if (update.statusId != state.id || update.eventType != "INSERT") return@collect
+                val reactingUserId = try {
+                    update.record.optString("author_id", update.record.optString("user_id", ""))
+                } catch (_: Exception) {
+                    ""
+                }
+                val rawText = try {
+                    update.record.optString(
+                        "body",
+                        update.record.optString(
+                            "content",
+                            update.record.optString("comment_text", update.record.optString("text", ""))
+                        )
+                    )
+                } catch (_: Exception) {
+                    ""
+                }
+                val clean = rawText.trim()
+                // Only bubble emoji-only reactions; real text replies stay in the comments sheet.
+                val isEmojiReaction = clean.isNotEmpty() && clean.length <= 8 && clean.none { it.isLetterOrDigit() }
+                if (isEmojiReaction && reactingUserId != currentUid) {
+                    pushFloatingReaction(reactingUserId, clean)
+                }
+            }
+        }
+    }
 
     // Parse Metadata
     val metadata = remember(state.caption) { parseStateMetadata(state.caption) }
@@ -1072,50 +1167,51 @@ fun UserStoryViewer(
             }
 
             // Profile info
-            Row(
-                modifier = Modifier.fillMaxWidth(),
-                verticalAlignment = Alignment.CenterVertically,
-                horizontalArrangement = Arrangement.SpaceBetween
-            ) {
+            Box(modifier = Modifier.fillMaxWidth()) {
                 Row(
+                    modifier = Modifier.fillMaxWidth(),
                     verticalAlignment = Alignment.CenterVertically,
-                    modifier = Modifier.clickable {
-                        val targetUserId = state.userId
-                        if (targetUserId.isNotBlank()) {
-                            onNavigateToUserProfile?.invoke(targetUserId)
+                    horizontalArrangement = Arrangement.SpaceBetween
+                ) {
+                    Row(
+                        verticalAlignment = Alignment.CenterVertically,
+                        modifier = Modifier.clickable {
+                            val targetUserId = state.userId
+                            if (targetUserId.isNotBlank()) {
+                                onNavigateToUserProfile?.invoke(targetUserId)
+                            }
+                        }
+                    ) {
+                        Box(
+                            modifier = Modifier
+                                .size(42.dp)
+                                .clip(CircleShape)
+                                .border(1.5.dp, Color(0xFF00FF85), CircleShape)
+                                .padding(2.dp)
+                        ) {
+                            PanaAvatar(
+                                avatarUrl = identityState?.avatarUrl ?: profile.avatarUrl,
+                                userId = state.userId,
+                                placeholderName = identityState?.displayName ?: (identityState?.displayName ?: profile.displayName),
+                                size = 38.dp,
+                                modifier = Modifier.fillMaxSize()
+                            )
+                        }
+                        Spacer(modifier = Modifier.width(10.dp))
+                        Column {
+                            Text(
+                                text = (identityState?.displayName ?: profile.displayName),
+                                color = Color.White,
+                                fontWeight = FontWeight.SemiBold,
+                                fontSize = 14.sp
+                            )
+                            Text(
+                                text = formattedTime,
+                                color = Color.White.copy(alpha = 0.6f),
+                                fontSize = 11.sp
+                            )
                         }
                     }
-                ) {
-                    Box(
-                        modifier = Modifier
-                            .size(42.dp)
-                            .clip(CircleShape)
-                            .border(1.5.dp, Color(0xFF00FF85), CircleShape)
-                            .padding(2.dp)
-                    ) {
-                        PanaAvatar(
-                            avatarUrl = identityState?.avatarUrl ?: profile.avatarUrl,
-                            userId = state.userId,
-                            placeholderName = identityState?.displayName ?: (identityState?.displayName ?: profile.displayName),
-                            size = 38.dp,
-                            modifier = Modifier.fillMaxSize()
-                        )
-                    }
-                    Spacer(modifier = Modifier.width(10.dp))
-                    Column {
-                        Text(
-                            text = (identityState?.displayName ?: profile.displayName),
-                            color = Color.White,
-                            fontWeight = FontWeight.SemiBold,
-                            fontSize = 14.sp
-                        )
-                        Text(
-                            text = formattedTime,
-                            color = Color.White.copy(alpha = 0.6f),
-                            fontSize = 11.sp
-                        )
-                    }
-                }
 
                 Row(
                     verticalAlignment = Alignment.CenterVertically,
@@ -1212,6 +1308,17 @@ fun UserStoryViewer(
                         Icon(Icons.Default.Close, contentDescription = "Cerrar", tint = Color.White)
                     }
                 }
+                } // closes outer Row (inside Box)
+            }
+
+            // Acción 5: Viewers marquee (owner-only) — BELOW the author name, never
+            // above it. Auto-scrolling carousel: avatars slide in from the right and
+            // slide out on the left.
+            if (isMyStory) {
+                ViewersMarquee(
+                    spectators = spectatorsList,
+                    modifier = Modifier.padding(top = 10.dp, bottom = 2.dp)
+                )
             }
         }
 
@@ -1259,62 +1366,67 @@ fun UserStoryViewer(
                 .padding(start = 16.dp, end = 16.dp, bottom = 16.dp, top = 24.dp),
             verticalArrangement = Arrangement.spacedBy(10.dp)
         ) {
-            // Caption overlay
-            if (state.mediaType != "text" && cleanCaption.isNotBlank()) {
-                Text(
-                    text = cleanCaption,
-                    color = Color.White,
-                    fontSize = 14.sp,
-                    fontWeight = FontWeight.Normal,
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .padding(horizontal = 4.dp),
-                    textAlign = TextAlign.Start,
-                    maxLines = 3,
-                    overflow = TextOverflow.Ellipsis
-                )
-            }
+            // Caption overlay — the caption is rendered CENTERED in the row below,
+            // so it is not repeated here (avoiding the duplicated text).
 
-            // Quick views count display
-            Row(
-                modifier = Modifier.fillMaxWidth(),
-                verticalAlignment = Alignment.CenterVertically,
-                horizontalArrangement = Arrangement.SpaceBetween
-            ) {
+            // Acción 2: Owner-only eye icon + views count (left) and the CENTERED
+            // caption the author wrote for the publication (no hardcoded "Pana Vídeo").
+            Box(modifier = Modifier.fillMaxWidth()) {
                 val realViewsCount = spectatorsList.size
-                
-                Surface(
-                    onClick = {
-                        viewModel.loadSpectators(state.id)
-                        showSpectatorsSheet = true
-                    },
-                    shape = RoundedCornerShape(16.dp),
-                    color = Color.White.copy(alpha = 0.18f),
-                    modifier = Modifier.testTag("views_counter_pill")
-                ) {
-                    Row(
-                        verticalAlignment = Alignment.CenterVertically,
-                        horizontalArrangement = Arrangement.spacedBy(6.dp),
-                        modifier = Modifier.padding(horizontal = 10.dp, vertical = 6.dp)
+
+                if (isMyStory) {
+                    Surface(
+                        onClick = {
+                            viewModel.loadSpectators(state.id)
+                            showSpectatorsSheet = true
+                        },
+                        shape = RoundedCornerShape(16.dp),
+                        color = Color.White.copy(alpha = 0.18f),
+                        modifier = Modifier
+                            .align(Alignment.CenterStart)
+                            .testTag("views_counter_pill")
                     ) {
-                        Text(
-                            text = if (isOwner) "👁 $realViewsCount personas vieron tu estado" else "👁 $realViewsCount vistas",
-                            color = Color.White,
-                            fontSize = 12.sp,
-                            fontWeight = FontWeight.SemiBold
-                        )
-                        Icon(
-                            imageVector = Icons.Default.KeyboardArrowUp,
-                            contentDescription = "Ver espectadores",
-                            tint = Color.White.copy(alpha = 0.9f),
-                            modifier = Modifier.size(16.dp)
-                        )
+                        Row(
+                            verticalAlignment = Alignment.CenterVertically,
+                            horizontalArrangement = Arrangement.spacedBy(5.dp),
+                            modifier = Modifier.padding(horizontal = 9.dp, vertical = 5.dp)
+                        ) {
+                            Icon(
+                                imageVector = Icons.Default.Visibility,
+                                contentDescription = "Ver espectadores",
+                                tint = Color.White,
+                                modifier = Modifier.size(18.dp)
+                            )
+                            Text(
+                                text = "$realViewsCount",
+                                color = Color.White,
+                                fontSize = 12.sp,
+                                fontWeight = FontWeight.SemiBold
+                            )
+                        }
                     }
+                }
+
+                // Centered publication caption (the comment the author wrote).
+                if (state.mediaType != "text" && cleanCaption.isNotBlank()) {
+                    Text(
+                        text = cleanCaption,
+                        color = Color.White,
+                        fontSize = 13.sp,
+                        fontWeight = FontWeight.SemiBold,
+                        textAlign = TextAlign.Center,
+                        maxLines = 2,
+                        overflow = TextOverflow.Ellipsis,
+                        modifier = Modifier
+                            .align(Alignment.Center)
+                            .padding(horizontal = 64.dp)
+                    )
                 }
 
                 if (metadata.musicName != null) {
                     Row(
                         modifier = Modifier
+                            .align(Alignment.CenterEnd)
                             .background(Color(0xFF00FF85).copy(alpha = 0.12f), RoundedCornerShape(12.dp))
                             .border(1.dp, Color(0xFF00FF85).copy(alpha = 0.35f), RoundedCornerShape(12.dp))
                             .padding(horizontal = 8.dp, vertical = 4.dp),
@@ -1357,7 +1469,9 @@ fun UserStoryViewer(
                                         },
                                         onError = { err ->
                                             android.widget.Toast.makeText(context, "Error DM: $err", android.widget.Toast.LENGTH_SHORT).show()
-                                        }
+                                        },
+                                        storyId = state.id,
+                                        storyThumbnailUrl = state.thumbnailUrl ?: state.mediaUrl
                                     )
                                 } else {
                                     reactionMessage = "¡Reaccionaste con $emoji!"
@@ -1429,7 +1543,9 @@ fun UserStoryViewer(
                                         messageText = textToSend,
                                         onSuccess = {
                                             reactionMessage = "📩 DM enviado a ${(identityState?.displayName ?: profile.displayName)}"
-                                        }
+                                        },
+                                        storyId = state.id,
+                                        storyThumbnailUrl = state.thumbnailUrl ?: state.mediaUrl
                                     )
                                 } else {
                                     viewModel.addComment(state.id, textToSend)
@@ -1464,7 +1580,9 @@ fun UserStoryViewer(
                                     messageText = textToSend,
                                     onSuccess = {
                                         reactionMessage = "📩 DM enviado a ${(identityState?.displayName ?: profile.displayName)}"
-                                    }
+                                    },
+                                    storyId = state.id,
+                                    storyThumbnailUrl = state.thumbnailUrl ?: state.mediaUrl
                                 )
                             } else {
                                 viewModel.addComment(state.id, textToSend)
@@ -1900,6 +2018,162 @@ fun UserStoryViewer(
                 }
             }
         }
+
+        // Acción 4: Floating reactions overlay (live-style) — owner only sees incoming reactions
+        if (isMyStory && floatingReactions.isNotEmpty()) {
+            FloatingReactionsContainer(
+                reactions = floatingReactions,
+                onDismiss = { id ->
+                    floatingReactions = floatingReactions.filterNot { it.id == id }
+                },
+                modifier = Modifier.align(Alignment.TopCenter)
+            )
+        }
+    }
+}
+
+// Acción 4: Floating reactions container (live-style)
+@Composable
+fun FloatingReactionsContainer(
+    reactions: List<FloatingReactionLog>,
+    onDismiss: (String) -> Unit,
+    modifier: Modifier = Modifier
+) {
+    if (reactions.isEmpty()) return
+    Box(modifier = modifier.fillMaxSize()) {
+        reactions.forEachIndexed { _, reaction ->
+            val lane = remember(reaction.id) { (reaction.id.hashCode() % 4) }
+            val isLeftLane = remember(reaction.id) { lane % 2 == 0 }
+            val offsetY = remember(reaction.id) { Animatable(0f) }
+            val offsetX = remember(reaction.id) { Animatable(0f) }
+            val alpha = remember(reaction.id) { Animatable(0f) }
+            val scale = remember(reaction.id) { Animatable(0.5f) }
+            LaunchedEffect(reaction.id) {
+                // Pop-in + float UP along a NARROW lateral lane. Each reaction stays
+                // close to its edge of the screen and never drifts across the media
+                // center, so the publication's content isn't blocked.
+                alpha.animateTo(1f, tween(180, easing = LinearOutSlowInEasing))
+                val riseDistance = (-160 - (reaction.id.hashCode() % 3) * 36).toFloat()
+                scale.animateTo(1f, tween(220, easing = LinearOutSlowInEasing))
+                offsetX.animateTo(34f * if (isLeftLane) -1f else 1f, tween(2600, easing = LinearOutSlowInEasing))
+                offsetY.animateTo(riseDistance, tween(2600, easing = LinearOutSlowInEasing))
+                alpha.animateTo(0f, tween(500, easing = FastOutLinearInEasing))
+                onDismiss(reaction.id)
+            }
+            Box(
+                modifier = Modifier
+                    .graphicsLayer {
+                        this.alpha = alpha.value
+                        this.translationY = offsetY.value
+                        this.translationX = offsetX.value
+                        this.scaleX = scale.value
+                        this.scaleY = scale.value
+                    }
+                    .align(if (isLeftLane) Alignment.BottomStart else Alignment.BottomEnd)
+                    .padding(
+                        bottom = 110.dp,
+                        start = if (isLeftLane) 24.dp else 0.dp,
+                        end = if (!isLeftLane) 24.dp else 0.dp
+                    )
+                    .size(40.dp)
+            ) {
+                PanaAvatar(
+                    avatarUrl = reaction.avatarUrl,
+                    userId = reaction.userId,
+                    placeholderName = reaction.userId,
+                    size = 32.dp,
+                    modifier = Modifier
+                        .size(32.dp)
+                        .clip(CircleShape)
+                        .border(1.5.dp, Color.White, CircleShape)
+                )
+                Text(
+                    text = reaction.emoji,
+                    fontSize = 16.sp,
+                    modifier = Modifier
+                        .align(Alignment.BottomEnd)
+                        .offset { IntOffset(8, 8) }
+                )
+            }
+        }
+    }
+}
+
+// Acción 5: Viewers marquee — auto-scrolling carousel BELOW the author name.
+// Avatars slide in from the right edge and slide out on the left edge
+// (the owner sees who has watched as a living, continuously moving ticker).
+@Composable
+fun ViewersMarquee(
+    spectators: List<StatusViewer>,
+    modifier: Modifier = Modifier
+) {
+    if (spectators.isEmpty()) return
+
+    val scroller = rememberLazyListState()
+    val avatarSize = 26.dp
+    val gap = 6.dp
+
+    // Auto-scroll: when the last avatar reaches the left edge, jump back to the
+    // start (seamless, since the same pack repeats and the "+N" pill is appended).
+    LaunchedEffect(Unit) {
+        val total = (spectators.size + 1).toLong()
+        var forward = true
+        while (total > 1L) {
+            if (forward) {
+                scroller.animateScrollToItem(spectators.size) // scroll to the "+N" pill
+                forward = false
+            } else {
+                scroller.scrollToItem(0)
+                forward = true
+            }
+            delay(4500)
+        }
+    }
+
+    LazyRow(
+        state = scroller,
+        modifier = modifier
+            .fillMaxWidth()
+            .height(avatarSize + 4.dp)
+            .padding(horizontal = 4.dp),
+        verticalAlignment = Alignment.CenterVertically,
+        horizontalArrangement = Arrangement.spacedBy(gap),
+        userScrollEnabled = false
+    ) {
+        items(spectators.take(20)) { spectator ->
+            Box(
+                modifier = Modifier
+                    .size(avatarSize)
+                    .clip(CircleShape)
+                    .border(1.5.dp, Color.White.copy(alpha = 0.85f), CircleShape)
+            ) {
+                PanaAvatar(
+                    avatarUrl = spectator.avatarUrl,
+                    userId = spectator.viewerId,
+                    placeholderName = spectator.name,
+                    size = avatarSize - 4.dp,
+                    modifier = Modifier.fillMaxSize()
+                )
+            }
+        }
+        if (spectators.size > 20) {
+            item {
+                Box(
+                    modifier = Modifier
+                        .size(avatarSize)
+                        .clip(CircleShape)
+                        .background(Color.Black.copy(alpha = 0.55f)),
+                    contentAlignment = Alignment.Center
+                ) {
+                    Text(
+                        text = "+${spectators.size - 20}",
+                        color = Color.White,
+                        fontSize = 9.sp,
+                        fontWeight = FontWeight.Bold
+                    )
+                }
+            }
+        }
     }
 }
 
@@ -1948,6 +2222,12 @@ fun VideoPlayer(
             return@LaunchedEffect
         }
         session.onReady = { onReady?.invoke() }
+        // Acción 1 (fix): sin estas dos conexiones la barra usaba la duración por
+        // defecto (6 s) y terminaba antes que el vídeo, además de no avanzar la
+        // historia al acabar el clip. La sesión ya emite la duración real
+        // (ajustada al trim) y el fin de media; aquí solo se propagan a la UI.
+        session.onDurationReady = { durationMs -> onDurationReady(durationMs) }
+        session.onMediaEnded = { onMediaEnded?.invoke() }
         session.onStateChanged = { stateName, pos, buffered, pct, duration ->
             isBuffering = (stateName == "BUFFERING" || stateName == "IDLE")
         }

@@ -28,3 +28,6 @@ server/PanalinkStorage/*
 # Toolchain local generado por scripts/setup_toolchain.sh
 .toolchain/
 .gradle-home/
+
+# APKs beta generados localmente (dist/)
+dist/

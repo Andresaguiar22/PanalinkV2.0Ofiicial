@@ -34,6 +34,8 @@ fun DocumentMessageBubble(
     senderAvatarUrl: String? = null,
     isSender: Boolean = true,
     messageStatus: String? = "sent",
+    uploadBytesWritten: Long = 0L,
+    uploadTotalBytes: Long = 0L,
     modifier: Modifier = Modifier
 ) {
     val context = LocalContext.current
@@ -127,7 +129,9 @@ fun DocumentMessageBubble(
                         text = buildString {
                             append(extension.uppercase())
                             if (formattedSize != null) append(" • $formattedSize")
-                            if (isSending) append(" • Subiendo...")
+                            if (isSending && uploadTotalBytes > 0L)
+                                append(" • ${formatDocUploadKb(uploadBytesWritten)} / ${formatDocUploadKb(uploadTotalBytes)}")
+                            else if (isSending) append(" • Subiendo...")
                             else if (localFile != null) append(" • Descargado")
                         },
                         color = secondaryColor,
@@ -202,4 +206,9 @@ private fun getDocumentFileInfo(extension: String): Pair<ImageVector, Color> {
         "txt" -> Icons.Default.Article to Color(0xFF9E9E9E)
         else -> Icons.Default.InsertDriveFile to Color(0xFF607D8B)
     }
+}
+
+private fun formatDocUploadKb(bytes: Long): String = when {
+    bytes >= 1024 * 1024 -> String.format("%.1f MB", bytes / (1024f * 1024f))
+    else -> String.format("%.0f KB", bytes / 1024f)
 }

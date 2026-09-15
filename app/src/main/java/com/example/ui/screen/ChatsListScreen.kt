@@ -245,6 +245,7 @@ fun ChatsListScreen(
     onNavigateToCreateReel: () -> Unit = {},
     onNavigateToViewState: (String) -> Unit, // stateId
     onNavigateToTikTok: (String) -> Unit, // stateId
+    onNavigateToSearchReels: () -> Unit = {},
     onNavigateToProfile: () -> Unit,
     onNavigateToUserProfile: ((String) -> Unit)? = null,
     onNavigateToNotifications: () -> Unit = {},
@@ -672,7 +673,7 @@ fun ChatsListScreen(
                             selectedChatIds = emptySet()
                         }
                     )
-                } else {
+                } else if (currentRoute != "clips") {
                     Column(
                         modifier = Modifier
                             .fillMaxWidth()
@@ -919,15 +920,15 @@ fun ChatsListScreen(
                         }
                     composable("clips") {
                             Box(modifier = Modifier.fillMaxSize()) {
-                                com.example.ui.screen.TikTokVideoFeedScreen(
+                                com.example.reels.ui.ReelsFeedScreen(
+                                    onSearchReels = { onNavigateToSearchReels() },
                                     viewModel = statesViewModel,
                                     initialStateId = "",
-                                    isActive = currentPageIndex == 2,
                                     onBack = {
                                         tabNavController.navigate("chats") { popUpTo(tabNavController.graph.startDestinationId) { saveState = true }; launchSingleTop = true; restoreState = true }
                                     },
-                                    onNavigateToUserProfile =onNavigateToUserProfile,
-                                    onNavigateToLive =onNavigateToLive
+                                    onNavigateToUserProfile = onNavigateToUserProfile,
+                                    onNavigateToHashtag = null
                                 )
                             }
                         }

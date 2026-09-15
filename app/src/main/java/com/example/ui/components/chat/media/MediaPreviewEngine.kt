@@ -1,8 +1,18 @@
 package com.example.ui.components.chat.media
 
+import androidx.compose.foundation.background
+import androidx.compose.foundation.border
+import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.Image
+import androidx.compose.material.icons.filled.Videocam
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.unit.dp
 import com.example.data.model.Message
 import com.example.ui.components.chat.bubble.MediaMessageBubble
 
@@ -18,6 +28,8 @@ fun MediaPreviewEngine(
     progress: Float = 0f,
     durationLabel: String = "0:00",
     onSpeedChange: (Float) -> Unit = {},
+    uploadBytesWritten: Long = 0L,
+    uploadTotalBytes: Long = 0L,
     modifier: Modifier = Modifier
 ) {
     val mediaUrl = message.mediaUrl ?: return
@@ -42,6 +54,9 @@ fun MediaPreviewEngine(
                 captionText = caption,
                 bubbleColor = bubbleColor,
                 isUploading = isUploading,
+                bytesWritten = uploadBytesWritten,
+                totalBytes = uploadTotalBytes,
+                mediaTypeIcon = androidx.compose.material.icons.Icons.Default.Image,
                 onMediaClick = { _, selectedUrl -> onImageClick(selectedUrl) },
                 modifier = modifier
             )
@@ -55,6 +70,9 @@ fun MediaPreviewEngine(
                 captionText = caption,
                 bubbleColor = bubbleColor,
                 isUploading = isUploading,
+                bytesWritten = uploadBytesWritten,
+                totalBytes = uploadTotalBytes,
+                mediaTypeIcon = androidx.compose.material.icons.Icons.Default.Videocam,
                 onMediaClick = { _, url -> onImageClick(url) },
                 modifier = modifier
             )
@@ -74,10 +92,17 @@ fun MediaPreviewEngine(
                 messageStatus = message.status,
                 isSending = isUploading,
                 isVoiceNote = isVoiceNoteMsg,
+                uploadBytesWritten = uploadBytesWritten,
+                uploadTotalBytes = uploadTotalBytes,
                 onPlayPauseClick = onPlayPauseClick,
                 onSeek = onSeek,
                 onSpeedChange = onSpeedChange,
-                modifier = modifier
+                backgroundColor = Color.Transparent,
+                modifier = Modifier
+                    .padding(top = 4.dp, bottom = 4.dp, end = 4.dp)
+                    .clip(RoundedCornerShape(18.dp))
+                    .background(Color(0xFF2E3A4D).copy(alpha = 0.92f))
+                    .border(1.dp, Color(0xFF38BDF8).copy(alpha = 0.55f), RoundedCornerShape(18.dp))
             )
         }
         isDocument -> {
@@ -90,6 +115,8 @@ fun MediaPreviewEngine(
                 senderAvatarUrl = senderAvatarUrl,
                 isSender = message.senderId == com.example.data.supabase.SupabaseClient.currentUser?.id,
                 messageStatus = message.status,
+                uploadBytesWritten = uploadBytesWritten,
+                uploadTotalBytes = uploadTotalBytes,
                 modifier = modifier
             )
         }

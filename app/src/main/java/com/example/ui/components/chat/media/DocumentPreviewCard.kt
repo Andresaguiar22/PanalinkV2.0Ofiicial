@@ -14,6 +14,8 @@ fun DocumentPreviewCard(
     senderAvatarUrl: String? = null,
     isSender: Boolean = true,
     messageStatus: String? = "sent",
+    uploadBytesWritten: Long = 0L,
+    uploadTotalBytes: Long = 0L,
     modifier: Modifier = Modifier
 ) {
     DocumentMessageBubble(
@@ -24,6 +26,8 @@ fun DocumentPreviewCard(
         senderAvatarUrl = senderAvatarUrl,
         isSender = isSender,
         messageStatus = messageStatus,
+        uploadBytesWritten = uploadBytesWritten,
+        uploadTotalBytes = uploadTotalBytes,
         modifier = modifier
     )
 }

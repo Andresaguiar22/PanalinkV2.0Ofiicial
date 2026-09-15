@@ -60,8 +60,13 @@ class StatesRepository {
         }
     }
 
-
     suspend fun getActiveStates(): Result<Unit> = remoteDataSource.fetchActiveStates()
+
+    suspend fun fetchReelsTimeline(orderBy: String? = null): Result<List<UserStateWithUser>> =
+        remoteDataSource.fetchReelsTimeline(orderBy)
+
+    suspend fun searchReels(query: String? = null, tag: String? = null, limit: Int = 60): Result<List<UserStateWithUser>> =
+        remoteDataSource.searchReels(query, tag, limit)
 
     suspend fun toggleLike(stateId: String, currentLikeState: Boolean, isReel: Boolean): Result<com.example.data.model.ToggleLikeResponseDto> = interactionDataSource.toggleLike(stateId, currentLikeState, isReel)
 
