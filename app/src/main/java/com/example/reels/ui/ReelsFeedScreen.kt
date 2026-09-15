@@ -1,6 +1,8 @@
 package com.example.reels.ui
 
 import androidx.compose.animation.AnimatedVisibility
+import androidx.compose.animation.core.Animatable
+import androidx.compose.animation.core.Spring
 import androidx.compose.animation.core.animate
 import androidx.compose.animation.core.spring
 import androidx.compose.animation.fadeIn
@@ -42,20 +44,20 @@ import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.rounded.Send
 import androidx.compose.material.icons.filled.ArrowBack
-import androidx.compose.material.icons.filled.ChatBubbleOutline
 import androidx.compose.material.icons.filled.Close
 import androidx.compose.material.icons.filled.Delete
 import androidx.compose.material.icons.filled.Favorite
-import androidx.compose.material.icons.filled.FavoriteBorder
-import androidx.compose.material.icons.filled.MoreVert
 import androidx.compose.material.icons.filled.Pause
 import androidx.compose.material.icons.filled.PlayArrow
 import androidx.compose.material.icons.filled.Refresh
-import androidx.compose.material.icons.filled.Share
-import androidx.compose.material.icons.filled.Star
-import androidx.compose.material.icons.filled.StarBorder
-import androidx.compose.material.icons.filled.VolumeOff
-import androidx.compose.material.icons.filled.VolumeUp
+import androidx.compose.material.icons.rounded.Bookmark
+import androidx.compose.material.icons.rounded.BookmarkBorder
+import androidx.compose.material.icons.rounded.ChatBubble
+import androidx.compose.material.icons.rounded.ChatBubbleOutline
+import androidx.compose.material.icons.rounded.FavoriteBorder
+import androidx.compose.material.icons.rounded.MoreHoriz
+import androidx.compose.material.icons.rounded.VolumeOff
+import androidx.compose.material.icons.rounded.VolumeUp
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.TextButton
@@ -631,10 +633,11 @@ private fun ReelFeedOverlay(
             verticalArrangement = Arrangement.spacedBy(2.dp),
         ) {
             ReelActionButtonV2(
-                icon = if (liked) Icons.Filled.Favorite else Icons.Filled.FavoriteBorder,
+                icon = if (liked) Icons.Filled.Favorite else Icons.Rounded.FavoriteBorder,
                 count = compactCountV2(localLikes),
                 selected = liked,
                 selectedColor = Color(0xFFFF2B54),
+                popOnSelect = true,
             ) {
                 val next = !liked
                 liked = next
@@ -642,14 +645,15 @@ private fun ReelFeedOverlay(
                 onLike()
             }
             ReelActionButtonV2(
-                icon = Icons.Filled.ChatBubbleOutline,
+                icon = Icons.Rounded.ChatBubbleOutline,
                 count = compactCountV2(commentsCount),
             ) { onComments() }
             ReelActionButtonV2(
-                icon = if (favorited) Icons.Filled.Star else Icons.Filled.StarBorder,
+                icon = if (favorited) Icons.Rounded.Bookmark else Icons.Rounded.BookmarkBorder,
                 count = compactCountV2(localFavorites),
                 selected = favorited,
                 selectedColor = Color(0xFFF9C74F),
+                popOnSelect = true,
             ) {
                 val next = !favorited
                 favorited = next
@@ -657,17 +661,17 @@ private fun ReelFeedOverlay(
                 onFavorite()
             }
             ReelActionButtonV2(
-                icon = Icons.Filled.Share,
+                icon = Icons.AutoMirrored.Rounded.Send,
                 count = compactCountV2(localShares),
             ) {
                 localShares += 1
                 onShare()
             }
             ReelActionButtonV2(
-                icon = if (muted) Icons.Filled.VolumeOff else Icons.Filled.VolumeUp,
+                icon = if (muted) Icons.Rounded.VolumeOff else Icons.Rounded.VolumeUp,
             ) { onMute() }
             Box {
-                ReelActionButtonV2(icon = Icons.Filled.MoreVert) { menuExpanded = true }
+                ReelActionButtonV2(icon = Icons.Rounded.MoreHoriz) { menuExpanded = true }
                 DropdownMenu(expanded = menuExpanded, onDismissRequest = { menuExpanded = false }) {
                     DropdownMenuItem(text = { Text("Compartir") }, onClick = { menuExpanded = false; onShare() })
                     DropdownMenuItem(text = { Text("Copiar enlace") }, onClick = { menuExpanded = false; onCopyLink() })
@@ -784,15 +788,35 @@ private fun ReelActionButtonV2(
     count: String? = null,
     selected: Boolean = false,
     selectedColor: Color = Color(0xFFF9C74F),
+    popOnSelect: Boolean = false,
     onClick: () -> Unit,
 ) {
+    val scale = remember { Animatable(1f) }
+    LaunchedEffect(selected, popOnSelect) {
+        if (popOnSelect && selected) {
+            scale.snapTo(1.25f)
+            scale.animateTo(
+                targetValue = 1f,
+                animationSpec = spring(
+                    dampingRatio = Spring.DampingRatioMediumBouncy,
+                    stiffness = Spring.StiffnessLow,
+                ),
+            )
+        }
+    }
+
     Column(horizontalAlignment = Alignment.CenterHorizontally) {
         IconButton(onClick = onClick, modifier = Modifier.size(42.dp)) {
             Icon(
                 icon,
                 contentDescription = null,
                 tint = if (selected) selectedColor else Color.White,
-                modifier = Modifier.size(29.dp)
+                modifier = Modifier
+                    .size(29.dp)
+                    .graphicsLayer {
+                        scaleX = scale.value
+                        scaleY = scale.value
+                    },
             )
         }
         if (!count.isNullOrBlank()) {
@@ -803,9 +827,9 @@ private fun ReelActionButtonV2(
                 fontWeight = FontWeight.SemiBold,
                 style = TextStyle(
                     shadow = androidx.compose.ui.graphics.Shadow(
-                        color = Color.Black.copy(alpha = 0.6f),
-                        offset = androidx.compose.ui.geometry.Offset(0.5f, 0.5f),
-                        blurRadius = 2f
+                        color = Color.Black.copy(alpha = 0.7f),
+                        offset = androidx.compose.ui.geometry.Offset(1f, 1f),
+                        blurRadius = 3f
                     )
                 ),
             )
