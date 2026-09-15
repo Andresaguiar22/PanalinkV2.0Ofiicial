@@ -4,9 +4,12 @@ import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
+import androidx.compose.foundation.lazy.LazyRow
+import androidx.compose.foundation.lazy.items as lazyRowItems
 import androidx.compose.foundation.lazy.grid.GridCells
 import androidx.compose.foundation.lazy.grid.LazyVerticalGrid
 import androidx.compose.foundation.lazy.grid.items
+import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.text.BasicTextField
 import androidx.compose.foundation.text.KeyboardActions
@@ -33,7 +36,9 @@ import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import coil.compose.AsyncImage
+import com.example.data.model.Profile
 import com.example.data.model.UserStateWithUser
+import com.example.ui.components.PanaAvatar
 import com.example.ui.viewmodel.StatesViewModel
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.delay
@@ -53,6 +58,7 @@ fun ReelSearchScreen(
     onBack: () -> Unit,
     onVideoClick: (String) -> Unit,
     onHashtagClick: (String) -> Unit,
+    onUserClick: (String) -> Unit = {},
 ) {
     val searchResults by viewModel.searchResults.collectAsState()
     var query by rememberSaveable { mutableStateOf(initialTag?.removePrefix("#") ?: "") }
@@ -61,6 +67,11 @@ fun ReelSearchScreen(
     var debounceJob by remember { mutableStateOf<Job?>(null) }
     val keyboard = LocalSoftwareKeyboardController.current
     val focusRequester = remember { FocusRequester() }
+
+    // TikTok shows matching ACCOUNTS first, then videos. User hits are stored
+    // here (from ProfilesRepository) and rendered as a horizontal account row.
+    var userResults by remember { mutableStateOf<List<com.example.data.model.Profile>>(emptyList()) }
+    var searchingUsers by remember { mutableStateOf(false) }
 
     // First composition: if we arrived from a hashtag, run the query immediately.
     // Otherwise the bubble turns into a writable field: request focus and show the
@@ -75,13 +86,26 @@ fun ReelSearchScreen(
         }
     }
 
+    val profilesRepo = remember { com.example.data.repository.ProfilesRepository() }
+
     fun runSearch(q: String) {
         val trimmed = q.trim()
         searching = true
         if (trimmed.isEmpty()) {
             viewModel.clearReelSearch()
+            userResults = emptyList()
             searching = false
+            searchingUsers = false
             return
+        }
+        if (initialTag == null) {
+            searchingUsers = true
+            scope.launch {
+                profilesRepo.searchProfiles(trimmed)
+                    .onSuccess { userResults = it.take(6) }
+                    .onFailure { userResults = emptyList() }
+                searchingUsers = false
+            }
         }
         viewModel.searchReels(query = trimmed) {
             searching = false
@@ -225,6 +249,45 @@ fun ReelSearchScreen(
                         color = Color.Gray,
                         fontSize = 13.sp
                     )
+                }
+            }
+
+            // TikTok shows matching accounts first: a horizontal row of avatars
+            // with the display name below, tappable to open the profile.
+            if (initialTag == null && trimmed.isNotEmpty() && userResults.isNotEmpty()) {
+                LazyRow(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .padding(top = 2.dp, bottom = 4.dp),
+                    contentPadding = PaddingValues(horizontal = 16.dp),
+                    horizontalArrangement = Arrangement.spacedBy(16.dp),
+                ) {
+                    lazyRowItems(userResults) { user ->
+                        Column(
+                            modifier = Modifier
+                                .clip(CircleShape)
+                                .clickable { onUserClick(user.id) },
+                            horizontalAlignment = Alignment.CenterHorizontally,
+                        ) {
+                            PanaAvatar(
+                                avatarUrl = user.avatarUrl,
+                                userId = user.id,
+                                placeholderName = user.displayName,
+                                size = 62.dp,
+                                borderWidth = 0.dp,
+                            )
+                            Spacer(Modifier.height(6.dp))
+                            Text(
+                                text = user.displayName.ifBlank { "pana" },
+                                color = Color.White,
+                                fontSize = 12.sp,
+                                fontWeight = FontWeight.SemiBold,
+                                maxLines = 1,
+                                overflow = TextOverflow.Ellipsis,
+                                modifier = Modifier.widthIn(max = 72.dp)
+                            )
+                        }
+                    }
                 }
             }
 

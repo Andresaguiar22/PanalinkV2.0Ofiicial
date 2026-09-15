@@ -886,6 +886,9 @@ fun MainNavHost(
                 },
                 onHashtagClick = { tag ->
                     mainNavController.navigate("search_results/${android.net.Uri.encode(tag)}") { launchSingleTop = true }
+                },
+                onUserClick = { userId ->
+                    mainNavController.navigate("userProfile/$userId") { launchSingleTop = true }
                 }
             )
         }
@@ -905,6 +908,9 @@ fun MainNavHost(
                 },
                 onHashtagClick = { newTag ->
                     mainNavController.navigate("search_results/${android.net.Uri.encode(newTag)}") { launchSingleTop = true }
+                },
+                onUserClick = { userId ->
+                    mainNavController.navigate("userProfile/$userId") { launchSingleTop = true }
                 }
             )
         }

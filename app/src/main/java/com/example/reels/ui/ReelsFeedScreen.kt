@@ -11,6 +11,7 @@ import androidx.compose.animation.fadeOut
 import androidx.compose.animation.scaleIn
 import androidx.compose.animation.scaleOut
 import androidx.compose.foundation.background
+import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.gestures.awaitEachGesture
 import androidx.compose.foundation.gestures.awaitFirstDown
@@ -33,6 +34,7 @@ import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.heightIn
 import androidx.compose.foundation.layout.imePadding
 import androidx.compose.foundation.layout.navigationBarsPadding
+import androidx.compose.foundation.layout.offset
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.statusBarsPadding
@@ -46,7 +48,9 @@ import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.rounded.Send
+import androidx.compose.material.icons.filled.Add
 import androidx.compose.material.icons.filled.ArrowBack
+import androidx.compose.material.icons.filled.Check
 import androidx.compose.material.icons.filled.Close
 import androidx.compose.material.icons.filled.Delete
 import androidx.compose.material.icons.filled.Favorite
@@ -721,6 +725,52 @@ private fun ReelFeedOverlay(
             horizontalAlignment = Alignment.CenterHorizontally,
             verticalArrangement = Arrangement.spacedBy(2.dp),
         ) {
+            // TikTok avatar in the rail: circular photo with a follow "+" /
+            // following "✓" pill sitting on its bottom edge.
+            Box(
+                modifier = Modifier
+                    .size(46.dp)
+                    .clip(CircleShape)
+                    .clickable(onClick = onProfile),
+                contentAlignment = Alignment.Center
+            ) {
+                PanaAvatar(
+                    avatarUrl = profile.avatarUrl,
+                    userId = state.userId,
+                    placeholderName = profile.displayName,
+                    size = 44.dp,
+                    borderWidth = 1.5.dp,
+                )
+                if (!currentUid.isNullOrBlank() && state.userId.isNotBlank() && state.userId != currentUid) {
+                    Box(
+                        modifier = Modifier
+                            .align(Alignment.BottomCenter)
+                            .offset(y = 11.dp)
+                            .size(21.dp)
+                            .clip(CircleShape)
+                            .background(if (isFollowing) Color(0xFF2B2B2B) else Color(0xFFFF2B54))
+                            .border(1.5.dp, Color.Black, CircleShape)
+                            .clickable {
+                                if (currentUid.isNullOrBlank()) return@clickable
+                                overlayScope.launch {
+                                    if (isFollowing) {
+                                        profilesRepo.unfollowUser(currentUid, state.userId).onSuccess { isFollowing = false }
+                                    } else {
+                                        profilesRepo.followUser(currentUid, state.userId).onSuccess { isFollowing = true }
+                                    }
+                                }
+                            },
+                        contentAlignment = Alignment.Center,
+                    ) {
+                        Icon(
+                            if (isFollowing) Icons.Filled.Check else Icons.Filled.Add,
+                            contentDescription = if (isFollowing) "Dejar de seguir" else "Seguir",
+                            tint = Color.White,
+                            modifier = Modifier.size(13.dp)
+                        )
+                    }
+                }
+            }
             ReelActionButtonV2(
                 icon = if (liked) Icons.Filled.Favorite else Icons.Rounded.FavoriteBorder,
                 count = compactCountV2(localLikes),
