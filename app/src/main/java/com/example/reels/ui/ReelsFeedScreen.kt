@@ -181,26 +181,27 @@ fun ReelsFeedScreen(
 
     val pool = remember { ReelPlayerPool(context) }
 
-    // Cinema/immersive mode: hide the status & navigation bars while the Reels
-    // feed is on screen so the video draws edge-to-edge (no black bars). Bars are
-    // restored on dispose. Mirrors the behaviour of the legacy TikTok screen.
+    // System bars stay VISIBLE in the feed: the user always sees the status bar
+    // (clock, notifications, signal, battery) and the native navigation buttons.
+    // The window still draws edge-to-edge (the video runs behind the bars) and
+    // every overlay applies its own inset padding — the header uses the top inset,
+    // and the rail/caption/progress use navigationBarsPadding — so nothing hides
+    // underneath them.
     val feedActivity = LocalContext.current as? android.app.Activity
     DisposableEffect(feedActivity) {
         val window = feedActivity?.window
         if (window != null) {
             androidx.core.view.WindowCompat.setDecorFitsSystemWindows(window, false)
             val controller = androidx.core.view.WindowCompat.getInsetsController(window, window.decorView)
-            controller.hide(androidx.core.view.WindowInsetsCompat.Type.statusBars() or
+            controller.show(androidx.core.view.WindowInsetsCompat.Type.statusBars() or
                 androidx.core.view.WindowInsetsCompat.Type.navigationBars())
-            controller.systemBarsBehavior =
-                androidx.core.view.WindowInsetsControllerCompat.BEHAVIOR_SHOW_TRANSIENT_BARS_BY_SWIPE
+            // Dark video behind the bars: keep the system icons light (white).
+            controller.isAppearanceLightStatusBars = false
+            controller.isAppearanceLightNavigationBars = false
         }
         onDispose {
             if (window != null) {
                 androidx.core.view.WindowCompat.setDecorFitsSystemWindows(window, true)
-                val controller = androidx.core.view.WindowCompat.getInsetsController(window, window.decorView)
-                controller.show(androidx.core.view.WindowInsetsCompat.Type.statusBars() or
-                    androidx.core.view.WindowInsetsCompat.Type.navigationBars())
             }
         }
     }
