@@ -525,13 +525,26 @@ class StatesRemoteDataSource {
                 SupabaseClient.currentUser?.id ?: return@withContext Result.failure(Exception("Not authenticated"))
                 val apiKey = SupabaseClient.supabaseAnonKey
 
-                val or = query?.takeIf { it.trim().isNotBlank() }?.let { q ->
-                    "caption.ilike.*${android.net.Uri.encode(q.trim())}*"
+                // Free-text search: a plain `caption=ilike.*q*` filter (a single
+                // condition, so there is no PostgREST `or` grammar to escape).
+                // The value is passed raw because Retrofit URL-encodes it —
+                // pre-encoding with Uri.encode double-encodes spaces and breaks
+                // the match ("video juego" -> must not become "video%2520juego").
+                val caption = query?.trim()?.takeIf { it.isNotBlank() }?.let { "ilike.*$it*" }
+
+                // Hashtag tap: hashtags are stored WITHOUT the leading '#' (e.g.
+                // ["video"]), so match the array with `cs.{tag}` and fall back to
+                // the caption ('#tag'). PostgREST requires the parentheses around
+                // the `or` argument; without them the request fails to parse and
+                // the search always comes back empty.
+                val tagValue = tag?.trim()?.removePrefix("#")?.takeIf { it.isNotBlank() }
+                    ?.replace(Regex("[,\\(\\):{}]"), "")
+                val or = tagValue?.takeIf { it.isNotBlank() }?.let {
+                    "(hashtags.cs.{$it},caption.ilike.*#$it*)"
                 }
-                val hashtag = tag?.takeIf { it.trim().isNotBlank() }?.let { "#${it.trim().removePrefix("#")}" }
 
                 val response = runStatesCall(TAG) { b ->
-                    service.getUserReels(apiKey, b, orderBy = "likes_count.desc.nullslast,created_at.desc", orFilter = or, hashtagFilter = hashtag, limit = limit)
+                    service.getUserReels(apiKey, b, orderBy = "likes_count.desc.nullslast,created_at.desc", orFilter = or, captionFilter = caption, limit = limit)
                 }
                 if (response == null || !response.isSuccessful) {
                     return@withContext Result.failure(Exception("Error searching reels: ${response?.errorBody()?.string()}"))

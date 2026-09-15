@@ -975,26 +975,78 @@ private fun ReelFeedOverlay(
             }
         }
 
-        // Bottom progress bar + time (m:ss).
+        // Bottom progress bar + time (m:ss). The bar is seekable: drag or tap it
+        // to scrub; the target time previews optimistically while dragging and the
+        // seek is committed to the ExoPlayer on release.
         if (timing != null && timing.durationMs > 0L) {
-            val fraction = (timing.positionMs.toFloat() / timing.durationMs.toFloat()).coerceIn(0f, 1f)
-            Column(
-                Modifier
+            ReelProgressBar(
+                positionMs = timing.positionMs,
+                durationMs = timing.durationMs,
+                onSeek = { target -> pool.playerFor(state.id)?.seekTo(target.coerceAtLeast(0L)) },
+                modifier = Modifier
                     .align(Alignment.BottomCenter)
                     .navigationBarsPadding()
                     .fillMaxWidth()
                     .padding(start = 12.dp, end = 12.dp, bottom = 8.dp),
-                verticalArrangement = Arrangement.spacedBy(2.dp),
-            ) {
-                Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween) {
-                    Text(formatTimeV2(timing.positionMs), color = Color.White, style = MaterialTheme.typography.labelSmall)
-                    Text(formatTimeV2(timing.durationMs), color = Color.White.copy(alpha = 0.72f), style = MaterialTheme.typography.labelSmall)
-                }
-                LinearProgressIndicator(
-                    progress = { fraction },
-                    modifier = Modifier.fillMaxWidth().height(3.dp),
-                    color = Color.White,
-                    trackColor = Color.White.copy(alpha = 0.25f)
+            )
+        }
+    }
+}
+
+/**
+ * TikTok-style seekable progress bar: elapsed/total time plus a draggable track.
+ * Dragging (or tapping) previews the target time without touching the player; the
+ * seek is applied once on release.
+ */
+@Composable
+private fun ReelProgressBar(
+    positionMs: Long,
+    durationMs: Long,
+    onSeek: (Long) -> Unit,
+    modifier: Modifier = Modifier,
+) {
+    var dragFraction by remember { mutableStateOf<Float?>(null) }
+    val baseFraction = if (durationMs > 0L) (positionMs.toFloat() / durationMs.toFloat()).coerceIn(0f, 1f) else 0f
+    val fraction = dragFraction ?: baseFraction
+    val shownPosition = if (dragFraction != null && durationMs > 0L) (fraction * durationMs).toLong() else positionMs
+
+    Column(modifier = modifier, verticalArrangement = Arrangement.spacedBy(2.dp)) {
+        Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween) {
+            Text(formatTimeV2(shownPosition), color = Color.White, style = MaterialTheme.typography.labelSmall)
+            Text(formatTimeV2(durationMs), color = Color.White.copy(alpha = 0.72f), style = MaterialTheme.typography.labelSmall)
+        }
+        Box(
+            modifier = Modifier
+                .fillMaxWidth()
+                .height(24.dp)
+                .pointerInput(durationMs) {
+                    val width = size.width.toFloat().coerceAtLeast(1f)
+                    awaitEachGesture {
+                        val down = awaitFirstDown(requireUnconsumed = false)
+                        var target = (down.position.x / width).coerceIn(0f, 1f)
+                        dragFraction = target
+                        while (true) {
+                            val event = awaitPointerEvent()
+                            val change = event.changes.firstOrNull { it.id == down.id } ?: break
+                            target = (change.position.x / width).coerceIn(0f, 1f)
+                            dragFraction = target
+                            change.consume()
+                            if (!change.pressed) break
+                        }
+                        dragFraction = null
+                        onSeek((target * durationMs).toLong())
+                    }
+                },
+            contentAlignment = Alignment.Center,
+        ) {
+            Box(Modifier.fillMaxWidth().height(3.dp).clip(CircleShape).background(Color.White.copy(alpha = 0.25f)))
+            Box(Modifier.fillMaxWidth(fraction).height(3.dp).clip(CircleShape).background(Color.White))
+            Box(Modifier.fillMaxWidth(fraction), contentAlignment = Alignment.CenterEnd) {
+                Box(
+                    Modifier
+                        .size(if (dragFraction != null) 14.dp else 8.dp)
+                        .clip(CircleShape)
+                        .background(Color.White)
                 )
             }
         }
