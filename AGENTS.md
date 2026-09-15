@@ -1,5 +1,9 @@
 # Rules for Panalink Development
 
+## 🚫 Regla 1: Prohibido el uso de Code Explorer / code-explorer
+
+**Terminantemente prohibido** usar el agente `code-explorer` (codeexplorer) para explorar o entender este codebase. En su lugar, explorar el código directamente con herramientas propias (terminal con `grep`/`find`/`sed`/`awk`, y `file_editor` en modo `view`).
+
 ## 🛡️ Mandate: Zero Regressions (Cero Regresiones)
 
 Every modification to any class must follow a strict "Zero Regression" policy. Before any code is changed, the following functional checklist must be verified, and then re-verified after the change to guarantee no existing features are broken.
