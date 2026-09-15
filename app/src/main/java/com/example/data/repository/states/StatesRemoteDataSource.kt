@@ -426,6 +426,91 @@ class StatesRemoteDataSource {
     }
 
 
+    /**
+     * Fetches only reels from Supabase ordered by [orderBy] (PostgREST order
+     * expression, e.g. "likes_count.desc.nullslast,created_at.desc") and persists
+     * them in Room. Used by the Reels timeline filter tabs so that tapping
+     * "Explorar / Nuevos / Tendencias" queries the remote DB (E2E), not just a
+     * local sort. Individual type/profile enrichment mirrors fetchActiveStates.
+     */
+    suspend fun fetchReelsTimeline(orderBy: String? = null): Result<List<UserStateWithUser>> = withContext(Dispatchers.IO) {
+        try {
+            val service = SupabaseClient.apiService ?: return@withContext Result.failure(Exception("Supabase not configured"))
+            SessionManager.validateAndRefreshSessionIfNeeded()
+
+            val currentUid = SupabaseClient.currentUser?.id ?: return@withContext Result.failure(Exception("Not authenticated"))
+            val apiKey = SupabaseClient.supabaseAnonKey
+
+            val response = runStatesCall(TAG) { b -> service.getUserReels(apiKey, b, orderBy = orderBy) }
+            if (response == null || !response.isSuccessful) {
+                return@withContext Result.failure(Exception("Error loading reels: ${response?.errorBody()?.string()}"))
+            }
+
+            val reels = response.body()?.map { it.copy(type = "reel") }?.filter { it.isReel } ?: emptyList()
+
+            // Enrich profiles (current user fast path first, then public profiles).
+            val authorIds = reels.map { it.userId }.filter { it.isNotBlank() }.distinct()
+            val publicProfileRepo = PublicProfileRepository.getInstance()
+            val publicProfilesMap = when (val res = publicProfileRepo.getPublicProfiles(authorIds)) {
+                is PublicProfileFetchResult.Success -> {
+                    res.data.mapNotNull { (id, pubResult) ->
+                        if (pubResult is PublicProfileFetchResult.Success) id to pubResult.data else null
+                    }.toMap()
+                }
+                else -> emptyMap()
+            }
+
+            val list = reels.map { state ->
+                val profile = if (state.userId == currentUid && SupabaseClient.currentProfile != null) {
+                    SupabaseClient.currentProfile!!
+                } else {
+                    val pub = publicProfilesMap[state.userId]
+                    if (pub != null) PublicProfileResolver.toProfile(pub)
+                    else Profile(id = state.userId, displayName = "", avatarUrl = null)
+                }
+                UserStateWithUser(state, profile)
+            }
+
+            // Persist to Room (smart-merge keeps pending local likes/favorites).
+            try {
+                val pendingDao = db.pendingSocialActionDao()
+                val pendingActions = try { pendingDao.getPendingActions() } catch (e: Exception) { emptyList() }
+                val pendingLikesMap = pendingActions.filter { it.userId == currentUid && (it.actionType == "LIKE" || it.actionType == "UNLIKE") }
+                    .associateBy { it.targetId }
+                val pendingFavsMap = pendingActions.filter { it.userId == currentUid && (it.actionType == "FAVORITE" || it.actionType == "UNFAVORITE") }
+                    .associateBy { it.targetId }
+
+                val finalEntities = list.map { item ->
+                    val newEntity = com.example.data.database.StateEntity.fromUserStateWithUser(item)
+                    val existingEntity = statesDao.getStateById(newEntity.id)
+                    val stabilized = StateUrlResolver.stabilizeEntityForRoom(newEntity, existingEntity)
+                    val pendingLike = pendingLikesMap[item.state.id]
+                    val pendingFav = pendingFavsMap[item.state.id]
+                    stabilized.copy(
+                        likedByMe = when {
+                            pendingLike != null -> pendingLike.actionType == "LIKE"
+                            else -> newEntity.likedByMe
+                        },
+                        favoritedByMe = when {
+                            pendingFav != null -> pendingFav.actionType == "FAVORITE"
+                            else -> newEntity.favoritedByMe
+                        }
+                    )
+                }
+                if (finalEntities.isNotEmpty()) {
+                    statesDao.insertStates(finalEntities)
+                }
+            } catch (e: Exception) {
+                Log.e(TAG, "fetchReelsTimeline: failed to save to Room", e)
+            }
+
+            Result.success(list)
+        } catch (e: Exception) {
+            Log.e(TAG, "fetchReelsTimeline exception", e)
+            Result.failure(e)
+        }
+    }
+
     private suspend fun resolveProfileForUser(userId: String): Profile {
         if (userId == SupabaseClient.currentUser?.id && SupabaseClient.currentProfile != null) {
             return SupabaseClient.currentProfile!!

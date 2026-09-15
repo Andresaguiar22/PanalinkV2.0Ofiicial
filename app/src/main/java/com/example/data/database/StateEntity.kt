@@ -30,6 +30,7 @@ data class StateEntity(
     val vcdnPosterUrl: String? = null,
     val audioUrl: String? = null,
     val localVideoPath: String? = null,
+    val hashtags: String? = null,
     // Store user profile info in the same entity or join later. 
     // To keep it simple and reactive for the feed, we'll store basic profile info here.
     val authorDisplayName: String? = null,
@@ -59,6 +60,7 @@ data class StateEntity(
             likedByMe = likedByMe,
             favoritedByMe = favoritedByMe,
             localVideoPath = localVideoPath,
+            hashtags = hashtags?.split(",")?.filter { it.isNotBlank() } ?: emptyList(),
             type = if (isReel) "reel" else "story"
         )
         val profile = Profile(
@@ -94,6 +96,7 @@ data class StateEntity(
                 vcdnPosterUrl = item.state.vcdnPosterUrl,
                 audioUrl = item.state.audioUrl,
                 localVideoPath = localPath ?: item.state.localVideoPath,
+                hashtags = item.state.hashtags?.joinToString(","),
                 authorDisplayName = item.profile?.displayName?.takeIf { it.isNotBlank() },
                 authorAvatarUrl = item.profile?.avatarUrl
             )

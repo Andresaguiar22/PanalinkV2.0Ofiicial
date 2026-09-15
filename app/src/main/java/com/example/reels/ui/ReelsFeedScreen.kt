@@ -5,6 +5,7 @@ import androidx.compose.animation.core.Animatable
 import androidx.compose.animation.core.Spring
 import androidx.compose.animation.core.animate
 import androidx.compose.animation.core.spring
+import androidx.compose.animation.animateContentSize
 import androidx.compose.animation.fadeIn
 import androidx.compose.animation.fadeOut
 import androidx.compose.animation.scaleIn
@@ -15,7 +16,7 @@ import androidx.compose.foundation.gestures.awaitEachGesture
 import androidx.compose.foundation.gestures.awaitFirstDown
 import androidx.compose.foundation.gestures.calculateZoom
 import androidx.compose.foundation.gestures.detectTapGestures
-import androidx.compose.foundation.horizontalScroll
+
 import androidx.compose.foundation.interaction.MutableInteractionSource
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
@@ -38,7 +39,7 @@ import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.pager.VerticalPager
 import androidx.compose.foundation.pager.rememberPagerState
-import androidx.compose.foundation.rememberScrollState
+
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
@@ -49,7 +50,7 @@ import androidx.compose.material.icons.filled.Delete
 import androidx.compose.material.icons.filled.Favorite
 import androidx.compose.material.icons.filled.Pause
 import androidx.compose.material.icons.filled.PlayArrow
-import androidx.compose.material.icons.filled.Refresh
+
 import androidx.compose.material.icons.rounded.Bookmark
 import androidx.compose.material.icons.rounded.BookmarkBorder
 import androidx.compose.material.icons.rounded.ChatBubble
@@ -61,8 +62,7 @@ import androidx.compose.material.icons.rounded.VolumeUp
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.TextButton
-import androidx.compose.material3.FilterChip
-import androidx.compose.material3.FilterChipDefaults
+
 import androidx.compose.material3.DropdownMenu
 import androidx.compose.material3.DropdownMenuItem
 import androidx.compose.material3.HorizontalDivider
@@ -95,11 +95,15 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.input.pointer.PointerEventPass
 import androidx.compose.ui.input.pointer.pointerInput
+import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.text.SpanStyle
 import androidx.compose.ui.text.TextStyle
+import androidx.compose.ui.text.buildAnnotatedString
 import androidx.compose.ui.text.font.FontStyle
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.withStyle
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
@@ -111,7 +115,6 @@ import com.example.data.supabase.SupabaseClient
 import com.example.reels.engine.ReelPlayerPool
 import com.example.reels.engine.ReelPreloadController
 import com.example.ui.components.PanaAvatar
-import com.example.ui.components.TextAnnotator
 import com.example.ui.screen.parseStateMetadata
 import com.example.ui.viewmodel.StatesUiState
 import com.example.ui.viewmodel.StatesViewModel
@@ -145,20 +148,54 @@ fun ReelsFeedScreen(
 ) {
     val context = LocalContext.current.applicationContext
     val reelsState by viewModel.reelsState.collectAsStateWithLifecycle()
-    val reels: List<UserStateWithUser> = when (reelsState) {
-        is StatesUiState.Success -> (reelsState as StatesUiState.Success).states
-        else -> emptyList()
-    }
-
-    val pool = remember { ReelPlayerPool(context) }
-
-    // Local scope for one-off UI actions (refresh spinner, etc.).
-    val scope = rememberCoroutineScope()
+    val reelsTimeline by viewModel.reelsTimeline.collectAsStateWithLifecycle()
 
     // TikTok overlay state (shared across pages).
     var muted by remember { mutableStateOf(false) }
     var filter by remember { mutableStateOf(ReelFilterV2.EXPLORE) }
     var refreshing by remember { mutableStateOf(false) }
+
+    val localReels: List<UserStateWithUser> = when (reelsState) {
+        is StatesUiState.Success -> (reelsState as StatesUiState.Success).states
+        else -> emptyList()
+    }
+    // The timeline tabs (Tendencias / Más vistos) render the server-ordered
+    // result from Supabase (E2E). Fallback tabs / first load use the Room list.
+    val reels: List<UserStateWithUser> = if (filter == ReelFilterV2.TRENDING || filter == ReelFilterV2.MOST_VIEWED) {
+        reelsTimeline.ifEmpty { localReels }
+    } else {
+        localReels
+    }
+
+    val pool = remember { ReelPlayerPool(context) }
+
+    // Cinema/immersive mode: hide the status & navigation bars while the Reels
+    // feed is on screen so the video draws edge-to-edge (no black bars). Bars are
+    // restored on dispose. Mirrors the behaviour of the legacy TikTok screen.
+    val feedActivity = LocalContext.current as? android.app.Activity
+    DisposableEffect(feedActivity) {
+        val window = feedActivity?.window
+        if (window != null) {
+            androidx.core.view.WindowCompat.setDecorFitsSystemWindows(window, false)
+            val controller = androidx.core.view.WindowCompat.getInsetsController(window, window.decorView)
+            controller.hide(androidx.core.view.WindowInsetsCompat.Type.statusBars() or
+                androidx.core.view.WindowInsetsCompat.Type.navigationBars())
+            controller.systemBarsBehavior =
+                androidx.core.view.WindowInsetsControllerCompat.BEHAVIOR_SHOW_TRANSIENT_BARS_BY_SWIPE
+        }
+        onDispose {
+            if (window != null) {
+                androidx.core.view.WindowCompat.setDecorFitsSystemWindows(window, true)
+                val controller = androidx.core.view.WindowCompat.getInsetsController(window, window.decorView)
+                controller.show(androidx.core.view.WindowInsetsCompat.Type.statusBars() or
+                    androidx.core.view.WindowInsetsCompat.Type.navigationBars())
+            }
+        }
+    }
+
+    // Local scope for one-off UI actions (refresh spinner, etc.).
+    val scope = rememberCoroutineScope()
+
     var commentsReelId by remember { mutableStateOf<String?>(null) }
     var heartReelId by remember { mutableStateOf<String?>(null) }
     var notInterestedReelId by remember { mutableStateOf<String?>(null) }
@@ -170,16 +207,10 @@ fun ReelsFeedScreen(
 
     val filteredReels = remember(reels, filter) {
         when (filter) {
+            // E2E tabs: the list already carries the server-returned ordering.
+            ReelFilterV2.TRENDING, ReelFilterV2.MOST_VIEWED -> reels
             ReelFilterV2.EXPLORE -> reels
             ReelFilterV2.NEW -> reels.sortedByDescending { it.state.createdAt ?: "" }
-            ReelFilterV2.MOST_VIEWED -> reels.sortedByDescending { it.state.viewsCount ?: 0 }
-            ReelFilterV2.TRENDING -> reels.sortedByDescending {
-                (it.state.likesCount ?: 0).toLong() * 3 +
-                    (it.state.commentsCount ?: 0).toLong() * 4 +
-                    (it.state.favoritesCount ?: 0).toLong() * 5 +
-                    (it.state.sharesCount ?: 0).toLong() * 6 +
-                    (it.state.viewsCount ?: 0).toLong()
-            }
         }
     }
 
@@ -258,7 +289,7 @@ fun ReelsFeedScreen(
 
     if (filteredReels.isEmpty()) {
         Box(modifier = Modifier.fillMaxSize().background(Color.Black), contentAlignment = Alignment.Center) {
-            Text("Sin reels todavГӯa", color = Color.White)
+            Text("Sin reels todavía", color = Color.White)
         }
         return
     }
@@ -421,53 +452,73 @@ fun ReelsFeedScreen(
             }
         }
 
-        // Top "Explorar" pill header (back + Reels + filter chips + refresh).
+        // Floating glassmorphism pill: back + "Reels" + the timeline filter tabs
+        // (Explorar / Nuevos / Tendencias / Más vistos). Selecting a tab triggers a
+        // REAL remote query (loadReelsTimeline with the tab's PostgREST order), so
+        // navigation is E2E against the database, not just a local sort.
         Surface(
             modifier = Modifier
                 .align(Alignment.TopCenter)
                 .statusBarsPadding()
-                .padding(horizontal = 10.dp),
-            color = Color.Black.copy(alpha = 0.42f),
-            shape = RoundedCornerShape(28.dp),
+                .padding(top = 8.dp, start = 10.dp, end = 10.dp),
+            shape = RoundedCornerShape(30.dp),
+            color = Color.Transparent,
         ) {
             Row(
-                Modifier.height(46.dp).padding(horizontal = 2.dp),
+                modifier = Modifier
+                    .clip(RoundedCornerShape(30.dp))
+                    .background(
+                        Brush.horizontalGradient(
+                            listOf(
+                                Color.White.copy(alpha = 0.16f),
+                                Color.White.copy(alpha = 0.07f)
+                            )
+                        )
+                    )
+                    .height(44.dp)
+                    .padding(horizontal = 2.dp),
                 verticalAlignment = Alignment.CenterVertically
             ) {
-                IconButton(onClick = onBack, modifier = Modifier.size(40.dp)) {
+                IconButton(onClick = onBack, modifier = Modifier.size(38.dp)) {
                     Icon(Icons.Default.ArrowBack, "Volver", tint = Color.White)
                 }
-                Text("Reels", color = Color.White, fontWeight = FontWeight.Bold)
-                Spacer(Modifier.width(3.dp))
-                Row(
-                    Modifier.weight(1f).horizontalScroll(rememberScrollState()),
-                    horizontalArrangement = Arrangement.spacedBy(1.dp),
-                    verticalAlignment = Alignment.CenterVertically,
-                ) {
-                    ReelFilterV2.values().forEach { option ->
-                        FilterChip(
-                            selected = filter == option,
-                            onClick = { filter = option },
-                            label = { Text(option.label, maxLines = 1) },
-                            colors = FilterChipDefaults.filterChipColors(
-                                labelColor = Color.White,
-                                selectedLabelColor = Color.White,
-                                containerColor = Color.Transparent,
-                                selectedContainerColor = Color.White.copy(alpha = 0.22f),
-                            ),
-                            border = null,
+                Text(
+                    "Reels",
+                    color = Color.White,
+                    fontWeight = FontWeight.Bold,
+                    style = MaterialTheme.typography.titleSmall,
+                    modifier = Modifier.padding(end = 4.dp)
+                )
+                ReelFilterV2.values().forEach { option ->
+                    val selected = filter == option
+                    Box(
+                        modifier = Modifier
+                            .clip(RoundedCornerShape(18.dp))
+                            .background(
+                                if (selected) Color.White.copy(alpha = 0.28f) else Color.Transparent
+                            )
+                            .clickable {
+                                if (!selected) {
+                                    filter = option
+                                    refreshing = true
+                                    viewModel.loadReelsTimeline(option.orderBy) {
+                                        refreshing = false
+                                        refreshKey += 1
+                                        scope.launch { pagerState.scrollToPage(0) }
+                                    }
+                                }
+                            }
+                            .padding(horizontal = 10.dp, vertical = 8.dp),
+                        contentAlignment = Alignment.Center,
+                    ) {
+                        Text(
+                            option.label,
+                            color = Color.White,
+                            fontSize = 13.sp,
+                            fontWeight = if (selected) FontWeight.Bold else FontWeight.Medium,
+                            maxLines = 1,
                         )
                     }
-                }
-                IconButton(
-                    enabled = !refreshing,
-                    onClick = {
-                        refreshing = true
-                        viewModel.refreshReels { refreshing = false; refreshKey += 1 }
-                    },
-                    modifier = Modifier.size(40.dp)
-                ) {
-                    Icon(Icons.Default.Refresh, "Actualizar Reels", tint = Color.White)
                 }
             }
         }
@@ -477,7 +528,7 @@ fun ReelsFeedScreen(
                 modifier = Modifier
                     .align(Alignment.TopCenter)
                     .statusBarsPadding()
-                    .padding(top = 50.dp)
+                    .padding(top = 58.dp)
                     .fillMaxWidth(0.86f)
             )
         }
@@ -535,8 +586,14 @@ private fun ensureAcquired(
     pool.acquireAsync(reel.state.id, stable)
 }
 
-private enum class ReelFilterV2(val label: String) {
-    EXPLORE("Explorar"), NEW("Nuevos"), TRENDING("Tendencias"), MOST_VIEWED("MГЎs vistos")
+private enum class ReelFilterV2(
+    val label: String,
+    val orderBy: String? = null,
+) {
+    EXPLORE("Explorar", null),
+    NEW("Nuevos", null),
+    TRENDING("Tendencias", "likes_count.desc.nullslast,shares_count.desc.nullslast,comments_count.desc.nullslast,created_at.desc"),
+    MOST_VIEWED("Más vistos", "views_count.desc.nullslast,created_at.desc")
 }
 
 @Composable
@@ -688,14 +745,17 @@ private fun ReelFeedOverlay(
             }
         }
 
-        // Bottom-left profile + caption (hashtags rendered inline, no duplicate row).
+        // Bottom-left column: author name (semi-bold) → description ("Ver más"
+        // expands/collapses with animateContentSize) → one line of compound
+        // hashtags (array from Supabase) rendered as a single clickable blue block.
         Column(
             modifier = Modifier
                 .align(Alignment.BottomStart)
                 .navigationBarsPadding()
-                .padding(start = 16.dp, end = 90.dp, bottom = 30.dp),
+                .padding(start = 16.dp, end = 90.dp, bottom = 34.dp),
             verticalArrangement = Arrangement.spacedBy(4.dp),
         ) {
+            // Author row: avatar + display name + follow pill.
             Row(verticalAlignment = Alignment.CenterVertically) {
                 PanaAvatar(
                     avatarUrl = profile.avatarUrl,
@@ -706,10 +766,10 @@ private fun ReelFeedOverlay(
                 )
                 Spacer(Modifier.width(9.dp))
                 Text(
-                    "@${profile.displayName?.ifBlank { "pana" } ?: "pana"}",
+                    profile.displayName?.ifBlank { "pana" } ?: "pana",
                     color = Color.White,
                     style = MaterialTheme.typography.titleMedium,
-                    fontWeight = FontWeight.Bold,
+                    fontWeight = FontWeight.SemiBold,
                     maxLines = 1,
                     overflow = TextOverflow.Ellipsis,
                     modifier = Modifier.weight(1f, fill = false).clickable(onClick = onProfile)
@@ -738,20 +798,85 @@ private fun ReelFeedOverlay(
                     )
                 }
             }
-            // Technical editor tags stored in the caption ([Transition: ...],
-            // [CoverFrame: ...], [Music: ...], [Scheduled: ...], [Overlays: ...], …)
-            // are metadata: strip them so viewers only see what the author wrote.
-            // Hashtags/mentions are rendered once, inline and clickable (as in the
-            // old player) — no separate row, which used to duplicate them.
-            val cleanCaption = remember(state.caption) { parseStateMetadata(state.caption).baseCaption }
+            // Technical editor tags ([Transition: ...], [CoverFrame: ...], …) are
+            // metadata and are stripped. Hashtags are pulled from the dedicated
+            // Supabase array when present, else parsed from the caption, and shown
+            // on their own line so the description contains only plain text.
+            val cleanCaption = remember(state.caption) {
+                parseStateMetadata(state.caption).baseCaption
+                    .replace(Regex("#[^\\s]+"), "").trim()
+            }
             if (cleanCaption.isNotBlank()) {
-                TextAnnotator.AnnotatedClickableText(
-                    text = cleanCaption,
-                    style = TextStyle(color = Color.White, fontSize = 14.sp),
-                    hashtagColor = Color(0xFF69F0AE),
-                    mentionColor = Color(0xFFE040FB),
-                    onHashtagClick = { onHashtag(it) },
-                    onMentionClick = { },
+                var expanded by remember { mutableStateOf(false) }
+                Column(
+                    modifier = Modifier
+                        .animateContentSize(animationSpec = spring(dampingRatio = Spring.DampingRatioNoBouncy))
+                        .clip(RoundedCornerShape(8.dp))
+                        .background(Color.Black.copy(alpha = 0.14f))
+                        .padding(horizontal = 10.dp, vertical = 6.dp)
+                ) {
+                    Text(
+                        cleanCaption,
+                        color = Color.White,
+                        fontSize = 14.sp,
+                        lineHeight = 17.sp,
+                        maxLines = if (expanded) Int.MAX_VALUE else 2,
+                        overflow = TextOverflow.Ellipsis,
+                    )
+                    if (cleanCaption.length > 60 || cleanCaption.lines().size > 2) {
+                        Text(
+                            text = if (expanded) "Ver menos" else "Ver más",
+                            color = Color(0xFF7FB8FF),
+                            fontSize = 13.sp,
+                            fontWeight = FontWeight.SemiBold,
+                            modifier = Modifier
+                                .clip(RoundedCornerShape(4.dp))
+                                .clickable { expanded = !expanded }
+                                .padding(top = 2.dp),
+                        )
+                    }
+                }
+            }
+            // Compound hashtags line: the whole multi-word block is one clickable
+            // unit (blue), like a single chip, without breaking at spaces.
+            val compoundTags = remember(state.hashtags, state.caption) {
+                val stored = state.hashtags?.filter { it.isNotBlank() }
+                if (stored.isNullOrEmpty()) {
+                    Regex("#[^\\s]+").findAll(parseStateMetadata(state.caption).baseCaption)
+                        .map { it.value }
+                        .filter { it.length > 1 }
+                        .toList()
+                } else {
+                    stored.map { if (it.startsWith("#")) it else "#$it" }
+                }
+            }
+            if (compoundTags.isNotEmpty()) {
+                val tagsAnnotated = remember(compoundTags) {
+                    buildAnnotatedString {
+                        compoundTags.forEachIndexed { i, tag ->
+                            if (i > 0) append("  ")
+                            pushStringAnnotation(tag = "HASHTAG", annotation = tag)
+                            withStyle(SpanStyle(color = Color(0xFF7FB8FF), fontWeight = FontWeight.Bold)) {
+                                append(tag)
+                            }
+                            pop()
+                        }
+                    }
+                }
+                Text(
+                    text = tagsAnnotated,
+                    fontSize = 14.sp,
+                    lineHeight = 18.sp,
+                    maxLines = 1,
+                    overflow = TextOverflow.Ellipsis,
+                    modifier = Modifier
+                        .clip(RoundedCornerShape(6.dp))
+                        .background(Color.Black.copy(alpha = 0.14f))
+                        .padding(horizontal = 10.dp, vertical = 6.dp)
+                        .clickable {
+                            val first = compoundTags.firstOrNull() ?: return@clickable
+                            onHashtag(first.removePrefix("#"))
+                        }
                 )
             }
         }

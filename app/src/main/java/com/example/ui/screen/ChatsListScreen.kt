@@ -672,7 +672,7 @@ fun ChatsListScreen(
                             selectedChatIds = emptySet()
                         }
                     )
-                } else {
+                } else if (currentRoute != "clips") {
                     Column(
                         modifier = Modifier
                             .fillMaxWidth()

@@ -369,6 +369,7 @@ interface SupabaseApiService {
         @Query("select") select: String = "*",
         @Query("author_id") authorFilter: String? = null,
         @Query("id") idFilter: String? = null,
+        @Query("order") orderBy: String? = null,
         @Header("Accept-Profile") acceptProfile: String = "social"
     ): Response<List<UserState>>
 

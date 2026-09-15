@@ -42,6 +42,8 @@ class StatesViewModel(private val statesRepository: StatesRepository = StatesRep
     val statesState: StateFlow<StatesUiState> = statesRepository.getLocalStatesFlow(isReel = false).map { list -> StatesUiState.Success(list) }.stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), StatesUiState.Loading)
     val storiesState: StateFlow<StatesUiState> = statesRepository.getLocalStatesFlow(isReel = false).map { StatesUiState.Success(it) }.stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), StatesUiState.Loading)
     val reelsState: StateFlow<StatesUiState> = statesRepository.getLocalStatesFlow(isReel = true).map { StatesUiState.Success(it) }.stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), StatesUiState.Loading)
+    private val _reelsTimeline = MutableStateFlow<List<UserStateWithUser>>(emptyList())
+    val reelsTimeline: StateFlow<List<UserStateWithUser>> = _reelsTimeline.asStateFlow()
     private val _createStateFlow = MutableStateFlow<CreateStateUiState>(CreateStateUiState.Idle)
     val createStateFlow: StateFlow<CreateStateUiState> = _createStateFlow
     private val commentsJobs = java.util.concurrent.ConcurrentHashMap<String, kotlinx.coroutines.Job>()
@@ -93,6 +95,27 @@ class StatesViewModel(private val statesRepository: StatesRepository = StatesRep
                 }
             }
             kotlinx.coroutines.withContext(Dispatchers.Main) { onComplete() }
+        }
+    }
+
+    // Reels timeline tabs: fetches the reel list straight from Supabase with a
+    // PostgREST order query (E2E), then persists into Room and publishes the
+    // server-ordered list in [reelsTimeline] for the feed to render verbatim.
+    fun loadReelsTimeline(orderBy: String?, onComplete: () -> Unit = {}) {
+        viewModelScope.launch(errorHandler + Dispatchers.IO) {
+            try {
+                if (!com.example.util.NetworkMonitor.isOnline.value) {
+                    Log.d("StatesViewModel", "Offline, skipping reels timeline fetch")
+                } else {
+                    statesRepository.fetchReelsTimeline(orderBy).onSuccess { list ->
+                        _reelsTimeline.value = list
+                    }
+                }
+            } catch (e: Exception) {
+                Log.e("StatesViewModel", "loadReelsTimeline failed", e)
+            } finally {
+                kotlinx.coroutines.withContext(Dispatchers.Main) { onComplete() }
+            }
         }
     }
 
