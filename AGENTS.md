@@ -340,4 +340,60 @@ cd /workspace/project/PanalinkV2.0Ofiicial/.toolchain && nohup python3 serve_ran
   - puerto **12000** (servidor de capturas, `upload_server.py`): ruta extra `/apk/<archivo>` con el mismo soporte de Range.
 * Diagnóstico del APK servido (debe pasar TODO antes de entregarlo): `sha256sum` local == descargado, `zipalign -c -v 4` → "Verification succesful", `apksigner verify` (v2 ok, `CN=Panalink Beta`), `aapt dump xmltree | grep extractNativeLibs` → `0xffffffff`, y `lib/` con `arm64-v8a`+`armeabi-v7a`.
 * Si aun así falla en el móvil: **desinstalar "PanaLink Beta" antes de instalar** (un conflicto de firma se reporta en muchas ROMs como "paquete no válido") y confirmar que el tamaño del archivo descargado es exactamente el del compilado (bytes, no "MB" redondeados).
+* **CAUSA MAS FRECUENTE de "paquete no valido": DOWNGRADE de `versionCode`.** Si el telefono ya tiene una beta anterior instalada y la nueva se compila con un `BETA_VERSION_CODE` **MENOR**, Android 14+ la rechaza con *"App not installed as package appears to be invalid"* — el usuario lo reporta identico a un APK corrupto. Caso real: beta compilada con code `63` cuando el default del script es `66` (habia una 66 instalada) -> rechazo. **Regla**: usar siempre un code **mayor** que la ultima beta instalada (no bajar de `66`); verificar con `aapt dump badging | grep ^package` ANTES de publicar. **Descarte rapido**: un APK con zip integro (`zipfile.testzip()` = None) + `apksigner verify` v2 OK + sha256 del servido == compilado **no puede** ser un problema de descarga -> mirar `versionCode`/firma primero. Ojo: `Verified using v1 scheme: false` **no** es un problema (produccion tambien es v2-only; ambas `minSdk 24`).
+* **Un log que silencia `BrokenPipe/ConnectionResetError` NO prueba nada** si ademas escribe la linea del 200 *antes* de enviar el body. Hay que loguear los bytes realmente entregados (`enviado=N/total COMPLETO|CORTADO`) para distinguir una descarga cortada de una completa.
+
+---
+
+## 🖼️ Motor de marcos de avatar (colgantes) - `com.example.effects` (sesion 2026-09-16)
+
+### Que reemplazo
+Los colgantes viejos eran **dos cosas superpuestas**: el `PremiumEffectView` (aro fino + chispas) **y** un badge circular con emoji en `Alignment.TopCenter`. El emoji tapaba la parte alta del avatar y el aro era demasiado sutil. Ahora `VoiceRoomPendant` **delega en `AvatarFrameView`** y no queda ningun emoji encima.
+
+### Archivos
+* `app/src/main/java/com/example/effects/AvatarFrameSpec.kt` — `AvatarFrameSpec` + `AvatarFrameCatalog.frames` (15 modelos: `gold`, `crown`, `halo`, `hearts`, `music`, `fire`, `diamond`, `bolt`, `flor`, `wings`, `jaguar`, `galaxy`, `ice`, `dragon`, `ocean`). Los 8 codigos viejos se conservan -> **el decor ya guardado en Supabase sigue resolviendo**. `AvatarFrameCatalog.byCode(null|"none"|desconocido) = null`.
+* `app/src/main/java/com/example/effects/AvatarFrameView.kt` — `Canvas` procedimental. Anatomia (todo relativo a `rFrame = lado/2`):
+  * `rAvatar = rFrame / overflowScale` -> hueco del avatar **transparente** (el asiento pinta la foto debajo).
+  * banda `[rAvatar, rAvatar + rFrame*bandWidth]` con `sweepGradient` + gemas.
+  * fruncido de petalos `[banda, rFrame*petalOuterRatio]`, atenuado por `spec.frill`.
+  * ornamentos (`FrameOrnament`): CROWN, WINGS, FLAMES, HALO, BOLTS, LEAVES, FEATHERS, STARS, SPIKES, BUBBLES, HEARTS.
+* **Sin distorsion**: toda la geometria se deriva del lado del lienzo -> escala a cualquier densidad sin reescalar bitmaps. El hueco central nunca se pinta: el marco solo anade material ALREDEDOR de la cara.
+
+### ⚠️ Invariante duro (romperlo = marco recortado)
+El lienzo es cuadrado y **todo lo que se dibuja fuera de `rFrame` se recorta**. Con `overflowScale = 1.72f` y `bandWidth` ~`0.115f` el aro cierra en ~`0.70*rFrame` -> quedan ~`0.30*rFrame` de radio libre para coronas/alas/plumas/llamas.
+* Corona: arranca en `bandOuter` y mide **maximo** `0.26*rFrame` de alto.
+* Ornamentos radiales (llamas, picos, plumas, rayos): empiezan en `bandOuter` (~`0.98f`), **jamas en `rAvatar`** (cruzan el anillo y entran en el hueco de la cara).
+* Destellos: `rAvatar + (rFrame - rAvatar) * (0.15f + rnd*0.80f)`, nunca `rAvatar + rFrame*(0.10f + rnd*0.75f)` (se sale del lienzo).
+* `frill = 0f` en los marcos cuyo ornamento principal YA es un anillo completo (llamas, picos, plumas); con `1f` se ven dos anillos superpuestos y queda sucio.
+
+### Como verificar SIN emulador
+Portar la matematica del `Canvas` a un render PIL (`/tmp/frame_preview.py`, efimero): mismos radios/angulos/beziers, supersampling y **recorte a los limites del lienzo** (eso es justo lo que delata una corona cortada). Genera el grid de los 15 + detalles. **No** es codigo de produccion: si cambia la geometria del Kotlin hay que espejarla en el script.
+
+### 📥 Servidor de capturas (puerto 12000) - `capture_server.py`
+Equivalente al `upload_server.py` de la seccion de entrega; esta sesion lo recreo como `.toolchain/capture_server.py` (el sandbox no lo tenia):
+* `python3 capture_server.py 12000 <dir-capturas> <dir-apks>` -> `GET /` sirve un `<input type=file accept="image/*" multiple>` que **en el movil abre camara/galeria**; `POST /upload` guarda con sello de hora y el agente lo lee con `file_editor`.
+* Ruta extra `GET /apk/<archivo>` con `Accept-Ranges: bytes` (206) -> **segunda URL independiente** para el APK, en otro puerto, para descartar que el corte venga del ingress de 12001.
+* Loguea `enviado=N/total COMPLETO|CORTADO` por archivo; un `CORTADO` es la pista directa de "paquete no valido" por descarga trunca.
+* **Trampa**: los servidores lanzados con `nohup` a secas **morian al resetearse la sesion tmux** (el ingress devolvia 502). Lanzarlos con `setsid nohup ... < /dev/null &` y **re-verificar con `curl` antes de entregar cualquier link**.
+
+### 🔀 Dos sesiones en la MISMA rama: integrar, nunca forzar
+Paso de verdad: dos sesiones trabajaron `kilo/premium-effects` desde el mismo base `adf18a2` y **divergieron** (una hizo el motor de marcos, la otra el fix de concentricidad + su beta). El remoto se movio mientras la local seguia en el commit viejo.
+* **NUNCA `--force`** para "hacer que entre" el commit propio: borra el trabajo de la otra sesion. Antes de pushear: `git fetch origin <rama>` + `git log --oneline --left-right <local>...<remoto>`.
+* **Rebase** cuando los conjuntos de archivos no se solapan (aqui: `effects/*` + toolboxes vs. `VoiceRoomRedesignedScreen.kt`) -> el push queda **fast-forward** y no se pierde nada.
+* Los commits y ramas **sobreviven** al reset de `/tmp` (viven en el `.git` del repo principal): recuperables con `git log --all` / `git cat-file -t <sha>`. El **worktree** si desaparece -> `git worktree prune` + `git worktree add`.
+
+---
+
+## 🌳 Consolidacion en `main`: las 3 ramas eran lineales (sesion 2026-09-16)
+
+`main f2394f8 -> kilo/voice-room-toolbox -> kilo/live-realtime -> kilo/premium-effects (78431b2)`: cada rama era **ancestro** de la siguiente, asi que consolidar en `main` fue un **fast-forward sin conflictos** (nada que resolver).
+* Verificacion previa (obligatoria antes de consolidar): `git merge-base --is-ancestor <A> <B>` para cada par, y con la API de GitHub que **no hubiera PRs abiertos** (`/pulls?state=open` -> NINGUNO; borrar una rama con PR abierto lo cerraria).
+* `git merge --ff-only origin/kilo/premium-effects` desde `main` -> un solo salto, historia lineal, cero riesgo de perder trabajo. **Usar `--ff-only`**: si NO fuera fast-forward, el comando falla en vez de inventar un merge silencioso.
+* Las ramas `kilo/voice-room-toolbox`, `kilo/live-realtime` y `kilo/premium-effects` se **borraron** (local y remoto) por ser ancestros de `main` -> ningun commit se perdio.
+
+### 🧨 `scripts/toolchain_env.sh` es PORTABLE - NUNCA commitear la version absoluta
+El archivo versionado resuelve la toolchain **relativa al repo** (`_TC_ROOT="$(cd ...)/.toolchain"`). `setup_toolchain.sh` lo **regenera con rutas absolutas de la sandbox**, y ese diff aparece como modificacion local en `main`.
+* **Regla**: `git checkout -- scripts/toolchain_env.sh` antes de commitear/pushear. Commitear las rutas absolutas rompe el build en cualquier otra maquina.
+* La version portable funciona igual en la sandbox (resuelve a las mismas rutas; `GRADLE_USER_HOME` portable = `.toolchain/.gradle-home`, que existe), asi que no hay razon para conservar la absoluta.
+
 
