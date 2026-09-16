@@ -341,8 +341,10 @@ fun VoiceRoomLiveBadge() {
 
 /** Relación slot/marco usada para el layout de sillones: el slot cuadrado es un
  *  poco mayor que el marco del avatar (overflowScale 1.72) para que todos los
- *  asientos tengan tamaño fijo sin importar qué marco/código tengan. */
-val SeatSlotScale: Float = 1.85f
+ *  asientos tengan tamaño fijo sin importar qué marco/código tengan. Se mantiene
+ *  ajustado (1.75) para que el nombre del perfil quede pegado al avatar sin que
+ *  el colgante lo tape. */
+val SeatSlotScale: Float = 1.75f
 private const val DEG = 0.0174532925f
 
 @Composable

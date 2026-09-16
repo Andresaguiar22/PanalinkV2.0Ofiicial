@@ -587,7 +587,7 @@ fun VoiceRoomHostSeat(
             }
         }
 
-        Spacer(modifier = Modifier.height(6.dp))
+        Spacer(modifier = Modifier.height(2.dp))
 
         // Username o placeholder
         if (seat?.isOccupied == true) {
@@ -759,7 +759,7 @@ fun VoiceRoomRedesignedSeat(
             }
         }
 
-        Spacer(modifier = Modifier.height(5.dp))
+        Spacer(modifier = Modifier.height(2.dp))
 
         // Número de asiento o información del ocupante (legible)
         if (seat?.isOccupied != true) {

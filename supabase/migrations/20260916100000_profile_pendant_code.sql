@@ -57,6 +57,15 @@ $$;
 
 revoke execute on function public.sync_profile_to_public_profile() from public, anon, authenticated;
 
+-- Recrear el trigger para que YA NO filtre columnas: si un usuario actualiza solo
+-- `pendant_code`, la fila debe propagarse a `public_profiles` (antes el UPDATE OF
+-- omitia pendant_code y el colgante personal nunca viajaba a otras salas).
+drop trigger if exists trg_sync_profile_to_public_profile on public.profiles;
+create trigger trg_sync_profile_to_public_profile
+after insert or update of first_name, last_name, display_name, avatar_url, pendant_code, updated_at
+on public.profiles
+for each row execute function public.sync_profile_to_public_profile();
+
 -- Backfill: copiar a los perfiles publicos existentes que ya tienen columna.
 update public.public_profiles p
 set pendant_code = prof.pendant_code
