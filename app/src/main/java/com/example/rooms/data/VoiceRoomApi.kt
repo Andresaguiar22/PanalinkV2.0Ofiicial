@@ -38,6 +38,10 @@ data class ResolveSeatRequest(@Json(name = "p_request_id") val requestId: String
 data class UpdateRoomSettingsRequest(@Json(name = "p_room_id") val roomId: String,@Json(name = "p_name") val name: String? = null,@Json(name = "p_description") val description: String? = null,@Json(name = "p_cover_url") val coverUrl: String? = null,@Json(name = "p_category") val category: String? = null,@Json(name = "p_visibility") val visibility: String? = null,@Json(name = "p_is_locked") val isLocked: Boolean? = null)
 @JsonClass(generateAdapter = true)
 data class VoiceRoomBanDto(val userId: String,@Json(name = "display_name") val displayName: String,@Json(name = "avatar_url") val avatarUrl: String?,val reason: String?,@Json(name = "banned_at") val bannedAt: String?)
+@JsonClass(generateAdapter = true)
+data class VoiceRoomDecorDto(@Json(name = "entrance_code") val entranceCode: String?,@Json(name = "pendant_code") val pendantCode: String?,@Json(name = "updated_at") val updatedAt: String? = null)
+@JsonClass(generateAdapter = true)
+data class VoiceRoomEntranceEventDto(val id: Long? = null,@Json(name = "room_id") val roomId: String? = null,@Json(name = "user_id") val userId: String? = null,@Json(name = "entrance_code") val entranceCode: String? = null,@Json(name = "created_at") val createdAt: String? = null)
 
 interface VoiceRoomApi {
     @GET("rest/v1/voice_rooms") suspend fun listLiveRooms(@Header("apikey") apiKey:String,@Header("Authorization") auth:String,@Query("status") status:String="eq.live",@Query("order") order:String="created_at.desc",@Query("limit") limit:Int=100):Response<List<VoiceRoomDto>>
@@ -65,5 +69,9 @@ interface VoiceRoomApi {
     @GET("rest/v1/voice_room_seat_requests") suspend fun getSeatRequests(@Header("apikey") apiKey:String,@Header("Authorization") auth:String,@Query("room_id") roomId:String,@Query("status") status:String="in.(pending,approved)"):Response<List<VoiceRoomSeatRequestDto>>
     @GET("rest/v1/voice_room_messages") suspend fun getMessages(@Header("apikey") apiKey:String,@Header("Authorization") auth:String,@Query("room_id") roomId:String,@Query("order") order:String="created_at.desc",@Query("limit") limit:Int=100):Response<List<VoiceRoomMessageDto>>
     @POST("rest/v1/voice_room_messages") @Headers("Prefer: return=representation") suspend fun sendMessage(@Header("apikey") apiKey:String,@Header("Authorization") auth:String,@Body body:Map<String,String>):Response<List<VoiceRoomMessageDto>>
+    @POST("rest/v1/rpc/get_voice_room_decor") suspend fun getRoomDecor(@Header("apikey") apiKey:String,@Header("Authorization") auth:String,@Body body:Map<String,String>):Response<List<VoiceRoomDecorDto>>
+    @POST("rest/v1/rpc/set_voice_room_entrance") suspend fun setRoomEntrance(@Header("apikey") apiKey:String,@Header("Authorization") auth:String,@Body body:Map<String,String>):Response<List<VoiceRoomDecorDto>>
+    @POST("rest/v1/rpc/set_voice_room_pendant") suspend fun setRoomPendant(@Header("apikey") apiKey:String,@Header("Authorization") auth:String,@Body body:Map<String,String>):Response<List<VoiceRoomDecorDto>>
+    @POST("rest/v1/rpc/record_voice_room_entrance") suspend fun recordEntrance(@Header("apikey") apiKey:String,@Header("Authorization") auth:String,@Body body:Map<String,String>):Response<List<VoiceRoomEntranceEventDto>>
     companion object { fun create(baseUrl:String,moshi:com.squareup.moshi.Moshi,client:okhttp3.OkHttpClient):VoiceRoomApi { val url=if(baseUrl.endsWith('/'))baseUrl else "$baseUrl/"; return Retrofit.Builder().baseUrl(url).client(client).addConverterFactory(MoshiConverterFactory.create(moshi)).build().create(VoiceRoomApi::class.java) } }
 }

@@ -214,6 +214,7 @@ fun VoiceRoomRedesignedScreen(
                 member = hostMember,
                 myUserId = state.myUserId,
                 isAdmin = state.isAdmin,
+                pendantCode = state.pendantCode,
                 onClick = { seatClickHaptic(); viewModel.onSeatClicked(0, hasMic) },
                 onAdmin = { hostSeat?.userId?.let { moderationTarget = it } }
             )
@@ -225,6 +226,7 @@ fun VoiceRoomRedesignedScreen(
                 myUserId = state.myUserId,
                 isAdmin = state.isAdmin,
                 hasMic = hasMic,
+                pendantCode = state.pendantCode,
                 onSeatClicked = { index -> seatClickHaptic(); viewModel.onSeatClicked(index, hasMic) },
                 onModeration = { userId -> moderationTarget = userId },
                 onOpenProfile = onOpenProfile
@@ -278,6 +280,7 @@ fun VoiceRoomRedesignedScreen(
                 onEnableMic = { permission.launch(Manifest.permission.RECORD_AUDIO) },
                 onStickerSelected = { stickerUrl -> viewModel.sendMessage("[sticker:$stickerUrl]") },
                 onOpenSettings = if (state.isAdmin) { { viewModel.openSettings() } } else null,
+                onOpenToolbox = if (state.isAdmin) { { viewModel.openToolbox() } } else null,
                 onLeaveRoom = { viewModel.leaveRoom(); onBack() },
                 isAdmin = state.isAdmin
             )
@@ -349,6 +352,26 @@ fun VoiceRoomRedesignedScreen(
             onBan = { viewModel.banUser(it) },
             onRemoveBan = { viewModel.removeBan(it) },
             onOpenProfile = onOpenProfile
+        )
+    }
+
+    // ── Toolbox del dueño: entradas + colgantes (solo admin) ──
+    if (state.showToolbox) {
+        VoiceRoomToolboxSheet(
+            currentEntrance = state.entranceCode,
+            currentPendant = state.pendantCode,
+            onSelectEntrance = { viewModel.setEntrance(it) },
+            onSelectPendant = { viewModel.setPendant(it) },
+            onDismiss = { viewModel.closeToolbox() }
+        )
+    }
+
+    // ── Overlay de ENTRADA a pantalla completa (todos los miembros) ──
+    state.entranceEvent?.let { event ->
+        VoiceRoomEntranceOverlay(
+            event = event,
+            onDone = { viewModel.clearEntranceEvent() },
+            modifier = Modifier.fillMaxSize()
         )
     }
 }
@@ -506,6 +529,7 @@ fun VoiceRoomHostSeat(
     member: VoiceRoomMember?,
     myUserId: String,
     isAdmin: Boolean,
+    pendantCode: String = "none",
     onClick: () -> Unit,
     onAdmin: () -> Unit,
     modifier: Modifier = Modifier
@@ -535,6 +559,15 @@ fun VoiceRoomHostSeat(
                 onClick = onClick,
                 onAdmin = onAdmin
             )
+
+            // Colgante (pendant) del anfitrión
+            if (seat?.isOccupied == true && pendantCode.isNotBlank() && pendantCode != "none") {
+                VoiceRoomPendant(
+                    code = pendantCode,
+                    size = 54.dp,
+                    modifier = Modifier.align(Alignment.Center)
+                )
+            }
 
             // Badge "Anfitrión"
             if (seat?.isOccupied == true) {
@@ -605,6 +638,7 @@ fun VoiceRoomGuestSeatGrid(
     myUserId: String,
     isAdmin: Boolean,
     hasMic: Boolean,
+    pendantCode: String = "none",
     onSeatClicked: (Int) -> Unit,
     onModeration: (String) -> Unit,
     onOpenProfile: ((String) -> Unit)?,
@@ -620,6 +654,7 @@ fun VoiceRoomGuestSeatGrid(
             myUserId = myUserId,
             isAdmin = isAdmin,
             size = 54.dp,
+            pendantCode = pendantCode,
             onSeatClicked = onSeatClicked,
             onModeration = onModeration,
             onOpenProfile = onOpenProfile
@@ -636,6 +671,7 @@ fun VoiceRoomGuestSeatGrid(
             myUserId = myUserId,
             isAdmin = isAdmin,
             size = 54.dp,
+            pendantCode = pendantCode,
             onSeatClicked = onSeatClicked,
             onModeration = onModeration,
             onOpenProfile = onOpenProfile
@@ -652,6 +688,7 @@ private fun VoiceRoomSeatRow(
     myUserId: String,
     isAdmin: Boolean,
     size: Dp,
+    pendantCode: String = "none",
     onSeatClicked: (Int) -> Unit,
     onModeration: (String) -> Unit,
     onOpenProfile: ((String) -> Unit)?
@@ -673,6 +710,7 @@ private fun VoiceRoomSeatRow(
                 size = size,
                 isMine = seat?.userId == myUserId,
                 showAdminAction = seat?.let { isAdmin && it.isOccupied && it.userId != myUserId } == true,
+                pendantCode = pendantCode,
                 onClick = { onSeatClicked(i) },
                 onAdmin = { seat?.userId?.let { onModeration(it) } },
                 onOpenProfile = if (seat?.userId != null && seat.userId != myUserId && onOpenProfile != null) {
@@ -694,6 +732,7 @@ fun VoiceRoomRedesignedSeat(
     isHost: Boolean = false,
     isMine: Boolean = false,
     showAdminAction: Boolean = false,
+    pendantCode: String = "none",
     onClick: () -> Unit,
     onAdmin: () -> Unit = {},
     onOpenProfile: ((String) -> Unit)? = null,
@@ -721,6 +760,15 @@ fun VoiceRoomRedesignedSeat(
                 onClick = onClick,
                 onAdmin = onAdmin
             )
+
+            // Colgante (pendant) alrededor del avatar, estilo StarMaker
+            if (seat?.isOccupied == true && pendantCode.isNotBlank() && pendantCode != "none") {
+                VoiceRoomPendant(
+                    code = pendantCode,
+                    size = size,
+                    modifier = Modifier.align(Alignment.Center)
+                )
+            }
 
             // Badge "Anfitrión"
             if (isHost && seat?.isOccupied == true) {
@@ -1101,6 +1149,7 @@ fun VoiceRoomRedesignedBottomBar(
     onEnableMic: () -> Unit,
     onStickerSelected: ((String) -> Unit)? = null,
     onOpenSettings: (() -> Unit)? = null,
+    onOpenToolbox: (() -> Unit)? = null,
     onLeaveRoom: () -> Unit,
     isAdmin: Boolean
 ) {
@@ -1210,6 +1259,19 @@ fun VoiceRoomRedesignedBottomBar(
                 tint = VoiceRoomPalette.TextSecondary,
                 modifier = Modifier.size(20.dp)
             )
+        }
+
+        // Botón Caja de herramientas (solo admin): entradas + colgantes
+        if (isAdmin && onOpenToolbox != null) {
+            IconButton(
+                onClick = { onOpenToolbox() },
+                modifier = Modifier.size(36.dp)
+            ) {
+                Text(
+                    text = "🎛️",
+                    fontSize = 18.sp
+                )
+            }
         }
 
         // IconButton para Micrófono (mutear/desmutear + menú en long-press)

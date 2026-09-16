@@ -33,7 +33,7 @@ class SupabaseVoiceRoomSignaling(private val myUserId:String): VoiceRoomSignalin
     }
 
     private fun joinChannels(ws:WebSocket,roomId:String,token:String?){
-        listOf("voice_room_seats","voice_room_members","voice_room_messages","voice_room_seat_requests","voice_room_bans","voice_room_invites").forEach{ws.send(buildPgChangeJoin(it,roomId,token).toString())}
+        listOf("voice_room_seats","voice_room_members","voice_room_messages","voice_room_seat_requests","voice_room_bans","voice_room_invites","voice_room_decor","voice_room_entrance_events").forEach{ws.send(buildPgChangeJoin(it,roomId,token).toString())}
         ws.send(buildBroadcastJoin(roomId,token).toString())
     }
     private fun buildPgChangeJoin(table:String,roomId:String,token:String?)=JSONObject().apply{
