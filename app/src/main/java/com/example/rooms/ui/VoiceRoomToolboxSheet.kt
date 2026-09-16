@@ -47,6 +47,7 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import com.example.effects.AvatarFrameView
 
 /**
  * Toolbox del dueño de la sala de voz (estilo StarMaker).
@@ -229,24 +230,64 @@ fun VoiceRoomToolboxSheet(
                                 .padding(vertical = 12.dp, horizontal = 6.dp),
                             horizontalAlignment = Alignment.CenterHorizontally
                         ) {
+                            // Vista previa real: el mismo marco vectorial que se pinta
+                            // alrededor del avatar en el sillón, con un avatar simulado.
                             Box(
                                 modifier = Modifier
-                                    .size(52.dp)
-                                    .clip(CircleShape)
-                                    .background(Color(0xFF0B1220), CircleShape)
-                                    .border(2.dp, Color(spec.ringColor), CircleShape),
+                                    .fillMaxWidth()
+                                    .height(60.dp),
                                 contentAlignment = Alignment.Center
                             ) {
-                                Text(text = spec.symbol.ifBlank { "◉" }, fontSize = 22.sp)
+                                if (spec.code == "none") {
+                                    Box(
+                                        modifier = Modifier
+                                            .size(36.dp)
+                                            .clip(CircleShape)
+                                            .background(Color(0xFF0B1220), CircleShape)
+                                            .border(1.dp, Color(0x33FFFFFF), CircleShape),
+                                        contentAlignment = Alignment.Center
+                                    ) {
+                                        Text(
+                                            text = "—",
+                                            color = Color.White.copy(alpha = 0.5f),
+                                            fontSize = 14.sp
+                                        )
+                                    }
+                                } else {
+                                    Box(
+                                        modifier = Modifier
+                                            .size(36.dp)
+                                            .clip(CircleShape)
+                                            .background(
+                                                Brush.linearGradient(
+                                                    listOf(Color(0xFF475569), Color(0xFF0F172A))
+                                                ),
+                                                CircleShape
+                                            )
+                                    )
+                                    AvatarFrameView(
+                                        code = spec.code,
+                                        avatarSize = 36.dp,
+                                        animated = false
+                                    )
+                                }
                             }
-                            Spacer(modifier = Modifier.height(6.dp))
+                            Spacer(modifier = Modifier.height(4.dp))
                             Text(
                                 text = spec.label,
                                 color = Color.White.copy(alpha = 0.9f),
-                                fontSize = 11.sp,
+                                fontSize = 10.sp,
                                 maxLines = 1,
                                 textAlign = TextAlign.Center
                             )
+                            if (spec.rarityLabel.isNotBlank()) {
+                                Text(
+                                    text = spec.rarityLabel,
+                                    color = Color(spec.ringColor).copy(alpha = 0.95f),
+                                    fontSize = 8.sp,
+                                    maxLines = 1
+                                )
+                            }
                             if (selected) {
                                 Icon(
                                     imageVector = Icons.Default.Check,

@@ -1,12 +1,15 @@
 package com.example.rooms.ui
 
+import androidx.compose.ui.graphics.toArgb
+import com.example.effects.AvatarFrameCatalog
+
 /**
  * Catálogos del Toolbox de la sala de voz (estilo StarMaker).
  *
  * - ENTRANCES: animaciones a pantalla completa al entrar un usuario a la sala.
- * - PENDANTS:  adornos que cuelgan/rodean el avatar en el sillón.
+ * - PENDANTS:  marcos vectoriales que rodean el avatar en el sillón
+ *              ([AvatarFrameCatalog], sin assets ni bitmaps).
  *
- * Los catálogos son locales (emoji nativo + colores), sin assets externos.
  * La persistencia de la selección por sala vive en Supabase
  * (voice_room_decor + RPCs set_voice_room_entrance / set_voice_room_pendant).
  */
@@ -25,11 +28,7 @@ data class VoiceRoomPendantSpec(
     val label: String,
     val symbol: String,
     val ringColor: Long = 0xFFD4AF37,
-    val showCrown: Boolean = false,
-    val showHalo: Boolean = false,
-    val showHearts: Boolean = false,
-    val showMusic: Boolean = false,
-    val showLightning: Boolean = false
+    val rarityLabel: String = ""
 )
 
 object VoiceRoomToolboxCatalog {
@@ -47,17 +46,25 @@ object VoiceRoomToolboxCatalog {
         VoiceRoomEntranceSpec("angel", "Angelical", "😇", 0xFFFFFDE7 to 0xFFE0F7FA)
     )
 
-    val pendants: List<VoiceRoomPendantSpec> = listOf(
-        VoiceRoomPendantSpec("none", "Sin colgante", ""),
-        VoiceRoomPendantSpec("gold", "Aro dorado", "⭕", ringColor = 0xFFD4AF37),
-        VoiceRoomPendantSpec("crown", "Corona", "👑", ringColor = 0xFFD4AF37, showCrown = true),
-        VoiceRoomPendantSpec("halo", "Halo", "😇", ringColor = 0xFFFFF176, showHalo = true),
-        VoiceRoomPendantSpec("hearts", "Corazoncitos", "💖", ringColor = 0xFFFF80AB, showHearts = true),
-        VoiceRoomPendantSpec("music", "Notas", "🎵", ringColor = 0xFF4DD0E1, showMusic = true),
-        VoiceRoomPendantSpec("fire", "Llama", "🔥", ringColor = 0xFFFF7043),
-        VoiceRoomPendantSpec("diamond", "Diamante", "💎", ringColor = 0xFF4FC3F7),
-        VoiceRoomPendantSpec("bolt", "Rayo", "⚡", ringColor = 0xFFFFEB3B, showLightning = true)
-    )
+    /**
+     * Los colgantes son los marcos vectoriales de [AvatarFrameCatalog]: la lista se
+     * deriva de ahi para que el selector muestre exactamente el mismo diseno que se
+     * pinta alrededor del avatar.
+     */
+    val pendants: List<VoiceRoomPendantSpec> = buildList {
+        add(VoiceRoomPendantSpec("none", "Sin colgante", ""))
+        AvatarFrameCatalog.frames.forEach { frame ->
+            add(
+                VoiceRoomPendantSpec(
+                    code = frame.code,
+                    label = frame.label,
+                    symbol = frame.symbol,
+                    ringColor = frame.secondary.toArgb().toLong() and 0xFFFFFFFFL,
+                    rarityLabel = frame.rarity.label
+                )
+            )
+        }
+    }
 
     fun entranceByCode(code: String?): VoiceRoomEntranceSpec? = entrances.firstOrNull { it.code == code }
     fun pendantByCode(code: String?): VoiceRoomPendantSpec? = pendants.firstOrNull { it.code == code }

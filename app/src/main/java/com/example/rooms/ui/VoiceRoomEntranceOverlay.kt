@@ -37,6 +37,7 @@ import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import coil.compose.AsyncImage
+import com.example.effects.AvatarFrameView
 import com.example.rooms.model.VoiceRoomEntranceEvent
 import kotlinx.coroutines.delay
 import kotlin.math.PI
@@ -181,40 +182,13 @@ fun VoiceRoomPendant(
     size: Dp,
     modifier: Modifier = Modifier
 ) {
-    val spec = VoiceRoomToolboxCatalog.pendantByCode(code)
-    if (spec == null || code == "none") return
-
-    val premium = com.example.effects.PremiumEffectsCatalog.pendantSpec(code)
-
-    Box(modifier = modifier) {
-        // === Motor premium GPU: anillo brillante + chispas doradas ===
-        com.example.effects.PremiumEffectView(
-            spec = premium,
-            size = size,
-            infinite = true,
-            contentAlignment = Alignment.Center
-        )
-        // Símbolo decorativo en la parte superior (mantener badge del catálogo)
-        Box(
-            modifier = Modifier
-                .align(Alignment.TopCenter)
-                .offset(y = (-4).dp)
-                .background(Color(0xCC0B1220), CircleShape)
-                .padding(3.dp)
-        ) {
-            Text(
-                text = when {
-                    spec.showCrown -> "👑"
-                    spec.showHalo -> "😇"
-                    spec.showHearts -> "💖"
-                    spec.showMusic -> "🎵"
-                    spec.showLightning -> "⚡"
-                    else -> spec.symbol.ifBlank { "◉" }
-                },
-                fontSize = if (spec.symbol.length <= 1) 13.sp else 10.sp,
-                textAlign = TextAlign.Center
-            )
-        }
-    }
+    // El marco vectorial se centra sobre el círculo del asiento: su lienzo es mayor
+    // que el avatar y solo dibuja material hacia afuera, dejando la cara visible.
+    AvatarFrameView(
+        code = code,
+        avatarSize = size,
+        modifier = modifier,
+        animated = true
+    )
 }
 
