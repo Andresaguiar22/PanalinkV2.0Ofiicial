@@ -60,6 +60,7 @@ fun VoiceRoomEntranceOverlay(
 ) {
     val spec = VoiceRoomToolboxCatalog.entranceByCode(event?.entranceCode)
         ?: VoiceRoomToolboxCatalog.entrances.first()
+val premiumSpec = com.example.effects.PremiumEffectsCatalog.entranceSpec(spec.code)
 
     if (event == null) return
 
@@ -83,20 +84,6 @@ fun VoiceRoomEntranceOverlay(
     val g1 = Color(spec.gradient.first)
     val g2 = Color(spec.gradient.second)
 
-    // Partículas de la paleta
-    val particles = remember(event.userId) {
-        val n = 24
-        List(n) { i ->
-            val angle = (i.toFloat() / n) * 2f * PI.toFloat()
-            ParticlePendantSpec(
-                angle = angle,
-                dist = 60f + Random.nextFloat() * 200f,
-                size = 10f + Random.nextFloat() * 22f,
-                color = if (i % 2 == 0) g1 else g2
-            )
-        }
-    }
-
     Box(
         modifier = modifier
             .fillMaxSize()
@@ -111,50 +98,17 @@ fun VoiceRoomEntranceOverlay(
                 .background(Color(0xAA000000))
         )
 
-        // Llamarada cónica (cono de luz girando)
+        // === Motor premium GPU: brillos, rayos y anillos (alta resolución) ===
         Box(
             modifier = Modifier
-                .size(640.dp)
-                .graphicsLayer {
-                    val s = (currentProgress * 1.4f).coerceIn(0f, 1f)
-                    scaleX = s
-                    scaleY = s
-                    rotationZ = 360f * currentProgress
-                }
-                .background(
-                    Brush.radialGradient(
-                        colors = listOf(g1.copy(alpha = 0.5f), Color.Transparent),
-                        center = androidx.compose.ui.geometry.Offset(0.5f, 0.5f),
-                        radius = 0.6f
-                    )
-                )
-        )
-
-        // Rayos / picos que giran
-        Box(
-            modifier = Modifier
-                .size(560.dp)
-                .graphicsLayer {
-                    rotationZ = -180f * currentProgress
-                }
+                .fillMaxSize()
+                .alpha((currentProgress * 0.85f).coerceIn(0f, 1f))
         ) {
-            particles.take(12).forEachIndexed { i, p ->
-                val radial = (currentProgress).coerceIn(0f, 1f)
-                val x = cos(p.angle) * p.dist * radial
-                val y = sin(p.angle) * p.dist * radial
-                Box(
-                    modifier = Modifier
-                        .align(Alignment.Center)
-                        .offset(x = x.dp, y = y.dp)
-                        .graphicsLayer {
-                            alpha = (1f - radial).coerceIn(0f, 1f)
-                            scaleX = 1f + radial * 2f
-                            scaleY = 1f + radial * 2f
-                        }
-                        .size(p.size.dp)
-                        .background(p.color.copy(alpha = 0.6f), RoundedCornerShape(50))
-                )
-            }
+            com.example.effects.PremiumEffectView(
+                spec = premiumSpec,
+                modifier = Modifier.fillMaxSize(),
+                infinite = false
+            )
         }
 
         // Contenido central: avatar + nombre
@@ -230,28 +184,17 @@ fun VoiceRoomPendant(
     val spec = VoiceRoomToolboxCatalog.pendantByCode(code)
     if (spec == null || code == "none") return
 
-    val ring = Color(spec.ringColor)
-    val pulse = remember { Animatable(0f) }
-    LaunchedEffect(Unit) {
-        while (true) {
-            pulse.animateTo(1f, tween(900, easing = FastOutSlowInEasing))
-            pulse.animateTo(0f, tween(900, easing = FastOutSlowInEasing))
-        }
-    }
+    val premium = com.example.effects.PremiumEffectsCatalog.pendantSpec(code)
 
     Box(modifier = modifier) {
-        // Anillo ligeramente más grande que el avatar (llama la atención)
-        Box(
-            modifier = Modifier
-                .size(size + 8.dp)
-                .graphicsLayer {
-                    val s = 1f + pulse.value * 0.06f
-                    scaleX = s
-                    scaleY = s
-                }
-                .border(2.dp, ring.copy(alpha = 0.8f), CircleShape)
+        // === Motor premium GPU: anillo brillante + chispas doradas ===
+        com.example.effects.PremiumEffectView(
+            spec = premium,
+            size = size,
+            infinite = true,
+            contentAlignment = Alignment.Center
         )
-        // Símbolo decorativo en la parte superior
+        // Símbolo decorativo en la parte superior (mantener badge del catálogo)
         Box(
             modifier = Modifier
                 .align(Alignment.TopCenter)
@@ -275,9 +218,3 @@ fun VoiceRoomPendant(
     }
 }
 
-private data class ParticlePendantSpec(
-    val angle: Float,
-    val dist: Float,
-    val size: Float,
-    val color: Color
-)

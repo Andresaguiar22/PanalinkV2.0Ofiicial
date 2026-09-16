@@ -186,6 +186,7 @@ dependencies {
   implementation(libs.androidx.media3.ui)
   implementation(libs.androidx.media3.datasource)
   implementation(libs.jellyfin.media3.ffmpeg.decoder)
+  implementation(libs.lottie.compose)
   implementation("com.pierfrancescosoffritti.androidyoutubeplayer:core:12.1.0")
   implementation(libs.webrtc)
   implementation(libs.socket.io)

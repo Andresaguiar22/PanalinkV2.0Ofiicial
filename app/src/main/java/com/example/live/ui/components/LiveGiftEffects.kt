@@ -44,7 +44,6 @@ import kotlin.random.Random
  * Regalos premium con efecto de pantalla completa estilo TikTok.
  * El resto (rose, heart, applause, star...) usan el banner ligero.
  */
-private val FULL_SCREEN_GIFTS = setOf("galaxy", "lion", "tiger", "airplane", "submarine", "rocket")
 
 /** Paleta y director de animacion por codigo de regalo premium. */
 private data class GiftEffectStyle(
@@ -142,7 +141,7 @@ fun LiveGiftEffectsOverlay(
         val value = pulse ?: return@LaunchedEffect
         if (value.emoji.isBlank() && value.name.isBlank()) return@LaunchedEffect
 
-        val full = value.code != null && value.code in FULL_SCREEN_GIFTS
+        val full = value.code != null && value.code in com.example.effects.PremiumEffectsCatalog.FULL_SCREEN
         isFull = full
         current = value
 
@@ -173,121 +172,134 @@ fun LiveGiftEffectsOverlay(
 
     val active = current ?: return
     val style = giftStyle(active.code)
+    val premium = com.example.effects.PremiumEffectsCatalog.giftSpec(active.code)
+    val isPremiumGift = active.code != null && active.code in com.example.effects.PremiumEffectsCatalog.FULL_SCREEN
 
     Box(modifier = modifier.fillMaxSize()) {
         if (isFull) {
-            // Velo/vignette con el color del regalo
-            Box(
-                modifier = Modifier
-                    .fillMaxSize()
-                    .alpha(0.25f)
-                    .background(style.vignetteColor.copy(alpha = 0.35f))
-            )
+            if (isPremiumGift) {
+                // === Efecto premium GPU (alta resolución) ===
+                com.example.effects.PremiumEffectView(
+                    spec = premium,
+                    modifier = Modifier.fillMaxSize(),
+                    infinite = false
+                )
+                // Emoji gigante central sin las capas procedurales viejas
+                GiantGiftEmoji(pulse = active)
+            } else {
+                // Velo/vignette con el color del regalo
+                Box(
+                    modifier = Modifier
+                        .fillMaxSize()
+                        .alpha(0.25f)
+                        .background(style.vignetteColor.copy(alpha = 0.35f))
+                )
 
-            // Flash de camara
-            Box(
-                modifier = Modifier
-                    .fillMaxSize()
-                    .alpha(flashAlpha.value)
-                    .background(Color.White)
-            )
+                // Flash de camara
+                Box(
+                    modifier = Modifier
+                        .fillMaxSize()
+                        .alpha(flashAlpha.value)
+                        .background(Color.White)
+                )
 
-            // Shockwave: anillo expansivo
-            Box(
-                modifier = Modifier
-                    .align(Alignment.Center)
-                    .graphicsLayer {
-                        val s = shockScale.value
-                        scaleX = s
-                        scaleY = s
-                        alpha = (1f - s).coerceIn(0f, 1f)
-                    }
-                    .size(220.dp)
-                    .background(Color.White.copy(alpha = 0.6f), CircleShape)
-            )
-
-            // Rayos de luz radiales alrededor del centro
-            val rays = remember(active.id) {
-                val count = style.burstCount / 2
-                List(count) { i ->
-                    val angle = (i.toFloat() / count) * 2f * PI.toFloat() + 0.1f
-                    RaySpec(
-                        angle = angle,
-                        length = 120f + Random.nextFloat() * 180f,
-                        thickness = 2f + Random.nextFloat() * 3f,
-                        color = style.palette[i % style.palette.size],
-                        spin = (Random.nextInt(2) * 2 - 1) * (30f + Random.nextFloat() * 60f)
-                    )
-                }
-            }
-
-            // Partículas de la ráfaga con la paleta del regalo
-            val particles = remember(active.id) {
-                List(style.burstCount) { i ->
-                    val angle = (i.toFloat() / style.burstCount) * 2f * PI.toFloat()
-                    ParticleSpec(
-                        angle = angle + Random.nextFloat() * 0.15f,
-                        distanceTarget = 90f + Random.nextFloat() * 220f,
-                        size = 12f + Random.nextFloat() * 30f,
-                        color = style.palette[i % style.palette.size]
-                    )
-                }
-            }
-
-            // Rayos
-            rays.forEach { ray ->
-                val progress = particleProgress.value
-                val rot = ray.spin * progress
+                // Shockwave: anillo expansivo
                 Box(
                     modifier = Modifier
                         .align(Alignment.Center)
-                        .rotate(rot)
                         .graphicsLayer {
-                            val s = (1f - progress).coerceIn(0f, 1f)
-                            alpha = s
+                            val s = shockScale.value
                             scaleX = s
                             scaleY = s
+                            alpha = (1f - s).coerceIn(0f, 1f)
                         }
-                        .offset(
-                            x = 0.dp,
-                            y = 0.dp
-                        )
-                        .size(
-                            width = (ray.thickness * 6).dp,
-                            height = ray.length.dp
-                        )
-                        .background(ray.color.copy(alpha = 0.55f), RoundedCornerShape(50))
+                        .size(220.dp)
+                        .background(Color.White.copy(alpha = 0.6f), CircleShape)
                 )
-            }
 
-            // Partículas radiales
-            particles.take(14).forEachIndexed { i, spec ->
-                val progress = particleProgress.value
-                val dist = spec.distanceTarget * progress
-                val x = cos(spec.angle) * dist
-                val y = sin(spec.angle) * dist
-                val baseOpacity = (1f - progress).coerceIn(0f, 1f)
-                val scaleF = 0.3f + (1f - progress).coerceIn(0f, 1f)
-                Box(
-                    modifier = Modifier
-                        .align(Alignment.Center)
-                        .offset(
-                            x = (x).dp,
-                            y = (y).dp
+                // Rayos de luz radiales alrededor del centro
+                val rays = remember(active.id) {
+                    val count = style.burstCount / 2
+                    List(count) { i ->
+                        val angle = (i.toFloat() / count) * 2f * PI.toFloat() + 0.1f
+                        RaySpec(
+                            angle = angle,
+                            length = 120f + Random.nextFloat() * 180f,
+                            thickness = 2f + Random.nextFloat() * 3f,
+                            color = style.palette[i % style.palette.size],
+                            spin = (Random.nextInt(2) * 2 - 1) * (30f + Random.nextFloat() * 60f)
                         )
-                        .graphicsLayer {
-                            this.alpha = baseOpacity
-                            this.scaleX = scaleF
-                            this.scaleY = scaleF
-                            this.rotationZ = spec.spin
-                        }
-                        .size(spec.size.dp)
-                        .background(spec.color, RoundedCornerShape(50))
-                )
-            }
+                    }
+                }
 
-            // Emoji gigante central con pulse
-            GiantGiftEmoji(pulse = active)
+                // Partículas de la ráfaga con la paleta del regalo
+                val particles = remember(active.id) {
+                    List(style.burstCount) { i ->
+                        val angle = (i.toFloat() / style.burstCount) * 2f * PI.toFloat()
+                        ParticleSpec(
+                            angle = angle + Random.nextFloat() * 0.15f,
+                            distanceTarget = 90f + Random.nextFloat() * 220f,
+                            size = 12f + Random.nextFloat() * 30f,
+                            color = style.palette[i % style.palette.size]
+                        )
+                    }
+                }
+
+                // Rayos
+                rays.forEach { ray ->
+                    val progress = particleProgress.value
+                    val rot = ray.spin * progress
+                    Box(
+                        modifier = Modifier
+                            .align(Alignment.Center)
+                            .rotate(rot)
+                            .graphicsLayer {
+                                val s = (1f - progress).coerceIn(0f, 1f)
+                                alpha = s
+                                scaleX = s
+                                scaleY = s
+                            }
+                            .offset(
+                                x = 0.dp,
+                                y = 0.dp
+                            )
+                            .size(
+                                width = (ray.thickness * 6).dp,
+                                height = ray.length.dp
+                            )
+                            .background(ray.color.copy(alpha = 0.55f), RoundedCornerShape(50))
+                    )
+                }
+
+                // Partículas radiales
+                particles.take(14).forEachIndexed { i, spec ->
+                    val progress = particleProgress.value
+                    val dist = spec.distanceTarget * progress
+                    val x = cos(spec.angle) * dist
+                    val y = sin(spec.angle) * dist
+                    val baseOpacity = (1f - progress).coerceIn(0f, 1f)
+                    val scaleF = 0.3f + (1f - progress).coerceIn(0f, 1f)
+                    Box(
+                        modifier = Modifier
+                            .align(Alignment.Center)
+                            .offset(
+                                x = (x).dp,
+                                y = (y).dp
+                            )
+                            .graphicsLayer {
+                                this.alpha = baseOpacity
+                                this.scaleX = scaleF
+                                this.scaleY = scaleF
+                                this.rotationZ = spec.spin
+                            }
+                            .size(spec.size.dp)
+                            .background(spec.color, RoundedCornerShape(50))
+                    )
+                }
+
+                // Emoji gigante central con pulse
+                GiantGiftEmoji(pulse = active)
+            }
         }
 
         // Banner inferior (también para regalos normales, con racha)
@@ -323,6 +335,12 @@ private fun GiantGiftEmoji(pulse: LiveGiftPulse) {
     var alpha by remember { mutableStateOf(0f) }
     var rotation by remember { mutableStateOf(0f) }
 
+    val emoji = if (pulse.code != null && pulse.code in com.example.effects.PremiumEffectsCatalog.FULL_SCREEN) {
+        com.example.effects.PremiumEffectsCatalog.giftSpec(pulse.code).emoji
+    } else {
+        pulse.emoji
+    }
+
     LaunchedEffect(pulse.id) {
         scale = 0.2f
         alpha = 1f
@@ -348,7 +366,7 @@ private fun GiantGiftEmoji(pulse: LiveGiftPulse) {
         contentAlignment = Alignment.Center
     ) {
         Text(
-            text = pulse.emoji,
+            text = emoji,
             fontSize = 104.sp,
             textAlign = TextAlign.Center
         )
@@ -380,6 +398,7 @@ private fun GiftBanner(
     }
     val identity = rememberLiveIdentity(pulse.senderId)
     val senderName = identity.displayNameOr(pulse.senderId)
+    val giftEmoji = pulse.emoji.ifBlank { com.example.effects.PremiumEffectsCatalog.giftEmojiFallback(pulse.code) }
 
     Row(
         modifier = modifier
@@ -389,7 +408,7 @@ private fun GiftBanner(
             .padding(horizontal = 12.dp, vertical = 8.dp),
         verticalAlignment = Alignment.CenterVertically
     ) {
-        Text(text = pulse.emoji, fontSize = 26.sp)
+        Text(text = giftEmoji, fontSize = 26.sp)
         Spacer(modifier = Modifier.width(8.dp))
         Column {
             Row(verticalAlignment = Alignment.CenterVertically) {
