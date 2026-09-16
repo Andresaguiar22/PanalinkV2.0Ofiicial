@@ -2,8 +2,13 @@ package com.example.live.data.remote
 
 import com.example.live.domain.model.LiveComment
 import com.example.live.domain.model.LiveGift
+import com.example.live.domain.model.LiveJoinStreamRequest
+import com.example.live.domain.model.LiveSendGiftRequest
+import com.example.live.domain.model.LiveSendLikeRequest
+import com.example.live.domain.model.LiveSetViewerCountRequest
 import com.example.live.domain.model.LiveStream
 import com.example.live.domain.model.LiveStreamStats
+import com.example.live.domain.model.LiveWalletBalanceRequest
 import okhttp3.ResponseBody
 import retrofit2.Response
 import retrofit2.http.*
@@ -93,35 +98,35 @@ interface LiveSupabaseApi {
     suspend fun rpcWalletBalance(
         @Header("apikey") apiKey: String,
         @Header("Authorization") authorization: String,
-        @Body body: Map<String, Any> = emptyMap()
+        @Body body: LiveWalletBalanceRequest = LiveWalletBalanceRequest()
     ): Response<ResponseBody>
 
     @POST("rest/v1/rpc/live_send_like")
     suspend fun rpcSendLike(
         @Header("apikey") apiKey: String,
         @Header("Authorization") authorization: String,
-        @Body body: Map<String, Any>
+        @Body body: LiveSendLikeRequest
     ): Response<ResponseBody>
 
     @POST("rest/v1/rpc/live_send_gift")
     suspend fun rpcSendGift(
         @Header("apikey") apiKey: String,
         @Header("Authorization") authorization: String,
-        @Body body: Map<String, Any>
+        @Body body: LiveSendGiftRequest
     ): Response<ResponseBody>
 
     @POST("rest/v1/rpc/live_set_viewer_count")
     suspend fun rpcSetViewerCount(
         @Header("apikey") apiKey: String,
         @Header("Authorization") authorization: String,
-        @Body body: Map<String, Any>
+        @Body body: LiveSetViewerCountRequest
     ): Response<ResponseBody>
 
     @POST("rest/v1/rpc/live_join_stream")
     suspend fun rpcJoinStream(
         @Header("apikey") apiKey: String,
         @Header("Authorization") authorization: String,
-        @Body body: Map<String, Any>
+        @Body body: LiveJoinStreamRequest
     ): Response<ResponseBody>
 
     companion object {

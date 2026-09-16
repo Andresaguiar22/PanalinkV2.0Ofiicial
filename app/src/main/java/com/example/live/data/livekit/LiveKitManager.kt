@@ -39,7 +39,7 @@ class LiveKitManager(private val context: Context) {
     suspend fun connect(url: String, token: String) = withContext(Dispatchers.IO) {
         if (room != null && _connectionState.value is LiveConnectionState.Connected) return@withContext
         try {
-            disconnectInternal()
+            disconnectAndRelease()
             _connectionState.value = LiveConnectionState.Connecting
             val currentRoom = LiveKit.create(context)
             room = currentRoom
@@ -50,6 +50,7 @@ class LiveKitManager(private val context: Context) {
             withTimeout(CONNECT_TIMEOUT_MS) {
                 currentRoom.connect(url, token)
             }
+            initPendingRenderer()
         } catch (e: Exception) {
             // TimeoutCancellationException incluido: NO se relanza, para que el
             // caller (boton de iniciar) siga vivo y pueda mostrar el error.
@@ -61,7 +62,7 @@ class LiveKitManager(private val context: Context) {
     suspend fun startBroadcasting(url: String, token: String) = withContext(Dispatchers.IO) {
         if (room != null && _connectionState.value is LiveConnectionState.Connected) return@withContext
         try {
-            disconnectInternal()
+            disconnectAndRelease()
             _connectionState.value = LiveConnectionState.Connecting
             _localVideoTrack.value = null
 
@@ -75,6 +76,10 @@ class LiveKitManager(private val context: Context) {
             Log.d(TAG, "Enabling local camera and microphone for broadcast")
             currentRoom.localParticipant.setCameraEnabled(true)
             currentRoom.localParticipant.setMicrophoneEnabled(true)
+
+            // initPendingRenderer tras la conexión: el SurfaceViewRenderer puede
+            // haber sido creado por la UI antes de conectar (room todavía null).
+            initPendingRenderer()
 
             // setCameraEnabled() publishes asynchronously; wait for the actual track.
             var localTrack: VideoTrack? = null
@@ -132,7 +137,7 @@ class LiveKitManager(private val context: Context) {
 
     suspend fun joinAsGuest(url: String, token: String) = withContext(Dispatchers.IO) {
         try {
-            disconnectInternal()
+            disconnectAndRelease()
             _connectionState.value = LiveConnectionState.Connecting
             _localVideoTrack.value = null
             val currentRoom = LiveKit.create(context)
@@ -141,6 +146,7 @@ class LiveKitManager(private val context: Context) {
             withTimeout(CONNECT_TIMEOUT_MS) {
                 currentRoom.connect(url, token)
             }
+            initPendingRenderer()
             currentRoom.localParticipant.setCameraEnabled(true)
             currentRoom.localParticipant.setMicrophoneEnabled(true)
             repeat(60) {
@@ -155,6 +161,33 @@ class LiveKitManager(private val context: Context) {
         } catch (e: Exception) {
             Log.e(TAG, "Error joining as guest", e)
             _connectionState.value = LiveConnectionState.Error(e.message ?: "Error al unirse como invitado")
+        }
+    }
+
+    /** Versión suspensiva: espera a que el room anterior libere cámara/mic. */
+    private suspend fun disconnectAndRelease() {
+        try {
+            eventsJob?.cancel()
+            eventsJob = null
+            val currentRoom = room
+            room = null
+            if (currentRoom != null) {
+                try {
+                    currentRoom.localParticipant.setCameraEnabled(false)
+                    currentRoom.localParticipant.setMicrophoneEnabled(false)
+                } catch (e: Exception) {
+                    Log.e(TAG, "Error disabling camera/mic on disconnect", e)
+                }
+                try {
+                    currentRoom.release()
+                } catch (e: Exception) {
+                    Log.e(TAG, "Error releasing room", e)
+                }
+            }
+            _localVideoTrack.value = null
+            _remoteVideoTrack.value = null
+        } catch (e: Exception) {
+            Log.e(TAG, "Error during internal suspend disconnect", e)
         }
     }
 
@@ -180,13 +213,32 @@ class LiveKitManager(private val context: Context) {
         }
     }
 
+    private var pendingRenderer: SurfaceViewRenderer? = null
+
     fun initVideoRenderer(renderer: SurfaceViewRenderer) {
-        val currentRoom = room ?: return
+        val currentRoom = room
+        if (currentRoom == null) {
+            pendingRenderer = renderer
+            Log.d(TAG, "Renderer creado antes de conectar; se inicializará al conectarse")
+            return
+        }
         try {
             currentRoom.initVideoRenderer(renderer)
             Log.d(TAG, "LiveKit video renderer initialized")
         } catch (e: Exception) {
             Log.e(TAG, "Error initializing LiveKit video renderer", e)
+        }
+    }
+
+    private fun initPendingRenderer() {
+        val currentRoom = room ?: return
+        val renderer = pendingRenderer ?: return
+        pendingRenderer = null
+        try {
+            currentRoom.initVideoRenderer(renderer)
+            Log.d(TAG, "LiveKit video renderer initialized after connect")
+        } catch (e: Exception) {
+            Log.e(TAG, "Error initializing pending LiveKit video renderer", e)
         }
     }
 

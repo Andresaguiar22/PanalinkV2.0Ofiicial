@@ -7,6 +7,10 @@ import com.example.live.data.remote.LiveSupabaseApi
 import com.example.live.domain.model.LiveComment
 import com.example.live.domain.model.LiveGift
 import com.example.live.domain.model.LiveGiftResult
+import com.example.live.domain.model.LiveJoinStreamRequest
+import com.example.live.domain.model.LiveSendGiftRequest
+import com.example.live.domain.model.LiveSendLikeRequest
+import com.example.live.domain.model.LiveSetViewerCountRequest
 import com.example.live.domain.model.LiveStream
 import com.example.live.domain.model.LiveStreamStats
 import com.example.live.domain.repository.LiveRepository
@@ -242,9 +246,6 @@ class LiveRepositoryImpl(private val context: Context) : LiveRepository {
 
     // --- Engagement real ---------------------------------------------------------
 
-    private fun rpcBody(vararg pairs: Pair<String, Any>): Map<String, Any> =
-        pairs.toMap()
-
     private fun parseJsonMap(raw: String?): Map<String, Any>? {
         val text = raw?.trim().orEmpty()
         if (text.isEmpty()) return null
@@ -292,7 +293,7 @@ class LiveRepositoryImpl(private val context: Context) : LiveRepository {
             val response = api.rpcSendLike(
                 apiKey = SupabaseClient.supabaseAnonKey,
                 authorization = getAuthHeader(),
-                body = rpcBody("p_stream_id" to streamId, "p_quantity" to quantity)
+                body = LiveSendLikeRequest(streamId = streamId, quantity = quantity)
             )
             if (response.isSuccessful) {
                 val map = parseJsonMap(response.body()?.string())
@@ -345,10 +346,10 @@ class LiveRepositoryImpl(private val context: Context) : LiveRepository {
             val response = api.rpcSendGift(
                 apiKey = SupabaseClient.supabaseAnonKey,
                 authorization = getAuthHeader(),
-                body = rpcBody(
-                    "p_stream_id" to streamId,
-                    "p_gift_code" to giftCode,
-                    "p_quantity" to quantity
+                body = LiveSendGiftRequest(
+                    streamId = streamId,
+                    giftCode = giftCode,
+                    quantity = quantity
                 )
             )
             if (response.isSuccessful) {
@@ -375,7 +376,7 @@ class LiveRepositoryImpl(private val context: Context) : LiveRepository {
             val response = api.rpcSetViewerCount(
                 apiKey = SupabaseClient.supabaseAnonKey,
                 authorization = getAuthHeader(),
-                body = rpcBody("p_stream_id" to streamId, "p_count" to count)
+                body = LiveSetViewerCountRequest(streamId = streamId, count = count)
             )
             if (response.isSuccessful) {
                 Result.success(Unit)
@@ -393,7 +394,7 @@ class LiveRepositoryImpl(private val context: Context) : LiveRepository {
             val response = api.rpcJoinStream(
                 apiKey = SupabaseClient.supabaseAnonKey,
                 authorization = getAuthHeader(),
-                body = rpcBody("p_stream_id" to streamId)
+                body = LiveJoinStreamRequest(streamId = streamId)
             )
             if (response.isSuccessful) {
                 val map = parseJsonMap(response.body()?.string())
