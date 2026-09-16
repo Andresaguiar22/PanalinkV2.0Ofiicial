@@ -189,11 +189,11 @@ fun LiveViewerScreen(
                 .padding(horizontal = 6.dp)
         )
 
-        LiveGiftOverlay(
+        LiveGiftEffectsOverlay(
             pulse = giftPulse,
             modifier = Modifier
-                .align(Alignment.CenterStart)
-                .padding(start = 12.dp)
+                .align(Alignment.Center)
+                .fillMaxSize()
         )
 
         AnimatedVisibility(

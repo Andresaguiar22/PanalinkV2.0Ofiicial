@@ -39,6 +39,7 @@ data class LiveUiState(
 /** Pulso de animación para un regalo recién llegado. */
 data class LiveGiftPulse(
     val id: Long,
+    val code: String?,
     val emoji: String,
     val name: String,
     val quantity: Int,
@@ -279,6 +280,7 @@ class LiveViewModel(application: Application) : AndroidViewModel(application) {
                     _notice.value = "Enviaste ${gift.emoji} ${gift.name} x$quantity"
                     _giftPulse.value = LiveGiftPulse(
                         id = System.currentTimeMillis(),
+                        code = gift.code,
                         emoji = gift.emoji,
                         name = gift.name,
                         quantity = quantity,
@@ -319,6 +321,7 @@ class LiveViewModel(application: Application) : AndroidViewModel(application) {
             val gift = _giftCatalog.value.firstOrNull { it.code == event.giftCode }
             _giftPulse.value = LiveGiftPulse(
                 id = System.currentTimeMillis(),
+                code = gift?.code,
                 emoji = gift?.emoji ?: DEFAULT_GIFT_EMOJI,
                 name = gift?.name ?: event.giftCode,
                 quantity = event.quantity,
