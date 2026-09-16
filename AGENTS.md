@@ -351,13 +351,24 @@ cd /workspace/project/PanalinkV2.0Ofiicial/.toolchain && nohup python3 serve_ran
 Los colgantes viejos eran **dos cosas superpuestas**: el `PremiumEffectView` (aro fino + chispas) **y** un badge circular con emoji en `Alignment.TopCenter`. El emoji tapaba la parte alta del avatar y el aro era demasiado sutil. Ahora `VoiceRoomPendant` **delega en `AvatarFrameView`** y no queda ningun emoji encima.
 
 ### Archivos
-* `app/src/main/java/com/example/effects/AvatarFrameSpec.kt` — `AvatarFrameSpec` + `AvatarFrameCatalog.frames` (15 modelos: `gold`, `crown`, `halo`, `hearts`, `music`, `fire`, `diamond`, `bolt`, `flor`, `wings`, `jaguar`, `galaxy`, `ice`, `dragon`, `ocean`). Los 8 codigos viejos se conservan -> **el decor ya guardado en Supabase sigue resolviendo**. `AvatarFrameCatalog.byCode(null|"none"|desconocido) = null`.
+* `app/src/main/java/com/example/effects/AvatarFrameSpec.kt` — `AvatarFrameSpec` + `AvatarFrameCatalog.frames` (21 modelos: 15 vectoriales y 6 raster Panalink `panama`, `cafe`, `canal`, `fiesta`, `herencia`, `tesoro`). Los 8 codigos viejos se conservan -> **el decor ya guardado en Supabase sigue resolviendo**. `AvatarFrameCatalog.byCode(null|"none"|desconocido) = null`.
 * `app/src/main/java/com/example/effects/AvatarFrameView.kt` — `Canvas` procedimental. Anatomia (todo relativo a `rFrame = lado/2`):
   * `rAvatar = rFrame / overflowScale` -> hueco del avatar **transparente** (el asiento pinta la foto debajo).
   * banda `[rAvatar, rAvatar + rFrame*bandWidth]` con `sweepGradient` + gemas.
   * fruncido de petalos `[banda, rFrame*petalOuterRatio]`, atenuado por `spec.frill`.
   * ornamentos (`FrameOrnament`): CROWN, WINGS, FLAMES, HALO, BOLTS, LEAVES, FEATHERS, STARS, SPIKES, BUBBLES, HEARTS.
 * **Sin distorsion**: toda la geometria se deriva del lado del lienzo -> escala a cualquier densidad sin reescalar bitmaps. El hueco central nunca se pinta: el marco solo anade material ALREDEDOR de la cara.
+
+### Colgantes RASTER (arte Panalink) - `bitmapRes` (sesion 2026-09-16, commit `204e7f7`)
+El motor tambien soporta **arte raster**: si `AvatarFrameSpec.bitmapRes != 0`, `AvatarFrameView` dibuja el PNG (`FilterQuality.High`) en lugar de las primitivas, sin rotar ni petalos. Assets en `app/src/main/res/drawable-nodpi/frame_*.png` (`panama`, `cafe`, `canal`, `fiesta`, `herencia`, `tesoro`, ~1.4 MB). Sin migracion: `pendant_code` es `text` libre en `voice_room_decor` y `profiles`.
+
+Receta para convertir una captura de mockup en colgante (script efimero en `/tmp`, no versionado):
+1. **Keying**: cada diseno trae el arte sobre un plato oscuro uniforme (~RGB 28,28,44). Distancia de color + quedarse con el **componente mas grande** (si no, el glow/estrellas sueltos entran al PNG).
+2. **Hueco del avatar**: NO es uniforme entre disenos (circulo gris, bandera, gradiente, cielo) ni es una elipse perfecta. La deteccion automatica falla (el centroide se sesga con la contaminacion; la caminata radial se rompe con contraste interno). Lo que funciona es el **montaje visual 1:1**: recortar cada candidato y pintarle el circulo encima, y validar despues con avatares de prueba (`preview*.png`).
+3. **Recortar con margen +10%** sobre la elipse medida: el arte AI no es simetrico y un recorte justo deja una cresta gris sobre la foto.
+4. `overflowScale = (semiancho del canvas) / (radio del hueco con margen)`: ese valor hace que un avatar de diametro D caiga exacto dentro del hueco.
+
+* **Ojo con el tamano en el sillon**: estos badges (`overflowScale` 2.0-2.6) miden mas que `SeatSlotScale` (1.85), asi que **desbordan el slot fijo** y pueden pisar nombre y asientos vecinos. En el selector del toolbox se escalan a 58dp via `pendantPreviewAvatar()`. Para que quepan en el slot habria que recortar el arte (quitar el banner de texto).
 
 ### ⚠️ Invariante duro (romperlo = marco recortado)
 El lienzo es cuadrado y **todo lo que se dibuja fuera de `rFrame` se recorta**. Con `overflowScale = 1.72f` y `bandWidth` ~`0.115f` el aro cierra en ~`0.70*rFrame` -> quedan ~`0.30*rFrame` de radio libre para coronas/alas/plumas/llamas.
