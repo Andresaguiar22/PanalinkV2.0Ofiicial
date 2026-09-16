@@ -549,7 +549,9 @@ fun VoiceRoomHostSeat(
             .padding(horizontal = 8.dp),
         horizontalAlignment = Alignment.CenterHorizontally
     ) {
-        Box {
+        // El colgante (marco) mide 1.6x el avatar y agranda este Box: el avatar
+        // debe centrarse para quedar concéntrico con el marco.
+        Box(contentAlignment = Alignment.Center) {
             VoiceRoomRedesignedSeatCircle(
                 seat = seat,
                 size = 54.dp,
@@ -749,7 +751,9 @@ fun VoiceRoomRedesignedSeat(
         modifier = modifier,
         horizontalAlignment = Alignment.CenterHorizontally
     ) {
-        Box {
+        // El colgante (marco) mide 1.6x el avatar y agranda este Box: el avatar
+        // debe centrarse para quedar concéntrico con el marco.
+        Box(contentAlignment = Alignment.Center) {
             VoiceRoomRedesignedSeatCircle(
                 seat = seat,
                 size = size,
