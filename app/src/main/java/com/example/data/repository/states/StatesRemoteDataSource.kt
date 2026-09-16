@@ -335,6 +335,17 @@ class StatesRemoteDataSource {
                         } catch (ex: Exception) {
                             Log.e(TAG, "Error purging expired states", ex)
                         }
+                        // Purge states the author deleted remotely: the remote snapshot is
+                        // authoritative, so anything cached locally that is no longer in it
+                        // must go (a deleted story/reel must disappear for everyone, not just
+                        // its author). Snapshot is non-empty => healthy, safe to purge.
+                        // favoritedByMe rows are excluded so a user's saved collection survives.
+                        try {
+                            val keepIds = finalEntities.mapNotNullTo(LinkedHashSet()) { it.id }
+                            statesDao.deleteStatesNotIn(keepIds)
+                        } catch (ex: Exception) {
+                            Log.e(TAG, "Error purging deleted states", ex)
+                        }
                     }
                 } catch (e: Exception) {
                     Log.e(TAG, "Failed to save states to local DB", e)

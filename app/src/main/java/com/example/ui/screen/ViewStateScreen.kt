@@ -634,14 +634,47 @@ fun UserStoryViewer(
     }
 
     LaunchedEffect(currentStatusIndex, userStates) {
-        // Aggressive Preloading: 1 back and 3 ahead within the same user's stories
+        // Aggressive Preloading: 1 back and 3 ahead within the same user's stories.
+        // El prefetch parte SIEMPRE del puntero estable (vcdn_video_id o mediaUrl)
+        // y lo resuelve antes de tocar la red: prefetchVideo exige una URL HTTP y
+        // un `vcdn://` a secas se descartaría (mismo patrón que ReelPreloadController).
         val preloadIndices = listOf(currentStatusIndex - 1, currentStatusIndex + 1, currentStatusIndex + 2, currentStatusIndex + 3)
         
         preloadIndices.forEach { index ->
             if (index >= 0 && index < userStates.size) {
                 val nextState = userStates[index].state
-                if (nextState.mediaType == "video" && !nextState.mediaUrl.isNullOrEmpty()) {
-                    com.example.data.video.CacheDataSourceFactory.prefetchVideo(context, nextState.mediaUrl)
+                if (nextState.mediaType == "video") {
+                    val stable = nextState.vcdnVideoId?.takeIf { it.isNotBlank() }?.let { "vcdn://$it" }
+                        ?: nextState.mediaUrl
+                    if (!stable.isNullOrBlank() && !nextState.localVideoPath.isNullOrBlank() && java.io.File(nextState.localVideoPath).exists()) {
+                        return@forEach
+                    }
+                    if (!stable.isNullOrBlank()) {
+                        kotlinx.coroutines.MainScope().launch(Dispatchers.IO) {
+                            val prefetchStart = System.currentTimeMillis()
+                            com.example.feature.diagnostics.StoryDiagnostics.started(
+                                "Prefetch",
+                                correlationId = nextState.id.take(36),
+                                details = "isVcdn=${com.example.data.repository.VcdnUrlResolver.isVcdnUrl(stable)}"
+                            )
+                            val resolved = com.example.data.repository.CdnManager.resolveMediaUrl(stable)
+                            if (!resolved.isNullOrBlank() && resolved.startsWith("http")) {
+                                com.example.data.video.CacheDataSourceFactory.prefetchVideo(context, resolved)
+                                com.example.feature.diagnostics.StoryDiagnostics.completed(
+                                    "Prefetch",
+                                    prefetchStart,
+                                    correlationId = nextState.id.take(36)
+                                )
+                            } else {
+                                com.example.feature.diagnostics.StoryDiagnostics.failed(
+                                    "Prefetch",
+                                    prefetchStart,
+                                    correlationId = nextState.id.take(36),
+                                    details = "noHttpResolve=${resolved?.take(30)}"
+                                )
+                            }
+                        }
+                    }
                 }
             }
         }
@@ -756,12 +789,18 @@ fun UserStoryViewer(
 
 
 
-    // Safety: si un video jamas emite STATE_ENDED (red/decoder atascado(, no dejar
-    // la story colgada: se avanza tras 30s como fallback. Nunca corta un video vivo::
-    LaunchedEffect(currentStatusIndex, isPaused, isContentLoaded, videoEnded) {
+    // Safety: si un video jamas emite STATE_ENDED (red/decoder atascado), no dejar
+    // la story colgada: se avanza tras la duración real + margen como fallback.
+    // El fallback NUNCA debe ser menor que la duración del video: un clip largo
+    // (hasta 2 min permitidos) se cortaría prematuramente con un tiempo fijo.
+    LaunchedEffect(currentStatusIndex, isPaused, isContentLoaded, videoEnded, currentDurationMs) {
         val isVideo = userStates.getOrNull(currentStatusIndex)?.state?.mediaType?.contains("video", ignoreCase = true) == true
         if (!isVideo) return@LaunchedEffect
-        kotlinx.coroutines.delay(30_000L)
+        // Espera la duración real (si ya se conoce) más un margen de 5s; nunca menos de 30s
+        // (red/decode lento) pero tampoco un corte anticipado para clips largos.
+        val knownDurationMs = currentDurationMs.takeIf { it > 0L } ?: 0L
+        val fallbackMs = maxOf(knownDurationMs + 5_000L, 30_000L)
+        kotlinx.coroutines.delay(fallbackMs)
         if (!isPaused && isContentLoaded && !videoEnded) {
             videoEnded = true
             if (currentStatusIndex < userStates.lastIndex) {
@@ -879,16 +918,48 @@ fun UserStoryViewer(
                     )
                 }
             } else if (state.mediaType.equals("video", ignoreCase = true) || state.mediaType.contains("video", ignoreCase = true) || state.isReel) {
-                var resolvedVideoUrl by remember(state.id, state.mediaUrl) { mutableStateOf<String?>(null) }
-                var resolveRetry by remember(state.id, state.mediaUrl) { mutableStateOf(0) }
-                LaunchedEffect(state.id, state.mediaUrl, resolveRetry) {
-                    resolvedVideoUrl = if (!state.localVideoPath.isNullOrBlank() && java.io.File(state.localVideoPath).exists()) {
+                // Puntero estable a la media: el vcdn_video_id nunca rota y es la
+                // base para re-resolver URLs firmadas caducadas (igual que reels).
+                val stableStoryUrl = remember(state.id, state.vcdnVideoId, state.mediaUrl, state.localVideoPath) {
+                    when {
+                        !state.vcdnVideoId.isNullOrBlank() -> "vcdn://${state.vcdnVideoId}"
+                        !state.mediaUrl.isNullOrBlank() -> state.mediaUrl
+                        else -> state.localVideoPath ?: ""
+                    }
+                }
+                var resolvedVideoUrl by remember(state.id, stableStoryUrl) { mutableStateOf<String?>(null) }
+                var resolveRetry by remember(state.id, stableStoryUrl) { mutableStateOf(0) }
+                LaunchedEffect(state.id, stableStoryUrl, resolveRetry) {
+                    val resolveStart = System.currentTimeMillis()
+                    com.example.feature.diagnostics.StoryDiagnostics.started(
+                        "Resolve URL",
+                        correlationId = state.id.take(36),
+                        details = "isVcdn=${com.example.data.repository.VcdnUrlResolver.isVcdnUrl(stableStoryUrl)}, local=${!state.localVideoPath.isNullOrBlank()}"
+                    )
+                    val resolvedNow = if (!state.localVideoPath.isNullOrBlank() && java.io.File(state.localVideoPath).exists()) {
                         state.localVideoPath
                     } else {
                         val resolved = kotlinx.coroutines.withContext(kotlinx.coroutines.Dispatchers.IO) {
-                            com.example.data.repository.CdnManager.resolveMediaUrl(state.mediaUrl)
+                            com.example.data.repository.CdnManager.resolveMediaUrl(stableStoryUrl)
                         }
                         if (resolved.isNullOrBlank() || resolved.startsWith("vcdn://")) "" else resolved
+                    }
+                    resolvedVideoUrl = resolvedNow
+                    if (resolvedNow.isBlank()) {
+                        com.example.feature.diagnostics.StoryDiagnostics.failed(
+                            "Resolve URL",
+                            resolveStart,
+                            correlationId = state.id.take(36),
+                            details = "retry=$resolveRetry, blank=true"
+                        )
+                    } else {
+                        val host = try { java.net.URI(resolvedNow).host } catch (_: Exception) { "" }
+                        com.example.feature.diagnostics.StoryDiagnostics.completed(
+                            "Resolve URL",
+                            resolveStart,
+                            correlationId = state.id.take(36),
+                            details = "host=$host"
+                        )
                     }
                 }
 
@@ -924,6 +995,7 @@ fun UserStoryViewer(
                             session = storyPlayer,
                             stateId = state.id,
                             videoUrl = resolvedVideoUrl ?: "",
+                            stableVideoUrl = stableStoryUrl,
                             isMuted = isMuted,
                             isPaused = isPaused,
                             onDurationReady = { durationMs ->
@@ -2203,6 +2275,7 @@ fun VideoPlayer(
     onMediaEnded: (() -> Unit)? = null,
     onUnavailable: (() -> Unit)? = null,
     videoTrim: Pair<Float, Float>? = null,
+    stableVideoUrl: String? = null,
     modifier: Modifier = Modifier,
 ) {
     val context = LocalContext.current
@@ -2212,11 +2285,16 @@ fun VideoPlayer(
 
     // Fase 3 instrumentacion: el session loguea con TAG StoryVideoPlayer.
     // Estos callbacks derivan el estado visual local sin listeners duplicados.
-    LaunchedEffect(stateId, videoUrl, videoTrim) {
+    LaunchedEffect(stateId, videoUrl, videoTrim, stableVideoUrl) {
         hasError = false
         isBuffering = true
         if (videoUrl.isBlank()) {
             android.util.Log.w("StoryVideoPlayer", "stateId=$stateId URL vacia (VCDN no disponible); skip")
+            com.example.feature.diagnostics.StoryDiagnostics.failed(
+                "URL vacía",
+                correlationId = stateId.take(36),
+                details = "stable=${stableVideoUrl?.take(40)}"
+            )
             isBuffering = false
             onUnavailable?.invoke()
             return@LaunchedEffect
@@ -2232,9 +2310,16 @@ fun VideoPlayer(
             isBuffering = (stateName == "BUFFERING" || stateName == "IDLE")
         }
         session.onError = { errStateId, codeName, code ->
-            if (errStateId == stateId) hasError = true
+            if (errStateId == stateId) {
+                hasError = true
+                com.example.feature.diagnostics.StoryDiagnostics.failed(
+                    "onError (UI)",
+                    correlationId = stateId.take(36),
+                    details = "codeName=$codeName, code=$code"
+                )
+            }
         }
-        session.play(stateId, videoUrl, isMuted, videoTrim)
+        session.play(stateId, videoUrl, isMuted, videoTrim, stableVideoUrl)
     }
 
     LaunchedEffect(isMuted) { session.setMuted(isMuted) }
@@ -2243,7 +2328,12 @@ fun VideoPlayer(
     Box(modifier = modifier) {
         AndroidView(
             factory = { ctx ->
-                androidx.media3.ui.PlayerView(ctx).apply {
+                // Misma superficie que el reproductor de reels: TextureView dentro de
+                // un PlayerView inflado de layout (view_story_player.xml). El visor de
+                // stories dibuja overlays Compose encima del video; un SurfaceView
+                // rompería ese orden y causaría "punch-through"/negros al animar.
+                (android.view.LayoutInflater.from(ctx)
+                    .inflate(com.example.R.layout.view_story_player, null) as androidx.media3.ui.PlayerView).apply {
                     useController = false
                     resizeMode = androidx.media3.ui.AspectRatioFrameLayout.RESIZE_MODE_ZOOM
                     // Player estable: se setea UNA vez durante la vida del visor.
@@ -2252,7 +2342,7 @@ fun VideoPlayer(
             },
             update = { playerView ->
                 // Media3 setPlayer es no-op si el player es el mismo (verificado).
-                playerView.player = session.player
+                if (playerView.player !== session.player) playerView.player = session.player
             },
             modifier = Modifier.fillMaxSize()
         )
@@ -2283,18 +2373,38 @@ fun VideoPlayer(
                     session.onStateChanged = null
                     
                     if (com.example.util.NetworkMonitor.isOnline.value) {
-                        // Resolve on IO thread to avoid blocking Main; resolveMediaUrl may
-                        // perform network I/O (VCDN BFF call).
+                        // Resolve on IO thread to avoid blocking Main; resolveMediaUrlFresh
+                        // may perform network I/O (VCDN BFF call). El retry re-resuelve
+                        // desde el puntero ESTABLE (vcdn://), nunca desde la URL firmada
+                        // ya caducada (eso devolvería el mismo token expirado).
                         kotlinx.coroutines.MainScope().launch(Dispatchers.IO) {
-                            val newUrl = com.example.data.repository.CdnManager.resolveMediaUrl(videoUrl)
+                            val retryStart = System.currentTimeMillis()
+                            val stableForRetry = stableVideoUrl ?: videoUrl
+                            com.example.feature.diagnostics.StoryDiagnostics.started(
+                                "Reintentar (UI)",
+                                correlationId = stateId.take(36),
+                                details = "stable=${stableForRetry.take(40)}"
+                            )
+                            val newUrl = com.example.data.repository.CdnManager.resolveMediaUrlFresh(stableForRetry)
                             kotlinx.coroutines.withContext(kotlinx.coroutines.Dispatchers.Main) {
-                                if (newUrl.isBlank() || videoUrl.isBlank()) {
+                                if (newUrl.isBlank() || newUrl.startsWith("vcdn://")) {
+                                    com.example.feature.diagnostics.StoryDiagnostics.failed(
+                                        "Reintentar (UI)",
+                                        retryStart,
+                                        correlationId = stateId.take(36),
+                                        details = "noUrl=<blank>"
+                                    )
                                     onUnavailable?.invoke()
                                 } else {
+                                    com.example.feature.diagnostics.StoryDiagnostics.completed(
+                                        "Reintentar (UI)",
+                                        retryStart,
+                                        correlationId = stateId.take(36)
+                                    )
                                     session.onStateChanged = { s, p, b, pct, d ->
                                         isBuffering = (s == "BUFFERING" || s == "IDLE")
                                     }
-                                    session.play(stateId, newUrl.ifBlank { videoUrl }, isMuted, videoTrim)
+                                    session.play(stateId, newUrl.ifBlank { videoUrl }, isMuted, videoTrim, stableVideoUrl)
                                 }
                             }
                         }

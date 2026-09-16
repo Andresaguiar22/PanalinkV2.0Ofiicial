@@ -88,6 +88,11 @@ fun CleanStoryEditorScreen(
     var audioUploadFailed by remember { mutableStateOf(false) }
     var publishing by remember { mutableStateOf(false) }
 
+    // Límite de duración para historias de vídeo: 2 minutos (120 s).
+    val MAX_STORY_VIDEO_SECONDS = 120
+    // Diálogo de aviso cuando el clip excede el límite (no bloquea, solo informa).
+    var showOverlongClipDialog by remember { mutableStateOf(false) }
+
     var audioPlayer by remember { mutableStateOf<android.media.MediaPlayer?>(null) }
     var audioPlaying by remember { mutableStateOf(false) }
 
@@ -203,16 +208,20 @@ fun CleanStoryEditorScreen(
         else -> mediaUri != null
     }
 
-    fun uploadStory() {
-        if (publishing) return
-        if (!canPublish()) {
-            Toast.makeText(
-                context,
-                if (mode == StoryMode.TEXT) "Escribe un texto para tu historia" else "Elige una imagen o vídeo",
-                Toast.LENGTH_SHORT
-            ).show()
-            return
+    fun queryVideoDurationMs(uri: android.net.Uri?): Long {
+        if (uri == null) return 0L
+        return try {
+            android.media.MediaMetadataRetriever().use { retriever ->
+                retriever.setDataSource(context, uri)
+                val d = retriever.extractMetadata(android.media.MediaMetadataRetriever.METADATA_KEY_DURATION)
+                d?.toLongOrNull() ?: 0L
+            }
+        } catch (_: Exception) {
+            0L
         }
+    }
+
+    fun performPublish(mediaFile: java.io.File? = null) {
         if (isUploadingAudio) {
             Toast.makeText(context, "Subiendo audio, espera…", Toast.LENGTH_SHORT).show()
             return
@@ -243,10 +252,64 @@ fun CleanStoryEditorScreen(
                 uri = mediaUri!!,
                 mimeType = mediaMime ?: if (isVideo) "video/mp4" else "image/jpeg",
                 caption = caption,
-                audioUrl = resolvedAudioUrl
+                audioUrl = resolvedAudioUrl,
+                mediaFile = mediaFile
             )
         }
         onBack()
+    }
+
+    // El usuario aceptó publicar un video de más de 2 minutos: se trunca el clip
+    // a los primeros 120s (stream-copy, sin recodificar) para respetar el límite.
+    // Si el truncado falla por cualquier motivo, se publica el original intacto.
+    fun confirmOverlongPublish() {
+        showOverlongClipDialog = false
+        val mUri = mediaUri
+        if (mUri == null) { performPublish(); return }
+        try {
+            val pendingMediaDir = java.io.File(context.filesDir, "pending_media")
+            if (!pendingMediaDir.exists()) pendingMediaDir.mkdirs()
+            val src = java.io.File.createTempFile("overlong_src_", ".mp4", pendingMediaDir)
+            context.contentResolver.openInputStream(mUri)?.use { input ->
+                src.outputStream().use { out -> input.copyTo(out) }
+            }
+            val out = java.io.File(pendingMediaDir, "story_${System.currentTimeMillis()}.mp4")
+            val ok = com.example.util.VideoTruncatorHelper.truncateToMs(
+                src.absolutePath,
+                out.absolutePath,
+                MAX_STORY_VIDEO_SECONDS * 1000L
+            )
+            src.delete()
+            if (ok) {
+                performPublish(mediaFile = out)
+            } else {
+                out.delete()
+                performPublish()
+            }
+        } catch (e: Exception) {
+            performPublish()
+        }
+    }
+
+    fun uploadStory() {
+        if (publishing) return
+        if (!canPublish()) {
+            Toast.makeText(
+                context,
+                if (mode == StoryMode.TEXT) "Escribe un texto para tu historia" else "Elige una imagen o vídeo",
+                Toast.LENGTH_SHORT
+            ).show()
+            return
+        }
+        // Límite de 2 minutos para vídeo en historias: avisar (no bloquear) si se excede.
+        if (mode == StoryMode.VIDEO && mediaUri != null) {
+            val durationMs = queryVideoDurationMs(mediaUri)
+            if (durationMs > 0L && durationMs > MAX_STORY_VIDEO_SECONDS * 1000L) {
+                showOverlongClipDialog = true
+                return
+            }
+        }
+        performPublish()
     }
 
     Column(
@@ -540,6 +603,31 @@ fun CleanStoryEditorScreen(
             Spacer(Modifier.height(24.dp))
             }
         }
+    }
+
+    if (showOverlongClipDialog) {
+        AlertDialog(
+            onDismissRequest = { showOverlongClipDialog = false },
+            title = { Text("Tu vídeo dura más de 2 minutos", color = Color.White) },
+            text = {
+                Text(
+                    "Las historias de vídeo tienen un límite de 2 minutos. Tu vídeo se publicará " +
+                        "recortado a los primeros 2 minutos; el resto no se verá. ¿Quieres continuar?",
+                    color = Color.White.copy(alpha = 0.85f)
+                )
+            },
+            confirmButton = {
+                TextButton(onClick = { confirmOverlongPublish() }) {
+                    Text("Recortar y publicar", color = Color(0xFF00FF85))
+                }
+            },
+            dismissButton = {
+                TextButton(onClick = { showOverlongClipDialog = false }) {
+                    Text("Cancelar", color = Color.White.copy(alpha = 0.7f))
+                }
+            },
+            containerColor = Color(0xFF1E2D35)
+        )
     }
 }
 

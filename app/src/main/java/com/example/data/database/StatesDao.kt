@@ -26,6 +26,16 @@ interface StatesDao {
     @Query("DELETE FROM user_states WHERE expiresAt IS NOT NULL AND expiresAt < :now")
     suspend fun deleteExpired(now: String)
 
+    /**
+     * Removes local rows that are no longer present in the remote snapshot,
+     * except those the user explicitly saved (favorited). This is what makes a
+     * story/reel deleted by its author disappear from other users' cached feeds:
+     * Room is the reactive source for the UI (getLocalStatesFlow), so without a
+     * purge here a deleted state stays visible until it naturally expires.
+     */
+    @Query("DELETE FROM user_states WHERE id NOT IN (:keepIds) AND favoritedByMe = 0")
+    suspend fun deleteStatesNotIn(keepIds: Collection<String>)
+
     @Query("UPDATE user_states SET localVideoPath = :path WHERE id = :id")
     suspend fun updateLocalPath(id: String, path: String?)
 

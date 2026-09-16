@@ -1,0 +1,15 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!--
+  Story video surface.
+  surface_type="texture_view" is deliberate and mirrors the reel player: a
+  TextureView participates in the normal view/Compose draw order, so the
+  story overlay (progress, reactions, menus) stays visible on top and the
+  surface follows the viewer's pager/layout without SurfaceFlinger punch-through.
+  resize_mode/use_controller are set from the VideoPlayer composable.
+-->
+<androidx.media3.ui.PlayerView xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:background="@android:color/black"
+    app:surface_type="texture_view" />

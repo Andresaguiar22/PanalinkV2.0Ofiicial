@@ -6,8 +6,8 @@ import androidx.annotation.OptIn
 import androidx.media3.common.MediaItem
 import androidx.media3.common.Player
 import androidx.media3.common.util.UnstableApi
+import androidx.media3.exoplayer.DefaultLoadControl
 import androidx.media3.exoplayer.ExoPlayer
-import androidx.media3.exoplayer.trackselection.AdaptiveTrackSelection
 import androidx.media3.exoplayer.trackselection.DefaultTrackSelector
 import com.example.data.repository.CdnManager
 import java.util.concurrent.atomic.AtomicBoolean
@@ -24,11 +24,29 @@ import kotlinx.coroutines.launch
  * reproduciéndose el clip visible. Si existe VideoTrim, la posición es relativa
  * al inicio del trim y la duración efectiva se recalcula contra la duración real
  * del player para evitar que una duración HLS/metadata incorrecta desincronice la barra.
+ *
+ * Configuración alineada con el motor de reels ([com.example.reels.engine.ReelPlayerPool]):
+ * - Renderers con preferencia de HARDWARE (FFmpeg solo como fallback) —
+ *   antes se usaba preferSoftware=true, lo que decodificaba todos los vídeos
+ *   VCDN por software y arriesgaba CodecException/stutter en clips largos.
+ * - Track selector forzando la máxima resolución/bitrate disponibles.
+ * - LoadControl fast-start (300 ms para iniciar, margen amplio post-rebuffer).
+ * - Recuperación reactiva de URL firmada caducada: VCDN expira el token ~60 s,
+ *   el error HTTP 401 (código Media3 2004) re-resuelve el puntero `vcdn://`
+ *   con [CdnManager.resolveMediaUrlFresh] y reanuda desde la misma posición.
  */
 @OptIn(UnstableApi::class)
 class StoryVideoPlayerSession(private val context: Context) {
     private val TAG = "StoryVideoPlayer"
     private val MAX_RETRIES = 2
+
+    companion object {
+        // Media3 error 2004 = HTTP 401 (expired signed token) — triggers the
+        // reactive re-resolution path. Like the reel player (v1.3.35), the only
+        // defense against VCDN token expiry is REACTIVE: never swap the media item
+        // proactively, which would discard the buffered ranges and recreate codecs.
+        private const val PLAYBACK_ERROR_HTTP_401 = 2004
+    }
 
     var stateId: String = ""
         private set
@@ -44,6 +62,10 @@ class StoryVideoPlayerSession(private val context: Context) {
     private var retryCount = 0
     private var isReleased = AtomicBoolean(false)
     private var lastVideoUrl: String = ""
+    /** Puntero estable (`vcdn://{id}` o URL convencional) usado para re-resolver
+     *  la URL firmada cuando caduca (HTTP 401). Para VCDN, [lastVideoUrl] es
+     *  una URL firmada efímera; re-resolverla a ciegas repetía el mismo token. */
+    private var lastStableVideoUrl: String = ""
     private var lastIsMuted: Boolean = false
     private var lastTrim: Pair<Float, Float>? = null
     private val retryScope = CoroutineScope(Dispatchers.Main.immediate + SupervisorJob())
@@ -125,17 +147,28 @@ class StoryVideoPlayerSession(private val context: Context) {
     }
 
     private fun createPlayer(): ExoPlayer {
-        val loadControl = StoryVideoLoadControl.create()
-        val trackSelector = DefaultTrackSelector(
-            context,
-            AdaptiveTrackSelection.Factory()
-        ).apply {
-            setParameters(buildUponParameters().clearVideoSizeConstraints())
+        // Same fast-start tuning as the reel pool: start almost immediately with
+        // 300 ms of buffered data, allow a wide margin after a rebuffer so a long
+        // VCDN clip does not stall while the player refills after a URL swap.
+        val loadControl = DefaultLoadControl.Builder()
+            .setBufferDurationsMs(
+                10_000,  // minBufferMs: keep 10s (long HLS VCDN segments)
+                60_000,  // maxBufferMs
+                300,     // bufferForPlaybackMs: fast start
+                6_000    // bufferForPlaybackAfterRebufferMs: tolerant after hiccup
+            )
+            .setBackBuffer(4_000, true)
+            .setPrioritizeTimeOverSizeThresholds(true)
+            .build()
+        val trackSelector = DefaultTrackSelector(context).apply {
+            setParameters(
+                buildUponParameters()
+                    .clearVideoSizeConstraints()
+                    .setMaxVideoSize(Int.MAX_VALUE, Int.MAX_VALUE)
+                    .setMaxVideoBitrate(Int.MAX_VALUE)
+            )
         }
-        val player = ExoPlayer.Builder(
-            context,
-            PanaRenderersFactory.create(context, preferSoftware = true)
-        )
+        val player = ExoPlayer.Builder(context, PanaRenderersFactory.create(context))
             .setTrackSelector(trackSelector)
             .setMediaSourceFactory(
                 androidx.media3.exoplayer.source.DefaultMediaSourceFactory(context)
@@ -147,6 +180,7 @@ class StoryVideoPlayerSession(private val context: Context) {
                     )
             )
             .setLoadControl(loadControl)
+            .setHandleAudioBecomingNoisy(true)
             .build()
         player.repeatMode = Player.REPEAT_MODE_OFF
         player.addListener(object : Player.Listener {
@@ -165,6 +199,11 @@ class StoryVideoPlayerSession(private val context: Context) {
                 )
 
                 if (playbackState == Player.STATE_READY) {
+                    com.example.feature.diagnostics.StoryDiagnostics.event(
+                        "READY",
+                        correlationId = stateId.take(36),
+                        details = "pos=${player.currentPosition}, duration=${player.duration}"
+                    )
                     onReady?.invoke()
 
                     val trim = lastTrim
@@ -228,27 +267,93 @@ class StoryVideoPlayerSession(private val context: Context) {
             }
 
             override fun onPlayerError(error: androidx.media3.common.PlaybackException) {
+                val isVcdn = com.example.data.repository.VcdnUrlResolver.isVcdnUrl(lastStableVideoUrl)
+                val errUrlHost = try { java.net.URI(lastVideoUrl).host } catch (_: Exception) { "" }
+                com.example.feature.diagnostics.StoryDiagnostics.failed(
+                    "Player error ($stateId)",
+                    correlationId = stateId.take(36),
+                    details = "code=${error.errorCode}, name=${error.errorCodeName}, isVcdn=$isVcdn, host=$errUrlHost"
+                )
                 Log.e(
                     TAG,
                     "stateId=$stateId ERROR code=${error.errorCode} name=${error.errorCodeName} msg=${error.message}"
                 )
-                if (retryCount < MAX_RETRIES && !isReleased.get() && com.example.util.NetworkMonitor.isOnline.value) {
+                // Reactive expiry recovery (mirrors ReelPlayerPool.handlePlayerError):
+                // a VCDN signed URL expiring mid-playback surfaces as HTTP 401 (2004).
+                // Re-resolve from the STABLE pointer (vcdn://) — the current URL is
+                // a one-time signed token and re-minting it directly returns the same
+                // expired value. Preserve position so the story resumes where it cut.
+                val isExpiredToken = error.errorCode == PLAYBACK_ERROR_HTTP_401 &&
+                    com.example.data.repository.VcdnUrlResolver.isVcdnUrl(lastStableVideoUrl)
+                if (retryCount < MAX_RETRIES && !isReleased.get() &&
+                    com.example.util.NetworkMonitor.isOnline.value && isExpiredToken
+                ) {
                     retryCount++
-                    Log.w(TAG, "stateId=$stateId retry $retryCount re-resolviendo URL")
+                    Log.w(TAG, "stateId=$stateId HTTP 401: re-resolviendo URL firmada")
                     val expectedStateId = stateId
-                    val expectedVideoUrl = lastVideoUrl
+                    val expectedStableUrl = lastStableVideoUrl
+                    val positionMs = player.currentPosition.coerceAtLeast(0L)
+                    com.example.feature.diagnostics.StoryDiagnostics.started(
+                        "Recuperación 401",
+                        correlationId = stateId.take(36),
+                        details = "attempt=$retryCount, position=$positionMs"
+                    )
+                    val recoveryStart = System.currentTimeMillis()
                     retryScope.launch {
                         val freshUrl = runCatching {
-                            CdnManager.resolveMediaUrl(expectedVideoUrl)
+                            CdnManager.resolveMediaUrlFresh(expectedStableUrl)
                         }.getOrDefault("")
-                        if (isReleased.get() || stateId != expectedStateId || lastVideoUrl != expectedVideoUrl) {
+                        if (isReleased.get() || stateId != expectedStateId || lastStableVideoUrl != expectedStableUrl) {
                             return@launch
                         }
-                        if (freshUrl.isNotBlank()) {
-                            player.setMediaItem(MediaItem.fromUri(freshUrl))
-                            player.prepare()
-                            player.play()
+                        // forceRefresh re-solving to the SAME URL that already 401'd
+                        // means the BFF minted a dead token (or the video is gone but a
+                        // stale-cache fallback re-served it). Re-preparing the same URL is
+                        // pointless — it will 401 again in a loop. Invalidate VCDN memory
+                        // so the NEXT user retry hits the BFF from scratch, and surface a
+                        // definitive error now.
+                        val isSameDeadUrl = freshUrl == lastVideoUrl
+                        if (isSameDeadUrl) {
+                            com.example.data.repository.VcdnUrlResolver.invalidate(expectedStableUrl)
+                            com.example.feature.diagnostics.StoryDiagnostics.failed(
+                                "Recuperación 401",
+                                recoveryStart,
+                                correlationId = stateId.take(36),
+                                details = "attempt=$retryCount, sameUrl=true, cacheInvalidated=1"
+                            )
+                            onError?.invoke(stateId, error.errorCodeName ?: "", error.errorCode)
+                            return@launch
+                        }
+                        if (freshUrl.isNotBlank() && !freshUrl.startsWith("vcdn://")) {
+                            lastVideoUrl = freshUrl
+                            try {
+                                player.setMediaItem(MediaItem.fromUri(freshUrl))
+                                player.prepare()
+                                player.seekTo(positionMs)
+                                player.play()
+                                com.example.feature.diagnostics.StoryDiagnostics.completed(
+                                    "Recuperación 401",
+                                    recoveryStart,
+                                    correlationId = stateId.take(36),
+                                    details = "attempt=$retryCount"
+                                )
+                            } catch (_: IllegalStateException) {
+                                // Player being torn down between the check and the swap.
+                                com.example.feature.diagnostics.StoryDiagnostics.failed(
+                                    "Recuperación 401",
+                                    recoveryStart,
+                                    correlationId = stateId.take(36),
+                                    details = "attempt=$retryCount, ise=true"
+                                )
+                                onError?.invoke(stateId, error.errorCodeName ?: "", error.errorCode)
+                            }
                         } else {
+                            com.example.feature.diagnostics.StoryDiagnostics.failed(
+                                "Recuperación 401",
+                                recoveryStart,
+                                correlationId = stateId.take(36),
+                                details = "attempt=$retryCount, noFreshUrl=${freshUrl.isNullOrBlank()}"
+                            )
                             onError?.invoke(stateId, error.errorCodeName ?: "", error.errorCode)
                         }
                     }
@@ -260,15 +365,35 @@ class StoryVideoPlayerSession(private val context: Context) {
         return player
     }
 
-    fun play(newStateId: String, videoUrl: String, isMuted: Boolean, videoTrim: Pair<Float, Float>?) {
+    /**
+     * @param stableVideoUrl puntero estable (`vcdn://{id}`, copia local o URL
+     *   convencional) del que se re-resuelve una URL firmada caducada. Puede ser
+     *   la misma que [videoUrl] cuando no hay puntero VCDN.
+     * @param videoUrl URL ya resuelta y reproducible; nunca un `vcdn://` a secas.
+     */
+    fun play(
+        newStateId: String,
+        videoUrl: String,
+        isMuted: Boolean,
+        videoTrim: Pair<Float, Float>?,
+        stableVideoUrl: String? = null,
+    ) {
         stateId = newStateId
         retryCount = 0
         lastVideoUrl = videoUrl
+        lastStableVideoUrl = stableVideoUrl?.takeIf { it.isNotBlank() } ?: videoUrl
         lastIsMuted = isMuted
         lastTrim = videoTrim
         player.volume = if (isMuted) 0f else 1f
         val currentUri = player.currentMediaItem?.localConfiguration?.uri?.toString()
-        if (player.currentMediaItem == null || currentUri != videoUrl) {
+        val isSwap = player.currentMediaItem == null || currentUri != videoUrl
+        val playHost = try { java.net.URI(videoUrl).host } catch (_: Exception) { "" }
+        com.example.feature.diagnostics.StoryDiagnostics.event(
+            if (isSwap) "Play iniciado" else "Play reanudado",
+            correlationId = newStateId.take(36),
+            details = "isVcdn=${com.example.data.repository.VcdnUrlResolver.isVcdnUrl(lastStableVideoUrl)}, host=$playHost, trim=${videoTrim != null}"
+        )
+        if (isSwap) {
             player.setMediaItem(MediaItem.fromUri(videoUrl))
             player.prepare()
             player.play()

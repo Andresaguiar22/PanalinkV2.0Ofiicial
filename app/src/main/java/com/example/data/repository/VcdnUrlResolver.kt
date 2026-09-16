@@ -63,6 +63,22 @@ object VcdnUrlResolver {
         return raw.startsWith("$SCHEME://")
     }
 
+    /**
+     * Invalidates BOTH the cached signed URL and the negative cache for a video.
+     *
+     * After a 401 that cannot be recovered (the CDN rejected even the force-refresh
+     * URL, see StoryVideoPlayerSession), the in-memory cache may hold a dead signed
+     * URL that keeps being re-served. Clearing it forces the next resolve to hit
+     * the BFF again, so a genuinely deleted video fails ONCE as "unavailable"
+     * instead of looping 401 on a stale token.
+     */
+    fun invalidate(originalUrl: String?) {
+        val id = videoIdOf(originalUrl ?: return) ?: return
+        cache.remove(id)
+        notFoundUntil.remove(id)
+        Log.i(TAG, "cache invalidated for $id")
+    }
+
     fun videoIdOf(url: String): String? {
         val u = Uri.parse(url)
         if (u.scheme?.lowercase() != SCHEME) return null
