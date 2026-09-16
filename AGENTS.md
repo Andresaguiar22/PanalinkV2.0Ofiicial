@@ -325,3 +325,19 @@ cd /workspace/project/PanalinkV2.0Ofiicial/.toolchain && nohup python3 serve_ran
 
 ### Estado actual beta
 * Rama: `origin/kilo/voice-room-toolbox`. Beta: `v1.3.40-beta`, code `67`, SHA `6b284539f19aab030faec9868638a0e8e7f08946620c727d479a58763184015e`, package `com.panalink.app.beta`, firma `CN=Panalink Beta`, ABIs `arm64-v8a`+`armeabi-v7a`. URL fija en host `work-2-…` puerto 12001.
+
+### 🔧 Fix: marcos (colgantes) concéntricos con el avatar (sesión 2026-09-16, rama `kilo/premium-effects`)
+* **Síntoma**: el marco aparecía desplazado ~16 dp abajo-derecha del avatar (lo rodeaba por un lado y se salía por el otro) y la etiqueta del nombre caía más abajo que en los asientos vecinos.
+* **Causa**: en `VoiceRoomRedesignedSeat`/`VoiceRoomHostSeat` el `Box` del asiento crece al tamaño del colgante (`VoiceRoomPendant` usa `size * 1.6f` ≈ 86 dp vs 54 dp del avatar) y el avatar quedaba anclado en `TopStart` mientras el marco se centraba → desplazamiento `(86.4 - 54) / 2 ≈ 16 dp` en X e Y (marco no concéntrico).
+* **Fix** (commit `4c868dc`): `Box(contentAlignment = Alignment.Center)` en el contenedor del asiento (sillón del anfitrión + asientos de invitados). Sin colgante el Box mide exactamente el avatar, así que el layout no cambia (zero regression); el badge "Anfitrión" y el de nivel conservan su anclaje.
+* **Beta**: `v1.3.41-beta`, code `68`, SHA `77bd9623318c4bc44ddca8065cacebe89efaef6b462a783b56e91925e920f116` (misma firma `CN=Panalink Beta`, se instala encima de la anterior).
+
+### 📥 Entrega del APK al teléfono (anti "paquete no válido")
+* **Servir SIEMPRE con nombre versionado** (ej. `Panalink-BETA-v1.3.41-code68.apk`), nunca reusar `Panalink-BETA-apk-debug.apk`: el móvil guarda el parcial/descarga previa con el mismo nombre y al "reanudar" mezcla bytes de dos builds distintos → Android dice **paquete no válido**.
+* Cabeceras obligatorias: `Accept-Ranges: bytes` (206), `Content-Length` exacto y `Cache-Control: no-store`.
+* **Dos URLs independientes** para descartar cortes del ingress:
+  - puerto **12001**: `serve_range.py` sirviendo `/workspace/.../.toolchain/serve_apk/`.
+  - puerto **12000** (servidor de capturas, `upload_server.py`): ruta extra `/apk/<archivo>` con el mismo soporte de Range.
+* Diagnóstico del APK servido (debe pasar TODO antes de entregarlo): `sha256sum` local == descargado, `zipalign -c -v 4` → "Verification succesful", `apksigner verify` (v2 ok, `CN=Panalink Beta`), `aapt dump xmltree | grep extractNativeLibs` → `0xffffffff`, y `lib/` con `arm64-v8a`+`armeabi-v7a`.
+* Si aun así falla en el móvil: **desinstalar "PanaLink Beta" antes de instalar** (un conflicto de firma se reporta en muchas ROMs como "paquete no válido") y confirmar que el tamaño del archivo descargado es exactamente el del compilado (bytes, no "MB" redondeados).
+
