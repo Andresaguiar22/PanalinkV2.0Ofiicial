@@ -789,12 +789,18 @@ fun UserStoryViewer(
 
 
 
-    // Safety: si un video jamas emite STATE_ENDED (red/decoder atascado(, no dejar
-    // la story colgada: se avanza tras 30s como fallback. Nunca corta un video vivo::
-    LaunchedEffect(currentStatusIndex, isPaused, isContentLoaded, videoEnded) {
+    // Safety: si un video jamas emite STATE_ENDED (red/decoder atascado), no dejar
+    // la story colgada: se avanza tras la duración real + margen como fallback.
+    // El fallback NUNCA debe ser menor que la duración del video: un clip largo
+    // (hasta 2 min permitidos) se cortaría prematuramente con un tiempo fijo.
+    LaunchedEffect(currentStatusIndex, isPaused, isContentLoaded, videoEnded, currentDurationMs) {
         val isVideo = userStates.getOrNull(currentStatusIndex)?.state?.mediaType?.contains("video", ignoreCase = true) == true
         if (!isVideo) return@LaunchedEffect
-        kotlinx.coroutines.delay(30_000L)
+        // Espera la duración real (si ya se conoce) más un margen de 5s; nunca menos de 30s
+        // (red/decode lento) pero tampoco un corte anticipado para clips largos.
+        val knownDurationMs = currentDurationMs.takeIf { it > 0L } ?: 0L
+        val fallbackMs = maxOf(knownDurationMs + 5_000L, 30_000L)
+        kotlinx.coroutines.delay(fallbackMs)
         if (!isPaused && isContentLoaded && !videoEnded) {
             videoEnded = true
             if (currentStatusIndex < userStates.lastIndex) {
