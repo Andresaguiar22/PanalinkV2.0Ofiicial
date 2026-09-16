@@ -1,7 +1,10 @@
 package com.example.live.domain.repository
 
 import com.example.live.domain.model.LiveComment
+import com.example.live.domain.model.LiveGift
+import com.example.live.domain.model.LiveGiftResult
 import com.example.live.domain.model.LiveStream
+import com.example.live.domain.model.LiveStreamStats
 
 data class LiveTokenResult(
     val token: String,
@@ -19,4 +22,12 @@ interface LiveRepository {
     suspend fun getLiveKitToken(roomName: String, identity: String, role: String): Result<LiveTokenResult>
     suspend fun getComments(streamId: String): Result<List<LiveComment>>
     suspend fun postComment(streamId: String, text: String): Result<LiveComment>
+
+    suspend fun getStats(streamId: String): Result<LiveStreamStats>
+    suspend fun sendLikes(streamId: String, quantity: Int): Result<Int>
+    suspend fun getGiftCatalog(): Result<List<LiveGift>>
+    suspend fun getWalletBalance(): Result<Int>
+    suspend fun sendGift(streamId: String, giftCode: String, quantity: Int): Result<LiveGiftResult>
+    suspend fun setViewerCount(streamId: String, count: Int): Result<Unit>
+    suspend fun registerJoin(streamId: String): Result<Boolean>
 }

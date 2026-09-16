@@ -2,15 +2,16 @@ package com.example.live.data.remote
 
 import android.util.Log
 import com.example.data.supabase.SupabaseClient
-import kotlinx.coroutines.CoroutineScope
-import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.SupervisorJob
+import com.example.live.domain.model.LivePresenceEvent
+import kotlinx.coroutines.flow.MutableSharedFlow
 import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.SharedFlow
 import kotlinx.coroutines.flow.StateFlow
+import kotlinx.coroutines.flow.asSharedFlow
 import kotlinx.coroutines.flow.asStateFlow
-import kotlinx.coroutines.launch
 import okhttp3.*
 import org.json.JSONObject
+import java.util.concurrent.ConcurrentHashMap
 import java.util.concurrent.TimeUnit
 
 class LivePresenceManager(
@@ -18,10 +19,15 @@ class LivePresenceManager(
     private val userId: String
 ) {
     private val TAG = "LivePresenceManager"
-    private val scope = CoroutineScope(Dispatchers.IO + SupervisorJob())
 
     private val _viewerCount = MutableStateFlow(1)
     val viewerCount: StateFlow<Int> = _viewerCount.asStateFlow()
+
+    private val _presenceEvents = MutableSharedFlow<LivePresenceEvent>(extraBufferCapacity = 64)
+    val presenceEvents: SharedFlow<LivePresenceEvent> = _presenceEvents.asSharedFlow()
+
+    /** Miembros presentes ahora mismo (claves de presencia = user id). */
+    private val present = ConcurrentHashMap.newKeySet<String>()
 
     private val client = OkHttpClient.Builder()
         .connectTimeout(30, TimeUnit.SECONDS)
@@ -66,17 +72,52 @@ class LivePresenceManager(
             override fun onMessage(ws: WebSocket, text: String) {
                 try {
                     val obj = JSONObject(text)
-                    val event = obj.optString("event")
-                    if (event == "presence_state" || event == "presence_diff") {
-                        val payload = obj.optJSONObject("payload")
-                        val count = payload?.keys()?.asSequence()?.count() ?: 1
-                        scope.launch { _viewerCount.value = count.coerceAtLeast(1) }
+                    when (obj.optString("event")) {
+                        "presence_state" -> handlePresenceState(obj.optJSONObject("payload"))
+                        "presence_diff" -> handlePresenceDiff(obj.optJSONObject("payload"))
                     }
                 } catch (e: Exception) {
                     Log.w(TAG, "Error parsing presence message", e)
                 }
             }
+
+            override fun onFailure(ws: WebSocket, t: Throwable, response: Response?) {
+                Log.w(TAG, "Presence socket failure: ${t.message}")
+            }
         })
+    }
+
+    private fun handlePresenceState(payload: JSONObject?) {
+        val state = payload ?: return
+        val keys = state.keys().asSequence().toList()
+        present.clear()
+        present.addAll(keys)
+        publishCount()
+    }
+
+    private fun handlePresenceDiff(payload: JSONObject?) {
+        val diff = payload ?: return
+        diff.optJSONObject("joins")?.let { joins ->
+            joins.keys().asSequence().forEach { key ->
+                val isNew = present.add(key)
+                if (isNew && key != userId) {
+                    _presenceEvents.tryEmit(LivePresenceEvent.Joined(key))
+                }
+            }
+        }
+        diff.optJSONObject("leaves")?.let { leaves ->
+            leaves.keys().asSequence().forEach { key ->
+                val removed = present.remove(key)
+                if (removed && key != userId) {
+                    _presenceEvents.tryEmit(LivePresenceEvent.Left(key))
+                }
+            }
+        }
+        publishCount()
+    }
+
+    private fun publishCount() {
+        _viewerCount.value = present.size.coerceAtLeast(1)
     }
 
     fun stop() {
@@ -86,5 +127,6 @@ class LivePresenceManager(
             webSocket?.close(1000, "leave")
         } catch (_: Exception) {}
         webSocket = null
+        present.clear()
     }
 }

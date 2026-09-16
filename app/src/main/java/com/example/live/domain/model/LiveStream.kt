@@ -14,5 +14,16 @@ data class LiveStream(
     @Json(name = "status") val status: String,
     @Json(name = "viewer_count") val viewerCount: Int = 0,
     @Json(name = "started_at") val startedAt: String?,
-    @Json(name = "ended_at") val endedAt: String?
+    @Json(name = "ended_at") val endedAt: String?,
+    @Json(name = "live_stream_stats") val stats: LiveStreamStats? = null
+)
+
+/** Contadores agregados de una transmisión (tabla public.live_stream_stats). */
+@JsonClass(generateAdapter = true)
+data class LiveStreamStats(
+    @Json(name = "stream_id") val streamId: String,
+    @Json(name = "like_count") val likeCount: Int = 0,
+    @Json(name = "gift_count") val giftCount: Int = 0,
+    @Json(name = "gift_coins") val giftCoins: Long = 0,
+    @Json(name = "viewer_count") val viewerCount: Int = 0
 )

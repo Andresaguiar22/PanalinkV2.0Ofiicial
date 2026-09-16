@@ -10,7 +10,9 @@ import java.util.concurrent.TimeUnit
 class LiveRealtimeManager(
     private val onLiveStreamChanged: () -> Unit,
     private val streamId: String? = null,
-    private val onCommentReceived: ((LiveComment) -> Unit)? = null
+    private val onCommentReceived: ((LiveComment) -> Unit)? = null,
+    private val onCommentUpdated: ((LiveComment) -> Unit)? = null,
+    private val liveStreamId: String? = null
 ) {
     private val TAG = "LiveRealtimeManager"
     private val client = OkHttpClient.Builder()
@@ -31,51 +33,10 @@ class LiveRealtimeManager(
         webSocket = client.newWebSocket(Request.Builder().url(wsUrl).build(), object : WebSocketListener() {
             override fun onOpen(ws: WebSocket, response: Response) {
                 isConnected = true
-                val joinStreamsMsg = JSONObject().apply {
-                    put("topic", "realtime:public:live_streams")
-                    put("event", "phx_join")
-                    put("payload", JSONObject().apply {
-                        put("config", JSONObject().apply {
-                            put("postgres_changes", org.json.JSONArray().apply {
-                                put(JSONObject().apply {
-                                    put("event", "*")
-                                    put("schema", "public")
-                                    put("table", "live_streams")
-                                })
-                            })
-                        })
-                        if (!token.isNullOrEmpty()) {
-                            put("user_token", token)
-                            put("access_token", token)
-                        }
-                    })
-                    put("ref", "live_streams_1")
-                }
-                ws.send(joinStreamsMsg.toString())
-
-                if (!streamId.isNullOrEmpty()) {
-                    val joinCommentsMsg = JSONObject().apply {
-                        put("topic", "realtime:public:live_comments")
-                        put("event", "phx_join")
-                        put("payload", JSONObject().apply {
-                            put("config", JSONObject().apply {
-                                put("postgres_changes", org.json.JSONArray().apply {
-                                    put(JSONObject().apply {
-                                        put("event", "INSERT")
-                                        put("schema", "public")
-                                        put("table", "live_comments")
-                                        put("filter", "stream_id=eq.$streamId")
-                                    })
-                                })
-                            })
-                            if (!token.isNullOrEmpty()) {
-                                put("user_token", token)
-                                put("access_token", token)
-                            }
-                        })
-                        put("ref", "live_comments_1")
-                    }
-                    ws.send(joinCommentsMsg.toString())
+                ws.send(buildJoin("live_streams", "live_streams_1", token, liveStreamId))
+                val joinedStreamId = streamId
+                if (!joinedStreamId.isNullOrEmpty()) {
+                    ws.send(buildJoin("live_comments", "live_comments_1", token, joinedStreamId))
                 }
             }
 
@@ -92,13 +53,12 @@ class LiveRealtimeManager(
                         } else if (table == "live_comments") {
                             val record = data.optJSONObject("record")
                             if (record != null) {
-                                val id = record.optString("id")
-                                val sId = record.optString("stream_id")
-                                val uId = record.optString("user_id")
-                                val txt = record.optString("text")
-                                val createdAt = record.optString("created_at")
-                                val comment = LiveComment(id, sId, uId, txt, createdAt)
-                                onCommentReceived?.invoke(comment)
+                                val comment = parseComment(record)
+                                if (data.optString("type") == "UPDATE") {
+                                    onCommentUpdated?.invoke(comment)
+                                } else {
+                                    onCommentReceived?.invoke(comment)
+                                }
                             }
                         }
                     }
@@ -116,6 +76,43 @@ class LiveRealtimeManager(
             }
         })
     }
+
+    private fun buildJoin(table: String, ref: String, token: String?, filterValue: String?): String {
+        val filterColumn = if (table == "live_comments") "stream_id" else "id"
+        return JSONObject().apply {
+            put("topic", "realtime:public:$table")
+            put("event", "phx_join")
+            put("payload", JSONObject().apply {
+                put("config", JSONObject().apply {
+                    put("postgres_changes", org.json.JSONArray().apply {
+                        put(JSONObject().apply {
+                            put("event", "*")
+                            put("schema", "public")
+                            put("table", table)
+                            if (!filterValue.isNullOrEmpty()) {
+                                put("filter", "$filterColumn=eq.$filterValue")
+                            }
+                        })
+                    })
+                })
+                if (!token.isNullOrEmpty()) {
+                    put("user_token", token)
+                    put("access_token", token)
+                }
+            })
+            put("ref", ref)
+        }.toString()
+    }
+
+    private fun parseComment(record: JSONObject): LiveComment = LiveComment(
+        id = record.optString("id"),
+        streamId = record.optString("stream_id"),
+        userId = record.optString("user_id"),
+        text = record.optString("text"),
+        createdAt = record.optString("created_at"),
+        isDeleted = record.optBoolean("is_deleted", false),
+        kind = record.optString("kind", LiveComment.KIND_CHAT).ifEmpty { LiveComment.KIND_CHAT }
+    )
 
     fun stop() {
         try {

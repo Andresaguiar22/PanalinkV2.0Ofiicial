@@ -5,7 +5,10 @@ import android.util.Log
 import com.example.data.supabase.SupabaseClient
 import com.example.live.data.remote.LiveSupabaseApi
 import com.example.live.domain.model.LiveComment
+import com.example.live.domain.model.LiveGift
+import com.example.live.domain.model.LiveGiftResult
 import com.example.live.domain.model.LiveStream
+import com.example.live.domain.model.LiveStreamStats
 import com.example.live.domain.repository.LiveRepository
 import com.example.live.domain.repository.LiveTokenResult
 import okhttp3.OkHttpClient
@@ -233,6 +236,173 @@ class LiveRepositoryImpl(private val context: Context) : LiveRepository {
             }
         } catch (e: Exception) {
             Log.e(TAG, "Exception posting live comment", e)
+            Result.failure(e)
+        }
+    }
+
+    // --- Engagement real ---------------------------------------------------------
+
+    private fun rpcBody(vararg pairs: Pair<String, Any>): Map<String, Any> =
+        pairs.toMap()
+
+    private fun parseJsonMap(raw: String?): Map<String, Any>? {
+        val text = raw?.trim().orEmpty()
+        if (text.isEmpty()) return null
+        return try {
+            @Suppress("UNCHECKED_CAST")
+            SupabaseClient.moshi.adapter(Map::class.java).fromJson(text) as? Map<String, Any>
+        } catch (e: Exception) {
+            Log.e(TAG, "No se pudo parsear la respuesta RPC: $text", e)
+            null
+        }
+    }
+
+    private fun asBalance(map: Map<String, Any>?): Int =
+        (map?.get("balance") as? Number)?.toInt() ?: 0
+
+    private fun asInt(map: Map<String, Any>?, key: String): Int =
+        (map?.get(key) as? Number)?.toInt() ?: 0
+
+    private fun asBool(map: Map<String, Any>?, key: String): Boolean =
+        (map?.get(key) as? Boolean) ?: false
+
+    override suspend fun getStats(streamId: String): Result<LiveStreamStats> {
+        return try {
+            val response = api.getLiveStreamStats(
+                apiKey = SupabaseClient.supabaseAnonKey,
+                authorization = getAuthHeader(),
+                streamIdFilter = "eq.$streamId"
+            )
+            if (response.isSuccessful) {
+                val stats = response.body()?.firstOrNull()
+                    ?: LiveStreamStats(streamId = streamId)
+                Result.success(stats)
+            } else {
+                Result.failure(Exception("Error al obtener estadísticas: ${response.errorBody()?.string()}"))
+            }
+        } catch (e: Exception) {
+            Log.e(TAG, "Exception fetching live stats", e)
+            Result.failure(e)
+        }
+    }
+
+    override suspend fun sendLikes(streamId: String, quantity: Int): Result<Int> {
+        if (quantity <= 0) return Result.success(0)
+        return try {
+            val response = api.rpcSendLike(
+                apiKey = SupabaseClient.supabaseAnonKey,
+                authorization = getAuthHeader(),
+                body = rpcBody("p_stream_id" to streamId, "p_quantity" to quantity)
+            )
+            if (response.isSuccessful) {
+                val map = parseJsonMap(response.body()?.string())
+                Result.success(asInt(map, "like_count"))
+            } else {
+                Result.failure(Exception("Error al enviar reacciones: ${response.errorBody()?.string()}"))
+            }
+        } catch (e: Exception) {
+            Log.e(TAG, "Exception sending live likes", e)
+            Result.failure(e)
+        }
+    }
+
+    override suspend fun getGiftCatalog(): Result<List<LiveGift>> {
+        return try {
+            val response = api.getGiftCatalog(
+                apiKey = SupabaseClient.supabaseAnonKey,
+                authorization = getAuthHeader()
+            )
+            if (response.isSuccessful) {
+                Result.success(response.body() ?: emptyList())
+            } else {
+                Result.failure(Exception("Error al obtener el catálogo de regalos: ${response.errorBody()?.string()}"))
+            }
+        } catch (e: Exception) {
+            Log.e(TAG, "Exception fetching gift catalog", e)
+            Result.failure(e)
+        }
+    }
+
+    override suspend fun getWalletBalance(): Result<Int> {
+        return try {
+            val response = api.rpcWalletBalance(
+                apiKey = SupabaseClient.supabaseAnonKey,
+                authorization = getAuthHeader()
+            )
+            if (response.isSuccessful) {
+                Result.success(asBalance(parseJsonMap(response.body()?.string())))
+            } else {
+                Result.failure(Exception("Error al obtener el saldo: ${response.errorBody()?.string()}"))
+            }
+        } catch (e: Exception) {
+            Log.e(TAG, "Exception fetching wallet balance", e)
+            Result.failure(e)
+        }
+    }
+
+    override suspend fun sendGift(streamId: String, giftCode: String, quantity: Int): Result<LiveGiftResult> {
+        return try {
+            val response = api.rpcSendGift(
+                apiKey = SupabaseClient.supabaseAnonKey,
+                authorization = getAuthHeader(),
+                body = rpcBody(
+                    "p_stream_id" to streamId,
+                    "p_gift_code" to giftCode,
+                    "p_quantity" to quantity
+                )
+            )
+            if (response.isSuccessful) {
+                val map = parseJsonMap(response.body()?.string())
+                Result.success(
+                    LiveGiftResult(
+                        ok = asBool(map, "ok"),
+                        balance = asBalance(map),
+                        total = asInt(map, "total"),
+                        reason = map?.get("reason") as? String
+                    )
+                )
+            } else {
+                Result.failure(Exception("Error al enviar el regalo: ${response.errorBody()?.string()}"))
+            }
+        } catch (e: Exception) {
+            Log.e(TAG, "Exception sending live gift", e)
+            Result.failure(e)
+        }
+    }
+
+    override suspend fun setViewerCount(streamId: String, count: Int): Result<Unit> {
+        return try {
+            val response = api.rpcSetViewerCount(
+                apiKey = SupabaseClient.supabaseAnonKey,
+                authorization = getAuthHeader(),
+                body = rpcBody("p_stream_id" to streamId, "p_count" to count)
+            )
+            if (response.isSuccessful) {
+                Result.success(Unit)
+            } else {
+                Result.failure(Exception("Error al publicar espectadores: ${response.errorBody()?.string()}"))
+            }
+        } catch (e: Exception) {
+            Log.e(TAG, "Exception publishing viewer count", e)
+            Result.failure(e)
+        }
+    }
+
+    override suspend fun registerJoin(streamId: String): Result<Boolean> {
+        return try {
+            val response = api.rpcJoinStream(
+                apiKey = SupabaseClient.supabaseAnonKey,
+                authorization = getAuthHeader(),
+                body = rpcBody("p_stream_id" to streamId)
+            )
+            if (response.isSuccessful) {
+                val map = parseJsonMap(response.body()?.string())
+                Result.success(asBool(map, "inserted"))
+            } else {
+                Result.failure(Exception("Error al registrar la entrada: ${response.errorBody()?.string()}"))
+            }
+        } catch (e: Exception) {
+            Log.e(TAG, "Exception registering live join", e)
             Result.failure(e)
         }
     }

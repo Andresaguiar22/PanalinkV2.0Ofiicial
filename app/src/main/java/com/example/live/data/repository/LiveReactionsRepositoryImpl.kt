@@ -32,13 +32,19 @@ class LiveReactionsRepositoryImpl(private val context: Context) : LiveReactionsR
     override suspend fun sendReaction(streamId: String) {
         _reactionEvents.emit(Unit)
         try {
+            val senderId = SupabaseClient.currentUser?.id
             val payload = JSONObject().apply {
                 put("topic", "realtime:live_reactions:$streamId")
                 put("event", "broadcast")
                 put("payload", JSONObject().apply {
                     put("type", "broadcast")
                     put("event", "reaction")
-                    put("payload", JSONObject().apply { put("streamId", streamId) })
+                    put("payload", JSONObject().apply {
+                        put("streamId", streamId)
+                        put("senderId", senderId)
+                        put("quantity", 1)
+                        put("sentAt", System.currentTimeMillis())
+                    })
                 })
                 put("ref", "react_send")
             }

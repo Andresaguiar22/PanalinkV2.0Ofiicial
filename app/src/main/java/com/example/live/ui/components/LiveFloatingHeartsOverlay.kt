@@ -17,19 +17,21 @@ data class HeartItem(val id: Long = System.currentTimeMillis() + Random.nextLong
 
 @Composable
 fun LiveFloatingHeartsOverlay(
-    trigger: Unit?,
+    trigger: Long,
+    burst: Int = 1,
     modifier: Modifier = Modifier
 ) {
     val hearts = remember { mutableStateListOf<HeartItem>() }
 
     LaunchedEffect(trigger) {
-        if (trigger != null) {
+        if (trigger <= 0L) return@LaunchedEffect
+        repeat(burst.coerceIn(1, 5)) {
             hearts.add(HeartItem())
-            if (hearts.size > 25) hearts.removeAt(0)
         }
+        while (hearts.size > MAX_HEARTS) hearts.removeAt(0)
     }
 
-    Box(modifier = modifier.fillMaxSize(), contentAlignment = Alignment.BottomEnd) {
+    Box(modifier = modifier, contentAlignment = Alignment.BottomEnd) {
         hearts.forEach { heart ->
             key(heart.id) {
                 var offsetY by remember { mutableStateOf(0f) }
@@ -64,3 +66,5 @@ fun LiveFloatingHeartsOverlay(
         }
     }
 }
+
+private const val MAX_HEARTS = 25

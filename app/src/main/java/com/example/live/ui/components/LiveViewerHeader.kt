@@ -1,178 +1,171 @@
 package com.example.live.ui.components
 
+import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.background
+import androidx.compose.foundation.border
 import androidx.compose.foundation.layout.*
-import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.*
-import androidx.compose.material3.*
+import androidx.compose.material.icons.filled.Close
+import androidx.compose.material3.Icon
+import androidx.compose.material3.IconButton
+import androidx.compose.material3.Surface
+import androidx.compose.material3.Text
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.layout.ContentScale
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-import coil.compose.AsyncImage
-import com.example.data.supabase.SupabaseClient
+import androidx.lifecycle.compose.collectAsStateWithLifecycle
+import com.example.identity.bridge.LegacyIdentityBridge
+import com.example.identity.memory.IdentityMemoryCache
+import com.example.identity.model.toIdentityUiState
 import com.example.live.domain.model.LiveStream
+import com.example.live.ui.formatLiveCount
 import com.example.ui.components.PanaAvatar
-import com.example.ui.components.rememberAsyncMediaUrl
 
 @Composable
 fun LiveViewerHeader(
     liveStream: LiveStream?,
     viewerCount: Int,
+    likeCount: Int,
     elapsedSeconds: Int,
     onClose: () -> Unit,
-    onFollowClick: (() -> Unit)? = null,
-    onShareClick: (() -> Unit)? = null,
-    onReportClick: (() -> Unit)? = null,
     modifier: Modifier = Modifier
 ) {
-    var showMenu by remember { mutableStateOf(false) }
-    val currentUid = SupabaseClient.currentUser?.id ?: "anon"
-    val isFollowing by remember(liveStream?.hostId) { mutableStateOf(false) }
-    val scope = rememberCoroutineScope()
-    val resolvedThumbnailUrl = rememberAsyncMediaUrl(liveStream?.thumbnailUrl)
+    val hostId = liveStream?.hostId
+    val context = LocalContext.current
+    val bridge = remember(context) { LegacyIdentityBridge(context) }
+    val cached = remember(hostId) { hostId?.let { IdentityMemoryCache.profiles[it] } }
+
+    val identity by produceState(
+        initialValue = cached?.toIdentityUiState(),
+        key1 = hostId
+    ) {
+        if (hostId.isNullOrEmpty()) {
+            value = null
+        } else {
+            bridge.identityRepository.observeIdentity(hostId).collect { value = it }
+        }
+    }
+
+    val displayName = identity?.displayName?.takeIf { it.isNotBlank() }
+        ?: liveStream?.title?.takeIf { it.isNotBlank() }
+        ?: "Streamer"
 
     Row(
         modifier = modifier
             .fillMaxWidth()
-            .padding(horizontal = 12.dp)
-            .padding(top = 36.dp),
-        verticalAlignment = Alignment.CenterVertically
+            .padding(start = 12.dp, end = 8.dp, top = 12.dp),
+        verticalAlignment = Alignment.Top
     ) {
         Row(
             modifier = Modifier
                 .weight(1f)
-                .background(Color.Black.copy(alpha = 0.4f), CircleShape)
-                .padding(4.dp),
+                .clip(RoundedCornerShape(26.dp))
+                .background(Color.White.copy(alpha = 0.14f))
+                .border(0.5.dp, Color.White.copy(alpha = 0.18f), RoundedCornerShape(26.dp))
+                .padding(horizontal = 10.dp, vertical = 9.dp),
             verticalAlignment = Alignment.CenterVertically
         ) {
-            Box(modifier = Modifier.size(36.dp)) {
-                if (resolvedThumbnailUrl.isNotBlank()) {
-                    AsyncImage(
-                        model = resolvedThumbnailUrl,
-                        contentDescription = "Miniatura del live",
-                        modifier = Modifier
-                            .fillMaxSize()
-                            .clip(CircleShape),
-                        contentScale = ContentScale.Crop
-                    )
-                } else {
-                    Box(
-                        modifier = Modifier
-                            .fillMaxSize()
-                            .background(Color.Gray.copy(alpha = 0.5f), CircleShape),
-                        contentAlignment = Alignment.Center
-                    ) {
-                        Icon(
-                            imageVector = Icons.Default.Person,
-                            contentDescription = null,
-                            tint = Color.White.copy(alpha = 0.7f),
-                            modifier = Modifier.size(18.dp)
-                        )
-                    }
-                }
-            }
+            PanaAvatar(
+                userId = hostId,
+                size = 46.dp,
+                borderWidth = 2.dp,
+                borderColor = Color.White,
+                contentDescription = "Avatar de $displayName",
+                placeholderName = displayName
+            )
 
-            Column(modifier = Modifier.padding(horizontal = 10.dp)) {
-                Text(
-                    text = liveStream?.title ?: "Streamer",
-                    color = Color.White,
-                    fontSize = 12.sp,
-                    fontWeight = FontWeight.Bold,
-                    maxLines = 1,
-                    overflow = TextOverflow.Ellipsis
-                )
-                Text(
-                    text = "👁 ${viewerCount} · ${formatElapsed(elapsedSeconds)}",
-                    color = Color.LightGray,
-                    fontSize = 10.sp
-                )
-            }
+            Spacer(modifier = Modifier.width(10.dp))
 
-            if (liveStream?.hostId != currentUid) {
-                Spacer(modifier = Modifier.width(6.dp))
-                Button(
-                    onClick = {
-                        onFollowClick?.invoke()
-                    },
-                    colors = ButtonDefaults.buttonColors(containerColor = Color(0xFFFE2C55)),
-                    contentPadding = PaddingValues(horizontal = 10.dp, vertical = 0.dp),
-                    modifier = Modifier.height(28.dp),
-                    shape = RoundedCornerShape(14.dp)
-                ) {
+            Column(modifier = Modifier.weight(1f)) {
+                Row(verticalAlignment = Alignment.CenterVertically) {
                     Text(
-                        text = if (isFollowing) "Siguiendo" else "+ Seguir",
+                        text = displayName,
                         color = Color.White,
-                        fontSize = 10.sp,
-                        fontWeight = FontWeight.Bold
+                        fontSize = 14.sp,
+                        fontWeight = FontWeight.Bold,
+                        maxLines = 1,
+                        overflow = TextOverflow.Ellipsis,
+                        modifier = Modifier.weight(1f, fill = false)
                     )
+                    Spacer(modifier = Modifier.width(6.dp))
+                    LiveBadge()
+                }
+
+                Spacer(modifier = Modifier.height(6.dp))
+
+                Row(horizontalArrangement = Arrangement.spacedBy(6.dp)) {
+                    StatChip(label = "Espectadores:", value = formatLiveCount(viewerCount))
+                    StatChip(label = "Me gusta:", value = formatLiveCount(likeCount))
                 }
             }
         }
 
-        Spacer(modifier = Modifier.width(8.dp))
+        Spacer(modifier = Modifier.width(4.dp))
 
-        Box {
-            IconButton(
-                onClick = { showMenu = true },
-                modifier = Modifier.size(32.dp)
-            ) {
+        Surface(
+            shape = RoundedCornerShape(50),
+            color = Color.Black.copy(alpha = 0.35f),
+            modifier = Modifier.padding(top = 2.dp)
+        ) {
+            IconButton(onClick = onClose, modifier = Modifier.size(34.dp)) {
                 Icon(
-                    imageVector = Icons.Default.MoreVert,
-                    contentDescription = "Más opciones",
+                    imageVector = Icons.Default.Close,
+                    contentDescription = "Cerrar",
                     tint = Color.White,
                     modifier = Modifier.size(18.dp)
                 )
             }
-
-            DropdownMenu(
-                expanded = showMenu,
-                onDismissRequest = { showMenu = false },
-                modifier = Modifier.background(Color(0xFF1F2C34))
-            ) {
-                DropdownMenuItem(
-                    text = { Text("Compartir", color = Color.White, fontSize = 14.sp) },
-                    onClick = {
-                        showMenu = false
-                        onShareClick?.invoke()
-                    }
-                )
-                DropdownMenuItem(
-                    text = { Text("Reportar", color = Color(0xFFEF5350), fontSize = 14.sp) },
-                    onClick = {
-                        showMenu = false
-                        onReportClick?.invoke()
-                    }
-                )
-            }
-        }
-
-        IconButton(onClick = onClose, modifier = Modifier.size(32.dp)) {
-            Icon(
-                imageVector = Icons.Default.Close,
-                contentDescription = "Cerrar",
-                tint = Color.White,
-                modifier = Modifier.size(18.dp)
-            )
         }
     }
 }
 
-private fun formatElapsed(totalSeconds: Int): String {
-    val h = totalSeconds / 3600
-    val m = (totalSeconds % 3600) / 60
-    val s = totalSeconds % 60
-    return if (h > 0) {
-        String.format("%d:%02d:%02d", h, m, s)
-    } else {
-        String.format("%d:%02d", m, s)
+@Composable
+private fun LiveBadge() {
+    Surface(
+        shape = RoundedCornerShape(9.dp),
+        color = Color.White.copy(alpha = 0.22f),
+        border = BorderStroke(1.dp, Color.White.copy(alpha = 0.7f))
+    ) {
+        Text(
+            text = "LIVE",
+            color = Color.White,
+            fontSize = 9.sp,
+            fontWeight = FontWeight.Bold,
+            modifier = Modifier.padding(horizontal = 6.dp, vertical = 2.dp)
+        )
+    }
+}
+
+@Composable
+private fun StatChip(label: String, value: String) {
+    Surface(
+        shape = RoundedCornerShape(50),
+        color = Color.Black.copy(alpha = 0.22f)
+    ) {
+        Row(
+            modifier = Modifier.padding(horizontal = 8.dp, vertical = 3.dp),
+            verticalAlignment = Alignment.CenterVertically
+        ) {
+            Text(
+                text = label,
+                color = Color.White.copy(alpha = 0.85f),
+                fontSize = 11.sp
+            )
+            Spacer(modifier = Modifier.width(4.dp))
+            Text(
+                text = value,
+                color = Color.White,
+                fontSize = 11.sp,
+                fontWeight = FontWeight.Bold
+            )
+        }
     }
 }

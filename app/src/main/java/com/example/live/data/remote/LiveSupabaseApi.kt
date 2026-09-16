@@ -1,7 +1,9 @@
 package com.example.live.data.remote
 
 import com.example.live.domain.model.LiveComment
+import com.example.live.domain.model.LiveGift
 import com.example.live.domain.model.LiveStream
+import com.example.live.domain.model.LiveStreamStats
 import okhttp3.ResponseBody
 import retrofit2.Response
 import retrofit2.http.*
@@ -12,7 +14,7 @@ interface LiveSupabaseApi {
         @Header("apikey") apiKey: String,
         @Header("Authorization") authorization: String,
         @Query("status") status: String? = "eq.LIVE",
-        @Query("select") select: String = "*"
+        @Query("select") select: String = "*,live_stream_stats(*)"
     ): Response<List<LiveStream>>
 
     @GET("rest/v1/live_streams")
@@ -20,7 +22,7 @@ interface LiveSupabaseApi {
         @Header("apikey") apiKey: String,
         @Header("Authorization") authorization: String,
         @Query("id") idFilter: String,
-        @Query("select") select: String = "*"
+        @Query("select") select: String = "*,live_stream_stats(*)"
     ): Response<List<LiveStream>>
 
     @POST("rest/v1/live_streams")
@@ -67,4 +69,63 @@ interface LiveSupabaseApi {
         @Header("Authorization") authorization: String,
         @Body body: Map<String, String>
     ): Response<ResponseBody>
+
+    // --- Engagement real: estadísticas, reacciones, regalos y presencia ---------
+
+    @GET("rest/v1/live_stream_stats")
+    suspend fun getLiveStreamStats(
+        @Header("apikey") apiKey: String,
+        @Header("Authorization") authorization: String,
+        @Query("stream_id") streamIdFilter: String,
+        @Query("select") select: String = "*"
+    ): Response<List<LiveStreamStats>>
+
+    @GET("rest/v1/live_gifts")
+    suspend fun getGiftCatalog(
+        @Header("apikey") apiKey: String,
+        @Header("Authorization") authorization: String,
+        @Query("select") select: String = "*",
+        @Query("is_active") activeFilter: String = "eq.true",
+        @Query("order") order: String = "sort_order.asc"
+    ): Response<List<LiveGift>>
+
+    @POST("rest/v1/rpc/live_wallet_balance")
+    suspend fun rpcWalletBalance(
+        @Header("apikey") apiKey: String,
+        @Header("Authorization") authorization: String,
+        @Body body: Map<String, Any> = emptyMap()
+    ): Response<ResponseBody>
+
+    @POST("rest/v1/rpc/live_send_like")
+    suspend fun rpcSendLike(
+        @Header("apikey") apiKey: String,
+        @Header("Authorization") authorization: String,
+        @Body body: Map<String, Any>
+    ): Response<ResponseBody>
+
+    @POST("rest/v1/rpc/live_send_gift")
+    suspend fun rpcSendGift(
+        @Header("apikey") apiKey: String,
+        @Header("Authorization") authorization: String,
+        @Body body: Map<String, Any>
+    ): Response<ResponseBody>
+
+    @POST("rest/v1/rpc/live_set_viewer_count")
+    suspend fun rpcSetViewerCount(
+        @Header("apikey") apiKey: String,
+        @Header("Authorization") authorization: String,
+        @Body body: Map<String, Any>
+    ): Response<ResponseBody>
+
+    @POST("rest/v1/rpc/live_join_stream")
+    suspend fun rpcJoinStream(
+        @Header("apikey") apiKey: String,
+        @Header("Authorization") authorization: String,
+        @Body body: Map<String, Any>
+    ): Response<ResponseBody>
+
+    companion object {
+        /** live_streams + contadores agregados (relación uno-a-uno). */
+        const val LIVE_STREAM_SELECT = "*,live_stream_stats(*)"
+    }
 }

@@ -14,9 +14,12 @@ data class LiveGuest(
 
 enum class GuestStatus {
     PENDING,
+    INVITED,
     ACCEPTED,
     REJECTED,
     ACTIVE,
+    CONNECTED,
+    DISCONNECTED,
     REMOVED,
     LEFT
 }
