@@ -73,7 +73,11 @@ data class VoiceRoomUiState(
     val showSettings: Boolean = false,
     val bannedUsers: List<VoiceRoomBanDto> = emptyList(),
     val isSettingsSaving: Boolean = false,
-    val settingsMessage: String? = null
+    val settingsMessage: String? = null,
+    val entranceCode: String = "sparkle",
+    val pendantCode: String = "none",
+    val showToolbox: Boolean = false,
+    val entranceEvent: VoiceRoomEntranceEvent? = null
 ) {
     val mySeat: VoiceRoomSeat? get() = seats.firstOrNull { it.userId == myUserId }
     val isSeated: Boolean get() = mySeat != null
@@ -106,4 +110,17 @@ object VoiceRoomMessagesReducer {
         if (message.id.isEmpty() || messages.any { it.id == message.id }) return messages
         return (messages + message).takeLast(cap)
     }
+}
+
+data class VoiceRoomEntranceEvent(
+    val userId: String,
+    val entranceCode: String,
+    val displayName: String? = null,
+    val avatarUrl: String? = null
+)
+
+object VoiceRoomEntranceEventsReducer {
+    private const val MAX = 6
+    fun append(events: List<VoiceRoomEntranceEvent>, event: VoiceRoomEntranceEvent): List<VoiceRoomEntranceEvent> =
+        (events + event).takeLast(MAX)
 }
