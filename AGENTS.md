@@ -281,3 +281,39 @@ cd /workspace/project/PanalinkV2.0Ofiicial/.toolchain && nohup python3 serve_ran
 * **NUNCA publicar OTA** una rama en progreso ni una beta como release exceto cuando el equipo confirma que está fino.
 * **NUNCA instalar/toquetear** la app real de los usuarios desde la beta (la beta usa paquete aparte, con sus propios datos,y se desinstala con `adb uninstall com.panalink.app.beta` o desde Ajustes → Apps → "PanaLink Beta".)
 * En main, **no queda rastro de la beta**: el script solo toca su worktree en `/tmp` y `app/build.gradle.kts`/`google-services.json` del repo NO se modifican al correr (el patch va al worktree, no al repo).
+
+---
+
+## 🧰 Toolbox del dueño de la sala de voz: entradas + colgantes (sesión 2026-09-16, rama `kilo/voice-room-toolbox`, commit `c541241`)
+
+**Concepto (StarMaker)**: el dueño/admin configura una **entrada** (efecto a pantalla completa cuando alguien entra a la sala) y un **colgante** (adorno que rodea el avatar del sillón). Todo persistido de verdad en Supabase.
+
+### Backend (migración `20260916020000_voice_room_toolbox_entrances_pendants.sql`, aplicada en prod)
+* **`public.voice_room_decor`** (1 fila por sala): `room_id` PK, `entrance_code`, `pendant_code`, `updated_at`, `updated_by`. RLS: SELECT para cualquier authenticated; writes gated por RPC (admin-only).
+* **`public.voice_room_entrance_events`** (log): `room_id`, `user_id`, `entrance_code`, `created_at`. RLS select/insert authenticated.
+* **RPCs** (security definer con `set search_path=''`, mismo patrón que el resto de voice rooms):
+  - `get_voice_room_decor(p_room_id)` → `entrance_code`, `pendant_code`, `updated_at` (cualquier miembro).
+  - `set_voice_room_entrance(p_room_id, p_code)` / `set_voice_room_pendant(...)` → upsert en decor; exige `public.voice_room_is_admin`.
+  - `record_voice_room_entrance(p_room_id, p_code)` → inserta evento; exige `public.voice_room_is_member`.
+* **Ambas tablas están en la publicación `supabase_realtime`** (verificado con `pg_publication_tables`).
+* **OJO querier de Supabase**: no acepta `if`/`do` top-level para `alter publication`; envolver en `do $$ ... end $$;` (caso real: la migración ejecutada desde el .sql falló al re-aplicar el bloque realtime — se aplicó aparte con DO).
+
+### Flujo Android
+* **`VoiceRoomToolboxCatalog.kt`**: catálogos locales immutables — `entrances` (10: sparkle, fireworks, rose, king, party, rocket, music, music2, heart, angel) y `pendants` (9: none, gold, crown, halo, hearts, music, fire, diamond, bolt). Cada spec define emoji + gradiente/paleta. Sin assets externos.
+* **`VoiceRoomToolboxSheet.kt`**: `ModalBottomSheet` con pestañas Entradas/Colgantes, grid de opciones, selección marcada con check. Solo alcanzable por admin.
+* **`VoiceRoomEntranceOverlay.kt`**: overlay a pantalla completa (llamarada radial giratoria, partículas en paleta del efecto, avatar+número dentro de círculo degradado, etiqueta "ENTRÓ A LA SALA"). Animación auto-termina y llama `onDone`.
+  - `VoiceRoomPendant(code, size, modifier)`: anillo pulsante + símbolo arriba (👑/😇/💖/🎵/⚡ según flags) alrededor del avatar.
+* **`VoiceRoomRedesignedScreen.kt`**:
+  - Botón "🎛️" en la bottom bar SOLO si `isAdmin && onOpenToolbox != null`.
+  - Sheet + overlay al final del composable (overlay lleno sobre todo).
+  - `VoiceRoomHostSeat` y `VoiceRoomGuestSeatGrid`/`VoiceRoomSeatRow`/`VoiceRoomRedesignedSeat` aceptan `pendantCode` y dibujan el pendant en el Box del asiento.
+* **`VoiceRoomViewModel.kt`**:
+  - `loadRoomDecor()` (async, al abrir toolbox), `applyRoomDecor()` (suspend, en `setupRoom` sincronizado ANTES de `recordMyEntrance` para usar el code real).
+  - `setEntrance`/`setPendant` optimistas + RPC; `openToolbox`/`closeToolbox`; `recordMyEntrance()` inserta evento al entrar.
+  - `entranceEvent` en `VoiceRoomUiState` dispara el overlay.
+  - En `onTableEvent`: rama `"voice_room_decor"` (INSERT/UPDATE → actualiza `entranceCode`/`pendantCode` en vivo) y `"voice_room_entrance_events"` (INSERT → construye `VoiceRoomEntranceEvent` y setea `entranceEvent`, solo si `uid != myId`).
+* **`SupabaseVoiceRoomSignaling.kt`**: añadidas `voice_room_decor` y `voice_room_entrance_events` a la lista de `postgres_changes` joins (con filtro `room_id=eq.`).
+* **Sin duplicados**: el overlay NO se dispara desde `announceJoin` (solo mensaje de sistema); la fuente del efecto es el `voice_room_entrance_events` INSERT realtime (generado por `recordMyEntrance` del que entra). Si el RPC falla, no hay overlay para ese usuario pero sí mensaje de sistema.
+
+### Estado actual beta
+* Rama: `origin/kilo/voice-room-toolbox`. Beta: `v1.3.40-beta`, code `67`, SHA `6b284539f19aab030faec9868638a0e8e7f08946620c727d479a58763184015e`, package `com.panalink.app.beta`, firma `CN=Panalink Beta`, ABIs `arm64-v8a`+`armeabi-v7a`. URL fija en host `work-2-…` puerto 12001.
