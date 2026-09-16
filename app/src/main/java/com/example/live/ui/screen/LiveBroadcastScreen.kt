@@ -88,6 +88,7 @@ fun LiveBroadcastScreen(
     var errorMessage by remember { mutableStateOf<String?>(null) }
     var isStarting by remember { mutableStateOf(false) }
     var showEndConfirmation by remember { mutableStateOf(false) }
+    var liveSetupError by remember { mutableStateOf<String?>(null) }
 
     var isMicMuted by remember { mutableStateOf(false) }
     var isCameraOff by remember { mutableStateOf(false) }
@@ -113,6 +114,36 @@ fun LiveBroadcastScreen(
             guestViewModel.stopRealtime()
         }
         onNavigateBack()
+    }
+
+    /** Conecta a LiveKit (token + conexión + cámara) sin bloquear la UI de live. */
+    fun startLiveInBackground(stream: LiveStream) {
+        viewModel.loadComments(stream.id)
+        viewModel.startStreamSession(stream.id)
+        guestViewModel.loadGuests(stream.id)
+        guestViewModel.startRealtime(stream.id)
+        scope.launch {
+            Log.i("LiveStart", "2/4 Obteniendo token LiveKit...")
+            val userId = SupabaseClient.currentUser?.id ?: "host_${System.currentTimeMillis()}"
+            val tokenResult = viewModel.getLiveToken(stream.roomName, userId, "publisher")
+            if (!tokenResult.isSuccess) {
+                Log.e("LiveStart", "Error al obtener token LiveKit: ${tokenResult.exceptionOrNull()?.message}")
+                liveSetupError = "No se pudo conectar con el servidor de video. Verifica tu conexión."
+                return@launch
+            }
+            val tokenRes = tokenResult.getOrThrow()
+            Log.i("LiveStart", "3/4 Conectando a LiveKit SFU... url=${tokenRes.serverUrl}")
+            roomRepository.startBroadcast(tokenRes.serverUrl, tokenRes.token)
+            if (roomRepository.connectionState.value is LiveConnectionState.Error) {
+                val msg = (roomRepository.connectionState.value as? LiveConnectionState.Error)?.message
+                    ?: "LiveKit no pudo conectar"
+                Log.e("LiveStart", "Error conexión LiveKit: $msg")
+                liveSetupError = "Conexión de video fallida. Revisa tu señal."
+            } else {
+                Log.i("LiveStart", "4/4 Cámara activada (track=${roomRepository.localVideoTrack.value != null}). ¡En vivo!")
+                liveSetupError = null
+            }
+        }
     }
 
     DisposableEffect(Unit) {
@@ -272,50 +303,27 @@ fun LiveBroadcastScreen(
                             errorMessage = null
                             scope.launch {
                                 try {
-                                    // Red de por medio: timeout general para que NUNCA se quede
-                                    // con el spinner infinito si algo (LiveKit, Supabase, token)
-                                    // no responde dentro de un tiempo razonable.
-                                    withTimeout(20_000L) {
-                                        Log.i("LiveStart", "1/4 Creando stream...")
-                                        val streamResult = viewModel.createAndStartLive(titleText, descriptionText)
-                                        if (streamResult.isSuccess) {
-                                            val stream = streamResult.getOrThrow()
-                                            activeStream = stream
-                                            viewModel.loadComments(stream.id)
-                                            viewModel.startStreamSession(stream.id)
-                                            guestViewModel.loadGuests(stream.id)
-                                            guestViewModel.startRealtime(stream.id)
-
-                                            val userId = SupabaseClient.currentUser?.id ?: "host_${System.currentTimeMillis()}"
-                                            Log.i("LiveStart", "2/4 Obteniendo token LiveKit...")
-                                            val tokenResult = viewModel.getLiveToken(stream.roomName, userId, "publisher")
-                                            if (tokenResult.isSuccess) {
-                                                val tokenRes = tokenResult.getOrThrow()
-                                                Log.i("LiveStart", "3/4 Conectando a LiveKit SFU... url=${tokenRes.serverUrl}")
-                                                roomRepository.startBroadcast(tokenRes.serverUrl, tokenRes.token)
-                                                // La cámara puede tardar en publicar el track; no bloqueamos el
-                                                // inicio del live hasta tenerlo (si el connect fue OK, se activa
-                                                // en background y LiveVideoSurface lo muestra cuando llegue).
-                                                if (roomRepository.connectionState.value is LiveConnectionState.Error) {
-                                                    val stateMsg = (roomRepository.connectionState.value as? LiveConnectionState.Error)?.message
-                                                    errorMessage = stateMsg ?: "LiveKit no pudo conectar"
-                                                    roomRepository.leaveRoom()
-                                                    viewModel.endLive(stream.id)
-                                                } else {
-                                                    Log.i("LiveStart", "4/4 Cámara activada (track=${roomRepository.localVideoTrack.value != null}). ¡En vivo!")
-                                                    isLiveStarted = true
-                                                }
-                                            } else {
-                                                errorMessage = tokenResult.exceptionOrNull()?.message ?: "Error al obtener token de LiveKit"
-                                                viewModel.endLive(stream.id)
-                                            }
-                                        } else {
-                                            errorMessage = streamResult.exceptionOrNull()?.message ?: "Error al crear transmisión"
-                                        }
+                                    // 1) SOLO se crea el stream: operación corta que depende de Supabase.
+                                    //    Con timeout propio para no quedarnos colgados si la red falla.
+                                    val streamResult = withTimeout(10_000L) {
+                                        viewModel.createAndStartLive(titleText, descriptionText)
+                                    }
+                                    if (streamResult.isSuccess) {
+                                        val stream = streamResult.getOrThrow()
+                                        activeStream = stream
+                                        isStarting = false
+                                        // 2) Entramos YA a la pantalla de live. La cámara/mic/Conexión
+                                        //    LiveKit se resuelven en background (conectLiveInBackground)
+                                        //    y se reflejan en el overlay "Conectando..." de la pantalla
+                                        //    de live. Nada corta la publicación por un timeout.
+                                        isLiveStarted = true
+                                        startLiveInBackground(stream)
+                                    } else {
+                                        errorMessage = streamResult.exceptionOrNull()?.message ?: "Error al crear transmisión"
                                     }
                                 } catch (e: Exception) {
                                     errorMessage = if (e is CancellationException) {
-                                        "Tiempo de espera agotado al iniciar. Revisa tu conexión o que el servidor LiveKit esté disponible."
+                                        "Tiempo de espera agotado al crear el stream. Revisa tu conexión."
                                     } else {
                                         e.message ?: "Error desconocido"
                                     }
@@ -351,6 +359,37 @@ fun LiveBroadcastScreen(
                         connectionState = connectionState,
                         modifier = Modifier.align(Alignment.Center)
                     )
+
+                    liveSetupError?.let { err ->
+                        Surface(
+                            modifier = Modifier
+                                .align(Alignment.BottomCenter)
+                                .padding(bottom = 150.dp)
+                                .fillMaxWidth()
+                                .padding(horizontal = 24.dp),
+                            shape = RoundedCornerShape(12.dp),
+                            color = Color(0xFFEF5350).copy(alpha = 0.92f)
+                        ) {
+                            Column(
+                                modifier = Modifier.padding(12.dp),
+                                horizontalAlignment = Alignment.CenterHorizontally
+                            ) {
+                                Text(
+                                    text = err,
+                                    color = Color.White,
+                                    fontSize = 13.sp,
+                                    fontWeight = FontWeight.Medium
+                                )
+                                Spacer(modifier = Modifier.height(6.dp))
+                                TextButton(onClick = {
+                                    liveSetupError = null
+                                    activeStream?.let { startLiveInBackground(it) }
+                                }) {
+                                    Text("Reintentar conexión", color = Color.White, fontWeight = FontWeight.Bold)
+                                }
+                            }
+                        }
+                    }
 
                     Surface(
                         modifier = Modifier.align(Alignment.TopCenter).padding(top = 16.dp),

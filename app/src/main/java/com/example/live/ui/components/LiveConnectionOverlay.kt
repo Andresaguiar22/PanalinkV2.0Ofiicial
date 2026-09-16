@@ -57,7 +57,7 @@ fun LiveConnectionOverlay(
                         else -> Icons.Default.Wifi
                     }
                     val text = when (connectionState) {
-                        is LiveConnectionState.Connecting -> "Conectando..."
+                        is LiveConnectionState.Connecting -> "Preparando cámara y micrófono..."
                         is LiveConnectionState.Reconnecting -> "Reconectando..."
                         is LiveConnectionState.Error -> "Sin señal"
                         else -> ""
