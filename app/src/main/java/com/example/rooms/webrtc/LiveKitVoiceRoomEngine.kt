@@ -4,10 +4,12 @@ import android.content.Context
 import android.util.Log
 import com.example.data.repository.LiveKitTokenService
 import io.livekit.android.LiveKit
+import io.livekit.android.RoomOptions
 import io.livekit.android.events.RoomEvent
 import io.livekit.android.events.collect
 import io.livekit.android.room.Room
 import io.livekit.android.room.participant.RemoteParticipant
+import io.livekit.android.room.track.LocalAudioTrackOptions
 import io.livekit.android.util.flow
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
@@ -72,7 +74,7 @@ class LiveKitVoiceRoomEngine(
             retryOrFail(roomName) { connect() }
             return
         }
-        val lkRoom = LiveKit.create(context)
+        val lkRoom = LiveKit.create(context, options = buildRoomOptions())
         this.room = lkRoom
 
         // Room-level events: participant join/leave + active speakers.
@@ -214,6 +216,30 @@ class LiveKitVoiceRoomEngine(
         speakingJobs.clear()
         disconnect()
         scope.cancel()
+    }
+
+    /**
+     * Room con captura de audio de voz nítida: cancelación de eco, supresión de
+     * ruido, control de ganancia automática y filtro paso-alto para el micrófono.
+     *
+     * Con esto el usuario escucha solo a los demás (sin ecos de su propia voz):
+     * el AEC remueve la señal que vuelve del altavoz al mic y el NS limpia el
+     * ruido ambiente. Sin esta configuración el SDK lanza el capturador con
+     * opciones vacías y en varios dispositivos el altavoz se cuela al micrófono
+     * (eco al hablar).
+     */
+    private fun buildRoomOptions(): RoomOptions {
+        return RoomOptions(
+            audioTrackCaptureDefaults = LocalAudioTrackOptions(
+                noiseSuppression = true,
+                echoCancellation = true,
+                autoGainControl = true,
+                highPassFilter = true,
+                typingNoiseDetection = false
+            ),
+            // Salas de voz no usan video: no tiene sentido la adaptación de bitrate.
+            adaptiveStream = false
+        )
     }
 
     private fun sanitizeRoomName(roomId: String): String {

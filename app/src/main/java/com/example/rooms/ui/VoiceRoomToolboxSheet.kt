@@ -303,3 +303,156 @@ fun VoiceRoomToolboxSheet(
         }
     }
 }
+
+/**
+ * Selector del colgante PERSONAL del usuario (no de la sala). Se guarda en su
+ * perfil ([VoiceRoomViewModel.setMyPendant]) y se replica en todas las salas a
+ * las que entre: el marco viaja con la persona, no con el dueño de la sala.
+ */
+@OptIn(ExperimentalMaterial3Api::class)
+@Composable
+fun VoiceRoomMyPendantSheet(
+    myPendantCode: String?,
+    onSelect: (String) -> Unit,
+    onDismiss: () -> Unit
+) {
+    val sheetState = rememberModalBottomSheetState(skipPartiallyExpanded = true)
+    ModalBottomSheet(
+        onDismissRequest = onDismiss,
+        sheetState = sheetState,
+        containerColor = Color(0xFF0F172A)
+    ) {
+        Column(
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(bottom = 24.dp)
+        ) {
+            // Cabecera
+            Row(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(horizontal = 16.dp),
+                verticalAlignment = Alignment.CenterVertically
+            ) {
+                Text(
+                    text = "💍 Mi colgante",
+                    color = Color.White,
+                    fontSize = 17.sp,
+                    fontWeight = FontWeight.Bold,
+                    modifier = Modifier.weight(1f)
+                )
+                Icon(
+                    imageVector = Icons.Default.Close,
+                    contentDescription = "Cerrar",
+                    tint = Color.White.copy(alpha = 0.7f),
+                    modifier = Modifier
+                        .size(22.dp)
+                        .clickable { onDismiss() }
+                )
+            }
+            Text(
+                text = "El colgante viaja contigo: se verá sobre tu avatar en cualquier sala.",
+                color = Color.White.copy(alpha = 0.6f),
+                fontSize = 12.sp,
+                modifier = Modifier.padding(horizontal = 16.dp, vertical = 6.dp)
+            )
+            Spacer(modifier = Modifier.height(6.dp))
+
+            LazyVerticalGrid(
+                columns = GridCells.Fixed(3),
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .height(360.dp),
+                contentPadding = androidx.compose.foundation.layout.PaddingValues(horizontal = 14.dp, vertical = 4.dp),
+                verticalArrangement = Arrangement.spacedBy(10.dp),
+                horizontalArrangement = Arrangement.spacedBy(10.dp)
+            ) {
+                items(VoiceRoomToolboxCatalog.pendants) { spec ->
+                    val selected = spec.code == myPendantCode
+                    Column(
+                        modifier = Modifier
+                            .clip(RoundedCornerShape(16.dp))
+                            .background(
+                                if (selected) Color(0xFF3B4758)
+                                else Color(0xFF1E293B),
+                                RoundedCornerShape(16.dp)
+                            )
+                            .border(
+                                width = if (selected) 2.dp else 1.dp,
+                                color = if (selected) Color(0xFF4FE7EA) else Color(0x22FFFFFF),
+                                shape = RoundedCornerShape(16.dp)
+                            )
+                            .clickable { onSelect(spec.code) }
+                            .padding(vertical = 12.dp, horizontal = 6.dp),
+                        horizontalAlignment = Alignment.CenterHorizontally
+                    ) {
+                        Box(
+                            modifier = Modifier
+                                .fillMaxWidth()
+                                .height(60.dp),
+                            contentAlignment = Alignment.Center
+                        ) {
+                            if (spec.code == "none") {
+                                Box(
+                                    modifier = Modifier
+                                        .size(36.dp)
+                                        .clip(CircleShape)
+                                        .background(Color(0xFF0B1220), CircleShape)
+                                        .border(1.dp, Color(0x33FFFFFF), CircleShape),
+                                    contentAlignment = Alignment.Center
+                                ) {
+                                    Text(
+                                        text = "—",
+                                        color = Color.White.copy(alpha = 0.5f),
+                                        fontSize = 14.sp
+                                    )
+                                }
+                            } else {
+                                Box(
+                                    modifier = Modifier
+                                        .size(36.dp)
+                                        .clip(CircleShape)
+                                        .background(
+                                            Brush.linearGradient(
+                                                listOf(Color(0xFF475569), Color(0xFF0F172A))
+                                            ),
+                                            CircleShape
+                                        )
+                                )
+                                AvatarFrameView(
+                                    code = spec.code,
+                                    avatarSize = 36.dp,
+                                    animated = false
+                                )
+                            }
+                        }
+                        Spacer(modifier = Modifier.height(4.dp))
+                        Text(
+                            text = spec.label,
+                            color = Color.White.copy(alpha = 0.9f),
+                            fontSize = 10.sp,
+                            maxLines = 1,
+                            textAlign = TextAlign.Center
+                        )
+                        if (spec.rarityLabel.isNotBlank()) {
+                            Text(
+                                text = spec.rarityLabel,
+                                color = Color(spec.ringColor).copy(alpha = 0.95f),
+                                fontSize = 8.sp,
+                                maxLines = 1
+                            )
+                        }
+                        if (selected) {
+                            Icon(
+                                imageVector = Icons.Default.Check,
+                                contentDescription = "Seleccionado",
+                                tint = Color(0xFF4FE7EA),
+                                modifier = Modifier.size(16.dp)
+                            )
+                        }
+                    }
+                }
+            }
+        }
+    }
+}

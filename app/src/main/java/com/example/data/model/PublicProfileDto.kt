@@ -13,5 +13,6 @@ data class PublicProfileDto(
     @Json(name = "first_name") val firstName: String? = null,
     @Json(name = "last_name") val lastName: String? = null,
     @Json(name = "avatar_url") val avatarUrl: String? = null,
+    @Json(name = "pendant_code") val pendantCode: String? = null,
     @Json(name = "updated_at") val updatedAt: String? = null
 )

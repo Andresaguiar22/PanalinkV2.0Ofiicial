@@ -34,6 +34,9 @@ data class VoiceRoomSeat(
     val userId: String? = null,
     val displayName: String? = null,
     val avatarUrl: String? = null,
+    /** Colgante personal del usuario del sillón (viaja con el perfil, sale en
+     *  cualquier sala). Si es "none" se aplica el de la sala (si el host lo puso). */
+    val pendantCode: String? = null,
     val isMuted: Boolean = false,
     val isSpeaking: Boolean = false,
     val audioLevels: List<Float> = emptyList()
@@ -76,6 +79,8 @@ data class VoiceRoomUiState(
     val settingsMessage: String? = null,
     val entranceCode: String = "sparkle",
     val pendantCode: String = "none",
+    /** Colgante personal del usuario en sesión (viaja en su perfil). */
+    val myPendantCode: String? = null,
     val showToolbox: Boolean = false,
     val entranceEvent: VoiceRoomEntranceEvent? = null
 ) {
@@ -91,15 +96,16 @@ data class VoiceRoomUiState(
 }
 
 object VoiceRoomSeatReducer {
-    fun occupy(seats: List<VoiceRoomSeat>, seatIndex: Int, userId: String, displayName: String?, avatarUrl: String?): List<VoiceRoomSeat> {
+    fun occupy(seats: List<VoiceRoomSeat>, seatIndex: Int, userId: String, displayName: String?, avatarUrl: String?, pendantCode: String? = null): List<VoiceRoomSeat> {
         if (seatIndex !in 0 until VoiceRoom.MAX_SEATS) return seats
         if (seats.any { it.userId == userId }) return seats
-        return seats.map { if (it.index == seatIndex && it.userId == null) it.copy(userId=userId,displayName=displayName,avatarUrl=avatarUrl,isMuted=false,isSpeaking=false) else it }
+        return seats.map { if (it.index == seatIndex && it.userId == null) it.copy(userId=userId,displayName=displayName,avatarUrl=avatarUrl,pendantCode=pendantCode,isMuted=false,isSpeaking=false) else it }
     }
     fun release(seats: List<VoiceRoomSeat>, userId: String): List<VoiceRoomSeat> = seats.map { if (it.userId == userId) VoiceRoomSeat(it.index) else it }
     fun releaseSeat(seats: List<VoiceRoomSeat>, seatIndex: Int): List<VoiceRoomSeat> = seats.map { if (it.index == seatIndex) VoiceRoomSeat(it.index) else it }
     fun setMuted(seats: List<VoiceRoomSeat>, userId: String, muted: Boolean): List<VoiceRoomSeat> = seats.map { if (it.userId == userId) it.copy(isMuted=muted,isSpeaking=if(muted) false else it.isSpeaking) else it }
     fun setSpeaking(seats: List<VoiceRoomSeat>, userId: String, speaking: Boolean): List<VoiceRoomSeat> = seats.map { if (it.userId == userId && !it.isMuted) it.copy(isSpeaking=speaking) else it }
+    fun updatePendant(seats: List<VoiceRoomSeat>, userId: String, pendant: String): List<VoiceRoomSeat> = seats.map { if (it.userId == userId) it.copy(pendantCode=pendant) else it }
     fun setAudioLevels(seats: List<VoiceRoomSeat>, userId: String, levels: List<Float>): List<VoiceRoomSeat> = seats.map { if (it.userId == userId && !it.isMuted) it.copy(audioLevels=levels) else it }
     fun firstFreeSeatIndex(seats: List<VoiceRoomSeat>): Int? = seats.firstOrNull { it.userId == null && it.index != 0 }?.index
 }

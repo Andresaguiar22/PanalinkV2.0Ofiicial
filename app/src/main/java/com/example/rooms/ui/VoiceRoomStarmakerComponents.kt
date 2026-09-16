@@ -40,6 +40,8 @@ import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.geometry.Size
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.StrokeCap
+import androidx.compose.ui.graphics.drawscope.Stroke
 import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.text.TextStyle
@@ -335,40 +337,97 @@ fun VoiceRoomLiveBadge() {
     }
 }
 
-// === Speaking indicator — sutil onda, no grandes círculos ===
+// === Speaking aura — aurora + ondas sonar saliendo del avatar (premium) ===
+
+/** Relación slot/marco usada para el layout de sillones: el slot cuadrado es un
+ *  poco mayor que el marco del avatar (overflowScale 1.72) para que todos los
+ *  asientos tengan tamaño fijo sin importar qué marco/código tengan. */
+val SeatSlotScale: Float = 1.85f
+private const val DEG = 0.0174532925f
 
 @Composable
-fun VoiceRoomSpeakingIndicator(
+fun VoiceRoomSpeakingAura(
     speaking: Boolean,
+    avatarSize: Dp,
     modifier: Modifier = Modifier,
-    size: Dp = 12.dp
+    color: Color = VoiceRoomPalette.ActiveCyan
 ) {
     if (!speaking) return
-    val transition = rememberInfiniteTransition(label = "speaking")
-    val barHeights = (0..2).map { idx ->
-        transition.animateFloat(
-            initialValue = 0.3f,
-            targetValue = 1f,
-            animationSpec = infiniteRepeatable(
-                animation = tween(500, delayMillis = idx * 120, easing = LinearOutSlowInEasing),
-                repeatMode = RepeatMode.Reverse
+
+    val slot = avatarSize * SeatSlotScale
+    val transition = rememberInfiniteTransition(label = "speakingAura")
+    val phase by transition.animateFloat(
+        initialValue = 0f,
+        targetValue = 1f,
+        animationSpec = infiniteRepeatable(tween(2400, easing = LinearEasing)),
+        label = "phase"
+    )
+    val pulse by transition.animateFloat(
+        initialValue = 0.65f,
+        targetValue = 1f,
+        animationSpec = infiniteRepeatable(tween(640, easing = LinearOutSlowInEasing), RepeatMode.Reverse),
+        label = "pulse"
+    )
+
+    Canvas(modifier = modifier.size(slot)) {
+        val d = size.minDimension
+        if (d <= 0f) return@Canvas
+        val c = center
+        val r0 = d / 2f / SeatSlotScale          // radio del avatar
+        val outer = d / 2f                       // borde del slot
+        val ringRange = outer - r0
+
+        // Halo aurora pulsante alrededor del avatar (radial, no tapa la cara).
+        drawCircle(
+            brush = Brush.radialGradient(
+                colors = listOf(
+                    color.copy(alpha = 0.28f * pulse),
+                    color.copy(alpha = 0.10f * pulse),
+                    Color.Transparent
+                ),
+                center = c,
+                radius = outer
             ),
-            label = "barHeight$idx"
+            radius = outer,
+            center = c
         )
-    }
-    Row(
-        modifier = modifier
-            .height(size)
-            .graphicsLayer(alpha = 0.9f),
-        horizontalArrangement = Arrangement.spacedBy(2.dp)
-    ) {
-        barHeights.forEach { h ->
-            Box(
-                modifier = Modifier
-                    .width(2.dp)
-                    .height((h.value * size.value).dp)
-                    .clip(RoundedCornerShape(1.dp))
-                    .background(VoiceRoomPalette.ActiveCyan)
+
+        // Ondas sonar que se expanden desde el borde del avatar hacia afuera.
+        for (i in 0..1) {
+            val k = (phase * 1.6f + i * 0.5f) % 1f
+            val r = r0 + ringRange * k
+            val alpha = (1f - k) * 0.75f
+            drawCircle(
+                color = color.copy(alpha = alpha),
+                radius = r,
+                center = c,
+                style = Stroke(width = 1.5f + 2.5f * (1f - k), cap = StrokeCap.Round)
+            )
+        }
+
+        // Arco rotatorio con gradiente (efecto 3D).
+        val sweepStart = (phase * 720f)
+        drawArc(
+            color = color.copy(alpha = 0.85f * pulse),
+            startAngle = sweepStart,
+            sweepAngle = 55f,
+            useCenter = false,
+            topLeft = Offset(c.x - (r0 + ringRange * 0.30f), c.y - (r0 + ringRange * 0.30f)),
+            size = Size((r0 + ringRange * 0.30f) * 2f, (r0 + ringRange * 0.30f) * 2f),
+            style = Stroke(width = 2.2f, cap = StrokeCap.Round)
+        )
+
+        // Partículas orbitando.
+        val n = 4
+        for (i in 0 until n) {
+            val ang = phase * 360f * 1.7f + i * (360f / n)
+            val rad = r0 + ringRange * (0.35f + 0.22f * ((phase * 3f + i) % 1f))
+            val px = c.x + cos(ang * DEG) * rad
+            val py = c.y + sin(ang * DEG) * rad
+            drawCircle(
+                color = Color.White.copy(alpha = 0.9f),
+                radius = 1.6f,
+                center = Offset(px, py)
             )
         }
     }
@@ -525,10 +584,10 @@ private fun VoiceRoomSeatCircle(
                 )
             }
             if (speaking && !isMuted) {
-                VoiceRoomSpeakingIndicator(
+                VoiceRoomSpeakingAura(
                     speaking = true,
-                    modifier = Modifier.align(Alignment.BottomCenter),
-                    size = (size.value * 0.18f).dp
+                    avatarSize = size,
+                    modifier = Modifier.align(Alignment.Center)
                 )
             }
         } else {

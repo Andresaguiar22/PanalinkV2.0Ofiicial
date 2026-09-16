@@ -9,13 +9,14 @@ import retrofit2.http.Body
 import retrofit2.http.GET
 import retrofit2.http.Header
 import retrofit2.http.Headers
+import retrofit2.http.PATCH
 import retrofit2.http.POST
 import retrofit2.http.Query
 
 @JsonClass(generateAdapter = true)
 data class VoiceRoomDto(val id: String,val name: String,@Json(name = "owner_id") val ownerId: String,val status: String,@Json(name = "max_seats") val maxSeats: Int = 7,val description: String = "",@Json(name = "cover_url") val coverUrl: String? = null,val category: String = "general",val visibility: String = "public",@Json(name = "is_locked") val isLocked: Boolean = false,@Json(name = "created_at") val createdAt: String? = null)
 @JsonClass(generateAdapter = true)
-data class PublicProfileDto(val id: String,@Json(name = "display_name") val displayName: String? = null,@Json(name = "avatar_url") val avatarUrl: String? = null)
+data class PublicProfileDto(val id: String,@Json(name = "display_name") val displayName: String? = null,@Json(name = "avatar_url") val avatarUrl: String? = null,@Json(name = "pendant_code") val pendantCode: String? = null)
 @JsonClass(generateAdapter = true)
 data class VoiceRoomMemberDto(val id: String,@Json(name = "room_id") val roomId: String,@Json(name = "user_id") val userId: String,val role: String,@Json(name = "joined_at") val joinedAt: String,@Json(name = "left_at") val leftAt: String? = null)
 @JsonClass(generateAdapter = true)
@@ -63,6 +64,7 @@ interface VoiceRoomApi {
     @POST("/rest/v1/rpc/get_voice_room_banned") suspend fun getBannedUsers(@Header("apikey") apiKey:String,@Header("Authorization") auth:String,@Body body:Map<String,String>):Response<List<VoiceRoomBanDto>>
     @POST("/rest/v1/rpc/remove_voice_room_ban") suspend fun removeBan(@Header("apikey") apiKey:String,@Header("Authorization") auth:String,@Body body:Map<String,String>):Response<Unit>
     @GET("rest/v1/public_profiles") suspend fun getPublicProfiles(@Header("apikey") apiKey:String,@Header("Authorization") auth:String,@Query("id") ids:String):Response<List<PublicProfileDto>>
+    @PATCH("rest/v1/profiles") suspend fun updateProfileMap(@Header("apikey") apiKey:String,@Header("Authorization") auth:String,@Query("id") idFilter:String,@Body body:Map<String, @JvmSuppressWildcards Any>):Response<Unit>
     @GET("rest/v1/voice_room_members") suspend fun getActiveMembers(@Header("apikey") apiKey:String,@Header("Authorization") auth:String,@Query("room_id") roomIdFilter:String,@Query("left_at") leftAt:String="is.null"):Response<List<VoiceRoomMemberDto>>
     @GET("rest/v1/voice_room_members") suspend fun getMembers(@Header("apikey") apiKey:String,@Header("Authorization") auth:String,@Query("room_id") roomId:String,@Query("left_at") leftAt:String="is.null"):Response<List<VoiceRoomMemberDto>>
     @GET("rest/v1/voice_room_seats") suspend fun getSeats(@Header("apikey") apiKey:String,@Header("Authorization") auth:String,@Query("room_id") roomId:String,@Query("order") order:String="seat_index.asc"):Response<List<VoiceRoomSeatDto>>

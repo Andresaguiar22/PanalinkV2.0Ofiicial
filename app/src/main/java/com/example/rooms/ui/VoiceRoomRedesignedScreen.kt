@@ -25,6 +25,7 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Add
 import androidx.compose.material.icons.filled.Chair
 import androidx.compose.material.icons.filled.Close
+import androidx.compose.material.icons.filled.Diamond
 import androidx.compose.material.icons.filled.Face
 import androidx.compose.material.icons.filled.Gif
 import androidx.compose.material.icons.filled.Group
@@ -108,6 +109,7 @@ fun VoiceRoomRedesignedScreen(
     var moderationTarget by remember { mutableStateOf<String?>(null) }
     var showRequests by remember { mutableStateOf(false) }
     var showMembers by remember { mutableStateOf(false) }
+    var showMyPendant by remember { mutableStateOf(false) }
     var hasMic by remember {
         mutableStateOf(
             ContextCompat.checkSelfPermission(context, Manifest.permission.RECORD_AUDIO) ==
@@ -281,6 +283,7 @@ fun VoiceRoomRedesignedScreen(
                 onStickerSelected = { stickerUrl -> viewModel.sendMessage("[sticker:$stickerUrl]") },
                 onOpenSettings = if (state.isAdmin) { { viewModel.openSettings() } } else null,
                 onOpenToolbox = if (state.isAdmin) { { viewModel.openToolbox() } } else null,
+                onOpenMyPendant = { showMyPendant = true },
                 onLeaveRoom = { viewModel.leaveRoom(); onBack() },
                 isAdmin = state.isAdmin
             )
@@ -363,6 +366,15 @@ fun VoiceRoomRedesignedScreen(
             onSelectEntrance = { viewModel.setEntrance(it) },
             onSelectPendant = { viewModel.setPendant(it) },
             onDismiss = { viewModel.closeToolbox() }
+        )
+    }
+
+    // ── Mi colgante personal (todos los usuarios) ──
+    if (showMyPendant) {
+        VoiceRoomMyPendantSheet(
+            myPendantCode = state.myPendantCode ?: state.mySeat?.pendantCode,
+            onSelect = { code -> viewModel.setMyPendant(code); showMyPendant = false },
+            onDismiss = { showMyPendant = false }
         )
     }
 
@@ -539,9 +551,6 @@ fun VoiceRoomHostSeat(
         else -> seat.displayName?.takeIf { !it.isNullOrBlank() } ?: member?.displayName
     }
     val avatarUrl = seat?.avatarUrl ?: member?.avatarUrl
-    val memberRole = member?.role ?: "owner"
-    val level = levelFromRole(memberRole)
-    val isMine = seat?.userId == myUserId
 
     Column(
         modifier = modifier
@@ -549,74 +558,44 @@ fun VoiceRoomHostSeat(
             .padding(horizontal = 8.dp),
         horizontalAlignment = Alignment.CenterHorizontally
     ) {
-        // El colgante (marco) mide 1.6x el avatar y agranda este Box: el avatar
-        // debe centrarse para quedar concéntrico con el marco.
-        Box(contentAlignment = Alignment.Center) {
+        // Slot FIJO del tamaño del marco (no del avatar): el sillón no se mueve
+        // ni cambia de tamaño cuando el usuario sube con colgante.
+        val slotSize = 54.dp * SeatSlotScale
+        Box(
+            modifier = Modifier.size(slotSize),
+            contentAlignment = Alignment.Center
+        ) {
             VoiceRoomRedesignedSeatCircle(
                 seat = seat,
                 size = 54.dp,
                 avatarUrl = avatarUrl,
                 displayName = displayName,
                 isHost = true,
+                showAdminCog = false,
                 onClick = onClick,
                 onAdmin = onAdmin
             )
 
-            // Colgante (pendant) del anfitrión
-            if (seat?.isOccupied == true && pendantCode.isNotBlank() && pendantCode != "none") {
+            // Colgante del anfitrión: su colgante personal si lo definió, o el de la sala.
+            val hostPendant = seat?.pendantCode?.takeIf { it != "none" } ?: pendantCode
+            if (seat?.isOccupied == true && hostPendant.isNotBlank() && hostPendant != "none") {
                 VoiceRoomPendant(
-                    code = pendantCode,
+                    code = hostPendant,
                     size = 54.dp,
                     modifier = Modifier.align(Alignment.Center)
                 )
             }
-
-            // Badge "Anfitrión"
-            if (seat?.isOccupied == true) {
-                Box(
-                    modifier = Modifier
-                        .align(Alignment.TopCenter)
-                        .offset(y = (-8).dp)
-                        .clip(CircleShape)
-                        .background(VoiceRoomPalette.Gold)
-                        .padding(horizontal = 10.dp, vertical = 2.dp)
-                ) {
-                    Text(
-                        text = "Anfitrión",
-                        color = VoiceRoomPalette.DeepBlue,
-                        fontSize = 9.sp,
-                        fontWeight = FontWeight.Bold
-                    )
-                }
-                // Badge de nivel
-                Box(
-                    modifier = Modifier
-                        .align(Alignment.BottomEnd)
-                        .offset(x = 6.dp, y = 6.dp)
-                        .clip(CircleShape)
-                        .background(VoiceRoomPalette.Gold.copy(alpha = 0.9f))
-                        .border(1.dp, VoiceRoomPalette.Gold, CircleShape)
-                        .padding(4.dp)
-                ) {
-                    Icon(
-                        imageVector = Icons.Default.Star,
-                        contentDescription = "Nivel $level",
-                        tint = VoiceRoomPalette.DeepBlue,
-                        modifier = Modifier.size(14.dp)
-                    )
-                }
-            }
         }
 
-        Spacer(modifier = Modifier.height(10.dp))
+        Spacer(modifier = Modifier.height(6.dp))
 
         // Username o placeholder
         if (seat?.isOccupied == true) {
             Text(
                 text = displayName ?: "",
-                color = if (isMine) VoiceRoomPalette.ActiveCyan else VoiceRoomPalette.TextPrimary,
-                fontSize = 12.sp,
-                fontWeight = if (isMine) FontWeight.Bold else FontWeight.Medium,
+                color = VoiceRoomPalette.ActiveCyan,
+                fontSize = 14.sp,
+                fontWeight = if (seat?.userId == myUserId) FontWeight.Bold else FontWeight.SemiBold,
                 maxLines = 1,
                 overflow = TextOverflow.Ellipsis
             )
@@ -630,7 +609,6 @@ fun VoiceRoomHostSeat(
         }
     }
 }
-
 // === Grid de sillones de invitados ===
 
 @Composable
@@ -745,15 +723,19 @@ fun VoiceRoomRedesignedSeat(
         else -> seat.displayName?.takeIf { !it.isNullOrBlank() } ?: member?.displayName
     }
     val avatarUrl = seat?.avatarUrl ?: member?.avatarUrl
-    val level = levelFromRole(member?.role ?: "listener")
 
     Column(
         modifier = modifier,
         horizontalAlignment = Alignment.CenterHorizontally
     ) {
-        // El colgante (marco) mide 1.6x el avatar y agranda este Box: el avatar
-        // debe centrarse para quedar concéntrico con el marco.
-        Box(contentAlignment = Alignment.Center) {
+        // Slot FIJO del tamaño del marco: los sillones no se desplazan entre sí
+        // cuando uno de ellos sube con un colgante (el marco es más grande que
+        // el avatar pero ya no agranda el contenedor del asiento).
+        val slotSize = size * SeatSlotScale
+        Box(
+            modifier = Modifier.size(slotSize),
+            contentAlignment = Alignment.Center
+        ) {
             VoiceRoomRedesignedSeatCircle(
                 seat = seat,
                 size = size,
@@ -765,50 +747,33 @@ fun VoiceRoomRedesignedSeat(
                 onAdmin = onAdmin
             )
 
-            // Colgante (pendant) alrededor del avatar, estilo StarMaker
-            if (seat?.isOccupied == true && pendantCode.isNotBlank() && pendantCode != "none") {
+            // Colgante (pendant) del usuario del sillón; si no tiene uno propio,
+            // se usa el de la sala (que define el dueño).
+            val seatPendant = seat?.pendantCode?.takeIf { it != "none" } ?: pendantCode
+            if (seat?.isOccupied == true && seatPendant.isNotBlank() && seatPendant != "none") {
                 VoiceRoomPendant(
-                    code = pendantCode,
+                    code = seatPendant,
                     size = size,
                     modifier = Modifier.align(Alignment.Center)
                 )
             }
-
-            // Badge "Anfitrión"
-            if (isHost && seat?.isOccupied == true) {
-                Box(
-                    modifier = Modifier
-                        .align(Alignment.TopCenter)
-                        .offset(y = (-size.value * 0.12f).dp)
-                        .clip(CircleShape)
-                        .background(VoiceRoomPalette.Gold)
-                        .padding(horizontal = 5.dp, vertical = 1.5.dp)
-                ) {
-                    Text(
-                        text = "Anfitrión",
-                        color = VoiceRoomPalette.DeepBlue,
-                        fontSize = 8.sp,
-                        fontWeight = FontWeight.Bold
-                    )
-                }
-            }
         }
 
-        Spacer(modifier = Modifier.height(4.dp))
+        Spacer(modifier = Modifier.height(5.dp))
 
-        // Número de asiento o información del ocupante
+        // Número de asiento o información del ocupante (legible)
         if (seat?.isOccupied != true) {
             Text(
                 text = "NO. $seatNumber",
                 color = VoiceRoomPalette.TextSecondary,
-                fontSize = 5.sp,
-                fontWeight = FontWeight.Normal
+                fontSize = 7.sp,
+                fontWeight = FontWeight.Medium
             )
         } else {
             Text(
                 text = displayName ?: "",
                 color = if (isMine) VoiceRoomPalette.ActiveCyan else VoiceRoomPalette.TextSecondary,
-                fontSize = 5.sp,
+                fontSize = 10.sp,
                 fontWeight = if (isMine) FontWeight.Bold else FontWeight.Medium,
                 maxLines = 1,
                 overflow = TextOverflow.Ellipsis
@@ -816,8 +781,6 @@ fun VoiceRoomRedesignedSeat(
         }
     }
 }
-
-// === Círculo de asiento rediseñado ===
 
 @Composable
 fun VoiceRoomRedesignedSeatCircle(
@@ -889,10 +852,11 @@ fun VoiceRoomRedesignedSeatCircle(
                 )
             }
             if (speaking && !isMuted) {
-                VoiceRoomSpeakingIndicator(
+                // Aura premium: aurora + ondas sonar alrededor del avatar.
+                VoiceRoomSpeakingAura(
                     speaking = true,
-                    modifier = Modifier.align(Alignment.BottomCenter),
-                    size = (size.value * 0.15f).dp
+                    avatarSize = size,
+                    modifier = Modifier.align(Alignment.Center)
                 )
             }
         } else {
@@ -1154,6 +1118,7 @@ fun VoiceRoomRedesignedBottomBar(
     onStickerSelected: ((String) -> Unit)? = null,
     onOpenSettings: (() -> Unit)? = null,
     onOpenToolbox: (() -> Unit)? = null,
+    onOpenMyPendant: (() -> Unit)? = null,
     onLeaveRoom: () -> Unit,
     isAdmin: Boolean
 ) {
@@ -1363,6 +1328,21 @@ fun VoiceRoomRedesignedBottomBar(
                     }
                 )
             }
+        }
+
+        if (onOpenMyPendant != null) {
+            DropdownMenuItem(
+                onClick = { onOpenMyPendant(); showMenu = false },
+                text = { Text("Mi colgante", color = VoiceRoomPalette.TextPrimary, fontSize = 13.sp) },
+                leadingIcon = {
+                    Icon(
+                        imageVector = Icons.Default.Diamond,
+                        contentDescription = null,
+                        tint = VoiceRoomPalette.Gold,
+                        modifier = Modifier.size(16.dp)
+                    )
+                }
+            )
         }
 
         if (isAdmin && onOpenSettings != null) {
