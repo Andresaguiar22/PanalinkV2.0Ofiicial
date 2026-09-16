@@ -268,10 +268,11 @@ class StoryVideoPlayerSession(private val context: Context) {
 
             override fun onPlayerError(error: androidx.media3.common.PlaybackException) {
                 val isVcdn = com.example.data.repository.VcdnUrlResolver.isVcdnUrl(lastStableVideoUrl)
+                val errUrlHost = try { java.net.URI(lastVideoUrl).host } catch (_: Exception) { "" }
                 com.example.feature.diagnostics.StoryDiagnostics.failed(
                     "Player error ($stateId)",
                     correlationId = stateId.take(36),
-                    details = "code=${error.errorCode}, name=${error.errorCodeName}, isVcdn=$isVcdn"
+                    details = "code=${error.errorCode}, name=${error.errorCodeName}, isVcdn=$isVcdn, host=$errUrlHost"
                 )
                 Log.e(
                     TAG,
@@ -303,6 +304,24 @@ class StoryVideoPlayerSession(private val context: Context) {
                             CdnManager.resolveMediaUrlFresh(expectedStableUrl)
                         }.getOrDefault("")
                         if (isReleased.get() || stateId != expectedStateId || lastStableVideoUrl != expectedStableUrl) {
+                            return@launch
+                        }
+                        // forceRefresh re-solving to the SAME URL that already 401'd
+                        // means the BFF minted a dead token (or the video is gone but a
+                        // stale-cache fallback re-served it). Re-preparing the same URL is
+                        // pointless — it will 401 again in a loop. Invalidate VCDN memory
+                        // so the NEXT user retry hits the BFF from scratch, and surface a
+                        // definitive error now.
+                        val isSameDeadUrl = freshUrl == lastVideoUrl
+                        if (isSameDeadUrl) {
+                            com.example.data.repository.VcdnUrlResolver.invalidate(expectedStableUrl)
+                            com.example.feature.diagnostics.StoryDiagnostics.failed(
+                                "Recuperación 401",
+                                recoveryStart,
+                                correlationId = stateId.take(36),
+                                details = "attempt=$retryCount, sameUrl=true, cacheInvalidated=1"
+                            )
+                            onError?.invoke(stateId, error.errorCodeName ?: "", error.errorCode)
                             return@launch
                         }
                         if (freshUrl.isNotBlank() && !freshUrl.startsWith("vcdn://")) {
@@ -368,10 +387,11 @@ class StoryVideoPlayerSession(private val context: Context) {
         player.volume = if (isMuted) 0f else 1f
         val currentUri = player.currentMediaItem?.localConfiguration?.uri?.toString()
         val isSwap = player.currentMediaItem == null || currentUri != videoUrl
+        val playHost = try { java.net.URI(videoUrl).host } catch (_: Exception) { "" }
         com.example.feature.diagnostics.StoryDiagnostics.event(
             if (isSwap) "Play iniciado" else "Play reanudado",
             correlationId = newStateId.take(36),
-            details = "isVcdn=${com.example.data.repository.VcdnUrlResolver.isVcdnUrl(lastStableVideoUrl)}, trim=${videoTrim != null}"
+            details = "isVcdn=${com.example.data.repository.VcdnUrlResolver.isVcdnUrl(lastStableVideoUrl)}, host=$playHost, trim=${videoTrim != null}"
         )
         if (isSwap) {
             player.setMediaItem(MediaItem.fromUri(videoUrl))

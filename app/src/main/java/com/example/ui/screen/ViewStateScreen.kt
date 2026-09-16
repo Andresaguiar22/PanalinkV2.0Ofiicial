@@ -930,7 +930,7 @@ fun UserStoryViewer(
                         correlationId = state.id.take(36),
                         details = "isVcdn=${com.example.data.repository.VcdnUrlResolver.isVcdnUrl(stableStoryUrl)}, local=${!state.localVideoPath.isNullOrBlank()}"
                     )
-                    resolvedVideoUrl = if (!state.localVideoPath.isNullOrBlank() && java.io.File(state.localVideoPath).exists()) {
+                    val resolvedNow = if (!state.localVideoPath.isNullOrBlank() && java.io.File(state.localVideoPath).exists()) {
                         state.localVideoPath
                     } else {
                         val resolved = kotlinx.coroutines.withContext(kotlinx.coroutines.Dispatchers.IO) {
@@ -938,18 +938,21 @@ fun UserStoryViewer(
                         }
                         if (resolved.isNullOrBlank() || resolved.startsWith("vcdn://")) "" else resolved
                     }
-                    if (resolvedVideoUrl.isNullOrBlank()) {
+                    resolvedVideoUrl = resolvedNow
+                    if (resolvedNow.isBlank()) {
                         com.example.feature.diagnostics.StoryDiagnostics.failed(
                             "Resolve URL",
                             resolveStart,
                             correlationId = state.id.take(36),
-                            details = "retry=$resolveRetry"
+                            details = "retry=$resolveRetry, blank=true"
                         )
                     } else {
+                        val host = try { java.net.URI(resolvedNow).host } catch (_: Exception) { "" }
                         com.example.feature.diagnostics.StoryDiagnostics.completed(
                             "Resolve URL",
                             resolveStart,
-                            correlationId = state.id.take(36)
+                            correlationId = state.id.take(36),
+                            details = "host=$host"
                         )
                     }
                 }
