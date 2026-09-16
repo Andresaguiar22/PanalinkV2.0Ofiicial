@@ -19,6 +19,11 @@ class LiveKitManager(private val context: Context) {
     private val TAG = "PanalinkLive"
     private val scope = CoroutineScope(Dispatchers.Main + SupervisorJob())
 
+    // LiveKit no trae timeout en connect(); sin esto el boton de iniciar se
+    // quedaba colgado para siempre cuando el WebSocket no responde.
+    private val CONNECT_TIMEOUT_MS = 10_000L
+    private val TRACK_TIMEOUT_MS = 10_000L
+
     private var room: Room? = null
     private var eventsJob: Job? = null
 
@@ -39,8 +44,15 @@ class LiveKitManager(private val context: Context) {
             val currentRoom = LiveKit.create(context)
             room = currentRoom
             collectRoomEvents(currentRoom, false)
-            currentRoom.connect(url, token)
+            // LiveKit Room.connect() es suspending y NO tiene timeout por defecto:
+            // si el WebSocket de LiveKit no responde, la corrutina se cuelga para
+            // siempre (spinner infinito en la UI). conTimeout() lo convierte en error.
+            withTimeout(CONNECT_TIMEOUT_MS) {
+                currentRoom.connect(url, token)
+            }
         } catch (e: Exception) {
+            // TimeoutCancellationException incluido: NO se relanza, para que el
+            // caller (boton de iniciar) siga vivo y pueda mostrar el error.
             Log.e(TAG, "Error connecting to LiveKit room", e)
             _connectionState.value = LiveConnectionState.Error(e.message ?: "Error de conexión")
         }
@@ -56,7 +68,9 @@ class LiveKitManager(private val context: Context) {
             val currentRoom = LiveKit.create(context)
             room = currentRoom
             collectRoomEvents(currentRoom, true)
-            currentRoom.connect(url, token)
+            withTimeout(CONNECT_TIMEOUT_MS) {
+                currentRoom.connect(url, token)
+            }
 
             Log.d(TAG, "Enabling local camera and microphone for broadcast")
             currentRoom.localParticipant.setCameraEnabled(true)
@@ -64,11 +78,13 @@ class LiveKitManager(private val context: Context) {
 
             // setCameraEnabled() publishes asynchronously; wait for the actual track.
             var localTrack: VideoTrack? = null
-            repeat(60) {
-                val publication = currentRoom.localParticipant.getTrackPublication(Track.Source.CAMERA)
-                localTrack = publication?.track as? VideoTrack
-                if (localTrack != null) return@repeat
-                delay(50)
+            withTimeout(TRACK_TIMEOUT_MS) {
+                repeat(Int.MAX_VALUE) {
+                    val publication = currentRoom.localParticipant.getTrackPublication(Track.Source.CAMERA)
+                    localTrack = publication?.track as? VideoTrack
+                    if (localTrack != null) return@repeat
+                    delay(50)
+                }
             }
             if (localTrack == null) {
                 throw IllegalStateException("La cámara se activó, pero LiveKit no entregó el VideoTrack local")
@@ -122,7 +138,9 @@ class LiveKitManager(private val context: Context) {
             val currentRoom = LiveKit.create(context)
             room = currentRoom
             collectRoomEvents(currentRoom, false)
-            currentRoom.connect(url, token)
+            withTimeout(CONNECT_TIMEOUT_MS) {
+                currentRoom.connect(url, token)
+            }
             currentRoom.localParticipant.setCameraEnabled(true)
             currentRoom.localParticipant.setMicrophoneEnabled(true)
             repeat(60) {

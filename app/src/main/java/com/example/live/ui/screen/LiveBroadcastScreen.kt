@@ -30,9 +30,11 @@ import com.example.live.domain.repository.LiveRoomRepository
 import com.example.live.ui.components.*
 import com.example.live.ui.viewmodel.LiveGuestViewModel
 import com.example.live.ui.viewmodel.LiveViewModel
+import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.withTimeout
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -268,36 +270,49 @@ fun LiveBroadcastScreen(
                             errorMessage = null
                             scope.launch {
                                 try {
-                                    val streamResult = viewModel.createAndStartLive(titleText, descriptionText)
-                                    if (streamResult.isSuccess) {
-                                        val stream = streamResult.getOrThrow()
-                                        activeStream = stream
-                                        viewModel.loadComments(stream.id)
-                                        viewModel.startStreamSession(stream.id)
-                                        guestViewModel.loadGuests(stream.id)
-                                        guestViewModel.startRealtime(stream.id)
+                                    // Red de por medio: timeout general para que NUNCA se quede
+                                    // con el spinner infinito si algo (LiveKit, Supabase, token)
+                                    // no responde dentro de un tiempo razonable.
+                                    withTimeout(20_000L) {
+                                        val streamResult = viewModel.createAndStartLive(titleText, descriptionText)
+                                        if (streamResult.isSuccess) {
+                                            val stream = streamResult.getOrThrow()
+                                            activeStream = stream
+                                            viewModel.loadComments(stream.id)
+                                            viewModel.startStreamSession(stream.id)
+                                            guestViewModel.loadGuests(stream.id)
+                                            guestViewModel.startRealtime(stream.id)
 
-                                        val userId = SupabaseClient.currentUser?.id ?: "host_${System.currentTimeMillis()}"
-                                        val tokenResult = viewModel.getLiveToken(stream.roomName, userId, "publisher")
-                                        if (tokenResult.isSuccess) {
-                                            val tokenRes = tokenResult.getOrThrow()
-                                            roomRepository.startBroadcast(tokenRes.serverUrl, tokenRes.token)
-                                            if (roomRepository.localVideoTrack.value != null) {
-                                                isLiveStarted = true
+                                            val userId = SupabaseClient.currentUser?.id ?: "host_${System.currentTimeMillis()}"
+                                            val tokenResult = viewModel.getLiveToken(stream.roomName, userId, "publisher")
+                                            if (tokenResult.isSuccess) {
+                                                val tokenRes = tokenResult.getOrThrow()
+                                                roomRepository.startBroadcast(tokenRes.serverUrl, tokenRes.token)
+                                                if (roomRepository.localVideoTrack.value != null) {
+                                                    isLiveStarted = true
+                                                } else {
+                                                    val stateMsg = when (val st = roomRepository.connectionState.value) {
+                                                        is LiveConnectionState.Error -> st.message
+                                                        else -> null
+                                                    }
+                                                    errorMessage = stateMsg ?: "LiveKit no pudo obtener la cámara local"
+                                                    roomRepository.leaveRoom()
+                                                    viewModel.endLive(stream.id)
+                                                }
                                             } else {
-                                                errorMessage = "LiveKit no pudo obtener la cámara local"
-                                                roomRepository.leaveRoom()
+                                                errorMessage = tokenResult.exceptionOrNull()?.message ?: "Error al obtener token de LiveKit"
                                                 viewModel.endLive(stream.id)
                                             }
                                         } else {
-                                            errorMessage = tokenResult.exceptionOrNull()?.message ?: "Error al obtener token de LiveKit"
-                                            viewModel.endLive(stream.id)
+                                            errorMessage = streamResult.exceptionOrNull()?.message ?: "Error al crear transmisión"
                                         }
-                                    } else {
-                                        errorMessage = streamResult.exceptionOrNull()?.message ?: "Error al crear transmisión"
                                     }
                                 } catch (e: Exception) {
-                                    errorMessage = e.message ?: "Error desconocido"
+                                    errorMessage = if (e is CancellationException) {
+                                        "Tiempo de espera agotado al iniciar. Revisa tu conexión o que el servidor LiveKit esté disponible."
+                                    } else {
+                                        e.message ?: "Error desconocido"
+                                    }
                                 } finally {
                                     isStarting = false
                                 }
