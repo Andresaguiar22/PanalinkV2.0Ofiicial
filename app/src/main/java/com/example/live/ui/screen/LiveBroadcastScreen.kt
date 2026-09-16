@@ -357,6 +357,10 @@ fun LiveBroadcastScreen(
 
                     LiveConnectionOverlay(
                         connectionState = connectionState,
+                        // El overlay NO debe tapar la preview cuando la cámara ya
+                        // está: aunque el evento Connected de LiveKit tarde, si el
+                        // track local está, la preview es visible.
+                        hideWhenTrackReady = localVideoTrack != null,
                         modifier = Modifier.align(Alignment.Center)
                     )
 

@@ -8,6 +8,7 @@ import io.livekit.android.events.RoomEvent
 import io.livekit.android.events.collect
 import io.livekit.android.renderer.SurfaceViewRenderer
 import io.livekit.android.room.Room
+import io.livekit.android.room.participant.LocalParticipant
 import io.livekit.android.room.track.Track
 import io.livekit.android.room.track.VideoTrack
 import kotlinx.coroutines.*
@@ -107,7 +108,11 @@ class LiveKitManager(private val context: Context) {
             }
             val publishedTrack = localTrack
             if (publishedTrack != null) {
+                // Posible race: el SurfaceViewRenderer de la UI pudo crearse DESPUÉS
+                // del connect() (el initPendingRenderer() previo no lo vio todavía).
+                initPendingRenderer()
                 _localVideoTrack.value = publishedTrack
+                _connectionState.value = LiveConnectionState.Connected
                 Log.i(TAG, "Local camera track ready: ${publishedTrack.sid}")
             }
         } catch (e: Exception) {
@@ -138,6 +143,26 @@ class LiveKitManager(private val context: Context) {
                         }
                         is RoomEvent.TrackUnsubscribed -> {
                             if (event.track is VideoTrack && _remoteVideoTrack.value == event.track) _remoteVideoTrack.value = null
+                        }
+                        // El track LOCAL de cámara/mic no siempre aparece via
+                        // getTrackPublication a tiempo; el SDK publica el evento
+                        // TrackPublished justo cuando el capturer entrega frames.
+                        is RoomEvent.TrackPublished -> {
+                            if (event.participant is LocalParticipant &&
+                                event.publication.source == Track.Source.CAMERA &&
+                                event.publication.track is VideoTrack
+                            ) {
+                                _localVideoTrack.value = event.publication.track as VideoTrack
+                                Log.i(TAG, "Local camera track published (event) -> preview activa")
+                            }
+                        }
+                        is RoomEvent.TrackUnpublished -> {
+                            if (event.participant is LocalParticipant &&
+                                event.publication.source == Track.Source.CAMERA
+                            ) {
+                                _localVideoTrack.value = null
+                                Log.i(TAG, "Local camera track unpublished")
+                            }
                         }
                         else -> Unit
                     }

@@ -25,10 +25,11 @@ import kotlin.math.abs
 @Composable
 fun LiveConnectionOverlay(
     connectionState: LiveConnectionState,
-    modifier: Modifier = Modifier
+    modifier: Modifier = Modifier,
+    hideWhenTrackReady: Boolean = false
 ) {
     val alpha by animateFloatAsState(
-        targetValue = if (connectionState is LiveConnectionState.Connected) 0f else 0.85f,
+        targetValue = if (connectionState is LiveConnectionState.Connected || hideWhenTrackReady) 0f else 0.85f,
         animationSpec = tween(durationMillis = 300),
         label = "overlay_alpha"
     )
