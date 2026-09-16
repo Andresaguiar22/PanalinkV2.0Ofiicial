@@ -40,9 +40,13 @@ fun LiveBroadcastScreen(
     onNavigateBack: () -> Unit,
     viewModel: LiveViewModel = androidx.lifecycle.viewmodel.compose.viewModel(),
     guestViewModel: LiveGuestViewModel = androidx.lifecycle.viewmodel.compose.viewModel(),
-    repository: LiveRoomRepository = LiveRoomRepositoryImpl(LocalContext.current)
+    repository: LiveRoomRepository? = null
 ) {
     val context = LocalContext.current
+    // LiveKitManager debe ser único durante toda la pantalla: si se re-crea en
+    // cada recomposición, se generan capturadores de cámara huérfanos y el
+    // inicio del directo puede fallar ("cámara ocupada").
+    val roomRepository: LiveRoomRepository = repository ?: remember { LiveRoomRepositoryImpl(context) }
     var hasPermissions by remember {
         mutableStateOf(
             ContextCompat.checkSelfPermission(context, Manifest.permission.CAMERA) == PackageManager.PERMISSION_GRANTED &&
@@ -65,9 +69,9 @@ fun LiveBroadcastScreen(
         }
     }
 
-    val connectionState by repository.connectionState.collectAsStateWithLifecycle()
-    val localVideoTrack by repository.localVideoTrack.collectAsStateWithLifecycle()
-    val remoteVideoTrack by repository.remoteVideoTrack.collectAsStateWithLifecycle()
+    val connectionState by roomRepository.connectionState.collectAsStateWithLifecycle()
+    val localVideoTrack by roomRepository.localVideoTrack.collectAsStateWithLifecycle()
+    val remoteVideoTrack by roomRepository.remoteVideoTrack.collectAsStateWithLifecycle()
     val comments by viewModel.comments.collectAsStateWithLifecycle()
     val viewerCount by viewModel.viewerCount.collectAsStateWithLifecycle()
     val guests by guestViewModel.guests.collectAsStateWithLifecycle()
@@ -100,7 +104,7 @@ fun LiveBroadcastScreen(
             try {
                 activeStream?.let { stream -> viewModel.endLive(stream.id) }
             } catch (_: Exception) {}
-            repository.leaveRoom()
+            roomRepository.leaveRoom()
             viewModel.stopStreamSession()
             guestViewModel.stopRealtime()
         }
@@ -114,7 +118,7 @@ fun LiveBroadcastScreen(
                     try { viewModel.endLive(stream.id) } catch (_: Exception) {}
                 }
             }
-            repository.leaveRoom()
+            roomRepository.leaveRoom()
             viewModel.stopStreamSession()
             guestViewModel.stopRealtime()
         }
@@ -226,7 +230,7 @@ fun LiveBroadcastScreen(
                     ) {
                         LiveVideoSurface(
                             videoTrack = localVideoTrack,
-                            initRenderer = repository::initVideoRenderer,
+                            initRenderer = roomRepository::initVideoRenderer,
                             modifier = Modifier.fillMaxSize()
                         )
                         if (localVideoTrack == null) {
@@ -234,7 +238,20 @@ fun LiveBroadcastScreen(
                                 modifier = Modifier.fillMaxSize(),
                                 contentAlignment = Alignment.Center
                             ) {
-                                CircularProgressIndicator(color = Color(0xFF00A884))
+                                Column(horizontalAlignment = Alignment.CenterHorizontally) {
+                                    Icon(
+                                        imageVector = Icons.Default.Videocam,
+                                        contentDescription = null,
+                                        tint = Color(0xFF00A884),
+                                        modifier = Modifier.size(44.dp)
+                                    )
+                                    Spacer(modifier = Modifier.height(8.dp))
+                                    Text(
+                                        text = "La cámara se activará al iniciar",
+                                        color = Color.Gray,
+                                        fontSize = 13.sp
+                                    )
+                                }
                             }
                         }
                     }
@@ -264,12 +281,12 @@ fun LiveBroadcastScreen(
                                         val tokenResult = viewModel.getLiveToken(stream.roomName, userId, "publisher")
                                         if (tokenResult.isSuccess) {
                                             val tokenRes = tokenResult.getOrThrow()
-                                            repository.startBroadcast(tokenRes.serverUrl, tokenRes.token)
-                                            if (repository.localVideoTrack.value != null) {
+                                            roomRepository.startBroadcast(tokenRes.serverUrl, tokenRes.token)
+                                            if (roomRepository.localVideoTrack.value != null) {
                                                 isLiveStarted = true
                                             } else {
                                                 errorMessage = "LiveKit no pudo obtener la cámara local"
-                                                repository.leaveRoom()
+                                                roomRepository.leaveRoom()
                                                 viewModel.endLive(stream.id)
                                             }
                                         } else {
@@ -305,7 +322,7 @@ fun LiveBroadcastScreen(
                 ) {
                     LiveVideoSurface(
                         videoTrack = localVideoTrack,
-                        initRenderer = repository::initVideoRenderer,
+                        initRenderer = roomRepository::initVideoRenderer,
                         modifier = Modifier.fillMaxSize()
                     )
 
@@ -340,7 +357,7 @@ fun LiveBroadcastScreen(
                             ) {
                                 LiveVideoSurface(
                                     videoTrack = remoteVideoTrack,
-                                    initRenderer = repository::initVideoRenderer,
+                                    initRenderer = roomRepository::initVideoRenderer,
                                     modifier = Modifier.fillMaxSize()
                                 )
                                 Surface(
@@ -389,13 +406,13 @@ fun LiveBroadcastScreen(
                                 elapsedSeconds = elapsedSeconds,
                                 onToggleMic = {
                                     isMicMuted = !isMicMuted
-                                    scope.launch { repository.setMicrophoneEnabled(!isMicMuted) }
+                                    scope.launch { roomRepository.setMicrophoneEnabled(!isMicMuted) }
                                 },
                                 onToggleCamera = {
                                     isCameraOff = !isCameraOff
-                                    scope.launch { repository.setCameraEnabled(!isCameraOff) }
+                                    scope.launch { roomRepository.setCameraEnabled(!isCameraOff) }
                                 },
-                                onSwitchCamera = { scope.launch { repository.switchCamera() } },
+                                onSwitchCamera = { scope.launch { roomRepository.switchCamera() } },
                                 onEndLive = { showEndConfirmation = true }
                             )
                         }

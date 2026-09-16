@@ -51,11 +51,13 @@ fun LiveViewerScreen(
     liveId: String,
     onNavigateBack: () -> Unit,
     viewModel: LiveViewModel = viewModel(),
-    repository: LiveRoomRepository = LiveRoomRepositoryImpl(LocalContext.current)
+    repository: LiveRoomRepository? = null
 ) {
     val context = LocalContext.current
-    val connectionState by repository.connectionState.collectAsStateWithLifecycle()
-    val videoTrack by repository.remoteVideoTrack.collectAsStateWithLifecycle()
+    // LiveKitManager único durante toda la pantalla (ver LiveBroadcastScreen).
+    val roomRepository: LiveRoomRepository = repository ?: remember { LiveRoomRepositoryImpl(context) }
+    val connectionState by roomRepository.connectionState.collectAsStateWithLifecycle()
+    val videoTrack by roomRepository.remoteVideoTrack.collectAsStateWithLifecycle()
     val comments by viewModel.comments.collectAsStateWithLifecycle()
     val viewerCount by viewModel.viewerCount.collectAsStateWithLifecycle()
     val streamEnded by viewModel.streamEnded.collectAsStateWithLifecycle()
@@ -98,7 +100,7 @@ fun LiveViewerScreen(
                 val tokenResult = viewModel.getLiveToken(stream.roomName, userId, "subscriber")
                 if (tokenResult.isSuccess) {
                     val result = tokenResult.getOrThrow()
-                    repository.joinRoom(result.serverUrl, result.token)
+                    roomRepository.joinRoom(result.serverUrl, result.token)
                 } else {
                     errorMessage = tokenResult.exceptionOrNull()?.message ?: "Error al obtener token de LiveKit"
                 }
@@ -111,7 +113,7 @@ fun LiveViewerScreen(
 
     LaunchedEffect(streamEnded) {
         if (streamEnded) {
-            repository.leaveRoom()
+            roomRepository.leaveRoom()
             viewModel.stopStreamSession()
         }
     }
@@ -119,7 +121,7 @@ fun LiveViewerScreen(
     DisposableEffect(Unit) {
         onDispose {
             viewModel.stopStreamSession()
-            repository.leaveRoom()
+            roomRepository.leaveRoom()
         }
     }
 
@@ -139,7 +141,7 @@ fun LiveViewerScreen(
 
     fun close() {
         viewModel.stopStreamSession()
-        repository.leaveRoom()
+        roomRepository.leaveRoom()
         onNavigateBack()
     }
 

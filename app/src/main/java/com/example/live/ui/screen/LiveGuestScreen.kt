@@ -36,10 +36,13 @@ fun LiveGuestScreen(
     onNavigateBack: () -> Unit,
     viewModel: LiveViewModel = androidx.lifecycle.viewmodel.compose.viewModel(),
     guestViewModel: LiveGuestViewModel = androidx.lifecycle.viewmodel.compose.viewModel(),
-    repository: LiveRoomRepository = LiveRoomRepositoryImpl(LocalContext.current)
+    repository: LiveRoomRepository? = null
 ) {
-    val connectionState by repository.connectionState.collectAsStateWithLifecycle()
-    val videoTrack by repository.remoteVideoTrack.collectAsStateWithLifecycle()
+    val context = LocalContext.current
+    // LiveKitManager único durante toda la pantalla (ver LiveBroadcastScreen).
+    val roomRepository: LiveRoomRepository = repository ?: remember { LiveRoomRepositoryImpl(context) }
+    val connectionState by roomRepository.connectionState.collectAsStateWithLifecycle()
+    val videoTrack by roomRepository.remoteVideoTrack.collectAsStateWithLifecycle()
     val scope = rememberCoroutineScope()
 
     var liveStream by remember { mutableStateOf<LiveStream?>(null) }
@@ -61,14 +64,14 @@ fun LiveGuestScreen(
             try {
                 guestViewModel.removeGuest(liveId, currentUserId)
             } catch (_: Exception) {}
-            repository.leaveRoom()
+            roomRepository.leaveRoom()
         }
         onNavigateBack()
     }
 
     DisposableEffect(Unit) {
         onDispose {
-            repository.leaveRoom()
+            roomRepository.leaveRoom()
         }
     }
 
@@ -117,7 +120,7 @@ fun LiveGuestScreen(
                                         val tokenResult = viewModel.getLiveToken(stream.roomName, currentUserId, "publisher")
                                         if (tokenResult.isSuccess) {
                                             val tokenRes = tokenResult.getOrThrow()
-                                            repository.startBroadcast(tokenRes.serverUrl, tokenRes.token)
+                                            roomRepository.startBroadcast(tokenRes.serverUrl, tokenRes.token)
                                         }
                                     }
                                 }
@@ -178,7 +181,7 @@ fun LiveGuestScreen(
                         IconButton(
                             onClick = {
                                 isMicMuted = !isMicMuted
-                                scope.launch { repository.setMicrophoneEnabled(!isMicMuted) }
+                                scope.launch { roomRepository.setMicrophoneEnabled(!isMicMuted) }
                             },
                             colors = IconButtonDefaults.iconButtonColors(containerColor = if (isMicMuted) Color(0xFFEF5350) else Color.Black.copy(alpha = 0.5f))
                         ) {
@@ -192,7 +195,7 @@ fun LiveGuestScreen(
                         IconButton(
                             onClick = {
                                 isCameraOff = !isCameraOff
-                                scope.launch { repository.setCameraEnabled(!isCameraOff) }
+                                scope.launch { roomRepository.setCameraEnabled(!isCameraOff) }
                             },
                             colors = IconButtonDefaults.iconButtonColors(containerColor = if (isCameraOff) Color(0xFFEF5350) else Color.Black.copy(alpha = 0.5f))
                         ) {
