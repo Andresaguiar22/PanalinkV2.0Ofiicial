@@ -45,8 +45,10 @@ import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
+import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import com.example.effects.AvatarFrameCatalog
 import com.example.effects.AvatarFrameView
 
 /**
@@ -256,7 +258,7 @@ fun VoiceRoomToolboxSheet(
                                 } else {
                                     Box(
                                         modifier = Modifier
-                                            .size(36.dp)
+                                            .size(pendantPreviewAvatar(spec.code))
                                             .clip(CircleShape)
                                             .background(
                                                 Brush.linearGradient(
@@ -267,7 +269,7 @@ fun VoiceRoomToolboxSheet(
                                     )
                                     AvatarFrameView(
                                         code = spec.code,
-                                        avatarSize = 36.dp,
+                                        avatarSize = pendantPreviewAvatar(spec.code),
                                         animated = false
                                     )
                                 }
@@ -410,7 +412,7 @@ fun VoiceRoomMyPendantSheet(
                             } else {
                                 Box(
                                     modifier = Modifier
-                                        .size(36.dp)
+                                        .size(pendantPreviewAvatar(spec.code))
                                         .clip(CircleShape)
                                         .background(
                                             Brush.linearGradient(
@@ -421,7 +423,7 @@ fun VoiceRoomMyPendantSheet(
                                 )
                                 AvatarFrameView(
                                     code = spec.code,
-                                    avatarSize = 36.dp,
+                                    avatarSize = pendantPreviewAvatar(spec.code),
                                     animated = false
                                 )
                             }
@@ -454,5 +456,21 @@ fun VoiceRoomMyPendantSheet(
                 }
             }
         }
+    }
+}
+
+/**
+ * Diametro del avatar simulado en la celda del selector de colgantes.
+ *
+ * Los colgantes vectoriales se dibujan a 36dp de avatar (el marco ocupa ~62dp).
+ * Los raster traen el diseno completo (aro + banner) ya embebido, asi que se
+ * escalan para que el marco entero quepa en la celda en vez de desbordarla.
+ */
+private fun pendantPreviewAvatar(code: String): Dp {
+    val spec = AvatarFrameCatalog.byCode(code)
+    return if (spec != null && spec.bitmapRes != 0) {
+        58.dp / spec.overflowScale
+    } else {
+        36.dp
     }
 }

@@ -1,6 +1,7 @@
 package com.example.effects
 
 import androidx.compose.ui.graphics.Color
+import com.example.R
 
 /**
  * Marcos (colgantes) de avatar para salas de voz, estilo StarMaker/BIGO.
@@ -37,7 +38,14 @@ enum class FrameStyle {
     NATURE,
     SAVAGE,
     GALAXY,
-    OCEAN
+    OCEAN,
+    // Estilos de los colgantes Panalink (arte raster, [AvatarFrameSpec.bitmapRes]).
+    PANAMA,
+    CAFE,
+    CANAL,
+    FIESTA,
+    HERENCIA,
+    TESORO
 }
 
 /** Ornamentos concretos que se dibujan sobre el aro. */
@@ -86,7 +94,10 @@ data class AvatarFrameSpec(
     // quedan ~0.30*rFrame de radio libre para coronas, alas, llamas y plumas.
     val overflowScale: Float = 1.72f,
     val bandWidth: Float = 0.115f,
-    val petalOuterRatio: Float = 0.96f
+    val petalOuterRatio: Float = 0.96f,
+    // Marco raster: PNG en drawable-nodpi con el arte del diseno y el hueco del
+    // avatar ya recortado. Si es != 0 se dibuja el bitmap en vez de las primitivas.
+    val bitmapRes: Int = 0
 )
 
 object AvatarFrameCatalog {
@@ -312,6 +323,91 @@ object AvatarFrameCatalog {
             ornaments = setOf(FrameOrnament.BUBBLES, FrameOrnament.STARS),
             petalCount = 18,
             gemCount = 10
+        ),
+        // === Colgantes Panalink (arte raster con el hueco del avatar ya recortado) ===
+        AvatarFrameSpec(
+            code = "panama",
+            label = "Panamá",
+            symbol = "🇵🇦",
+            rarity = FrameRarity.MYTHIC,
+            style = FrameStyle.PANAMA,
+            primary = Color(0xFF0B3D91),
+            secondary = Color(0xFFD21034),
+            accent = Color(0xFFFFFFFF),
+            glow = Color(0xFF2196F3),
+            animated = false,
+            overflowScale = 2.26f,
+            bitmapRes = R.drawable.frame_panama
+        ),
+        AvatarFrameSpec(
+            code = "cafe",
+            label = "Panalink Café",
+            symbol = "☕",
+            rarity = FrameRarity.LEGENDARY,
+            style = FrameStyle.CAFE,
+            primary = Color(0xFF8B5A2B),
+            secondary = Color(0xFFD4AF37),
+            accent = Color(0xFFF5E6C8),
+            glow = Color(0xFFB8860B),
+            animated = false,
+            overflowScale = 2.20f,
+            bitmapRes = R.drawable.frame_cafe
+        ),
+        AvatarFrameSpec(
+            code = "canal",
+            label = "Panalink Canal",
+            symbol = "🚢",
+            rarity = FrameRarity.LEGENDARY,
+            style = FrameStyle.CANAL,
+            primary = Color(0xFF0D3B66),
+            secondary = Color(0xFF4FC3F7),
+            accent = Color(0xFFE1F5FE),
+            glow = Color(0xFF29B6F6),
+            animated = false,
+            overflowScale = 2.45f,
+            bitmapRes = R.drawable.frame_canal
+        ),
+        AvatarFrameSpec(
+            code = "fiesta",
+            label = "Panalink Fiesta",
+            symbol = "🎉",
+            rarity = FrameRarity.EPIC,
+            style = FrameStyle.FIESTA,
+            primary = Color(0xFFB8860B),
+            secondary = Color(0xFFFFD700),
+            accent = Color(0xFF2E7D32),
+            glow = Color(0xFFFFC107),
+            animated = false,
+            overflowScale = 2.63f,
+            bitmapRes = R.drawable.frame_fiesta
+        ),
+        AvatarFrameSpec(
+            code = "herencia",
+            label = "Panalink Herencia",
+            symbol = "⛪",
+            rarity = FrameRarity.LEGENDARY,
+            style = FrameStyle.HERENCIA,
+            primary = Color(0xFF6A1B9A),
+            secondary = Color(0xFFE040FB),
+            accent = Color(0xFFFFD9EC),
+            glow = Color(0xFFAB47BC),
+            animated = false,
+            overflowScale = 2.01f,
+            bitmapRes = R.drawable.frame_herencia
+        ),
+        AvatarFrameSpec(
+            code = "tesoro",
+            label = "Panalink Tesoro",
+            symbol = "🧭",
+            rarity = FrameRarity.EPIC,
+            style = FrameStyle.TESORO,
+            primary = Color(0xFF8D6E63),
+            secondary = Color(0xFFD4AF37),
+            accent = Color(0xFFF5E6C8),
+            glow = Color(0xFFC9A227),
+            animated = false,
+            overflowScale = 2.08f,
+            bitmapRes = R.drawable.frame_tesoro
         )
     )
 

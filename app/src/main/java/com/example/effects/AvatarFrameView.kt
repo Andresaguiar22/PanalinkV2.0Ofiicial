@@ -15,15 +15,21 @@ import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.geometry.Size
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.FilterQuality
+import androidx.compose.ui.graphics.ImageBitmap
 import androidx.compose.ui.graphics.Path
 import androidx.compose.ui.graphics.StrokeCap
 import androidx.compose.ui.graphics.drawscope.DrawScope
 import androidx.compose.ui.graphics.drawscope.Stroke
 import androidx.compose.ui.graphics.drawscope.rotate
+import androidx.compose.ui.res.imageResource
 import androidx.compose.ui.unit.Dp
+import androidx.compose.ui.unit.IntOffset
+import androidx.compose.ui.unit.IntSize
 import kotlin.math.PI
 import kotlin.math.abs
 import kotlin.math.cos
+import kotlin.math.roundToInt
 import kotlin.math.sin
 import kotlin.random.Random
 
@@ -52,7 +58,15 @@ fun AvatarFrameView(
     val spec = AvatarFrameCatalog.byCode(code) ?: return
     val frameSize = avatarSize * spec.overflowScale
     val phase = remember { Animatable(0f) }
-    val cycling = animated && spec.animated
+
+    // Marcos raster: el arte ya viene con el hueco del avatar recortado y el diseno
+    // completo (aro + banner), asi que se dibuja tal cual, sin rotar ni petalos.
+    val bitmap = if (spec.bitmapRes != 0) {
+        ImageBitmap.imageResource(spec.bitmapRes)
+    } else {
+        null
+    }
+    val cycling = animated && spec.animated && bitmap == null
 
     LaunchedEffect(spec.code, cycling) {
         if (cycling) {
@@ -69,7 +83,20 @@ fun AvatarFrameView(
     }
 
     Canvas(modifier = modifier.size(frameSize)) {
-        drawAvatarFrame(spec, phase.value)
+        if (bitmap != null) {
+            val side = size.minDimension.roundToInt().coerceAtLeast(1)
+            drawImage(
+                image = bitmap,
+                dstOffset = IntOffset(
+                    ((size.width - side) / 2f).roundToInt(),
+                    ((size.height - side) / 2f).roundToInt()
+                ),
+                dstSize = IntSize(side, side),
+                filterQuality = FilterQuality.High
+            )
+        } else {
+            drawAvatarFrame(spec, phase.value)
+        }
     }
 }
 
