@@ -199,6 +199,11 @@ class StoryVideoPlayerSession(private val context: Context) {
                 )
 
                 if (playbackState == Player.STATE_READY) {
+                    com.example.feature.diagnostics.StoryDiagnostics.event(
+                        "READY",
+                        correlationId = stateId.take(36),
+                        details = "pos=${player.currentPosition}, duration=${player.duration}"
+                    )
                     onReady?.invoke()
 
                     val trim = lastTrim
@@ -262,6 +267,12 @@ class StoryVideoPlayerSession(private val context: Context) {
             }
 
             override fun onPlayerError(error: androidx.media3.common.PlaybackException) {
+                val isVcdn = com.example.data.repository.VcdnUrlResolver.isVcdnUrl(lastStableVideoUrl)
+                com.example.feature.diagnostics.StoryDiagnostics.failed(
+                    "Player error ($stateId)",
+                    correlationId = stateId.take(36),
+                    details = "code=${error.errorCode}, name=${error.errorCodeName}, isVcdn=$isVcdn"
+                )
                 Log.e(
                     TAG,
                     "stateId=$stateId ERROR code=${error.errorCode} name=${error.errorCodeName} msg=${error.message}"
@@ -281,6 +292,12 @@ class StoryVideoPlayerSession(private val context: Context) {
                     val expectedStateId = stateId
                     val expectedStableUrl = lastStableVideoUrl
                     val positionMs = player.currentPosition.coerceAtLeast(0L)
+                    com.example.feature.diagnostics.StoryDiagnostics.started(
+                        "Recuperación 401",
+                        correlationId = stateId.take(36),
+                        details = "attempt=$retryCount, position=$positionMs"
+                    )
+                    val recoveryStart = System.currentTimeMillis()
                     retryScope.launch {
                         val freshUrl = runCatching {
                             CdnManager.resolveMediaUrlFresh(expectedStableUrl)
@@ -295,11 +312,29 @@ class StoryVideoPlayerSession(private val context: Context) {
                                 player.prepare()
                                 player.seekTo(positionMs)
                                 player.play()
+                                com.example.feature.diagnostics.StoryDiagnostics.completed(
+                                    "Recuperación 401",
+                                    recoveryStart,
+                                    correlationId = stateId.take(36),
+                                    details = "attempt=$retryCount"
+                                )
                             } catch (_: IllegalStateException) {
                                 // Player being torn down between the check and the swap.
+                                com.example.feature.diagnostics.StoryDiagnostics.failed(
+                                    "Recuperación 401",
+                                    recoveryStart,
+                                    correlationId = stateId.take(36),
+                                    details = "attempt=$retryCount, ise=true"
+                                )
                                 onError?.invoke(stateId, error.errorCodeName ?: "", error.errorCode)
                             }
                         } else {
+                            com.example.feature.diagnostics.StoryDiagnostics.failed(
+                                "Recuperación 401",
+                                recoveryStart,
+                                correlationId = stateId.take(36),
+                                details = "attempt=$retryCount, noFreshUrl=${freshUrl.isNullOrBlank()}"
+                            )
                             onError?.invoke(stateId, error.errorCodeName ?: "", error.errorCode)
                         }
                     }
@@ -332,7 +367,13 @@ class StoryVideoPlayerSession(private val context: Context) {
         lastTrim = videoTrim
         player.volume = if (isMuted) 0f else 1f
         val currentUri = player.currentMediaItem?.localConfiguration?.uri?.toString()
-        if (player.currentMediaItem == null || currentUri != videoUrl) {
+        val isSwap = player.currentMediaItem == null || currentUri != videoUrl
+        com.example.feature.diagnostics.StoryDiagnostics.event(
+            if (isSwap) "Play iniciado" else "Play reanudado",
+            correlationId = newStateId.take(36),
+            details = "isVcdn=${com.example.data.repository.VcdnUrlResolver.isVcdnUrl(lastStableVideoUrl)}, trim=${videoTrim != null}"
+        )
+        if (isSwap) {
             player.setMediaItem(MediaItem.fromUri(videoUrl))
             player.prepare()
             player.play()

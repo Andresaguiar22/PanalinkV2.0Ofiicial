@@ -651,9 +651,27 @@ fun UserStoryViewer(
                     }
                     if (!stable.isNullOrBlank()) {
                         kotlinx.coroutines.MainScope().launch(Dispatchers.IO) {
+                            val prefetchStart = System.currentTimeMillis()
+                            com.example.feature.diagnostics.StoryDiagnostics.started(
+                                "Prefetch",
+                                correlationId = nextState.id.take(36),
+                                details = "isVcdn=${com.example.data.repository.VcdnUrlResolver.isVcdnUrl(stable)}"
+                            )
                             val resolved = com.example.data.repository.CdnManager.resolveMediaUrl(stable)
                             if (!resolved.isNullOrBlank() && resolved.startsWith("http")) {
                                 com.example.data.video.CacheDataSourceFactory.prefetchVideo(context, resolved)
+                                com.example.feature.diagnostics.StoryDiagnostics.completed(
+                                    "Prefetch",
+                                    prefetchStart,
+                                    correlationId = nextState.id.take(36)
+                                )
+                            } else {
+                                com.example.feature.diagnostics.StoryDiagnostics.failed(
+                                    "Prefetch",
+                                    prefetchStart,
+                                    correlationId = nextState.id.take(36),
+                                    details = "noHttpResolve=${resolved?.take(30)}"
+                                )
                             }
                         }
                     }
@@ -906,6 +924,12 @@ fun UserStoryViewer(
                 var resolvedVideoUrl by remember(state.id, stableStoryUrl) { mutableStateOf<String?>(null) }
                 var resolveRetry by remember(state.id, stableStoryUrl) { mutableStateOf(0) }
                 LaunchedEffect(state.id, stableStoryUrl, resolveRetry) {
+                    val resolveStart = System.currentTimeMillis()
+                    com.example.feature.diagnostics.StoryDiagnostics.started(
+                        "Resolve URL",
+                        correlationId = state.id.take(36),
+                        details = "isVcdn=${com.example.data.repository.VcdnUrlResolver.isVcdnUrl(stableStoryUrl)}, local=${!state.localVideoPath.isNullOrBlank()}"
+                    )
                     resolvedVideoUrl = if (!state.localVideoPath.isNullOrBlank() && java.io.File(state.localVideoPath).exists()) {
                         state.localVideoPath
                     } else {
@@ -913,6 +937,20 @@ fun UserStoryViewer(
                             com.example.data.repository.CdnManager.resolveMediaUrl(stableStoryUrl)
                         }
                         if (resolved.isNullOrBlank() || resolved.startsWith("vcdn://")) "" else resolved
+                    }
+                    if (resolvedVideoUrl.isNullOrBlank()) {
+                        com.example.feature.diagnostics.StoryDiagnostics.failed(
+                            "Resolve URL",
+                            resolveStart,
+                            correlationId = state.id.take(36),
+                            details = "retry=$resolveRetry"
+                        )
+                    } else {
+                        com.example.feature.diagnostics.StoryDiagnostics.completed(
+                            "Resolve URL",
+                            resolveStart,
+                            correlationId = state.id.take(36)
+                        )
                     }
                 }
 
@@ -2243,6 +2281,11 @@ fun VideoPlayer(
         isBuffering = true
         if (videoUrl.isBlank()) {
             android.util.Log.w("StoryVideoPlayer", "stateId=$stateId URL vacia (VCDN no disponible); skip")
+            com.example.feature.diagnostics.StoryDiagnostics.failed(
+                "URL vacía",
+                correlationId = stateId.take(36),
+                details = "stable=${stableVideoUrl?.take(40)}"
+            )
             isBuffering = false
             onUnavailable?.invoke()
             return@LaunchedEffect
@@ -2258,7 +2301,14 @@ fun VideoPlayer(
             isBuffering = (stateName == "BUFFERING" || stateName == "IDLE")
         }
         session.onError = { errStateId, codeName, code ->
-            if (errStateId == stateId) hasError = true
+            if (errStateId == stateId) {
+                hasError = true
+                com.example.feature.diagnostics.StoryDiagnostics.failed(
+                    "onError (UI)",
+                    correlationId = stateId.take(36),
+                    details = "codeName=$codeName, code=$code"
+                )
+            }
         }
         session.play(stateId, videoUrl, isMuted, videoTrim, stableVideoUrl)
     }
@@ -2319,12 +2369,29 @@ fun VideoPlayer(
                         // desde el puntero ESTABLE (vcdn://), nunca desde la URL firmada
                         // ya caducada (eso devolvería el mismo token expirado).
                         kotlinx.coroutines.MainScope().launch(Dispatchers.IO) {
+                            val retryStart = System.currentTimeMillis()
                             val stableForRetry = stableVideoUrl ?: videoUrl
+                            com.example.feature.diagnostics.StoryDiagnostics.started(
+                                "Reintentar (UI)",
+                                correlationId = stateId.take(36),
+                                details = "stable=${stableForRetry.take(40)}"
+                            )
                             val newUrl = com.example.data.repository.CdnManager.resolveMediaUrlFresh(stableForRetry)
                             kotlinx.coroutines.withContext(kotlinx.coroutines.Dispatchers.Main) {
                                 if (newUrl.isBlank() || newUrl.startsWith("vcdn://")) {
+                                    com.example.feature.diagnostics.StoryDiagnostics.failed(
+                                        "Reintentar (UI)",
+                                        retryStart,
+                                        correlationId = stateId.take(36),
+                                        details = "noUrl=<blank>"
+                                    )
                                     onUnavailable?.invoke()
                                 } else {
+                                    com.example.feature.diagnostics.StoryDiagnostics.completed(
+                                        "Reintentar (UI)",
+                                        retryStart,
+                                        correlationId = stateId.take(36)
+                                    )
                                     session.onStateChanged = { s, p, b, pct, d ->
                                         isBuffering = (s == "BUFFERING" || s == "IDLE")
                                     }
