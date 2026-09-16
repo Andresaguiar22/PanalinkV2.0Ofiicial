@@ -73,29 +73,43 @@ class LiveKitManager(private val context: Context) {
                 currentRoom.connect(url, token)
             }
 
-            Log.d(TAG, "Enabling local camera and microphone for broadcast")
-            currentRoom.localParticipant.setCameraEnabled(true)
-            currentRoom.localParticipant.setMicrophoneEnabled(true)
+            // LiveKit/WebRTC exige que la activación de cámara/mic ocurra en el
+            // Main thread (EGL + CameraManager). Hacerlo desde IO dejaba la cámara
+            // sin publicar en algunos dispositivos → "se queda cargando".
+            withContext(Dispatchers.Main) {
+                Log.d(TAG, "Enabling local camera and microphone for broadcast")
+                currentRoom.localParticipant.setCameraEnabled(true)
+                currentRoom.localParticipant.setMicrophoneEnabled(true)
+            }
 
             // initPendingRenderer tras la conexión: el SurfaceViewRenderer puede
             // haber sido creado por la UI antes de conectar (room todavía null).
             initPendingRenderer()
 
             // setCameraEnabled() publishes asynchronously; wait for the actual track.
+            // NO es fatal si el track no llega a tiempo: la sala ya quedó conectada
+            // y el gestor de eventos de LiveKit publicará el track cuando esté listo.
             var localTrack: VideoTrack? = null
-            withTimeout(TRACK_TIMEOUT_MS) {
-                repeat(Int.MAX_VALUE) {
-                    val publication = currentRoom.localParticipant.getTrackPublication(Track.Source.CAMERA)
-                    localTrack = publication?.track as? VideoTrack
-                    if (localTrack != null) return@repeat
-                    delay(50)
+            try {
+                withTimeout(TRACK_TIMEOUT_MS) {
+                    repeat(Int.MAX_VALUE) {
+                        val publication = currentRoom.localParticipant.getTrackPublication(Track.Source.CAMERA)
+                        val t = publication?.track as? VideoTrack
+                        if (t != null) {
+                            localTrack = t
+                            return@repeat
+                        }
+                        delay(50)
+                    }
                 }
+            } catch (e: Exception) {
+                Log.w(TAG, "Track local no llegó en ${TRACK_TIMEOUT_MS}ms; el preview se activará cuando LiveKit lo publique", e)
             }
-            if (localTrack == null) {
-                throw IllegalStateException("La cámara se activó, pero LiveKit no entregó el VideoTrack local")
+            val publishedTrack = localTrack
+            if (publishedTrack != null) {
+                _localVideoTrack.value = publishedTrack
+                Log.i(TAG, "Local camera track ready: ${publishedTrack.sid}")
             }
-            _localVideoTrack.value = localTrack
-            Log.i(TAG, "Local camera track ready: ${localTrack?.sid}")
         } catch (e: Exception) {
             Log.e(TAG, "Error starting broadcast", e)
             _localVideoTrack.value = null
@@ -147,8 +161,10 @@ class LiveKitManager(private val context: Context) {
                 currentRoom.connect(url, token)
             }
             initPendingRenderer()
-            currentRoom.localParticipant.setCameraEnabled(true)
-            currentRoom.localParticipant.setMicrophoneEnabled(true)
+            withContext(Dispatchers.Main) {
+                currentRoom.localParticipant.setCameraEnabled(true)
+                currentRoom.localParticipant.setMicrophoneEnabled(true)
+            }
             repeat(60) {
                 val track = currentRoom.localParticipant.getTrackPublication(Track.Source.CAMERA)?.track as? VideoTrack
                 if (track != null) {

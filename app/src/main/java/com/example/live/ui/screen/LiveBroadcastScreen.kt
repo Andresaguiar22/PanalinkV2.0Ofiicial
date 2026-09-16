@@ -1,5 +1,7 @@
 package com.example.live.ui.screen
 
+import android.util.Log
+
 import android.Manifest
 import android.content.pm.PackageManager
 import androidx.activity.compose.rememberLauncherForActivityResult
@@ -274,6 +276,7 @@ fun LiveBroadcastScreen(
                                     // con el spinner infinito si algo (LiveKit, Supabase, token)
                                     // no responde dentro de un tiempo razonable.
                                     withTimeout(20_000L) {
+                                        Log.i("LiveStart", "1/4 Creando stream...")
                                         val streamResult = viewModel.createAndStartLive(titleText, descriptionText)
                                         if (streamResult.isSuccess) {
                                             val stream = streamResult.getOrThrow()
@@ -284,20 +287,23 @@ fun LiveBroadcastScreen(
                                             guestViewModel.startRealtime(stream.id)
 
                                             val userId = SupabaseClient.currentUser?.id ?: "host_${System.currentTimeMillis()}"
+                                            Log.i("LiveStart", "2/4 Obteniendo token LiveKit...")
                                             val tokenResult = viewModel.getLiveToken(stream.roomName, userId, "publisher")
                                             if (tokenResult.isSuccess) {
                                                 val tokenRes = tokenResult.getOrThrow()
+                                                Log.i("LiveStart", "3/4 Conectando a LiveKit SFU... url=${tokenRes.serverUrl}")
                                                 roomRepository.startBroadcast(tokenRes.serverUrl, tokenRes.token)
-                                                if (roomRepository.localVideoTrack.value != null) {
-                                                    isLiveStarted = true
-                                                } else {
-                                                    val stateMsg = when (val st = roomRepository.connectionState.value) {
-                                                        is LiveConnectionState.Error -> st.message
-                                                        else -> null
-                                                    }
-                                                    errorMessage = stateMsg ?: "LiveKit no pudo obtener la cámara local"
+                                                // La cámara puede tardar en publicar el track; no bloqueamos el
+                                                // inicio del live hasta tenerlo (si el connect fue OK, se activa
+                                                // en background y LiveVideoSurface lo muestra cuando llegue).
+                                                if (roomRepository.connectionState.value is LiveConnectionState.Error) {
+                                                    val stateMsg = (roomRepository.connectionState.value as? LiveConnectionState.Error)?.message
+                                                    errorMessage = stateMsg ?: "LiveKit no pudo conectar"
                                                     roomRepository.leaveRoom()
                                                     viewModel.endLive(stream.id)
+                                                } else {
+                                                    Log.i("LiveStart", "4/4 Cámara activada (track=${roomRepository.localVideoTrack.value != null}). ¡En vivo!")
+                                                    isLiveStarted = true
                                                 }
                                             } else {
                                                 errorMessage = tokenResult.exceptionOrNull()?.message ?: "Error al obtener token de LiveKit"

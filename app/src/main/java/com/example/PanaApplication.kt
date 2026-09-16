@@ -160,6 +160,15 @@ class PanaApplication : Application(), ImageLoaderFactory, DefaultLifecycleObser
             android.util.Log.e("PanaApplication", "SessionManager/CdnManager init failed safely", e)
         }
 
+        // LiveKit SDK: inicialización única del contexto global. Sin esto algunos
+        // dispositivos/ROMs no publican la cámara al iniciar un live (track nunca
+        // llega y la UI se queda "cargando"). Llamar init antes de create.
+        try {
+            io.livekit.android.LiveKit.init(applicationContext)
+        } catch (e: Throwable) {
+            android.util.Log.e("PanaApplication", "LiveKit init failed safely", e)
+        }
+
         try {
             com.example.util.NetworkMonitor.startMonitoring(this)
             observeConnectivityRestore()
