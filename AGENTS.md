@@ -332,6 +332,22 @@ cd /workspace/project/PanalinkV2.0Ofiicial/.toolchain && nohup python3 serve_ran
 * **Fix** (commit `4c868dc`): `Box(contentAlignment = Alignment.Center)` en el contenedor del asiento (sillón del anfitrión + asientos de invitados). Sin colgante el Box mide exactamente el avatar, así que el layout no cambia (zero regression); el badge "Anfitrión" y el de nivel conservan su anclaje.
 * **Beta**: `v1.3.41-beta`, code `68`, SHA `77bd9623318c4bc44ddca8065cacebe89efaef6b462a783b56e91925e920f116` (misma firma `CN=Panalink Beta`, se instala encima de la anterior).
 
+### 🔧 Colgante personal que viaja entre salas + nombres pegados al avatar (sesión 2026-09-16, rama `kilo/voice-studio-audio`, commit `820d304`)
+* **Síntoma**: al entrar a OTRA sala, el colgante personal elegido con "Mi colgante" no se veía (los demás salas no lo mostraban), aunque en la propia sala sí. El usuario lo eligió para llevarlo puesto en todas las salas.
+* **Causa raíz (DB, no app)**: el trigger `trg_sync_profile_to_public_profile` se creó con `AFTER INSERT OR UPDATE OF first_name, last_name, display_name, avatar_url, updated_at ON public.profiles` — **`pendant_code` NO estaba en el `UPDATE OF`**, así que un PATCH que toca SOLO `pendant_code` no disparaba el trigger y `public_profiles.pendant_code` nunca se actualizaba. Todas las salas leen `public_profiles` → el colgante personal nunca aparecía fuera de la propia sala. El BEFORE trigger `trg_profiles_updated_at` cambia `updated_at` vía `NEW.updated_at`, pero eso NO activa un trigger `UPDATE OF updated_at` (la lista de columnas es la del `SET` del UPDATE, no las columnas que el trigger modifica).
+* **Fix**: reconstruir el trigger incluyendo `pendant_code` en el `UPDATE OF`:
+  ```sql
+  drop trigger if exists trg_sync_profile_to_public_profile on public.profiles;
+  create trigger trg_sync_profile_to_public_profile
+  after insert or update of first_name, last_name, display_name, avatar_url, pendant_code, updated_at
+  on public.profiles for each row execute function public.sync_profile_to_public_profile();
+  ```
+  Aplicado en prod y en `supabase/migrations/20260916100000_profile_pendant_code.sql`. Verificado: PATCH `profiles.pendant_code='gold'` → `public_profiles` queda `gold` (antes quedaba `none`). Luego backfill idempotente `update public_profiles set pendant_code=profiles.pendant_code ...`.
+* **Validación empírica**: probar con service_role sobre un usuario de prueba y RESTAURAR el valor original después. La migración backfill del trigger previo ya copió los valores (para que la propagación funcione hay que re-correr el backfill tras recrear el trigger).
+* **Nombres separados del avatar**: el slot fijo era `54dp * SeatSlotScale(1.85)` ≈ 100dp con avatar de 54dp centrado → 23dp de zona muerta abajo + Spacer 5-6dp → nombre a ~28dp bajo el avatar. **Fix**: `SeatSlotScale 1.85→1.75` (sigue > overflowScale 1.72, margen para el marco) + Spacer del anfitrión 6→2dp y del invitado 5→2dp → nombre ~6-7dp más arriba en TODOS los asientos por igual. El marco vectorial (92.9dp) sigue cabiendo en el slot (94.5dp) y no tapa el nombre.
+* **Ojo**: los marcos RASTER (`overflowScale` 2.0-2.6) siguen desbordando el slot y su arte inferior ya convive/cubre ligeramente el nombre — limitación conocida (ver sección raster); no se agravó de forma material.
+* **Beta**: `v1.3.42-beta`, code `69`, SHA `5e46db62da5ff76891a178c229be48e97af6f1f765682472abaac9fb1437a22a`, package `com.panalink.app.beta`, firma `CN=Panalink Beta`, ABIs `arm64-v8a`+`armeabi-v7a`.
+
 ### 📥 Entrega del APK al teléfono (anti "paquete no válido")
 * **Servir SIEMPRE con nombre versionado** (ej. `Panalink-BETA-v1.3.41-code68.apk`), nunca reusar `Panalink-BETA-apk-debug.apk`: el móvil guarda el parcial/descarga previa con el mismo nombre y al "reanudar" mezcla bytes de dos builds distintos → Android dice **paquete no válido**.
 * Cabeceras obligatorias: `Accept-Ranges: bytes` (206), `Content-Length` exacto y `Cache-Control: no-store`.
@@ -382,10 +398,12 @@ Portar la matematica del `Canvas` a un render PIL (`/tmp/frame_preview.py`, efim
 
 ### 📥 Servidor de capturas (puerto 12000) - `capture_server.py`
 Equivalente al `upload_server.py` de la seccion de entrega; esta sesion lo recreo como `.toolchain/capture_server.py` (el sandbox no lo tenia):
-* `python3 capture_server.py 12000 <dir-capturas> <dir-apks>` -> `GET /` sirve un `<input type=file accept="image/*" multiple>` que **en el movil abre camara/galeria**; `POST /upload` guarda con sello de hora y el agente lo lee con `file_editor`.
-* Ruta extra `GET /apk/<archivo>` con `Accept-Ranges: bytes` (206) -> **segunda URL independiente** para el APK, en otro puerto, para descartar que el corte venga del ingress de 12001.
+* `python3 capture_server.py 12000 <dir-apks>` (NOTA sesion 2026-09-16: Python 3.13 **elimino `cgi`**, asi que la version nueva **solo sirve APK** en `/apk/<archivo>`, sin el `<input type=file>` de capturas. Si se necesita subir capturas, usar `upload_server.py` o reconstruir el multipart a mano).
+* Ruta `GET /apk/<archivo>` con `Accept-Ranges: bytes` (206) -> **segunda URL independiente** para el APK, en otro puerto, para descartar que el corte venga del ingress de 12001.
 * Loguea `enviado=N/total COMPLETO|CORTADO` por archivo; un `CORTADO` es la pista directa de "paquete no valido" por descarga trunca.
 * **Trampa**: los servidores lanzados con `nohup` a secas **morian al resetearse la sesion tmux** (el ingress devolvia 502). Lanzarlos con `setsid nohup ... < /dev/null &` y **re-verificar con `curl` antes de entregar cualquier link**.
+* **Trampa 2 (sesion 2026-09-16)**: en Python 3.13 no usar `from http.server import SimpleHTTPRequestHandler` y sobrescribir `send_head` para devolver `(f, total)` — el `do_HEAD` heredado crashea con `'tuple' object has no attribute 'close'`. Sobrescribir tambien `do_HEAD` (cerrar el fd) usando un helper `open_and_headers()` comun.
+* **Sintoma de servidor caido**: `curl -sI https://work-…-host/` devuelve **HTTP 502**. Antes de dar un link, comprobar que el puerto responde y que `ss -tlnp | grep <puerto>` muestra el proceso.
 
 ### 🔀 Dos sesiones en la MISMA rama: integrar, nunca forzar
 Paso de verdad: dos sesiones trabajaron `kilo/premium-effects` desde el mismo base `adf18a2` y **divergieron** (una hizo el motor de marcos, la otra el fix de concentricidad + su beta). El remoto se movio mientras la local seguia en el commit viejo.
