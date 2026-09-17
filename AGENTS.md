@@ -531,18 +531,31 @@ Se dibujaron las cajas calculadas sobre la captura para confirmar alineacion y a
 
 ### 📥 Beta publicada (2026-09-17)
 * Rama: `origin/kilo/live-glassmorphism` (commit `5d6583a`), incluye AMBOS redisenos (listado + directo) y el setup pre-live.
-* Beta: `v1.3.45-beta`, code **72**, package `com.panalink.app.beta`, label `PanaLink Beta`, firma `CN=Panalink Beta` (SHA-256 `450a76c1...`, la estable: se instala encima de la beta previa sin desinstalar).
-* SHA-256 del APK: `f3025d084f142287b321544a8dbf019f29f20810f9de1886534b0ad96ae83bee` (69.482.580 bytes, ~67 MB, ABIs `arm64-v8a`+`armeabi-v7a`).
-* URL: `https://work-2-lxqkaugmceedjklt.prod-runtime.all-hands.dev/Panalink-BETA-v1.3.45-code72.apk` (puerto 12001).
-* **Ojo con el code**: la ultima beta documentada era la `71` (v1.3.44-beta); esta va con **72**. La proxima ronda debe usar **73 o mas** (un code menor que el instalado = Android 14+ lo rechaza con "paquete no valido").
+* Beta: `v1.3.46-beta`, code **73** (v1.3.45/code72 quedo obsoleta: pantalla negra), package `com.panalink.app.beta`, label `PanaLink Beta`, firma `CN=Panalink Beta` (SHA-256 `450a76c1...`, la estable: se instala encima de la beta previa sin desinstalar).
+* SHA-256 del APK: `a0e9b5da3af9fd64c068ca9d59792a2429b4ceedc86042f0c85cb6596ab2f2cc` (69.481.979 bytes, ~67 MB, ABIs `arm64-v8a`+`armeabi-v7a`).
+* URL: `https://work-2-lxqkaugmceedjklt.prod-runtime.all-hands.dev/Panalink-BETA-v1.3.46-code73.apk` (puerto 12001).
+* **Ojo con el code**: esta va con **73** (v1.3.44 fue code71, v1.3.45 code72). La proxima ronda debe usar **74 o mas** (un code menor que el instalado = Android 14+ lo rechaza con "paquete no valido").
 
 ### 🔌 Servidor de APK de esta sesion (puerto 12001)
 * **El puerto 12000 NO sirve para el APK en esta sesion**: ahi corre `/tmp/upload_server.py` (el canal con el que el usuario sube capturas). Su ruta `/files/<nombre>` hace `f.read()` de TODO el archivo en memoria y **no soporta `Range`** -> un APK de 67 MB se entrega de un tiron y cualquier corte lo trunca (la causa clasica de "paquete no valido"). Usar solo el 12001.
 * El 12001 lo sirve `.toolchain/serve_apk.py <puerto> <dir>` (recreado esta sesion; soporta `GET`/`HEAD`, `Range` -> 206, `Accept-Ranges`, `Content-Length` exacto y `Cache-Control: no-store`). Sirve tanto `/<archivo>` como `/apk/<archivo>` y loguea `enviado=N/total COMPLETO|CORTADO` por descarga.
 * **NO hereda de `SimpleHTTPRequestHandler`**: en Python 3.13 el truco de sobrescribir `send_head()` devolviendo una tupla rompe el `do_HEAD` heredado (`'tuple' object has no attribute 'close'`). El server nuevo implementa `do_GET`/`do_HEAD` a mano.
 * Arranque: `setsid nohup python3 .toolchain/serve_apk.py 12001 .toolchain/serve_apk > /tmp/srv12001.log 2>&1 < /dev/null &` (con `nohup` a secas muere al resetearse la sesion y el ingress devuelve 502).
-* **Entregar SIEMPRE con nombre versionado** (`Panalink-BETA-v1.3.45-code72.apk`): si el movil reusa el nombre de una descarga previa, "reanuda" mezclando bytes de dos builds y da paquete invalido.
+* **Entregar SIEMPRE con nombre versionado** (`Panalink-BETA-v1.3.46-code73.apk`): si el movil reusa el nombre de una descarga previa, "reanuda" mezclando bytes de dos builds y da paquete invalido.
 * Verificacion previa a entregar (todas pasaron): `sha256sum` local == descargado por la URL publica (69.482.580 bytes, log `COMPLETO`), `zipalign -c -v 4` -> "Verification succesful", `apksigner verify --print-certs` -> `CN=Panalink Beta`, `extractNativeLibs=0xffffffff`, `lib/` con las 2 ABIs ARM. **`apksigner` necesita `JAVA_HOME`**: sin la toolchain en el PATH falla con `exec: java: not found`.
+
+#### 🩹 Pantalla NEGRA en el directo: causa raiz encontrada (sesion 2026-09-17)
+* **Sintoma reportado**: "la camara no se esta activando en el live, se ve la pantalla negra".
+* **CAUSA RAIZ (no era la camara)**: `LiveVideoSurface` usaba `DisposableEffect(rendererRef)`. La secuencia es:
+  1. Primer composition: `rendererRef == null` -> se registra `DisposableEffect(null)`.
+  2. `AndroidView.factory` corre en la fase de apply y hace `rendererRef = this` -> programa recomposicion.
+  3. Segunda composition: `rendererRef == renderer`. Como **cambio la clave**, Compose **despide el efecto anterior** y ejecuta su `onDispose`, que hace `val renderer = rendererRef` -> **el ref YA tiene valor** -> `rendererRef = null` + **`renderer.release()`**.
+  4. Resultado: el renderer se libera al nacer y el ref queda en `null`. El `LaunchedEffect(videoTrack, rendererRef)` de enganche lee `rendererRef == null`, sale sin hacer nada, y **el track local de LiveKit (que llega SIEMPRE despues de crear el renderer, porque la camara se enciende en `startBroadcasting`) no se engancha nunca** -> preview negra permanente.
+* **Fix**: la clave del `DisposableEffect` debe ser **`Unit`**, NUNCA `rendererRef`; asi el renderer se libera solo al salir la pantalla. Ademas el enganche desde el factory ahora escribe `attachedTrack` para no duplicar `addRenderer` (doble enganche = frames duplicados).
+* **REGLA**: **nunca** indexar un `DisposableEffect`/`LaunchedEffect` por un estado que el propio efecto **escribe en su `onDispose`**. El efecto viejo ve el valor NUEVO y destruye lo que el nuevo necesitaba.
+* **Refuerzo**: `setCameraEnabled/setMicrophoneEnabled` con reintento a los 500 ms si fallan (cubre la camara aun retenida por CameraX en equipos lentos). **La causa NO era CameraX**: el mapeo previo apuntaba a "camara ocupada", pero el handoff CameraX->LiveKit ya funcionaba; el fallo era del renderer en Compose.
+* **Logs de diagnostico** (los dejo puestos a proposito): tag `LiveVideoSurface` -> "renderer creado (track=bool)", "track enganchado al renderer", "track desenganchado", "renderer liberado"; tag `LiveCameraPreview` -> "CameraX desvinculado..."; tag `LiveKitManager` -> "Local camera track ready"; tag `LiveStart` -> "4/4 Camara activada (track=bool)". Con eso se distingue en logcat un fallo de CAMARA de uno de RENDERER.
+* **UI**: se elimino el **destello de 4 puntas** (`Sparkle`, un `Path` con `quadraticTo`) que quedaba debajo del boton FINALIZAR. El usuario lo reporto como "el icono de Gemini" y tenia razon: era una estrella de 4 puntas indistinguible del logo de Gemini. No volver a poner adornos asi junto a los botones.
 
 #### ♻️ El servidor se cae solo: watchdog y que sobrevive a un reinicio
 * **Sintoma**: el usuario reporta "se cayo el servidor de descarga"; `curl` al puerto devuelve **502**.
