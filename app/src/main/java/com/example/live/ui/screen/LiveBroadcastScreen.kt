@@ -11,7 +11,6 @@ import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.ArrowBack
-import androidx.compose.material.icons.filled.Videocam
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
@@ -93,6 +92,10 @@ fun LiveBroadcastScreen(
     var isMicMuted by remember { mutableStateOf(false) }
     var isCameraOff by remember { mutableStateOf(false) }
 
+    // Controlador de la preview de CameraX del pre-live: permite soltar el sensor
+    // antes de que LiveKit lo reclame al iniciar el directo.
+    val cameraPreviewController = rememberLiveCameraPreviewController()
+
     var elapsedSeconds by remember { mutableStateOf(0) }
     LaunchedEffect(isLiveStarted) {
         if (isLiveStarted) {
@@ -159,11 +162,14 @@ fun LiveBroadcastScreen(
         }
     }
 
+    // En el pre-live el fondo es la preview de camara edge-to-edge, asi que no
+    // hay TopAppBar ni padding del Scaffold: cada elemento flota con sus propios
+    // insets (statusBarsPadding / navigationBarsPadding).
     Scaffold(
         topBar = {
-            TopAppBar(
-                title = {
-                    if (isLiveStarted && activeStream != null) {
+            if (isLiveStarted) {
+                TopAppBar(
+                    title = {
                         Row(verticalAlignment = Alignment.CenterVertically) {
                             LivePulseIndicator(isLive = true)
                             Spacer(modifier = Modifier.width(8.dp))
@@ -172,135 +178,134 @@ fun LiveBroadcastScreen(
                                 fontWeight = FontWeight.Bold
                             )
                         }
-                    } else {
-                        Text("Transmitir en Vivo", fontWeight = FontWeight.Bold)
-                    }
-                },
-                navigationIcon = {
-                    IconButton(onClick = { showEndConfirmation = true }) {
-                        Icon(Icons.Default.ArrowBack, contentDescription = "Regresar", tint = Color.White)
-                    }
-                },
-                colors = TopAppBarDefaults.topAppBarColors(
-                    containerColor = Color(0xFF161618),
-                    titleContentColor = Color.White
+                    },
+                    navigationIcon = {
+                        IconButton(onClick = { showEndConfirmation = true }) {
+                            Icon(Icons.Default.ArrowBack, contentDescription = "Regresar", tint = Color.White)
+                        }
+                    },
+                    colors = TopAppBarDefaults.topAppBarColors(
+                        containerColor = Color(0xFF161618),
+                        titleContentColor = Color.White
+                    )
                 )
-            )
+            }
         },
-        containerColor = Color(0xFF161618)
+        containerColor = if (isLiveStarted) Color(0xFF161618) else Color.Transparent
     ) { paddingValues ->
         Box(
             modifier = Modifier
                 .fillMaxSize()
-                .padding(paddingValues),
+                .then(if (isLiveStarted) Modifier.padding(paddingValues) else Modifier),
             contentAlignment = Alignment.Center
         ) {
             if (!hasPermissions) {
-                Column(
-                    horizontalAlignment = Alignment.CenterHorizontally,
-                    modifier = Modifier.padding(24.dp)
-                ) {
-                    Text(
-                        text = "Se requieren permisos de Cámara y Micrófono para transmitir",
-                        color = Color.White,
-                        fontSize = 16.sp,
-                        fontWeight = FontWeight.Medium
-                    )
-                    Spacer(modifier = Modifier.height(16.dp))
-                    Button(
-                        onClick = {
-                            permissionLauncher.launch(arrayOf(Manifest.permission.CAMERA, Manifest.permission.RECORD_AUDIO))
-                        },
-                        colors = ButtonDefaults.buttonColors(containerColor = Color(0xFF00A884))
-                    ) { Text("Conceder Permisos", color = Color.White) }
-                }
-            } else if (!isLiveStarted) {
-                Column(
+                Box(
                     modifier = Modifier
                         .fillMaxSize()
-                        .padding(24.dp),
-                    verticalArrangement = Arrangement.Center,
-                    horizontalAlignment = Alignment.CenterHorizontally
+                        .background(Color(0xFF161618)),
+                    contentAlignment = Alignment.Center
                 ) {
-                    Icon(
-                        imageVector = Icons.Default.Videocam,
-                        contentDescription = null,
-                        tint = Color(0xFF00A884),
-                        modifier = Modifier.size(72.dp)
-                    )
-                    Spacer(modifier = Modifier.height(24.dp))
-                    OutlinedTextField(
-                        value = titleText,
-                        onValueChange = { titleText = it },
-                        label = { Text("Título de la transmisión", color = Color.Gray) },
-                        modifier = Modifier.fillMaxWidth(),
-                        colors = OutlinedTextFieldDefaults.colors(
-                            focusedBorderColor = Color(0xFF00A884),
-                            unfocusedBorderColor = Color.Gray,
-                            focusedTextColor = Color.White,
-                            unfocusedTextColor = Color.White
+                    Column(horizontalAlignment = Alignment.CenterHorizontally) {
+                        Text(
+                            text = "Se requieren permisos de Cámara y Micrófono para transmitir",
+                            color = Color.White,
+                            fontSize = 16.sp,
+                            fontWeight = FontWeight.Medium
                         )
-                    )
-                    Spacer(modifier = Modifier.height(16.dp))
-                    OutlinedTextField(
-                        value = descriptionText,
-                        onValueChange = { descriptionText = it },
-                        label = { Text("Descripción (opcional)", color = Color.Gray) },
-                        modifier = Modifier.fillMaxWidth(),
-                        colors = OutlinedTextFieldDefaults.colors(
-                            focusedBorderColor = Color(0xFF00A884),
-                            unfocusedBorderColor = Color.Gray,
-                            focusedTextColor = Color.White,
-                            unfocusedTextColor = Color.White
-                        )
+                        Spacer(modifier = Modifier.height(16.dp))
+                        Button(
+                            onClick = {
+                                permissionLauncher.launch(arrayOf(Manifest.permission.CAMERA, Manifest.permission.RECORD_AUDIO))
+                            },
+                            colors = ButtonDefaults.buttonColors(containerColor = Color(0xFF00A884))
+                        ) { Text("Conceder Permisos", color = Color.White) }
+                    }
+                }
+            } else if (!isLiveStarted) {
+                // ------------------------------------------------------------------
+                // Pre-live: la preview de CameraX es el fondo edge-to-edge y todos
+                // los controles flotan encima (glassmorphism).
+                // ------------------------------------------------------------------
+                Box(modifier = Modifier.fillMaxSize()) {
+                    LiveCameraBackgroundPreview(
+                        controller = cameraPreviewController,
+                        modifier = Modifier.fillMaxSize()
                     )
 
-                    Spacer(modifier = Modifier.height(16.dp))
+                    // Overlay oscuro translucido: garantiza contraste del contenido
+                    // sobre el video de la camara ya difuminado.
                     Box(
                         modifier = Modifier
-                            .fillMaxWidth()
-                            .height(200.dp)
-                            .clip(RoundedCornerShape(16.dp))
-                            .background(Color.Black)
+                            .fillMaxSize()
+                            .background(Color.Black.copy(alpha = 0.4f))
+                    )
+
+                    LivePreliveTopBar(
+                        title = "Transmitir en Vivo",
+                        onNavigateBack = onNavigateBack,
+                        modifier = Modifier.align(Alignment.TopStart)
+                    )
+
+                    LiveGlassPanel(
+                        modifier = Modifier
+                            .align(Alignment.Center)
+                            .padding(horizontal = 24.dp)
                     ) {
-                        LiveVideoSurface(
-                            videoTrack = localVideoTrack,
-                            initRenderer = roomRepository::initVideoRenderer,
-                            modifier = Modifier.fillMaxSize()
+                        Text(
+                            text = "DETALLES DEL DIRECTO",
+                            color = PanalinkMint.copy(alpha = 0.75f),
+                            fontSize = 11.sp,
+                            fontWeight = FontWeight.SemiBold,
+                            letterSpacing = 1.4.sp
                         )
-                        if (localVideoTrack == null) {
+                        Spacer(modifier = Modifier.height(14.dp))
+                        LiveGlassTextField(
+                            value = titleText,
+                            onValueChange = { titleText = it },
+                            placeholder = "Título de la transmisión",
+                            singleLine = true
+                        )
+                        Spacer(modifier = Modifier.height(12.dp))
+                        LiveGlassDivider()
+                        Spacer(modifier = Modifier.height(12.dp))
+                        LiveGlassTextField(
+                            value = descriptionText,
+                            onValueChange = { descriptionText = it },
+                            placeholder = "Descripción (opcional)",
+                            singleLine = false,
+                            minHeight = 64.dp
+                        )
+
+                        errorMessage?.let { message ->
+                            Spacer(modifier = Modifier.height(14.dp))
                             Box(
-                                modifier = Modifier.fillMaxSize(),
-                                contentAlignment = Alignment.Center
+                                modifier = Modifier
+                                    .fillMaxWidth()
+                                    .clip(RoundedCornerShape(12.dp))
+                                    .background(Color(0xFFEF5350).copy(alpha = 0.18f))
+                                    .padding(horizontal = 12.dp, vertical = 10.dp)
                             ) {
-                                Column(horizontalAlignment = Alignment.CenterHorizontally) {
-                                    Icon(
-                                        imageVector = Icons.Default.Videocam,
-                                        contentDescription = null,
-                                        tint = Color(0xFF00A884),
-                                        modifier = Modifier.size(44.dp)
-                                    )
-                                    Spacer(modifier = Modifier.height(8.dp))
-                                    Text(
-                                        text = "La cámara se activará al iniciar",
-                                        color = Color.Gray,
-                                        fontSize = 13.sp
-                                    )
-                                }
+                                Text(
+                                    text = message,
+                                    color = Color(0xFFFF8A80),
+                                    fontSize = 13.sp,
+                                    fontWeight = FontWeight.Medium
+                                )
                             }
                         }
                     }
 
-                    if (errorMessage != null) {
-                        Spacer(modifier = Modifier.height(8.dp))
-                        Text(text = errorMessage!!, color = Color(0xFFEF5350), fontSize = 13.sp)
-                    }
-                    Spacer(modifier = Modifier.height(32.dp))
-                    Button(
+                    LiveStartBroadcastButton(
+                        isStarting = isStarting,
+                        enabled = !isStarting && titleText.isNotBlank(),
                         onClick = {
-                            if (isStarting) return@Button
+                            if (isStarting) return@LiveStartBroadcastButton
                             isStarting = true
                             errorMessage = null
+                            // LiveKit necesita el sensor libre: soltamos la preview
+                            // de CameraX antes de pedir el token y conectar.
+                            cameraPreviewController.releaseCamera()
                             scope.launch {
                                 try {
                                     // 1) SOLO se crea el stream: operación corta que depende de Supabase.
@@ -332,17 +337,8 @@ fun LiveBroadcastScreen(
                                 }
                             }
                         },
-                        enabled = !isStarting && titleText.isNotBlank(),
-                        colors = ButtonDefaults.buttonColors(containerColor = Color(0xFF00A884)),
-                        modifier = Modifier.fillMaxWidth().height(50.dp),
-                        shape = RoundedCornerShape(25.dp)
-                    ) {
-                        if (isStarting) {
-                            CircularProgressIndicator(color = Color.White, modifier = Modifier.size(24.dp))
-                        } else {
-                            Text("INICIAR TRANSMISIÓN EN VIVO", color = Color.White, fontWeight = FontWeight.Bold, fontSize = 15.sp)
-                        }
-                    }
+                        modifier = Modifier.align(Alignment.BottomCenter)
+                    )
                 }
             } else {
                 Box(
