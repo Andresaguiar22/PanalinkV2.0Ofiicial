@@ -6,18 +6,16 @@ import android.Manifest
 import android.content.pm.PackageManager
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.contract.ActivityResultContracts
-import androidx.compose.foundation.background
+import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.ArrowBack
-import androidx.compose.material.icons.filled.Videocam
+import androidx.compose.material.icons.rounded.Home
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.font.FontWeight
@@ -29,6 +27,9 @@ import com.example.live.data.repository.LiveRoomRepositoryImpl
 import com.example.live.domain.model.LiveConnectionState
 import com.example.live.domain.model.LiveStream
 import com.example.live.domain.repository.LiveRoomRepository
+import com.example.live.ui.LiveCardShape
+import com.example.live.ui.LiveEndRed
+import com.example.live.ui.LiveHudBorder
 import com.example.live.ui.components.*
 import com.example.live.ui.viewmodel.LiveGuestViewModel
 import com.example.live.ui.viewmodel.LiveViewModel
@@ -38,7 +39,6 @@ import kotlinx.coroutines.launch
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withTimeout
 
-@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun LiveBroadcastScreen(
     onNavigateBack: () -> Unit,
@@ -92,6 +92,13 @@ fun LiveBroadcastScreen(
 
     var isMicMuted by remember { mutableStateOf(false) }
     var isCameraOff by remember { mutableStateOf(false) }
+
+    // Los comentarios se pueden ocultar desde el HUD inferior para despejar el video.
+    var commentsVisible by remember { mutableStateOf(true) }
+
+    // La preview de CameraX y LiveKit no pueden tener la cámara a la vez: cuando arranca
+    // el directo esta bandera suelta la preview antes de conectar (si no, "cámara ocupada").
+    var cameraPreviewActive by remember { mutableStateOf(true) }
 
     var elapsedSeconds by remember { mutableStateOf(0) }
     LaunchedEffect(isLiveStarted) {
@@ -159,362 +166,298 @@ fun LiveBroadcastScreen(
         }
     }
 
-    Scaffold(
-        topBar = {
-            TopAppBar(
-                title = {
-                    if (isLiveStarted && activeStream != null) {
-                        Row(verticalAlignment = Alignment.CenterVertically) {
-                            LivePulseIndicator(isLive = true)
-                            Spacer(modifier = Modifier.width(8.dp))
-                            Text(
-                                text = "${formatElapsed(elapsedSeconds)} · 👁 $viewerCount",
-                                fontWeight = FontWeight.Bold
-                            )
-                        }
-                    } else {
-                        Text("Transmitir en Vivo", fontWeight = FontWeight.Bold)
-                    }
-                },
-                navigationIcon = {
-                    IconButton(onClick = { showEndConfirmation = true }) {
-                        Icon(Icons.Default.ArrowBack, contentDescription = "Regresar", tint = Color.White)
-                    }
-                },
-                colors = TopAppBarDefaults.topAppBarColors(
-                    containerColor = Color(0xFF161618),
-                    titleContentColor = Color.White
-                )
-            )
-        },
-        containerColor = Color(0xFF161618)
-    ) { paddingValues ->
-        Box(
-            modifier = Modifier
-                .fillMaxSize()
-                .padding(paddingValues),
-            contentAlignment = Alignment.Center
-        ) {
-            if (!hasPermissions) {
-                Column(
-                    horizontalAlignment = Alignment.CenterHorizontally,
-                    modifier = Modifier.padding(24.dp)
-                ) {
-                    Text(
-                        text = "Se requieren permisos de Cámara y Micrófono para transmitir",
-                        color = Color.White,
-                        fontSize = 16.sp,
-                        fontWeight = FontWeight.Medium
-                    )
-                    Spacer(modifier = Modifier.height(16.dp))
-                    Button(
-                        onClick = {
-                            permissionLauncher.launch(arrayOf(Manifest.permission.CAMERA, Manifest.permission.RECORD_AUDIO))
-                        },
-                        colors = ButtonDefaults.buttonColors(containerColor = Color(0xFF00A884))
-                    ) { Text("Conceder Permisos", color = Color.White) }
+    /** Crea el stream y arranca el directo. Suelta antes la preview de CameraX. */
+    fun beginBroadcast() {
+        if (isStarting) return
+        isStarting = true
+        errorMessage = null
+        scope.launch {
+            try {
+                cameraPreviewActive = false
+                delay(CAMERA_RELEASE_DELAY_MS)
+
+                // 1) SOLO se crea el stream: operación corta que depende de Supabase.
+                //    Con timeout propio para no quedarnos colgados si la red falla.
+                val streamResult = withTimeout(10_000L) {
+                    viewModel.createAndStartLive(titleText, descriptionText)
                 }
-            } else if (!isLiveStarted) {
-                Column(
-                    modifier = Modifier
-                        .fillMaxSize()
-                        .padding(24.dp),
-                    verticalArrangement = Arrangement.Center,
-                    horizontalAlignment = Alignment.CenterHorizontally
-                ) {
-                    Icon(
-                        imageVector = Icons.Default.Videocam,
-                        contentDescription = null,
-                        tint = Color(0xFF00A884),
-                        modifier = Modifier.size(72.dp)
-                    )
-                    Spacer(modifier = Modifier.height(24.dp))
-                    OutlinedTextField(
-                        value = titleText,
-                        onValueChange = { titleText = it },
-                        label = { Text("Título de la transmisión", color = Color.Gray) },
-                        modifier = Modifier.fillMaxWidth(),
-                        colors = OutlinedTextFieldDefaults.colors(
-                            focusedBorderColor = Color(0xFF00A884),
-                            unfocusedBorderColor = Color.Gray,
-                            focusedTextColor = Color.White,
-                            unfocusedTextColor = Color.White
-                        )
-                    )
-                    Spacer(modifier = Modifier.height(16.dp))
-                    OutlinedTextField(
-                        value = descriptionText,
-                        onValueChange = { descriptionText = it },
-                        label = { Text("Descripción (opcional)", color = Color.Gray) },
-                        modifier = Modifier.fillMaxWidth(),
-                        colors = OutlinedTextFieldDefaults.colors(
-                            focusedBorderColor = Color(0xFF00A884),
-                            unfocusedBorderColor = Color.Gray,
-                            focusedTextColor = Color.White,
-                            unfocusedTextColor = Color.White
-                        )
-                    )
-
-                    Spacer(modifier = Modifier.height(16.dp))
-                    Box(
-                        modifier = Modifier
-                            .fillMaxWidth()
-                            .height(200.dp)
-                            .clip(RoundedCornerShape(16.dp))
-                            .background(Color.Black)
-                    ) {
-                        LiveVideoSurface(
-                            videoTrack = localVideoTrack,
-                            initRenderer = roomRepository::initVideoRenderer,
-                            modifier = Modifier.fillMaxSize()
-                        )
-                        if (localVideoTrack == null) {
-                            Box(
-                                modifier = Modifier.fillMaxSize(),
-                                contentAlignment = Alignment.Center
-                            ) {
-                                Column(horizontalAlignment = Alignment.CenterHorizontally) {
-                                    Icon(
-                                        imageVector = Icons.Default.Videocam,
-                                        contentDescription = null,
-                                        tint = Color(0xFF00A884),
-                                        modifier = Modifier.size(44.dp)
-                                    )
-                                    Spacer(modifier = Modifier.height(8.dp))
-                                    Text(
-                                        text = "La cámara se activará al iniciar",
-                                        color = Color.Gray,
-                                        fontSize = 13.sp
-                                    )
-                                }
-                            }
-                        }
-                    }
-
-                    if (errorMessage != null) {
-                        Spacer(modifier = Modifier.height(8.dp))
-                        Text(text = errorMessage!!, color = Color(0xFFEF5350), fontSize = 13.sp)
-                    }
-                    Spacer(modifier = Modifier.height(32.dp))
-                    Button(
-                        onClick = {
-                            if (isStarting) return@Button
-                            isStarting = true
-                            errorMessage = null
-                            scope.launch {
-                                try {
-                                    // 1) SOLO se crea el stream: operación corta que depende de Supabase.
-                                    //    Con timeout propio para no quedarnos colgados si la red falla.
-                                    val streamResult = withTimeout(10_000L) {
-                                        viewModel.createAndStartLive(titleText, descriptionText)
-                                    }
-                                    if (streamResult.isSuccess) {
-                                        val stream = streamResult.getOrThrow()
-                                        activeStream = stream
-                                        isStarting = false
-                                        // 2) Entramos YA a la pantalla de live. La cámara/mic/Conexión
-                                        //    LiveKit se resuelven en background (conectLiveInBackground)
-                                        //    y se reflejan en el overlay "Conectando..." de la pantalla
-                                        //    de live. Nada corta la publicación por un timeout.
-                                        isLiveStarted = true
-                                        startLiveInBackground(stream)
-                                    } else {
-                                        errorMessage = streamResult.exceptionOrNull()?.message ?: "Error al crear transmisión"
-                                    }
-                                } catch (e: Exception) {
-                                    errorMessage = if (e is CancellationException) {
-                                        "Tiempo de espera agotado al crear el stream. Revisa tu conexión."
-                                    } else {
-                                        e.message ?: "Error desconocido"
-                                    }
-                                } finally {
-                                    isStarting = false
-                                }
-                            }
-                        },
-                        enabled = !isStarting && titleText.isNotBlank(),
-                        colors = ButtonDefaults.buttonColors(containerColor = Color(0xFF00A884)),
-                        modifier = Modifier.fillMaxWidth().height(50.dp),
-                        shape = RoundedCornerShape(25.dp)
-                    ) {
-                        if (isStarting) {
-                            CircularProgressIndicator(color = Color.White, modifier = Modifier.size(24.dp))
-                        } else {
-                            Text("INICIAR TRANSMISIÓN EN VIVO", color = Color.White, fontWeight = FontWeight.Bold, fontSize = 15.sp)
-                        }
-                    }
+                if (streamResult.isSuccess) {
+                    val stream = streamResult.getOrThrow()
+                    activeStream = stream
+                    isStarting = false
+                    // 2) Entramos YA a la pantalla de live. La cámara/mic/Conexión
+                    //    LiveKit se resuelven en background (startLiveInBackground)
+                    //    y se reflejan en el overlay "Conectando..." de la pantalla
+                    //    de live. Nada corta la publicación por un timeout.
+                    isLiveStarted = true
+                    startLiveInBackground(stream)
+                } else {
+                    errorMessage = streamResult.exceptionOrNull()?.message ?: "Error al crear transmisión"
+                    cameraPreviewActive = true
                 }
-            } else {
-                Box(
-                    modifier = Modifier.fillMaxSize(),
-                    contentAlignment = Alignment.Center
-                ) {
-                    LiveVideoSurface(
-                        videoTrack = localVideoTrack,
-                        initRenderer = roomRepository::initVideoRenderer,
-                        modifier = Modifier.fillMaxSize()
-                    )
-
-                    LiveConnectionOverlay(
-                        connectionState = connectionState,
-                        // El overlay NO debe tapar la preview cuando la cámara ya
-                        // está: aunque el evento Connected de LiveKit tarde, si el
-                        // track local está, la preview es visible.
-                        hideWhenTrackReady = localVideoTrack != null,
-                        modifier = Modifier.align(Alignment.Center)
-                    )
-
-                    liveSetupError?.let { err ->
-                        Surface(
-                            modifier = Modifier
-                                .align(Alignment.BottomCenter)
-                                .padding(bottom = 150.dp)
-                                .fillMaxWidth()
-                                .padding(horizontal = 24.dp),
-                            shape = RoundedCornerShape(12.dp),
-                            color = Color(0xFFEF5350).copy(alpha = 0.92f)
-                        ) {
-                            Column(
-                                modifier = Modifier.padding(12.dp),
-                                horizontalAlignment = Alignment.CenterHorizontally
-                            ) {
-                                Text(
-                                    text = err,
-                                    color = Color.White,
-                                    fontSize = 13.sp,
-                                    fontWeight = FontWeight.Medium
-                                )
-                                Spacer(modifier = Modifier.height(6.dp))
-                                TextButton(onClick = {
-                                    liveSetupError = null
-                                    activeStream?.let { startLiveInBackground(it) }
-                                }) {
-                                    Text("Reintentar conexión", color = Color.White, fontWeight = FontWeight.Bold)
-                                }
-                            }
-                        }
-                    }
-
-                    Surface(
-                        modifier = Modifier.align(Alignment.TopCenter).padding(top = 16.dp),
-                        shape = RoundedCornerShape(16.dp),
-                        color = Color.Black.copy(alpha = 0.6f)
-                    ) {
-                        Row(
-                            modifier = Modifier.padding(horizontal = 12.dp, vertical = 6.dp),
-                            verticalAlignment = Alignment.CenterVertically,
-                            horizontalArrangement = Arrangement.spacedBy(8.dp)
-                        ) {
-                            LivePulseIndicator(isLive = true)
-                            Text("EN VIVO", color = Color.White, fontWeight = FontWeight.Bold, fontSize = 12.sp)
-                            Text("👁 $viewerCount", color = Color.White, fontWeight = FontWeight.Medium, fontSize = 12.sp)
-                            Text("· ${formatElapsed(elapsedSeconds)}", color = Color.White, fontSize = 12.sp)
-                        }
-                    }
-
-                    if (remoteVideoTrack != null) {
-                        Box(modifier = Modifier.align(Alignment.BottomEnd).padding(12.dp)) {
-                            Surface(
-                                modifier = Modifier.width(140.dp).height(200.dp),
-                                shape = RoundedCornerShape(16.dp),
-                                color = Color.Black
-                            ) {
-                                LiveVideoSurface(
-                                    videoTrack = remoteVideoTrack,
-                                    initRenderer = roomRepository::initVideoRenderer,
-                                    modifier = Modifier.fillMaxSize()
-                                )
-                                Surface(
-                                    shape = RoundedCornerShape(4.dp),
-                                    color = Color.Black.copy(alpha = 0.6f),
-                                    modifier = Modifier
-                                        .align(Alignment.BottomStart)
-                                        .padding(4.dp)
-                                ) {
-                                    Text(
-                                        text = "Co-Host",
-                                        color = Color.White,
-                                        fontSize = 10.sp,
-                                        modifier = Modifier.padding(horizontal = 4.dp, vertical = 2.dp)
-                                    )
-                                }
-                            }
-                        }
-                    }
-
-                    Box(modifier = Modifier.align(Alignment.TopStart).padding(top = 16.dp, start = 16.dp)) {
-                        activeStream?.let { stream ->
-                            LiveGuestControls(
-                                guests = guests,
-                                onInvite = { userId -> guestViewModel.inviteGuest(stream.id, userId) },
-                                onRemove = { userId -> guestViewModel.removeGuest(stream.id, userId) }
-                            )
-                        }
-                    }
-
-                    Box(modifier = Modifier.align(Alignment.BottomCenter).fillMaxWidth()) {
-                        Column {
-                            LiveViewerComments(
-                                comments = comments,
-                                onSendComment = { text -> activeStream?.let { viewModel.postComment(it.id, text) } },
-                                isBroadcaster = true,
-                                onDeleteComment = { commentId -> viewModel.deleteComment(commentId) },
-                                onBlockUser = { userId -> activeStream?.let { viewModel.blockUser(it.id, userId) } },
-                                hostId = SupabaseClient.currentUser?.id,
-                                modifier = Modifier.fillMaxWidth()
-                            )
-
-                            LiveBroadcastControls(
-                                isMicMuted = isMicMuted,
-                                isCameraOff = isCameraOff,
-                                elapsedSeconds = elapsedSeconds,
-                                onToggleMic = {
-                                    isMicMuted = !isMicMuted
-                                    scope.launch { roomRepository.setMicrophoneEnabled(!isMicMuted) }
-                                },
-                                onToggleCamera = {
-                                    isCameraOff = !isCameraOff
-                                    scope.launch { roomRepository.setCameraEnabled(!isCameraOff) }
-                                },
-                                onSwitchCamera = { scope.launch { roomRepository.switchCamera() } },
-                                onEndLive = { showEndConfirmation = true }
-                            )
-                        }
-                    }
+            } catch (e: Exception) {
+                errorMessage = if (e is CancellationException) {
+                    "Tiempo de espera agotado al crear el stream. Revisa tu conexión."
+                } else {
+                    e.message ?: "Error desconocido"
                 }
+                cameraPreviewActive = true
+            } finally {
+                isStarting = false
             }
         }
     }
 
+    if (!isLiveStarted) {
+        LiveBroadcastSetup(
+            hasPermissions = hasPermissions,
+            titleText = titleText,
+            onTitleChange = { titleText = it },
+            descriptionText = descriptionText,
+            onDescriptionChange = { descriptionText = it },
+            isStarting = isStarting,
+            errorMessage = errorMessage,
+            cameraPreviewActive = cameraPreviewActive,
+            onBack = { showEndConfirmation = true },
+            onRequestPermissions = {
+                permissionLauncher.launch(
+                    arrayOf(Manifest.permission.CAMERA, Manifest.permission.RECORD_AUDIO)
+                )
+            },
+            onStart = { beginBroadcast() },
+        )
+
+        // En configuración todavía no hay directo activo: si el usuario confirma, se
+        // libera la preview y se vuelve atrás.
+        if (showEndConfirmation) {
+            EndLiveDialog(
+                onDismiss = { showEndConfirmation = false },
+                onConfirm = {
+                    showEndConfirmation = false
+                    stopAndFinish()
+                },
+            )
+        }
+        return
+    }
+
+    // --- Directo activo: el video de cámara (track local de LiveKit) es la capa base
+    //     a pantalla completa y todo lo demás flota encima. Sin Scaffold ni TopAppBar:
+    //     los contenedores sólidos tapaban el video y rompían el look inmersivo.
+    Box(modifier = Modifier.fillMaxSize()) {
+        Box(
+            modifier = Modifier.fillMaxSize(),
+            contentAlignment = Alignment.Center
+        ) {
+            LiveVideoSurface(
+                videoTrack = localVideoTrack,
+                initRenderer = roomRepository::initVideoRenderer,
+                modifier = Modifier.fillMaxSize()
+            )
+
+            LiveConnectionOverlay(
+                connectionState = connectionState,
+                // El overlay NO debe tapar la preview cuando la cámara ya
+                // está: aunque el evento Connected de LiveKit tarde, si el
+                // track local está, la preview es visible.
+                hideWhenTrackReady = localVideoTrack != null,
+                modifier = Modifier.align(Alignment.Center)
+            )
+        }
+
+        // ---------------- HUD superior ----------------
+        Column(
+            modifier = Modifier
+                .align(Alignment.TopCenter)
+                .fillMaxWidth()
+                .padding(start = HudHorizontalPadding, end = HudHorizontalPadding, top = HudTopPadding)
+        ) {
+            Row(verticalAlignment = Alignment.CenterVertically) {
+                LiveStatusPill(
+                    elapsedSeconds = elapsedSeconds,
+                    viewerCount = viewerCount,
+                )
+
+                Spacer(modifier = Modifier.weight(1f))
+
+                LiveGlassCircleButton(
+                    icon = Icons.Rounded.Home,
+                    contentDescription = "Salir del directo",
+                    onClick = { showEndConfirmation = true },
+                )
+            }
+
+            Spacer(modifier = Modifier.height(14.dp))
+
+            activeStream?.let { stream ->
+                LiveGuestControls(
+                    guests = guests,
+                    onInvite = { userId -> guestViewModel.inviteGuest(stream.id, userId) },
+                    onRemove = { userId -> guestViewModel.removeGuest(stream.id, userId) }
+                )
+            }
+        }
+
+        // ---------------- Co-Host (PiP) ----------------
+        // Va arriba a la derecha, debajo del botón de salir, para no chocar con los
+        // controles ni con los comentarios.
+        if (remoteVideoTrack != null) {
+            Box(
+                modifier = Modifier
+                    .align(Alignment.TopEnd)
+                    .padding(top = CoHostPipTop, end = HudHorizontalPadding)
+            ) {
+                Surface(
+                    modifier = Modifier.width(118.dp).height(170.dp),
+                    shape = LiveCardShape,
+                    color = Color.Black,
+                    border = BorderStroke(1.dp, LiveHudBorder),
+                ) {
+                    LiveVideoSurface(
+                        videoTrack = remoteVideoTrack,
+                        initRenderer = roomRepository::initVideoRenderer,
+                        modifier = Modifier.fillMaxSize()
+                    )
+                    Surface(
+                        shape = RoundedCornerShape(6.dp),
+                        color = Color.Black.copy(alpha = 0.6f),
+                        modifier = Modifier
+                            .align(Alignment.BottomStart)
+                            .padding(6.dp)
+                    ) {
+                        Text(
+                            text = "Co-Host",
+                            color = Color.White,
+                            fontSize = 10.sp,
+                            modifier = Modifier.padding(horizontal = 6.dp, vertical = 2.dp)
+                        )
+                    }
+                }
+            }
+        }
+
+        // ---------------- Comentarios ----------------
+        // Anclados abajo para que crezcan hacia arriba, dejando libre la franja de
+        // controles flotantes.
+        if (commentsVisible) {
+            LiveViewerComments(
+                comments = comments,
+                onSendComment = { text -> activeStream?.let { viewModel.postComment(it.id, text) } },
+                isBroadcaster = true,
+                onDeleteComment = { commentId -> viewModel.deleteComment(commentId) },
+                onBlockUser = { userId -> activeStream?.let { viewModel.blockUser(it.id, userId) } },
+                hostId = SupabaseClient.currentUser?.id,
+                modifier = Modifier
+                    .align(Alignment.BottomStart)
+                    .fillMaxWidth()
+                    .padding(start = HudHorizontalPadding, end = HudHorizontalPadding, bottom = CommentsBottomPadding)
+                    .heightIn(max = 240.dp)
+            )
+        }
+
+        // ---------------- Aviso de error de conexión ----------------
+        liveSetupError?.let { err ->
+            Surface(
+                modifier = Modifier
+                    .align(Alignment.BottomCenter)
+                    .padding(bottom = CommentsBottomPadding)
+                    .fillMaxWidth()
+                    .padding(horizontal = HudHorizontalPadding),
+                shape = RoundedCornerShape(16.dp),
+                color = LiveEndRed.copy(alpha = 0.92f)
+            ) {
+                Column(
+                    modifier = Modifier.padding(12.dp),
+                    horizontalAlignment = Alignment.CenterHorizontally
+                ) {
+                    Text(
+                        text = err,
+                        color = Color.White,
+                        fontSize = 13.sp,
+                        fontWeight = FontWeight.Medium
+                    )
+                    Spacer(modifier = Modifier.height(6.dp))
+                    TextButton(onClick = {
+                        liveSetupError = null
+                        activeStream?.let { startLiveInBackground(it) }
+                    }) {
+                        Text("Reintentar conexión", color = Color.White, fontWeight = FontWeight.Bold)
+                    }
+                }
+            }
+        }
+
+        // ---------------- HUD inferior ----------------
+        LiveBroadcastControls(
+            isMicMuted = isMicMuted,
+            isCameraOff = isCameraOff,
+            commentsVisible = commentsVisible,
+            onToggleMic = {
+                isMicMuted = !isMicMuted
+                scope.launch { roomRepository.setMicrophoneEnabled(!isMicMuted) }
+            },
+            onToggleCamera = {
+                isCameraOff = !isCameraOff
+                scope.launch { roomRepository.setCameraEnabled(!isCameraOff) }
+            },
+            onSwitchCamera = { scope.launch { roomRepository.switchCamera() } },
+            onToggleComments = { commentsVisible = !commentsVisible },
+            onEndLive = { showEndConfirmation = true },
+            modifier = Modifier
+                .align(Alignment.BottomCenter)
+                .padding(start = HudHorizontalPadding, end = HudHorizontalPadding, bottom = HudBottomPadding)
+        )
+    }
+
     if (showEndConfirmation) {
-        AlertDialog(
-            onDismissRequest = { showEndConfirmation = false },
-            title = { Text("Finalizar Transmisión") },
-            text = { Text("¿Estás seguro de que deseas finalizar este Live? Esta acción no se puede deshacer.") },
-            confirmButton = {
-                TextButton(onClick = { showEndConfirmation = false; stopAndFinish() }) {
-                    Text("Finalizar", color = Color(0xFFEF5350), fontWeight = FontWeight.Bold)
-                }
+        EndLiveDialog(
+            onDismiss = { showEndConfirmation = false },
+            onConfirm = {
+                showEndConfirmation = false
+                stopAndFinish()
             },
-            dismissButton = {
-                TextButton(onClick = { showEndConfirmation = false }) {
-                    Text("Cancelar", color = Color.White)
-                }
-            },
-            containerColor = Color(0xFF161618),
-            titleContentColor = Color.White,
-            textContentColor = Color.Gray
         )
     }
 }
 
-private fun formatElapsed(totalSeconds: Int): String {
-    val h = totalSeconds / 3600
-    val m = (totalSeconds % 3600) / 60
-    val s = totalSeconds % 60
-    return if (h > 0) {
-        String.format("%d:%02d:%02d", h, m, s)
-    } else {
-        String.format("%d:%02d", m, s)
-    }
+@Composable
+private fun EndLiveDialog(
+    onDismiss: () -> Unit,
+    onConfirm: () -> Unit,
+) {
+    AlertDialog(
+        onDismissRequest = onDismiss,
+        title = { Text("Finalizar Transmisión") },
+        text = { Text("¿Estás seguro de que deseas finalizar este Live? Esta acción no se puede deshacer.") },
+        confirmButton = {
+            TextButton(onClick = onConfirm) {
+                Text("Finalizar", color = Color(0xFFEF5350), fontWeight = FontWeight.Bold)
+            }
+        },
+        dismissButton = {
+            TextButton(onClick = onDismiss) {
+                Text("Cancelar", color = Color.White)
+            }
+        },
+        containerColor = Color(0xFF161618),
+        titleContentColor = Color.White,
+        textContentColor = Color.Gray
+    )
 }
+
+/** Margen para que CameraX suelte la cámara antes de que LiveKit abra la suya. */
+private const val CAMERA_RELEASE_DELAY_MS = 350L
+
+// Márgenes del HUD flotante. Se usan dp plano (NO statusBarsPadding/
+// navigationBarsPadding): la ventana de la app NO es edge-to-edge porque
+// MainActivity.onResume fuerza setDecorFitsSystemWindows(true), así que el sistema
+// ya reserva el espacio de las barras y volver a aplicar los insets lo duplicaría.
+private val HudHorizontalPadding = 20.dp
+private val HudTopPadding = 14.dp
+private val HudBottomPadding = 14.dp
+
+/** Reserva la altura del HUD inferior para que los comentarios no queden debajo. */
+private val CommentsBottomPadding = 84.dp
+
+/** El PiP del Co-Host se coloca debajo del botón de salir. */
+private val CoHostPipTop = 78.dp

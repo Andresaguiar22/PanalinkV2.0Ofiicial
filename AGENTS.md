@@ -442,4 +442,91 @@ El archivo versionado resuelve la toolchain **relativa al repo** (`_TC_ROOT="$(c
 * **Regla**: `git checkout -- scripts/toolchain_env.sh` antes de commitear/pushear. Commitear las rutas absolutas rompe el build en cualquier otra maquina.
 * La version portable funciona igual en la sandbox (resuelve a las mismas rutas; `GRADLE_USER_HOME` portable = `.toolchain/.gradle-home`, que existe), asi que no hay razon para conservar la absoluta.
 
+---
+
+## 🎥 Setup pre-live "Transmitir en Vivo" rediseñado (sesion 2026-09-17)
+
+Refactor visual de la pantalla previa al directo (`LiveBroadcastScreen`) al estilo glassmorphism del mockup aprobado: fondo de camara edge-to-edge con blur + oscurecido, barra superior flotante, panel central translucido con borde fino y CTA en pildora neon con glow.
+
+### Archivos
+* **NUEVO** `com/example/live/ui/components/LiveCameraPreviewBackground.kt`: preview real de **CameraX** a pantalla completa (`PreviewView` + `Preview` use case) para el fondo. Usa `ImplementationMode.COMPATIBLE` (TextureView, no SurfaceView) porque es lo unico que permite aplicar el **blur** de Compose sobre la preview. `active=false` desvincula (`unbindAll()`); el `AndroidView` **nunca se desmonta** (solo `alpha 0/1`) porque reinsertar la misma `PreviewView` revienta con "child already has a parent".
+* **NUEVO** `com/example/live/ui/components/LiveBroadcastSetup.kt`: layout completo pre-live. `LiveBroadcastSetup()` (pantalla), `SetupTopBar`, `GlassFormPanel`, `PermissionGlassPanel`, `GlassFieldGroup`, `GlassTextField` (`BasicTextField` transparente, sin lineas inferiores) y `NeonPillButton` (pildora `CircleShape` + halo desenfocado + `shadow` con `ambientColor/spotColor`).
+* **MODIFICADO** `com/example/live/ui/screen/LiveBroadcastScreen.kt`: la rama de configuracion se movio a `LiveBroadcastSetup` con **early return**; el `Scaffold` (TopAppBar + preview LiveKit + comentarios + controles) queda **solo** para el estado en vivo, intacto. El `AlertDialog` de finalizar se extrajo a `EndLiveDialog(onDismiss, onConfirm)` para reusarlo en ambos estados. La rama de permisos ahora vive dentro del panel glass.
+
+### Paleta y medidas (muestreadas del mockup)
+* Verde neon de marca: **`Color(0xFF5CF8B0)`** (muestreado del boton del mockup); texto del CTA en `Color(0xFF03140C)`.
+* Panel: radio **24.dp**, padding 20.dp, fondo `Brush.verticalGradient(white 0.14 -> 0.06)`, borde 1.dp `white 0.32 -> NeonMint 0.16`.
+* Campos: radio 14.dp, borde `white 0.20`, fondo `white 0.05`, placeholder `white 0.42`; alturas 52.dp (titulo) y 140.dp (descripcion).
+* CTA: altura 50.dp, `contentPadding` horizontal 30.dp, halo `190x46.dp` con `blur(26.dp)`.
+* Fondo: preview con `blur(26.dp).scale(1.08f)` (el `scale` tapa el borde difuminado) + `Color.Black.copy(alpha = 0.4f)` + degradado vertical para legibilidad.
+
+### ⚠️ Insets: NO usar `statusBarsPadding()`/`navigationBarsPadding()` aqui
+Aunque el pedido los mencionaba, en esta app la ventana **NO es edge-to-edge** (`MainActivity.onResume` fuerza `setDecorFitsSystemWindows(window, true)`), asi que el sistema ya reserva el espacio de las barras y volver a aplicar los insets **duplicaba** el desplazamiento (misma conclusion medida en el fix del feed de reels, commit `1afd4a6`). La top bar y el CTA se posicionan con **dp plano**. Misma razon por la que tampoco se tocan las flags de la ventana ni el color de iconos de la barra de estado.
+
+### 🔒 Regresion evitada: la camara es un recurso unico
+LiveKit abre la camara en `localParticipant.setCameraEnabled(true)` dentro de `startBroadcasting()`. Si CameraX la tiene tomada, el directo falla ("camara ocupada") -> regresion directa del fix del commit `9cc864f`.
+* **Solucion**: `beginBroadcast()` pone `cameraPreviewActive = false`, espera `CAMERA_RELEASE_DELAY_MS = 350L` y **recien despues** crea el stream; si falla, restaura la preview (`cameraPreviewActive = true`). El `DisposableEffect` de la preview libera igual al desmontarse (red de seguridad).
+
+### Validacion
+* `source scripts/toolchain_env.sh && ./gradlew --no-daemon :app:compileDebugKotlin` -> **BUILD SUCCESSFUL**, **0 errores** y **0 warnings** en los archivos nuevos/modificados.
+* Toolchain en esta sesion: `bash scripts/setup_toolchain.sh` (idempotente, instala JDK 17 + Android SDK en `.toolchain/`).
+* `gradle.properties` trae un `systemProp.javax.net.ssl.trustStore` con **ruta absoluta de otra sesion** (commiteada): Gradle avisa "trust store ... does not exist" pero resuelve dependencias igual. Si algun dia falla el SSL, ese es el primer sospechoso.
+
+---
+
+## 🖼️ Listado de transmisiones `Panalink Live` estilo glassmorphism (sesion 2026-09-17)
+
+Refactor de `LiveFeedScreen` + `LiveCard` al mockup de tarjetas flotantes: fondo con resplandores neon, tarjetas de cristal sobre la miniatura del video, badges flotantes y FAB con glow.
+
+### Archivos
+* **NUEVO** `com/example/live/ui/LiveTheme.kt`: tokens compartidos del modulo Live. `LiveNeon` (#5CF8B0), `LiveOnNeon` (#03140C), `LiveNightBase` (#040A15), `LiveLiveRed`/`LiveLiveGlow`, `LiveGlassFill` (white 0.06), `LiveGlassBorder` (white 0.10), `LiveBadgeFill`, `LiveCardScrim` y `LiveCardShape` (24.dp).
+* **MODIFICADO** `LiveBroadcastSetup.kt`: dejo de duplicar `NeonMint`/`OnNeonMint`/`PanelShape` y ahora consume `LiveNeon`/`LiveOnNeon`/`LiveCardShape` de `LiveTheme.kt`. Antes de reemplazar masivamente hay que **renombrar `OnNeonMint` PRIMERO** (`NeonMint` es substring de `OnNeonMint`; al reves queda `OnLiveNeon`).
+* **REESCRITO** `com/example/live/ui/components/LiveCard.kt`: `Card` con `elevation = 0.dp`, `containerColor = Color.Transparent` y `BorderStroke(1.dp, LiveGlassBorder)`; dentro, la miniatura con `blur(16.dp).scale(1.12f)` + capa negra en degradado; badges `LiveNowBadge`/`LiveViewerBadge`; titulo 21.sp bold; descripcion opcional 13.sp; fila de host con `PanaAvatar` (34.dp, anillo `LiveNeon`) + `@nombre`.
+* **REESCRITO** `com/example/live/ui/components/LiveSkeletonCard.kt`: mismo alto/esquinas/borde que `LiveCard` con barras pulsantes de cristal (antes era un bloque `#1F2C34` con shimmer). Compartir el alto evita el salto de layout al llegar los datos.
+* **REESCRITO** `com/example/live/ui/screen/LiveFeedScreen.kt`: `Box` con `drawBehind` pintando 2 `Brush.radialGradient` neon (arriba-derecha alpha 0.34, abajo-izquierda 0.16) sobre `LiveNightBase`; `Scaffold` transparente con `CenterAlignedTopAppBar` (el titulo va centrado como el mockup); `LazyColumn` con `Arrangement.spacedBy(16.dp)`; estado vacio en panel de cristal; `LiveBroadcastFab` con halo difuminado + `Modifier.shadow` de color.
+
+### Detalles que importan
+* **El blur del badge NO es backdrop-blur**: Compose no expone blur del fondo (solo `Modifier.blur`, que difumina el propio nodo). El "glass" se logra con relleno oscuro translucido (`LiveBadgeFill`) + borde fino claro + el blur aplicado a la miniatura de atras. No existe `Modifier` de backdrop blur en la version actual de Compose.
+* **`Modifier.blur` es no-op por debajo de API 31** (minSdk del proyecto = 24). En Android 12+ se ve el desenfoque; en 7-11 quedan la capa oscura y los bordes translucidos. El halo del FAB es del mismo tamano que el FAB (64.dp), asi que sin blur queda tapado por el boton en vez de verse como un disco solido.
+* **`Spacer(Modifier.weight(1f))`** entre los badges y el titulo: las tarjetas son de alto fijo (`178.dp`) y el espacio sobrante se lo come el spacer, asi que con o sin descripcion el bloque inferior queda pegado al borde.
+* **Contraste del texto**: la capa negra va de 0.30 -> 0.18 -> 0.72 en vertical; sin ese scrim el titulo blanco se pierde sobre miniaturas claras.
+* **El icono del FAB se mantiene `Videocam`** (el mockup dibuja una camara de fotos, pero la accion es "transmitir en vivo": cambiar el icono a uno de foto seria una regresion de significado).
+* **Padding inferior del listado = `FabSize + 48.dp`** para que el FAB no tape la ultima tarjeta.
+* **Bug arreglado de paso**: el estado vacio antes se decidia con `uiState.activeLives.isEmpty()` (sin filtrar por `status == "LIVE"`), asi que con solo streams finalizados se veia una lista en blanco en vez del panel. Ahora el filtro se calcula una vez en `liveStreams` y alimenta tanto la lista como el estado vacio.
+* **ArrowBack**: se migro a `Icons.AutoMirrored.Rounded/Filled.ArrowBack` en `LiveFeedScreen` y `LiveBroadcastScreen` (el `Icons.Default/Rounded.ArrowBack` esta deprecado y sale warning de compilacion).
+
+---
+
+## 🔴 Directo del anfitrion estilo glassmorphism (sesion 2026-09-17)
+
+Rediseno del estado "directo activo" de `LiveBroadcastScreen`: se eliminaron el `Scaffold` y el `TopAppBar` solidos (`#161618`) y todo pasa a flotar sobre el video de camara.
+
+### Archivos
+* **NUEVO** `com/example/live/ui/components/LiveBroadcastHud.kt`: `LiveStatusPill` (REC + tiempo + ojo + espectadores), `LiveGlassCircleButton` (herramienta circular de cristal con estado `alert` y punto verde de encendido) y `GlowDot` (punto con halo dibujado en `Canvas`). Tambien `viewerLabel()` que singulariza "1 Espectador".
+* **REESCRITO** `LiveBroadcastControls.kt`: fila flotante de 4 circulos (mic / camara / invertir / comentarios) + `EndLiveButton` (pildora roja con halo difuminado, sombra de color y destello de 4 puntas dibujado con `Path`).
+* **MODIFICADO** `LiveGuestControls.kt`: el boton pasa de `Button` relleno a `OutlinedButton` con `BorderStroke(1.5.dp, LiveNeon)` + `containerColor = LiveHudFill`.
+* **MODIFICADO** `LiveBroadcastScreen.kt`: `Scaffold`/`TopAppBar` fuera; `Box` con el video como capa base y HUD superior, PiP de co-host, comentarios, aviso de error y HUD inferior flotando.
+* **Tokens nuevos** en `LiveTheme.kt`: `LiveHudFill`, `LiveHudBorder`, `LiveEndRed`.
+
+### Geometria verificada contra el mockup (768x1376, ~1.868 px/dp)
+Se dibujaron las cajas calculadas sobre la captura para confirmar alineacion y ausencia de colisiones entre comentarios / PiP / HUD inferior.
+* Pildora de estado: top a `14dp` del borde del contenido -> 71px medidos contra 73px del mockup.
+* Fila inferior: botones terminan a `14dp` sobre el borde del contenido -> 62dp desde el borde fisico contra 62.6dp medidos.
+* Centro-a-centro de los circulos: 60dp (mockup 58-66dp). Boton de invitar: top 187px vs 190px medidos.
+
+### Decisiones que importan
+* **NO se aplico `statusBarsPadding()`/`navigationBarsPadding()`** aunque el pedido los mencionaba: `MainActivity.onResume` fuerza `setDecorFitsSystemWindows(true)`, asi que el sistema YA reserva el espacio de las barras y volver a aplicar los insets lo duplica (mismo bug documentado en el fix de reels `1afd4a6`: 43dp y 48dp de mas). El mockup es consistente con dp plano: sus 62.6dp libres abajo = 48dp de barra de navegacion + 14dp de margen.
+* **La capa base es `LiveVideoSurface` (track local de LiveKit), NO `PreviewView` de CameraX.** Durante el directo la camara la tiene LiveKit: montar CameraX a la vez reproduce el fallo "camara ocupada" del commit `9cc864f`. El track local ES la vista de camara, a `fillMaxSize()`, y `LiveVideoSurface` ya usa `SCALE_ASPECT_FILL` (sin barras negras).
+* **`Modifier.blur` no difumina el fondo**: Compose solo difumina el nodo propio. El look "cristal" del HUD se logra con relleno oscuro translucido + borde claro fino. Ademas `blur` es no-op por debajo de API 31 (minSdk 24).
+* **El halo del boton FINALIZAR usa `matchParentSize()`**: asi mide EXACTAMENTE lo que el boton. En API < 31 (sin blur) queda oculto detras del boton en vez de asomar como una franja roja dura alrededor.
+* **El halo va FUERA del `clip(CircleShape)` del boton**: si estuviera dentro, el clip recortaria el resplandor hacia afuera. Por eso es un hermano dibujado antes del boton, no un `drawBehind` del propio boton.
+* **"REC" y no "EN VIVO"**: el mockup rotula la pildora del anfitrion con REC (es su propia pantalla de emision). El tiempo se movio de la barra inferior a la pildora superior.
+* **El boton de comentarios del HUD es un toggle** (`commentsVisible`, por defecto `true`): oculta/muestra la capa de comentarios. El mockup dibuja ese 4to circulo pero el pedido solo listaba 3 herramientas; se implemento con accion real en vez de dejarlo decorativo, y por defecto no cambia el comportamiento previo.
+* **El PiP del Co-Host se movio de abajo-derecha a arriba-derecha** (debajo del boton de salir): abajo chocaba con FINALIZAR y con los comentarios.
+* **Comentarios anclados abajo con `heightIn(max = 240.dp)`**: crecen hacia arriba y quedan despejados de la franja de controles (`CommentsBottomPadding = 84.dp`).
+* **Icono Home con la accion previa**: el mockup usa una casa arriba a la derecha; se mantuvo el comportamiento que tenia la flecha de atras (`showEndConfirmation`), que es un flujo real existente. Mapear la casa a "minimizar" habria inventado una funcion que no existe.
+
+### Validacion
+* `source scripts/toolchain_env.sh && ./gradlew --no-daemon :app:compileDebugKotlin` -> **BUILD SUCCESSFUL**, **0 errores**, **0 warnings** (se quitaron imports sin uso y el `@OptIn(ExperimentalMaterial3Api::class)` que quedo huerfano).
+
 
