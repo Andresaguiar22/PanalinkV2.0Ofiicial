@@ -64,6 +64,8 @@ fun LiveCameraBackgroundPreview(
     modifier: Modifier = Modifier,
     lensFacing: Int = CameraSelector.LENS_FACING_FRONT,
     blurRadiusPx: Float = 42f,
+    /** Cambiar este valor fuerza a re-vincular la camara (p.ej. tras un fallo). */
+    restartKey: Int = 0,
 ) {
     val context = LocalContext.current
     val lifecycleOwner = LocalLifecycleOwner.current
@@ -85,7 +87,7 @@ fun LiveCameraBackgroundPreview(
         modifier = modifier.fillMaxSize(),
     )
 
-    LaunchedEffect(lensFacing, previewView) {
+    LaunchedEffect(lensFacing, previewView, restartKey) {
         try {
             val cameraProvider = ProcessCameraProvider.getInstance(context).get()
             controller.attach(cameraProvider)

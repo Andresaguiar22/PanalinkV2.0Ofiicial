@@ -6,11 +6,16 @@ import android.Manifest
 import android.content.pm.PackageManager
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.contract.ActivityResultContracts
+import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.ArrowBack
+import androidx.compose.material.icons.filled.Cameraswitch
+import androidx.compose.material.icons.filled.Mic
+import androidx.compose.material.icons.filled.MicOff
+import androidx.compose.material.icons.filled.Videocam
+import androidx.compose.material.icons.filled.VideocamOff
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
@@ -84,6 +89,9 @@ fun LiveBroadcastScreen(
     var descriptionText by remember { mutableStateOf("¡Acompañame en este directo!") }
     var activeStream by remember { mutableStateOf<LiveStream?>(null) }
     var isLiveStarted by remember { mutableStateOf(false) }
+    // Se incrementa para volver a enganchar la preview de CameraX si el arranque
+    // del directo falla: al liberar el sensor, la preview quedaba en negro.
+    var previewRestartKey by remember { mutableStateOf(0) }
     var errorMessage by remember { mutableStateOf<String?>(null) }
     var isStarting by remember { mutableStateOf(false) }
     var showEndConfirmation by remember { mutableStateOf(false) }
@@ -166,37 +174,13 @@ fun LiveBroadcastScreen(
     // hay TopAppBar ni padding del Scaffold: cada elemento flota con sus propios
     // insets (statusBarsPadding / navigationBarsPadding).
     Scaffold(
-        topBar = {
-            if (isLiveStarted) {
-                TopAppBar(
-                    title = {
-                        Row(verticalAlignment = Alignment.CenterVertically) {
-                            LivePulseIndicator(isLive = true)
-                            Spacer(modifier = Modifier.width(8.dp))
-                            Text(
-                                text = "${formatElapsed(elapsedSeconds)} · 👁 $viewerCount",
-                                fontWeight = FontWeight.Bold
-                            )
-                        }
-                    },
-                    navigationIcon = {
-                        IconButton(onClick = { showEndConfirmation = true }) {
-                            Icon(Icons.Default.ArrowBack, contentDescription = "Regresar", tint = Color.White)
-                        }
-                    },
-                    colors = TopAppBarDefaults.topAppBarColors(
-                        containerColor = Color(0xFF161618),
-                        titleContentColor = Color.White
-                    )
-                )
-            }
-        },
-        containerColor = if (isLiveStarted) Color(0xFF161618) else Color.Transparent
+        topBar = {},
+        containerColor = Color.Transparent
     ) { paddingValues ->
         Box(
             modifier = Modifier
                 .fillMaxSize()
-                .then(if (isLiveStarted) Modifier.padding(paddingValues) else Modifier),
+                .then(if (isLiveStarted) Modifier else Modifier.padding(paddingValues)),
             contentAlignment = Alignment.Center
         ) {
             if (!hasPermissions) {
@@ -230,7 +214,8 @@ fun LiveBroadcastScreen(
                 Box(modifier = Modifier.fillMaxSize()) {
                     LiveCameraBackgroundPreview(
                         controller = cameraPreviewController,
-                        modifier = Modifier.fillMaxSize()
+                        modifier = Modifier.fillMaxSize(),
+                        restartKey = previewRestartKey
                     )
 
                     // Overlay oscuro translucido: garantiza contraste del contenido
@@ -325,6 +310,9 @@ fun LiveBroadcastScreen(
                                         startLiveInBackground(stream)
                                     } else {
                                         errorMessage = streamResult.exceptionOrNull()?.message ?: "Error al crear transmisión"
+                                        // El sensor quedó libre pero seguimos en pre-live:
+                                        // volvemos a enganchar la preview para no dejar fondo negro.
+                                        previewRestartKey++
                                     }
                                 } catch (e: Exception) {
                                     errorMessage = if (e is CancellationException) {
@@ -332,6 +320,7 @@ fun LiveBroadcastScreen(
                                     } else {
                                         e.message ?: "Error desconocido"
                                     }
+                                    previewRestartKey++
                                 } finally {
                                     isStarting = false
                                 }
@@ -341,14 +330,21 @@ fun LiveBroadcastScreen(
                     )
                 }
             } else {
+                // === Directo activo: cámara edge-to-edge + superficies flotantes ===
+                // Fondo oscuro de respaldo: la superficie del video es transparente
+                // hasta que el track llega, y sin esto se vería el fondo del host.
                 Box(
-                    modifier = Modifier.fillMaxSize(),
-                    contentAlignment = Alignment.Center
+                    modifier = Modifier
+                        .fillMaxSize()
+                        .background(Color(0xFF0E0E10))
                 ) {
+                    // Capa base: track local de LiveKit (la cámara real ya está
+                    // publicada). Sin ella el fondo queda inmersivo en negro.
                     LiveVideoSurface(
                         videoTrack = localVideoTrack,
                         initRenderer = roomRepository::initVideoRenderer,
-                        modifier = Modifier.fillMaxSize()
+                        modifier = Modifier.fillMaxSize(),
+                        backgroundColor = Color.Transparent
                     )
 
                     LiveConnectionOverlay(
@@ -360,11 +356,84 @@ fun LiveBroadcastScreen(
                         modifier = Modifier.align(Alignment.Center)
                     )
 
+                    // Panel de estado flotante (izquierda superior), dentro de los
+                    // insets de la status bar.
+                    Column(
+                        modifier = Modifier
+                            .align(Alignment.TopStart)
+                            .statusBarsPadding()
+                            .padding(start = 16.dp, top = 12.dp)
+                    ) {
+                        LiveStatusPill(
+                            elapsedSeconds = elapsedSeconds,
+                            viewerCount = viewerCount
+                        )
+                    }
+
+                    // Invitar Co-Host (OutlinedButton verde neón), debajo del
+                    // panel de estado.
+                    activeStream?.let { stream ->
+                        Box(
+                            modifier = Modifier
+                                .align(Alignment.TopStart)
+                                .statusBarsPadding()
+                                .padding(start = 16.dp, top = 64.dp)
+                        ) {
+                            LiveGuestControls(
+                                guests = guests,
+                                onInvite = { userId -> guestViewModel.inviteGuest(stream.id, userId) },
+                                onRemove = { userId -> guestViewModel.removeGuest(stream.id, userId) }
+                            )
+                        }
+                    }
+
+                    // Distintivo de Co-Host conectado, arriba a la derecha.
+                    if (remoteVideoTrack != null) {
+                        Box(
+                            modifier = Modifier
+                                .align(Alignment.TopEnd)
+                                .statusBarsPadding()
+                                .padding(end = 16.dp, top = 12.dp)
+                        ) {
+                            Surface(
+                                modifier = Modifier
+                                    .width(120.dp)
+                                    .height(160.dp),
+                                shape = RoundedCornerShape(16.dp),
+                                color = Color.Black.copy(alpha = 0.5f),
+                                border = BorderStroke(1.dp, Color.White.copy(alpha = 0.15f))
+                            ) {
+                                Box(modifier = Modifier.fillMaxSize()) {
+                                    LiveVideoSurface(
+                                        videoTrack = remoteVideoTrack,
+                                        initRenderer = roomRepository::initVideoRenderer,
+                                        modifier = Modifier.fillMaxSize()
+                                    )
+                                    Surface(
+                                        shape = RoundedCornerShape(6.dp),
+                                        color = Color.Black.copy(alpha = 0.6f),
+                                        modifier = Modifier
+                                            .align(Alignment.BottomStart)
+                                            .padding(6.dp)
+                                    ) {
+                                        Text(
+                                            text = "Co-Host",
+                                            color = Color.White,
+                                            fontSize = 10.sp,
+                                            modifier = Modifier.padding(horizontal = 6.dp, vertical = 2.dp)
+                                        )
+                                    }
+                                }
+                            }
+                        }
+                    }
+
                     liveSetupError?.let { err ->
                         Surface(
                             modifier = Modifier
                                 .align(Alignment.BottomCenter)
-                                .padding(bottom = 150.dp)
+                                .navigationBarsPadding()
+                                .padding(bottom = 130.dp)
                                 .fillMaxWidth()
                                 .padding(horizontal = 24.dp),
                             shape = RoundedCornerShape(12.dp),
@@ -391,91 +460,63 @@ fun LiveBroadcastScreen(
                         }
                     }
 
-                    Surface(
-                        modifier = Modifier.align(Alignment.TopCenter).padding(top = 16.dp),
-                        shape = RoundedCornerShape(16.dp),
-                        color = Color.Black.copy(alpha = 0.6f)
+                    // Comentarios del directo, sobre la fila de controles.
+                    Box(
+                        modifier = Modifier
+                            .align(Alignment.BottomStart)
+                            .fillMaxWidth()
+                            .navigationBarsPadding()
+                            .padding(bottom = 76.dp)
                     ) {
-                        Row(
-                            modifier = Modifier.padding(horizontal = 12.dp, vertical = 6.dp),
-                            verticalAlignment = Alignment.CenterVertically,
-                            horizontalArrangement = Arrangement.spacedBy(8.dp)
-                        ) {
-                            LivePulseIndicator(isLive = true)
-                            Text("EN VIVO", color = Color.White, fontWeight = FontWeight.Bold, fontSize = 12.sp)
-                            Text("👁 $viewerCount", color = Color.White, fontWeight = FontWeight.Medium, fontSize = 12.sp)
-                            Text("· ${formatElapsed(elapsedSeconds)}", color = Color.White, fontSize = 12.sp)
-                        }
+                        LiveViewerComments(
+                            comments = comments,
+                            onSendComment = { text -> activeStream?.let { viewModel.postComment(it.id, text) } },
+                            isBroadcaster = true,
+                            onDeleteComment = { commentId -> viewModel.deleteComment(commentId) },
+                            onBlockUser = { userId -> activeStream?.let { viewModel.blockUser(it.id, userId) } },
+                            hostId = SupabaseClient.currentUser?.id,
+                            modifier = Modifier.fillMaxWidth()
+                        )
                     }
 
-                    if (remoteVideoTrack != null) {
-                        Box(modifier = Modifier.align(Alignment.BottomEnd).padding(12.dp)) {
-                            Surface(
-                                modifier = Modifier.width(140.dp).height(200.dp),
-                                shape = RoundedCornerShape(16.dp),
-                                color = Color.Black
-                            ) {
-                                LiveVideoSurface(
-                                    videoTrack = remoteVideoTrack,
-                                    initRenderer = roomRepository::initVideoRenderer,
-                                    modifier = Modifier.fillMaxSize()
-                                )
-                                Surface(
-                                    shape = RoundedCornerShape(4.dp),
-                                    color = Color.Black.copy(alpha = 0.6f),
-                                    modifier = Modifier
-                                        .align(Alignment.BottomStart)
-                                        .padding(4.dp)
-                                ) {
-                                    Text(
-                                        text = "Co-Host",
-                                        color = Color.White,
-                                        fontSize = 10.sp,
-                                        modifier = Modifier.padding(horizontal = 4.dp, vertical = 2.dp)
-                                    )
-                                }
+                    // Controles flotantes (abajo): iconos circulares glass a la
+                    // izquierda y FINALIZAR anclado abajo a la derecha.
+                    Row(
+                        modifier = Modifier
+                            .align(Alignment.BottomStart)
+                            .fillMaxWidth()
+                            .navigationBarsPadding()
+                            .padding(start = 16.dp, end = 16.dp, bottom = 14.dp),
+                        horizontalArrangement = Arrangement.spacedBy(10.dp),
+                        verticalAlignment = Alignment.CenterVertically
+                    ) {
+                        LiveGlassIconButton(
+                            icon = if (isMicMuted) Icons.Default.MicOff else Icons.Default.Mic,
+                            contentDescription = if (isMicMuted) "Activar micrófono" else "Silenciar micrófono",
+                            isAlert = isMicMuted,
+                            onClick = {
+                                isMicMuted = !isMicMuted
+                                scope.launch { roomRepository.setMicrophoneEnabled(!isMicMuted) }
                             }
-                        }
-                    }
+                        )
+                        LiveGlassIconButton(
+                            icon = if (isCameraOff) Icons.Default.VideocamOff else Icons.Default.Videocam,
+                            contentDescription = if (isCameraOff) "Activar cámara" else "Apagar cámara",
+                            isAlert = isCameraOff,
+                            onClick = {
+                                isCameraOff = !isCameraOff
+                                scope.launch { roomRepository.setCameraEnabled(!isCameraOff) }
+                            }
+                        )
+                        LiveGlassIconButton(
+                            icon = Icons.Default.Cameraswitch,
+                            contentDescription = "Cambiar cámara",
+                            onClick = { scope.launch { roomRepository.switchCamera() } }
+                        )
 
-                    Box(modifier = Modifier.align(Alignment.TopStart).padding(top = 16.dp, start = 16.dp)) {
-                        activeStream?.let { stream ->
-                            LiveGuestControls(
-                                guests = guests,
-                                onInvite = { userId -> guestViewModel.inviteGuest(stream.id, userId) },
-                                onRemove = { userId -> guestViewModel.removeGuest(stream.id, userId) }
-                            )
-                        }
-                    }
+                        Spacer(modifier = Modifier.weight(1f))
 
-                    Box(modifier = Modifier.align(Alignment.BottomCenter).fillMaxWidth()) {
-                        Column {
-                            LiveViewerComments(
-                                comments = comments,
-                                onSendComment = { text -> activeStream?.let { viewModel.postComment(it.id, text) } },
-                                isBroadcaster = true,
-                                onDeleteComment = { commentId -> viewModel.deleteComment(commentId) },
-                                onBlockUser = { userId -> activeStream?.let { viewModel.blockUser(it.id, userId) } },
-                                hostId = SupabaseClient.currentUser?.id,
-                                modifier = Modifier.fillMaxWidth()
-                            )
-
-                            LiveBroadcastControls(
-                                isMicMuted = isMicMuted,
-                                isCameraOff = isCameraOff,
-                                elapsedSeconds = elapsedSeconds,
-                                onToggleMic = {
-                                    isMicMuted = !isMicMuted
-                                    scope.launch { roomRepository.setMicrophoneEnabled(!isMicMuted) }
-                                },
-                                onToggleCamera = {
-                                    isCameraOff = !isCameraOff
-                                    scope.launch { roomRepository.setCameraEnabled(!isCameraOff) }
-                                },
-                                onSwitchCamera = { scope.launch { roomRepository.switchCamera() } },
-                                onEndLive = { showEndConfirmation = true }
-                            )
-                        }
+                        LiveEndPill(onClick = { showEndConfirmation = true })
                     }
                 }
             }
@@ -501,16 +542,5 @@ fun LiveBroadcastScreen(
             titleContentColor = Color.White,
             textContentColor = Color.Gray
         )
-    }
-}
-
-private fun formatElapsed(totalSeconds: Int): String {
-    val h = totalSeconds / 3600
-    val m = (totalSeconds % 3600) / 60
-    val s = totalSeconds % 60
-    return if (h > 0) {
-        String.format("%d:%02d:%02d", h, m, s)
-    } else {
-        String.format("%d:%02d", m, s)
     }
 }
