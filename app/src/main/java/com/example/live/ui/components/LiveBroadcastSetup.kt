@@ -82,7 +82,6 @@ fun LiveBroadcastSetup(
             active = hasPermissions && cameraPreviewActive,
             modifier = Modifier
                 .fillMaxSize()
-                .blur(26.dp)
                 .scale(1.08f),
         )
 

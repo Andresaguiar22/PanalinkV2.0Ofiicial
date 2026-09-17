@@ -5,6 +5,7 @@ import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
+import androidx.compose.ui.layout.onGloballyPositioned
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.viewinterop.AndroidView
@@ -28,6 +29,7 @@ fun LiveVideoSurface(
     ) {
         var rendererRef by remember { mutableStateOf<SurfaceViewRenderer?>(null) }
         var attachedTrack by remember { mutableStateOf<VideoTrack?>(null) }
+        var surfaceReady by remember { mutableStateOf(false) }
 
         // El renderer se crea SIEMPRE (aunque el track todavía no exista). LiveKit
         // requiere que el SurfaceViewRenderer exista e inicializado con el EglBase
@@ -36,23 +38,40 @@ fun LiveVideoSurface(
         // ("la cámara no se activa") aunque el track ya esté publicado.
         AndroidView(
             factory = { viewContext ->
-                SurfaceViewRenderer(viewContext).apply {
-                    initRenderer?.invoke(this)
-                    setEnableHardwareScaler(true)
+                val rv = SurfaceViewRenderer(viewContext)
+                rv.apply {
+                    // El init del renderer NO se hace aqui (factory run en composicion,
+                    // antes de que la vista tenga surface/window). LiveKit dibuja en el
+                    // SurfaceViewRenderer: si se inicializa antes de tener surface, pide
+                    // un EGL context sin surface y el video queda NEGRO para siempre aunque
+                    // el track exista. La inicializacion segura ocurre en onGloballyPositioned..
                     setMirror(false)
                     setScalingType(RendererCommon.ScalingType.SCALE_ASPECT_FILL)
-                    // Si el track ya existe al crear el renderer, se engancha aqui y se
-                    // deja constancia en attachedTrack para que el LaunchedEffect no lo
-                    // vuelva a enganchar (doble addRenderer = frames duplicados).
-                    videoTrack?.let { track ->
-                        track.addRenderer(this)
-                        attachedTrack = track
+                    if (videoTrack != null) {
+                        videoTrack.addRenderer(rv)
+                        attachedTrack = videoTrack
                     }
-                    rendererRef = this
                     Log.d(TAG, "renderer creado (track=${videoTrack != null})")
                 }
+                rendererRef = rv
+                rv
             },
-            modifier = Modifier.fillMaxSize()
+            modifier = Modifier
+                .fillMaxSize()
+                .onGloballyPositioned {
+                    // Momento seguro: la vista ya tiene dimensiones y su Surface existe.
+
+
+                    if (rendererRef != null && !surfaceReady) {
+                        surfaceReady = true
+                        try {
+                            initRenderer?.invoke(rendererRef!!)
+                            Log.d(TAG, "renderer inicializado en surface lista")
+                        } catch (e: Exception) {
+                            Log.e(TAG, "Error init renderer en surface", e)
+                        }
+                    }
+                },
         )
 
         // Cuando el track (re)aparece, adjuntarlo al renderer existente.
