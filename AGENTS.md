@@ -544,4 +544,22 @@ Se dibujaron las cajas calculadas sobre la captura para confirmar alineacion y a
 * **Entregar SIEMPRE con nombre versionado** (`Panalink-BETA-v1.3.45-code72.apk`): si el movil reusa el nombre de una descarga previa, "reanuda" mezclando bytes de dos builds y da paquete invalido.
 * Verificacion previa a entregar (todas pasaron): `sha256sum` local == descargado por la URL publica (69.482.580 bytes, log `COMPLETO`), `zipalign -c -v 4` -> "Verification succesful", `apksigner verify --print-certs` -> `CN=Panalink Beta`, `extractNativeLibs=0xffffffff`, `lib/` con las 2 ABIs ARM. **`apksigner` necesita `JAVA_HOME`**: sin la toolchain en el PATH falla con `exec: java: not found`.
 
+#### ♻️ El servidor se cae solo: watchdog y que sobrevive a un reinicio
+* **Sintoma**: el usuario reporta "se cayo el servidor de descarga"; `curl` al puerto devuelve **502**.
+* **Causa**: al reciclarse/reiniciarse la sesion del sandbox** se matan TODOS los procesos lanzados con `nohup`/`setsid`. No es un crash del server.
+* **Que SOBREVIVE y que NO**:
+  - **Sobrevive**: el workspace del repo (`/workspace/project/...` es volumen persistente) -> el APK en `.toolchain/serve_apk/` y los scripts del repo siguen ahi tras el reinicio. El `.git` y las ramas tambien.
+  - **NO sobrevive**: `/tmp` se vacia por completo (se pierden el log del server, el worktree `/tmp/panalink_beta` y el APK que hubiera en `/tmp`).
+  - **Hostname**: el host `work-N-<id>.prod-runtime...` **NO cambia** al reciclar la sesion (se confirmo: el mismo `work-2-lxqkaugmceedjklt`). Aun asi, el puerto del host puede variar por sesion -> verificar con `curl -sI` antes de entregar.
+* **Recuperacion (30 s)**: no hace falta recompilar nada; el APK ya esta en el workspace:
+  ```bash
+  cd /workspace/project/PanalinkV2.0Ofiicial
+  sha256sum .toolchain/serve_apk/Panalink-BETA-*.apk   # confirmar que es el esperado
+  setsid nohup bash scripts/serve_apk_watchdog.sh 12001 /workspace/project/PanalinkV2.0Ofiicial/.toolchain/serve_apk </dev/null >/dev/null 2>&1 &
+  curl -sI <URL> | grep -iE '^HTTP|content-length'     # debe dar 200
+  ```
+* **`scripts/serve_apk_watchdog.sh`** (nuevo): supervisor que relanza `serve_apk.py` si el proceso muere. Como el `python3` corre en primer plano dentro del `if`, el loop queda bloqueado mientras el server vive -> NO spawnea servers en bucle (se verifico: 1 solo proceso). Cubre caidas sueltas del proceso; un reinicio del sandbox si mata el watchdog y hay que relanzarlo.
+* **`ss -tlnp` no lista los puertos en este sandbox** (aunque el server este escuchando): no usarlo como unica prueba. La verificacion fiable es `curl` a la URL publica.
+* **Sacar el APK de `/tmp`**: guardarlo (y servirlo) desde `.toolchain/serve_apk/`, que esta gitignoreado (`.gitignore:29`) y sobrevive. Un APK de 67 MB en `/tmp` desaparece en el proximo reinicio.
+
 
