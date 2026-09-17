@@ -64,6 +64,7 @@ fun LiveCameraPreviewBackground(
 
         if (!active) {
             runCatching { provider.unbindAll() }
+            Log.i(TAG, "CameraX desvinculado: la cámara queda libre para LiveKit")
             return@LaunchedEffect
         }
 

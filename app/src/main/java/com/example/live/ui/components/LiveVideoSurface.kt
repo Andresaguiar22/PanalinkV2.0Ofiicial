@@ -1,5 +1,6 @@
 package com.example.live.ui.components
 
+import android.util.Log
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.*
 import androidx.compose.runtime.*
@@ -10,6 +11,8 @@ import androidx.compose.ui.viewinterop.AndroidView
 import io.livekit.android.renderer.SurfaceViewRenderer
 import io.livekit.android.room.track.VideoTrack
 import livekit.org.webrtc.RendererCommon
+
+private const val TAG = "LiveVideoSurface"
 
 @Composable
 fun LiveVideoSurface(
@@ -38,8 +41,15 @@ fun LiveVideoSurface(
                     setEnableHardwareScaler(true)
                     setMirror(false)
                     setScalingType(RendererCommon.ScalingType.SCALE_ASPECT_FILL)
-                    videoTrack?.addRenderer(this)
+                    // Si el track ya existe al crear el renderer, se engancha aqui y se
+                    // deja constancia en attachedTrack para que el LaunchedEffect no lo
+                    // vuelva a enganchar (doble addRenderer = frames duplicados).
+                    videoTrack?.let { track ->
+                        track.addRenderer(this)
+                        attachedTrack = track
+                    }
                     rendererRef = this
+                    Log.d(TAG, "renderer creado (track=${videoTrack != null})")
                 }
             },
             modifier = Modifier.fillMaxSize()
@@ -49,18 +59,24 @@ fun LiveVideoSurface(
         LaunchedEffect(videoTrack, rendererRef) {
             val rendered = rendererRef ?: return@LaunchedEffect
             val attached = attachedTrack
-            if (videoTrack != null && attached != videoTrack) {
+            if (videoTrack != null && attached !== videoTrack) {
                 attached?.removeRenderer(rendered)
                 videoTrack.addRenderer(rendered)
                 attachedTrack = videoTrack
+                Log.d(TAG, "track enganchado al renderer")
             }
             if (videoTrack == null) {
                 attached?.removeRenderer(rendered)
                 attachedTrack = null
+                Log.d(TAG, "track desenganchado del renderer")
             }
         }
 
-        DisposableEffect(rendererRef) {
+        // OJO: la clave debe ser Unit, NUNCA rendererRef. Con `DisposableEffect(rendererRef)`
+        // el paso de null -> renderer despide el efecto anterior y su onDispose lee el ref
+        // YA con valor, por lo que libera el renderer recien creado y deja rendererRef en
+        // null: el track que llega despues no se engancha nunca y el preview queda NEGRO.
+        DisposableEffect(Unit) {
             onDispose {
                 val renderer = rendererRef
                 rendererRef = null
@@ -68,6 +84,7 @@ fun LiveVideoSurface(
                     attachedTrack?.removeRenderer(renderer)
                     attachedTrack = null
                     try { renderer.release() } catch (_: Exception) {}
+                    Log.d(TAG, "renderer liberado")
                 }
             }
         }

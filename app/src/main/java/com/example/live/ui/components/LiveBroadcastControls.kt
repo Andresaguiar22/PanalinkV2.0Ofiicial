@@ -1,6 +1,5 @@
 package com.example.live.ui.components
 
-import androidx.compose.foundation.Canvas
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
@@ -10,9 +9,7 @@ import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
-import androidx.compose.foundation.layout.offset
 import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.rounded.Chat
@@ -30,7 +27,6 @@ import androidx.compose.ui.draw.blur
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.draw.shadow
 import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.graphics.Path
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
@@ -132,30 +128,5 @@ private fun EndLiveButton(onClick: () -> Unit) {
                 fontWeight = FontWeight.ExtraBold,
             )
         }
-
-        Sparkle(
-            modifier = Modifier
-                .align(Alignment.BottomCenter)
-                .offset(x = 12.dp, y = 12.dp)
-                .size(26.dp)
-        )
-    }
-}
-
-/** Destello de cuatro puntas que remata la píldora, como en el diseño. */
-@Composable
-private fun Sparkle(modifier: Modifier = Modifier) {
-    Canvas(modifier = modifier) {
-        val w = size.width
-        val h = size.height
-        val path = Path().apply {
-            moveTo(w / 2f, 0f)
-            quadraticTo(w * 0.56f, h * 0.44f, w, h / 2f)
-            quadraticTo(w * 0.56f, h * 0.56f, w / 2f, h)
-            quadraticTo(w * 0.44f, h * 0.56f, 0f, h / 2f)
-            quadraticTo(w * 0.44f, h * 0.44f, w / 2f, 0f)
-            close()
-        }
-        drawPath(path = path, color = Color.White.copy(alpha = 0.30f))
     }
 }

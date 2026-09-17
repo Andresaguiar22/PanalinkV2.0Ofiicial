@@ -79,8 +79,18 @@ class LiveKitManager(private val context: Context) {
             // sin publicar en algunos dispositivos → "se queda cargando".
             withContext(Dispatchers.Main) {
                 Log.d(TAG, "Enabling local camera and microphone for broadcast")
-                currentRoom.localParticipant.setCameraEnabled(true)
-                currentRoom.localParticipant.setMicrophoneEnabled(true)
+                try {
+                    currentRoom.localParticipant.setCameraEnabled(true)
+                    currentRoom.localParticipant.setMicrophoneEnabled(true)
+                } catch (e: Exception) {
+                    // Suele ser la cámara todavía retenida por CameraX (pantalla de
+                    // configuración). Un reintento corto da margen a que el proveedor
+                    // termine de soltarla en equipos lentos.
+                    Log.e(TAG, "Fallo al activar cámara/mic; reintento tras 500 ms", e)
+                    delay(500)
+                    currentRoom.localParticipant.setCameraEnabled(true)
+                    currentRoom.localParticipant.setMicrophoneEnabled(true)
+                }
             }
 
             // initPendingRenderer tras la conexión: el SurfaceViewRenderer puede
