@@ -96,6 +96,16 @@ fun LiveBroadcastScreen(
     // Los comentarios se pueden ocultar desde el HUD inferior para despejar el video.
     var commentsVisible by remember { mutableStateOf(true) }
 
+    // El manager reporta sus fallos por connectionState (p. ej. "la camara no publico
+    // track"). Los volcamos al aviso inferior para que un problema de camara NUNCA quede
+    // en silencio detras de una pantalla negra.
+    LaunchedEffect(connectionState) {
+        val state = connectionState
+        if (state is LiveConnectionState.Error && state.message != liveSetupError) {
+            liveSetupError = state.message
+        }
+    }
+
     // La preview de CameraX y LiveKit no pueden tener la cámara a la vez: cuando arranca
     // el directo esta bandera suelta la preview antes de conectar (si no, "cámara ocupada").
     var cameraPreviewActive by remember { mutableStateOf(true) }
@@ -261,6 +271,9 @@ fun LiveBroadcastScreen(
                 // está: aunque el evento Connected de LiveKit tarde, si el
                 // track local está, la preview es visible.
                 hideWhenTrackReady = localVideoTrack != null,
+                // ...pero mientras NO haya track tiene que seguir visible: si no, el
+                // usuario ve un negro absoluto sin saber que esta pasando.
+                keepVisibleUntilTrackReady = true,
                 modifier = Modifier.align(Alignment.Center)
             )
         }
