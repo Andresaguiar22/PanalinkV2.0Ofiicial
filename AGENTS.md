@@ -529,4 +529,19 @@ Se dibujaron las cajas calculadas sobre la captura para confirmar alineacion y a
 ### Validacion
 * `source scripts/toolchain_env.sh && ./gradlew --no-daemon :app:compileDebugKotlin` -> **BUILD SUCCESSFUL**, **0 errores**, **0 warnings** (se quitaron imports sin uso y el `@OptIn(ExperimentalMaterial3Api::class)` que quedo huerfano).
 
+### 📥 Beta publicada (2026-09-17)
+* Rama: `origin/kilo/live-glassmorphism` (commit `5d6583a`), incluye AMBOS redisenos (listado + directo) y el setup pre-live.
+* Beta: `v1.3.45-beta`, code **72**, package `com.panalink.app.beta`, label `PanaLink Beta`, firma `CN=Panalink Beta` (SHA-256 `450a76c1...`, la estable: se instala encima de la beta previa sin desinstalar).
+* SHA-256 del APK: `f3025d084f142287b321544a8dbf019f29f20810f9de1886534b0ad96ae83bee` (69.482.580 bytes, ~67 MB, ABIs `arm64-v8a`+`armeabi-v7a`).
+* URL: `https://work-2-lxqkaugmceedjklt.prod-runtime.all-hands.dev/Panalink-BETA-v1.3.45-code72.apk` (puerto 12001).
+* **Ojo con el code**: la ultima beta documentada era la `71` (v1.3.44-beta); esta va con **72**. La proxima ronda debe usar **73 o mas** (un code menor que el instalado = Android 14+ lo rechaza con "paquete no valido").
+
+### 🔌 Servidor de APK de esta sesion (puerto 12001)
+* **El puerto 12000 NO sirve para el APK en esta sesion**: ahi corre `/tmp/upload_server.py` (el canal con el que el usuario sube capturas). Su ruta `/files/<nombre>` hace `f.read()` de TODO el archivo en memoria y **no soporta `Range`** -> un APK de 67 MB se entrega de un tiron y cualquier corte lo trunca (la causa clasica de "paquete no valido"). Usar solo el 12001.
+* El 12001 lo sirve `.toolchain/serve_apk.py <puerto> <dir>` (recreado esta sesion; soporta `GET`/`HEAD`, `Range` -> 206, `Accept-Ranges`, `Content-Length` exacto y `Cache-Control: no-store`). Sirve tanto `/<archivo>` como `/apk/<archivo>` y loguea `enviado=N/total COMPLETO|CORTADO` por descarga.
+* **NO hereda de `SimpleHTTPRequestHandler`**: en Python 3.13 el truco de sobrescribir `send_head()` devolviendo una tupla rompe el `do_HEAD` heredado (`'tuple' object has no attribute 'close'`). El server nuevo implementa `do_GET`/`do_HEAD` a mano.
+* Arranque: `setsid nohup python3 .toolchain/serve_apk.py 12001 .toolchain/serve_apk > /tmp/srv12001.log 2>&1 < /dev/null &` (con `nohup` a secas muere al resetearse la sesion y el ingress devuelve 502).
+* **Entregar SIEMPRE con nombre versionado** (`Panalink-BETA-v1.3.45-code72.apk`): si el movil reusa el nombre de una descarga previa, "reanuda" mezclando bytes de dos builds y da paquete invalido.
+* Verificacion previa a entregar (todas pasaron): `sha256sum` local == descargado por la URL publica (69.482.580 bytes, log `COMPLETO`), `zipalign -c -v 4` -> "Verification succesful", `apksigner verify --print-certs` -> `CN=Panalink Beta`, `extractNativeLibs=0xffffffff`, `lib/` con las 2 ABIs ARM. **`apksigner` necesita `JAVA_HOME`**: sin la toolchain en el PATH falla con `exec: java: not found`.
+
 
