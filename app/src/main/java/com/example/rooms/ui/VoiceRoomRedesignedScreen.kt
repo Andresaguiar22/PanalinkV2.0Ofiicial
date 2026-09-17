@@ -57,6 +57,7 @@ import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.Dp
+import androidx.compose.ui.unit.TextUnit
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.core.content.ContextCompat
@@ -585,28 +586,60 @@ fun VoiceRoomHostSeat(
                     modifier = Modifier.align(Alignment.Center)
                 )
             }
-        }
 
-        Spacer(modifier = Modifier.height(2.dp))
-
-        // Username o placeholder
-        if (seat?.isOccupied == true) {
-            Text(
-                text = displayName ?: "",
-                color = VoiceRoomPalette.ActiveCyan,
-                fontSize = 14.sp,
-                fontWeight = if (seat?.userId == myUserId) FontWeight.Bold else FontWeight.SemiBold,
-                maxLines = 1,
-                overflow = TextOverflow.Ellipsis
-            )
-        } else {
-            Text(
-                text = "Sin anfitrión",
-                color = VoiceRoomPalette.TextSecondary,
-                fontSize = 11.sp,
-                fontStyle = androidx.compose.ui.text.font.FontStyle.Italic
-            )
+            // Nombre del anfitrión: chip superpuesto justo bajo el avatar (no bajo el
+            // slot), para que quede pegado al badge aunque el marco esté presente.
+            if (seat?.isOccupied == true) {
+                VoiceRoomSeatNameChip(
+                    text = displayName ?: "",
+                    isMine = seat.userId == myUserId,
+                    fontSize = 14.sp,
+                    chipModifier = Modifier
+                        .align(Alignment.Center)
+                        .offset(y = 54.dp / 2 + 2.dp)
+                )
+            } else {
+                Text(
+                    text = "Sin anfitrión",
+                    color = VoiceRoomPalette.TextSecondary,
+                    fontSize = 11.sp,
+                    fontStyle = androidx.compose.ui.text.font.FontStyle.Italic,
+                    modifier = Modifier
+                        .align(Alignment.TopCenter)
+                        .padding(top = 54.dp + 4.dp)
+                )
+            }
         }
+    }
+}
+
+/** Chip con el nombre del usuario, anclado justo debajo del avatar dentro del slot.
+ *  Un fondo translúcido mantiene el texto legible cuando un colgante dibuja
+ *  material en la zona inferior del badge. Se posiciona desde el BoxScope padre
+ *  mediante [chipModifier] (p.ej. align + padding), por lo que el texto solo
+ *  aplica su propio fondo. */
+@Composable
+private fun VoiceRoomSeatNameChip(
+    text: String,
+    isMine: Boolean,
+    fontSize: TextUnit,
+    chipModifier: Modifier = Modifier
+) {
+    Box(modifier = chipModifier) {
+        Text(
+            text = text,
+            color = if (isMine) VoiceRoomPalette.ActiveCyan else VoiceRoomPalette.TextSecondary,
+            fontSize = fontSize,
+            fontWeight = if (isMine) FontWeight.Bold else FontWeight.Medium,
+            maxLines = 1,
+            overflow = TextOverflow.Ellipsis,
+            modifier = Modifier
+                .background(
+                    color = Color(0x990B1220),
+                    shape = RoundedCornerShape(6.dp)
+                )
+                .padding(horizontal = 5.dp, vertical = 1.dp)
+        )
     }
 }
 // === Grid de sillones de invitados ===
@@ -757,27 +790,29 @@ fun VoiceRoomRedesignedSeat(
                     modifier = Modifier.align(Alignment.Center)
                 )
             }
-        }
 
-        Spacer(modifier = Modifier.height(2.dp))
-
-        // Número de asiento o información del ocupante (legible)
-        if (seat?.isOccupied != true) {
-            Text(
-                text = "NO. $seatNumber",
-                color = VoiceRoomPalette.TextSecondary,
-                fontSize = 7.sp,
-                fontWeight = FontWeight.Medium
-            )
-        } else {
-            Text(
-                text = displayName ?: "",
-                color = if (isMine) VoiceRoomPalette.ActiveCyan else VoiceRoomPalette.TextSecondary,
-                fontSize = 10.sp,
-                fontWeight = if (isMine) FontWeight.Bold else FontWeight.Medium,
-                maxLines = 1,
-                overflow = TextOverflow.Ellipsis
-            )
+            // Nombre del ocupante: chip superpuesto justo bajo el avatar (no bajo el
+            // slot), para que quede pegado al badge aunque el colgante esté presente.
+            if (seat?.isOccupied == true) {
+                VoiceRoomSeatNameChip(
+                    text = displayName ?: "",
+                    isMine = isMine,
+                    fontSize = 10.sp,
+                    chipModifier = Modifier
+                        .align(Alignment.Center)
+                        .offset(y = size / 2 + 2.dp)
+                )
+            } else {
+                Text(
+                    text = "NO. $seatNumber",
+                    color = VoiceRoomPalette.TextSecondary,
+                    fontSize = 7.sp,
+                    fontWeight = FontWeight.Medium,
+                    modifier = Modifier
+                        .align(Alignment.BottomCenter)
+                        .padding(bottom = 6.dp)
+                )
+            }
         }
     }
 }

@@ -1,6 +1,7 @@
 package com.example.rooms.repository
 
 import com.example.data.supabase.SupabaseClient
+import com.example.data.supabase.SessionManager
 import com.example.rooms.data.VoiceRoomApi
 import com.example.rooms.data.VoiceRoomDto
 import com.example.rooms.data.VoiceRoomMessageDto
@@ -48,7 +49,18 @@ class VoiceRoomRepository private constructor() {
     suspend fun setRoomEntrance(roomId:String,code:String):Result<com.example.rooms.data.VoiceRoomDecorDto?> = runCatching{val res=Resilience.retry{api.setRoomEntrance(apiKey,auth,mapOf("p_room_id" to roomId,"p_code" to code))};if(!res.isSuccessful)error("setRoomEntrance HTTP ${res.code()}: ${res.errorBody()?.string()}");res.body()?.firstOrNull()}
     suspend fun setRoomPendant(roomId:String,code:String):Result<com.example.rooms.data.VoiceRoomDecorDto?> = runCatching{val res=Resilience.retry{api.setRoomPendant(apiKey,auth,mapOf("p_room_id" to roomId,"p_code" to code))};if(!res.isSuccessful)error("setRoomPendant HTTP ${res.code()}: ${res.errorBody()?.string()}");res.body()?.firstOrNull()}
     /** Guarda el colgante personal en `profiles` (RLS: solo el propio usuario). */
-    suspend fun setMyPendant(code:String):Result<Unit> = runCatching{val uid=myId;if(uid.isEmpty())error("Sesión no iniciada");val res=Resilience.retry{api.updateProfileMap(apiKey,auth,"eq.$uid",mapOf("pendant_code" to code))};if(!res.isSuccessful)error("setMyPendant HTTP ${res.code()}: ${res.errorBody()?.string()}")}
+    suspend fun setMyPendant(code:String):Result<Unit> = runCatching{
+        val uid=myId;if(uid.isEmpty())error("Sesión no iniciada")
+        var res=Resilience.retry{api.updateProfileMap(apiKey,auth,"eq.$uid",mapOf("pendant_code" to code))}
+        if(res.code()==401||res.code()==403){
+            if(SessionManager.refreshSession()){
+                val refreshedToken=SupabaseClient.currentToken
+                val refreshedAuth = if(refreshedToken.isNullOrEmpty()) auth else "Bearer $refreshedToken"
+                res=Resilience.retry{api.updateProfileMap(apiKey,refreshedAuth,"eq.$uid",mapOf("pendant_code" to code))}
+            }
+        }
+        if(!res.isSuccessful)error("setMyPendant HTTP ${res.code()}: ${res.errorBody()?.string()}")
+    }
     suspend fun recordEntrance(roomId:String,code:String):Result<Unit> = runCatching{val res=Resilience.retry{api.recordEntrance(apiKey,auth,mapOf("p_room_id" to roomId,"p_code" to code))};if(!res.isSuccessful)error("recordEntrance HTTP ${res.code()}: ${res.errorBody()?.string()}")}
     suspend fun getPublicProfiles(userIds:List<String>):Result<Map<String,PublicProfileDto>> = runCatching{val ids=userIds.filter{it.isNotBlank()}.distinct();if(ids.isEmpty())return@runCatching emptyMap();val res=api.getPublicProfiles(apiKey,auth,"in.(${ids.joinToString(",")})");if(!res.isSuccessful)error("getPublicProfiles HTTP ${res.code()}");res.body().orEmpty().associateBy{it.id}}
     suspend fun getSeats(roomId:String):Result<List<VoiceRoomSeatDto>> = runCatching{val res=api.getSeats(apiKey,auth,"eq.$roomId");if(!res.isSuccessful)error("getSeats HTTP ${res.code()}");res.body().orEmpty()}
