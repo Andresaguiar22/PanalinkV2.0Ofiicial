@@ -557,6 +557,20 @@ Se dibujaron las cajas calculadas sobre la captura para confirmar alineacion y a
 * **Logs de diagnostico** (los dejo puestos a proposito): tag `LiveVideoSurface` -> "renderer creado (track=bool)", "track enganchado al renderer", "track desenganchado", "renderer liberado"; tag `LiveCameraPreview` -> "CameraX desvinculado..."; tag `LiveKitManager` -> "Local camera track ready"; tag `LiveStart` -> "4/4 Camara activada (track=bool)". Con eso se distingue en logcat un fallo de CAMARA de uno de RENDERER.
 * **UI**: se elimino el **destello de 4 puntas** (`Sparkle`, un `Path` con `quadraticTo`) que quedaba debajo del boton FINALIZAR. El usuario lo reporto como "el icono de Gemini" y tenia razon: era una estrella de 4 puntas indistinguible del logo de Gemini. No volver a poner adornos asi junto a los botones.
 
+#### 🔴 Pantalla NEGRA 2.ª parte: el track NO es el problema — era `repeat`+`return@repeat` (ya resuelto, v1.3.47/code74
+* **El usuario confirmo**: "la camara SI se activa pero se ve negra la pantalla". Eso descarto el renderer (el previo `DisposableEffect` fix quedo bien) y apunto a **cuando se publica el track en el StateFlow**.
+* **CAUSA RAIZ REAL**: en `LiveKitManager.startBroadcasting` el track local se esperaba en un
+  `repeat(Int.MAX_VALUE) { ...; if (t != null) { localTrack = t; return@repeat; }; delay(50) }`.
+  `return@repeat` **NO rompe el bucle** — solo sale DE ESA iteracion. El bucle segua hasta agotar el `withTimeout(10 s)`, y `_localVideoTrack.value` se seteaba **solo al final del bloque**. La publicacion de camara existia desde el ≤300 ms (por eso la camara "si se activaba"), pero el preview quedaba NEGRO los 10 s completos. Como `connectionState` ya valia `Connected` (evento de sala), el overlay se ocultaba -> **negro absoluto y mudo**, exactamente el sintoma.
+* **Fix**: `awaitCameraTrack(currentRoom)` con `while` + `return` de verdad (el track se publica EN CUANTO existe); si en la ventana sincrona no aparece, `watchForCameraTrack` (15 s, cancelado al desconectar) lo sigue buscando en segundo plano y, si la camara no publica nada, deja `Error("La cámara no pudo iniciarse...")` en vez de morir en silencio.
+
+  * `LiveConnectionOverlay` gano `keepVisibleUntilTrackReady`: la pantalla del directo lo passa `true`, asi el circulo "Activando cámara..." queda visible mientras no haya track (en vez de ocultarse al recibir Connected)y da feedback real al usuario.
+
+  * `LiveBroadcastScreen` volca `connectionState.Error** a la vez que el aviso inferior tenia boton de reintento**. Un fallo de camara ya NUNCA es mudo: se ve el overlay y el cartel con el motivo y boton.
+
+* **Regla Kotlin**: `return@label` sale del bloque nombrado, NO del bucle. Si hay que "salir y listo" dentro de un `repeat`/`while`, usar `while(condicion)` con `return`, o `break` dentro de un `run { ... }` contiguo. **`repeat { return@repeat }` no es "romper el bucle"** — es "saltar a la siguiente iteracion" (y con `Int.MAX_VALUE` + `delay`, es una espera silenciosa de tiempo completo.
+* **Beta actual**: `v1.3.47-beta`, code **74**, SHA `630f8c66d5e6bd4f3d7a457f111ed8404d2c51b8a13a8fa7c42131f0ce446683`, package `com.panalink.app.beta`, firma `CN=Panalink Beta`. Reemplazo a la `73` (v1.3.46beta: el codigo del repeat mal escrito segua esperando los 10 s).
+
 #### ♻️ El servidor se cae solo: watchdog y que sobrevive a un reinicio
 * **Sintoma**: el usuario reporta "se cayo el servidor de descarga"; `curl` al puerto devuelve **502**.
 * **Causa**: al reciclarse/reiniciarse la sesion del sandbox** se matan TODOS los procesos lanzados con `nohup`/`setsid`. No es un crash del server.
