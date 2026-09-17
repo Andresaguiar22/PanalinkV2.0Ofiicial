@@ -587,8 +587,8 @@ fun VoiceRoomHostSeat(
                 )
             }
 
-            // Nombre del anfitrión: chip superpuesto justo bajo el avatar (no bajo el
-            // slot), para que quede pegado al badge aunque el marco esté presente.
+            // Nombre del anfitrión: chip superpuesto bajo el avatar (gap 6.dp); el
+            // anillo del marco vectorial llega a ~5.5.dp bajo el avatar.
             if (seat?.isOccupied == true) {
                 VoiceRoomSeatNameChip(
                     text = displayName ?: "",
@@ -596,7 +596,7 @@ fun VoiceRoomHostSeat(
                     fontSize = 14.sp,
                     chipModifier = Modifier
                         .align(Alignment.Center)
-                        .offset(y = 54.dp / 2 + 2.dp)
+                        .offset(y = 54.dp / 2 + 6.dp)
                 )
             } else {
                 Text(
@@ -791,8 +791,8 @@ fun VoiceRoomRedesignedSeat(
                 )
             }
 
-            // Nombre del ocupante: chip superpuesto justo bajo el avatar (no bajo el
-            // slot), para que quede pegado al badge aunque el colgante esté presente.
+            // Nombre del ocupante: chip superpuesto bajo el avatar (gap 6.dp); el
+            // anillo del marco vectorial llega a ~5.5.dp bajo el avatar.
             if (seat?.isOccupied == true) {
                 VoiceRoomSeatNameChip(
                     text = displayName ?: "",
@@ -800,7 +800,7 @@ fun VoiceRoomRedesignedSeat(
                     fontSize = 10.sp,
                     chipModifier = Modifier
                         .align(Alignment.Center)
-                        .offset(y = size / 2 + 2.dp)
+                        .offset(y = size / 2 + 6.dp)
                 )
             } else {
                 Text(
