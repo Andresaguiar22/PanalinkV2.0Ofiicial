@@ -62,6 +62,43 @@ internal fun rememberResolvedMediaUrl(rawUrl: String?): String {
     return com.example.data.repository.CdnManager.resolveMediaUrlSync(raw)
 }
 
+/**
+ * Al igual que [rememberResolvedMediaUrl] pero fuerza un re-resolve VCDN cuando la
+ * URL firmada esta por expirar. En los reels/feed largos, la URL firmada de VCDN
+ * caduca a los ~60 s; si el player sigue montado con la URL vieja, la reproduccion
+ * se atasca a esa marca (http 401 silencioso). Devolver la misma instancia de URL
+ * mientras no caduque hace que [SimpleVideoPreviewPlayer] reutilice su player sin
+ * reconstruirlo; al caducar, el key cambia y el player se reconstruye con una URL
+ * fresca (equivalente a reintentar).
+ */
+@Composable
+internal fun rememberFreshMediaUrl(rawUrl: String?): String {
+    val raw = rawUrl?.trim().orEmpty()
+    if (raw.isEmpty()) return ""
+    if (com.example.data.repository.VcdnUrlResolver.isVcdnUrl(raw)) {
+        var fresh by remember(raw) { mutableStateOf("") }
+        // ResoluciOn normal (usa la cache si hay URL vigente; si no, BFF).
+        LaunchedEffect(raw) {
+            fresh = com.example.data.repository.VcdnUrlResolver.resolve(raw) ?: ""
+        }
+        // Pre-refresh: ~6s antes de que caduque la URL actual, la re-resolvemos
+        // forzado. Cuando fresh cambia (primera carga o refresh), se reprograma.
+        // Nunca bloquea el hilo de UI: no hacemos I/O aqui, solo delay.
+        LaunchedEffect(raw, fresh) {
+            if (fresh.isBlank()) return@LaunchedEffect
+            val expiresAt = com.example.data.repository.VcdnUrlResolver.expiresAtMillisOf(fresh)
+            val remaining = expiresAt - System.currentTimeMillis() - 6_000L
+            if (remaining > 0L) {
+                kotlinx.coroutines.delay(remaining)
+                val next = com.example.data.repository.VcdnUrlResolver.resolve(raw, forceRefresh = true) ?: ""
+                if (next != fresh) fresh = next
+            }
+        }
+        return fresh
+    }
+    return com.example.data.repository.CdnManager.resolveMediaUrlSync(raw)
+}
+
 private fun urlPathOf(url: String): String =
     url.substringBefore('?').substringBefore('#').lowercase()
 
@@ -386,7 +423,7 @@ fun FeedPostCard(
                         modifier = Modifier.fillMaxSize()
                     ) { page ->
                         val url = mediaImagesAndVideos[page]
-                        val resolvedUrl = rememberResolvedMediaUrl(url)
+                        val resolvedUrl = rememberFreshMediaUrl(url)
 
                         Box(
                             modifier = Modifier
@@ -408,7 +445,8 @@ fun FeedPostCard(
                                     videoUri = videoUri,
                                     isMuted = isMuted,
                                     modifier = Modifier.fillMaxSize(),
-                                    onPositionUpdate = { pos -> videoPositionMap[url] = pos }
+                                    onPositionUpdate = { pos -> videoPositionMap[url] = pos },
+                                    stableUrl = url
                                 )
                             } else {
                                 val resolvedResources = com.example.media.feed.PostMediaResolver.rememberResolvedMediaResources(

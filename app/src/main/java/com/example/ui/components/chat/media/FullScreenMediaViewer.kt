@@ -43,6 +43,7 @@ import coil.compose.AsyncImage
 import com.example.data.repository.CdnManager
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.delay
+import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 
 /**
@@ -95,6 +96,7 @@ fun FullScreenMediaViewer(
             if (isVideo) {
                 VideoViewerContent(
                     videoUrl = resolvedMediaUrl,
+                    stableMediaUrl = mediaUrl,
                     showControls = showControls,
                     onToggleControls = { showControls = !showControls }
                 )
@@ -240,6 +242,7 @@ private fun ImageViewerContent(
 @Composable
 private fun VideoViewerContent(
     videoUrl: String,
+    stableMediaUrl: String?,
     showControls: Boolean,
     onToggleControls: () -> Unit
 ) {
@@ -249,22 +252,62 @@ private fun VideoViewerContent(
     var durationMs by remember { mutableLongStateOf(0L) }
     var playbackSpeed by remember { mutableFloatStateOf(1.0f) }
 
+    // Puntero estable que usamos para re-resolver la URL firmada si caduca.
+    val stableUrl = stableMediaUrl?.takeIf {
+        com.example.data.repository.VcdnUrlResolver.isVcdnUrl(it)
+    } ?: videoUrl
+    var urlState by remember { mutableStateOf(videoUrl) }
+    var errorMsg by remember { mutableStateOf<String?>(null) }
+    var refreshingInProgress by remember { mutableStateOf(false) }
+    val scope = rememberCoroutineScope()
+    var lastRefreshPosMs by remember { mutableLongStateOf(0L) }
+
     val exoPlayer = remember {
-        ExoPlayer.Builder(context, com.example.core.media.PanaRenderersFactory.create(context)).build().apply {
-            setMediaItem(MediaItem.fromUri(videoUrl))
-            prepare()
-            playWhenReady = true
-            addListener(object : Player.Listener {
-                override fun onIsPlayingChanged(playing: Boolean) {
-                    isPlaying = playing
+        val p = ExoPlayer.Builder(context, com.example.core.media.PanaRenderersFactory.create(context)).build()
+        p.setMediaItem(MediaItem.fromUri(videoUrl))
+        p.prepare()
+        p.playWhenReady = true
+        p.addListener(object : Player.Listener {
+            override fun onIsPlayingChanged(playing: Boolean) {
+                isPlaying = playing
+            }
+            override fun onPlaybackStateChanged(state: Int) {
+                if (state == Player.STATE_READY) {
+                    durationMs = p.duration.coerceAtLeast(0L)
                 }
-                override fun onPlaybackStateChanged(state: Int) {
-                    if (state == Player.STATE_READY) {
-                        durationMs = duration.coerceAtLeast(0L)
+            }
+            override fun onPlayerError(error: androidx.media3.common.PlaybackException) {
+                // HTTP 401 = la URL firmada de VCDN caduco a mitad de reproduccion.
+                // Re-resolvemos y recargamos en caliente preservando la posicion.
+                if (error.errorCode == 2004 && com.example.data.repository.VcdnUrlResolver.isVcdnUrl(stableUrl)) {
+                    if (refreshingInProgress) return
+                    refreshingInProgress = true
+                    lastRefreshPosMs = p.currentPosition
+                    scope.launch {
+                        val fresh = runCatching {
+                            com.example.data.repository.CdnManager.resolveMediaUrlFresh(stableUrl)
+                        }.getOrNull()
+                        refreshingInProgress = false
+                        if (!fresh.isNullOrBlank() && fresh != urlState && p.playbackState != Player.STATE_ENDED) {
+                            urlState = fresh
+                        }
                     }
+                } else {
+                    errorMsg = error.message
                 }
-            })
-        }
+            }
+        })
+        p
+    }
+
+    // Cuando la URL fresca llega, recargar sobre el MISMO player preservando posicion.
+    LaunchedEffect(urlState) {
+        if (urlState == videoUrl) return@LaunchedEffect
+        val pos = lastRefreshPosMs.coerceAtLeast(0L)
+        exoPlayer.setMediaItem(MediaItem.fromUri(urlState), true)
+        exoPlayer.prepare()
+        exoPlayer.seekTo(pos)
+        exoPlayer.playWhenReady = true
     }
 
     LaunchedEffect(exoPlayer) {

@@ -571,6 +571,21 @@ Se dibujaron las cajas calculadas sobre la captura para confirmar alineacion y a
 * **Regla Kotlin**: `return@label` sale del bloque nombrado, NO del bucle. Si hay que "salir y listo" dentro de un `repeat`/`while`, usar `while(condicion)` con `return`, o `break` dentro de un `run { ... }` contiguo. **`repeat { return@repeat }` no es "romper el bucle"** — es "saltar a la siguiente iteracion" (y con `Int.MAX_VALUE` + `delay`, es una espera silenciosa de tiempo completo.
 * **Beta actual**: `v1.3.47-beta`, code **74**, SHA `630f8c66d5e6bd4f3d7a457f111ed8404d2c51b8a13a8fa7c42131f0ce446683`, package `com.panalink.app.beta`, firma `CN=Panalink Beta`. Reemplazo a la `73` (v1.3.46beta: el codigo del repeat mal escrito segua esperando los 10 s).
 
+#### 🔴 Vídeos que se atascan a ~1:00–1:04 (el "minuto exacto") — CAUSA RAIZ (sesión 2026-09-17)
+* **Sintoma del usuario**: "los vídeos se reproducen un minuto o 1:04 y se quedan pegados como queriendo seguir; algunos largos SÍ se ven completos y otros no".
+* **CAUSA**: la URL firmada de vCDN (HLS `streamUrl`) **caduca a ~60 s**. Los reproductores que resuelven el puntero `vcdn://...` **una sola vez** y no tienen nada que re-firmar al expirar se atascan silenciosamente a esa marca (el exoplayer recibe HTTP 401/403 a mitad del stream y se queda en buffering → frame congelado que "quiere seguir").
+* **Qué players SÍ tenían recuperación 401** (por eso "algunos se ven completos"):
+  * `ReelPlayerPool` (reels v2) — refresh 401 con `errorCode 2004` + refresh preventivo a `URL_TTL_MS=45s` SOLO si no está en reproducción activa.
+  * `ReelDualPlayerManager` (reels viejo/TikTokVideoFeedScreen) — `refreshActiveUrl` tras 401.
+  * `StoryVideoPlayerSession` (stories) — 401 recovery.
+* **Qué players NO tenían nada** (CORTADOS seguros a ~60 s en vídeos largos):
+  1. **`FeedPostCard` `rememberResolvedMediaUrl`** → resuelve `vcdn://` UNA vez en `LaunchedEffect(raw)` y nunca re-resuelve. El feed de publicaciones con vídeo largo se corta a la marca de caducidad. ➜ FIX: nuevo `rememberFreshMediaUrl(rawUrl)` que programa un re-resolve `forceRefresh` ~6 s antes de caducar (`VcdnUrlResolver.expiresAtMillisOf(resolvedUrl)`).
+  2. **`SimpleVideoPreviewPlayer`** (reproductor del feed) — con la URL nueva se reconstruía desde 0. ➜ FIX: nuevo parámetro `stableUrl` (el puntero `vcdn://...` del post). Si `videoUri` cambia pero `stableUrl` es el mismo = renovación del MISMO vídeo → **hot-refresh preservando posición/playWhenReady** (patrón idéntico a `ReelPlayerPool.refreshUrl`). En `onDispose`, `isHotRefresh` capturado en el cuerpo decide si liberar o no el player del pool (`ExoPlayerManager`).
+  3. **`FullScreenMediaViewer` / `VideoViewerContent`** (visor pantalla completa del chat) — crea ExoPlayer con la URL ya resuelta y SIN `onPlayerError`. ➜ FIX: nuevo parámetro `stableMediaUrl` desde `FullScreenMediaViewer(mediaUrl)` (que recibe el puntero estable `vcdn://`), y en `onPlayerError` con `errorCode==2004` + resolutor VCDN → `CdnManager.resolveMediaUrlFresh(stableUrl)` en `rememberCoroutineScope` y recarga en caliente preservando posición.
+* **Nuevo helper**: `VcdnUrlResolver.expiresAtMillisOf(resolvedUrl)` — devuelve `expiresAt` de la entrada de cache por URL (los resolved ya son https; `videoIdOf` no los parsea, por eso se busca por `entry.url`).
+* **Regla del patrón**: TODO player de vídeo que reciba una URL resuelta de VCDN debe: (a) guardar el puntero estable `vcdn://`, (b) refrescar o controlar el error 401 (`errorCode 2004`), (c) SIEMPRE preservando `currentPosition`/`playWhenReady` al cambiar `setMediaItem` (si no, al renovar el token el vídeo se reinicia y eso también es un defecto visible).
+* **Por qué "algunos SÍ se ven completos"**: los vídeos que ya estaban en el **SimpleCache** de `CacheDataSourceFactory` (ya descargados de una sesión anterior) siguen leyendo del disco aunque la URL caduque; o los sub-60 s; o los que no son vCDN (B2 se re-firma en la capa del DataSource).
+
 #### ♻️ El servidor se cae solo: watchdog y que sobrevive a un reinicio
 * **Sintoma**: el usuario reporta "se cayo el servidor de descarga"; `curl` al puerto devuelve **502**.
 * **Causa**: al reciclarse/reiniciarse la sesion del sandbox** se matan TODOS los procesos lanzados con `nohup`/`setsid`. No es un crash del server.
