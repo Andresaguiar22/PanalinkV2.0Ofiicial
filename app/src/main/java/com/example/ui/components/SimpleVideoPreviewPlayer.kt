@@ -27,13 +27,20 @@ fun SimpleVideoPreviewPlayer(
     isMuted: Boolean = true,
     trimStartSeconds: Float = 0f,
     trimEndSeconds: Float = 0f,
-    onPositionUpdate: ((Long) -> Unit)? = null
+    onPositionUpdate: ((Long) -> Unit)? = null,
+    // Puntero estable (vcdn://...) que NO cambia cuando se renueva la URL firmada.
+    // Cuando videoUri cambia pero este valor es el mismo, es una renovacion del
+    // mismo video: refrescamos en caliente preservando la posicion en lugar de
+    // reiniciar desde 0 (un video largo ya no se atasca ni se reinicia a la marca
+    // de expiracion de la URL VCDN).
+    stableUrl: String? = null,
 ) {
     val context = LocalContext.current
     val view = LocalView.current
     var exoPlayer by remember { mutableStateOf<ExoPlayer?>(null) }
     var forceRotationDegrees by remember(videoUri) { mutableStateOf(0f) }
     var isVisible by remember { mutableStateOf(false) }
+    var lastStableUrl by remember { mutableStateOf<String?>(null) }
 
     LaunchedEffect(videoUri) {
         val key = videoUri.toString()
@@ -79,15 +86,36 @@ fun SimpleVideoPreviewPlayer(
         }
     }
 
-    DisposableEffect(videoUri, trimStartSeconds, trimEndSeconds) {
-        // Grab a pooled player so scrolling the feed never pays codec init/teardown.
-        val player = com.example.core.media.ExoPlayerManager.getPlayer(context).apply {
-            setMediaItem(MediaItem.fromUri(videoUri))
-            repeatMode = Player.REPEAT_MODE_ALL
-            playWhenReady = false
-            volume = if (isMuted) 0f else 1f
-            prepare()
+    DisposableEffect(videoUri, trimStartSeconds, trimEndSeconds, stableUrl) {
+        // Capturamos en el cuerpo (no en onDispose): indica si ESTA emision es un
+        // refresh en caliente del mismo video (y por tanto NO hay que liberar el
+        // player al cerrar, porque el siguiente efecto lo va a reutilizar).
+        val isHotRefresh = exoPlayer != null && stableUrl != null && stableUrl == lastStableUrl
+        val player = if (isHotRefresh) {
+            // Mismo video, URL renovada: refrescar en caliente sobre el MISMO player
+            // preservando posicion y estado de reproduccion (sin reiniciar).
+            val p = exoPlayer!!
+            val pos = p.currentPosition
+            val playing = p.playWhenReady
+            try {
+                p.setMediaItem(MediaItem.fromUri(videoUri), true) // resetPosition=false
+                p.prepare()
+                p.seekTo(pos)
+                p.playWhenReady = playing
+            } catch (_: Exception) {}
+            p
+        } else {
+            // Video distinto o primera carga: pool (para el scroll) o reconstruir.
+            val poolPlayer = com.example.core.media.ExoPlayerManager.getPlayer(context).apply {
+                setMediaItem(MediaItem.fromUri(videoUri))
+                repeatMode = Player.REPEAT_MODE_ALL
+                playWhenReady = false
+                volume = if (isMuted) 0f else 1f
+                prepare()
+            }
+            poolPlayer
         }
+        lastStableUrl = stableUrl
 
         val listener = object : Player.Listener {
             override fun onPlaybackStateChanged(playbackState: Int) {
@@ -101,8 +129,10 @@ fun SimpleVideoPreviewPlayer(
 
         onDispose {
             player.removeListener(listener)
-            com.example.core.media.ExoPlayerManager.releasePlayer(player)
-            exoPlayer = null
+            if (!isHotRefresh) {
+                com.example.core.media.ExoPlayerManager.releasePlayer(player)
+            }
+            if (exoPlayer === player) exoPlayer = null
         }
     }
 

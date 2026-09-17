@@ -86,6 +86,26 @@ object VcdnUrlResolver {
         return id.ifBlank { null }
     }
 
+    /**
+     * Devuelve el instante (epoch millis) en que caducara la URL firmada resuelta,
+     * o 0 si se desconoce. Lo usa el feed largo para saber cuando necesita re-resolver
+     * antes de que el token expire y el video se atragante a mitad de reproduccion.
+     * [resolvedUrl] es la URL ya resuelta (https...) sin transformar.
+     */
+    fun expiresAtMillisOf(resolvedUrl: String?): Long {
+        if (resolvedUrl.isNullOrBlank()) return 0L
+        val videoId = videoIdOf(resolvedUrl)
+        if (videoId != null) {
+            cache[videoId]?.let { return it.expiresAt }
+        }
+        // La URL resuelta puede no empezar por vcdn:// (ya es https): el id no se
+        // puede extraer del puntero original. Buscamos por url.
+        for ((id, entry) in cache) {
+            if (entry.url == resolvedUrl) return entry.expiresAt
+        }
+        return 0L
+    }
+
     /** Synchronous variant for Coil/image loaders. Returns EMPTY STRING when the video is
      *  not available (null from [resolve]) — callers must treat "" as "no playback",
      *  never as "vcdn://..." raw pointer. Fail-open (empty) keeps callers safe.

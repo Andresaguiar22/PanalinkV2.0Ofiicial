@@ -442,4 +442,167 @@ El archivo versionado resuelve la toolchain **relativa al repo** (`_TC_ROOT="$(c
 * **Regla**: `git checkout -- scripts/toolchain_env.sh` antes de commitear/pushear. Commitear las rutas absolutas rompe el build en cualquier otra maquina.
 * La version portable funciona igual en la sandbox (resuelve a las mismas rutas; `GRADLE_USER_HOME` portable = `.toolchain/.gradle-home`, que existe), asi que no hay razon para conservar la absoluta.
 
+---
+
+## 🎥 Setup pre-live "Transmitir en Vivo" rediseñado (sesion 2026-09-17)
+
+Refactor visual de la pantalla previa al directo (`LiveBroadcastScreen`) al estilo glassmorphism del mockup aprobado: fondo de camara edge-to-edge con blur + oscurecido, barra superior flotante, panel central translucido con borde fino y CTA en pildora neon con glow.
+
+### Archivos
+* **NUEVO** `com/example/live/ui/components/LiveCameraPreviewBackground.kt`: preview real de **CameraX** a pantalla completa (`PreviewView` + `Preview` use case) para el fondo. Usa `ImplementationMode.COMPATIBLE` (TextureView, no SurfaceView) porque es lo unico que permite aplicar el **blur** de Compose sobre la preview. `active=false` desvincula (`unbindAll()`); el `AndroidView` **nunca se desmonta** (solo `alpha 0/1`) porque reinsertar la misma `PreviewView` revienta con "child already has a parent".
+* **NUEVO** `com/example/live/ui/components/LiveBroadcastSetup.kt`: layout completo pre-live. `LiveBroadcastSetup()` (pantalla), `SetupTopBar`, `GlassFormPanel`, `PermissionGlassPanel`, `GlassFieldGroup`, `GlassTextField` (`BasicTextField` transparente, sin lineas inferiores) y `NeonPillButton` (pildora `CircleShape` + halo desenfocado + `shadow` con `ambientColor/spotColor`).
+* **MODIFICADO** `com/example/live/ui/screen/LiveBroadcastScreen.kt`: la rama de configuracion se movio a `LiveBroadcastSetup` con **early return**; el `Scaffold` (TopAppBar + preview LiveKit + comentarios + controles) queda **solo** para el estado en vivo, intacto. El `AlertDialog` de finalizar se extrajo a `EndLiveDialog(onDismiss, onConfirm)` para reusarlo en ambos estados. La rama de permisos ahora vive dentro del panel glass.
+
+### Paleta y medidas (muestreadas del mockup)
+* Verde neon de marca: **`Color(0xFF5CF8B0)`** (muestreado del boton del mockup); texto del CTA en `Color(0xFF03140C)`.
+* Panel: radio **24.dp**, padding 20.dp, fondo `Brush.verticalGradient(white 0.14 -> 0.06)`, borde 1.dp `white 0.32 -> NeonMint 0.16`.
+* Campos: radio 14.dp, borde `white 0.20`, fondo `white 0.05`, placeholder `white 0.42`; alturas 52.dp (titulo) y 140.dp (descripcion).
+* CTA: altura 50.dp, `contentPadding` horizontal 30.dp, halo `190x46.dp` con `blur(26.dp)`.
+* Fondo: preview con `blur(26.dp).scale(1.08f)` (el `scale` tapa el borde difuminado) + `Color.Black.copy(alpha = 0.4f)` + degradado vertical para legibilidad.
+
+### ⚠️ Insets: NO usar `statusBarsPadding()`/`navigationBarsPadding()` aqui
+Aunque el pedido los mencionaba, en esta app la ventana **NO es edge-to-edge** (`MainActivity.onResume` fuerza `setDecorFitsSystemWindows(window, true)`), asi que el sistema ya reserva el espacio de las barras y volver a aplicar los insets **duplicaba** el desplazamiento (misma conclusion medida en el fix del feed de reels, commit `1afd4a6`). La top bar y el CTA se posicionan con **dp plano**. Misma razon por la que tampoco se tocan las flags de la ventana ni el color de iconos de la barra de estado.
+
+### 🔒 Regresion evitada: la camara es un recurso unico
+LiveKit abre la camara en `localParticipant.setCameraEnabled(true)` dentro de `startBroadcasting()`. Si CameraX la tiene tomada, el directo falla ("camara ocupada") -> regresion directa del fix del commit `9cc864f`.
+* **Solucion**: `beginBroadcast()` pone `cameraPreviewActive = false`, espera `CAMERA_RELEASE_DELAY_MS = 350L` y **recien despues** crea el stream; si falla, restaura la preview (`cameraPreviewActive = true`). El `DisposableEffect` de la preview libera igual al desmontarse (red de seguridad).
+
+### Validacion
+* `source scripts/toolchain_env.sh && ./gradlew --no-daemon :app:compileDebugKotlin` -> **BUILD SUCCESSFUL**, **0 errores** y **0 warnings** en los archivos nuevos/modificados.
+* Toolchain en esta sesion: `bash scripts/setup_toolchain.sh` (idempotente, instala JDK 17 + Android SDK en `.toolchain/`).
+* `gradle.properties` trae un `systemProp.javax.net.ssl.trustStore` con **ruta absoluta de otra sesion** (commiteada): Gradle avisa "trust store ... does not exist" pero resuelve dependencias igual. Si algun dia falla el SSL, ese es el primer sospechoso.
+
+---
+
+## 🖼️ Listado de transmisiones `Panalink Live` estilo glassmorphism (sesion 2026-09-17)
+
+Refactor de `LiveFeedScreen` + `LiveCard` al mockup de tarjetas flotantes: fondo con resplandores neon, tarjetas de cristal sobre la miniatura del video, badges flotantes y FAB con glow.
+
+### Archivos
+* **NUEVO** `com/example/live/ui/LiveTheme.kt`: tokens compartidos del modulo Live. `LiveNeon` (#5CF8B0), `LiveOnNeon` (#03140C), `LiveNightBase` (#040A15), `LiveLiveRed`/`LiveLiveGlow`, `LiveGlassFill` (white 0.06), `LiveGlassBorder` (white 0.10), `LiveBadgeFill`, `LiveCardScrim` y `LiveCardShape` (24.dp).
+* **MODIFICADO** `LiveBroadcastSetup.kt`: dejo de duplicar `NeonMint`/`OnNeonMint`/`PanelShape` y ahora consume `LiveNeon`/`LiveOnNeon`/`LiveCardShape` de `LiveTheme.kt`. Antes de reemplazar masivamente hay que **renombrar `OnNeonMint` PRIMERO** (`NeonMint` es substring de `OnNeonMint`; al reves queda `OnLiveNeon`).
+* **REESCRITO** `com/example/live/ui/components/LiveCard.kt`: `Card` con `elevation = 0.dp`, `containerColor = Color.Transparent` y `BorderStroke(1.dp, LiveGlassBorder)`; dentro, la miniatura con `blur(16.dp).scale(1.12f)` + capa negra en degradado; badges `LiveNowBadge`/`LiveViewerBadge`; titulo 21.sp bold; descripcion opcional 13.sp; fila de host con `PanaAvatar` (34.dp, anillo `LiveNeon`) + `@nombre`.
+* **REESCRITO** `com/example/live/ui/components/LiveSkeletonCard.kt`: mismo alto/esquinas/borde que `LiveCard` con barras pulsantes de cristal (antes era un bloque `#1F2C34` con shimmer). Compartir el alto evita el salto de layout al llegar los datos.
+* **REESCRITO** `com/example/live/ui/screen/LiveFeedScreen.kt`: `Box` con `drawBehind` pintando 2 `Brush.radialGradient` neon (arriba-derecha alpha 0.34, abajo-izquierda 0.16) sobre `LiveNightBase`; `Scaffold` transparente con `CenterAlignedTopAppBar` (el titulo va centrado como el mockup); `LazyColumn` con `Arrangement.spacedBy(16.dp)`; estado vacio en panel de cristal; `LiveBroadcastFab` con halo difuminado + `Modifier.shadow` de color.
+
+### Detalles que importan
+* **El blur del badge NO es backdrop-blur**: Compose no expone blur del fondo (solo `Modifier.blur`, que difumina el propio nodo). El "glass" se logra con relleno oscuro translucido (`LiveBadgeFill`) + borde fino claro + el blur aplicado a la miniatura de atras. No existe `Modifier` de backdrop blur en la version actual de Compose.
+* **`Modifier.blur` es no-op por debajo de API 31** (minSdk del proyecto = 24). En Android 12+ se ve el desenfoque; en 7-11 quedan la capa oscura y los bordes translucidos. El halo del FAB es del mismo tamano que el FAB (64.dp), asi que sin blur queda tapado por el boton en vez de verse como un disco solido.
+* **`Spacer(Modifier.weight(1f))`** entre los badges y el titulo: las tarjetas son de alto fijo (`178.dp`) y el espacio sobrante se lo come el spacer, asi que con o sin descripcion el bloque inferior queda pegado al borde.
+* **Contraste del texto**: la capa negra va de 0.30 -> 0.18 -> 0.72 en vertical; sin ese scrim el titulo blanco se pierde sobre miniaturas claras.
+* **El icono del FAB se mantiene `Videocam`** (el mockup dibuja una camara de fotos, pero la accion es "transmitir en vivo": cambiar el icono a uno de foto seria una regresion de significado).
+* **Padding inferior del listado = `FabSize + 48.dp`** para que el FAB no tape la ultima tarjeta.
+* **Bug arreglado de paso**: el estado vacio antes se decidia con `uiState.activeLives.isEmpty()` (sin filtrar por `status == "LIVE"`), asi que con solo streams finalizados se veia una lista en blanco en vez del panel. Ahora el filtro se calcula una vez en `liveStreams` y alimenta tanto la lista como el estado vacio.
+* **ArrowBack**: se migro a `Icons.AutoMirrored.Rounded/Filled.ArrowBack` en `LiveFeedScreen` y `LiveBroadcastScreen` (el `Icons.Default/Rounded.ArrowBack` esta deprecado y sale warning de compilacion).
+
+---
+
+## 🔴 Directo del anfitrion estilo glassmorphism (sesion 2026-09-17)
+
+Rediseno del estado "directo activo" de `LiveBroadcastScreen`: se eliminaron el `Scaffold` y el `TopAppBar` solidos (`#161618`) y todo pasa a flotar sobre el video de camara.
+
+### Archivos
+* **NUEVO** `com/example/live/ui/components/LiveBroadcastHud.kt`: `LiveStatusPill` (REC + tiempo + ojo + espectadores), `LiveGlassCircleButton` (herramienta circular de cristal con estado `alert` y punto verde de encendido) y `GlowDot` (punto con halo dibujado en `Canvas`). Tambien `viewerLabel()` que singulariza "1 Espectador".
+* **REESCRITO** `LiveBroadcastControls.kt`: fila flotante de 4 circulos (mic / camara / invertir / comentarios) + `EndLiveButton` (pildora roja con halo difuminado, sombra de color y destello de 4 puntas dibujado con `Path`).
+* **MODIFICADO** `LiveGuestControls.kt`: el boton pasa de `Button` relleno a `OutlinedButton` con `BorderStroke(1.5.dp, LiveNeon)` + `containerColor = LiveHudFill`.
+* **MODIFICADO** `LiveBroadcastScreen.kt`: `Scaffold`/`TopAppBar` fuera; `Box` con el video como capa base y HUD superior, PiP de co-host, comentarios, aviso de error y HUD inferior flotando.
+* **Tokens nuevos** en `LiveTheme.kt`: `LiveHudFill`, `LiveHudBorder`, `LiveEndRed`.
+
+### Geometria verificada contra el mockup (768x1376, ~1.868 px/dp)
+Se dibujaron las cajas calculadas sobre la captura para confirmar alineacion y ausencia de colisiones entre comentarios / PiP / HUD inferior.
+* Pildora de estado: top a `14dp` del borde del contenido -> 71px medidos contra 73px del mockup.
+* Fila inferior: botones terminan a `14dp` sobre el borde del contenido -> 62dp desde el borde fisico contra 62.6dp medidos.
+* Centro-a-centro de los circulos: 60dp (mockup 58-66dp). Boton de invitar: top 187px vs 190px medidos.
+
+### Decisiones que importan
+* **NO se aplico `statusBarsPadding()`/`navigationBarsPadding()`** aunque el pedido los mencionaba: `MainActivity.onResume` fuerza `setDecorFitsSystemWindows(true)`, asi que el sistema YA reserva el espacio de las barras y volver a aplicar los insets lo duplica (mismo bug documentado en el fix de reels `1afd4a6`: 43dp y 48dp de mas). El mockup es consistente con dp plano: sus 62.6dp libres abajo = 48dp de barra de navegacion + 14dp de margen.
+* **La capa base es `LiveVideoSurface` (track local de LiveKit), NO `PreviewView` de CameraX.** Durante el directo la camara la tiene LiveKit: montar CameraX a la vez reproduce el fallo "camara ocupada" del commit `9cc864f`. El track local ES la vista de camara, a `fillMaxSize()`, y `LiveVideoSurface` ya usa `SCALE_ASPECT_FILL` (sin barras negras).
+* **`Modifier.blur` no difumina el fondo**: Compose solo difumina el nodo propio. El look "cristal" del HUD se logra con relleno oscuro translucido + borde claro fino. Ademas `blur` es no-op por debajo de API 31 (minSdk 24).
+* **El halo del boton FINALIZAR usa `matchParentSize()`**: asi mide EXACTAMENTE lo que el boton. En API < 31 (sin blur) queda oculto detras del boton en vez de asomar como una franja roja dura alrededor.
+* **El halo va FUERA del `clip(CircleShape)` del boton**: si estuviera dentro, el clip recortaria el resplandor hacia afuera. Por eso es un hermano dibujado antes del boton, no un `drawBehind` del propio boton.
+* **"REC" y no "EN VIVO"**: el mockup rotula la pildora del anfitrion con REC (es su propia pantalla de emision). El tiempo se movio de la barra inferior a la pildora superior.
+* **El boton de comentarios del HUD es un toggle** (`commentsVisible`, por defecto `true`): oculta/muestra la capa de comentarios. El mockup dibuja ese 4to circulo pero el pedido solo listaba 3 herramientas; se implemento con accion real en vez de dejarlo decorativo, y por defecto no cambia el comportamiento previo.
+* **El PiP del Co-Host se movio de abajo-derecha a arriba-derecha** (debajo del boton de salir): abajo chocaba con FINALIZAR y con los comentarios.
+* **Comentarios anclados abajo con `heightIn(max = 240.dp)`**: crecen hacia arriba y quedan despejados de la franja de controles (`CommentsBottomPadding = 84.dp`).
+* **Icono Home con la accion previa**: el mockup usa una casa arriba a la derecha; se mantuvo el comportamiento que tenia la flecha de atras (`showEndConfirmation`), que es un flujo real existente. Mapear la casa a "minimizar" habria inventado una funcion que no existe.
+
+### Validacion
+* `source scripts/toolchain_env.sh && ./gradlew --no-daemon :app:compileDebugKotlin` -> **BUILD SUCCESSFUL**, **0 errores**, **0 warnings** (se quitaron imports sin uso y el `@OptIn(ExperimentalMaterial3Api::class)` que quedo huerfano).
+
+### 📥 Beta publicada (2026-09-17)
+* Rama: `origin/kilo/live-glassmorphism` (commit `5d6583a`), incluye AMBOS redisenos (listado + directo) y el setup pre-live.
+* Beta: `v1.3.46-beta`, code **73** (v1.3.45/code72 quedo obsoleta: pantalla negra), package `com.panalink.app.beta`, label `PanaLink Beta`, firma `CN=Panalink Beta` (SHA-256 `450a76c1...`, la estable: se instala encima de la beta previa sin desinstalar).
+* SHA-256 del APK: `a0e9b5da3af9fd64c068ca9d59792a2429b4ceedc86042f0c85cb6596ab2f2cc` (69.481.979 bytes, ~67 MB, ABIs `arm64-v8a`+`armeabi-v7a`).
+* URL: `https://work-2-lxqkaugmceedjklt.prod-runtime.all-hands.dev/Panalink-BETA-v1.3.46-code73.apk` (puerto 12001).
+* **Ojo con el code**: esta va con **73** (v1.3.44 fue code71, v1.3.45 code72). La proxima ronda debe usar **74 o mas** (un code menor que el instalado = Android 14+ lo rechaza con "paquete no valido").
+
+### 🔌 Servidor de APK de esta sesion (puerto 12001)
+* **El puerto 12000 NO sirve para el APK en esta sesion**: ahi corre `/tmp/upload_server.py` (el canal con el que el usuario sube capturas). Su ruta `/files/<nombre>` hace `f.read()` de TODO el archivo en memoria y **no soporta `Range`** -> un APK de 67 MB se entrega de un tiron y cualquier corte lo trunca (la causa clasica de "paquete no valido"). Usar solo el 12001.
+* El 12001 lo sirve `.toolchain/serve_apk.py <puerto> <dir>` (recreado esta sesion; soporta `GET`/`HEAD`, `Range` -> 206, `Accept-Ranges`, `Content-Length` exacto y `Cache-Control: no-store`). Sirve tanto `/<archivo>` como `/apk/<archivo>` y loguea `enviado=N/total COMPLETO|CORTADO` por descarga.
+* **NO hereda de `SimpleHTTPRequestHandler`**: en Python 3.13 el truco de sobrescribir `send_head()` devolviendo una tupla rompe el `do_HEAD` heredado (`'tuple' object has no attribute 'close'`). El server nuevo implementa `do_GET`/`do_HEAD` a mano.
+* Arranque: `setsid nohup python3 .toolchain/serve_apk.py 12001 .toolchain/serve_apk > /tmp/srv12001.log 2>&1 < /dev/null &` (con `nohup` a secas muere al resetearse la sesion y el ingress devuelve 502).
+* **Entregar SIEMPRE con nombre versionado** (`Panalink-BETA-v1.3.46-code73.apk`): si el movil reusa el nombre de una descarga previa, "reanuda" mezclando bytes de dos builds y da paquete invalido.
+* Verificacion previa a entregar (todas pasaron): `sha256sum` local == descargado por la URL publica (69.482.580 bytes, log `COMPLETO`), `zipalign -c -v 4` -> "Verification succesful", `apksigner verify --print-certs` -> `CN=Panalink Beta`, `extractNativeLibs=0xffffffff`, `lib/` con las 2 ABIs ARM. **`apksigner` necesita `JAVA_HOME`**: sin la toolchain en el PATH falla con `exec: java: not found`.
+
+#### 🩹 Pantalla NEGRA en el directo: causa raiz encontrada (sesion 2026-09-17)
+* **Sintoma reportado**: "la camara no se esta activando en el live, se ve la pantalla negra".
+* **CAUSA RAIZ (no era la camara)**: `LiveVideoSurface` usaba `DisposableEffect(rendererRef)`. La secuencia es:
+  1. Primer composition: `rendererRef == null` -> se registra `DisposableEffect(null)`.
+  2. `AndroidView.factory` corre en la fase de apply y hace `rendererRef = this` -> programa recomposicion.
+  3. Segunda composition: `rendererRef == renderer`. Como **cambio la clave**, Compose **despide el efecto anterior** y ejecuta su `onDispose`, que hace `val renderer = rendererRef` -> **el ref YA tiene valor** -> `rendererRef = null` + **`renderer.release()`**.
+  4. Resultado: el renderer se libera al nacer y el ref queda en `null`. El `LaunchedEffect(videoTrack, rendererRef)` de enganche lee `rendererRef == null`, sale sin hacer nada, y **el track local de LiveKit (que llega SIEMPRE despues de crear el renderer, porque la camara se enciende en `startBroadcasting`) no se engancha nunca** -> preview negra permanente.
+* **Fix**: la clave del `DisposableEffect` debe ser **`Unit`**, NUNCA `rendererRef`; asi el renderer se libera solo al salir la pantalla. Ademas el enganche desde el factory ahora escribe `attachedTrack` para no duplicar `addRenderer` (doble enganche = frames duplicados).
+* **REGLA**: **nunca** indexar un `DisposableEffect`/`LaunchedEffect` por un estado que el propio efecto **escribe en su `onDispose`**. El efecto viejo ve el valor NUEVO y destruye lo que el nuevo necesitaba.
+* **Refuerzo**: `setCameraEnabled/setMicrophoneEnabled` con reintento a los 500 ms si fallan (cubre la camara aun retenida por CameraX en equipos lentos). **La causa NO era CameraX**: el mapeo previo apuntaba a "camara ocupada", pero el handoff CameraX->LiveKit ya funcionaba; el fallo era del renderer en Compose.
+* **Logs de diagnostico** (los dejo puestos a proposito): tag `LiveVideoSurface` -> "renderer creado (track=bool)", "track enganchado al renderer", "track desenganchado", "renderer liberado"; tag `LiveCameraPreview` -> "CameraX desvinculado..."; tag `LiveKitManager` -> "Local camera track ready"; tag `LiveStart` -> "4/4 Camara activada (track=bool)". Con eso se distingue en logcat un fallo de CAMARA de uno de RENDERER.
+* **UI**: se elimino el **destello de 4 puntas** (`Sparkle`, un `Path` con `quadraticTo`) que quedaba debajo del boton FINALIZAR. El usuario lo reporto como "el icono de Gemini" y tenia razon: era una estrella de 4 puntas indistinguible del logo de Gemini. No volver a poner adornos asi junto a los botones.
+
+#### 🔴 Pantalla NEGRA 2.ª parte: el track NO es el problema — era `repeat`+`return@repeat` (ya resuelto, v1.3.47/code74
+* **El usuario confirmo**: "la camara SI se activa pero se ve negra la pantalla". Eso descarto el renderer (el previo `DisposableEffect` fix quedo bien) y apunto a **cuando se publica el track en el StateFlow**.
+* **CAUSA RAIZ REAL**: en `LiveKitManager.startBroadcasting` el track local se esperaba en un
+  `repeat(Int.MAX_VALUE) { ...; if (t != null) { localTrack = t; return@repeat; }; delay(50) }`.
+  `return@repeat` **NO rompe el bucle** — solo sale DE ESA iteracion. El bucle segua hasta agotar el `withTimeout(10 s)`, y `_localVideoTrack.value` se seteaba **solo al final del bloque**. La publicacion de camara existia desde el ≤300 ms (por eso la camara "si se activaba"), pero el preview quedaba NEGRO los 10 s completos. Como `connectionState` ya valia `Connected` (evento de sala), el overlay se ocultaba -> **negro absoluto y mudo**, exactamente el sintoma.
+* **Fix**: `awaitCameraTrack(currentRoom)` con `while` + `return` de verdad (el track se publica EN CUANTO existe); si en la ventana sincrona no aparece, `watchForCameraTrack` (15 s, cancelado al desconectar) lo sigue buscando en segundo plano y, si la camara no publica nada, deja `Error("La cámara no pudo iniciarse...")` en vez de morir en silencio.
+
+  * `LiveConnectionOverlay` gano `keepVisibleUntilTrackReady`: la pantalla del directo lo passa `true`, asi el circulo "Activando cámara..." queda visible mientras no haya track (en vez de ocultarse al recibir Connected)y da feedback real al usuario.
+
+  * `LiveBroadcastScreen` volca `connectionState.Error** a la vez que el aviso inferior tenia boton de reintento**. Un fallo de camara ya NUNCA es mudo: se ve el overlay y el cartel con el motivo y boton.
+
+* **Regla Kotlin**: `return@label` sale del bloque nombrado, NO del bucle. Si hay que "salir y listo" dentro de un `repeat`/`while`, usar `while(condicion)` con `return`, o `break` dentro de un `run { ... }` contiguo. **`repeat { return@repeat }` no es "romper el bucle"** — es "saltar a la siguiente iteracion" (y con `Int.MAX_VALUE` + `delay`, es una espera silenciosa de tiempo completo.
+* **Beta actual**: `v1.3.47-beta`, code **74**, SHA `630f8c66d5e6bd4f3d7a457f111ed8404d2c51b8a13a8fa7c42131f0ce446683`, package `com.panalink.app.beta`, firma `CN=Panalink Beta`. Reemplazo a la `73` (v1.3.46beta: el codigo del repeat mal escrito segua esperando los 10 s).
+
+#### 🔴 Vídeos que se atascan a ~1:00–1:04 (el "minuto exacto") — CAUSA RAIZ (sesión 2026-09-17)
+* **Sintoma del usuario**: "los vídeos se reproducen un minuto o 1:04 y se quedan pegados como queriendo seguir; algunos largos SÍ se ven completos y otros no".
+* **CAUSA**: la URL firmada de vCDN (HLS `streamUrl`) **caduca a ~60 s**. Los reproductores que resuelven el puntero `vcdn://...` **una sola vez** y no tienen nada que re-firmar al expirar se atascan silenciosamente a esa marca (el exoplayer recibe HTTP 401/403 a mitad del stream y se queda en buffering → frame congelado que "quiere seguir").
+* **Qué players SÍ tenían recuperación 401** (por eso "algunos se ven completos"):
+  * `ReelPlayerPool` (reels v2) — refresh 401 con `errorCode 2004` + refresh preventivo a `URL_TTL_MS=45s` SOLO si no está en reproducción activa.
+  * `ReelDualPlayerManager` (reels viejo/TikTokVideoFeedScreen) — `refreshActiveUrl` tras 401.
+  * `StoryVideoPlayerSession` (stories) — 401 recovery.
+* **Qué players NO tenían nada** (CORTADOS seguros a ~60 s en vídeos largos):
+  1. **`FeedPostCard` `rememberResolvedMediaUrl`** → resuelve `vcdn://` UNA vez en `LaunchedEffect(raw)` y nunca re-resuelve. El feed de publicaciones con vídeo largo se corta a la marca de caducidad. ➜ FIX: nuevo `rememberFreshMediaUrl(rawUrl)` que programa un re-resolve `forceRefresh` ~6 s antes de caducar (`VcdnUrlResolver.expiresAtMillisOf(resolvedUrl)`).
+  2. **`SimpleVideoPreviewPlayer`** (reproductor del feed) — con la URL nueva se reconstruía desde 0. ➜ FIX: nuevo parámetro `stableUrl` (el puntero `vcdn://...` del post). Si `videoUri` cambia pero `stableUrl` es el mismo = renovación del MISMO vídeo → **hot-refresh preservando posición/playWhenReady** (patrón idéntico a `ReelPlayerPool.refreshUrl`). En `onDispose`, `isHotRefresh` capturado en el cuerpo decide si liberar o no el player del pool (`ExoPlayerManager`).
+  3. **`FullScreenMediaViewer` / `VideoViewerContent`** (visor pantalla completa del chat) — crea ExoPlayer con la URL ya resuelta y SIN `onPlayerError`. ➜ FIX: nuevo parámetro `stableMediaUrl` desde `FullScreenMediaViewer(mediaUrl)` (que recibe el puntero estable `vcdn://`), y en `onPlayerError` con `errorCode==2004` + resolutor VCDN → `CdnManager.resolveMediaUrlFresh(stableUrl)` en `rememberCoroutineScope` y recarga en caliente preservando posición.
+* **Nuevo helper**: `VcdnUrlResolver.expiresAtMillisOf(resolvedUrl)` — devuelve `expiresAt` de la entrada de cache por URL (los resolved ya son https; `videoIdOf` no los parsea, por eso se busca por `entry.url`).
+* **Regla del patrón**: TODO player de vídeo que reciba una URL resuelta de VCDN debe: (a) guardar el puntero estable `vcdn://`, (b) refrescar o controlar el error 401 (`errorCode 2004`), (c) SIEMPRE preservando `currentPosition`/`playWhenReady` al cambiar `setMediaItem` (si no, al renovar el token el vídeo se reinicia y eso también es un defecto visible).
+* **Por qué "algunos SÍ se ven completos"**: los vídeos que ya estaban en el **SimpleCache** de `CacheDataSourceFactory` (ya descargados de una sesión anterior) siguen leyendo del disco aunque la URL caduque; o los sub-60 s; o los que no son vCDN (B2 se re-firma en la capa del DataSource).
+
+#### ♻️ El servidor se cae solo: watchdog y que sobrevive a un reinicio
+* **Sintoma**: el usuario reporta "se cayo el servidor de descarga"; `curl` al puerto devuelve **502**.
+* **Causa**: al reciclarse/reiniciarse la sesion del sandbox** se matan TODOS los procesos lanzados con `nohup`/`setsid`. No es un crash del server.
+* **Que SOBREVIVE y que NO**:
+  - **Sobrevive**: el workspace del repo (`/workspace/project/...` es volumen persistente) -> el APK en `.toolchain/serve_apk/` y los scripts del repo siguen ahi tras el reinicio. El `.git` y las ramas tambien.
+  - **NO sobrevive**: `/tmp` se vacia por completo (se pierden el log del server, el worktree `/tmp/panalink_beta` y el APK que hubiera en `/tmp`).
+  - **Hostname**: el host `work-N-<id>.prod-runtime...` **NO cambia** al reciclar la sesion (se confirmo: el mismo `work-2-lxqkaugmceedjklt`). Aun asi, el puerto del host puede variar por sesion -> verificar con `curl -sI` antes de entregar.
+* **Recuperacion (30 s)**: no hace falta recompilar nada; el APK ya esta en el workspace:
+  ```bash
+  cd /workspace/project/PanalinkV2.0Ofiicial
+  sha256sum .toolchain/serve_apk/Panalink-BETA-*.apk   # confirmar que es el esperado
+  setsid nohup bash scripts/serve_apk_watchdog.sh 12001 /workspace/project/PanalinkV2.0Ofiicial/.toolchain/serve_apk </dev/null >/dev/null 2>&1 &
+  curl -sI <URL> | grep -iE '^HTTP|content-length'     # debe dar 200
+  ```
+* **`scripts/serve_apk_watchdog.sh`** (nuevo): supervisor que relanza `serve_apk.py` si el proceso muere. Como el `python3` corre en primer plano dentro del `if`, el loop queda bloqueado mientras el server vive -> NO spawnea servers en bucle (se verifico: 1 solo proceso). Cubre caidas sueltas del proceso; un reinicio del sandbox si mata el watchdog y hay que relanzarlo.
+* **`ss -tlnp` no lista los puertos en este sandbox** (aunque el server este escuchando): no usarlo como unica prueba. La verificacion fiable es `curl` a la URL publica.
+* **Sacar el APK de `/tmp`**: guardarlo (y servirlo) desde `.toolchain/serve_apk/`, que esta gitignoreado (`.gitignore:29`) y sobrevive. Un APK de 67 MB en `/tmp` desaparece en el proximo reinicio.
+
+>>>>
 
