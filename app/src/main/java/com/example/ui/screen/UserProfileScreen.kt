@@ -256,6 +256,14 @@ fun UserProfileScreen(
                                 verticalAlignment = Alignment.CenterVertically
                             ) {
                                 // Avatar
+                                val profilePresence = com.example.data.repository.PresenceRepository.presenceMap.collectAsState().value[userId]
+                                    ?: com.example.data.repository.UserPresenceInfo(userId, com.example.data.repository.UserPresenceStatus.OFFLINE)
+                                val presenceStatus = profilePresence.status
+                                val presenceDotColor = if (presenceStatus == com.example.data.repository.UserPresenceStatus.ONLINE) {
+                                    Color(0xFF25D366)
+                                } else {
+                                    Color(0xFF57606A)
+                                }
                                 Box(
                                     modifier = Modifier.size(76.dp)
                                 ) {
@@ -272,7 +280,7 @@ fun UserProfileScreen(
                                             .size(20.dp)
                                             .align(Alignment.BottomEnd)
                                             .clip(CircleShape)
-                                            .background(Color(0xFF25D366))
+                                            .background(presenceDotColor)
                                             .border(2.dp, Color(0xFF101D24), CircleShape)
                                     )
                                 }
@@ -300,7 +308,10 @@ fun UserProfileScreen(
                                     }
                                     
                                     Text(
-                                        text = "Estado: En línea 🟢",
+                                        text = com.example.util.PresenceTimeFormatter.formatLastSeen(
+                                            status = presenceStatus,
+                                            lastSeenMs = profilePresence.lastSeen
+                                        ),
                                         color = Color.White.copy(alpha = 0.7f),
                                         fontSize = 12.sp,
                                         modifier = Modifier.padding(vertical = 2.dp)

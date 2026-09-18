@@ -52,6 +52,11 @@ object PresenceRepository {
     // Key: userId_status_windowTimestamp
     private val deduplicationCache = ConcurrentHashMap<String, Long>()
     private const val DEDUPLICATION_WINDOW_MS = 5000L
+    private const val HEARTBEAT_INTERVAL_MS = 30_000L
+    private const val STALE_PRESENCE_THRESHOLD_MS = 75_000L
+
+    private var heartbeatJob: Job? = null
+    private var staleSweepJob: Job? = null
 
     private val _currentUserStatus = MutableStateFlow(UserPresenceStatus.ONLINE)
     val currentUserStatus: StateFlow<UserPresenceStatus> = _currentUserStatus.asStateFlow()
@@ -201,15 +206,69 @@ object PresenceRepository {
     }
 
     /**
-     * Kept as a lifecycle-compatible no-op: Realtime's native Phoenix heartbeat
-     * maintains the socket and Presence membership.
+     * Heartbeat cada 30 segundos usando el canal broadcast de Realtime
+     * (Supabase NO implementa native Phoenix presence; el server jamás entrega
+     * presence_state/presence_diff). El heartbeat re-emite el estado de TODOS
+     * los clientes conectados para que los demás vean el estado actual aunque
+     * abran la app después de que el otro ya estaba online. Además un sweep
+     * periódico marca OFFLINE a cualquier usuario que deje de emitir delete
+     * umbral (STALE_PRESENCE_THRESHOLD_MS = 75 s) para que el indicador
+     * verde sea real: solo online mientras el usuario realmente emite.
+
+     * @param currentUserId Identificador del usuario para iniciar el job.
      */
     fun startHeartbeat(currentUserId: String) {
         stopHeartbeat()
+        heartbeatJob = scope.launch {
+            while (true) {
+                if (SupabaseClient.isConnected) {
+                    SupabaseClient.broadcastPresence(effectiveStatus().rawValue)
+                }
+                delay(HEARTBEAT_INTERVAL_MS)
+            }
+        }
+        if (staleSweepJob == null) {
+            staleSweepJob = scope.launch {
+                while (true) {
+                    delay(STALE_PRESENCE_THRESHOLD_MS / 2)
+                    sweepStalePresence()
+                }
+            }
+        }
     }
 
     fun stopHeartbeat() {
-        // Native Presence has no application-level heartbeat job to cancel.
+        heartbeatJob?.cancel()
+        heartbeatJob = null
+    }
+
+    /** Marca OFFLINE a usuarios cuyo último heartbeat fue hace más del umbral. */
+    private fun sweepStalePresence() {
+        try {
+            val now = System.currentTimeMillis()
+            val cutoff = now - STALE_PRESENCE_THRESHOLD_MS
+            val currentMap = _presenceMap.value
+            val staleUsers = currentMap.filter { (userId, info) ->
+                userId != (SupabaseClient.currentUser?.id ?: "") &&
+                    info.status != UserPresenceStatus.OFFLINE &&
+                    info.lastSeen < cutoff
+            }
+            if (staleUsers.isEmpty()) return
+            val updatedMap = currentMap.toMutableMap()
+            staleUsers.forEach { (userId, info) ->
+                updatedMap[userId] = UserPresenceInfo(
+                    userId = userId,
+                    status = UserPresenceStatus.OFFLINE,
+                    secondaryStatus = SecondaryPresenceStatus.NONE,
+                    callAvailability = info.callAvailability,
+                    lastSeen = info.lastSeen
+                )
+                PresenceHistoryTracker.recordEvent(userId, UserPresenceStatus.OFFLINE, info.lastSeen)
+            }
+            _presenceMap.value = updatedMap
+        } catch (e: Exception) {
+            Log.w(TAG, "Stale presence sweep failed: ${e.localizedMessage}")
+        }
     }
 
     /**

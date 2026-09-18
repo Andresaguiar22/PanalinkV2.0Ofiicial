@@ -592,6 +592,14 @@ object SupabaseClient {
                         clientScope.launch {
                             _realtimeTyping.emit(TypingStatus(chatId, userId, isTyping))
                         }
+                    } else if (finalEvent == "presence") {
+                        // Presence canal broadcast: llega vía `realtime:public:messages` (broadcast manual) o `presence:{uid}` (trigger backend).
+                        val userId = finalPayload?.optString("user_id") ?: ""
+                        val status = finalPayload?.optString("status") ?: "offline"
+                        val lastSeen = finalPayload?.optLong("last_seen") ?: System.currentTimeMillis()
+                        if (userId.isNotEmpty()) {
+                            emitRealtimePresence(UserPresence(userId, status, lastSeen))
+                        }
                     } else if (event == "presence_state") {
                         val payload = obj.optJSONObject("payload") ?: JSONObject()
                         payload.keys().forEach { userId ->
@@ -935,6 +943,7 @@ object SupabaseClient {
         webSocket = null
         heartbeatJob?.cancel()
         heartbeatJob = null
+        com.example.data.repository.PresenceRepository.stopHeartbeat()
     }
 
     // Helper to format ISO Date (con milisegundos: sin ellos dos mensajes del mismo
@@ -992,6 +1001,8 @@ object SupabaseClient {
         if (currentUser == null) return
         val status = com.example.data.repository.PresenceRepository.currentEffectiveStatus().rawValue
         trackCurrentUserPresence(status)
+        // Arrancar el heartbeat del mecanismo de presencia (solo mientras hay socket).
+        com.example.data.repository.PresenceRepository.startHeartbeat(currentUser!!.id)
     }
 
     fun trackCurrentUserPresence(status: String) {
@@ -1008,6 +1019,36 @@ object SupabaseClient {
                 put("ref", "track_${System.currentTimeMillis()}")
             }
             webSocket?.send(payload.toString())
+            // También emitir por el canal broadcast que el servidor SÍ entrega
+            // (Supabase NO implementa native Phoenix presence: nunca llegan presence_state/
+            // presence_diff, verificado empíricamente). Realtime custom broadcast is the único
+            // canal real; los demás clientes suscritos a `realtime:public:messages` lo ven.
+            broadcastPresence(status)
+        }
+    }
+
+    fun broadcastPresence(status: String) {
+        val currentUid = currentUser?.id ?: ""
+        if (isConfigured && webSocket != null) {
+            val data = JSONObject().apply {
+                put("user_id", currentUid)
+                put("status", status)
+                put("last_seen", System.currentTimeMillis())
+            }
+            val msg = JSONObject().apply {
+                put("topic", "realtime:public:messages")
+                put("event", "broadcast")
+                put("payload", JSONObject().apply {
+                    put("type", "broadcast")
+                    put("event", "presence")
+                    put("payload", data)
+                })
+                put("ref", "presence_${System.currentTimeMillis()}")
+            }
+            webSocket?.send(msg.toString())
+        } else {
+            // Emulate self-presence to local flow cuando no hay socket conectado
+            emitRealtimePresence(UserPresence(currentUid, status, System.currentTimeMillis()))
         }
     }
 

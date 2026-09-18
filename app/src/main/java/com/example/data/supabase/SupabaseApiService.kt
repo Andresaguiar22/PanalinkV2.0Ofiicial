@@ -1086,14 +1086,6 @@ interface SupabaseApiService {
         @Query("user_id") userIdFilter: String? = null
     ): Response<List<Map<String, Any>>>
 
-    @GET("rest/v1/presence_sessions")
-    suspend fun getPresenceSessions(
-        @Header("apikey") apiKey: String,
-        @Header("Authorization") authorization: String,
-        @Query("user_id") userIdFilter: String,
-        @Query("order") order: String = "last_active_at.desc"
-    ): Response<List<com.example.data.model.PresenceSession>>
-
     // --- Music Social Sync ---
 
     @GET("rest/v1/music_playlists")

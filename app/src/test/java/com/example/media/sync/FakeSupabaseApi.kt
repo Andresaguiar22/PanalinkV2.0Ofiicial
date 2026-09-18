@@ -163,7 +163,6 @@ class FakeSupabaseApi : SupabaseApiService {
     override suspend fun updateChatPinStatusRpc(apiKey: String, authorization: String, params: Map<String, @JvmSuppressWildcards Any>): Response<ResponseBody> = TODO()
     override suspend fun upsertUserPresence(apiKey: String, authorization: String, prefer: String, presence: Map<String, @JvmSuppressWildcards Any>): Response<ResponseBody> = TODO()
     override suspend fun getUserPresence(apiKey: String, authorization: String, userIdFilter: String?): Response<List<Map<String, Any>>> = TODO()
-    override suspend fun getPresenceSessions(apiKey: String, authorization: String, userIdFilter: String, order: String): Response<List<PresenceSession>> = TODO()
 
     override suspend fun markThreadReadThrough(
         apiKey: String,
