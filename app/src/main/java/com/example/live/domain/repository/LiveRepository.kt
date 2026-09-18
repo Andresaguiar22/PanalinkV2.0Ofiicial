@@ -29,5 +29,8 @@ interface LiveRepository {
     suspend fun getWalletBalance(): Result<Int>
     suspend fun sendGift(streamId: String, giftCode: String, quantity: Int): Result<LiveGiftResult>
     suspend fun setViewerCount(streamId: String, count: Int): Result<Unit>
+
+    /** Heartbeat del host: mantiene vivo el auto-end por TTL de pg_cron. */
+    suspend fun sendHeartbeat(streamId: String): Result<Unit>
     suspend fun registerJoin(streamId: String): Result<Boolean>
 }

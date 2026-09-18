@@ -623,7 +623,32 @@ Se dibujaron las cajas calculadas sobre la captura para confirmar alineacion y a
   ```
 * **`scripts/serve_apk_watchdog.sh`** (nuevo): supervisor que relanza `serve_apk.py` si el proceso muere. Como el `python3` corre en primer plano dentro del `if`, el loop queda bloqueado mientras el server vive -> NO spawnea servers en bucle (se verifico: 1 solo proceso). Cubre caidas sueltas del proceso; un reinicio del sandbox si mata el watchdog y hay que relanzarlo.
 * **`ss -tlnp` no lista los puertos en este sandbox** (aunque el server este escuchando): no usarlo como unica prueba. La verificacion fiable es `curl` a la URL publica.
-* **Sacar el APK de `/tmp`**: guardarlo (y servirlo) desde `.toolchain/serve_apk/`, que esta gitignoreado (`.gitignore:29`) y sobrevive. Un APK de 67 MB en `/tmp` desaparece en el proximo reinicio.
+* **Sacar el APK de `/tmp`**: guardarlo (y servirlo) desde `.toolchain/serve_apk/`, que esta gitignoreado (`.gitignore:29`) y sobrevive. Un APK de 67 MB en `/tmp` desaparece en el proximo reinicio。
+
+
 
 >>>>
+### 🧵 Fixes de live: salas fantasma + camara negra al reingresar (sesion 2026-09-18, rama `kilo/live-camera-renderer-main-thread`)
+* **SALAS FANTASMA (causa raiz)**: `LiveBroadcastScreen.stopAndFinish()` lanzaba el PATCH `endLive` en el **scope de la composicion** del boton; despues navegaba atras y **la navegacion cancelaba esa corrutina** -> el `live_streams.status` se quedaba `LIVE` para siempre (rows `3094e36d…`,`df3e9bf6…` halladas en prod). Ademas el `endLiveStream` no reintentaba tras 401。
+  * **Fix**: nuevo `LiveCleanupScope.kt` (scope **de vida de la app**, `CoroutineScope(SupervisorJob()+Dispatchers.IO)`, **NO** el scope de composicion) para el teardown; `stopAndFinish()` ahora secuencia **ENDED-PATCH -> leaveRoomSuspending -> navigate back**, todo en el scope de app, con guarda `isFinishing` anti doble-teardown. El `DisposableEffect.onDispose` (back del sistema estando en directo) tambien cae al scope de app si no `isFinishing`。
+  * **Fix** `endLiveStream`: reintento automatico con `SessionManager.refreshSession()` tras 401/403 (patron de ProfilesRepository, hasta 3 intentos)。
+  * **REGLA Kotlin**: `return@label` sale del bloque nombrado, NO del bucle——`repeat { return@repeat }` **no rompe** el bucle (espera muda de tiempo completo). Usar `while(condicion)+return` o `break` dentro de `run` contiguo。
+* **CAMARA NEGRA AL REINGRESAR (causa raiz)**: al salir de una sala y entrar a otra, `disconnect/release` del room viejo y `connect()` del nuevo **corrian en paralelo** (disparados desde onDispose, boton FINALIZAR, leaveRoom, etc);el release robaba la camara / desconectaba la sala nueva antes de que el track se publicara. El fix previo (`initVideoRenderer(Dispatchers.IO)`) era insuficiente‥
+  * **Fix**: `lifecycleMutex` en `LiveKitManager` serializa TODAS las entradas de ciclo de vida: `connect`/`startBroadcasting`/`joinAsGuest`/`disconnect`/`release`/camera-set; las operaciones donde hacia falta (dejar sala, teardown) pasan a **suspending** atravies de `LiveRoomRepository.leaveRoomSuspending()` -> impl -> manager; guarda anti-sala-stale en el watcher del track local y en `setCameraEnabled` (si `room` ya cambio,, no tocar la camara de la sala nueva)。
+  * **Sintoma que descarta camara**: si `setCameraEnabled(true)` **si** logutea exito pero el preview sigue negro,, NO es la camara: es el **renderer** (ver `LiveVideoSurface` fix de sesion previa: `DisposableEffect` con clave **`Unit`**, nunca `rendererRef`,, y enganche unico con `attachedTrack`）。
+  * **`withLock` NO se importa con `Mutex`**: usar `import kotlinx.coroutines.sync.Mutex` **y aparte** `import kotlinx.coroutines.sync.withLock`. El compilador reporta "Unresolved reference 'withLock'" si solo importas el Mutex‥
+
+### 💓 Heartbeat + auto-END (red de seguridad anti-lives-fantasma, migracion `20260918000000_live_streams_auto_end.sql`)
+* **Problema que cubre**: incluso con el teardown arreglado, si la app muere fuerzatamente o el host pierde red **sin** llegar el PATCH ENDED,, la sala quedaba LIVE para siempre。
+* **Backend (aplicado en prod via Management API)**: columna `live_streams.last_seen_at timestamptz default now()`; RPC `live_heartbeat(p_stream_id)` (security definer, busca `host_id=auth.uid() and status='LIVE'`, grant a authenticated); RPC `live_auto_end_stale()` (meaning definer, grant service_role)y cron `*/10 * * * * *` que marca ENDED cualquier LIVE con `last_seen_at < now()-60s` o NULL (3 heartbeats de 25s perdidos）。
+* **App**: `LiveRepository.sendHeartbeat(streamId)` (RPC; fallo = silencioso, NUNCA tumbar el directo); el `LiveViewModel` lanza un `heartbeatJob` (cada 25_000L**) SOLO cuando `isBroadcaster` (un viewer no debe sostener la sala), cancelado en `stopStreamSession`。
+* **OJO backfill**: `add column default now()` rellena `last_seen_at` de TODAS las filas viejas a la hora de la migracion (se vio de 02:XX y 22:XX pasando a 05:50). Inofensivo para las ENDED,, pero si una sala viviese durante la migracion y la app nueva no estuviera desplegada,, el cron la mataria en ≤60s. Desplegar app y migracion **juntos** en este orden: app heartbeat primero,, migracion despues( o aceptar el riesgo。
+* **Cleanup prod ejecutado**: rows fantasma `3094e36d-21d9-4db8-9c09-8cca00b33984` y `df3e9bf6-a5c2-413e-bfc4-3548999c1276` marcadas ENDED (ended_at=now())。
+
+* **Servidores persistidos en el repo**: los servers de capturas/APK ahora viven en `scripts/upload_server.py` y `scripts/serve_apk.py` (**trackeados**, no /tmp ni solo .toolchain gitignoreado); watchdogs: `scripts/serve_upload_watchdog.sh` (12000) y `scripts/serve_apk_watchdog.sh` (12001,, apuntando a los scripts trackeados. El directorio de uploads permanece en `.toolchain/uploads/` (sobrevive al sandbox。。 Relanzar con:
+  ```bash
+  setsid nohup bash scripts/serve_upload_watchdog.sh </dev/null >/dev/null 2>&1 &
+  setsid nohup bash scripts/serve_apk_watchdog.sh 12001 /workspace/project/PanalinkV2.0Ofiicial/.toolchain/serve_apk </dev/null >/dev/null 2>&1 &
+  ```
+  Verificar SIEMPRE con `curl https://work-1-…/health` (ok) y `curl -sI …/Panalink-BETA-*.apk | grep -E 'HTTP|content-length'` antes de entregar links。
 

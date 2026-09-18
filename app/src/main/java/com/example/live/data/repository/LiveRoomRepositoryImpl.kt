@@ -43,4 +43,8 @@ class LiveRoomRepositoryImpl(context: Context) : LiveRoomRepository {
     override fun leaveRoom() {
         liveKitManager.disconnect()
     }
+
+    override suspend fun leaveRoomSuspending() {
+        liveKitManager.disconnectSuspending()
+    }
 }

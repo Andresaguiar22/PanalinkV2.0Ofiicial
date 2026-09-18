@@ -2,6 +2,7 @@ package com.example.live.data.remote
 
 import com.example.live.domain.model.LiveComment
 import com.example.live.domain.model.LiveGift
+import com.example.live.domain.model.LiveHeartbeatRequest
 import com.example.live.domain.model.LiveJoinStreamRequest
 import com.example.live.domain.model.LiveSendGiftRequest
 import com.example.live.domain.model.LiveSendLikeRequest
@@ -120,6 +121,13 @@ interface LiveSupabaseApi {
         @Header("apikey") apiKey: String,
         @Header("Authorization") authorization: String,
         @Body body: LiveSetViewerCountRequest
+    ): Response<ResponseBody>
+
+    @POST("rest/v1/rpc/live_heartbeat")
+    suspend fun rpcLiveHeartbeat(
+        @Header("apikey") apiKey: String,
+        @Header("Authorization") authorization: String,
+        @Body body: LiveHeartbeatRequest
     ): Response<ResponseBody>
 
     @POST("rest/v1/rpc/live_join_stream")

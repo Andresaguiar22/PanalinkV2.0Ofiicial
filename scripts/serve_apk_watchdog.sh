@@ -21,7 +21,7 @@ echo "watchdog: puerto=$PORT dir=$DIR log=$LOG" >> "$LOG"
 while true; do
     if ! ss -tln 2>/dev/null | grep -q ":${PORT} "; then
         echo "$(date '+%F %T') relanzando serve_apk en $PORT" >> "$LOG"
-        python3 "$REPO/.toolchain/serve_apk.py" "$PORT" "$DIR" >> "$LOG" 2>&1
+        python3 "$REPO/scripts/serve_apk.py" "$PORT" "$DIR" >> "$LOG" 2>&1
         echo "$(date '+%F %T') serve_apk termino; reintento en 3s" >> "$LOG"
     fi
     sleep 3

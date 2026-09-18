@@ -25,4 +25,11 @@ interface LiveRoomRepository {
     suspend fun setCameraEnabled(enabled: Boolean)
     fun initVideoRenderer(renderer: SurfaceViewRenderer)
     fun leaveRoom()
+
+    /**
+     * Version que garantiza que el teardown de la sala/camara/mic termino antes de
+     * devolver. Usarla en flujos que necesitan certeza (finalizar transmision,
+     * salir de la pantalla) para no dejar el capturer de camara vivo.
+     */
+    suspend fun leaveRoomSuspending()
 }

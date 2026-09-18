@@ -116,6 +116,7 @@ class LiveViewModel(application: Application) : AndroidViewModel(application) {
     private var presenceManager: LivePresenceManager? = null
     private var engagementRealtimeManager: LiveEngagementRealtimeManager? = null
     private var pulseCollectJob: Job? = null
+    private var heartbeatJob: Job? = null
     private var feedReloadJob: Job? = null
 
     init {
@@ -356,6 +357,21 @@ class LiveViewModel(application: Application) : AndroidViewModel(application) {
             }
         }
 
+        // Heartbeat del HOST: mantiene last_seen_at fresco para que el auto-end por
+        // TTL (pg_cron `live-auto-end-stale`) no tumbe un live sano. Cada 25 s.
+        // Solo para el broadcaster: un viewer no debe sostener la sala.
+        heartbeatJob?.cancel()
+        if (isBroadcaster) {
+            heartbeatJob = viewModelScope.launch {
+                // Lanzar inmediatamente para poblar last_seen_at al empezar.
+                try { repository.sendHeartbeat(streamId) } catch (_: Exception) {}
+                while (true) {
+                    delay(HEARTBEAT_INTERVAL_MS)
+                    try { repository.sendHeartbeat(streamId) } catch (_: Exception) {}
+                }
+            }
+        }
+
         pulseCollectJob?.cancel()
         pulseCollectJob = viewModelScope.launch {
             reactionsRepository.reactionEvents.collect {
@@ -440,6 +456,8 @@ class LiveViewModel(application: Application) : AndroidViewModel(application) {
     fun stopStreamSession() {
         likeFlushJob?.cancel()
         likeFlushJob = null
+        heartbeatJob?.cancel()
+        heartbeatJob = null
         val streamId = activeStreamId
         val pending = pendingLikes
         if (streamId != null && pending > 0) {
@@ -470,6 +488,7 @@ class LiveViewModel(application: Application) : AndroidViewModel(application) {
     companion object {
         private const val LIKE_FLUSH_INTERVAL_MS = 1500L
         private const val FEED_RELOAD_DEBOUNCE_MS = 2500L
+        private const val HEARTBEAT_INTERVAL_MS = 25_000L
         private const val LOCAL_GIFT_ECHO_WINDOW_MS = 4000L
         private const val MAX_GIFT_FEED = 30
         private const val MAX_PRESENT_TRACKED = 50

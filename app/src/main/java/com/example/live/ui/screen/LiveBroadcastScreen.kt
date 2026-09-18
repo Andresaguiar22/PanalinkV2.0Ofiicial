@@ -29,6 +29,7 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.core.content.ContextCompat
 import com.example.data.supabase.SupabaseClient
+import com.example.live.data.LiveCleanupScope
 import com.example.live.data.repository.LiveRoomRepositoryImpl
 import com.example.live.domain.model.LiveConnectionState
 import com.example.live.domain.model.LiveStream
@@ -39,7 +40,6 @@ import com.example.live.ui.viewmodel.LiveViewModel
 import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
-import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withTimeout
 
 @OptIn(ExperimentalMaterial3Api::class)
@@ -90,6 +90,10 @@ fun LiveBroadcastScreen(
     var descriptionText by remember { mutableStateOf("¡Acompañame en este directo!") }
     var activeStream by remember { mutableStateOf<LiveStream?>(null) }
     var isLiveStarted by remember { mutableStateOf(false) }
+    // Evita dobles finalizaciones (boton FINALIZAR + onDispose): la navegacion
+    // dispara el onDispose y si ambos corren el teardown, la sala se desconecta
+    // del room NUEVO cuando el usuario entra a otro directo.
+    var isFinishing by remember { mutableStateOf(false) }
     // Se incrementa para volver a enganchar la preview de CameraX si el arranque
     // del directo falla: al liberar el sensor, la preview quedaba en negro.
     var previewRestartKey by remember { mutableStateOf(0) }
@@ -116,12 +120,25 @@ fun LiveBroadcastScreen(
         }
     }
 
+    /**
+     * Finaliza el directo de forma SECUENCIAL para no crear "lives fantasma":
+     * 1) Marca ENDED en Supabase (con reintentos por token), 2) recien despues suelta
+     * la sala/camara, 3) y por ultimo navega atras. Antes el PATCH se lanzaba en un
+     * scope que el navigate cancelaba a mitad -> el row quedaba LIVE para siempre.
+     */
     fun stopAndFinish() {
-        scope.launch(Dispatchers.IO) {
+        if (isFinishing) return
+        isFinishing = true
+        // Scope de aplicacion (no el de composicion): la navegacion cancela el scope
+        // de Compose al hacer pop, y eso mataba el PATCH de ENDED a mitad ==> stream
+        // fantasma. Con LiveCleanupScope.el flujo termina aunque la pantalla ya no exista.
+        LiveCleanupScope.io.launch {
             try {
                 activeStream?.let { stream -> viewModel.endLive(stream.id) }
             } catch (_: Exception) {}
-            roomRepository.leaveRoom()
+            try {
+                roomRepository.leaveRoomSuspending()
+            } catch (_: Exception) {}
             viewModel.stopStreamSession()
             guestViewModel.stopRealtime()
         }
@@ -131,7 +148,7 @@ fun LiveBroadcastScreen(
     /** Conecta a LiveKit (token + conexión + cámara) sin bloquear la UI de live. */
     fun startLiveInBackground(stream: LiveStream) {
         viewModel.loadComments(stream.id)
-        viewModel.startStreamSession(stream.id)
+        viewModel.startStreamSession(stream.id, isBroadcaster = true)
         guestViewModel.loadGuests(stream.id)
         guestViewModel.startRealtime(stream.id)
         scope.launch {
@@ -160,14 +177,24 @@ fun LiveBroadcastScreen(
 
     DisposableEffect(Unit) {
         onDispose {
+            // Solo deja la sala si el usuario no finalizo formalmente (el boton
+            // FINALIZAR ya orquesto end+leave). Sin esta guarda, la navegacion al
+            // finalizar un directo disparaba leaveRoom() y podia desconectar la
+            // sala de la siguiente entrada.
+            if (isFinishing) return@onDispose
+            // Salida sin confirmar (ej. back del sistema / gesto): no se puede
+            // cancelarle el PATCH de ENDED al scope muerto, asi que se despacha en
+            // el scope de aplicacion (sobrevive al pop).
             activeStream?.let { stream ->
-                scope.launch(Dispatchers.IO) {
+                LiveCleanupScope.io.launch {
                     try { viewModel.endLive(stream.id) } catch (_: Exception) {}
                 }
             }
-            roomRepository.leaveRoom()
-            viewModel.stopStreamSession()
-            guestViewModel.stopRealtime()
+            LiveCleanupScope.io.launch {
+                try { roomRepository.leaveRoomSuspending() } catch (_: Exception) {}
+                try { viewModel.stopStreamSession() } catch (_: Exception) {}
+                try { guestViewModel.stopRealtime() } catch (_: Exception) {}
+            }
         }
     }
 

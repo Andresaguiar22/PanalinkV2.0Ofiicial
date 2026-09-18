@@ -37,6 +37,11 @@ data class LiveSetViewerCountRequest(
 )
 
 @JsonClass(generateAdapter = true)
+data class LiveHeartbeatRequest(
+    @Json(name = "p_stream_id") val streamId: String
+)
+
+@JsonClass(generateAdapter = true)
 data class LiveJoinStreamRequest(
     @Json(name = "p_stream_id") val streamId: String
 )
