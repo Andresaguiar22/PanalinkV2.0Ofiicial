@@ -103,6 +103,42 @@ async function vcdnFetch(path: string, init: RequestInit, key: string): Promise<
   return { ok: res.ok, status: res.status, body };
 }
 
+// Per-session upload progress to avoid re-sending chunks we already sent.
+const uploadProgress = new Map<string, number>();
+
+// Chunk retries: HTTP 503 `upload_chunk_accounting_failed` and 409 `upload_session_closed`
+// are documented as retry-safe (same chunk, idempotent). Bound attempts to avoid loops.
+async function vcdnFetchChunk(
+  path: string,
+  init: RequestInit,
+  key: string,
+  uploadId: string,
+  offset: number
+): Promise<{ ok: boolean; status: number; body: string; retryable: boolean; retryCount: number }> {
+  const maxAttempts = 3;
+  let attempts = 0;
+  let last: { ok: boolean; status: number; body: string } = { ok: false, status: 502, body: "" };
+  while (attempts < maxAttempts) {
+    attempts++;
+    const res = await vcdnFetch(path, init, key);
+    last = res;
+    if (res.ok) {
+      uploadProgress.set(uploadId, Math.max(uploadProgress.get(uploadId) ?? 0, offset + (init.body instanceof Uint8Array ? init.body.byteLength : 0)));
+      return { ...res, retryable: false, retryCount: attempts };
+    }
+    const retryable = res.status === 503 || res.status === 409;
+    if (!retryable) return { ...res, retryable: false, retryCount: attempts };
+    if (attempts < maxAttempts) {
+      await delay(800 * attempts);
+    }
+  }
+  return { ...last, retryable: true, retryCount: attempts };
+}
+
+// `standard` ladder: multi-rendition ABR (360/720/1080 capacity). El default
+// `source` deriva una sola rendition, que limita el bitrate adaptativo.
+const LADDER_PROFILE = "standard";
+
 function delay(ms: number): Promise<void> {
   return new Promise((resolve) => setTimeout(resolve, ms));
 }
@@ -140,11 +176,25 @@ export default {
           return Response.json({ error: "Forbidden: upload does not belong to user" }, { status: 403 });
         }
 
-        const r = await vcdnFetch(`/api/v1/upload/${encodeURIComponent(uploadId)}/chunk`, {
+        // Idempotencia en esta instancia: si estos bytes ya fueron contabilizados
+        // (chunk previo con timeout tras almacenar, reintentado aquí), los saltamos
+        // del todo y devolvemos el progreso ya persistido en PostgreSQL.
+        if (chunkOffset >= 0) {
+          const accounted = uploadProgress.get(uploadId) ?? 0;
+          if (accounted >= chunkOffset + bytes.length) {
+            const dbCheck = await callRpc("update_vcdn_upload_bytes", {
+              p_upload_id: uploadId,
+              p_bytes_received: accounted
+            });
+            return Response.json({ bytesReceived: dbCheck.ok && dbCheck.data?.bytesReceived ? dbCheck.data.bytesReceived : accounted });
+          }
+        }
+
+        const r = await vcdnFetchChunk(`/api/v1/upload/${encodeURIComponent(uploadId)}/chunk`, {
           method: "POST",
           headers: { "Content-Type": "application/octet-stream" },
           body: bytes,
-        }, key);
+        }, key, uploadId, chunkOffset >= 0 ? chunkOffset : 0);
 
         if (!r.ok) {
           // If chunk was already sent and VCDN rejects duplicate chunk, check if upload is already progressing
@@ -157,11 +207,12 @@ export default {
               return Response.json({ bytesReceived: dbCheck.data.bytesReceived });
             }
           }
-          return Response.json({ error: "VCDN chunk failed", code: r.status, detail: r.body.slice(0, 500) }, { status: 502 });
+          return Response.json({ error: "VCDN chunk failed", code: r.status, detail: r.body.slice(0, 500), retryCount: r.retryCount }, { status: 502 });
         }
 
         const parsed = JSON.parse(r.body || "{}");
         const upstreamBytesReceived = Number(parsed.bytesReceived) || (chunkOffset >= 0 ? chunkOffset + bytes.length : bytes.length);
+        uploadProgress.set(uploadId, Math.max(uploadProgress.get(uploadId) ?? 0, upstreamBytesReceived));
 
         // Synchronously persist authoritative bytesReceived to PostgreSQL before responding
         const updateRes = await callRpc("update_vcdn_upload_bytes", {
@@ -279,6 +330,7 @@ export default {
                 size,
                 contentType,
                 title,
+                ladderProfile: LADDER_PROFILE,
               }),
             }, key);
 
@@ -326,6 +378,7 @@ export default {
             size,
             contentType,
             title,
+            ladderProfile: LADDER_PROFILE,
           }),
         }, key);
         if (!r.ok) return Response.json({ error: "VCDN init failed", code: r.status, detail: r.body.slice(0, 500) }, { status: 502 });
@@ -363,6 +416,7 @@ export default {
 
         // 3. ONLY finalize session if VCDN confirms success or already-completed
         if (r.ok || r.status === 400 || r.status === 409 || r.body.includes("already")) {
+          uploadProgress.delete(uploadId); // upload terminó; libera el mapa de progreso
           await callRpc("finalize_vcdn_session", {
             p_upload_id: uploadId,
             p_ready: false,
@@ -396,6 +450,11 @@ export default {
         let streamUrl = "";
         let posterUrl = v.poster_url || "";
         if (ready) {
+          // Observabilidad: log del estado del transcode / número de sources del ABR
+          try {
+            const sources = (v.playbackSources && Array.isArray(v.playbackSources)) ? v.playbackSources.length : 0;
+            console.log(`VCDN ready videoId=${videoId} sources=${sources} progress=${v.transcode_progress} attempts=${v.transcode_attempts}`);
+          } catch (_) {}
           try {
             const cfg = await fetch(`${BFF_BASE}/api/bff/player-config/${encodeURIComponent(videoId)}`, { method: "GET" });
             if (cfg.ok) {

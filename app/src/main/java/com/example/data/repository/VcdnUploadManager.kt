@@ -36,6 +36,11 @@ object VcdnUploadManager {
     private const val POLL_INTERVAL_MS = 3000L
     private const val POLL_TIMEOUT_MS = 5L * 60 * 1000L
 
+    // Reintentos locales ante fallos transitorios de chunk (503/409/timeouts):
+    // VCDN documenta estos errores como retry-safe e idempotentes (mismo offset).
+    private const val CHUNK_RETRY_COUNT = 3
+    private const val CHUNK_RETRY_DELAY_MS = 800L
+
     private val client by lazy {
         OkHttpClient.Builder()
             .connectTimeout(30, TimeUnit.SECONDS)
@@ -141,13 +146,7 @@ object VcdnUploadManager {
                         .post(buf.toRequestBody("application/octet-stream".toMediaTypeOrNull()))
                         .build()
 
-                    val chunkResp = client.newCall(chunkReq).execute().use { resp ->
-                        val b = resp.body?.string().orEmpty()
-                        if (!resp.isSuccessful) {
-                            throw Exception("VCDN chunk HTTP ${resp.code}: ${b.take(300)}")
-                        }
-                        JSONObject(b)
-                    }
+                    val chunkResp = executeChunkWithRetry(chunkReq, tryIndex = 0)
                     val received = chunkResp.optLong("bytesReceived", offset + len)
                     offset = maxOf(offset + len, received)
                     onProgress?.invoke(offset, total)
@@ -211,6 +210,29 @@ object VcdnUploadManager {
     private suspend fun ensureToken(): String? {
         SessionManager.refreshSession()
         return SessionManager.getUserAuthToken() ?: SupabaseClient.currentToken
+    }
+
+    /**
+     * Envía un chunk con reintentos locales para errores transitorios de red/edge
+     * (503 upload_chunk_accounting_failed, 409 session_closed documentados como
+     * retry-safe por VCDN; también timeouts). Reutiliza el mismo offset: el chunk
+     * es idempotente (VCDN/edge deduplican por bytesReceived).
+     */
+    private suspend fun executeChunkWithRetry(chunkReq: Request, tryIndex: Int): JSONObject {
+        try {
+            client.newCall(chunkReq).execute().use { resp ->
+                val b = resp.body?.string().orEmpty()
+                if (!resp.isSuccessful) throw Exception("VCDN chunk HTTP ${resp.code}: ${b.take(300)}")
+                return JSONObject(b)
+            }
+        } catch (e: Exception) {
+            if (tryIndex < CHUNK_RETRY_COUNT) {
+                Log.w(TAG, "VCDN chunk reintentando (${tryIndex + 1}/$CHUNK_RETRY_COUNT): ${e.message?.take(120)}")
+                delay(CHUNK_RETRY_DELAY_MS)
+                return executeChunkWithRetry(chunkReq, tryIndex + 1)
+            }
+            throw e
+        }
     }
 
     private fun callEdge(token: String, body: RequestBody): String {

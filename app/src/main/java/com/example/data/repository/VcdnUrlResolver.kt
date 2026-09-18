@@ -236,6 +236,9 @@ object VcdnUrlResolver {
         // VCDN BFF rejects requests that don't look like a real browser (403 Forbidden
         // with plain OkHttp UA). Send browser-like headers: the streamUrl minted
         // by this endpoint is public/signed per-video and expires, so no secrets leak.
+        // NOTA: el APK no lleva VCDN_API_KEY (vive solo en la edge function); por eso
+        // no llamamos aquí a playback-token directo en cdn.vcdn.me (daría 401). Usamos
+        // el flujo embed/BFF player-config que no necesita key.
 
         val request = Request.Builder()
             .url("$BFF_BASE/api/bff/player-config/${Uri.encode(videoId)}")
