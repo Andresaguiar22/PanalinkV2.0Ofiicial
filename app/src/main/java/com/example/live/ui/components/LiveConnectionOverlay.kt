@@ -26,10 +26,22 @@ import kotlin.math.abs
 fun LiveConnectionOverlay(
     connectionState: LiveConnectionState,
     modifier: Modifier = Modifier,
-    hideWhenTrackReady: Boolean = false
+    hideWhenTrackReady: Boolean = false,
+    // El directo conecta la sala ANTES de que exista la publicacion de camara. Sin esto,
+    // el overlay se ocultaba al recibir Connected y el usuario veia un NEGRO mudo mientras
+    // la camara terminaba de publicar. Con true sigue visible hasta que hay track real.
+    // Default false = comportamiento historico (viewer).
+    keepVisibleUntilTrackReady: Boolean = false,
 ) {
+    val waitingForTrack = keepVisibleUntilTrackReady &&
+        connectionState is LiveConnectionState.Connected &&
+        !hideWhenTrackReady
+
     val alpha by animateFloatAsState(
-        targetValue = if (connectionState is LiveConnectionState.Connected || hideWhenTrackReady) 0f else 0.85f,
+        targetValue = if (
+            hideWhenTrackReady ||
+            (connectionState is LiveConnectionState.Connected && !keepVisibleUntilTrackReady)
+        ) 0f else 0.85f,
         animationSpec = tween(durationMillis = 300),
         label = "overlay_alpha"
     )
@@ -51,16 +63,21 @@ fun LiveConnectionOverlay(
                     verticalArrangement = Arrangement.Center,
                     modifier = Modifier.fillMaxSize()
                 ) {
-                    val icon = when (connectionState) {
-                        is LiveConnectionState.Connecting -> Icons.Default.Wifi
-                        is LiveConnectionState.Reconnecting -> Icons.Default.Refresh
-                        is LiveConnectionState.Error -> Icons.Default.WifiOff
+                    val icon = when {
+                        waitingForTrack -> Icons.Default.Videocam
+                        connectionState is LiveConnectionState.Connecting -> Icons.Default.Wifi
+                        connectionState is LiveConnectionState.Reconnecting -> Icons.Default.Refresh
+                        connectionState is LiveConnectionState.Error -> Icons.Default.WifiOff
                         else -> Icons.Default.Wifi
                     }
-                    val text = when (connectionState) {
-                        is LiveConnectionState.Connecting -> "Preparando cámara y micrófono..."
-                        is LiveConnectionState.Reconnecting -> "Reconectando..."
-                        is LiveConnectionState.Error -> "Sin señal"
+                    val text = when {
+                        waitingForTrack -> "Activando cámara..."
+                        connectionState is LiveConnectionState.Connecting -> "Preparando cámara y micrófono..."
+                        connectionState is LiveConnectionState.Reconnecting -> "Reconectando..."
+                        // El mensaje real se muestra en el aviso inferior (tiene espacio y
+                        // boton de reintento); aqui, dentro de un circulo de 120dp, un texto
+                        // largo se recortaria.
+                        connectionState is LiveConnectionState.Error -> "Sin señal"
                         else -> ""
                     }
                     val color = when (connectionState) {

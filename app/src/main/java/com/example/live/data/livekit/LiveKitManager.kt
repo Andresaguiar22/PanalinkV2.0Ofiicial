@@ -24,9 +24,11 @@ class LiveKitManager(private val context: Context) {
     // quedaba colgado para siempre cuando el WebSocket no responde.
     private val CONNECT_TIMEOUT_MS = 10_000L
     private val TRACK_TIMEOUT_MS = 10_000L
+    private val CAMERA_WATCH_TIMEOUT_MS = 15_000L
 
     private var room: Room? = null
     private var eventsJob: Job? = null
+    private var cameraWatchJob: Job? = null
 
     private val _connectionState = MutableStateFlow<LiveConnectionState>(LiveConnectionState.Disconnected)
     val connectionState: StateFlow<LiveConnectionState> = _connectionState.asStateFlow()
@@ -79,46 +81,99 @@ class LiveKitManager(private val context: Context) {
             // sin publicar en algunos dispositivos → "se queda cargando".
             withContext(Dispatchers.Main) {
                 Log.d(TAG, "Enabling local camera and microphone for broadcast")
-                currentRoom.localParticipant.setCameraEnabled(true)
-                currentRoom.localParticipant.setMicrophoneEnabled(true)
+                try {
+                    currentRoom.localParticipant.setCameraEnabled(true)
+                    currentRoom.localParticipant.setMicrophoneEnabled(true)
+                } catch (e: Exception) {
+                    // Suele ser la cámara todavía retenida por CameraX (pantalla de
+                    // configuración). Un reintento corto da margen a que el proveedor
+                    // termine de soltarla en equipos lentos.
+                    Log.e(TAG, "Fallo al activar cámara/mic; reintento tras 500 ms", e)
+                    delay(500)
+                    currentRoom.localParticipant.setCameraEnabled(true)
+                    currentRoom.localParticipant.setMicrophoneEnabled(true)
+                }
             }
 
             // initPendingRenderer tras la conexión: el SurfaceViewRenderer puede
             // haber sido creado por la UI antes de conectar (room todavía null).
             initPendingRenderer()
 
-            // setCameraEnabled() publishes asynchronously; wait for the actual track.
-            // NO es fatal si el track no llega a tiempo: la sala ya quedó conectada
-            // y el gestor de eventos de LiveKit publicará el track cuando esté listo.
-            var localTrack: VideoTrack? = null
-            try {
-                withTimeout(TRACK_TIMEOUT_MS) {
-                    repeat(Int.MAX_VALUE) {
-                        val publication = currentRoom.localParticipant.getTrackPublication(Track.Source.CAMERA)
-                        val t = publication?.track as? VideoTrack
-                        if (t != null) {
-                            localTrack = t
-                            return@repeat
-                        }
-                        delay(50)
-                    }
-                }
-            } catch (e: Exception) {
-                Log.w(TAG, "Track local no llegó en ${TRACK_TIMEOUT_MS}ms; el preview se activará cuando LiveKit lo publique", e)
-            }
-            val publishedTrack = localTrack
-            if (publishedTrack != null) {
+            // setCameraEnabled() publica de forma asincrona: hay que esperar a que exista
+            // la publicacion local de camara y engancharla EN CUANTO aparece.
+            //
+            // OJO con el bug que habia aqui: era un
+            //     repeat(Int.MAX_VALUE) { ...; return@repeat; ... }
+            // y `return@repeat` NO rompe el bucle (solo sale de esa iteracion). El bucle
+            // seguia hasta agotar el withTimeout de 10 s, y el track solo se publicaba
+            // DESPUES de ese bloque: el preview se quedaba NEGRO 10 segundos aunque la
+            // camara ya estuviera publicando. Con `while` + `return` el preview aparece
+            // en cuanto la publicacion existe (tipicamente <300 ms).
+            val published = awaitCameraTrack(currentRoom)
+            if (published != null) {
                 // Posible race: el SurfaceViewRenderer de la UI pudo crearse DESPUÉS
                 // del connect() (el initPendingRenderer() previo no lo vio todavía).
                 initPendingRenderer()
-                _localVideoTrack.value = publishedTrack
+                _localVideoTrack.value = published
                 _connectionState.value = LiveConnectionState.Connected
-                Log.i(TAG, "Local camera track ready: ${publishedTrack.sid}")
+                Log.i(TAG, "Local camera track ready: ${published.sid}")
+            } else {
+                // No aparecio en la ventana sincrona: seguimos vigilando en segundo plano
+                // en vez de dejar el preview negro y en silencio.
+                Log.w(TAG, "Publicacion de camara ausente tras ${TRACK_TIMEOUT_MS}ms; paso a vigilancia en segundo plano")
+                watchForCameraTrack(currentRoom)
             }
         } catch (e: Exception) {
             Log.e(TAG, "Error starting broadcast", e)
             _localVideoTrack.value = null
             _connectionState.value = LiveConnectionState.Error(e.message ?: "Error al iniciar transmisión")
+        }
+    }
+
+    /**
+     * Espera a que exista la publicacion local de camara, con corte por tiempo.
+     * Devuelve el track en cuanto la publicacion aparece (no espera al limite).
+     */
+    private suspend fun awaitCameraTrack(currentRoom: Room): VideoTrack? {
+        val deadline = System.currentTimeMillis() + TRACK_TIMEOUT_MS
+        while (System.currentTimeMillis() < deadline) {
+            val track = currentRoom.localParticipant
+                .getTrackPublication(Track.Source.CAMERA)
+                ?.track as? VideoTrack
+            if (track != null) return track
+            delay(50)
+        }
+        return null
+    }
+
+    /**
+     * Ultimo recurso cuando la publicacion de camara no aparecio en la ventana sincrona:
+     * la sigue buscando unos segundos mas. Sin esto, un arranque lento (o una publicacion
+     * que llega tarde) dejaba el preview NEGRO para siempre y sin ningun aviso, porque el
+     * estado ya era Connected y el overlay de conexion no se mostraba.
+     */
+    private fun watchForCameraTrack(currentRoom: Room) {
+        cameraWatchJob?.cancel()
+        cameraWatchJob = scope.launch {
+            val deadline = System.currentTimeMillis() + CAMERA_WATCH_TIMEOUT_MS
+            while (isActive && System.currentTimeMillis() < deadline) {
+                // Si la sala cambio (reconexion, salida), este vigilante ya no aplica.
+                if (room !== currentRoom) return@launch
+                val track = currentRoom.localParticipant
+                    .getTrackPublication(Track.Source.CAMERA)
+                    ?.track as? VideoTrack
+                if (track != null) {
+                    initPendingRenderer()
+                    _localVideoTrack.value = track
+                    Log.i(TAG, "Local camera track detectado por el vigilante: ${track.sid}")
+                    return@launch
+                }
+                delay(200)
+            }
+            Log.e(TAG, "La camara no publico ningun track en ${CAMERA_WATCH_TIMEOUT_MS}ms")
+            _connectionState.value = LiveConnectionState.Error(
+                "La cámara no pudo iniciarse. Cierra las apps que la estén usando e inténtalo de nuevo."
+            )
         }
     }
 
@@ -210,6 +265,8 @@ class LiveKitManager(private val context: Context) {
         try {
             eventsJob?.cancel()
             eventsJob = null
+            cameraWatchJob?.cancel()
+            cameraWatchJob = null
             val currentRoom = room
             room = null
             if (currentRoom != null) {
@@ -236,6 +293,8 @@ class LiveKitManager(private val context: Context) {
         try {
             eventsJob?.cancel()
             eventsJob = null
+            cameraWatchJob?.cancel()
+            cameraWatchJob = null
             val currentRoom = room
             room = null
             scope.launch {

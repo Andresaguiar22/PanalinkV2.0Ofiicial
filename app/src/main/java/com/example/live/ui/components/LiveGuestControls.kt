@@ -1,20 +1,21 @@
 package com.example.live.ui.components
 
+import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
+import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.material3.AlertDialog
-import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
-import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.OutlinedButton
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
@@ -28,6 +29,8 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import com.example.live.ui.LiveHudFill
+import com.example.live.ui.LiveNeon
 import com.example.live.domain.model.GuestStatus
 import com.example.live.domain.model.LiveGuest
 
@@ -42,16 +45,21 @@ fun LiveGuestControls(
     var inviteUserId by remember { mutableStateOf("") }
 
     Box(modifier = modifier) {
-        Button(
+        OutlinedButton(
             onClick = { showDialog = true },
-            colors = ButtonDefaults.buttonColors(containerColor = Color(0xFF00A884)),
-            shape = MaterialTheme.shapes.medium
+            shape = CircleShape,
+            border = BorderStroke(1.5.dp, LiveNeon),
+            colors = ButtonDefaults.outlinedButtonColors(
+                containerColor = LiveHudFill,
+                contentColor = Color.White,
+            ),
+            contentPadding = PaddingValues(horizontal = 22.dp, vertical = 9.dp),
         ) {
             Text(
                 "Invitar Co-Host",
                 color = Color.White,
                 fontWeight = FontWeight.Bold,
-                fontSize =  14.sp
+                fontSize = 14.sp
             )
         }
 
