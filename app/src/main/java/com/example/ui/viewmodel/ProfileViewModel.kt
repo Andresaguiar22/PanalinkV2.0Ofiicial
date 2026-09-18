@@ -44,8 +44,6 @@ class ProfileViewModel(
     private val _privacySettings = MutableStateFlow<List<com.example.data.model.UserPrivacySettingDto>>(emptyList())
     val privacySettings: StateFlow<List<com.example.data.model.UserPrivacySettingDto>> = _privacySettings
     
-    private val _presenceSessions = MutableStateFlow<List<com.example.data.model.PresenceSession>>(emptyList())
-    val presenceSessions: StateFlow<List<com.example.data.model.PresenceSession>> = _presenceSessions
 
     val currentUserId: String
         get() = com.example.data.supabase.SupabaseClient.currentUser?.id ?: "me_demo_id"
@@ -55,33 +53,8 @@ class ProfileViewModel(
     
     init {
         loadPrivacyData()
-        loadPresenceSessions()
     }
     
-    fun loadPresenceSessions() {
-        viewModelScope.launch {
-            val userId = com.example.data.supabase.SupabaseClient.currentUser?.id
-            if (userId != null) {
-                try {
-                    val api = com.example.data.supabase.SupabaseClient.apiService
-                    val token = com.example.data.supabase.SupabaseClient.currentToken
-                    if (api != null && token != null) {
-                        val response = api.getPresenceSessions(
-                            apiKey = com.example.data.supabase.SupabaseClient.supabaseAnonKey,
-                            authorization = "Bearer $token",
-                            userIdFilter = "eq.$userId"
-                        )
-                        if (response.isSuccessful) {
-                            _presenceSessions.value = response.body() ?: emptyList()
-                        }
-                    }
-                } catch (e: Exception) {
-                    e.printStackTrace()
-                }
-            }
-        }
-    }
-
     fun loadPrivacyData() {
         viewModelScope.launch {
             val ents = privacyRepository.getEntitlements()
