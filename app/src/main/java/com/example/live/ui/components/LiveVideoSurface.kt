@@ -19,12 +19,13 @@ private const val TAG = "LiveVideoSurface"
 fun LiveVideoSurface(
     videoTrack: VideoTrack?,
     initRenderer: ((SurfaceViewRenderer) -> Unit)? = null,
-    modifier: Modifier = Modifier
+    modifier: Modifier = Modifier,
+    backgroundColor: Color = Color.Black
 ) {
     Box(
         modifier = modifier
             .fillMaxSize()
-            .background(Color.Black),
+            .background(backgroundColor),
         contentAlignment = Alignment.Center
     ) {
         var rendererRef by remember { mutableStateOf<SurfaceViewRenderer?>(null) }

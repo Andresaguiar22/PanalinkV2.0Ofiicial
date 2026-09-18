@@ -20,11 +20,10 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
-import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.shape.CircleShape
+import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.rounded.LiveTv
-import androidx.compose.material.icons.rounded.Visibility
+import androidx.compose.material.icons.filled.Person
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.Icon
@@ -35,7 +34,7 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.blur
 import androidx.compose.ui.draw.clip
-import androidx.compose.ui.draw.scale
+import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.layout.ContentScale
@@ -45,24 +44,16 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import coil.compose.AsyncImage
 import com.example.live.domain.model.LiveStream
-import com.example.live.ui.LiveBadgeFill
-import com.example.live.ui.LiveCardShape
-import com.example.live.ui.LiveGlassBorder
-import com.example.live.ui.LiveLiveGlow
-import com.example.live.ui.LiveLiveRed
-import com.example.live.ui.LiveNeon
-import com.example.live.ui.formatLiveCount
 import com.example.ui.components.PanaAvatar
 import com.example.ui.components.rememberAsyncMediaUrl
 
-private val CardHeight = 178.dp
-private val CardPadding = 14.dp
+private val LiveCardShape = RoundedCornerShape(20.dp)
+private val LiveRed = Color(0xFFFF3B30)
 
 /**
- * Tarjeta de una transmisión en vivo dentro del listado.
- *
- * Sin bloque de color: la miniatura del video llena la tarjeta (desenfocada + oscurecida)
- * y los datos flotan encima, sobre un borde fino translúcido y esquinas muy redondeadas.
+ * Tarjeta de transmisión con estética glassmorphism: sin bloque de color, borde
+ * ultra fino y el thumbnail real (con fallback difuminado) bajo una capa negra
+ * translúcida.
  */
 @Composable
 fun LiveCard(
@@ -71,74 +62,104 @@ fun LiveCard(
     modifier: Modifier = Modifier
 ) {
     val resolvedThumbnailUrl = rememberAsyncMediaUrl(live.thumbnailUrl)
-    val hostIdentity = rememberLiveIdentity(live.hostId)
-    val hostName = "@" + hostIdentity.displayNameOr(live.hostId)
+    val hostName = rememberLiveIdentity(live.hostId).displayNameOr(live.hostId)
 
     Card(
         modifier = modifier
             .fillMaxWidth()
-            .height(CardHeight)
+            .height(220.dp)
             .clickable(onClick = onClick),
         shape = LiveCardShape,
         colors = CardDefaults.cardColors(containerColor = Color.Transparent),
         elevation = CardDefaults.cardElevation(defaultElevation = 0.dp),
-        border = BorderStroke(1.dp, LiveGlassBorder),
+        border = BorderStroke(1.dp, Color.White.copy(alpha = 0.1f))
     ) {
         Box(modifier = Modifier.fillMaxSize()) {
-            LiveCardBackdrop(resolvedThumbnailUrl, live.title)
+            if (resolvedThumbnailUrl.isNotBlank()) {
+                AsyncImage(
+                    model = resolvedThumbnailUrl,
+                    contentDescription = "Miniatura de ${live.title}",
+                    modifier = Modifier.fillMaxSize(),
+                    contentScale = ContentScale.Crop
+                )
+            } else {
+                // Sin thumbnail real: gradiente de marca difuminado para insinuar
+                // el video sin inventar una imagen.
+                Box(
+                    modifier = Modifier
+                        .fillMaxSize()
+                        .background(
+                            Brush.linearGradient(
+                                colors = listOf(Color(0xFF1E3A3A), Color(0xFF12262E))
+                            )
+                        )
+                        .blur(28.dp)
+                )
+            }
+
+            // Capa negra translucida sobre el thumbnail: contraste del texto.
+            Box(
+                modifier = Modifier
+                    .fillMaxSize()
+                    .background(Color.Black.copy(alpha = 0.35f))
+            )
+            Box(
+                modifier = Modifier
+                    .fillMaxSize()
+                    .background(
+                        Brush.verticalGradient(
+                            colors = listOf(
+                                Color.Transparent,
+                                Color.Transparent,
+                                Color.Black.copy(alpha = 0.55f),
+                                Color.Black.copy(alpha = 0.85f)
+                            )
+                        )
+                    )
+            )
+
+            Row(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(12.dp),
+                horizontalArrangement = Arrangement.SpaceBetween,
+                verticalAlignment = Alignment.CenterVertically
+            ) {
+                LiveBadge()
+                ViewerCountBadge(viewerCount = live.viewerCount)
+            }
 
             Column(
                 modifier = Modifier
-                    .fillMaxSize()
-                    .padding(CardPadding)
+                    .align(Alignment.BottomStart)
+                    .fillMaxWidth()
+                    .padding(14.dp)
             ) {
-                Row(
-                    modifier = Modifier.fillMaxWidth(),
-                    horizontalArrangement = Arrangement.SpaceBetween,
-                    verticalAlignment = Alignment.CenterVertically
-                ) {
-                    LiveNowBadge()
-                    LiveViewerBadge(viewerCount = live.viewerCount)
-                }
-
-                Spacer(modifier = Modifier.weight(1f))
-
                 Text(
                     text = live.title,
                     color = Color.White,
                     fontWeight = FontWeight.Bold,
-                    fontSize = 21.sp,
+                    fontSize = 16.sp,
                     maxLines = 1,
                     overflow = TextOverflow.Ellipsis
                 )
-
-                live.description?.takeIf { it.isNotBlank() }?.let { description ->
-                    Spacer(modifier = Modifier.height(3.dp))
-                    Text(
-                        text = description,
-                        color = Color.White.copy(alpha = 0.72f),
-                        fontSize = 13.sp,
-                        maxLines = 1,
-                        overflow = TextOverflow.Ellipsis
-                    )
-                }
-
-                Spacer(modifier = Modifier.height(10.dp))
-
-                Row(verticalAlignment = Alignment.CenterVertically) {
+                Spacer(modifier = Modifier.height(8.dp))
+                Row(
+                    verticalAlignment = Alignment.CenterVertically,
+                    horizontalArrangement = Arrangement.spacedBy(8.dp)
+                ) {
                     PanaAvatar(
                         userId = live.hostId,
-                        size = 34.dp,
-                        borderWidth = 2.dp,
-                        borderColor = LiveNeon,
-                        contentDescription = "Avatar de $hostName",
-                        placeholderName = hostIdentity?.displayName,
+                        size = 26.dp,
+                        borderWidth = 1.dp,
+                        borderColor = Color.White.copy(alpha = 0.35f),
+                        contentDescription = "Avatar de $hostName"
                     )
-                    Spacer(modifier = Modifier.width(9.dp))
                     Text(
                         text = hostName,
-                        color = Color.White.copy(alpha = 0.92f),
-                        fontSize = 15.sp,
+                        color = Color.White.copy(alpha = 0.85f),
+                        fontSize = 13.sp,
+                        fontWeight = FontWeight.Medium,
                         maxLines = 1,
                         overflow = TextOverflow.Ellipsis
                     )
@@ -148,125 +169,83 @@ fun LiveCard(
     }
 }
 
-/** Miniatura real del directo (o un degradado si aún no hay) + capa oscura encima. */
+/**
+ * Badge "EN VIVO" glassmorphism: píldora de gris oscuro translúcido con borde
+ * sutil, punto rojo dibujado con [Canvas] (halo/glow pulsante) y texto pequeño.
+ */
 @Composable
-private fun LiveCardBackdrop(thumbnailUrl: String, title: String) {
-    if (thumbnailUrl.isNotBlank()) {
-        AsyncImage(
-            model = thumbnailUrl,
-            contentDescription = "Miniatura de $title",
-            contentScale = ContentScale.Crop,
-            modifier = Modifier
-                .fillMaxSize()
-                .blur(16.dp)
-                // El blur deja los bordes suaves: el scale los saca del recorte.
-                .scale(1.12f)
-        )
-    } else {
-        Box(
-            modifier = Modifier
-                .fillMaxSize()
-                .background(
-                    Brush.verticalGradient(
-                        colors = listOf(Color(0xFF16232A), Color(0xFF0C1117))
-                    )
-                ),
-            contentAlignment = Alignment.Center
-        ) {
-            Icon(
-                imageVector = Icons.Rounded.LiveTv,
-                contentDescription = null,
-                tint = Color.White.copy(alpha = 0.18f),
-                modifier = Modifier.size(56.dp)
-            )
-        }
-    }
-
-    // Capa negra translúcida: simula el video atenuado y garantiza contraste del texto.
-    Box(
-        modifier = Modifier
-            .fillMaxSize()
-            .background(
-                Brush.verticalGradient(
-                    colors = listOf(
-                        Color.Black.copy(alpha = 0.30f),
-                        Color.Black.copy(alpha = 0.18f),
-                        Color.Black.copy(alpha = 0.72f),
-                    )
-                )
-            )
-    )
-}
-
-/** Badge "EN VIVO": píldora oscura translúcida, borde rojo y punto con halo dibujado a mano. */
-@Composable
-private fun LiveNowBadge() {
-    val transition = rememberInfiniteTransition(label = "live-pulse")
-    val glowAlpha by transition.animateFloat(
-        initialValue = 0.35f,
-        targetValue = 1f,
-        animationSpec = infiniteRepeatable(tween(1200), RepeatMode.Reverse),
-        label = "live-pulse-alpha"
-    )
-
+private fun LiveBadge() {
     Row(
         modifier = Modifier
             .clip(CircleShape)
-            .background(LiveBadgeFill)
-            .border(1.dp, LiveLiveRed.copy(alpha = 0.55f), CircleShape)
-            .padding(start = 8.dp, end = 12.dp, top = 5.dp, bottom = 5.dp),
-        verticalAlignment = Alignment.CenterVertically
+            .background(Color(0xFF111113).copy(alpha = 0.55f))
+            .border(1.dp, Color.White.copy(alpha = 0.15f), CircleShape)
+            .padding(horizontal = 10.dp, vertical = 5.dp),
+        verticalAlignment = Alignment.CenterVertically,
+        horizontalArrangement = Arrangement.spacedBy(6.dp)
     ) {
-        Canvas(modifier = Modifier.size(16.dp)) {
-            val radius = size.minDimension / 2f
-            drawCircle(
-                brush = Brush.radialGradient(
-                    colors = listOf(LiveLiveGlow.copy(alpha = glowAlpha), Color.Transparent),
-                    center = center,
-                    radius = radius,
-                ),
-                radius = radius,
-                center = center,
-            )
-            drawCircle(
-                color = LiveLiveRed,
-                radius = radius * 0.42f,
-                center = center,
-            )
-        }
-        Spacer(modifier = Modifier.width(6.dp))
+        LiveGlowDot()
         Text(
             text = "EN VIVO",
             color = Color.White,
             fontSize = 11.sp,
             fontWeight = FontWeight.Bold,
+            letterSpacing = 0.6.sp
         )
     }
 }
 
-/** Badge de espectadores: misma píldora translúcida con ojo + contador compacto. */
 @Composable
-private fun LiveViewerBadge(viewerCount: Int) {
+private fun LiveGlowDot() {
+    val transition = rememberInfiniteTransition(label = "liveGlow")
+    val glowAlpha by transition.animateFloat(
+        initialValue = 1f,
+        targetValue = 0.2f,
+        animationSpec = infiniteRepeatable(tween(1400), RepeatMode.Reverse),
+        label = "liveGlowAlpha"
+    )
+
+    Canvas(modifier = Modifier.size(14.dp)) {
+        val radius = size.minDimension / 2f
+        val center = Offset(size.width / 2f, size.height / 2f)
+        drawCircle(
+            brush = Brush.radialGradient(
+                colors = listOf(
+                    LiveRed.copy(alpha = 0.9f * glowAlpha),
+                    LiveRed.copy(alpha = 0f)
+                ),
+                center = center,
+                radius = radius
+            ),
+            radius = radius,
+            center = center
+        )
+        drawCircle(color = LiveRed, radius = radius * 0.40f, center = center)
+    }
+}
+
+@Composable
+private fun ViewerCountBadge(viewerCount: Int) {
     Row(
         modifier = Modifier
             .clip(CircleShape)
-            .background(LiveBadgeFill)
-            .border(1.dp, Color.White.copy(alpha = 0.14f), CircleShape)
-            .padding(horizontal = 12.dp, vertical = 5.dp),
-        verticalAlignment = Alignment.CenterVertically
+            .background(Color(0xFF111113).copy(alpha = 0.55f))
+            .border(1.dp, Color.White.copy(alpha = 0.12f), CircleShape)
+            .padding(horizontal = 9.dp, vertical = 5.dp),
+        verticalAlignment = Alignment.CenterVertically,
+        horizontalArrangement = Arrangement.spacedBy(4.dp)
     ) {
         Icon(
-            imageVector = Icons.Rounded.Visibility,
-            contentDescription = "Espectadores",
-            tint = Color.White,
-            modifier = Modifier.size(16.dp)
+            imageVector = Icons.Default.Person,
+            contentDescription = null,
+            tint = Color.White.copy(alpha = 0.9f),
+            modifier = Modifier.size(12.dp)
         )
-        Spacer(modifier = Modifier.width(6.dp))
         Text(
-            text = formatLiveCount(viewerCount),
+            text = "$viewerCount",
             color = Color.White,
-            fontSize = 13.sp,
-            fontWeight = FontWeight.SemiBold,
+            fontSize = 11.sp,
+            fontWeight = FontWeight.Medium
         )
     }
 }
