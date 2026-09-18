@@ -111,6 +111,21 @@ fun UserProfileScreen(
 
     LaunchedEffect(userId) {
         loadUserProfileData()
+        com.example.data.repository.PresenceRepository.refreshPresenceForUser(userId)
+    }
+
+    // Real-time presence: the green dot only exists when the other user is online NOW.
+    val presenceMap by com.example.data.repository.PresenceRepository.presenceMap.collectAsState()
+    val presenceInfo = remember(userId, presenceMap) {
+        com.example.data.repository.PresenceRepository.getPresenceForUser(userId)
+    }
+    val isUserOnline = presenceInfo.status == com.example.data.repository.UserPresenceStatus.ONLINE
+    val onlineStatusColor = if (isUserOnline) Color(0xFF25D366) else Color(0xFF2A3A44)
+    val presenceStatusLabel = when (presenceInfo.status) {
+        com.example.data.repository.UserPresenceStatus.ONLINE -> "Estado: En línea 🟢"
+        com.example.data.repository.UserPresenceStatus.AWAY -> "Estado: Ausente 🟡"
+        com.example.data.repository.UserPresenceStatus.BUSY -> "Estado: En llamada 🔵"
+        com.example.data.repository.UserPresenceStatus.OFFLINE -> "Estado: Desconectado ⚫"
     }
 
     // Filter User Reels / States
@@ -272,7 +287,7 @@ fun UserProfileScreen(
                                             .size(20.dp)
                                             .align(Alignment.BottomEnd)
                                             .clip(CircleShape)
-                                            .background(Color(0xFF25D366))
+                                            .background(onlineStatusColor)
                                             .border(2.dp, Color(0xFF101D24), CircleShape)
                                     )
                                 }
@@ -300,7 +315,7 @@ fun UserProfileScreen(
                                     }
                                     
                                     Text(
-                                        text = "Estado: En línea 🟢",
+                                        text = presenceStatusLabel,
                                         color = Color.White.copy(alpha = 0.7f),
                                         fontSize = 12.sp,
                                         modifier = Modifier.padding(vertical = 2.dp)

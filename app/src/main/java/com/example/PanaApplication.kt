@@ -316,7 +316,12 @@ class PanaApplication : Application(), ImageLoaderFactory, DefaultLifecycleObser
         android.util.Log.d("PanaApplication", "App in foreground: connecting realtime")
         try {
             if (SupabaseClient.currentUser != null) {
+                com.example.data.repository.PresenceRepository.updateMyStatus(
+                    com.example.data.repository.UserPresenceStatus.ONLINE,
+                    isManualOrLifecycle = true
+                )
                 SupabaseClient.connectRealtime()
+                com.example.data.repository.PresenceRepository.startHeartbeat(SupabaseClient.currentUser!!.id)
             }
         } catch (e: Throwable) {
             android.util.Log.e("PanaApplication", "Error connecting realtime onStart", e)
@@ -326,6 +331,14 @@ class PanaApplication : Application(), ImageLoaderFactory, DefaultLifecycleObser
     override fun onStop(owner: LifecycleOwner) {
         isAppInForeground = false
         android.util.Log.d("PanaApplication", "App in background: disconnecting realtime")
+        com.example.data.repository.PresenceRepository.stopHeartbeat()
+        // Reflect leaving the foreground in the DB (AWAY:, so others don't see us
+        // instantly grayed-out the moment we press Home). The server keeps the row
+        // with a fresh last_seen until the socket drops; TTL decay covers the rest..
+        com.example.data.repository.PresenceRepository.updateMyStatus(
+            com.example.data.repository.UserPresenceStatus.AWAY,
+            isManualOrLifecycle = true
+        )
         try {
             SupabaseClient.disconnectRealtime(resetAttempts = true)
         } catch (e: Throwable) {

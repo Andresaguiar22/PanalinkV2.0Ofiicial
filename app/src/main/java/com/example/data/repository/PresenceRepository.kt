@@ -8,6 +8,7 @@ import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.isActive
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.launch
@@ -67,6 +68,44 @@ object PresenceRepository {
 
     private val gracePeriodJobs = ConcurrentHashMap<String, Job>()
     var gracePeriodDurationMs: Long = 12_000L
+
+    // Online entries older than this are decayed to OFFLINE. Heartbeats every
+    // 25s keep lastSeen fresh; 3 missed heartbeats (~75s) => not online anymore.
+    private val ONLINE_STALE_TTL_MS = 75_000L
+
+    init {
+        // Periodically decay stale ONLINE/AWAY rows so the green dot disappears
+        // on its own when the remote user stops heartbeating (left, killed app,
+        // lost network) without waiting for a server event.
+        scope.launch {
+            while (isActive) {
+                delay(15_000L)
+                decayStalePresence()
+            }
+        }
+    }
+
+    private fun decayStalePresence() {
+        try {
+            val now = System.currentTimeMillis()
+            val stale = _presenceMap.value.filterValues { info ->
+                (info.status == UserPresenceStatus.ONLINE || info.status == UserPresenceStatus.AWAY) &&
+                    (now - info.lastSeen) > ONLINE_STALE_TTL_MS
+            }
+            if (stale.isEmpty()) return
+            val updated = _presenceMap.value.toMutableMap()
+            stale.forEach { (userId, info) ->
+                updated[userId] = info.copy(
+                    status = UserPresenceStatus.OFFLINE,
+                    lastSeen = info.lastSeen
+                )
+                PresenceHistoryTracker.recordEvent(userId, UserPresenceStatus.OFFLINE, info.lastSeen)
+            }
+            _presenceMap.value = updated
+        } catch (e: Exception) {
+            Log.w(TAG, "decayStalePresence failed: ${e.localizedMessage}")
+        }
+    }
 
     init {
         // Escuchar el flujo global de Realtime Presence de SupabaseClient
@@ -201,15 +240,34 @@ object PresenceRepository {
     }
 
     /**
-     * Kept as a lifecycle-compatible no-op: Realtime's native Phoenix heartbeat
-     * maintains the socket and Presence membership.
+     * Application-level presence keepalive. Writes this user's row in
+     * public.user_presence every [PRESENCE_HEARTBEAT_MS] while the device is in
+     * the foreground with Realtime connected, so other clients see a fresh
+     * last_seen_at/online via postgres_changes (the DB is now the real source of
+     * truth for online status on this backend).
      */
+    private var keepaliveJob: Job? = null
+    private val PRESENCE_HEARTBEAT_MS = 25_000L
+
+    /** @return true when the app is in the foreground (Realtime is connected). */
+    private fun presenceKeepaliveActive(): Boolean =
+        com.example.PanaApplication.instance.isAppInForeground && SupabaseClient.isConnected
+
     fun startHeartbeat(currentUserId: String) {
         stopHeartbeat()
+        keepaliveJob = scope.launch {
+            while (isActive) {
+                // Immediately refresh when we just transitioned to foreground/connected.
+                persistPresenceToDatabase(currentUserStatus.value)
+                delay(PRESENCE_HEARTBEAT_MS)
+                if (!presenceKeepaliveActive()) break
+            }
+        }
     }
 
     fun stopHeartbeat() {
-        // Native Presence has no application-level heartbeat job to cancel.
+        keepaliveJob?.cancel()
+        keepaliveJob = null
     }
 
     /**
@@ -231,6 +289,15 @@ object PresenceRepository {
         if (isManualOrLifecycle) {
             persistPresenceToDatabase(status)
         }
+    }
+
+    /** Maps a local status to the DB enum presence_status_type. null = skip write. */
+    private fun dbStatusFor(status: UserPresenceStatus): String? = when (status) {
+        UserPresenceStatus.ONLINE -> "online"
+        UserPresenceStatus.AWAY -> "away"
+        UserPresenceStatus.OFFLINE -> "offline"
+        // En la BD no existe valor "busy": los contactos lo muestran como offline.
+        UserPresenceStatus.BUSY -> null
     }
 
     fun setSecondaryStatus(secondaryStatus: SecondaryPresenceStatus) {
@@ -262,13 +329,14 @@ object PresenceRepository {
                 }
                 val currentUid = SupabaseClient.currentUser?.id ?: return@launch
                 val service = SupabaseClient.apiService ?: return@launch
+                val dbStatus = dbStatusFor(status) ?: return@launch
                 val nowIso = java.text.SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss.SSS'Z'", java.util.Locale.US).apply {
                     timeZone = java.util.TimeZone.getTimeZone("UTC")
                 }.format(java.util.Date())
 
                 val body = mapOf(
                     "user_id" to currentUid,
-                    "status" to status.rawValue,
+                    "status" to dbStatus,
                     "last_seen_at" to nowIso,
                     "updated_at" to nowIso
                 )
@@ -290,6 +358,53 @@ object PresenceRepository {
 
     fun getPresenceForUser(userId: String): UserPresenceInfo {
         return _presenceMap.value[userId] ?: UserPresenceInfo(userId, UserPresenceStatus.OFFLINE)
+    }
+
+    /**
+     * One-shot fetch of a user's persisted presence row, so a freshly opened
+     * profile shows the real last_seen/status immediately instead of waiting up to
+     * the next 25s heartbeat.
+ */
+    fun refreshPresenceForUser(userId: String) {
+        scope.launch {
+            try {
+                val service = SupabaseClient.apiService ?: return@launch
+                val resp = service.getUserPresence(
+                    apiKey = SupabaseClient.supabaseAnonKey,
+                    authorization = "Bearer ${SupabaseClient.currentToken ?: SupabaseClient.supabaseAnonKey}",
+                    userIdFilter = userId
+                )
+                if (resp.isSuccessful) {
+                    val row = resp.body()?.firstOrNull() ?: return@launch
+                    val rawStatus = row["status"]?.toString() ?: "offline"
+                    val statusEnum = if (rawStatus == "away") UserPresenceStatus.AWAY else mapRealtimeStatus(rawStatus)
+
+                    val lastSeen = (try {
+                        row["last_seen_at"]?.toString()?.let { java.time.Instant.parse(it).toEpochMilli() }
+                    } catch (e: Exception) { null })?: System.currentTimeMillis()
+                    // A row left "online" by a device that died>75s ago is stale -> offline..
+
+                    val effectiveStatus = if (
+                        (statusEnum == UserPresenceStatus.ONLINE || statusEnum == UserPresenceStatus.AWAY) &&
+                        System.currentTimeMillis() - lastSeen > ONLINE_STALE_TTL_MS
+                    ) UserPresenceStatus.OFFLINE else statusEnum
+                    val info = UserPresenceInfo(
+                        userId = userId,
+                        status = effectiveStatus,
+                        lastSeen = lastSeen
+                    )
+                    // Don't overwrite a fresher realtime event with an older DB snapshot.
+                    val existing = _presenceMap.value[userId]
+                    if (existing == null || existing.lastSeen <= info.lastSeen) {
+                        val updated = _presenceMap.value.toMutableMap()
+                        updated[userId] = info
+                        _presenceMap.value = updated
+                    }
+                }
+            } catch (e: Exception) {
+                Log.d(TAG, "refreshPresenceForUser failed: ${e.localizedMessage}")
+            }
+        }
     }
 
     fun isUserAvailableForCall(userId: String): Pair<Boolean, String> {

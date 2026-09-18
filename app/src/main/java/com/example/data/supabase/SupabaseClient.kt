@@ -413,6 +413,30 @@ object SupabaseClient {
                 }
                 webSocket.send(joinPresence.toString())
                 
+                // Join user_presence channel (real-time online status propagation)
+                val joinUserPresence = JSONObject().apply {
+                    put("topic", "realtime:public:user_presence")
+                    put("event", "phx_join")
+                    put("payload", JSONObject().apply {
+                        put("config", JSONObject().apply {
+                            val pgChanges = org.json.JSONArray().apply {
+                                put(JSONObject().apply {
+                                    put("event", "*")
+                                    put("schema", "public")
+                                    put("table", "user_presence")
+                                })
+                            }
+                            put("postgres_changes", pgChanges)
+                        })
+                        if (!currentTokenLocal.isNullOrEmpty()) {
+                            put("user_token", currentTokenLocal)
+                            put("access_token", currentTokenLocal)
+                        }
+                    })
+                    put("ref", "presence_pg_1")
+                }
+                webSocket.send(joinUserPresence.toString())
+
                 // Track our presence
                 trackPresence()
                 
@@ -681,6 +705,17 @@ object SupabaseClient {
                                         globalServerConfigUpdates.emit(cdnUrl)
                                     }
                                 }
+                            } else if (table == "user_presence" || topic.contains("user_presence")) {
+                                val presenceUserId = record.optString("user_id", "")
+                                if (presenceUserId.isNotEmpty() && eventType != "DELETE") {
+                                    val rawStatus = record.optString("status", "online")
+                                    val lastSeenIso = record.optString("last_seen_at", "")
+                                    val lastSeenMillis = parseRealtimeTimestamp(lastSeenIso)
+                                    val p = UserPresence(presenceUserId, rawStatus, lastSeenMillis)
+                                    clientScope.launch {
+                                        emitRealtimePresence(p)
+                                    }
+                                }
                             } else if (table == "user_reels" || table == "user_stories" || topic.contains("user_reels") || topic.contains("user_stories")) {
                                 val id = record.optString("id", UUID.randomUUID().toString())
                                 val userId = record.optString("author_id", record.optString("userId", ""))
@@ -945,6 +980,22 @@ object SupabaseClient {
         return SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss.SSS'Z'", Locale.US).apply {
             timeZone = TimeZone.getTimeZone("UTC")
         }.format(Date())
+    }
+
+    /** Parses a Supabase timestamptz (ISO-8601) into epoch millis, falling back to now(). */
+    private fun parseRealtimeTimestamp(iso: String): Long {
+        if (iso.isBlank()) return System.currentTimeMillis()
+        return try {
+            java.time.Instant.parse(iso).toEpochMilli()
+        } catch (e: Exception) {
+            try {
+                SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss.SSS'Z'", Locale.US).apply {
+                    timeZone = TimeZone.getTimeZone("UTC")
+                }.parse(iso)?.time ?: System.currentTimeMillis()
+            } catch (e2: Exception) {
+                System.currentTimeMillis()
+            }
+        }
     }
 
     private var demoTypingJob: Job? = null
