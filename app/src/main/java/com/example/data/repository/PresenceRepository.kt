@@ -372,7 +372,7 @@ object PresenceRepository {
                 val resp = service.getUserPresence(
                     apiKey = SupabaseClient.supabaseAnonKey,
                     authorization = "Bearer ${SupabaseClient.currentToken ?: SupabaseClient.supabaseAnonKey}",
-                    userIdFilter = userId
+                    userIdFilter = "eq.$userId"
                 )
                 if (resp.isSuccessful) {
                     val row = resp.body()?.firstOrNull() ?: return@launch
