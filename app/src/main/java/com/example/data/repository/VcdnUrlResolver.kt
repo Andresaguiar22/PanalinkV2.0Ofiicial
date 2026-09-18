@@ -30,8 +30,16 @@ object VcdnUrlResolver {
     private const val BFF_BASE = "https://embed.vcdn.me"
     private const val SCHEME = "vcdn"
 
-    // Refresh 1h before the BFF expires the token, so the player never sees a stale URL mid-playback.
-    private const val EXPIRY_SAFETY_MS = 1L * 60L * 60L * 1000L
+    // Refresh 35s before the CDN token actually dies. The BFF `expires` is the
+    // epoch time (sec or ms) at which the SIGNED CDN token dies (the video server
+    // rejects the HLS manifest/segments with HTTP 401/403 after it). The previous
+    // 1h safety margin assumed the token lived much longer than it does, so a
+    // long video died ~60s in even though the resolver still considered its
+    // cached URL "fresh". 35s gives ExoPlayer time to ingest the new HLS
+    // manifest andbuffered segments without a visible stall, while never letting
+    // the player reach the dead-token window.
+
+    private const val EXPIRY_SAFETY_MS = 35L * 1000L
 
     // Negative cache: when the BFF proves the video no longer exists (not_found/
     // resource-gone), don't hammer it again on every recomposition for a short

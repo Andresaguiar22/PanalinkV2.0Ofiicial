@@ -57,6 +57,14 @@ class ReelPlayerPool(private val context: Context) {
         // Media3 error 2004 is also treated as expired-token and triggers refresh.
         private const val URL_TTL_MS = 45_000L
         private const val PLAYBACK_ERROR_HTTP_401 = 2004
+
+        // Proactive refresh scheduling: mint a new signed VCDN URL shortly
+        // before the current one actually dies (real expiry, not a fixed 45s),
+        // even while the video is actively playing — this stops long videos
+        // from stalling/freezing at ~60s when the token expires mid-playback.,
+
+        private const val REFRESH_AHEAD_MS = 25_000L
+        private const val REFRESH_COOLDOWN_MS = 50_000L
     }
 
     data class SlotPlayer(val slot: Int, val player: ExoPlayer)
@@ -82,6 +90,19 @@ class ReelPlayerPool(private val context: Context) {
         tickerJob = scope.launch {
             while (true) {
                 for ((reelId, player) in livePlayers) {
+                    val slot = ownerByReelId[reelId] ?: continue
+                    val now = System.currentTimeMillis()
+                    // Proactive VCDN token refresh: even WHILE playing, when a
+                    // signed URL is near its real expiry we mint a fresh URL
+                    // (position/playWhenReady preserved by refreshUrlAsync).
+
+                    if (refreshAtBySlot[slot] > 0L && now >= refreshAtBySlot[slot]) {
+
+
+                        refreshUrlAsync(slot)
+
+                        refreshAtBySlot[slot] = now + REFRESH_COOLDOWN_MS
+                    }
                     if (reelId == targetReelId) {
                         val dur = runCatching { player.duration }.getOrDefault(0L)
                         val pos = runCatching { player.currentPosition }.getOrDefault(0L).coerceAtLeast(0L)
@@ -102,6 +123,7 @@ class ReelPlayerPool(private val context: Context) {
     private val urlBySlot = arrayOfNulls<String>(POOL_SIZE)
     private val stableUrlBySlot = arrayOfNulls<String>(POOL_SIZE)
     private val acquiredAtBySlot = LongArray(POOL_SIZE)
+    private val refreshAtBySlot = LongArray(POOL_SIZE)
 
     /**
      * The reel the UI intends to be playing right now. Acquisition is async
@@ -248,6 +270,17 @@ class ReelPlayerPool(private val context: Context) {
         urlBySlot[slot] = url
         stableUrlBySlot[slot] = stableUrl
         acquiredAtBySlot[slot] = System.currentTimeMillis()
+        // Seed the proactive-refresh deadline from the real VCDN token expiry (the
+        // resolver applies a 35s safety margin; falls back to URL_TTL when unknown).
+
+        val bffExpiry = com.example.data.repository.VcdnUrlResolver.expiresAtMillisOf(url)
+        val ownExpiry = com.example.data.repository.VcdnSignatureUtils.expiresAtEpochMillisOf(url)
+
+        refreshAtBySlot[slot] = when {
+            ownExpiry >  0L -> ownExpiry - REFRESH_AHEAD_MS
+            bffExpiry >  0L -> bffExpiry
+            else -> System.currentTimeMillis() + URL_TTL_MS
+        }
         ownerByReelId[reelId] = slot
         livePlayers[reelId] = player
         setTarget(reelId)
@@ -356,6 +389,7 @@ class ReelPlayerPool(private val context: Context) {
             }
             if (fresh.isNullOrBlank() || fresh == urlBySlot[slot]) return@launch
             refreshUrl(reelId, fresh, positionMs)
+            refreshAtBySlot[slot] = System.currentTimeMillis() + REFRESH_COOLDOWN_MS
             // Update the stable-pointer timestamp so we do not re-refresh on every call.
             acquiredAtBySlot[slot] = System.currentTimeMillis()
             Log.d(TAG, "refreshed VCDN URL for $reelId (preventive)")
@@ -411,6 +445,7 @@ class ReelPlayerPool(private val context: Context) {
         urlBySlot.fill(null)
         stableUrlBySlot.fill(null)
         acquiredAtBySlot.fill(0L)
+        refreshAtBySlot.fill(0L)
     }
 
     // --- internal helpers ---
