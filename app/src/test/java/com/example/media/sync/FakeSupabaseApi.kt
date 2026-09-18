@@ -55,7 +55,18 @@ class FakeSupabaseApi : SupabaseApiService {
     override suspend fun getMessages(apiKey: String, authorization: String, chatIdFilter: String, createdAtFilter: String?, order: String, limit: Int): Response<List<Message>> = TODO()
     override suspend fun getIncrementalMessages(apiKey: String, authorization: String, chatIdFilter: String, updatedAtFilter: String, order: String): Response<List<Message>> = TODO()
     override suspend fun createMessage(apiKey: String, authorization: String, prefer: String, message: Map<String, @JvmSuppressWildcards Any?>): Response<ResponseBody> = TODO()
-    override suspend fun getUserReels(apiKey: String, authorization: String, select: String, authorFilter: String?, idFilter: String?, acceptProfile: String): Response<List<UserState>> = TODO()
+    override suspend fun getUserReels(
+        apiKey: String,
+        authorization: String,
+        select: String,
+        authorFilter: String?,
+        idFilter: String?,
+        orderBy: String?,
+        orFilter: String?,
+        captionFilter: String?,
+        limit: Int?,
+        acceptProfile: String,
+    ): Response<List<UserState>> = TODO()
     override suspend fun getUserStories(apiKey: String, authorization: String, select: String, expiresAtFilter: String?, authorFilter: String?, idFilter: String?, acceptProfile: String): Response<List<UserState>> = TODO()
     override suspend fun createReel(apiKey: String, authorization: String, reel: ReelDto, prefer: String, acceptProfile: String, contentProfile: String): Response<List<UserState>> = TODO()
     override suspend fun createStory(apiKey: String, authorization: String, state: Map<String, @JvmSuppressWildcards Any?>, prefer: String, acceptProfile: String, contentProfile: String): Response<List<UserState>> = TODO()
