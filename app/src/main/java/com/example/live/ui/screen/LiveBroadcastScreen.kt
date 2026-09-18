@@ -80,6 +80,7 @@ fun LiveBroadcastScreen(
     val connectionState by roomRepository.connectionState.collectAsStateWithLifecycle()
     val localVideoTrack by roomRepository.localVideoTrack.collectAsStateWithLifecycle()
     val remoteVideoTrack by roomRepository.remoteVideoTrack.collectAsStateWithLifecycle()
+    val rendererReady by roomRepository.rendererReady.collectAsStateWithLifecycle()
     val comments by viewModel.comments.collectAsStateWithLifecycle()
     val viewerCount by viewModel.viewerCount.collectAsStateWithLifecycle()
     val guests by guestViewModel.guests.collectAsStateWithLifecycle()
@@ -349,10 +350,13 @@ fun LiveBroadcastScreen(
 
                     LiveConnectionOverlay(
                         connectionState = connectionState,
-                        // El overlay NO debe tapar la preview cuando la cámara ya
-                        // está: aunque el evento Connected de LiveKit tarde, si el
-                        // track local está, la preview es visible.
-                        hideWhenTrackReady = localVideoTrack != null,
+                        // Solo se oculta cuando ADEMAS de haber track el renderer esta
+                        // inicializado: si el renderer no puede dibujar, la pantalla
+                        // quedaria NEGRA y muda sin que el usuario sepa por que.
+                        hideWhenTrackReady = localVideoTrack != null && rendererReady,
+                        // Mantiene "Activando camara..." visible mientras el track no
+                        // llegue, incluso si la sala ya reporto Connected.
+                        keepVisibleUntilTrackReady = true,
                         modifier = Modifier.align(Alignment.Center)
                     )
 

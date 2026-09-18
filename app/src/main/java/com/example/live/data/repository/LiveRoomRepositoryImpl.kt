@@ -14,6 +14,7 @@ class LiveRoomRepositoryImpl(context: Context) : LiveRoomRepository {
     override val connectionState: StateFlow<LiveConnectionState> = liveKitManager.connectionState
     override val localVideoTrack: StateFlow<VideoTrack?> = liveKitManager.localVideoTrack
     override val remoteVideoTrack: StateFlow<VideoTrack?> = liveKitManager.remoteVideoTrack
+    override val rendererReady: StateFlow<Boolean> = liveKitManager.rendererReady
 
     override suspend fun joinRoom(url: String, token: String) {
         liveKitManager.connect(url, token)

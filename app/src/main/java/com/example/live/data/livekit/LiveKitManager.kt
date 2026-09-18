@@ -1,6 +1,7 @@
 package com.example.live.data.livekit
 
 import android.content.Context
+import android.os.Looper
 import android.util.Log
 import com.example.live.domain.model.LiveConnectionState
 import io.livekit.android.LiveKit
@@ -15,6 +16,8 @@ import kotlinx.coroutines.*
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
+import java.util.Collections
+import java.util.WeakHashMap
 
 class LiveKitManager(private val context: Context) {
     private val TAG = "PanalinkLive"
@@ -39,6 +42,14 @@ class LiveKitManager(private val context: Context) {
     private val _localVideoTrack = MutableStateFlow<VideoTrack?>(null)
     val localVideoTrack: StateFlow<VideoTrack?> = _localVideoTrack.asStateFlow()
 
+    /**
+     * true cuando el [SurfaceViewRenderer] de la UI quedo inicializado contra la Room
+     * vigente. La UI lo usa para no ocultar el aviso "Activando camara" y dejar una
+     * pantalla NEGRA muda mientras el renderer todavia no puede dibujar.
+     */
+    private val _rendererReady = MutableStateFlow(false)
+    val rendererReady: StateFlow<Boolean> = _rendererReady.asStateFlow()
+
     suspend fun connect(url: String, token: String) = withContext(Dispatchers.IO) {
         if (room != null && _connectionState.value is LiveConnectionState.Connected) return@withContext
         try {
@@ -46,6 +57,10 @@ class LiveKitManager(private val context: Context) {
             _connectionState.value = LiveConnectionState.Connecting
             val currentRoom = LiveKit.create(context)
             room = currentRoom
+            // La Room ya tiene su EglBase: los renderers que la UI haya creado antes
+            // pueden inicializarse YA (no hace falta esperar al connect, y asi el
+            // primer frame que llegue no se pierde).
+            initPendingRenderers()
             collectRoomEvents(currentRoom, false)
             // LiveKit Room.connect() es suspending y NO tiene timeout por defecto:
             // si el WebSocket de LiveKit no responde, la corrutina se cuelga para
@@ -53,7 +68,7 @@ class LiveKitManager(private val context: Context) {
             withTimeout(CONNECT_TIMEOUT_MS) {
                 currentRoom.connect(url, token)
             }
-            initPendingRenderer()
+            initPendingRenderers()
         } catch (e: Exception) {
             // TimeoutCancellationException incluido: NO se relanza, para que el
             // caller (boton de iniciar) siga vivo y pueda mostrar el error.
@@ -71,6 +86,8 @@ class LiveKitManager(private val context: Context) {
 
             val currentRoom = LiveKit.create(context)
             room = currentRoom
+            // Renderer listo ANTES de publicar la camara: su EglBase ya existe.
+            initPendingRenderers()
             collectRoomEvents(currentRoom, true)
             withTimeout(CONNECT_TIMEOUT_MS) {
                 currentRoom.connect(url, token)
@@ -97,7 +114,7 @@ class LiveKitManager(private val context: Context) {
 
             // initPendingRenderer tras la conexión: el SurfaceViewRenderer puede
             // haber sido creado por la UI antes de conectar (room todavía null).
-            initPendingRenderer()
+            initPendingRenderers()
 
             // setCameraEnabled() publica de forma asincrona: hay que esperar a que exista
             // la publicacion local de camara y engancharla EN CUANTO aparece.
@@ -113,7 +130,7 @@ class LiveKitManager(private val context: Context) {
             if (published != null) {
                 // Posible race: el SurfaceViewRenderer de la UI pudo crearse DESPUÉS
                 // del connect() (el initPendingRenderer() previo no lo vio todavía).
-                initPendingRenderer()
+                initPendingRenderers()
                 _localVideoTrack.value = published
                 _connectionState.value = LiveConnectionState.Connected
                 Log.i(TAG, "Local camera track ready: ${published.sid}")
@@ -163,7 +180,7 @@ class LiveKitManager(private val context: Context) {
                     .getTrackPublication(Track.Source.CAMERA)
                     ?.track as? VideoTrack
                 if (track != null) {
-                    initPendingRenderer()
+                    initPendingRenderers()
                     _localVideoTrack.value = track
                     Log.i(TAG, "Local camera track detectado por el vigilante: ${track.sid}")
                     return@launch
@@ -236,23 +253,21 @@ class LiveKitManager(private val context: Context) {
             _localVideoTrack.value = null
             val currentRoom = LiveKit.create(context)
             room = currentRoom
+            initPendingRenderers()
             collectRoomEvents(currentRoom, false)
             withTimeout(CONNECT_TIMEOUT_MS) {
                 currentRoom.connect(url, token)
             }
-            initPendingRenderer()
+            initPendingRenderers()
             withContext(Dispatchers.Main) {
                 currentRoom.localParticipant.setCameraEnabled(true)
                 currentRoom.localParticipant.setMicrophoneEnabled(true)
             }
-            repeat(60) {
-                val track = currentRoom.localParticipant.getTrackPublication(Track.Source.CAMERA)?.track as? VideoTrack
-                if (track != null) {
-                    _localVideoTrack.value = track
-                    return@repeat
-                }
-                delay(50)
-            }
+            // OJO: aqui habia un repeat(60){ ...; return@repeat } que NO rompe el bucle
+            // (solo salta a la iteracion siguiente), asi que el invitado esperaba los
+            // 3 s completos aunque la camara ya estuviera publicada. awaitCameraTrack()
+            // devuelve EN CUANTO existe la publicacion.
+            awaitCameraTrack(currentRoom)?.let { _localVideoTrack.value = it }
             _connectionState.value = LiveConnectionState.Connected
         } catch (e: Exception) {
             Log.e(TAG, "Error joining as guest", e)
@@ -284,6 +299,9 @@ class LiveKitManager(private val context: Context) {
             }
             _localVideoTrack.value = null
             _remoteVideoTrack.value = null
+            // La Room cambió: los renderers deberán reinicializarse contra la nueva
+            // (su EGL base es distinto) antes de poder dibujar. Ver initRenderersNow().
+            _rendererReady.value = false
         } catch (e: Exception) {
             Log.e(TAG, "Error during internal suspend disconnect", e)
         }
@@ -308,39 +326,68 @@ class LiveKitManager(private val context: Context) {
             }
             _localVideoTrack.value = null
             _remoteVideoTrack.value = null
+            _rendererReady.value = false
         } catch (e: Exception) {
             Log.e(TAG, "Error during internal disconnect", e)
         }
     }
 
-    private var pendingRenderer: SurfaceViewRenderer? = null
+    // ---------------------------------------------------------------------
+    // Ciclo de vida de los SurfaceViewRenderer
+    //
+    // CAUSA RAIZ del "preview NEGRO con la camara SI publicando":
+    // Room.initVideoRenderer() acaba en SurfaceViewRenderer.init() de webrtc, que
+    // arranca con ThreadUtils.checkIsOnMainThread(). Si se invoca desde
+    // Dispatchers.IO lanza IllegalStateException, el try/catch lo silencia y el
+    // renderer queda SIN inicializar para siempre: el track se envia al SFU (los
+    // espectadores ven el video) pero en el dispositivo nunca se dibuja un frame,
+    // asi que la pantalla se queda negra con el contador REC corriendo.
+    //
+    // Por eso TODO el ciclo de vida del renderer se marshalea al hilo principal y
+    // se reintenta hasta que exista una Room (y contra cada Room nueva).
+    // ---------------------------------------------------------------------
+    private val knownRenderers: MutableSet<SurfaceViewRenderer> =
+        Collections.newSetFromMap(WeakHashMap<SurfaceViewRenderer, Boolean>())
+    private val rendererRoom = WeakHashMap<SurfaceViewRenderer, Room>()
 
     fun initVideoRenderer(renderer: SurfaceViewRenderer) {
-        val currentRoom = room
-        if (currentRoom == null) {
-            pendingRenderer = renderer
-            Log.d(TAG, "Renderer creado antes de conectar; se inicializará al conectarse")
-            return
-        }
-        try {
-            currentRoom.initVideoRenderer(renderer)
-            Log.d(TAG, "LiveKit video renderer initialized")
-        } catch (e: Exception) {
-            Log.e(TAG, "Error initializing LiveKit video renderer", e)
+        runOnMain {
+            knownRenderers.add(renderer)
+            initRenderersNow(renderer)
         }
     }
 
-    private fun initPendingRenderer() {
+    /** Ejecuta [block] en el hilo principal, de inmediato si ya estamos en el. */
+    private fun runOnMain(block: () -> Unit) {
+        if (Looper.myLooper() == Looper.getMainLooper()) block()
+        else scope.launch(Dispatchers.Main.immediate) { block() }
+    }
+
+    /**
+     * Inicializa [single] (o todos los renderers conocidos) contra la Room vigente.
+     * Debe correr SIEMPRE en el hilo principal (webrtc lo exige en init()).
+     */
+    private fun initRenderersNow(single: SurfaceViewRenderer? = null) {
         val currentRoom = room ?: return
-        val renderer = pendingRenderer ?: return
-        pendingRenderer = null
-        try {
-            currentRoom.initVideoRenderer(renderer)
-            Log.d(TAG, "LiveKit video renderer initialized after connect")
-        } catch (e: Exception) {
-            Log.e(TAG, "Error initializing pending LiveKit video renderer", e)
+        val targets = single?.let { listOf(it) } ?: knownRenderers.toList()
+        targets.forEach { renderer ->
+            if (rendererRoom[renderer] === currentRoom) return@forEach
+            try {
+                currentRoom.initVideoRenderer(renderer)
+                rendererRoom[renderer] = currentRoom
+                _rendererReady.value = true
+                Log.i(TAG, "LiveKit video renderer initialized (mainThread=${isMainThread()})")
+            } catch (e: Exception) {
+                Log.e(TAG, "Error initializing LiveKit video renderer", e)
+            }
         }
     }
+
+    private fun initPendingRenderers() {
+        runOnMain { initRenderersNow() }
+    }
+
+    private fun isMainThread(): Boolean = Looper.myLooper() == Looper.getMainLooper()
 
     fun switchCamera() {
         scope.launch {

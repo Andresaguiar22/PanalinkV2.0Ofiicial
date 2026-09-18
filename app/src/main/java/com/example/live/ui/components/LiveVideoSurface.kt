@@ -33,19 +33,21 @@ fun LiveVideoSurface(
         var surfaceReady by remember { mutableStateOf(false) }
 
         // El renderer se crea SIEMPRE (aunque el track todavía no exista). LiveKit
-        // requiere que el SurfaceViewRenderer exista e inicializado con el EglBase
-        // del Room (Room.initVideoRenderer) ANTES de que el VideoTrack llegue;
-        // si se crea solo cuando videoTrack != null, el preview puede quedar negro
-        // ("la cámara no se activa") aunque el track ya esté publicado.
+        // exige que el SurfaceViewRenderer exista e inicializado con el EglBase del
+        // Room (Room.initVideoRenderer) ANTES de que lleguen frames; si el track se
+        // engancha a un renderer sin inicializar, webrtc descarta cada frame
+        // ("Received frame when not initialized!") y el preview queda NEGRO para
+        // siempre aunque la camara este publicando.
+        //
+        // La inicializacion NO depende de que la surface exista (EglRenderer crea el
+        // EGLSurface en su propio SurfaceHolder.Callback): lo que exige webrtc es el
+        // HILO PRINCIPAL. Por eso initRenderer se invoca aqui (onGloballyPositioned,
+        // main thread) y LiveKitManager.initVideoRenderer marshalea a Main y reintenta
+        // hasta que la Room exista. Ver el comentario de ese metodo.
         AndroidView(
             factory = { viewContext ->
                 val rv = SurfaceViewRenderer(viewContext)
                 rv.apply {
-                    // El init del renderer NO se hace aqui (factory run en composicion,
-                    // antes de que la vista tenga surface/window). LiveKit dibuja en el
-                    // SurfaceViewRenderer: si se inicializa antes de tener surface, pide
-                    // un EGL context sin surface y el video queda NEGRO para siempre aunque
-                    // el track exista. La inicializacion segura ocurre en onGloballyPositioned..
                     setMirror(false)
                     setScalingType(RendererCommon.ScalingType.SCALE_ASPECT_FILL)
                     if (videoTrack != null) {
@@ -60,16 +62,15 @@ fun LiveVideoSurface(
             modifier = Modifier
                 .fillMaxSize()
                 .onGloballyPositioned {
-                    // Momento seguro: la vista ya tiene dimensiones y su Surface existe.
-
-
+                    // La vista ya esta medida: momento seguro para inicializar (y
+                    // estamos en el hilo principal, que es lo que webrtc comprueba).
                     if (rendererRef != null && !surfaceReady) {
                         surfaceReady = true
                         try {
                             initRenderer?.invoke(rendererRef!!)
-                            Log.d(TAG, "renderer inicializado en surface lista")
+                            Log.d(TAG, "initRenderer invocado (thread=${Thread.currentThread().name})")
                         } catch (e: Exception) {
-                            Log.e(TAG, "Error init renderer en surface", e)
+                            Log.e(TAG, "Error init renderer", e)
                         }
                     }
                 },

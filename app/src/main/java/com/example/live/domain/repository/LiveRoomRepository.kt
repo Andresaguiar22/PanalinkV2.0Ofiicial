@@ -10,6 +10,14 @@ interface LiveRoomRepository {
     val localVideoTrack: StateFlow<VideoTrack?>
     val remoteVideoTrack: StateFlow<VideoTrack?>
 
+    /**
+     * true cuando el renderer de video ya quedo inicializado contra la Room
+     * vigente. Mientras sea false el renderer NO puede dibujar frames, asi que la UI
+     * debe seguir mostrando el aviso de "Activando camara" en vez de una pantalla
+     * negra muda (ver LiveKitManager.initVideoRenderer).
+     */
+    val rendererReady: StateFlow<Boolean>
+
     suspend fun joinRoom(url: String, token: String)
     suspend fun startBroadcast(url: String, token: String)
     suspend fun switchCamera()
