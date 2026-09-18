@@ -32,6 +32,20 @@ class CustomizationViewModel(application: Application) : AndroidViewModel(applic
         viewModelScope.launch(Dispatchers.IO) {
             val loaded = repository.loadCustomization(currentUid)
             _uiState.value = loaded
+            // Mirror the persisted values into ThemeManager so the whole app
+            // is already styled when this screen opens (MainActivity only runs this
+            // once at process start; hot configurations channel through here too).
+            com.example.ui.theme.ThemeManager.themeMode.value = loaded.themeMode
+            com.example.ui.theme.ThemeManager.themeKey.value = loaded.profileThemeChoice
+            com.example.ui.theme.ThemeManager.bottomBarColorPreset.value = loaded.bottomBarColorChoice
+            com.example.ui.theme.ThemeManager.bottomBarShapePreset.value = loaded.bottomBarShapeChoice
+            com.example.ui.theme.ThemeManager.isMinimalistMode.value = loaded.isMinimalistMode
+            com.example.ui.theme.ThemeManager.customPrimary.value = Color(
+                android.graphics.Color.rgb(loaded.customR, loaded.customG, loaded.customB)
+            )
+            com.example.ui.theme.ThemeManager.customSecondary.value = Color(
+                android.graphics.Color.rgb(loaded.customSecR, loaded.customSecG, loaded.customSecB)
+            )
         }
     }
 
@@ -39,6 +53,7 @@ class CustomizationViewModel(application: Application) : AndroidViewModel(applic
         when (action) {
             is CustomizationAction.SetThemeMode -> {
                 _uiState.update { it.copy(themeMode = action.mode) }
+                com.example.ui.theme.ThemeManager.themeMode.value = action.mode
                 viewModelScope.launch(Dispatchers.IO) {
                     repository.saveThemeMode(action.mode)
                 }

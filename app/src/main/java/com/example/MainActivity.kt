@@ -189,6 +189,9 @@ class MainActivity : androidx.fragment.app.FragmentActivity() {
             val savedTheme = prefs.getString("profile_theme_global", "halo_dark") ?: "halo_dark"
             com.example.ui.theme.ThemeManager.themeKey.value = savedTheme
 
+            val savedThemeMode = prefs.getString("theme_mode_global", "system") ?: "system"
+            com.example.ui.theme.ThemeManager.themeMode.value = savedThemeMode
+
             val isMinimal = prefs.getBoolean("minimalist_mode_global", false)
             com.example.ui.theme.ThemeManager.isMinimalistMode.value = isMinimal
 
@@ -216,7 +219,10 @@ class MainActivity : androidx.fragment.app.FragmentActivity() {
         enableEdgeToEdge()
         setContent {
             val isAppLocked by com.example.security.AppLockManager.isLocked.collectAsState()
-            val activeThemeKey by com.example.ui.theme.ThemeManager.themeKey.collectAsState()
+            val baseThemeKey by com.example.ui.theme.ThemeManager.themeKey.collectAsState()
+            val globalThemeMode by com.example.ui.theme.ThemeManager.themeMode.collectAsState()
+            val systemDark = androidx.compose.foundation.isSystemInDarkTheme()
+            val activeThemeKey = com.example.ui.theme.resolveThemeForMode(baseThemeKey, globalThemeMode, systemDark)
             val customPrimary by com.example.ui.theme.ThemeManager.customPrimary.collectAsState()
             val customBackground by com.example.ui.theme.ThemeManager.customBackground.collectAsState()
             val customAccent by com.example.ui.theme.ThemeManager.customAccent.collectAsState()

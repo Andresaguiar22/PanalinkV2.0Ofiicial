@@ -296,7 +296,12 @@ val HaloDarkColors = AppColors(
 
 object ThemeManager {
     val themeKey = kotlinx.coroutines.flow.MutableStateFlow("halo_dark")
-    
+
+    // Global light/dark/system mode. Real: MainActivity resolves the effective
+    // theme key from this every recomposition, so "Claro/Oscuro/Sistema"
+    // instantly restyles the whole app (no longer just persisted smoke).
+    val themeMode = kotlinx.coroutines.flow.MutableStateFlow("system")
+
     val customPrimary = kotlinx.coroutines.flow.MutableStateFlow(Color(0xFF76CE9F))
     val customBackground = kotlinx.coroutines.flow.MutableStateFlow(Color(0xFF0F1412))
     val customAccent = kotlinx.coroutines.flow.MutableStateFlow(Color(0xFF2E483E))
@@ -363,6 +368,22 @@ object ThemeManager {
             else -> CircleShape // "pill"
         }
     }
+}
+
+/** Effective theme key for "claro" mode: uses the light variant when one exists,
+ *  otherwise falls back to the same (dark) palette. */
+fun resolveLightTheme(themeKey: String): String = when (themeKey) {
+    "halo_dark" -> "halo_light"
+    "whatsapp_dark" -> "whatsapp_light"
+    "minimal_white" -> "minimal_white" // already light
+    else -> themeKey
+}
+
+/** Applies the global light/dark/system preference on top of the chosen identity. */
+fun resolveThemeForMode(themeKey: String, mode: String, systemDark: Boolean): String = when (mode) {
+    "claro" -> resolveLightTheme(themeKey)
+    "oscuro" -> themeKey // dark identity stays identity (Claro identity has no dark twin)
+    else -> if (systemDark) themeKey else resolveLightTheme(themeKey)
 }
 
 fun getColorsForTheme(themeKey: String?, customColors: AppColors? = null): AppColors {
