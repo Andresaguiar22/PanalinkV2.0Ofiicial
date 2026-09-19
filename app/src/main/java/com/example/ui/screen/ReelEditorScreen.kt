@@ -94,6 +94,12 @@ fun ReelEditorScreen(
     var currentStep by remember { mutableStateOf("picker") } // "picker", "studio", "metadata", "camera"
     var cameraCaptureMode by remember { mutableStateOf("video") }
 
+    // URL-import (Pegar URL de Video 🌐): importa el original limpio desde plataformas externas
+    var showImportUrlDialog by remember { mutableStateOf(false) }
+    var importUrlInput by remember { mutableStateOf("") }
+    var isImportingUrl by remember { mutableStateOf(false) }
+    var importUrlError by remember { mutableStateOf<String?>(null) }
+
     val cameraPermissionState = com.example.util.rememberCameraPermissionState(
         onPermissionsGranted = {
             currentStep = "camera"
@@ -124,6 +130,41 @@ fun ReelEditorScreen(
     var selectedMediaUri by remember { mutableStateOf<Uri?>(null) }
     var selectedMediaBytes by remember { mutableStateOf<ByteArray?>(null) }
     var selectedMediaMimeType by remember { mutableStateOf<String?>(null) }
+
+    // Importa el original limpio desde el enlace y lo lleva al MISMO editor (studio).
+    fun importFromUrl() {
+        val rawUrl = importUrlInput.trim()
+        if (rawUrl.isEmpty()) { importUrlError = "Pega un enlace primero."; return }
+        if (!com.example.data.repository.SocialMediaImporter.isValidPlatformUrl(rawUrl)) {
+
+
+ importUrlError = "Enlace no soportado. Usa TikTok, Instagram, YouTube, X, Facebook, Reddit, Pinterest o Snapchat."
+            return
+        }
+        isImportingUrl = true
+        importUrlError = null
+        coroutineScope.launch {
+            try {
+                val result = com.example.data.repository.SocialMediaImporter.importUrl(
+                    context = context,
+                    rawUrl = rawUrl
+                )
+                result.onSuccess { imported ->
+                    selectedMediaUri = imported.uri
+                    selectedMediaBytes = ByteArray(0)
+                    selectedMediaMimeType = imported.mimeType
+                    mediaType = "video"
+                    showImportUrlDialog = false
+                    importUrlInput = ""
+                    currentStep = "studio"
+                }.onFailure { e ->
+                    importUrlError = e.localizedMessage ?: "No se pudo importar el vídeo."
+                }
+            } finally {
+                isImportingUrl = false
+            }
+        }
+    }
 
     // Color Correction Sliders (Real-time Preview adjustments)
     var brightnessValue by remember { mutableStateOf(1f) } // 0.5f to 1.5f
@@ -445,7 +486,40 @@ fun ReelEditorScreen(
                                 )
                                 Spacer(modifier = Modifier.height(12.dp))
                                 Text("Subir Video o Imagen 🎞️", color = Color.White, fontWeight = FontWeight.Bold, fontSize = 16.sp)
-                                Text("Las imágenes se animan automáticamente con efecto Ken Burns", color = Color.Gray, fontSize = 11.sp)
+                                Text("Las imágenes se animan automáticamente con efecto Ken Burns", color = Color.Gray, fontSize =  11.sp)
+                            }
+                        }
+
+                        Spacer(modifier = Modifier.height(16.dp))
+
+                        Card(
+                            modifier = Modifier
+                                .fillMaxWidth()
+                                .height(140.dp)
+                                .testTag("reel_studio_import_url_button")
+                                .clickable {
+                                    importUrlError = null
+                                    importUrlInput = ""
+                                    showImportUrlDialog = true
+                                },
+                            shape = RoundedCornerShape(20.dp),
+                            colors = CardDefaults.cardColors(containerColor = Color(0xFF151518)),
+                            border = BorderStroke(1.dp, Color(0xFF262629))
+                        ) {
+                            Column(
+                                modifier = Modifier.fillMaxSize(),
+                                verticalArrangement = Arrangement.Center,
+                                horizontalAlignment = Alignment.CenterHorizontally
+                            ) {
+                                Icon(
+                                    imageVector = Icons.Default.Public,
+                                    contentDescription = null,
+                                    tint = Color(0xFF00B3FF),
+                                    modifier = Modifier.size(48.dp)
+                                )
+                                Spacer(modifier = Modifier.height(12.dp))
+                                Text("Pegar URL de Video 🌐", color = Color.White, fontWeight = FontWeight.Bold, fontSize =  16.sp)
+                                Text("Importa TikTok, Instagram, YouTube y más sin marca de agua", color = Color.Gray, fontSize =  11.sp)
                             }
                         }
 
@@ -1352,6 +1426,103 @@ fun ReelEditorScreen(
 
                             TextButton(onClick = { showSchedulingSheet = false }) {
                                 Text("Cancelar", color = Color.Red)
+                            }
+                        }
+                    }
+                }
+            }
+
+            // IMPORT URL DIALOG (Pegar URL de Video 🌐)
+            if (showImportUrlDialog) {
+                Box(
+                    modifier = Modifier
+                        .fillMaxSize()
+                        .background(Color.Black.copy(alpha = 0.9f)),
+                    contentAlignment = Alignment.Center
+                ) {
+                    Card(
+                        modifier = Modifier
+                            .width(320.dp)
+                            .padding(20.dp),
+                        shape = RoundedCornerShape(24.dp),
+                        colors = CardDefaults.cardColors(containerColor = Color(0xFF1A1A1F))
+                    ) {
+                        Column(
+                            modifier = Modifier.padding(20.dp),
+                            horizontalAlignment = Alignment.CenterHorizontally,
+                            verticalArrangement = Arrangement.spacedBy(14.dp)
+                        ) {
+                            Box(
+                                modifier = Modifier
+                                    .size(56.dp)
+                                    .background(Color(0xFF00B3FF), CircleShape),
+                                contentAlignment = Alignment.Center
+                            ) {
+                                Icon(Icons.Default.Public, contentDescription = null, tint = Color.Black, modifier = Modifier.size(28.dp))
+                            }
+                            Text("Importar Vídeo 🌐", color = Color.White, fontWeight = FontWeight.Bold, fontSize = 18.sp)
+                            Text(
+                                "Pega el enlace del vídeo que quieres publicar. Lo importaremos limpio (sin la marca de la app de origen).",
+                                color = Color.Gray, fontSize =  12.sp, textAlign = TextAlign.Center
+                            )
+
+                            androidx.compose.material3.OutlinedTextField(
+                                value = importUrlInput,
+                                onValueChange = { importUrlInput = it },
+                                placeholder = { Text("https://www.tiktok.com/...") },
+                                enabled = !isImportingUrl,
+                                singleLine = true,
+                                modifier = Modifier.fillMaxWidth().testTag("reel_import_url_input"),
+                                keyboardOptions = androidx.compose.foundation.text.KeyboardOptions(
+                                    keyboardType = androidx.compose.ui.text.input.KeyboardType.Uri,
+                                    imeAction = androidx.compose.ui.text.input.ImeAction.Done
+                                ),
+                                keyboardActions = androidx.compose.foundation.text.KeyboardActions(
+                                    onDone = {
+                                        if (!isImportingUrl) importFromUrl()
+                                    }
+                                ),
+                                colors = androidx.compose.material3.OutlinedTextFieldDefaults.colors(
+                                    focusedTextColor = Color.White,
+                                    unfocusedTextColor = Color.White,
+                                    focusedBorderColor = Color(0xFF00B3FF),
+                                    unfocusedBorderColor = Color.Gray,
+                                    focusedPlaceholderColor = Color.Gray
+                                )
+                            )
+
+                            if (importUrlError != null) {
+                                Text(
+                                    importUrlError ?: "",
+                                    color = Color(0xFFFF6B6B),
+                                    fontSize =  12.sp,
+                                    textAlign = TextAlign.Center
+                                )
+                            }
+
+                            if (isImportingUrl) {
+                                CircularProgressIndicator(
+                                    color = Color(0xFF00B3FF),
+                                    modifier = Modifier.size(28.dp)
+                                )
+                                Text("Descargando vídeo limpio desde la plataforma...", color = Color.Gray, fontSize =  12.sp, textAlign = TextAlign.Center)
+                            }
+
+                            Row(horizontalArrangement = Arrangement.spacedBy(12.dp)) {
+                                OutlinedButton(
+                                    onClick = { showImportUrlDialog = false; importUrlError = null; importUrlInput = "" },
+                                    enabled = !isImportingUrl,
+                                    colors = ButtonDefaults.outlinedButtonColors(contentColor = Color.Gray)
+                                ) {
+                                    Text("Cancelar")
+                                }
+                                Button(
+                                    onClick = { importFromUrl() },
+                                    enabled = !isImportingUrl,
+                                    colors = ButtonDefaults.buttonColors(containerColor = Color(0xFF00B3FF))
+                                ) {
+                                    Text("Importar", color = Color.Black, fontWeight = FontWeight.Bold)
+                                }
                             }
                         }
                     }

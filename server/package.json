@@ -4,8 +4,10 @@
   "description": "Backend de Control de CDN Dinámico para Panalink",
   "main": "index.js",
   "scripts": {
-    "start": "node index.js"
+    "start": "node index.js",
+    "check": "node --check index.js"
   },
+  "ytDlpBinRequired": "El endpoint POST /import-url necesita el binario externo yt-dlp instalado y visible en el PATH del proceso. Instalar con: pip install yt-dlp (o descargar el binario de https://github.com/yt-dlp/yt-dlp/releases). Verificar con: yt-dlp --version",
   "dependencies": {
     "cors": "^2.8.5",
     "express": "^4.19.2",
