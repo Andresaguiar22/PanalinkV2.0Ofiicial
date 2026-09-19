@@ -474,6 +474,99 @@ app.delete("/delete/:id", authCdnMiddleware, (req, res) => {
   }
 });
 
+// --- IMPORT FROM EXTERNAL PLATFORMS (TikTok, Instagram Reels, YouTube Shorts, X...) ---
+// Descarga el original limpio via yt-dlp. El app luego publica por el pipeline normal (VideoRouter -> VCDN).
+const IMPORT_URL_MAX_BYTES = 512 * 1024 * 1024;
+const IMPORT_URL_TIMEOUT_MS = 10 * 60 * 1000;
+
+function safeRmImport(p) {
+  try {
+    if (p && fs.existsSync(p)) fs.rmSync(p, { force: true });
+  } catch (e) {}
+}
+
+function extractDomain(url) {
+  try {
+    return new URL(url).hostname.replace(/^www\./, "") || "";
+  } catch {
+    return "";
+  }
+}
+
+app.post("/import-url", authUserMiddleware, async (req, res) => {
+  const bodyUrl = (req.body || {}).url;
+  const rawUrl = typeof bodyUrl === "string" ? bodyUrl.trim() : "";
+  if (!rawUrl || !/^https?:\/\//i.test(rawUrl)) {
+    return res.status(400).json({ error: "URL inválida: debe comenzar con http(s)://" });
+  }
+  const domain = extractDomain(rawUrl);
+  const allowed = ["tiktok.com", "vm.tiktok.com", "instagram.com", "youtube.com", "youtu.be", "music.youtube.com", "twitter.com", "x.com", "facebook.com", "fb.watch", "reddit.com", "v.redd.it", "pinterest.com", "snapchat.com"];
+  if (!allowed.some(d => domain && domain.endsWith(d))) {
+    return res.status(400).json({ error: `Plataforma no soportada: ${domain || "desconocida"}` });
+  }
+  const userId = req.user.id;
+  const importId = crypto.randomUUID();
+  const tmpBase = path.join(storageDir, "chat", "temp");
+  if (!fs.existsSync(tmpBase)) fs.mkdirSync(tmpBase, { recursive: true });
+  const tmpPath = path.join(tmpBase, `import-${importId}.mp4`);
+  console.log(`🌐 Import URL: ${userId} (${domain}) [${importId}]`);
+  try {
+    const startedAt = Date.now();
+    const ytdlpArgs = ["--no-playlist", "--no-warnings", "--no-check-certificates", "--max-filesize", String(IMPORT_URL_MAX_BYTES), "--merge-output-format", "mp4", "-f", "bv*[ext=mp4]+ba[ext=m4a]/bv*+ba/b", "-o", tmpPath, "--no-part", rawUrl];
+    const child = spawn("yt-dlp", ytdlpArgs, { timeout: IMPORT_URL_TIMEOUT_MS });
+    let stderrBuf = "";
+    child.stderr.on("data", d => { stderrBuf = (stderrBuf + d.toString()).slice(-4000); });
+    child.on("error", err => {
+      console.error(`❌ yt-dlp no pudo arrancar: ${err.message}`);
+      if (res.headersSent) return;
+      res.status(500).json({ error: "Motor de descarga no disponible en el servidor (yt-dlp no instalado)" });
+      safeRmImport(tmpPath);
+    });
+    child.on("close", (code, signal) => {
+      const elapsedMs = Date.now() - startedAt;
+      try {
+        if (code !== 0) {
+          console.error(`❌ yt-dlp falló (${code}) ${stderrBuf.slice(0, 400)}`);
+          if (res.headersSent) return;
+          res.status(422).json({ error: "No se pudo descargar ese vídeo. Verifica el enlace.", details: stderrBuf.slice(0, 300) });
+          return;
+        }
+        const fileSize = fs.statSync(tmpPath).size;
+        if (fileSize > IMPORT_URL_MAX_BYTES) {
+
+          if (res.headersSent) return;
+          res.status(413).json({ error: "El vídeo excede el límite de tamaño." });
+          return;
+        }
+        const detectedMime = getMimeTypeByMagic(tmpPath, "video/mp4");
+        if (!detectedMime || !detectedMime.startsWith("video/")) {
+          if (res.headersSent) return;
+          res.status(422).json({ error: "El archivo descargado no es un vídeo válido." });
+          return;
+        }
+        console.log(`✅ Import OK: ${importId} (${(fileSize / (1024 * 1024)).toFixed(1)} MB, ${(elapsedMs / 1000).toFixed(1)}s`);
+        res.setHeader("Content-Type", detectedMime);
+        res.setHeader("Content-Disposition", `attachment; filename="import-${importId}.mp4"`);
+        res.setHeader("X-Import-Size", String(fileSize));
+        res.setHeader("Cache-Control", "no-store");
+        res.sendFile(tmpPath, {}, err => {
+          if (err) console.error("❌ Error enviando import:", err.message);
+          safeRmImport(tmpPath);
+        });
+      } catch (e) {
+        console.error("❌ Error envío:", e);
+        if (res.headersSent) return;
+        res.status(500).json({ error: "Error al procesar el vídeo importado" });
+      }
+    });
+  } catch (e) {
+    console.error("❌ Excepción import:", e);
+    if (res.headersSent) return;
+    res.status(500).json({ error: "Error interno al procesar el import" });
+    safeRmImport(tmpPath);
+  }
+});
+
 // --- CLOUDFLARED AUTO-TUNNEL INITIATION ---
 function startCloudflaredTunnel() {
   console.log("⚡ Iniciando túnel de cloudflared como subproceso...");
