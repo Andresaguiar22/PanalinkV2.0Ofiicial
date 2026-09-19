@@ -2,27 +2,36 @@
 
 // The VCDN_API_KEY NEVER enters the Android APK. The app calls this edge
 // function with the user's JWT when deleting a post/reel/story/multimedia
-// message; this function deletes the video from cdn.vcdn.me (and, when reachable,
-// cleans upthe vcdn_upload_sessions row afterwards).
+// message; this function deletes the video from cdn.vcdn.me and cleans up the
+// vcdn_upload_sessions row afterwards when reachable.
 //
-// Auth: 1) user calls: Supabase verifies the JWT (verify_jwt = true); ownership
-// is checked against vcdn_upload_sessions so users can only delete videos they
-// uploaded. 2) server-side cleanup (cron): requests carry x-internal-secret
-// (same contract as b2-delete-batch); ownership is skipped.
+// Auth: user calls carry a Supabase JWT and are cryptographically verified
+// through Supabase Auth. Server-side cleanup carries x-internal-secret.
+// verify_jwt remains false because the cron path does not send a Supabase JWT.
 
 const VCDN_BASE = "https://cdn.vcdn.me";
 const SUPABASE_URL = Deno.env.get("SUPABASE_URL") || "";
 const SUPABASE_SERVICE_ROLE_KEY = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY") || Deno.env.get("SUPABASE_ANON_KEY") || "";
 
-function getUserId(req: Request): string | null {
+async function getVerifiedUserId(req: Request): Promise<string | null> {
   const auth = req.headers.get("Authorization") || "";
   const token = auth.startsWith("Bearer ") ? auth.slice(7).trim() : "";
-  if (!token) return null;
+  if (!token || !SUPABASE_URL || !SUPABASE_SERVICE_ROLE_KEY) return null;
+
   try {
-    const parts = token.split(".");
-    if (parts.length !== 3) return null;
-      const payload = JSON.parse(atob(parts[1].replace(/-/g, "+").replace(/_/g, "/")));
-    return typeof payload.sub === "string" ? payload.sub : null;
+    const res = await fetch(
+      `${SUPABASE_URL.replace(/\/$/, "")}/auth/v1/user`,
+      {
+        method: "GET",
+        headers: {
+          "apikey": SUPABASE_SERVICE_ROLE_KEY,
+          "Authorization": `Bearer ${token}`,
+        },
+      },
+    );
+    if (!res.ok) return null;
+    const user = await res.json();
+    return typeof user?.id === "string" && user.id.length > 0 ? user.id : null;
   } catch {
     return null;
   }
@@ -33,15 +42,18 @@ export default {
     if (req.method !== "POST") {
       return Response.json({ error: "Method not allowed" }, { status: 405 });
     }
+
     const internalSecret = Deno.env.get("EDGE_INTERNAL_SECRET");
     const providedInternal = req.headers.get("x-internal-secret") || "";
     const isInternal = !!internalSecret && providedInternal === internalSecret;
-    const userId = getUserId(req);
-    if (!isInternal && !userId) {
-      return Response.json({ error: "Unauthorized" }, { status: 401 });
-    }
+
     if (!isInternal && (!SUPABASE_URL || !SUPABASE_SERVICE_ROLE_KEY)) {
       return Response.json({ error: "Server not configured" }, { status: 503 });
+    }
+
+    const userId = isInternal ? null : await getVerifiedUserId(req);
+    if (!isInternal && !userId) {
+      return Response.json({ error: "Unauthorized" }, { status: 401 });
     }
 
     let body: { videoId?: string };
@@ -61,7 +73,8 @@ export default {
       return Response.json({ error: "VCDN storage is not configured" }, { status: 503 });
     }
 
-    // Ownership guard (user calls only; cron/internal calls skip it):
+    // User calls fail closed: deletion is allowed only when the local session
+    // proves that the VCDN object belongs to the authenticated user.
     if (!isInternal) {
       try {
         const encodedVideoId = encodeURIComponent(videoId);
@@ -80,21 +93,14 @@ export default {
         }
         const rows = await res.json();
         if (!Array.isArray(rows) || rows.length === 0) {
-          // No local session row (e.g. video uploaded upstream before the session
-          // table existed, or direct VCDN upload). Allow the delete only whenethe
-          // upstream video actually exists: fall through to the upstream DELETE.
-
-
-        } else if (rows.some((r) => r?.user_id !== userId)) {
-
+          return Response.json({ error: "Forbidden: video ownership not found" }, { status: 403 });
+        }
+        if (rows.some((r) => r?.user_id !== userId)) {
           return Response.json({ error: "Forbidden: video does not belong to user" }, { status: 403 });
         }
       } catch (e) {
         console.error("vcdn-delete ownership check failed:", String(e));
-        // do not hard-block deletion whenethe session table is unavailable;
-        // the upstream DELETE is authoritative.
-
-
+        return Response.json({ error: "Ownership lookup failed" }, { status: 502 });
       }
     }
 
@@ -117,11 +123,10 @@ export default {
       return Response.json({ error: "VCDN delete error", detail: String(e) }, { status: 502 });
     }
 
-    // Best-effort cleanup of the local session row (authoritative VCDN delete already done).
     try {
       const encodedVideoId = encodeURIComponent(videoId);
       await fetch(
-        `${SUPABASE_URL.replace(/\/$/, "")}/rest/v1/vcdn_upload_sessions?video_id=eq..${encodedVideoId}`,
+        `${SUPABASE_URL.replace(/\/$/, "")}/rest/v1/vcdn_upload_sessions?video_id=eq.${encodedVideoId}`,
         {
           method: "DELETE",
           headers: {
