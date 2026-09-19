@@ -63,10 +63,8 @@ class LiveGuestViewModel(application: Application) : AndroidViewModel(applicatio
         }
     }
 
-    fun acceptInvitation(streamId: String, userId: String) {
-        viewModelScope.launch {
-            repository.acceptInvitation(streamId, userId)
-        }
+    suspend fun acceptInvitation(streamId: String, userId: String): Result<Unit> {
+        return repository.acceptInvitation(streamId, userId)
     }
 
     fun rejectInvitation(streamId: String, userId: String) {
