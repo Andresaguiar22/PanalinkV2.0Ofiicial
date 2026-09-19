@@ -23,7 +23,6 @@ import androidx.compose.ui.unit.sp
 import coil.compose.AsyncImage
 import coil.request.ImageRequest
 import com.example.data.supabase.SupabaseClient
-import com.example.ui.components.rememberAsyncMediaUrl
 import com.example.ui.viewmodel.ProfileViewModel
 
 @Composable
@@ -77,14 +76,25 @@ fun ReelsGrid(viewModel: ProfileViewModel, onNavigateToReel: (String) -> Unit) {
                             // mediaUrl (a vcdn:// pointer or HLS stream) via Coil as an image,
                             // which failed silently for videos, leaving gray placeholders
                             // (e.g. image_1000420472.jpg).
-                            val thumbnailUrl = reel.state.thumbnailUrl ?: reel.state.vcdnPosterUrl
-                            val resolvedThumbnail = rememberAsyncMediaUrl(thumbnailUrl)
+                            // FIX (Acción 2): rows persisted before VCDN moved posters to
+                            // cdn.vcdn.me keep a dead storage.vcdn.me/.../poster.jpg that 404s.
+                            // rememberReelThumbnail detects that and re-resolves the real
+                            // poster from the VCDN BFF, so the tile is no longer gray.
+                            val resolvedThumbnail = rememberReelThumbnail(
+                                thumbnailUrl = reel.state.thumbnailUrl,
+                                posterUrl = reel.state.vcdnPosterUrl,
+                                mediaUrl = reel.state.mediaUrl,
+                                vcdnVideoId = reel.state.vcdnVideoId
+                            )
                             val context = LocalContext.current
                             val imageRequest = remember(resolvedThumbnail) {
                                 ImageRequest.Builder(context)
-                                    .data(resolvedThumbnail.ifBlank { reel.state.mediaUrl })
+                                    // Never fall back to mediaUrl: a vcdn:// pointer is
+                                    // not an image URL, so Coil would just fail again.
+                                    .data(resolvedThumbnail.ifBlank { null })
                                     .crossfade(true)
                                     .diskCachePolicy(coil.request.CachePolicy.ENABLED)
+                                    .memoryCachePolicy(coil.request.CachePolicy.ENABLED)
                                     .build()
                             }
                             Box(

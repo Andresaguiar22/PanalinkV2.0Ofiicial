@@ -252,6 +252,21 @@ fun ReelsFeedScreen(
         }
     }
 
+    // Land on the tapped reel. `initialPage` only applies at first composition, so
+    // opening the feed from a card before its list loaded left the pager on page 0
+    // (the tapped video was never shown). Once the list arrives, jump to the target.
+    // One-shot per target: a later background refresh must not yank the user back.
+    var landedForId by remember(initialStateId) { mutableStateOf<String?>(null) }
+    LaunchedEffect(filteredReels, initialStateId) {
+        val targetId = initialStateId ?: return@LaunchedEffect
+        if (landedForId == targetId) return@LaunchedEffect
+        val target = filteredReels.indexOfFirst { it.state.id == targetId }
+        if (target >= 0) {
+            landedForId = targetId
+            if (pagerState.currentPage != target) pagerState.scrollToPage(target)
+        }
+    }
+
     // Adaptive preload on page change.
     LaunchedEffect(currentIndex, filteredReels.size) {
         if (currentIndex in filteredReels.indices) {
