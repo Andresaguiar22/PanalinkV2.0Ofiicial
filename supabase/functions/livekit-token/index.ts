@@ -35,7 +35,7 @@ async function canJoinRoom(userId: string, room: string, authHeader: string | nu
       if (stream.host_id === userId) return { ok: true, publish: true };
 
       const guestRes = await fetch(
-        `${SUPABASE_URL}/rest/v1/live_guests?stream_id=eq.${streamId}&guest_user_id=eq.${userId}&status=in.(ACCEPTED,CONNECTED)&select=id,status&limit=1`,
+        `${SUPABASE_URL}/rest/v1/live_guests?stream_id=eq.${streamId}&guest_user_id=eq.${userId}&status=in.(ACCEPTED,ACTIVE)&select=id,status&limit=1`,
         { headers },
       );
       if (!guestRes.ok) return { ok: false, publish: false, reason: "guest lookup failed" };
