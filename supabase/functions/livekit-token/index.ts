@@ -1,3 +1,5 @@
+import "jsr:@supabase/functions-js/edge-runtime.d.ts";
+
 // Mints a short-lived LiveKit participant token (JWT HS256) so the Android app
 // can connect to a LiveKit room. The API secret never leaves the server — the
 // device only receives a signed JWT. Auth: the caller's Supabase JWT
