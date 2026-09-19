@@ -81,6 +81,12 @@ class LiveGuestViewModel(application: Application) : AndroidViewModel(applicatio
         }
     }
 
+    fun leaveLive(streamId: String) {
+        viewModelScope.launch {
+            repository.leaveLive(streamId)
+        }
+    }
+
     fun stopRealtime() {
         realtimeManager?.stop()
         realtimeManager = null
