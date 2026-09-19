@@ -1,5 +1,3 @@
-import "jsr:@supabase/functions-js/edge-runtime.d.ts";
-
 // Mints a short-lived LiveKit participant token (JWT HS256) so the Android app
 // can connect to a LiveKit room. The API secret never leaves the server — the
 // device only receives a signed JWT. Auth: the caller's Supabase JWT
@@ -115,8 +113,7 @@ function getUserId(req: Request): string | null {
   }
 }
 
-export default {
-  async fetch(req: Request): Promise<Response> {
+Deno.serve(async (req: Request): Promise<Response> => {
     if (req.method !== "POST") {
       return Response.json({ error: "Method not allowed" }, { status: 405 });
     }
@@ -177,5 +174,4 @@ export default {
 
     const token = `${signingInput}.${sig}`;
     return Response.json({ token, url: LIVEKIT_URL, identity, room });
-  },
-};
+});
