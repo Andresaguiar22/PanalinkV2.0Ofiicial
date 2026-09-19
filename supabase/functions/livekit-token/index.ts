@@ -173,7 +173,6 @@ async function handler(req) {
 
     const token = `${signingInput}.${sig}`;
     return Response.json({ token, url: LIVEKIT_URL, identity, room });
-  }
 }
 
 Deno.serve(handler);
