@@ -14,7 +14,7 @@ import java.util.concurrent.TimeUnit
 /**
  * Escucha en tiempo real las invitaciones de Co-Host dirigidas al usuario actual.
  * Realtime de PostgreSQL filtra `guest_user_id=eq.<me>)`; al llegar una fila con
- * estado PENDING (el host invito) invoca [onPendingInvitation] con el streamId..
+ * estado INVITED (el host invitó) invoca [onPendingInvitation] con el streamId..
  * Es un websocket ligero e independiente del bus central de SupabaseClient para no
  * arriesgar el canal de mensajería; se detiene solo si el usuario ya no está navegando.
  */
@@ -84,7 +84,7 @@ class LiveGuestInvitationWatcher(
                             val status = record.optString("status")
                             val streamId = record.optString("stream_id")
                             val guestUserId = record.optString("guest_user_id")
-                            if (status == "PENDING" && streamId.isNotBlank() && guestUserId == me) {
+                            if (status == "INVITED" && streamId.isNotBlank() && guestUserId == me) {
 
                                 if (seenInvitation.add("$streamId|$guestUserId")) {
                                     // Pequeño delay para que la navegación dejetermine (si el usuario
