@@ -42,7 +42,7 @@ begin
       and conname = 'live_guests_status_check'
   ) then
     alter table public.live_guests add constraint live_guests_status_check
-      check (status in ('PENDING','INVITED','ACCEPTED','REJECTED','CONNECTED','DISCONNECTED','REMOVED'));
+      check (status in ('PENDING','INVITED','ACCEPTED','REJECTED','ACTIVE','CONNECTED','DISCONNECTED','REMOVED'));
   end if;
 end $$;
 
