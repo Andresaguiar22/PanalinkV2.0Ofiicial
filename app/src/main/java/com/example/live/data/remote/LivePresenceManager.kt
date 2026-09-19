@@ -67,6 +67,7 @@ class LivePresenceManager(
 
         webSocket = client.newWebSocket(Request.Builder().url(wsUrl).build(), object : WebSocketListener() {
             override fun onOpen(ws: WebSocket, response: Response) {
+                reconnectAttempt = 0
                 val joinMsg = JSONObject().apply {
                     put("topic", topic)
                     put("event", "phx_join")
