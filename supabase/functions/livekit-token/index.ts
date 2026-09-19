@@ -113,7 +113,7 @@ function getUserId(req: Request): string | null {
   }
 }
 
-Deno.serve(async req => {
+async function handler(req) {
     if (req.method !== "POST") {
       return Response.json({ error: "Method not allowed" }, { status: 405 });
     }
@@ -175,4 +175,6 @@ Deno.serve(async req => {
     const token = `${signingInput}.${sig}`;
     return Response.json({ token, url: LIVEKIT_URL, identity, room });
   }
-});
+}
+
+Deno.serve(handler);
