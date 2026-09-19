@@ -15,24 +15,51 @@ const API_SECRET = Deno.env.get("LIVEKIT_API_SECRET");
 const SUPABASE_URL = (Deno.env.get("SUPABASE_URL") || "").replace(/\/$/, "");
 const SERVICE_KEY = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY") || Deno.env.get("SUPABASE_ANON_KEY") || "";
 
-// Verifies the caller is allowed to join the requested LiveKit room before
-// minting a token. Voice rooms are checked against voice_room_can_access;
-// 1:1 call rooms (call_<uidA>-<uidB>) only accept the two participants, and
-// any other room shape is rejected since there is no DB model to authorize it.
-async function canJoinRoom(userId: string, room: string, authHeader: string | null): Promise<{ ok: boolean; reason?: string }> {
+// Verifies access to Live rooms from the database. The requested role is never trusted:
+// publish permission is derived server-side so a normal viewer cannot publish.
+async function canJoinRoom(userId: string, room: string, authHeader: string | null): Promise<{ ok: boolean; publish: boolean; reason?: string }> {
+  if (room.startsWith("live_")) {
+    const streamId = room.slice("live_".length);
+    if (!/^[0-9a-fA-F-]{36}$/.test(streamId)) return { ok: false, publish: false, reason: "invalid live room" };
+    if (!SUPABASE_URL || !SERVICE_KEY) return { ok: false, publish: false, reason: "server not configured" };
+    try {
+      const headers = { "apikey": SERVICE_KEY, "Authorization": (authHeader || `Bearer ${SERVICE_KEY}`), "Content-Type": "application/json" };
+      const streamRes = await fetch(
+        `${SUPABASE_URL}/rest/v1/live_streams?id=eq.${streamId}&select=id,host_id,status&limit=1`,
+        { headers },
+      );
+      if (!streamRes.ok) return { ok: false, publish: false, reason: "stream lookup failed" };
+      const streams = await streamRes.json();
+      const stream = Array.isArray(streams) ? streams[0] : null;
+      if (!stream || stream.status !== "LIVE") return { ok: false, publish: false, reason: "live stream is not active" };
+      if (stream.host_id === userId) return { ok: true, publish: true };
+
+      const guestRes = await fetch(
+        `${SUPABASE_URL}/rest/v1/live_guests?stream_id=eq.${streamId}&guest_user_id=eq.${userId}&status=in.(ACCEPTED,CONNECTED)&select=id,status&limit=1`,
+        { headers },
+      );
+      if (!guestRes.ok) return { ok: false, publish: false, reason: "guest lookup failed" };
+      const guests = await guestRes.json();
+      if (Array.isArray(guests) && guests.length > 0) return { ok: true, publish: true };
+      return { ok: true, publish: false };
+    } catch {
+      return { ok: false, publish: false, reason: "live access check failed" };
+    }
+  }
+  if (room.startsWith("voice_")) {
   if (room.startsWith("voice_")) {
     const roomId = room.slice("voice_".length);
-    if (!/^[0-9a-fA-F-]{36}$/.test(roomId)) return { ok: false, reason: "invalid voice room" };
-    if (!SUPABASE_URL || !SERVICE_KEY) return { ok: false, reason: "server not configured" };
+    if (!/^[0-9a-fA-F-]{36}$/.test(roomId)) return { ok: false, publish: false, reason: "invalid voice room" };
+    if (!SUPABASE_URL || !SERVICE_KEY) return { ok: false, publish: false, reason: "server not configured" };
     try {
       const res = await fetch(`${SUPABASE_URL}/rest/v1/rpc/voice_room_can_access`, {
         method: "POST",
         headers: { "apikey": SERVICE_KEY, "Authorization": (authHeader || `Bearer ${SERVICE_KEY}`), "Content-Type": "application/json" },
         body: JSON.stringify({ p_room_id: roomId }),
       });
-      return { ok: res.ok, reason: res.ok ? undefined : "access denied" };
+      return { ok: res.ok, publish: res.ok, reason: res.ok ? undefined : "access denied" };
     } catch {
-      return { ok: false, reason: "access check failed" };
+      return { ok: false, publish: false, reason: "access check failed" };
     }
   }
   if (room.startsWith("call_")) {
@@ -43,11 +70,11 @@ async function canJoinRoom(userId: string, room: string, authHeader: string | nu
     const match = pair.match(
       /^([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{12})-([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{12})$/,
     );
-    if (!match) return { ok: false, reason: "invalid call room" };
+    if (!match) return { ok: false, publish: false, reason: "invalid call room" };
     const [, userA, userB] = match;
-    return { ok: userA === userId || userB === userId };
+    return { ok: userA === userId || userB === userId, publish: userA === userId || userB === userId };
   }
-  return { ok: false, reason: "unsupported room" };
+  return { ok: false, publish: false, reason: "unsupported room" };
 }
 
 function base64UrlEncode(input: Uint8Array | ArrayBuffer): string {
@@ -137,7 +164,7 @@ export default {
       exp: now + ttl,
       nbf: now,
       // Grant: can publish + subscribe to audio/video (camera/mic/screen) and data.
-      video: { room, roomJoin: true, canPublish: true, canSubscribe: true, canPublishData: true },
+      video: { room, roomJoin: true, canPublish: access.publish, canSubscribe: true, canPublishData: true },
       sid: "", // server-assigned room id (left blank = create-or-join)
       name,
     };
