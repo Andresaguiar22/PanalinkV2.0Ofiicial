@@ -95,6 +95,21 @@ object VcdnUrlResolver {
     }
 
     /**
+     * True when [url] points at a VCDN host that no longer serves content.
+     *
+     * The upload pipeline used to persist `.../poster.jpg` on `storage.vcdn.me`;
+     * that host now answers 404 for every path. Such a URL can never load, so it
+     * must not be trusted as a thumbnail (resolve through the BFF instead) nor
+     * persisted for new uploads.
+     */
+    fun isDeadPosterHost(url: String?): Boolean {
+        val raw = url?.trim().orEmpty()
+        if (raw.isEmpty()) return false
+        val host = try { Uri.parse(raw).host?.lowercase() } catch (_: Exception) { null } ?: return false
+        return host == "storage.vcdn.me" || host.endsWith(".storage.vcdn.me")
+    }
+
+    /**
      * Devuelve el instante (epoch millis) en que caducara la URL firmada resuelta,
      * o 0 si se desconoce. Lo usa el feed largo para saber cuando necesita re-resolver
      * antes de que el token expire y el video se atragante a mitad de reproduccion.
@@ -275,7 +290,10 @@ object VcdnUrlResolver {
         val raw = originalUrl?.trim().orEmpty()
         if (!isVcdnUrl(raw)) return@withContext null
         val videoId = videoIdOf(raw) ?: return@withContext null
-        cache[videoId]?.let { return@withContext it.posterUrl }
+        // Only trust a cached entry that actually carries a poster: an entry cached
+        // by a stream resolve may have posterUrl == null, and returning null there
+        // would leave the caller without a thumbnail even though the BFF has one.
+        cache[videoId]?.posterUrl?.takeIf { it.isNotBlank() }?.let { return@withContext it }
         if (!com.example.util.NetworkMonitor.isOnline.value) return@withContext null
         try {
             val fetchResult = fetchConfig(videoId)

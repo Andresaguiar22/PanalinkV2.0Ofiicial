@@ -89,10 +89,19 @@ fun SavedGrid(viewModel: ProfileViewModel, onNavigateToReel: (String) -> Unit) {
                                         .background(Color(0xFF1E1E24))
                                         .clickable { onNavigateToReel(item.state.id) }
                                 ) {
-                                    val mediaUrl = item.state.mediaUrl
-                                    if (!mediaUrl.isNullOrBlank()) {
+                                    // Saved items are reels/stories too: reuse the same
+                                    // thumbnail resolution (live URL -> VCDN BFF poster).
+                                    // Passing the raw mediaUrl to Coil never worked for
+                                    // `vcdn://` pointers (it is not an image URL).
+                                    val resolvedThumbnail = rememberReelThumbnail(
+                                        thumbnailUrl = item.state.thumbnailUrl,
+                                        posterUrl = item.state.vcdnPosterUrl,
+                                        mediaUrl = item.state.mediaUrl,
+                                        vcdnVideoId = item.state.vcdnVideoId
+                                    )
+                                    if (resolvedThumbnail.isNotBlank()) {
                                         AsyncImage(
-                                            model = mediaUrl,
+                                            model = resolvedThumbnail,
                                             contentDescription = "Saved item",
                                             modifier = Modifier.fillMaxSize(),
                                             contentScale = ContentScale.Crop

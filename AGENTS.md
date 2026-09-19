@@ -652,3 +652,65 @@ Se dibujaron las cajas calculadas sobre la captura para confirmar alineacion y a
   ```
   Verificar SIEMPRE con `curl https://work-1-…/health` (ok) y `curl -sI …/Panalink-BETA-*.apk | grep -E 'HTTP|content-length'` antes de entregar links。
 
+---
+
+## 🖼️ Miniaturas grises en el grid de reels del perfil (sesiones 2026-09-18/19, rama `kilo/feed-thumbnails-fix`)
+
+### Causa raiz (medida sobre prod, no inferida)
+* La tabla remota real es **`social.user_reels`** (NO `public.user_reels`, NO `user_states`). 22 filas; 21 con `thumbnail_url`.
+* El pipeline de subida (`VcdnUploadManager` via edge function `vcdn-upload`) persistio el poster como
+  `https://storage.vcdn.me/vcdn-hls/videos/<videoId>/poster.jpg`. **Ese host ya no sirve contenido**:
+  las **19 de 21** filas con esa URL devuelven **HTTP 404** (la raiz `storage.vcdn.me` da 403).
+  Coil fallaba en silencio -> tarjeta gris permanente. Las otras **2** (Supabase Storage) daban **200** en ~1.2s,
+  y por eso el usuario reportaba "unas si se ven y otras no".
+* El **BFF de VCDN** si expone el poster real:
+  `GET https://embed.vcdn.me/api/bff/player-config/{videoId}` -> `posterUrl`
+  tipo `https://cdn.vcdn.me/cdn/p1/...` -> **HTTP 200 en 0.2-0.7s** (~89 KB, `content-type: image/jpeg`,
+  `cache-control: public, max-age=3600`). La URL es estable entre llamadas.
+* Nota: la URL del poster **NO** se puede derivar del videoId; hay que pedirsela al BFF.
+
+### Fix (3 capas)
+1. **UI runtime** (defensa principal): nuevo `rememberReelThumbnail`
+   (`app/src/main/java/com/example/ui/profile/components/ReelThumbnail.kt`). Si la miniatura persistida falta o
+   apunta al host muerto, re-resuelve el poster real del BFF y lo usa en Coil. Se **siembra** con la URL valida
+   para que el primer frame ya pinte imagen (sin estado gris intermedio) y las filas ya sanas no hacen red extra.
+   **Ojo**: usar `state.vcdnVideoId` (NO `mediaUrl`) como puntero estable, porque `fetchUserReels` ya
+   resuelve `mediaUrl` a https firmado y `VcdnUrlResolver.resolvePoster` solo entiende `vcdn://`.
+2. **Datos**: backfill de las 20 filas de `social.user_reels` a su poster real `cdn.vcdn.me`
+   (SQL via Management API `/database/query`, con verificacion HTTP 200 del poster ANTES de escribir).
+   Resultado verificado: **0 miniaturas muertas / 20 reales**.
+   `StateUrlResolver.stabilizeEntityForRoom` conserva `thumbnailUrl = entity.thumbnailUrl ?: existing.thumbnailUrl`,
+   asi que un thumbnail nuevo del server SI pisa el viejo del Room (el backfill se propaga).
+3. **Pipeline**: `VcdnUploadManager` ya no persiste un poster de host muerto en subidas nuevas
+   (`VcdnUrlResolver.isDeadPosterHost`).
+
+### Archivos tocados
+* NUEVO `app/src/main/java/com/example/ui/profile/components/ReelThumbnail.kt`.
+* `VcdnUrlResolver.kt`: `isDeadPosterHost()` + `resolvePoster()` ya no se conforma con una entrada de cache
+  **sin** poster (una entrada creada por un resolve de stream puede tener `posterUrl == null` y dejaba al
+  caller sin miniatura aunque el BFF si la tuviera).
+* `VcdnUploadManager.kt`, `ReelsGrid.kt`, `SavedGrid.kt`, `ReelsFeedScreen.kt`.
+
+### Bug extra encontrado y arreglado (misma investigacion)
+* **`ReelsFeedScreen` no aterrizaba en el reel clicado**: `rememberPagerState(initialPage = initialIndex)`
+  solo aplica en la **primera composicion**. Si entrabas desde una tarjeta antes de que la lista cargara,
+  el pager nacia con la lista vacia (pagina 0) y **nunca** saltaba al objetivo. Fix:
+  `LaunchedEffect(filteredReels, initialStateId)` que hace `scrollToPage(target)` cuando la lista llega.
+* `SavedGrid` pasaba el `mediaUrl` crudo (un puntero `vcdn://`) a `AsyncImage`; eso jamas puede ser una
+  imagen. Ahora usa el helper igual que `ReelsGrid`.
+
+### Entrega BETA (modalidad del repo)
+* Rama `kilo/feed-thumbnails-fix` (commit `1e3ec49`), pusheada a origin.
+* Beta `v1.3.48-beta`, code **75** (>= 74, evita el downgrade que Android 14+ rechaza como "paquete invalido"),
+  package `com.panalink.app.beta`, label `PanaLink Beta`, firma `CN=Panalink Beta` (la estable).
+* SHA-256 `5c6cb9a0c6de5ce703cf5bb28311b49fae2bd4b93b99a21bb026f6cd1798dd4e` (69.530.849 bytes).
+* URL (host/puerto **de esta sesion**; verificar siempre con `curl -sI` antes de entregar):
+  `https://work-2-jsktqdnlyftdybkc.prod-runtime.all-hands.dev/Panalink-BETA-v1.3.48-code75.apk` (puerto 12001).
+* **El host del sandbox cambia por sesion**: el log de `build_beta.sh` imprime una URL con un host propio
+  (`work-1-kpffhphchmmnrsin`) que puede NO ser el activo. Confirmar con `hostname`/`WORKER_1`/`WORKER_2`
+  del entorno y probar `work-1` y `work-2` con `curl -sI` antes de dar el link.
+* Verificaciones hechas: descarga completa desde la URL publica == SHA local, `zipalign -c -v 4` OK,
+  `apksigner` v2 true + `CN=Panalink Beta`, `extractNativeLibs=0xffffffff`, ABIs `arm64-v8a`+`armeabi-v7a`.
+* Compila: `:app:compileDebugKotlin` + `:app:compileDebugUnitTestKotlin` -> BUILD SUCCESSFUL;
+  `sanitize_invisible.sh` limpio (la regla anti-heredoc sigue vigente: este bloque se anadio con `file_editor`).
+

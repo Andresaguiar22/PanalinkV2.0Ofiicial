@@ -106,7 +106,7 @@ object VcdnUploadManager {
                 return@withContext Result.success(
                     UploadMediaResult(
                         url = "vcdn://$videoId",
-                        thumbnailUrl = existingPoster.ifBlank { null },
+                        thumbnailUrl = existingPoster.takeIf { it.isNotBlank() && !VcdnUrlResolver.isDeadPosterHost(it) },
                         mime = mimeType,
                         size = file.length(),
                         duration = 0L,
@@ -191,7 +191,7 @@ object VcdnUploadManager {
             Result.success(
                 UploadMediaResult(
                     url = "vcdn://$videoId",
-                    thumbnailUrl = poster.ifBlank { null },
+                    thumbnailUrl = poster.takeIf { it.isNotBlank() && !VcdnUrlResolver.isDeadPosterHost(it) },
                     mime = mimeType,
                     size = file.length(),
                     duration = 0L,
