@@ -62,7 +62,7 @@ fun LiveGuestScreen(
     fun leaveCoHost() {
         scope.launch(Dispatchers.IO) {
             try {
-                guestViewModel.removeGuest(liveId, currentUserId)
+                guestViewModel.leaveLive(liveId)
             } catch (_: Exception) {}
             roomRepository.leaveRoom()
         }
