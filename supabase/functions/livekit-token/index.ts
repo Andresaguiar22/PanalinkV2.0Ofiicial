@@ -113,7 +113,7 @@ function getUserId(req: Request): string | null {
   }
 }
 
-Deno.serve(async (req: Request): Promise<Response> => {
+Deno.serve(async (req: Request) => {
     if (req.method !== "POST") {
       return Response.json({ error: "Method not allowed" }, { status: 405 });
     }
