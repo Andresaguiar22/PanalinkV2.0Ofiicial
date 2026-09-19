@@ -13,6 +13,12 @@ import okhttp3.*
 import org.json.JSONObject
 import java.util.concurrent.ConcurrentHashMap
 import java.util.concurrent.TimeUnit
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.Job
+import kotlinx.coroutines.SupervisorJob
+import kotlinx.coroutines.delay
+import kotlinx.coroutines.launch
 
 class LivePresenceManager(
     private val streamId: String,
@@ -38,10 +44,21 @@ class LivePresenceManager(
 
     private var webSocket: WebSocket? = null
     private var isJoined = false
+    @Volatile private var intentionallyStopped = false
+    private var reconnectJob: Job? = null
+    private val reconnectScope = CoroutineScope(SupervisorJob() + Dispatchers.IO)
+    private var reconnectAttempt = 0
 
     fun start() {
         if (isJoined) return
+        intentionallyStopped = false
         isJoined = true
+        reconnectAttempt = 0
+        connectSocket()
+    }
+
+    private fun connectSocket() {
+        if (intentionallyStopped) return
         val token = SupabaseClient.currentToken
         var wsUrl = SupabaseClient.supabaseUrl.replace("https://", "wss://").replace("http://", "ws://").removeSuffix("/") + "/realtime/v1/websocket?apikey=${SupabaseClient.supabaseAnonKey}&vsn=1.0.0"
         if (!token.isNullOrEmpty()) wsUrl += "&token=$token"
@@ -83,6 +100,11 @@ class LivePresenceManager(
 
             override fun onFailure(ws: WebSocket, t: Throwable, response: Response?) {
                 Log.w(TAG, "Presence socket failure: ${t.message}")
+                scheduleReconnect()
+            }
+
+            override fun onClosed(ws: WebSocket, code: Int, reason: String) {
+                if (!intentionallyStopped) scheduleReconnect()
             }
         })
     }
@@ -120,7 +142,21 @@ class LivePresenceManager(
         _viewerCount.value = present.size.coerceAtLeast(1)
     }
 
+    private fun scheduleReconnect() {
+        if (intentionallyStopped || !isJoined || reconnectJob?.isActive == true) return
+        reconnectJob = reconnectScope.launch {
+            val attempt = reconnectAttempt.coerceAtMost(5)
+            val delayMs = (1000L shl attempt).coerceAtMost(30_000L)
+            reconnectAttempt = (attempt + 1).coerceAtMost(5)
+            delay(delayMs)
+            if (!intentionallyStopped && isJoined) connectSocket()
+        }
+    }
+
     fun stop() {
+        intentionallyStopped = true
+        reconnectJob?.cancel()
+        reconnectJob = null
         if (!isJoined) return
         isJoined = false
         try {
