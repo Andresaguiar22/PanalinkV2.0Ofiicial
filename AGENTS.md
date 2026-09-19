@@ -700,10 +700,10 @@ Se dibujaron las cajas calculadas sobre la captura para confirmar alineacion y a
   imagen. Ahora usa el helper igual que `ReelsGrid`.
 
 ### Entrega BETA (modalidad del repo)
-* Rama `kilo/feed-thumbnails-fix` (commit `1e3ec49`), pusheada a origin.
+* Rama `kilo/feed-thumbnails-fix` (commit `268de45`), pusheada a origin.
 * Beta `v1.3.48-beta`, code **75** (>= 74, evita el downgrade que Android 14+ rechaza como "paquete invalido"),
   package `com.panalink.app.beta`, label `PanaLink Beta`, firma `CN=Panalink Beta` (la estable).
-* SHA-256 `5c6cb9a0c6de5ce703cf5bb28311b49fae2bd4b93b99a21bb026f6cd1798dd4e` (69.530.849 bytes).
+* SHA-256 `4f8b23ec196c9ff6ece1ef128263ce168673a80149c0c5668ad2f5bb98c18a06` (69.531.358 bytes).
 * URL (host/puerto **de esta sesion**; verificar siempre con `curl -sI` antes de entregar):
   `https://work-2-jsktqdnlyftdybkc.prod-runtime.all-hands.dev/Panalink-BETA-v1.3.48-code75.apk` (puerto 12001).
 * **El host del sandbox cambia por sesion**: el log de `build_beta.sh` imprime una URL con un host propio
