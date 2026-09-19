@@ -1,8 +1,10 @@
 -- R1: restaurar RPC de voice room que nunca se aplicaron en prod
 -- Origen: 20260907200000_voice_rooms_settings.sql (commit de5cb8a, main)
--- Motivo: el APK v1.3.49 las invoca, el schema existe en prod, la migracion
---        historica NO quedo registrada en schema_migrations, las 4 funciones no existen.
+-- Motivo: el APK v1.3.49 las invoca, el schema existe en prod, la migracion historica
+--        NO quedo registrada en schema_migrations y las 4 funciones no existen en pg_proc.
 -- La replica preserva SECURITY DEFINER + set search_path + checks owner/admin de la original.
+-- Cambios de revision: get_voice_room_banned exige auth+admin y devuelve la columna userId
+-- (VoiceRoomBanDto.userId no mapea user_id); se revoca EXECUTE PUBLIC y se concede solo a authenticated.
 
 
 -- Panalink Voice Rooms: room settings management for owners (edit, delete, admins, bans).
@@ -47,18 +49,22 @@ end;
 $$;
 
 create or replace function public.get_voice_room_banned(p_room_id uuid) returns table(
-    user_id uuid,
+    userId uuid,
     display_name text,
     avatar_url text,
     reason text,
     banned_at timestamptz
-) language sql stable security definer set search_path='' as $$
-select b.user_id, coalesce(p.display_name,''), p.avatar_url, b.reason, b.created_at
-from public.voice_room_bans b
-left join public.public_profiles p on p.id = b.user_id
-where b.room_id = p_room_id
-order by b.created_at desc;
-$$;
+) language plpgsql security definer set search_path='' as $$
+begin
+    if (select auth.uid()) is null then raise exception 'NOT_AUTHENTICATED'; end if;
+    if not public.voice_room_is_admin(p_room_id) then raise exception 'NOT_ROOM_ADMIN'; end if;
+    return query
+        select b.user_id, coalesce(p.display_name,''), p.avatar_url, b.reason, b.created_at
+        from public.voice_room_bans b
+        left join public.public_profiles p on p.id = b.user_id
+        where b.room_id = p_room_id
+        order by b.created_at desc;
+end;$$;
 
 create or replace function public.remove_voice_room_ban(p_room_id uuid,p_user_id uuid) returns void language plpgsql security definer set search_path='' as $$
 begin
@@ -68,6 +74,10 @@ begin
 end;
 $$;
 
+revoke execute on function public.update_voice_room_settings(uuid, text, text, text, text, text, boolean) from public;
+revoke execute on function public.delete_voice_room(uuid) from public;
+revoke execute on function public.get_voice_room_banned(uuid) from public;
+revoke execute on function public.remove_voice_room_ban(uuid, uuid) from public;
 grant execute on function public.update_voice_room_settings(uuid, text, text, text, text, text, boolean) to authenticated;
 grant execute on function public.delete_voice_room(uuid) to authenticated;
 grant execute on function public.get_voice_room_banned(uuid) to authenticated;
