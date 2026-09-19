@@ -19,6 +19,7 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.PersonAdd
 import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.OutlinedButton
+import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
@@ -79,10 +80,13 @@ fun LiveGuestControls(
                 title = { Text("Gestionar Invitados (Co-Host)") },
                 text ={
                     Column(modifier = Modifier.fillMaxWidth()) {
-                        Text(
-                            "ID del usuario a invitar",
-                            fontWeight = FontWeight.Bold,
-                            fontSize =  13.sp
+                        OutlinedTextField(
+                            value = inviteUserId,
+                            onValueChange = { inviteUserId = it },
+                            singleLine = true,
+                            label = { Text("ID del usuario") },
+                            placeholder = { Text("UUID del usuario") },
+                            modifier = Modifier.fillMaxWidth()
                         )
                         Spacer(modifier = Modifier.height(8.dp))
                         Text(
