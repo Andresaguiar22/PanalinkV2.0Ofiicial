@@ -103,22 +103,31 @@ class LiveGuestRepositoryImpl(private val context: Context) : LiveGuestRepositor
     override suspend fun leaveLive(streamId: String): Result<Unit> {
         return withContext(Dispatchers.IO) {
             try {
-                val url = "${SupabaseClient.supabaseUrl}/rest/v1/live_guests?stream_id=eq.$streamId&guest_user_id=eq.${SupabaseClient.currentUser?.id ?: ""}"
+                val baseUrl = "${SupabaseClient.supabaseUrl}/rest/v1/live_guests?stream_id=eq.$streamId&guest_user_id=eq.${SupabaseClient.currentUser?.id ?: ""}"
                 val token = SupabaseClient.currentToken ?: return@withContext Result.failure(Exception("No token"))
-                val body = JSONObject().put("status", "DISCONNECTED").toString().toRequestBody(jsonMediaType)
 
-                val request = Request.Builder()
-                    .url(url)
-                    .patch(body)
-                    .header("apikey", SupabaseClient.supabaseAnonKey)
-                    .header("Authorization", "Bearer $token")
-                    .header("Content-Type", "application/json")
-                    .header("Prefer", "return=minimal")
-                    .build()
+                val activeBody = JSONObject().put("status", "DISCONNECTED").toString().toRequestBody(jsonMediaType)
+                val pendingBody = JSONObject().put("status", "REJECTED").toString().toRequestBody(jsonMediaType)
 
-                client.newCall(request).execute().use { response ->
+                client.newCall(
+                    Request.Builder().url("$baseUrl&status=in.(ACCEPTED,ACTIVE,CONNECTED)").patch(activeBody)
+                        .header("apikey", SupabaseClient.supabaseAnonKey)
+                        .header("Authorization", "Bearer $token")
+                        .header("Content-Type", "application/json")
+                        .header("Prefer", "return=minimal").build()
+                ).execute().use { response ->
+                    if (!response.isSuccessful) return@withContext Result.failure(Exception("Error leaving live: ${response.code}"))
+                }
+
+                client.newCall(
+                    Request.Builder().url("$baseUrl&status=eq.PENDING").patch(pendingBody)
+                        .header("apikey", SupabaseClient.supabaseAnonKey)
+                        .header("Authorization", "Bearer $token")
+                        .header("Content-Type", "application/json")
+                        .header("Prefer", "return=minimal").build()
+                ).execute().use { response ->
                     if (response.isSuccessful) Result.success(Unit)
-                    else Result.failure(Exception("Error leaving live: ${response.code}"))
+                    else Result.failure(Exception("Error cancelling request: ${response.code}"))
                 }
             } catch (e: Exception) {
                 Result.failure(e)
