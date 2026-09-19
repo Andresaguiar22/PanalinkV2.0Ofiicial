@@ -349,7 +349,9 @@ class LiveViewModel(application: Application) : AndroidViewModel(application) {
             viewModelScope.launch {
                 manager.viewerCount.collect { count ->
                     _viewerCount.value = count
-                    maybeReportViewerCount(streamId, count)
+                    if (isBroadcaster) {
+                        maybeReportViewerCount(streamId, count)
+                    }
                 }
             }
             viewModelScope.launch {
