@@ -35,7 +35,7 @@ class LiveGuestRepositoryImpl(private val context: Context) : LiveGuestRepositor
                 val body = JSONObject().apply {
                     put("stream_id", streamId)
                     put("guest_user_id", guestUserId)
-                    put("status", "PENDING")
+                    put("status", "INVITED")
                 }.toString().toRequestBody(jsonMediaType)
 
                 val request = Request.Builder()
@@ -105,7 +105,7 @@ class LiveGuestRepositoryImpl(private val context: Context) : LiveGuestRepositor
             try {
                 val url = "${SupabaseClient.supabaseUrl}/rest/v1/live_guests?stream_id=eq.$streamId&guest_user_id=eq.${SupabaseClient.currentUser?.id ?: ""}"
                 val token = SupabaseClient.currentToken ?: return@withContext Result.failure(Exception("No token"))
-                val body = JSONObject().put("status", "LEFT").toString().toRequestBody(jsonMediaType)
+                val body = JSONObject().put("status", "DISCONNECTED").toString().toRequestBody(jsonMediaType)
 
                 val request = Request.Builder()
                     .url(url)
