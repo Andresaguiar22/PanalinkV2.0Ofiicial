@@ -114,13 +114,27 @@ fun LiveGuestScreen(
                         Button(
                             onClick = {
                                 scope.launch {
-                                    guestViewModel.acceptInvitation(liveId, currentUserId)
+                                    val accepted = guestViewModel.acceptInvitation(liveId, currentUserId)
+                                    if (accepted.isFailure) {
+                                        android.widget.Toast.makeText(
+                                            context,
+                                            "No se pudo aceptar la invitación. Puede haber expirado.",
+                                            android.widget.Toast.LENGTH_SHORT
+                                        ).show()
+                                        return@launch
+                                    }
                                     hasAccepted = true
                                     liveStream?.let { stream ->
                                         val tokenResult = viewModel.getLiveToken(stream.roomName, currentUserId, "publisher")
                                         if (tokenResult.isSuccess) {
                                             val tokenRes = tokenResult.getOrThrow()
                                             roomRepository.startBroadcast(tokenRes.serverUrl, tokenRes.token)
+                                        } else {
+                                            android.widget.Toast.makeText(
+                                                context,
+                                                "No se pudo conectar al directo.",
+                                                android.widget.Toast.LENGTH_SHORT
+                                            ).show()
                                         }
                                     }
                                 }
