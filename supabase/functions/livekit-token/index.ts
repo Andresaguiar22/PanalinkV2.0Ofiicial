@@ -174,4 +174,5 @@ Deno.serve(async (req: Request): Promise<Response> => {
 
     const token = `${signingInput}.${sig}`;
     return Response.json({ token, url: LIVEKIT_URL, identity, room });
+  }
 });
