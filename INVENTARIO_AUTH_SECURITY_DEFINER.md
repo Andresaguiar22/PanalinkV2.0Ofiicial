@@ -234,7 +234,24 @@ Tres migraciones separadas (rollback selectivo posible), aplicadas y verificadas
 | D vCDN/RLS |`grant execute on function <fn(signature)> to authenticated;` |
 | E legacy |`grant execute on function <fn(signature)> to authenticated;` |
 
-Los REVOKEs son **no destructivos** (las funciones, triggers y policies siguen intactas); el rollback es puramente ACL grants reversibles. No hay datos que restaurar.
+Los REVOKEs son **no destructivos** (las funciones, triggers y policies siguen intactas);el rollback es puramente ACL grants reversibles. No hay datos que restaurar.
+
+
+
+## Fase 2bis — Lote F: investigación de los 54 restantes (2026-09-19)
+
+Revisión individual, função por função, de las 54 funciones `authenticated_security_definer_function_executable` restantes (clasificación documentada en el cuerpo de la sesión: 52 CONSERVAR + 2 INVESTIGAR。
+
+De las 2 investigadas:
+
+| Función | APK v1.3.49 | Callers intra-DB | RLS tabla | Riesgo | Decisión |
+|---|---|---|---|---|---|
+| `live_ensure_wallet(uuid)` | **0** — NO endpoint directo (0/6 DEX) | `live_send_gift`, `live_wallet_balance` (ambas SECURITY DEFINER) | `user_wallets`: solo policy `SELECT own` (`user_id=auth.uid()`);sin INSERT policy | 🔴 **Exploitable**: acepta `p_user_id` arbitrario sin validar;SECURITY DEFINER ignora RLS→ crea wallets de terceros (5000 🪙 gratis, y lee saldos ajenos | **REVOKE `authenticated`** (mantener `service_role`+`postgres`);aplicado y verificado: `auth_x=false`, `sr_x=true`; smoke test:`live_send_gift` y `live_wallet_balance` intactas (`auth_x=true`, SECURITY DEFINER) |
+| `get_voice_room_decor(uuid)` | **SÍ** — endpoint `rest/v1/rpc/get_voice_room_decor` (classes4.dex) | setters admin (`set_voice_room_entrance`/`set_voice_room_pendant`, validan `voice_room_is_admin`) | `voice_room_decor`: RLS `read` con `qual=true` (cualquier authenticated ya lee la tabla) | 🟢 Ninguno real: la RLS ya expone los datos decorativos a todos los authenticated;SECURITY DEFINER no amplía acceso;datos cosméticos (no sensibles | **CONSERVAR `authenticated`** (si se quiere exigir pertenencia, es decisión de producto, no hardening ACL) |
+
+**Métrica post-Lote-F**: `authenticated_security_definer_function_executable` = **54 →  ́53** (se revocó solo `live_ensure_wallet`).
+
+Migración nueva: `20260919130000_revoke_authenticated_live_ensure_wallet.sql` (1 REVOKE, rollback = `grant execute on function public.live_ensure_wallet(uuid) to authenticated;`).
 
 
 
