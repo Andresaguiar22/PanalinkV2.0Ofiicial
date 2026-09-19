@@ -47,7 +47,6 @@ async function canJoinRoom(userId: string, room: string, authHeader: string | nu
     }
   }
   if (room.startsWith("voice_")) {
-  if (room.startsWith("voice_")) {
     const roomId = room.slice("voice_".length);
     if (!/^[0-9a-fA-F-]{36}$/.test(roomId)) return { ok: false, publish: false, reason: "invalid voice room" };
     if (!SUPABASE_URL || !SERVICE_KEY) return { ok: false, publish: false, reason: "server not configured" };
