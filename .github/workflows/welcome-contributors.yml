@@ -1,0 +1,44 @@
+name: welcome-contributors
+
+on:
+  pull_request_target:
+    types: [opened]
+
+permissions:
+  pull-requests: write
+
+jobs:
+  welcome:
+    if: github.event.pull_request.head.repo.fork == true
+    runs-on: ubuntu-latest
+    steps:
+      - name: Comentar bienvenida en PRs de forks
+        uses: actions/github-script@v7
+        with:
+          script: |
+            const existing = await github.rest.issues.listComments({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              issue_number: context.issue.number,
+              per_page: 100
+            });
+            if (existing.data.some(c => c.body && c.body.includes('Gracias por tu PR'))) return;
+            await github.rest.issues.createComment({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              issue_number: context.issue.number,
+              body: [
+                '## 👋 Gracias por tu PR',
+                '',
+                'Gracias por querer colaborar en Panalink. Antes de que se revise, verificá que:',
+                '',
+                '- [ ] El proyecto compila (`./gradlew :app:compileDebugKotlin`)',
+                '- [ ] No se incluyen **secretos** (claves, tokens, keystores, `google-services.json` reales). El CI bloqueará el PR automáticamente si los detecta.',
+                '- [ ] No se incluyen datos de usuarios reales ni URLs internas.',
+                '- [ ] Se siguió la [guía de contribución](../../blob/main/CONTRIBUTING.md)',
+                '',
+                '🔒 **Importante**: este repositorio es **privado** y no acepta PRs de forks externos sin invitación previa. Este PR será revisado y, en su caso, se te invitará como colaborador con el rol adecuado.',
+                '',
+                '_Comentario automático generado por un agente de IA (OpenHands) en nombre del mantenedor._'
+              ].join('\n')
+            });
