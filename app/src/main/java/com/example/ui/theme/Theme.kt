@@ -417,8 +417,16 @@ fun MyApplicationTheme(
     customColors: AppColors? = null,
     content: @Composable () -> Unit,
 ) {
-    val activeColors = remember(themeKey, customColors) { 
-        getColorsForTheme(themeKey, customColors) 
+    // Panalink tiene una identidad de marca OSCURA (navy + constelacion + crema).
+    // El modo del sistema no debe aclararla: para ver la app clara hay que elegir
+    // "Claro" explicitamente. Sin esto, un telefono en modo claro resuelve a
+    // halo_light y desaparece el fondo de constelacion en toda la app.
+    val themeMode by ThemeManager.themeMode.collectAsState()
+    val explicitLight = themeMode == "claro"
+
+    val activeColors = remember(themeKey, customColors, explicitLight) {
+        val base = getColorsForTheme(themeKey, customColors)
+        if (base.isDark || explicitLight) base else HaloDarkColors
     }
 
     val isDark = activeColors.isDark
