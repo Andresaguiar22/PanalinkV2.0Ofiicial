@@ -17,11 +17,13 @@ import io.livekit.android.room.track.VideoTrack
 fun LiveParticipantsLayout(
     broadcasterVideoTrack: VideoTrack?,
     guestVideoTrack: VideoTrack?,
-    modifier: Modifier = Modifier
+    modifier: Modifier = Modifier,
+    initRenderer: ((io.livekit.android.renderer.SurfaceViewRenderer) -> Unit)? = null
 ) {
     Box(modifier = modifier.fillMaxSize()) {
         LiveVideoSurface(
             videoTrack = broadcasterVideoTrack,
+            initRenderer = initRenderer,
             modifier = Modifier.fillMaxSize()
         )
 
@@ -38,6 +40,7 @@ fun LiveParticipantsLayout(
                 Box(modifier = Modifier.fillMaxSize()) {
                     LiveVideoSurface(
                         videoTrack = guestVideoTrack,
+                        initRenderer = initRenderer,
                         modifier = Modifier.fillMaxSize()
                     )
                     Surface(

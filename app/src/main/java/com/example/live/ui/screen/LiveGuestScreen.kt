@@ -165,6 +165,7 @@ fun LiveGuestScreen(
                 ) {
                     LiveVideoSurface(
                         videoTrack = videoTrack,
+                        initRenderer = roomRepository::initVideoRenderer,
                         modifier = Modifier.fillMaxSize()
                     )
 
