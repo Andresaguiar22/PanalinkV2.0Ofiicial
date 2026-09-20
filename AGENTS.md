@@ -738,3 +738,22 @@ Se dibujaron las cajas calculadas sobre la captura para confirmar alineacion y a
 * **Iconos de la barra**: `PanalinkIcons` en el skin → `Forum` (dos burbujas), `Star`, `MovieCreation` (claqueta), `Phone` y **`Gente` = libreta de contactos vectorial propia** (`ContactsBook`, `ImageVector` con `PathFillType.EvenOdd`: rect redondeado + cabeza/hombros como huecos + 3 anillas al canto). Geometría validada rasterizando el path con PIL antes de compilar (`/tmp/icon_check.py`).
 * **Rendimiento del fondo global**: `ConstellationBackground` precalcula las posiciones en fracciones (`remember(seed, pointCount)`) y las escala en el draw; antes recalculaba puntos y enlaces en cada ejecución del bloque de dibujo (y ahora el fondo está en TODAS las pantallas).
 * **Beta**: `v1.3.50-beta`, code **77**, SHA-256 `2ef94f9b5ca814ce36b7bd9855dd306fed903b7bc80322101603ca58dba96761` (69.569.669 bytes), package `com.panalink.app.beta`, firma estable `CN=Panalink Beta`. Verificado: sha servido == local, `zipalign` OK, `extractNativeLibs=0xffffffff`, ABIs ARM.
+
+#### 🚨 EL FONDO "DESAPARECIO" — el modo del sistema apagaba el tema Prestige (sesion 2026-09-20, commit `1973af0`)
+* **Sintoma reportado**: "quitaste el fondo que habias puesto primero" — la constelacion se veia en la beta 1 (solo Chats) y desaparecio en la beta 2 (global).
+* **Diagnostico (por eliminacion, no por intuicion)**: en la ruta de render de Chats NO hay ninguna capa opaca (`ChatsListScreen` Scaffold/Box en `Color.Transparent`, `MainNavHost` sin fondo, `ChatsTabContent` LazyColumn sin fondo), asi que en modo oscuro el fondo SI se dibuja. La unica diferencia funcional entre beta 1 y beta 2 era la guarda `if (activeColors.isDark)`. ⇒ el equipo estaba resolviendo a un **tema claro**.
+* **Cadena causal**: `theme_mode_global` por defecto = `"system"` (en `MainActivity` y `CustomizationRepository`) → `resolveThemeForMode("halo_dark","system", systemDark=false)` → `resolveLightTheme("halo_dark")` = `"halo_light"` → `HaloLightColors.isDark = false` (fondo `#F4FAF7`, blanco menta). En beta 1 la constelacion se dibujaba **sin condicion** en `ChatsListScreen`, por eso se veia ahi y en ningun otro lado. En beta 2 se movio al tema con guarda `isDark` → invisible en TODO.
+* **REGLA**: cuando el usuario reporta "desaparecio X", comparar **que cambio funcionalmente** entre las dos versiones, no buscar el culpable en la version nueva. Aqui la guarda nueva era la unica diferencia.
+* **Fix (Theme.kt, `MyApplicationTheme`)**: Panalink tiene **identidad de marca oscura**, asi que el modo del sistema NO la aclara. Solo se usa la paleta clara si el usuario eligio `"claro"` explicitamente:
+  ```kotlin
+  val themeMode by ThemeManager.themeMode.collectAsState()
+  val explicitLight = themeMode == "claro"
+  val activeColors = remember(themeKey, customColors, explicitLight) {
+      val base = getColorsForTheme(themeKey, customColors)
+      if (base.isDark || explicitLight) base else HaloDarkColors
+  }
+  ```
+  Con eso `activeColors.isDark` es true por defecto → la constelacion y los textos crema vuelven a verse en toda la app. Si alguien elige "Claro" a mano, sigue funcionando el tema claro (sin constelacion navy, que seria ilegible).
+* **Leccion de diseno**: el fondo/tipografia de marca NO deben depender de una bandera derivada del sistema operativo. Si es el aspecto por defecto de la app, se fija como identidad base.
+* **Beta**: `v1.3.51-beta`, code **78**, SHA-256 `542e22122d128c9ca625dd7b940168de9348b298bf5148580522650e9b7fef61` (69.569.807 bytes). Verificado: sha servido == local, `zipalign` OK, `apksigner` v2 `CN=Panalink Beta`, ABIs ARM, `zip.testzip()=None`.
+* **Nota de servidor**: en esta sesion el 12001 volvio a dar **502** (el sandbox mata los `nohup`); se recupero relanzando `scripts/serve_apk_watchdog.sh` y `scripts/serve_upload_watchdog.sh`. **El puerto 12000 (`upload_server.py`) sigue sin servir `/apk/...`** (404): entregar siempre por 12001.
