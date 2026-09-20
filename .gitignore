@@ -23,6 +23,7 @@ app/google-services.json
 secrets.properties
 secrets.defaults.properties
 server/PanalinkStorage/*
+server/node_modules/
 
 
 # Toolchain local generado por scripts/setup_toolchain.sh
