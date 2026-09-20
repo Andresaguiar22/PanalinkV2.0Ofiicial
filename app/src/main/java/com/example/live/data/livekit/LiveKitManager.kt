@@ -30,6 +30,12 @@ class LiveKitManager(private val context: Context) {
     private val CONNECT_TIMEOUT_MS = 10_000L
     private val TRACK_TIMEOUT_MS = 10_000L
     private val CAMERA_WATCH_TIMEOUT_MS = 15_000L
+    // Cuando se suelta un room, release() de LiveKit es asincrono; esperamos a que el
+    // capturer de camara termine de soltar el sensor antes de declarar el teardown listo.
+    // Sin esto, al hacer un segundo live el capturer del anterior puede seguir agarrando
+    // la camara -> preview NEGRO ("cámara ocupada" sin error visible).
+    private val CAMERA_RELEASE_WAIT_MS = 3_000L
+    private val CAMERA_RELEASE_GRACE_MS = 300L
 
     private var room: Room? = null
     private var eventsJob: Job? = null
@@ -312,19 +318,39 @@ class LiveKitManager(private val context: Context) {
             room = null
             if (currentRoom != null) {
                 withContext(Dispatchers.Main) {
+                    // El disconnect() de LiveKit dispara el teardown de la sala y de los
+                    // tracks/capturers. Es OBLIGATORIO llamarlo SIEMPRE, aun cuando la sala
+                    // ya este Disconnected: sin disconnect() previo, release() puede
+                    // saltarse la liberacion del capturer de camara y el SEGUNDO live se
+                    // queda con el sensor tomado -> preview NEGRO.
                     try {
+                        if (currentRoom.state != Room.State.DISCONNECTED) {
+                            currentRoom.disconnect()
+                        }
                         currentRoom.localParticipant.setCameraEnabled(false)
                         currentRoom.localParticipant.setMicrophoneEnabled(false)
                     } catch (e: Exception) {
-                        Log.e(TAG, "Error disabling camera/mic on disconnect", e)
+                        Log.e(TAG, "Error disconnecting room / disabling camera-mic", e)
                     }
                     try {
                         currentRoom.release()
                     } catch (e: Exception) {
                         Log.e(TAG, "Error releasing room", e)
                     }
+                    // release() de LiveKit es ASINCRONO: devuelve antes de que el teardown
+                    // interno (incluido el CameraCapturer) haya terminado. Si no esperamos,
+                    // el capturer del room viejo puede seguir agarrado a la camara cuando el
+                    // siguiente live pida el sensor -> "segundo live en negro".
+                    val deadline = System.currentTimeMillis() + CAMERA_RELEASE_WAIT_MS
+                    while (currentRoom.state != Room.State.DISCONNECTED &&
+                        System.currentTimeMillis() < deadline
+                    ) {
+                        delay(50)
+                    }
+                    // Cortesia extra para que el capturer del SO suelte el hardware.
+                    delay(CAMERA_RELEASE_GRACE_MS)
                 }
-                Log.i(TAG, "Room anterior liberado (camara/mic soltados y room.release() hecho)")
+                Log.i(TAG, "Room anterior liberado (disconnect+release completos, camara libre)")
             }
             _localVideoTrack.value = null
             _remoteVideoTrack.value = null

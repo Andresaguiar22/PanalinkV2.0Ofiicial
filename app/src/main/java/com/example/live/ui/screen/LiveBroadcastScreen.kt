@@ -129,10 +129,12 @@ fun LiveBroadcastScreen(
     fun stopAndFinish() {
         if (isFinishing) return
         isFinishing = true
-        // Scope de aplicacion (no el de composicion): la navegacion cancela el scope
-        // de Compose al hacer pop, y eso mataba el PATCH de ENDED a mitad ==> stream
-        // fantasma. Con LiveCleanupScope.el flujo termina aunque la pantalla ya no exista.
-        LiveCleanupScope.io.launch {
+        // El teardown DEBE completarse antes de navegar: si onNavigateBack() corre
+        // primero, el usuario puede volver a entrar a otro directo mientras la camara
+        // del room anterior aun no se solto (release() de LiveKit es asincrono) y el
+        // nuevo live se queda con preview NEGRO. Hacemos el teardown completo y recien
+        // despues navegamos atras.
+        scope.launch {
             try {
                 activeStream?.let { stream -> viewModel.endLive(stream.id) }
             } catch (_: Exception) {}
@@ -141,8 +143,8 @@ fun LiveBroadcastScreen(
             } catch (_: Exception) {}
             viewModel.stopStreamSession()
             guestViewModel.stopRealtime()
+            onNavigateBack()
         }
-        onNavigateBack()
     }
 
     /** Conecta a LiveKit (token + conexión + cámara) sin bloquear la UI de live. */
