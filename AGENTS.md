@@ -714,3 +714,16 @@ Se dibujaron las cajas calculadas sobre la captura para confirmar alineacion y a
 * Compila: `:app:compileDebugKotlin` + `:app:compileDebugUnitTestKotlin` -> BUILD SUCCESSFUL;
   `sanitize_invisible.sh` limpio (la regla anti-heredoc sigue vigente: este bloque se anadio con `file_editor`).
 
+
+### 🎨 Piel "Prestige" de la pestaña de Chats (sesión 2026-09-20, rama `kilo/chats-prestige-skin`)
+* **Origen**: el mantenedor pidió replicar *tal cual* la apariencia de una captura de la lista de chats (iconos, letras, colores y fondo), **excluyendo** el destello de 4 puntas ("icono de Géminis") y el chat que quedaba pegado bajo la barra flotante.
+* **Archivo nuevo**: `app/src/main/java/com/example/ui/theme/PanalinkPrestigeSkin.kt` → `PanalinkSkin` (paleta), `ConstellationBackground` (Canvas: navy con puntos y líneas, `Random(seed)` fijo ⇒ determinista), `GoldGlassCard(shape, container)` y `chatCardShape(ChatCardPosition)`.
+* **Paleta medida con PIL sobre la captura** (no estimada): fondo `#171D29`→`#0F141D`; relleno de tarjeta `#222A37`; pill de búsqueda `#2F3640` con borde `#4A5160`; nombres `#E8D8BA`; wordmark/iconos `#EBD9B6`; preview `#A2A6AD`; hora `#ABAEB7`; tildes `#9DA0A7`; anillo de avatar de fila dorado `#C9A96A`.
+* **Tipografía**: el wordmark "PanaLink" **y los nombres de chat** van en `FontFamily.Serif` (el mockup es claramente serif tipo Times), ExtraBold/Bold.
+* **Panel agrupado**: `ChatPreviewCard` acepta `position: ChatCardPosition` (SINGLE/TOP/MIDDLE/BOTTOM) y `ChatsTabContent` la calcula con `chatCardPositionFor(index, size)`; las tarjetas van **sin separación vertical** (`LazyColumn` sin `verticalArrangement`) ⇒ se ve un solo panel con líneas internas, como el mockup.
+* **Sin regresión de otras pestañas**: el fondo de constelación, el `Scaffold` transparente y el header transparente están condicionados a `currentRoute == "chats"` (`isChatsTab`); el resto de pestañas conserva `colors.background` y `Color.Black`.
+* **Doble tilde**: las filas muestran `DoneAll`/`Done` en gris claro cuando el último mensaje es propio (`lastMessage.senderId == SupabaseClient.currentUser?.id`), usando `seenAt`/`deliveredAt`/`status` ya existentes en `Message`.
+* **Emoji grande**: si el preview es solo emoji/símbolo (`isEmojiOnly`) se pinta a 22.sp como en el mockup.
+* **Barra inferior**: `PanaLinkFloatingBottomBar` pasó de `selected=White / inactive=Gray` a `selected=Cream / inactive=Gold`. **No** existe ni se añadió el destello de 4 puntas.
+* **Beta**: `v1.3.49-beta`, code **76**, SHA-256 `73c4e9e473a4165fb4c0149562321cb00b700781472d3e78098f76f88cb97b10` (69.564.496 bytes), package `com.panalink.app.beta`, firma estable `CN=Panalink Beta`. Verificado: sha servido == local, `zipalign` OK, `extractNativeLibs=0xffffffff`, ABIs `arm64-v8a`+`armeabi-v7a`.
+* **Ojo**: el puerto 12000 de esta sesión (`scripts/upload_server.py`) **no** sirve `/apk/<archivo>` (da 404); el APK se entrega por el **12001** (`scripts/serve_apk.py`, soporta Range ⇒ 206).
