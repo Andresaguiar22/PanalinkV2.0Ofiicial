@@ -153,8 +153,17 @@ fun LiveBroadcastScreen(
         guestViewModel.startRealtime(stream.id)
         scope.launch {
             Log.i("LiveStart", "2/4 Obteniendo token LiveKit...")
-            val userId = SupabaseClient.currentUser?.id ?: "host_${System.currentTimeMillis()}"
-            val tokenResult = viewModel.getLiveToken(stream.roomName, userId, "publisher")
+            // La identidad del participante DEBE ser el sub real del JWT: si la
+            // sesion no existe no inventamos una identidad falsa (host_<ts>) que
+            // la Edge Function ignora para autorizar pero ensucia el nombre del
+            // participante en LiveKit. Mejor fallar visible en el overlay.
+            val currentUserId = SupabaseClient.currentUser?.id
+            if (currentUserId.isNullOrEmpty()) {
+                Log.e("LiveStart", "Error: sesión no disponible, no se puede emitir")
+                liveSetupError = "Sesión expirada. Vuelve a iniciar sesión e inténtalo de nuevo."
+                return@launch
+            }
+            val tokenResult = viewModel.getLiveToken(stream.roomName, currentUserId, "publisher")
             if (!tokenResult.isSuccess) {
                 Log.e("LiveStart", "Error al obtener token LiveKit: ${tokenResult.exceptionOrNull()?.message}")
                 liveSetupError = "No se pudo conectar con el servidor de video. Verifica tu conexión."

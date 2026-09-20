@@ -164,8 +164,14 @@ class LiveViewModel(application: Application) : AndroidViewModel(application) {
         val createResult = repository.createLiveStream(title, description, null)
         if (createResult.isSuccess) {
             val stream = createResult.getOrThrow()
-            repository.startLiveStream(stream.id)
-            return Result.success(stream)
+            // El stream se crea como CREATED y el PATCH a LIVE es OBLIGATORIO:
+            // si falla (p.ej. RLS/token), NO debe tratarse como exito porque la
+            // Edge Function livekit-token rechaza streams que no estan LIVE.
+            val startResult = repository.startLiveStream(stream.id)
+            if (startResult.isSuccess) {
+                return Result.success(stream)
+            }
+            return Result.failure(startResult.exceptionOrNull() ?: Exception("Error al iniciar transmisión"))
         }
         return Result.failure(createResult.exceptionOrNull() ?: Exception("Error al crear stream"))
     }
