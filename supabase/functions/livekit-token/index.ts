@@ -17,22 +17,39 @@ const SERVICE_KEY = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY") || Deno.env.get("S
 
 // Verifies access to Live rooms from the database. The requested role is never trusted:
 // publish permission is derived server-side so a normal viewer cannot publish.
-async function canJoinRoom(userId: string, room: string, authHeader: string | null): Promise<{ ok: boolean; publish: boolean; reason?: string }> {
+//
+// CRITICAL: every Supabase query here uses the SERVICE ROLE key so the caller's
+// RLS (e.g. `status='LIVE' OR host_id=auth.uid()`) is NOT applied. Authorization
+// is decided exclusively by this function. The host of a live stream may mint a
+// token even while the stream is still CREATED (the client PATCHes it to LIVE
+// right after), which fixes the "No se pudo conectar con el servidor de video"
+// 403 caused by a race between the token request and the status update.
+async function canJoinRoom(userId: string, room: string): Promise<{ ok: boolean; publish: boolean; reason?: string }> {
   if (room.startsWith("live_")) {
-    const streamId = room.slice("live_".length);
-    if (!/^[0-9a-fA-F-]{36}$/.test(streamId)) return { ok: false, publish: false, reason: "invalid live room" };
+    // The Android client generates a random UUID for the room name
+    // (live_<random uuid>) that is stored in live_streams.room_name — it is NOT
+    // the stream's PK (id). Lookups must filter by room_name, never by id.
+    const roomName = room;
+    const roomUuid = room.slice("live_".length);
+    if (!/^[0-9a-fA-F-]{36}$/.test(roomUuid)) return { ok: false, publish: false, reason: "invalid live room" };
     if (!SUPABASE_URL || !SERVICE_KEY) return { ok: false, publish: false, reason: "server not configured" };
     try {
-      const headers = { "apikey": SERVICE_KEY, "Authorization": (authHeader || `Bearer ${SERVICE_KEY}`), "Content-Type": "application/json" };
+      const headers = { "apikey": SERVICE_KEY, "Authorization": `Bearer ${SERVICE_KEY}`, "Content-Type": "application/json" };
       const streamRes = await fetch(
-        `${SUPABASE_URL}/rest/v1/live_streams?id=eq.${streamId}&select=id,host_id,status&limit=1`,
+        `${SUPABASE_URL}/rest/v1/live_streams?room_name=eq.${roomName}&select=id,host_id,status&limit=1`,
         { headers },
       );
       if (!streamRes.ok) return { ok: false, publish: false, reason: "stream lookup failed" };
       const streams = await streamRes.json();
       const stream = Array.isArray(streams) ? streams[0] : null;
-      if (!stream || stream.status !== "LIVE") return { ok: false, publish: false, reason: "live stream is not active" };
+      if (!stream) return { ok: false, publish: false, reason: "live stream not found" };
+      const streamId = stream.id;
+
+      // The host can always join (and publish) — even before the client flips the
+      // stream to LIVE. Any other participant requires the stream to be LIVE.
       if (stream.host_id === userId) return { ok: true, publish: true };
+
+      if (stream.status !== "LIVE") return { ok: false, publish: false, reason: "live stream is not active" };
 
       const guestRes = await fetch(
         `${SUPABASE_URL}/rest/v1/live_guests?stream_id=eq.${streamId}&guest_user_id=eq.${userId}&status=in.(ACCEPTED,ACTIVE,CONNECTED)&select=id,status&limit=1`,
@@ -53,7 +70,7 @@ async function canJoinRoom(userId: string, room: string, authHeader: string | nu
     try {
       const res = await fetch(`${SUPABASE_URL}/rest/v1/rpc/voice_room_can_access`, {
         method: "POST",
-        headers: { "apikey": SERVICE_KEY, "Authorization": (authHeader || `Bearer ${SERVICE_KEY}`), "Content-Type": "application/json" },
+        headers: { "apikey": SERVICE_KEY, "Authorization": `Bearer ${SERVICE_KEY}`, "Content-Type": "application/json" },
         body: JSON.stringify({ p_room_id: roomId }),
       });
       return { ok: res.ok, publish: res.ok, reason: res.ok ? undefined : "access denied" };
@@ -138,16 +155,18 @@ async function handler(req) {
       return Response.json({ error: "Missing room" }, { status: 400 });
     }
 
-    const access = await canJoinRoom(userId, room, req.headers.get("Authorization"));
+    const access = await canJoinRoom(userId, room);
     if (!access.ok) {
       return Response.json({ error: "Forbidden: no access to room" }, { status: 403 });
     }
 
-    // Identity must be stable per user. For unsolicited rooms (calls) it is
-    // always pinned to the caller so nobody can impersonate another participant;
-    // for voice rooms the client-provided identity (if any) is kept LiveKit-safe.
+    // Identity must be stable per user: always pinned to the caller's JWT subject
+    // (auth.uid()). The body.identity is NEVER trusted for authorization guarantees
+    // (the Android client used to send a fake ``host_<timestamp>`` identity when
+    // the current session was null — that produced unstable LiveKit participant ids).
+    // The name for display is still taken from the body (harmless).
 
-    const rawIdentity = room.startsWith("call_") ? userId : ((body.identity || userId).trim());
+    const rawIdentity = userId;
     const identity = rawIdentity.replace(/[^a-zA-Z0-9_\-]/g, "_").slice(0, 120);
     const name = (body.name || "").trim().slice(0, 120) || undefined;
     const ttl = Math.min(Math.max(Number(body.ttl) || 3600, 60), 86400);
