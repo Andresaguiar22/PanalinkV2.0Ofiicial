@@ -158,6 +158,7 @@ fun LiveViewerScreen(
     ) {
         LiveVideoSurface(
             videoTrack = videoTrack,
+            initRenderer = roomRepository::initVideoRenderer,
             modifier = Modifier.fillMaxSize()
         )
 
