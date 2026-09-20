@@ -147,12 +147,12 @@ fun ChatsTabContent(
             modifier = Modifier
                 .fillMaxWidth()
                 .padding(horizontal = 16.dp, vertical = 8.dp),
-            placeholder = { Text("Buscar panas o mensajes...", color = Color.Gray) },
+            placeholder = { Text("Buscar panas o mensajes...", color = com.example.ui.theme.PanalinkSkin.Sub) },
             leadingIcon = {
                 Icon(
                     imageVector = Icons.Default.Search,
                     contentDescription = "Icono de búsqueda",
-                    tint = Color.White
+                    tint = com.example.ui.theme.PanalinkSkin.CreamDim
                 )
             },
             trailingIcon = {
@@ -168,14 +168,15 @@ fun ChatsTabContent(
             },
             singleLine = true,
             colors = OutlinedTextFieldDefaults.colors(
-                focusedBorderColor = colors.primary,
-                unfocusedBorderColor = Color.Gray.copy(alpha = 0.3f),
-                focusedContainerColor = Color.Transparent,
-                unfocusedContainerColor = Color.Transparent,
-                focusedTextColor = Color.White,
-                unfocusedTextColor = Color.White
+                focusedBorderColor = com.example.ui.theme.PanalinkSkin.Gold.copy(alpha = 0.55f),
+                unfocusedBorderColor = Color(0x804A5160),
+                focusedContainerColor = com.example.ui.theme.PanalinkSkin.Glass,
+                unfocusedContainerColor = com.example.ui.theme.PanalinkSkin.Glass,
+                focusedTextColor = com.example.ui.theme.PanalinkSkin.Cream,
+                unfocusedTextColor = com.example.ui.theme.PanalinkSkin.Cream,
+                cursorColor = com.example.ui.theme.PanalinkSkin.Gold
             ),
-            shape = RoundedCornerShape(24.dp)
+            shape = RoundedCornerShape(28.dp)
         )
 
         PanalinkPullToRefreshBox(
@@ -192,7 +193,7 @@ fun ChatsTabContent(
             LazyColumn(
                 state = listState,
                 modifier = Modifier.fillMaxSize(),
-                contentPadding = PaddingValues(bottom = 32.dp)
+                contentPadding = PaddingValues(top = 8.dp, bottom = 32.dp)
             ) {
                 // Chats Header
                 item {
@@ -235,7 +236,7 @@ fun ChatsTabContent(
                                     }
                                 }
                             } else {
-                                itemsIndexed(chats, key = { index, chatDetails -> "${chatDetails.chat.id}_$index" }) { _, chatDetails ->
+                                itemsIndexed(chats, key = { index, chatDetails -> "${chatDetails.chat.id}_$index" }) { cardIndex, chatDetails ->
                                     ChatPreviewCard(
                                         chatDetails = if (customUnreadCounts.containsKey(chatDetails.chat.id)) {
                                             chatDetails.copy(unreadCount = customUnreadCounts[chatDetails.chat.id]!!)
@@ -245,6 +246,7 @@ fun ChatsTabContent(
                                         isTyping = typingChats[chatDetails.chat.id] == true,
                                         isSelected = selectedChatIds.contains(chatDetails.chat.id),
                                         isPinned = chatDetails.chat.isPinned,
+                                        position = chatCardPositionFor(cardIndex, chats.size),
                                         onLongClick = {
                                             if (selectedChatIds.isEmpty()) {
                                                 onStartChatSelection(chatDetails.chat.id)
@@ -335,7 +337,7 @@ fun ChatsTabContent(
                                             modifier = Modifier.padding(horizontal = 16.dp, vertical = 8.dp)
                                         )
                                     }
-                                    itemsIndexed(filteredChats, key = { index, chatDetails -> "${chatDetails.chat.id}_$index" }) { _, chatDetails ->
+                                    itemsIndexed(filteredChats, key = { index, chatDetails -> "${chatDetails.chat.id}_$index" }) { cardIndex, chatDetails ->
                                         ChatPreviewCard(
                                             chatDetails = if (customUnreadCounts.containsKey(chatDetails.chat.id)) {
                                                 chatDetails.copy(unreadCount = customUnreadCounts[chatDetails.chat.id]!!)
@@ -345,6 +347,7 @@ fun ChatsTabContent(
                                             isTyping = typingChats[chatDetails.chat.id] == true,
                                             isSelected = selectedChatIds.contains(chatDetails.chat.id),
                                             isPinned = chatDetails.chat.isPinned,
+                                            position = chatCardPositionFor(cardIndex, filteredChats.size),
                                             onLongClick = {
                                                 if (selectedChatIds.isEmpty()) {
                                                     onStartChatSelection(chatDetails.chat.id)
@@ -730,3 +733,11 @@ fun ChatAvatar(
 }
 
 
+
+/** Posición de una fila de chat dentro del panel agrupado (esquinas del panel). */
+private fun chatCardPositionFor(index: Int, total: Int): com.example.ui.theme.ChatCardPosition = when {
+    total <= 1 -> com.example.ui.theme.ChatCardPosition.SINGLE
+    index <= 0 -> com.example.ui.theme.ChatCardPosition.TOP
+    index >= total - 1 -> com.example.ui.theme.ChatCardPosition.BOTTOM
+    else -> com.example.ui.theme.ChatCardPosition.MIDDLE
+}

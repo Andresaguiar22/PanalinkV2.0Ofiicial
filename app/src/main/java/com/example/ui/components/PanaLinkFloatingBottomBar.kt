@@ -212,7 +212,7 @@ fun PanaLinkFloatingBottomBar(
                     )
                     
                     val animatedContentColor by animateColorAsState(
-                        targetValue = if (selected) Color.White else Color.Gray,
+                        targetValue = if (selected) com.example.ui.theme.PanalinkSkin.Cream else com.example.ui.theme.PanalinkSkin.Gold,
                         animationSpec = tween(durationMillis = 350),
                         label = "tab_content"
                     )
