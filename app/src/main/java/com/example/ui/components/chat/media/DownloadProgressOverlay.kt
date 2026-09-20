@@ -21,6 +21,7 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import com.example.ui.theme.PanalinkPalette
 
 /**
  * Overlay circular con animación de progreso e icono de cancelar/pausar
@@ -85,14 +86,14 @@ fun DownloadProgressOverlay(
                             Icon(
                                 imageVector = mediaTypeIcon,
                                 contentDescription = "Subiendo",
-                                tint = Color.White,
+                                tint = PanalinkPalette.textPrimary,
                                 modifier = Modifier.size(20.dp)
                             )
                         } else {
                             Icon(
                                 imageVector = Icons.Default.Close,
                                 contentDescription = if (isUploading) "Cancelar subida" else "Cancelar descarga",
-                                tint = Color.White,
+                                tint = PanalinkPalette.textPrimary,
                                 modifier = Modifier.size(22.dp)
                             )
                         }
@@ -110,7 +111,7 @@ fun DownloadProgressOverlay(
                     Spacer(modifier = Modifier.height(6.dp))
                     Text(
                         text = "${(progress * 100).toInt()}%",
-                        color = Color.White,
+                        color = PanalinkPalette.textPrimary,
                         fontSize = 12.sp,
                         fontWeight = FontWeight.Bold
                     )
@@ -120,7 +121,7 @@ fun DownloadProgressOverlay(
                     Spacer(modifier = Modifier.height(4.dp))
                     Text(
                         text = "${formatKb(bytesWritten)} / ${formatKb(totalBytes)}",
-                        color = Color.White.copy(alpha = 0.8f),
+                        color = PanalinkPalette.textPrimary.copy(alpha = 0.8f),
                         fontSize = 11.sp,
                         fontWeight = FontWeight.Medium
                     )
@@ -130,7 +131,7 @@ fun DownloadProgressOverlay(
                     Spacer(modifier = Modifier.height(4.dp))
                     Text(
                         text = statusText!!,
-                        color = Color.White.copy(alpha = 0.85f),
+                        color = PanalinkPalette.textPrimary.copy(alpha = 0.85f),
                         fontSize = 11.sp,
                         fontWeight = FontWeight.Medium
                     )

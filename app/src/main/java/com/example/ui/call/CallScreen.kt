@@ -15,6 +15,7 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.example.call.CallState
 import com.example.call.CallType
+import com.example.ui.theme.PanalinkPalette
 
 /**
  * CallScreen is the master component that dynamically renders the entire VoIP call interface.
@@ -104,14 +105,14 @@ fun CallScreen(
                             Spacer(modifier = Modifier.height(24.dp))
                             Text(
                                 text = "Conectando...",
-                                color = Color.White,
+                                color = PanalinkPalette.textPrimary,
                                 fontSize = 18.sp,
                                 fontWeight = FontWeight.Bold
                             )
                             Spacer(modifier = Modifier.height(8.dp))
                             Text(
                                 text = "Estableciendo conexión segura",
-                                color = Color.White.copy(alpha = 0.6f),
+                                color = PanalinkPalette.textPrimary.copy(alpha = 0.6f),
                                 fontSize = 14.sp
                             )
                         }

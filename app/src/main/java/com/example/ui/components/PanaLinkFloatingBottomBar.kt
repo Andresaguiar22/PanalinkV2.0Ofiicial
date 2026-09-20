@@ -42,6 +42,8 @@ import androidx.compose.ui.draw.clip
 import androidx.compose.ui.draw.drawBehind
 import androidx.compose.ui.draw.shadow
 import androidx.compose.ui.geometry.Offset
+import com.example.ui.theme.PanalinkPalette
+import com.example.ui.theme.PanalinkSkin
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.drawscope.rotate
@@ -70,6 +72,22 @@ fun PanaLinkFloatingBottomBar(
     val isMinimalist by com.example.ui.theme.ThemeManager.isMinimalistMode.collectAsState()
     val barShape = com.example.ui.theme.ThemeManager.getBottomBarShape(shapePreset)
     val presetPalette = com.example.ui.theme.ThemeManager.getBottomBarColors(colorPreset)
+
+    // Lenguaje visual del mockup: pildora de cristal con gradiente teal -> indigo,
+    // rim menta luminoso e iconos dorados. En claro, cristal blanco con rim dorado.
+    val barDark = PanalinkPalette.isDark
+    val barInner: Brush = if (barDark) {
+        Brush.horizontalGradient(
+            listOf(
+                PanalinkSkin.barGradient[0].copy(alpha = 0.78f),
+                PanalinkSkin.barGradient[1].copy(alpha = 0.92f),
+                PanalinkSkin.barGradient[2].copy(alpha = 0.78f)
+            )
+        )
+    } else {
+        Brush.horizontalGradient(listOf(Color(0xFFFFFFFF), Color(0xFFF5F7FA), Color(0xFFFFFFFF)))
+    }
+    val barRim = if (barDark) PanalinkSkin.barGlow else PanalinkSkin.GoldDeep
 
     // Gradient colors for the animated border (from the selected preset palette)
     val gradientColors = listOf(
@@ -129,7 +147,7 @@ fun PanaLinkFloatingBottomBar(
                 .fillMaxWidth()
                 .height(68.dp)
                 .clip(barShape)
-                .background(Color(0xCC0D1322)) // Glassmorphism dark background
+                .background(barInner)
         ) {
             
             // Underground Glow (Radial gradient)
@@ -174,7 +192,8 @@ fun PanaLinkFloatingBottomBar(
                     .fillMaxSize()
                     .padding(2.5.dp) // Border thickness
                     .clip(barShape)
-                    .background(Color(0xFA0D1322)) // Solid dark inner part
+                    .background(barInner) // Relleno interior de cristal
+                    .border(1.2.dp, barRim.copy(alpha = 0.35f), barShape)
                     .padding(horizontal = 8.dp),
                 horizontalArrangement = Arrangement.SpaceBetween,
                 verticalAlignment = Alignment.CenterVertically
@@ -200,19 +219,19 @@ fun PanaLinkFloatingBottomBar(
                     )
                     
                     val animatedBgColor by animateColorAsState(
-                        targetValue = if (selected) presetPalette.first().copy(alpha = 0.15f) else Color.Transparent,
+                        targetValue = if (selected) barRim.copy(alpha = if (barDark) 0.22f else 0.18f) else Color.Transparent,
                         animationSpec = tween(durationMillis = 350),
                         label = "tab_bg"
                     )
                     
                     val animatedBorderColor by animateColorAsState(
-                        targetValue = if (selected) presetPalette.first().copy(alpha = 0.3f) else Color.Transparent,
+                        targetValue = if (selected) barRim.copy(alpha = 0.75f) else Color.Transparent,
                         animationSpec = tween(durationMillis = 350),
                         label = "tab_border"
                     )
                     
                     val animatedContentColor by animateColorAsState(
-                        targetValue = if (selected) com.example.ui.theme.PanalinkSkin.Cream else com.example.ui.theme.PanalinkSkin.Gold,
+                        targetValue = if (selected) PanalinkPalette.textPrimary else PanalinkPalette.gold,
                         animationSpec = tween(durationMillis = 350),
                         label = "tab_content"
                     )
@@ -274,7 +293,7 @@ fun PanaLinkFloatingBottomBar(
                                     ) {
                                         Text(
                                             text = if (tabBadgeCount > 99) "99+" else tabBadgeCount.toString(),
-                                            color = Color.White,
+                                            color = PanalinkPalette.textPrimary,
                                             fontSize = 8.sp,
                                             fontWeight = FontWeight.Bold
                                         )
@@ -291,7 +310,7 @@ fun PanaLinkFloatingBottomBar(
                                     Spacer(modifier = Modifier.width(6.dp))
                                     Text(
                                         text = label,
-                                        color = Color.White,
+                                        color = PanalinkPalette.textPrimary,
                                         fontWeight = FontWeight.Bold,
                                         fontSize = 12.sp,
                                         maxLines = 1,

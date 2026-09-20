@@ -33,6 +33,7 @@ import com.example.media.audio.AudioTrackEntity
 import kotlinx.coroutines.launch
 import kotlin.math.abs
 import kotlin.math.roundToInt
+import com.example.ui.theme.PanalinkPalette
 
 /**
  * P6.7.3 - Mini Player Bar
@@ -117,7 +118,7 @@ fun MiniPlayerBar(
                     Icon(
                         Icons.Rounded.PlayArrow,
                         contentDescription = null,
-                        tint = Color.White,
+                        tint = PanalinkPalette.textPrimary,
                         modifier = Modifier.size(24.dp)
                     )
                 }
@@ -130,7 +131,7 @@ fun MiniPlayerBar(
             ) {
                 Text(
                     track.title,
-                    color = Color.White,
+                    color = PanalinkPalette.textPrimary,
                     fontSize = 14.sp,
                     fontWeight = FontWeight.Bold,
                     maxLines = 1,
@@ -138,7 +139,7 @@ fun MiniPlayerBar(
                 )
                 Text(
                     track.artist,
-                    color = Color.White.copy(alpha = 0.6f),
+                    color = PanalinkPalette.textPrimary.copy(alpha = 0.6f),
                     fontSize = 12.sp,
                     maxLines = 1,
                     overflow = TextOverflow.Ellipsis
@@ -149,12 +150,12 @@ fun MiniPlayerBar(
                 Icon(
                     if (isPlaying) Icons.Rounded.Pause else Icons.Rounded.PlayArrow,
                     contentDescription = if (isPlaying) "Pausar" else "Reproducir",
-                    tint = Color.White
+                    tint = PanalinkPalette.textPrimary
                 )
             }
 
             IconButton(onClick = onNext) {
-                Icon(Icons.Rounded.SkipNext, contentDescription = "Siguiente", tint = Color.White)
+                Icon(Icons.Rounded.SkipNext, contentDescription = "Siguiente", tint = PanalinkPalette.textPrimary)
             }
 
             IconButton(
@@ -164,7 +165,7 @@ fun MiniPlayerBar(
                 Icon(
                     Icons.Rounded.Close,
                     contentDescription = "Cerrar reproductor",
-                    tint = Color.White.copy(alpha = 0.8f),
+                    tint = PanalinkPalette.textPrimary.copy(alpha = 0.8f),
                     modifier = Modifier.size(20.dp)
                 )
             }

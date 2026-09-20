@@ -21,6 +21,7 @@ import androidx.lifecycle.viewmodel.compose.viewModel
 import com.example.ui.components.chat.search.ChatSearchResultItem
 import com.example.ui.viewmodel.ChatSearchUiState
 import com.example.ui.viewmodel.ChatSearchViewModel
+import com.example.ui.theme.PanalinkPalette
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -44,7 +45,7 @@ fun ChatSearchScreen(
                     TextField(
                         value = query,
                         onValueChange = { viewModel.onQueryChange(it) },
-                        placeholder = { Text("Buscar en el chat...", color = Color.White.copy(alpha = 0.5f)) },
+                        placeholder = { Text("Buscar en el chat...", color = PanalinkPalette.textPrimary.copy(alpha = 0.5f)) },
                         modifier = Modifier.fillMaxWidth(),
                         colors = TextFieldDefaults.colors(
                             focusedContainerColor = Color.Transparent,
@@ -59,7 +60,7 @@ fun ChatSearchScreen(
                         trailingIcon = {
                             if (query.isNotBlank()) {
                                 IconButton(onClick = { viewModel.onQueryChange("") }) {
-                                    Icon(Icons.Default.Close, contentDescription = "Limpiar", tint = Color.White)
+                                    Icon(Icons.Default.Close, contentDescription = "Limpiar", tint = PanalinkPalette.textPrimary)
                                 }
                             }
                         }
@@ -67,7 +68,7 @@ fun ChatSearchScreen(
                 },
                 navigationIcon = {
                     IconButton(onClick = onBack) {
-                        Icon(Icons.AutoMirrored.Filled.ArrowBack, contentDescription = "Volver", tint = Color.White)
+                        Icon(Icons.AutoMirrored.Filled.ArrowBack, contentDescription = "Volver", tint = PanalinkPalette.textPrimary)
                     }
                 },
                 colors = TopAppBarDefaults.topAppBarColors(
@@ -120,7 +121,7 @@ fun ChatSearchScreen(
                             )
                             HorizontalDivider(
                                 modifier = Modifier.padding(horizontal = 16.dp),
-                                color = Color.White.copy(alpha = 0.05f)
+                                color = PanalinkPalette.textPrimary.copy(alpha = 0.05f)
                             )
                         }
                     }
@@ -143,13 +144,13 @@ private fun SearchEmptyState(
         Icon(
             imageVector = icon,
             contentDescription = null,
-            tint = Color.White.copy(alpha = 0.1f),
+            tint = PanalinkPalette.textPrimary.copy(alpha = 0.1f),
             modifier = Modifier.size(100.dp)
         )
         Spacer(modifier = Modifier.height(16.dp))
         Text(
             text = message,
-            color = Color.White.copy(alpha = 0.4f),
+            color = PanalinkPalette.textPrimary.copy(alpha = 0.4f),
             fontSize = 16.sp,
             fontWeight = FontWeight.Medium
         )

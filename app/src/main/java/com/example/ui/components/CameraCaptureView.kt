@@ -47,6 +47,7 @@ import androidx.core.content.ContextCompat
 import kotlinx.coroutines.delay
 import java.io.File
 import java.util.concurrent.TimeUnit
+import com.example.ui.theme.PanalinkPalette
 
 @Composable
 fun CameraCaptureView(
@@ -113,7 +114,7 @@ fun CameraCaptureView(
                 Spacer(modifier = Modifier.height(16.dp))
                 Text(
                     text = "Permisos de Cámara y Audio Requeridos",
-                    color = Color.White,
+                    color = PanalinkPalette.textPrimary,
                     fontSize = 20.sp,
                     fontWeight = FontWeight.Bold,
                     textAlign = TextAlign.Center
@@ -134,7 +135,7 @@ fun CameraCaptureView(
                 }
                 Spacer(modifier = Modifier.height(16.dp))
                 TextButton(onClick = onDismiss) {
-                    Text("Cancelar", color = Color.White)
+                    Text("Cancelar", color = PanalinkPalette.textPrimary)
                 }
             }
         }
@@ -337,7 +338,7 @@ fun CameraPreviewAndControls(
                     ) {
                         Icon(Icons.Default.FaceRetouchingNatural, contentDescription = "Efectos", tint = if (selectedEffect != "Ninguno") Color(0xFFE040FB) else Color.White)
                     }
-                    Text("Efectos", color = Color.White, fontSize = 10.sp, fontWeight = FontWeight.Bold)
+                    Text("Efectos", color = PanalinkPalette.textPrimary, fontSize = 10.sp, fontWeight = FontWeight.Bold)
                 }
 
                 // Music Button
@@ -348,7 +349,7 @@ fun CameraPreviewAndControls(
                     ) {
                         Icon(Icons.Default.MusicNote, contentDescription = "Música", tint = if (selectedMusic != null && selectedMusic != "Sin Música") Color(0xFF00FF85) else Color.White)
                     }
-                    Text("Música", color = Color.White, fontSize = 10.sp, fontWeight = FontWeight.Bold)
+                    Text("Música", color = PanalinkPalette.textPrimary, fontSize = 10.sp, fontWeight = FontWeight.Bold)
                 }
 
                 // Speed Button
@@ -362,7 +363,7 @@ fun CameraPreviewAndControls(
                     ) {
                         Text("${selectedSpeed}x", color = if (selectedSpeed != 1.0f) Color(0xFFFFD700) else Color.White, fontSize = 12.sp, fontWeight = FontWeight.Bold)
                     }
-                    Text("Velocidad", color = Color.White, fontSize = 10.sp, fontWeight = FontWeight.Bold)
+                    Text("Velocidad", color = PanalinkPalette.textPrimary, fontSize = 10.sp, fontWeight = FontWeight.Bold)
                 }
             }
         }
@@ -378,7 +379,7 @@ fun CameraPreviewAndControls(
                     .padding(16.dp)
             ) {
                 Column {
-                    Text("Filtros AR & Belleza ✨", color = Color.White, fontWeight = FontWeight.Bold)
+                    Text("Filtros AR & Belleza ✨", color = PanalinkPalette.textPrimary, fontWeight = FontWeight.Bold)
                     Spacer(modifier = Modifier.height(12.dp))
                     LazyRow(horizontalArrangement = Arrangement.spacedBy(12.dp)) {
                         items(effects) { effect ->
@@ -390,7 +391,7 @@ fun CameraPreviewAndControls(
                                     .clickable { selectedEffect = effect }
                                     .padding(horizontal = 16.dp, vertical = 8.dp)
                             ) {
-                                Text(effect, color = Color.White, fontSize = 12.sp, fontWeight = FontWeight.Bold)
+                                Text(effect, color = PanalinkPalette.textPrimary, fontSize = 12.sp, fontWeight = FontWeight.Bold)
                             }
                         }
                     }
@@ -409,7 +410,7 @@ fun CameraPreviewAndControls(
                     .padding(16.dp)
             ) {
                 Column {
-                    Text("Selecciona una Pista 🎵", color = Color.White, fontWeight = FontWeight.Bold)
+                    Text("Selecciona una Pista 🎵", color = PanalinkPalette.textPrimary, fontWeight = FontWeight.Bold)
                     Spacer(modifier = Modifier.height(12.dp))
                     LazyRow(horizontalArrangement = Arrangement.spacedBy(12.dp)) {
                         items(musicTracks) { track ->
@@ -444,7 +445,7 @@ fun CameraPreviewAndControls(
                     .background(Color.Black.copy(alpha = 0.5f), CircleShape)
                     .testTag("camera_close_button")
             ) {
-                Icon(Icons.Default.Close, contentDescription = "Cerrar", tint = Color.White)
+                Icon(Icons.Default.Close, contentDescription = "Cerrar", tint = PanalinkPalette.textPrimary)
             }
 
             if (isRecording) {
@@ -463,7 +464,7 @@ fun CameraPreviewAndControls(
                     Spacer(modifier = Modifier.width(6.dp))
                     Text(
                         text = String.format("%02d:%02d", recordingDuration / 60, recordingDuration % 60),
-                        color = Color.White,
+                        color = PanalinkPalette.textPrimary,
                         fontSize = 14.sp,
                         fontWeight = FontWeight.Bold
                     )
@@ -471,7 +472,7 @@ fun CameraPreviewAndControls(
             } else {
                 Text(
                     text = if (mode == "photo") "FOTO 📸" else if (mode == "video") "VIDEO 📹" else "ESTUDIO PANALINK",
-                    color = Color.White,
+                    color = PanalinkPalette.textPrimary,
                     fontWeight = FontWeight.Bold,
                     fontSize = 14.sp,
                     modifier = Modifier
@@ -494,7 +495,7 @@ fun CameraPreviewAndControls(
                     .background(Color.Black.copy(alpha = 0.5f), CircleShape)
                     .testTag("camera_flip_button")
             ) {
-                Icon(Icons.Default.FlipCameraAndroid, contentDescription = "Cambiar Cámara", tint = Color.White)
+                Icon(Icons.Default.FlipCameraAndroid, contentDescription = "Cambiar Cámara", tint = PanalinkPalette.textPrimary)
             }
         }
 
@@ -612,7 +613,7 @@ fun CameraPreviewAndControls(
                 text = if (isRecording) "Toca para detener la grabación" 
                        else if (mode == "photo") "Toca para tomar foto" 
                        else "Toca para grabar video",
-                color = Color.White.copy(alpha = 0.8f),
+                color = PanalinkPalette.textPrimary.copy(alpha = 0.8f),
                 fontSize = 12.sp,
                 fontWeight = FontWeight.Medium
             )

@@ -10,6 +10,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.unit.dp
 import com.example.ui.theme.bounceClick
+import com.example.ui.theme.PanalinkPalette
 
 /**
  * CallControls displays call interactions (Mute, Speaker, Video, Flip, End) with Material 3.
@@ -101,7 +102,7 @@ fun CallControls(
                     Icon(
                         imageVector = Icons.Default.FlipCameraAndroid,
                         contentDescription = "Flip Camera",
-                        tint = Color.White
+                        tint = PanalinkPalette.textPrimary
                     )
                 }
             }
@@ -120,7 +121,7 @@ fun CallControls(
             Icon(
                 imageVector = Icons.Default.CallEnd,
                 contentDescription = "End Call",
-                tint = Color.White,
+                tint = PanalinkPalette.textPrimary,
                 modifier = Modifier.size(32.dp)
             )
         }

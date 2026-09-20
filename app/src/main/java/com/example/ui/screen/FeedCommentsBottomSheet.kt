@@ -34,6 +34,7 @@ import com.example.data.model.PostCommentDto
 import com.example.ui.viewmodel.FeedViewModel
 import java.text.SimpleDateFormat
 import java.util.Locale
+import com.example.ui.theme.PanalinkPalette
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -79,7 +80,7 @@ fun FeedCommentsBottomSheet(
                 ) {
                     Text(
                         text = "${comments.size} comentarios",
-                        color = Color.White,
+                        color = PanalinkPalette.textPrimary,
                         fontSize = 15.sp,
                         fontWeight = FontWeight.Bold
                     )
@@ -98,19 +99,19 @@ fun FeedCommentsBottomSheet(
                         },
                         modifier = Modifier.size(28.dp)
                     ) {
-                        Text("文A", color = Color.White, fontSize = 15.sp, fontWeight = FontWeight.Bold)
+                        Text("文A", color = PanalinkPalette.textPrimary, fontSize = 15.sp, fontWeight = FontWeight.Bold)
                     }
 
                     IconButton(
                         onClick = onDismiss,
                         modifier = Modifier.size(28.dp)
                     ) {
-                        Icon(Icons.Default.Close, contentDescription = "Cerrar", tint = Color.White)
+                        Icon(Icons.Default.Close, contentDescription = "Cerrar", tint = PanalinkPalette.textPrimary)
                     }
                 }
             }
 
-            Divider(color = Color.White.copy(alpha = 0.08f))
+            Divider(color = PanalinkPalette.textPrimary.copy(alpha = 0.08f))
 
             // Comments List
             LazyColumn(
@@ -306,7 +307,7 @@ fun TikTokCommentRow(
             // Comment text
             Text(
                 text = comment.content ?: "",
-                color = Color.White,
+                color = PanalinkPalette.textPrimary,
                 fontSize = 14.sp
             )
 

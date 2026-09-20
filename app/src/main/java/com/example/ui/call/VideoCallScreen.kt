@@ -14,6 +14,7 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import org.webrtc.SurfaceViewRenderer
+import com.example.ui.theme.PanalinkPalette
 
 /**
  * VideoCallScreen hosts connected video-enhanced calling.
@@ -96,7 +97,7 @@ fun VideoCallScreen(
         ) {
             Text(
                 text = opponentName,
-                color = Color.White,
+                color = PanalinkPalette.textPrimary,
                 fontSize = 24.sp,
                 fontWeight = FontWeight.Bold,
                 style = MaterialTheme.typography.headlineMedium

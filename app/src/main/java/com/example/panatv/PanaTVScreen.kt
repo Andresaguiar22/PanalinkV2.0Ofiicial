@@ -67,6 +67,7 @@ import kotlinx.coroutines.launch
 import androidx.compose.ui.hapticfeedback.HapticFeedbackType
 import androidx.compose.ui.platform.LocalHapticFeedback
 import androidx.compose.animation.core.*
+import com.example.ui.theme.PanalinkPalette
 
 // ── Xuper TV style palette ──────────────────────────────────────────────
 private val TvBg = Color(0xFF121212)
@@ -194,7 +195,7 @@ fun PanaTVScreen(viewModel: PanaTVViewModel = viewModel()) {
     if (showChannelInput) {
         AlertDialog(
             onDismissRequest = { showChannelInput = false },
-            title = { Text("Número de canal", color = Color.White, fontWeight = FontWeight.Bold) },
+            title = { Text("Número de canal", color = PanalinkPalette.textPrimary, fontWeight = FontWeight.Bold) },
             text = {
                 Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
                     OutlinedTextField(
@@ -474,14 +475,14 @@ fun PanaTVScreen(viewModel: PanaTVViewModel = viewModel()) {
                         Icon(
                             Icons.Default.LiveTv,
                             contentDescription = null,
-                            tint = Color.White,
+                            tint = PanalinkPalette.textPrimary,
                             modifier = Modifier.size(20.dp)
                         )
                     }
                     Spacer(modifier = Modifier.width(10.dp))
                     Text(
                         "Pana",
-                        color = Color.White,
+                        color = PanalinkPalette.textPrimary,
                         fontSize = 22.sp,
                         fontWeight = FontWeight.ExtraBold
                     )
@@ -519,7 +520,7 @@ fun PanaTVScreen(viewModel: PanaTVViewModel = viewModel()) {
                             modifier = Modifier.background(TvCard)
                         ) {
                             DropdownMenuItem(
-                                text = { Text("Todos los países", color = Color.White) },
+                                text = { Text("Todos los países", color = PanalinkPalette.textPrimary) },
                                 onClick = {
                                     viewModel.updateSelectedCountry("")
                                     showCountryDropdown = false
@@ -527,7 +528,7 @@ fun PanaTVScreen(viewModel: PanaTVViewModel = viewModel()) {
                             )
                             availableCountries.forEach { country ->
                                 DropdownMenuItem(
-                                    text = { Text(country, color = Color.White) },
+                                    text = { Text(country, color = PanalinkPalette.textPrimary) },
                                     onClick = {
                                         viewModel.updateSelectedCountry(country)
                                         showCountryDropdown = false
@@ -559,7 +560,7 @@ fun PanaTVScreen(viewModel: PanaTVViewModel = viewModel()) {
                         BasicTextField(
                             value = searchQuery,
                             onValueChange = { viewModel.updateSearchQuery(it) },
-                            textStyle = TextStyle(color = Color.White, fontSize = 15.sp),
+                            textStyle = TextStyle(color = PanalinkPalette.textPrimary, fontSize = 15.sp),
                             modifier = Modifier.fillMaxWidth(),
                             cursorBrush = SolidColor(TvAccent),
                             decorationBox = { innerTextField ->
@@ -695,12 +696,12 @@ fun PanaTVScreen(viewModel: PanaTVViewModel = viewModel()) {
                                     .background(Color(0xFFE53935))
                                     .padding(horizontal = 6.dp, vertical = 2.dp)
                             ) {
-                                Text("EN VIVO", color = Color.White, fontSize = 9.sp, fontWeight = FontWeight.Bold)
+                                Text("EN VIVO", color = PanalinkPalette.textPrimary, fontSize = 9.sp, fontWeight = FontWeight.Bold)
                             }
                             Spacer(modifier = Modifier.width(8.dp))
                             Text(
                                 currentChannel?.name ?: "",
-                                color = Color.White,
+                                color = PanalinkPalette.textPrimary,
                                 fontSize = 13.sp,
                                 fontWeight = FontWeight.SemiBold,
                                 maxLines = 1,
@@ -736,14 +737,14 @@ fun PanaTVScreen(viewModel: PanaTVViewModel = viewModel()) {
                                     Icon(
                                         if (isPlayingState) Icons.Default.Pause else Icons.Default.PlayArrow,
                                         contentDescription = null,
-                                        tint = Color.White
+                                        tint = PanalinkPalette.textPrimary
                                     )
                                 }
                                 IconButton(onClick = { isMuted = !isMuted }) {
                                     Icon(
                                         if (isMuted) Icons.Default.VolumeOff else Icons.Default.VolumeUp,
                                         contentDescription = null,
-                                        tint = Color.White
+                                        tint = PanalinkPalette.textPrimary
                                     )
                                 }
                             }
@@ -756,7 +757,7 @@ fun PanaTVScreen(viewModel: PanaTVViewModel = viewModel()) {
                                     ) {
                                         Text(
                                             text = currentChannel!!.currentProgram!!.take(18),
-                                            color = Color.White,
+                                            color = PanalinkPalette.textPrimary,
                                             fontSize = 9.sp,
                                             fontWeight = FontWeight.Bold,
                                             modifier = Modifier.padding(horizontal = 6.dp, vertical = 2.dp)
@@ -774,7 +775,7 @@ fun PanaTVScreen(viewModel: PanaTVViewModel = viewModel()) {
                                         .padding(horizontal = 8.dp, vertical = 6.dp)
                                 )
                                     IconButton(onClick = { isFullscreen = true }) {
-                                        Icon(Icons.Default.Fullscreen, contentDescription = "Pantalla completa", tint = Color.White)
+                                        Icon(Icons.Default.Fullscreen, contentDescription = "Pantalla completa", tint = PanalinkPalette.textPrimary)
                                     }
                                     // PiP entry removed for PanaTV: leaving the screen must stop
                                     // playback outright (see lifecycle). Reels PiP is unaffected.
@@ -850,7 +851,7 @@ fun PanaTVScreen(viewModel: PanaTVViewModel = viewModel()) {
                                 )
                                 Text(
                                     text = "Cambiando a $switchingChannelName...",
-                                    color = Color.White,
+                                    color = PanalinkPalette.textPrimary,
                                     fontSize = 14.sp,
                                     fontWeight = FontWeight.Medium
                                 )
@@ -985,7 +986,7 @@ fun PanaTVScreen(viewModel: PanaTVViewModel = viewModel()) {
                                         Spacer(modifier = Modifier.height(8.dp))
                                         Text(
                                             "Señal perdida",
-                                            color = Color.White,
+                                            color = PanalinkPalette.textPrimary,
                                             fontSize = 14.sp,
                                             fontWeight = FontWeight.Medium
                                         )
@@ -1004,8 +1005,8 @@ fun PanaTVScreen(viewModel: PanaTVViewModel = viewModel()) {
                                                 verticalAlignment = Alignment.CenterVertically,
                                                 horizontalArrangement = Arrangement.spacedBy(6.dp)
                                             ) {
-                                                Icon(Icons.Default.Refresh, contentDescription = null, tint = Color.White, modifier = Modifier.size(16.dp))
-                                                Text("Reintentar", color = Color.White, fontWeight = FontWeight.Bold, fontSize = 12.sp)
+                                                Icon(Icons.Default.Refresh, contentDescription = null, tint = PanalinkPalette.textPrimary, modifier = Modifier.size(16.dp))
+                                                Text("Reintentar", color = PanalinkPalette.textPrimary, fontWeight = FontWeight.Bold, fontSize = 12.sp)
                                             }
                                         }
                                     }
@@ -1041,7 +1042,7 @@ fun PanaTVScreen(viewModel: PanaTVViewModel = viewModel()) {
                                 verticalAlignment = Alignment.CenterVertically
                             ) {
                                 IconButton(onClick = { isFullscreen = false }) {
-                                    Icon(Icons.Default.ArrowBack, contentDescription = "Volver", tint = Color.White)
+                                    Icon(Icons.Default.ArrowBack, contentDescription = "Volver", tint = PanalinkPalette.textPrimary)
                                 }
                                 Box(
                                     modifier = Modifier
@@ -1049,12 +1050,12 @@ fun PanaTVScreen(viewModel: PanaTVViewModel = viewModel()) {
                                         .background(Color(0xFFE53935))
                                         .padding(horizontal = 6.dp, vertical = 2.dp)
                                 ) {
-                                    Text("EN VIVO", color = Color.White, fontSize = 9.sp, fontWeight = FontWeight.Bold)
+                                    Text("EN VIVO", color = PanalinkPalette.textPrimary, fontSize = 9.sp, fontWeight = FontWeight.Bold)
                                 }
                                 Spacer(modifier = Modifier.width(10.dp))
                                 Text(
                                     currentChannel?.name ?: "",
-                                    color = Color.White,
+                                    color = PanalinkPalette.textPrimary,
                                     fontSize = 15.sp,
                                     fontWeight = FontWeight.SemiBold,
                                     maxLines = 1,
@@ -1161,13 +1162,13 @@ fun PanaTVScreen(viewModel: PanaTVViewModel = viewModel()) {
                                         ) {
                                             Text(
                                                 text = formatMmSs(currentPosition),
-                                                color = Color.White,
+                                                color = PanalinkPalette.textPrimary,
                                                 fontSize = 10.sp,
                                                 fontWeight = FontWeight.Medium
                                             )
                                             Text(
                                                 text = formatMmSs(duration),
-                                                color = Color.White,
+                                                color = PanalinkPalette.textPrimary,
                                                 fontSize = 10.sp,
                                                 fontWeight = FontWeight.Medium
                                             )
@@ -1191,7 +1192,7 @@ fun PanaTVScreen(viewModel: PanaTVViewModel = viewModel()) {
                                         Icon(
                                             if (isPlayingState) Icons.Default.Pause else Icons.Default.PlayArrow,
                                             contentDescription = null,
-                                            tint = Color.White,
+                                            tint = PanalinkPalette.textPrimary,
                                             modifier = Modifier.size(30.dp)
                                         )
                                     }
@@ -1199,7 +1200,7 @@ fun PanaTVScreen(viewModel: PanaTVViewModel = viewModel()) {
                                         Icon(
                                             if (isMuted) Icons.Default.VolumeOff else Icons.Default.VolumeUp,
                                             contentDescription = null,
-                                            tint = Color.White
+                                            tint = PanalinkPalette.textPrimary
                                         )
                                     }
                                     // Lock screen: hides controls and disables touch until unlocked
@@ -1210,7 +1211,7 @@ fun PanaTVScreen(viewModel: PanaTVViewModel = viewModel()) {
                                         controlsVisible = false
                                         lockTapVisible = false
                                     }) {
-                                        Icon(Icons.Default.Lock, contentDescription = "Bloquear pantalla", tint = Color.White)
+                                        Icon(Icons.Default.Lock, contentDescription = "Bloquear pantalla", tint = PanalinkPalette.textPrimary)
                                     }
                                 }
                                 Row(verticalAlignment = Alignment.CenterVertically) {
@@ -1228,13 +1229,13 @@ fun PanaTVScreen(viewModel: PanaTVViewModel = viewModel()) {
                                     )
                                     // Rotate screen
                                     IconButton(onClick = toggleOrientation) {
-                                        Icon(Icons.Default.ScreenRotation, contentDescription = "Voltear pantalla", tint = Color.White)
+                                        Icon(Icons.Default.ScreenRotation, contentDescription = "Voltear pantalla", tint = PanalinkPalette.textPrimary)
                                     }
                                     // PiP entry removed for PanaTV: leaving the screen must stop
                                     // playback outright (see lifecycle). Reels PiP is unaffected.
                                     // Exit fullscreen
                                     IconButton(onClick = { isFullscreen = false }) {
-                                        Icon(Icons.Default.FullscreenExit, contentDescription = "Salir", tint = Color.White)
+                                        Icon(Icons.Default.FullscreenExit, contentDescription = "Salir", tint = PanalinkPalette.textPrimary)
                                     }
                                 }
                             }
@@ -1256,7 +1257,7 @@ fun PanaTVScreen(viewModel: PanaTVViewModel = viewModel()) {
                         ) {
                             Text(
                                 "Canales",
-                                color = Color.White,
+                                color = PanalinkPalette.textPrimary,
                                 fontSize = 16.sp,
                                 fontWeight = FontWeight.Bold,
                                 modifier = Modifier.padding(horizontal = 16.dp, vertical = 14.dp)
@@ -1323,7 +1324,7 @@ fun PanaTVScreen(viewModel: PanaTVViewModel = viewModel()) {
                                                     .background(Color(0xFFE53935))
                                                     .padding(horizontal = 4.dp, vertical = 1.dp)
                                             ) {
-                                                Text("VIENDO", color = Color.White, fontSize = 7.sp, fontWeight = FontWeight.Bold)
+                                                Text("VIENDO", color = PanalinkPalette.textPrimary, fontSize = 7.sp, fontWeight = FontWeight.Bold)
                                             }
                                         }
                                     }
@@ -1349,7 +1350,7 @@ fun PanaTVScreen(viewModel: PanaTVViewModel = viewModel()) {
                             Icon(
                                 Icons.Default.Lock,
                                 contentDescription = "Desbloquear pantalla",
-                                tint = Color.White
+                                tint = PanalinkPalette.textPrimary
                             )
                         }
                     }
@@ -1491,7 +1492,7 @@ private fun ChannelCard(
                         .background(TvAccent)
                         .padding(horizontal = 4.dp, vertical = 1.dp)
                 ) {
-                    Text("HD", color = Color.White, fontSize = 8.sp, fontWeight = FontWeight.Bold)
+                    Text("HD", color = PanalinkPalette.textPrimary, fontSize = 8.sp, fontWeight = FontWeight.Bold)
                 }
             }
 

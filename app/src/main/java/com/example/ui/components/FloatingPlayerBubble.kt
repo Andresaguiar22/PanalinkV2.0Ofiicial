@@ -42,6 +42,7 @@ import androidx.media3.ui.PlayerView
 import com.example.panatv.PanaTVActivity
 import com.example.util.AppFloatingPlayerManager
 import kotlin.math.roundToInt
+import com.example.ui.theme.PanalinkPalette
 
 @androidx.annotation.OptIn(androidx.media3.common.util.UnstableApi::class)
 @Composable
@@ -132,7 +133,7 @@ fun FloatingPlayerBubble(
                 Icon(
                     imageVector = Icons.Default.Close,
                     contentDescription = "Cerrar reproductor",
-                    tint = Color.White,
+                    tint = PanalinkPalette.textPrimary,
                     modifier = Modifier
                         .size(32.dp)
                         .graphicsLayer {
@@ -247,7 +248,7 @@ fun FloatingPlayerBubble(
                         )
                         Text(
                             text = if (manager.activeType == "reel") "Reel" else "PanaTV",
-                            color = Color.White,
+                            color = PanalinkPalette.textPrimary,
                             fontSize = 9.sp,
                             maxLines = 1
                         )

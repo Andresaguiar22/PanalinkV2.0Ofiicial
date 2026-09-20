@@ -14,6 +14,7 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import com.example.ui.theme.PanalinkPalette
 
 @Composable
 fun ChatUnreadBadge(
@@ -34,7 +35,7 @@ fun ChatUnreadBadge(
     ) {
         Text(
             text = text,
-            color = Color.White,
+            color = PanalinkPalette.textPrimary,
             fontSize = 11.sp,
             fontWeight = FontWeight.Bold
         )

@@ -34,6 +34,7 @@ import com.example.features.stickers.domain.Sticker
 import com.example.features.stickers.domain.StickerPack
 import com.example.features.stickers.studio.PanalinkDefaultStickers
 import com.example.features.stickers.studio.StickerStudioScreen
+import com.example.ui.theme.PanalinkPalette
 
 @Composable
 fun StickerPanel(
@@ -126,7 +127,7 @@ fun StickerPanel(
                             .padding(horizontal = 10.dp, vertical = 6.dp),
                         contentAlignment = Alignment.Center
                     ) {
-                        Text("+ Crear", color = Color.White, fontSize = 13.sp, fontWeight = FontWeight.Bold)
+                        Text("+ Crear", color = PanalinkPalette.textPrimary, fontSize = 13.sp, fontWeight = FontWeight.Bold)
                     }
                 }
                 items(packs, key = { it.id }) { pack ->

@@ -18,6 +18,7 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.example.creative.core.CreativeLayer
+import com.example.ui.theme.PanalinkPalette
 
 /**
  * P6.5A - Professional Multi-Track Timeline UI Composable
@@ -59,7 +60,7 @@ fun MultiTrackTimelineUI(
                     Spacer(modifier = Modifier.width(6.dp))
                     Text(
                         text = "Timeline Multipista (${currentTimeMs / 1000f}s / ${totalDurationMs / 1000f}s)",
-                        color = Color.White,
+                        color = PanalinkPalette.textPrimary,
                         fontWeight = FontWeight.Bold,
                         fontSize = 13.sp
                     )
@@ -118,7 +119,7 @@ fun MultiTrackTimelineUI(
 
                         Text(
                             text = track.name,
-                            color = Color.White,
+                            color = PanalinkPalette.textPrimary,
                             fontSize = 11.sp,
                             fontWeight = FontWeight.Bold,
                             modifier = Modifier.width(90.dp),
@@ -184,7 +185,7 @@ fun MultiTrackTimelineUI(
 
                         Text(
                             text = titleName,
-                            color = Color.White,
+                            color = PanalinkPalette.textPrimary,
                             fontSize = 11.sp,
                             modifier = Modifier.width(90.dp),
                             maxLines = 1

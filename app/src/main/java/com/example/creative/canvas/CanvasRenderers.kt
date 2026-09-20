@@ -30,6 +30,7 @@ import java.io.File
 import androidx.compose.foundation.ExperimentalFoundationApi
 import androidx.compose.foundation.combinedClickable
 import androidx.compose.ui.graphics.graphicsLayer
+import com.example.ui.theme.PanalinkPalette
 
 @OptIn(ExperimentalFoundationApi::class)
 @Composable
@@ -209,7 +210,7 @@ fun InteractiveLayerRenderer(
             if (layer.title.isNotEmpty()) {
                 Text(
                     text = layer.title,
-                    color = Color.White,
+                    color = PanalinkPalette.textPrimary,
                     fontSize = 15.sp,
                     fontWeight = FontWeight.Bold,
                     modifier = Modifier.padding(top = 4.dp)
@@ -226,7 +227,7 @@ fun InteractiveLayerRenderer(
                                 .background(Color(0xFF2D2D3E), RoundedCornerShape(8.dp))
                                 .padding(horizontal = 12.dp, vertical = 6.dp)
                         ) {
-                            Text(layer.optionA, color = Color.White, fontSize = 12.sp)
+                            Text(layer.optionA, color = PanalinkPalette.textPrimary, fontSize = 12.sp)
                         }
                     }
                     if (layer.optionB.isNotEmpty()) {
@@ -235,7 +236,7 @@ fun InteractiveLayerRenderer(
                                 .background(Color(0xFF2D2D3E), RoundedCornerShape(8.dp))
                                 .padding(horizontal = 12.dp, vertical = 6.dp)
                         ) {
-                            Text(layer.optionB, color = Color.White, fontSize = 12.sp)
+                            Text(layer.optionB, color = PanalinkPalette.textPrimary, fontSize = 12.sp)
                         }
                     }
                 }

@@ -89,6 +89,7 @@ import java.text.SimpleDateFormat
 import java.util.*
 
 import com.example.ui.viewmodel.NotificationsViewModel
+import com.example.ui.theme.PanalinkPalette
 
 @OptIn(ExperimentalMaterial3Api::class)
 
@@ -331,7 +332,7 @@ fun ChatsTabContent(
                                     item {
                                         Text(
                                             text = "CONVERSACIONES ACTIVAS",
-                                            color = Color.White,
+                                            color = PanalinkPalette.textPrimary,
                                             fontSize = 11.sp,
                                             fontWeight = FontWeight.Bold,
                                             modifier = Modifier.padding(horizontal = 16.dp, vertical = 8.dp)
@@ -404,7 +405,7 @@ fun ChatsTabContent(
                                             Column(modifier = Modifier.weight(1f)) {
                                                 Text(
                                                     text = contact.displayName,
-                                                    color = Color.White,
+                                                    color = PanalinkPalette.textPrimary,
                                                     fontWeight = FontWeight.Bold,
                                                     fontSize = 16.sp
                                                 )
@@ -426,7 +427,7 @@ fun ChatsTabContent(
                                                 Icon(
                                                     imageVector = Icons.Default.Email,
                                                     contentDescription = "Enviar mensaje",
-                                                    tint = Color.White
+                                                    tint = PanalinkPalette.textPrimary
                                                 )
                                             }
                                         }
@@ -514,7 +515,7 @@ fun ChatItemRow(
                 ) {
                     Text(
                         text = otherUser?.displayName ?: "Pana de panalink",
-                        color = Color.White,
+                        color = PanalinkPalette.textPrimary,
                         fontWeight = FontWeight.Bold,
                         fontSize = 16.sp,
                         maxLines = 1,
@@ -574,7 +575,7 @@ fun ChatItemRow(
                         ) {
                             Text(
                                 text = finalUnreadCount.toString(),
-                                color = Color.White,
+                                color = PanalinkPalette.textPrimary,
                                 fontWeight = FontWeight.Bold,
                                 fontSize = 11.sp
                             )
@@ -690,7 +691,7 @@ fun ChatAvatar(
                 ) {
                     Text(
                         text = initials,
-                        color = Color.White,
+                        color = PanalinkPalette.textPrimary,
                         fontWeight = FontWeight.Bold,
                         fontSize = (size.value * 0.38f).sp
                     )

@@ -39,6 +39,7 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import com.example.ui.theme.PanalinkPalette
 
 /** Verde neon de la marca Panalink. */
 val PanalinkNeonGreen = Color(0xFF00E676)
@@ -70,13 +71,13 @@ fun LivePreliveTopBar(
             Icon(
                 imageVector = Icons.AutoMirrored.Filled.ArrowBack,
                 contentDescription = "Regresar",
-                tint = Color.White,
+                tint = PanalinkPalette.textPrimary,
             )
         }
         Spacer(modifier = Modifier.size(4.dp))
         Text(
             text = title,
-            color = Color.White,
+            color = PanalinkPalette.textPrimary,
             fontSize = 19.sp,
             fontWeight = FontWeight.SemiBold,
             letterSpacing = 0.2.sp,
@@ -148,7 +149,7 @@ fun LiveGlassTextField(
         if (value.isEmpty()) {
             Text(
                 text = placeholder,
-                color = Color.White.copy(alpha = 0.45f),
+                color = PanalinkPalette.textPrimary.copy(alpha = 0.45f),
                 fontSize = 15.sp,
             )
         }
@@ -158,7 +159,7 @@ fun LiveGlassTextField(
             singleLine = singleLine,
             textStyle = LocalTextStyle.current.merge(
                 TextStyle(
-                    color = Color.White,
+                    color = PanalinkPalette.textPrimary,
                     fontSize = 15.sp,
                     fontWeight = FontWeight.Medium,
                 )

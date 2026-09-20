@@ -46,6 +46,7 @@ import coil.compose.AsyncImage
 import com.example.live.domain.model.LiveStream
 import com.example.ui.components.PanaAvatar
 import com.example.ui.components.rememberAsyncMediaUrl
+import com.example.ui.theme.PanalinkPalette
 
 private val LiveCardShape = RoundedCornerShape(20.dp)
 private val LiveRed = Color(0xFFFF3B30)
@@ -137,7 +138,7 @@ fun LiveCard(
             ) {
                 Text(
                     text = live.title,
-                    color = Color.White,
+                    color = PanalinkPalette.textPrimary,
                     fontWeight = FontWeight.Bold,
                     fontSize = 16.sp,
                     maxLines = 1,
@@ -157,7 +158,7 @@ fun LiveCard(
                     )
                     Text(
                         text = hostName,
-                        color = Color.White.copy(alpha = 0.85f),
+                        color = PanalinkPalette.textPrimary.copy(alpha = 0.85f),
                         fontSize = 13.sp,
                         fontWeight = FontWeight.Medium,
                         maxLines = 1,
@@ -187,7 +188,7 @@ private fun LiveBadge() {
         LiveGlowDot()
         Text(
             text = "EN VIVO",
-            color = Color.White,
+            color = PanalinkPalette.textPrimary,
             fontSize = 11.sp,
             fontWeight = FontWeight.Bold,
             letterSpacing = 0.6.sp
@@ -238,12 +239,12 @@ private fun ViewerCountBadge(viewerCount: Int) {
         Icon(
             imageVector = Icons.Default.Person,
             contentDescription = null,
-            tint = Color.White.copy(alpha = 0.9f),
+            tint = PanalinkPalette.textPrimary.copy(alpha = 0.9f),
             modifier = Modifier.size(12.dp)
         )
         Text(
             text = "$viewerCount",
-            color = Color.White,
+            color = PanalinkPalette.textPrimary,
             fontSize = 11.sp,
             fontWeight = FontWeight.Medium
         )

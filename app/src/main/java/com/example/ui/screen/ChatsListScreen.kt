@@ -89,6 +89,7 @@ import java.text.SimpleDateFormat
 import java.util.*
 
 import com.example.ui.viewmodel.NotificationsViewModel
+import com.example.ui.theme.PanalinkPalette
 
 @OptIn(ExperimentalMaterial3Api::class)
 
@@ -122,7 +123,7 @@ fun SelectionTopAppBar(
             Icon(
                 imageVector = Icons.Default.ArrowBack,
                 contentDescription = "Cancelar selección",
-                tint = Color.White
+                tint = PanalinkPalette.textPrimary
             )
         }
         
@@ -130,7 +131,7 @@ fun SelectionTopAppBar(
         
         Text(
             text = selectedCount.toString(),
-            color = Color.White,
+            color = PanalinkPalette.textPrimary,
             fontSize = 20.sp,
             fontWeight = FontWeight.Bold,
             modifier = Modifier.weight(1f)
@@ -140,7 +141,7 @@ fun SelectionTopAppBar(
             Icon(
                 imageVector = Icons.Default.PushPin,
                 contentDescription = "Fijar chat",
-                tint = Color.White
+                tint = PanalinkPalette.textPrimary
             )
         }
         
@@ -148,7 +149,7 @@ fun SelectionTopAppBar(
             Icon(
                 imageVector = Icons.Default.Delete,
                 contentDescription = "Eliminar chat",
-                tint = Color.White
+                tint = PanalinkPalette.textPrimary
             )
         }
         
@@ -156,7 +157,7 @@ fun SelectionTopAppBar(
             Icon(
                 imageVector = Icons.Default.NotificationsOff,
                 contentDescription = "Silenciar chat",
-                tint = Color.White
+                tint = PanalinkPalette.textPrimary
             )
         }
         
@@ -164,7 +165,7 @@ fun SelectionTopAppBar(
             Icon(
                 imageVector = Icons.Default.Archive,
                 contentDescription = "Archivar chat",
-                tint = Color.White
+                tint = PanalinkPalette.textPrimary
             )
         }
         
@@ -173,7 +174,7 @@ fun SelectionTopAppBar(
                 Icon(
                     imageVector = Icons.Default.MoreVert,
                     contentDescription = "Opciones avanzadas",
-                    tint = Color.White
+                    tint = PanalinkPalette.textPrimary
                 )
             }
             DropdownMenu(
@@ -182,42 +183,42 @@ fun SelectionTopAppBar(
                 modifier = Modifier.background(Color(0xFF1F2C34))
             ) {
                 DropdownMenuItem(
-                    text = { Text("Marcar como no leído / leído", color = Color.White, fontSize = 14.sp) },
+                    text = { Text("Marcar como no leído / leído", color = PanalinkPalette.textPrimary, fontSize = 14.sp) },
                     onClick = {
                         showMenu = false
                         onMarkReadClicked()
                     }
                 )
                 DropdownMenuItem(
-                    text = { Text("Seleccionar todos", color = Color.White, fontSize = 14.sp) },
+                    text = { Text("Seleccionar todos", color = PanalinkPalette.textPrimary, fontSize = 14.sp) },
                     onClick = {
                         showMenu = false
                         onSelectAllClicked()
                     }
                 )
                 DropdownMenuItem(
-                    text = { Text("Restringir chats", color = Color.White, fontSize = 14.sp) },
+                    text = { Text("Restringir chats", color = PanalinkPalette.textPrimary, fontSize = 14.sp) },
                     onClick = {
                         showMenu = false
                         onRestrictClicked()
                     }
                 )
                 DropdownMenuItem(
-                    text = { Text("Añadir a Favoritos", color = Color.White, fontSize = 14.sp) },
+                    text = { Text("Añadir a Favoritos", color = PanalinkPalette.textPrimary, fontSize = 14.sp) },
                     onClick = {
                         showMenu = false
                         onAddToFavoritesClicked()
                     }
                 )
                 DropdownMenuItem(
-                    text = { Text("Añadir a lista", color = Color.White, fontSize = 14.sp) },
+                    text = { Text("Añadir a lista", color = PanalinkPalette.textPrimary, fontSize = 14.sp) },
                     onClick = {
                         showMenu = false
                         onAddToListClicked()
                     }
                 )
                 DropdownMenuItem(
-                    text = { Text("Vaciar chats", color = Color.White, fontSize = 14.sp) },
+                    text = { Text("Vaciar chats", color = PanalinkPalette.textPrimary, fontSize = 14.sp) },
                     onClick = {
                         showMenu = false
                         onClearChatsClicked()
@@ -304,7 +305,7 @@ fun ChatsListScreen(
 
         AlertDialog(
             onDismissRequest = { showAddToListDialog = false },
-            title = { Text("Añadir a lista de chats 📝", color = Color.White, fontWeight = FontWeight.Bold) },
+            title = { Text("Añadir a lista de chats 📝", color = PanalinkPalette.textPrimary, fontWeight = FontWeight.Bold) },
             text = {
                 Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
                     Text("Selecciona una lista existente o crea una nueva:", color = Color.LightGray, fontSize = 14.sp)
@@ -328,7 +329,7 @@ fun ChatsListScreen(
                                 colors = RadioButtonDefaults.colors(selectedColor = Color(0xFF00A884))
                             )
                             Spacer(modifier = Modifier.width(8.dp))
-                            Text(preset, color = Color.White, fontSize = 16.sp)
+                            Text(preset, color = PanalinkPalette.textPrimary, fontSize = 16.sp)
                         }
                     }
                     Row(
@@ -344,7 +345,7 @@ fun ChatsListScreen(
                             colors = RadioButtonDefaults.colors(selectedColor = Color(0xFF00A884))
                         )
                         Spacer(modifier = Modifier.width(8.dp))
-                        Text("✏️ Crear nueva lista...", color = Color.White, fontSize = 16.sp)
+                        Text("✏️ Crear nueva lista...", color = PanalinkPalette.textPrimary, fontSize = 16.sp)
                     }
                     if (isCustomSelected) {
                         OutlinedTextField(
@@ -375,7 +376,7 @@ fun ChatsListScreen(
                     },
                     colors = ButtonDefaults.buttonColors(containerColor = Color(0xFF00A884))
                 ) {
-                    Text("Añadir", color = Color.White)
+                    Text("Añadir", color = PanalinkPalette.textPrimary)
                 }
             },
             dismissButton = {
@@ -393,7 +394,7 @@ fun ChatsListScreen(
             containerColor = Color(0xFF161618)
         ) {
             Column(modifier = Modifier.padding(16.dp)) {
-                Text("¿Eliminar a ${contactToDelete!!.displayName}?", color = Color.White, fontWeight = FontWeight.Bold, fontSize = 18.sp)
+                Text("¿Eliminar a ${contactToDelete!!.displayName}?", color = PanalinkPalette.textPrimary, fontWeight = FontWeight.Bold, fontSize = 18.sp)
                 Spacer(modifier = Modifier.height(16.dp))
                 Button(
                     onClick = {
@@ -760,7 +761,7 @@ fun ChatsListScreen(
                                         ) {
                                             Text(
                                                 text = if (unreadCount > 9) "9+" else unreadCount.toString(),
-                                                color = Color.White, 
+                                                color = PanalinkPalette.textPrimary, 
                                                 fontSize = 9.sp, 
                                                 fontWeight = FontWeight.Bold
                                             )
@@ -1015,11 +1016,11 @@ fun ChatsListScreen(
                             onClick = { showPlusBottomSheet = false },
                             modifier = Modifier.align(Alignment.CenterStart)
                         ) {
-                            Icon(Icons.Default.Close, contentDescription = "Cerrar", tint = Color.White)
+                            Icon(Icons.Default.Close, contentDescription = "Cerrar", tint = PanalinkPalette.textPrimary)
                         }
                         Text(
                             text = "Crear",
-                            color = Color.White,
+                            color = PanalinkPalette.textPrimary,
                             fontSize = 18.sp,
                             fontWeight = FontWeight.Bold
                         )
@@ -1029,7 +1030,7 @@ fun ChatsListScreen(
 
                     Text(
                         text = "¿Qué deseas crear?",
-                        color = Color.White,
+                        color = PanalinkPalette.textPrimary,
                         fontSize = 16.sp,
                         fontWeight = FontWeight.Medium,
                         modifier = Modifier.fillMaxWidth(),
@@ -1072,10 +1073,10 @@ fun ChatsListScreen(
                                         ),
                                     contentAlignment = Alignment.Center
                                 ) {
-                                    Icon(Icons.Default.Add, contentDescription = null, tint = Color.White, modifier = Modifier.size(32.dp))
+                                    Icon(Icons.Default.Add, contentDescription = null, tint = PanalinkPalette.textPrimary, modifier = Modifier.size(32.dp))
                                 }
                                 Spacer(modifier = Modifier.height(12.dp))
-                                Text("Historia", color = Color.White, fontWeight = FontWeight.Bold, fontSize = 16.sp)
+                                Text("Historia", color = PanalinkPalette.textPrimary, fontWeight = FontWeight.Bold, fontSize = 16.sp)
                                 Spacer(modifier = Modifier.height(4.dp))
                                 Text("Comparte momentos\nque desaparecen en\n24 horas.", color = Color.Gray, fontSize = 11.sp, textAlign = TextAlign.Center, lineHeight = 14.sp)
                             }
@@ -1110,10 +1111,10 @@ fun ChatsListScreen(
                                         ),
                                     contentAlignment = Alignment.Center
                                 ) {
-                                    Icon(Icons.Default.PlayArrow, contentDescription = null, tint = Color.White, modifier = Modifier.size(32.dp))
+                                    Icon(Icons.Default.PlayArrow, contentDescription = null, tint = PanalinkPalette.textPrimary, modifier = Modifier.size(32.dp))
                                 }
                                 Spacer(modifier = Modifier.height(12.dp))
-                                Text("Reel", color = Color.White, fontWeight = FontWeight.Bold, fontSize = 16.sp)
+                                Text("Reel", color = PanalinkPalette.textPrimary, fontWeight = FontWeight.Bold, fontSize = 16.sp)
                                 Spacer(modifier = Modifier.height(4.dp))
                                 Text("Crea videos para\ndescubrir y compartir\ncon el mundo.", color = Color.Gray, fontSize = 11.sp, textAlign = TextAlign.Center, lineHeight = 14.sp)
                             }
@@ -1142,11 +1143,11 @@ fun ChatsListScreen(
                                 .background(Color(0xFF38BDF8), RoundedCornerShape(10.dp)),
                             contentAlignment = Alignment.Center
                         ) {
-                            Icon(Icons.Default.MusicNote, contentDescription = null, tint = Color.White, modifier = Modifier.size(20.dp))
+                            Icon(Icons.Default.MusicNote, contentDescription = null, tint = PanalinkPalette.textPrimary, modifier = Modifier.size(20.dp))
                         }
                         Spacer(modifier = Modifier.width(16.dp))
                         Column(modifier = Modifier.weight(1f)) {
-                            Text("Music Studio", color = Color.White, fontWeight = FontWeight.Bold, fontSize = 15.sp)
+                            Text("Music Studio", color = PanalinkPalette.textPrimary, fontWeight = FontWeight.Bold, fontSize = 15.sp)
                             Text("Administra tus playlists y biblioteca musical.", color = Color.Gray, fontSize = 12.sp)
                         }
                         Icon(Icons.Default.KeyboardArrowRight, contentDescription = null, tint = Color.Gray)
@@ -1170,11 +1171,11 @@ fun ChatsListScreen(
                                 .background(Color(0xFFE91E63), RoundedCornerShape(10.dp)),
                             contentAlignment = Alignment.Center
                         ) {
-                            Icon(Icons.Default.Tv, contentDescription = null, tint = Color.White, modifier = Modifier.size(20.dp))
+                            Icon(Icons.Default.Tv, contentDescription = null, tint = PanalinkPalette.textPrimary, modifier = Modifier.size(20.dp))
                         }
                         Spacer(modifier = Modifier.width(16.dp))
                         Column(modifier = Modifier.weight(1f)) {
-                            Text("PanaTV", color = Color.White, fontWeight = FontWeight.Bold, fontSize = 15.sp)
+                            Text("PanaTV", color = PanalinkPalette.textPrimary, fontWeight = FontWeight.Bold, fontSize = 15.sp)
                             Text("Canales nacionales en vivo", color = Color.Gray, fontSize = 12.sp)
                         }
                     }
@@ -1196,11 +1197,11 @@ fun ChatsListScreen(
                                 .background(Color(0xFF5E35B1), RoundedCornerShape(10.dp)),
                             contentAlignment = Alignment.Center
                         ) {
-                            Icon(Icons.Default.Search, contentDescription = null, tint = Color.White, modifier = Modifier.size(20.dp))
+                            Icon(Icons.Default.Search, contentDescription = null, tint = PanalinkPalette.textPrimary, modifier = Modifier.size(20.dp))
                         }
                         Spacer(modifier = Modifier.width(16.dp))
                         Column(modifier = Modifier.weight(1f)) {
-                            Text("Buscar Panas", color = Color.White, fontWeight = FontWeight.Bold, fontSize = 15.sp)
+                            Text("Buscar Panas", color = PanalinkPalette.textPrimary, fontWeight = FontWeight.Bold, fontSize = 15.sp)
                             Text("Busca otros usuarios de Panalink por nombre.", color = Color.Gray, fontSize = 12.sp, lineHeight = 14.sp)
                         }
                         Icon(Icons.Default.KeyboardArrowRight, contentDescription = null, tint = Color.Gray)
@@ -1223,11 +1224,11 @@ fun ChatsListScreen(
                                 .background(Color(0xFFC62828), RoundedCornerShape(10.dp)),
                             contentAlignment = Alignment.Center
                         ) {
-                            Icon(Icons.Default.ContactPage, contentDescription = null, tint = Color.White, modifier = Modifier.size(20.dp))
+                            Icon(Icons.Default.ContactPage, contentDescription = null, tint = PanalinkPalette.textPrimary, modifier = Modifier.size(20.dp))
                         }
                         Spacer(modifier = Modifier.width(16.dp))
                         Column(modifier = Modifier.weight(1f)) {
-                            Text("Directorio de Panas", color = Color.White, fontWeight = FontWeight.Bold, fontSize = 15.sp)
+                            Text("Directorio de Panas", color = PanalinkPalette.textPrimary, fontWeight = FontWeight.Bold, fontSize = 15.sp)
                             Text("Mira tu lista completa de contactos enlazados.", color = Color.Gray, fontSize = 12.sp, lineHeight = 14.sp)
                         }
                         Icon(Icons.Default.KeyboardArrowRight, contentDescription = null, tint = Color.Gray)
@@ -1249,11 +1250,11 @@ fun ChatsListScreen(
                                 .background(Color(0xFF00B8D4), RoundedCornerShape(10.dp)),
                             contentAlignment = Alignment.Center
                         ) {
-                            Icon(Icons.Default.Campaign, contentDescription = null, tint = Color.White, modifier = Modifier.size(20.dp))
+                            Icon(Icons.Default.Campaign, contentDescription = null, tint = PanalinkPalette.textPrimary, modifier = Modifier.size(20.dp))
                         }
                         Spacer(modifier = Modifier.width(16.dp))
                         Column(modifier = Modifier.weight(1f)) {
-                            Text("Canal", color = Color.White, fontWeight = FontWeight.Bold, fontSize = 15.sp)
+                            Text("Canal", color = PanalinkPalette.textPrimary, fontWeight = FontWeight.Bold, fontSize = 15.sp)
                             Text("Crea una audiencia y comparte\ndifusiones públicas o privadas.", color = Color.Gray, fontSize = 12.sp, lineHeight = 14.sp)
                         }
                         Box(
@@ -1282,11 +1283,11 @@ fun ChatsListScreen(
                                 .background(Color(0xFF7C4DFF), RoundedCornerShape(10.dp)),
                             contentAlignment = Alignment.Center
                         ) {
-                            Icon(Icons.Default.Mic, contentDescription = null, tint = Color.White, modifier = Modifier.size(20.dp))
+                            Icon(Icons.Default.Mic, contentDescription = null, tint = PanalinkPalette.textPrimary, modifier = Modifier.size(20.dp))
                         }
                         Spacer(modifier = Modifier.width(16.dp))
                         Column(modifier = Modifier.weight(1f)) {
-                            Text("Sala de voz", color = Color.White, fontWeight = FontWeight.Bold, fontSize = 15.sp)
+                            Text("Sala de voz", color = PanalinkPalette.textPrimary, fontWeight = FontWeight.Bold, fontSize = 15.sp)
                             Text("Conversa en vivo con tus panas\nen salas de audio.", color = Color.Gray, fontSize = 12.sp, lineHeight = 14.sp)
                         }
                         Box(
@@ -1315,11 +1316,11 @@ fun ChatsListScreen(
                                 .background(Color(0xFFEF5350), RoundedCornerShape(10.dp)),
                             contentAlignment = Alignment.Center
                         ) {
-                            Icon(Icons.Default.LiveTv, contentDescription = null, tint = Color.White, modifier = Modifier.size(20.dp))
+                            Icon(Icons.Default.LiveTv, contentDescription = null, tint = PanalinkPalette.textPrimary, modifier = Modifier.size(20.dp))
                         }
                         Spacer(modifier = Modifier.width(16.dp))
                         Column(modifier = Modifier.weight(1f)) {
-                            Text("Panalink Live", color = Color.White, fontWeight = FontWeight.Bold, fontSize = 15.sp)
+                            Text("Panalink Live", color = PanalinkPalette.textPrimary, fontWeight = FontWeight.Bold, fontSize = 15.sp)
                             Text("Transmite en vivo o mira\ndirectos de la comunidad.", color = Color.Gray, fontSize = 12.sp, lineHeight = 14.sp)
                         }
                         Box(
@@ -1358,9 +1359,9 @@ fun ChatsListScreen(
                                 horizontalArrangement = Arrangement.Center,
                                 verticalAlignment = Alignment.CenterVertically
                             ) {
-                                Icon(Icons.Default.Call, contentDescription = null, tint = Color.White, modifier = Modifier.size(18.dp))
+                                Icon(Icons.Default.Call, contentDescription = null, tint = PanalinkPalette.textPrimary, modifier = Modifier.size(18.dp))
                                 Spacer(modifier = Modifier.width(8.dp))
-                                Text("Llamadas", color = Color.White, fontSize = 14.sp, fontWeight = FontWeight.Medium)
+                                Text("Llamadas", color = PanalinkPalette.textPrimary, fontSize = 14.sp, fontWeight = FontWeight.Medium)
                             }
                         }
 
@@ -1382,9 +1383,9 @@ fun ChatsListScreen(
                                 horizontalArrangement = Arrangement.Center,
                                 verticalAlignment = Alignment.CenterVertically
                             ) {
-                                Icon(Icons.Default.QrCodeScanner, contentDescription = null, tint = Color.White, modifier = Modifier.size(18.dp))
+                                Icon(Icons.Default.QrCodeScanner, contentDescription = null, tint = PanalinkPalette.textPrimary, modifier = Modifier.size(18.dp))
                                 Spacer(modifier = Modifier.width(8.dp))
-                                Text("Escanear QR", color = Color.White, fontSize = 14.sp, fontWeight = FontWeight.Medium)
+                                Text("Escanear QR", color = PanalinkPalette.textPrimary, fontSize = 14.sp, fontWeight = FontWeight.Medium)
                             }
                         }
                     }
@@ -1402,18 +1403,18 @@ fun ChatsListScreen(
             Scaffold(
                 topBar = {
                     TopAppBar(
-                        title = { Text("Directorio de Panas 👥", color = Color.White, fontWeight = FontWeight.Bold, fontSize = 18.sp) },
+                        title = { Text("Directorio de Panas 👥", color = PanalinkPalette.textPrimary, fontWeight = FontWeight.Bold, fontSize = 18.sp) },
                         navigationIcon = {
                             IconButton(onClick = { showContactsDialog = false }) {
-                                Icon(Icons.Default.Close, contentDescription = "Cerrar", tint = Color.White)
+                                Icon(Icons.Default.Close, contentDescription = "Cerrar", tint = PanalinkPalette.textPrimary)
                             }
                         },
                         actions = {
                             IconButton(onClick = { showRealQrScanner = true }) {
-                                Icon(Icons.Default.QrCodeScanner, contentDescription = "Escanear QR", tint = Color.White)
+                                Icon(Icons.Default.QrCodeScanner, contentDescription = "Escanear QR", tint = PanalinkPalette.textPrimary)
                             }
                             IconButton(onClick = { showAddContactDialog = true }) {
-                                Icon(Icons.Default.PersonAdd, contentDescription = "Agregar Pana", tint = Color.White)
+                                Icon(Icons.Default.PersonAdd, contentDescription = "Agregar Pana", tint = PanalinkPalette.textPrimary)
                             }
                         },
                         colors = TopAppBarDefaults.topAppBarColors(containerColor = Color.Black)
@@ -1451,10 +1452,10 @@ fun ChatsListScreen(
             Scaffold(
                 topBar = {
                     TopAppBar(
-                        title = { Text("Historial de Llamadas 📞", color = Color.White, fontWeight = FontWeight.Bold, fontSize = 18.sp) },
+                        title = { Text("Historial de Llamadas 📞", color = PanalinkPalette.textPrimary, fontWeight = FontWeight.Bold, fontSize = 18.sp) },
                         navigationIcon = {
                             IconButton(onClick = { showCallsDialog = false }) {
-                                Icon(Icons.Default.Close, contentDescription = "Cerrar", tint = Color.White)
+                                Icon(Icons.Default.Close, contentDescription = "Cerrar", tint = PanalinkPalette.textPrimary)
                             }
                         },
                         colors = TopAppBarDefaults.topAppBarColors(containerColor = Color.Black)
@@ -1505,7 +1506,7 @@ fun ChatsListScreen(
                     Spacer(modifier = Modifier.height(12.dp))
                     Text(
                         text = SupabaseClient.currentProfile?.displayName ?: "Mi Cuenta",
-                        color = Color.White,
+                        color = PanalinkPalette.textPrimary,
                         fontWeight = FontWeight.Bold,
                         fontSize = 16.sp
                     )
@@ -1525,7 +1526,7 @@ fun ChatsListScreen(
                     QuickProfileMenuItem(
                         icon = Icons.Default.Person,
                         label = "Editar perfil",
-                        tint = Color.White
+                        tint = PanalinkPalette.textPrimary
                     ) {
                         showQuickProfileDialog = false
                         onNavigateToProfile()
@@ -1571,7 +1572,7 @@ fun ChatsListScreen(
                         shape = RoundedCornerShape(10.dp),
                         modifier = Modifier.fillMaxWidth()
                     ) {
-                        Text("Cerrar", color = Color.White)
+                        Text("Cerrar", color = PanalinkPalette.textPrimary)
                     }
                 }
             }
@@ -1616,9 +1617,9 @@ fun ChatsListScreen(
             },
             title = {
                 Row(verticalAlignment = Alignment.CenterVertically) {
-                    Icon(Icons.Default.Add, contentDescription = null, tint = Color.White)
+                    Icon(Icons.Default.Add, contentDescription = null, tint = PanalinkPalette.textPrimary)
                     Spacer(modifier = Modifier.width(8.dp))
-                    Text("Agregar Contacto de Pana 🇻🇪", color = Color.White, fontWeight = FontWeight.Bold, fontSize = 18.sp)
+                    Text("Agregar Contacto de Pana 🇻🇪", color = PanalinkPalette.textPrimary, fontWeight = FontWeight.Bold, fontSize = 18.sp)
                 }
             },
             text = {
@@ -1688,9 +1689,9 @@ fun ChatsListScreen(
                             horizontalArrangement = Arrangement.Center,
                             modifier = Modifier.fillMaxWidth()
                         ) {
-                            CircularProgressIndicator(color = Color.White, modifier = Modifier.size(24.dp))
+                            CircularProgressIndicator(color = PanalinkPalette.textPrimary, modifier = Modifier.size(24.dp))
                             Spacer(modifier = Modifier.width(8.dp))
-                            Text("Validando PIN de Pana...", color = Color.White, fontSize = 13.sp)
+                            Text("Validando PIN de Pana...", color = PanalinkPalette.textPrimary, fontSize = 13.sp)
                         }
                     }
                 }
@@ -1716,7 +1717,7 @@ fun ChatsListScreen(
                         showAddContactDialog = false 
                     }
                 ) {
-                    Text("Cancelar", color = Color.White)
+                    Text("Cancelar", color = PanalinkPalette.textPrimary)
                 }
             },
             containerColor = Color(0xFF121214)
@@ -1759,7 +1760,7 @@ fun ChatsListScreen(
                      onClick = { showCerebroOverlay = false },
                      modifier = Modifier.bounceClick()
                  ) {
-                     Text("CERRAR", color = Color.White, fontWeight = FontWeight.Bold)
+                     Text("CERRAR", color = PanalinkPalette.textPrimary, fontWeight = FontWeight.Bold)
                  }
              },
              containerColor = Color.Black,
@@ -1776,10 +1777,10 @@ fun ChatsListScreen(
                              .background(Color.White.copy(alpha = 0.15f), CircleShape),
                          contentAlignment = Alignment.Center
                      ) {
-                         Icon(Icons.Default.Star, contentDescription = null, tint = Color.White, modifier = Modifier.size(20.dp))
+                         Icon(Icons.Default.Star, contentDescription = null, tint = PanalinkPalette.textPrimary, modifier = Modifier.size(20.dp))
                      }
                      Column {
-                         Text("Cerebro Spotlight ⚡", fontWeight = FontWeight.Bold, fontSize = 18.sp, color = Color.White)
+                         Text("Cerebro Spotlight ⚡", fontWeight = FontWeight.Bold, fontSize = 18.sp, color = PanalinkPalette.textPrimary)
                          Text("Buscador Universal y Comandos Rápidos", fontSize = 11.sp, color = Color(0xFF9E9E9E))
                      }
                  }
@@ -1817,7 +1818,7 @@ fun ChatsListScreen(
                                 prefs.edit().putBoolean("minimalist_mode_global", false).apply()
                             }
                         },
-                        label = { Text("¿Qué deseas buscar o ejecutar?", color = Color.White, fontSize = 12.sp) },
+                        label = { Text("¿Qué deseas buscar o ejecutar?", color = PanalinkPalette.textPrimary, fontSize = 12.sp) },
                         placeholder = { Text("Escribe / para ver comandos, o busca panas...", color = Color(0xFF9E9E9E)) },
                         modifier = Modifier
                             .fillMaxWidth()
@@ -1828,7 +1829,7 @@ fun ChatsListScreen(
                             focusedTextColor = Color.White,
                             unfocusedTextColor = Color.White
                         ),
-                        leadingIcon = { Icon(Icons.Default.Search, contentDescription = null, tint = Color.White) },
+                        leadingIcon = { Icon(Icons.Default.Search, contentDescription = null, tint = PanalinkPalette.textPrimary) },
                         shape = RoundedCornerShape(12.dp),
                         singleLine = true
                     )
@@ -1837,7 +1838,7 @@ fun ChatsListScreen(
 
                     if (query.startsWith("/") || query.isEmpty()) {
                         // Display Commands List
-                        Text("Comandos Disponibles de Pana:", fontWeight = FontWeight.Bold, fontSize = 11.sp, color = Color.White)
+                        Text("Comandos Disponibles de Pana:", fontWeight = FontWeight.Bold, fontSize = 11.sp, color = PanalinkPalette.textPrimary)
                         
                         val filteredCommands = if (query.isEmpty()) {
                             cerebroCommands
@@ -1882,9 +1883,9 @@ fun ChatsListScreen(
                                     verticalAlignment = Alignment.CenterVertically,
                                     horizontalArrangement = Arrangement.spacedBy(10.dp)
                                 ) {
-                                    Icon(cmd.icon, contentDescription = null, tint = Color.White, modifier = Modifier.size(16.dp))
+                                    Icon(cmd.icon, contentDescription = null, tint = PanalinkPalette.textPrimary, modifier = Modifier.size(16.dp))
                                     Column(modifier = Modifier.weight(1f)) {
-                                        Text(cmd.name, color = Color.White, fontWeight = FontWeight.Bold, fontSize = 12.sp)
+                                        Text(cmd.name, color = PanalinkPalette.textPrimary, fontWeight = FontWeight.Bold, fontSize = 12.sp)
                                         Text(cmd.description, color = Color(0xFF9E9E9E), fontSize = 10.sp)
                                     }
                                     Box(
@@ -1892,14 +1893,14 @@ fun ChatsListScreen(
                                             .background(Color.White.copy(alpha = 0.15f), RoundedCornerShape(6.dp))
                                             .padding(horizontal = 6.dp, vertical = 2.dp)
                                     ) {
-                                        Text(cmd.command, color = Color.White, fontSize = 9.sp, fontWeight = FontWeight.Bold)
+                                        Text(cmd.command, color = PanalinkPalette.textPrimary, fontSize = 9.sp, fontWeight = FontWeight.Bold)
                                     }
                                 }
                             }
                         }
                     } else {
                         // Display Live Filtered Search Results!
-                        Text("Resultados de Búsqueda:", fontWeight = FontWeight.Bold, fontSize = 11.sp, color = Color.White)
+                        Text("Resultados de Búsqueda:", fontWeight = FontWeight.Bold, fontSize = 11.sp, color = PanalinkPalette.textPrimary)
                         
                         val filteredContacts = contacts.filter { 
                             it.displayName.lowercase().contains(query) 
@@ -1941,9 +1942,9 @@ fun ChatsListScreen(
                                                 status = presenceMap[contact.id]?.status?.rawValue ?: "offline", secondaryStatus = if (presenceMap[contact.id]?.secondaryStatus != com.example.data.repository.SecondaryPresenceStatus.NONE) presenceMap[contact.id]?.secondaryStatus?.rawValue else null,
                                                 size = 32.dp
                                             )
-                                            Text(contact.displayName, color = Color.White, fontSize = 12.sp, fontWeight = FontWeight.Bold)
+                                            Text(contact.displayName, color = PanalinkPalette.textPrimary, fontSize = 12.sp, fontWeight = FontWeight.Bold)
                                         }
-                                        Text("Pana (PIN)", color = Color.White, fontSize = 10.sp, fontWeight = FontWeight.Bold)
+                                        Text("Pana (PIN)", color = PanalinkPalette.textPrimary, fontSize = 10.sp, fontWeight = FontWeight.Bold)
                                     }
                                 }
 
@@ -1974,9 +1975,9 @@ fun ChatsListScreen(
                                                 status = presenceMap[otherId]?.status?.rawValue ?: "offline", secondaryStatus = if (presenceMap[otherId]?.secondaryStatus != com.example.data.repository.SecondaryPresenceStatus.NONE) presenceMap[otherId]?.secondaryStatus?.rawValue else null,
                                                 size = 32.dp
                                             )
-                                            Text(otherName, color = Color.White, fontSize = 12.sp, fontWeight = FontWeight.Bold)
+                                            Text(otherName, color = PanalinkPalette.textPrimary, fontSize = 12.sp, fontWeight = FontWeight.Bold)
                                         }
-                                        Text("Abrir Chat", color = Color.White, fontSize = 10.sp, fontWeight = FontWeight.Bold)
+                                        Text("Abrir Chat", color = PanalinkPalette.textPrimary, fontSize = 10.sp, fontWeight = FontWeight.Bold)
                                     }
                                 }
                             }

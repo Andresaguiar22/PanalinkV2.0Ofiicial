@@ -7,7 +7,9 @@ class CustomizationRepository(private val context: Context) {
     private val prefs = context.getSharedPreferences("panalink_prefs", Context.MODE_PRIVATE)
 
     fun loadCustomization(uid: String): CustomizationUiState {
-        val themeMode = prefs.getString("theme_mode_global", "system") ?: "system"
+        // Identidad de marca: Panalink arranca en oscuro (el mockup). "Claro" y
+        // "Sistema" son elecciones explicitas del usuario.
+        val themeMode = prefs.getString("theme_mode_global", "oscuro") ?: "oscuro"
         val profileTheme = prefs.getString("profile_theme_${uid}", "dark_teal") ?: "dark_teal"
         val bottomBarColor = prefs.getString("bottom_bar_color_preset", "tropical") ?: "tropical"
         val bottomBarShape = prefs.getString("bottom_bar_shape_preset", "pill") ?: "pill"

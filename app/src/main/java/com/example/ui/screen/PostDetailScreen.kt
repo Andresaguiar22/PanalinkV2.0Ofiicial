@@ -42,6 +42,7 @@ import com.example.ui.components.rememberResolvedMediaUrl
 import com.example.ui.components.isVideoUrl
 import com.example.ui.screen.FeedFullscreenVideoPlayer
 import com.example.ui.viewmodel.FeedViewModel
+import com.example.ui.theme.PanalinkPalette
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -80,7 +81,7 @@ fun PostDetailScreen(
                 title = {
                     Text(
                         text = "Publicación",
-                        color = Color.White,
+                        color = PanalinkPalette.textPrimary,
                         fontSize = 18.sp,
                         fontWeight = FontWeight.Bold
                     )
@@ -90,7 +91,7 @@ fun PostDetailScreen(
                         Icon(
                             imageVector = Icons.AutoMirrored.Filled.ArrowBack,
                             contentDescription = "Volver",
-                            tint = Color.White
+                            tint = PanalinkPalette.textPrimary
                         )
                     }
                 },
@@ -235,7 +236,7 @@ fun PostDetailScreen(
                         onClick = onBackClick,
                         colors = ButtonDefaults.buttonColors(containerColor = Color(0xFF2AABEE))
                     ) {
-                        Text("Regresar", color = Color.White)
+                        Text("Regresar", color = PanalinkPalette.textPrimary)
                     }
                 }
             } else {
@@ -276,12 +277,12 @@ fun PostDetailScreen(
                         ) {
                             Text(
                                 text = "Comentarios (${comments.size})",
-                                color = Color.White,
+                                color = PanalinkPalette.textPrimary,
                                 fontSize = 16.sp,
                                 fontWeight = FontWeight.Bold
                             )
                             Spacer(modifier = Modifier.height(8.dp))
-                            HorizontalDivider(color = Color.White.copy(alpha = 0.08f))
+                            HorizontalDivider(color = PanalinkPalette.textPrimary.copy(alpha = 0.08f))
                         }
                     }
 
@@ -452,13 +453,13 @@ fun PostDetailScreen(
                     },
                     modifier = Modifier.background(Color.Black.copy(alpha = 0.5f), CircleShape)
                 ) {
-                    Icon(Icons.Default.Close, contentDescription = "Cerrar", tint = Color.White)
+                    Icon(Icons.Default.Close, contentDescription = "Cerrar", tint = PanalinkPalette.textPrimary)
                 }
 
                 if (mediaList.size > 1) {
                     Text(
                         text = "${pagerState.currentPage + 1}/${mediaList.size}",
-                        color = Color.White,
+                        color = PanalinkPalette.textPrimary,
                         fontWeight = FontWeight.Bold,
                         fontSize = 16.sp,
                         modifier = Modifier
@@ -479,7 +480,7 @@ fun PostDetailScreen(
                         Icon(
                             imageVector = if (backgroundAudioMuted) Icons.Default.VolumeMute else Icons.Default.VolumeUp,
                             contentDescription = if (backgroundAudioMuted) "Activar audio" else "Silenciar audio",
-                            tint = Color.White,
+                            tint = PanalinkPalette.textPrimary,
                             modifier = Modifier.size(20.dp)
                         )
                     }
@@ -509,7 +510,7 @@ fun PostDetailScreen(
                     Icon(
                         imageVector = Icons.Filled.ArrowDownward,
                         contentDescription = "Descargar",
-                        tint = Color.White
+                        tint = PanalinkPalette.textPrimary
                     )
                 }
             }

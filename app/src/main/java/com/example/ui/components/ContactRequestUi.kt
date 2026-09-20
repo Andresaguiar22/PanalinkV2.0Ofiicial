@@ -23,6 +23,7 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import coil.compose.AsyncImage
 import com.example.data.model.Profile
+import com.example.ui.theme.PanalinkPalette
 
 /**
  * Diálogo final delim un (flujo minimalista) mostrado antes de enviar una
@@ -40,7 +41,7 @@ fun ContactRequestPreviewDialog(
         onDismissRequest = onDismiss,
         containerColor = Color(0xFF0F1419),
         title = {
-            Text("¿Quieres agregar a este contacto?", color = Color.White)
+            Text("¿Quieres agregar a este contacto?", color = PanalinkPalette.textPrimary)
         },
         text = {
             Column(
@@ -60,7 +61,7 @@ fun ContactRequestPreviewDialog(
                 Spacer(Modifier.height(12.dp))
                 Text(
                     text = profile.displayName.ifNullOrBlank { "Pana ${pinOrToken.take(6)}" },
-                    color = Color.White,
+                    color = PanalinkPalette.textPrimary,
                     fontWeight = FontWeight.Bold,
                     fontSize = 16.sp
                 )
@@ -120,7 +121,7 @@ fun ContactRequestRow(
         Column(modifier = Modifier.weight(1f)) {
             Text(
                 text = request.sender?.displayName ?: "Pana",
-                color = Color.White,
+                color = PanalinkPalette.textPrimary,
                 fontWeight = FontWeight.Bold
             )
             Text(
@@ -144,7 +145,7 @@ fun ContactRequestRow(
                 onClick = onDecline,
                 modifier = Modifier.height(36.dp)
             ) {
-                Text("Rechazar", color = Color.White, fontSize = 12.sp)
+                Text("Rechazar", color = PanalinkPalette.textPrimary, fontSize = 12.sp)
             }
         }
     }

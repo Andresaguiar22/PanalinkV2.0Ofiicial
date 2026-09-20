@@ -25,6 +25,7 @@ import coil.compose.AsyncImage
 import com.example.media.audio.AudioTrackEntity
 import com.example.media.ui.components.TrackItem
 import com.example.media.playlist.PlaylistEntity
+import com.example.ui.theme.PanalinkPalette
 
 /**
  * P6.7 - Playlist Detail Screen
@@ -57,7 +58,7 @@ fun PlaylistScreen(
                 title = { },
                 navigationIcon = {
                     IconButton(onClick = onBackClick) {
-                        Icon(Icons.Default.ArrowBack, contentDescription = "Atrás", tint = Color.White)
+                        Icon(Icons.Default.ArrowBack, contentDescription = "Atrás", tint = PanalinkPalette.textPrimary)
                     }
                 },
                 actions = {
@@ -118,7 +119,7 @@ fun PlaylistScreen(
 
                     Text(
                         text = playlist.name,
-                        color = Color.White,
+                        color = PanalinkPalette.textPrimary,
                         fontSize = 28.sp,
                         fontWeight = FontWeight.ExtraBold,
                         modifier = Modifier.padding(horizontal = 24.dp)
@@ -161,16 +162,16 @@ fun PlaylistScreen(
                     ) {
                         Row(horizontalArrangement = Arrangement.spacedBy(16.dp)) {
                             IconButton(onClick = { /* Favorite */ }) {
-                                Icon(Icons.Default.FavoriteBorder, contentDescription = null, tint = Color.White)
+                                Icon(Icons.Default.FavoriteBorder, contentDescription = null, tint = PanalinkPalette.textPrimary)
                             }
                             IconButton(onClick = { /* Download */ }) {
-                                Icon(Icons.Default.Download, contentDescription = null, tint = Color.White)
+                                Icon(Icons.Default.Download, contentDescription = null, tint = PanalinkPalette.textPrimary)
                             }
                         }
 
                         Row(verticalAlignment = Alignment.CenterVertically) {
                             IconButton(onClick = onShuffleClick) {
-                                Icon(Icons.Default.Shuffle, contentDescription = "Shuffle", tint = Color.White)
+                                Icon(Icons.Default.Shuffle, contentDescription = "Shuffle", tint = PanalinkPalette.textPrimary)
                             }
                             FloatingActionButton(
                                 onClick = onPlayAllClick,

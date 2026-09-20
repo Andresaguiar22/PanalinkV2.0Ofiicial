@@ -87,6 +87,7 @@ import java.text.SimpleDateFormat
 import java.util.*
 
 import com.example.ui.viewmodel.NotificationsViewModel
+import com.example.ui.theme.PanalinkPalette
 
 @OptIn(ExperimentalMaterial3Api::class)
 
@@ -109,7 +110,7 @@ fun TopActionButton(
         Icon(
             imageVector = icon,
             contentDescription = contentDescription,
-            tint = Color.White,
+            tint = PanalinkPalette.textPrimary,
             modifier = Modifier.size(24.dp)
         )
     }
@@ -174,7 +175,7 @@ fun FunkyBottomNavItem(
                 ) {
                     Text(
                         text = if (badgeCount > 99) "99+" else badgeCount.toString(),
-                        color = Color.White,
+                        color = PanalinkPalette.textPrimary,
                         fontSize = 9.sp,
                         fontWeight = FontWeight.Bold,
                         textAlign = TextAlign.Center
@@ -193,7 +194,7 @@ fun FunkyBottomNavItem(
             style = if (selected) {
                 androidx.compose.ui.text.TextStyle(
                     shadow = androidx.compose.ui.graphics.Shadow(
-                        color = Color.White.copy(alpha = 0.5f),
+                        color = PanalinkPalette.textPrimary.copy(alpha = 0.5f),
                         offset = androidx.compose.ui.geometry.Offset(0f, 0f),
                         blurRadius = 8f
                     )

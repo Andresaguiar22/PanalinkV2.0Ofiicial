@@ -34,6 +34,7 @@ import androidx.compose.foundation.gestures.detectTapGestures
 import androidx.compose.ui.input.pointer.pointerInput
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
+import com.example.ui.theme.PanalinkPalette
 
 
 data class FabSubItem(
@@ -195,7 +196,7 @@ fun ContextualExpandableFab(
                         ) {
                             Text(
                                 text = item.label,
-                                color = Color.White,
+                                color = PanalinkPalette.textPrimary,
                                 fontSize = 9.sp,
                                 fontWeight = FontWeight.Bold
                             )

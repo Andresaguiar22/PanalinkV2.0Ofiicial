@@ -23,6 +23,7 @@ import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import com.example.ui.theme.PanalinkPalette
 
 enum class StudioToolTab {
     TEXT,
@@ -73,7 +74,7 @@ fun StudioLayout(
                     Icon(
                         imageVector = Icons.AutoMirrored.Filled.ArrowBack,
                         contentDescription = "Cerrar",
-                        tint = Color.White
+                        tint = PanalinkPalette.textPrimary
                     )
                 }
 
@@ -84,7 +85,7 @@ fun StudioLayout(
                     Icon(
                         imageVector = Icons.AutoMirrored.Filled.Undo,
                         contentDescription = "Deshacer",
-                        tint = Color.White
+                        tint = PanalinkPalette.textPrimary
                     )
                 }
 
@@ -95,7 +96,7 @@ fun StudioLayout(
                     Icon(
                         imageVector = Icons.AutoMirrored.Filled.Redo,
                         contentDescription = "Rehacer",
-                        tint = Color.White
+                        tint = PanalinkPalette.textPrimary
                     )
                 }
             }

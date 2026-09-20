@@ -18,6 +18,7 @@ import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.unit.dp
 import kotlinx.coroutines.delay
+import com.example.ui.theme.PanalinkPalette
 
 @Composable
 fun FeedPostSkeleton() {
@@ -91,7 +92,7 @@ fun FeedPostSkeleton() {
                 Spacer(modifier = Modifier.weight(1f))
                 Box(modifier = Modifier.width(80.dp).height(12.dp).clip(RoundedCornerShape(4.dp)).background(Color(0xFF2A2A30)))
             }
-            HorizontalDivider(color = Color.White.copy(alpha = 0.06f), thickness = 0.5.dp, modifier = Modifier.padding(horizontal = 12.dp))
+            HorizontalDivider(color = PanalinkPalette.textPrimary.copy(alpha = 0.06f), thickness = 0.5.dp, modifier = Modifier.padding(horizontal = 12.dp))
 
             Row(
                 modifier = Modifier
@@ -113,7 +114,7 @@ fun FeedPostSkeleton() {
                     }
                     if (it < 2) {
                         VerticalDivider(
-                            color = Color.White.copy(alpha = 0.06f),
+                            color = PanalinkPalette.textPrimary.copy(alpha = 0.06f),
                             modifier = Modifier.height(24.dp).padding(vertical = 4.dp)
                         )
                     }

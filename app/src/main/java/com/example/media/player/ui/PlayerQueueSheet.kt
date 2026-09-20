@@ -21,6 +21,7 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import coil.compose.AsyncImage
 import com.example.media.audio.AudioTrackEntity
+import com.example.ui.theme.PanalinkPalette
 
 /**
  * P6.7.3 - Player Queue Sheet
@@ -51,7 +52,7 @@ fun PlayerQueueSheet(
         ) {
             Text(
                 "Cola de Reproducción",
-                color = Color.White,
+                color = PanalinkPalette.textPrimary,
                 fontSize = 20.sp,
                 fontWeight = FontWeight.Bold
             )
@@ -124,7 +125,7 @@ fun QueueItem(
             )
             Text(
                 track.artist,
-                color = Color.White.copy(alpha = 0.6f),
+                color = PanalinkPalette.textPrimary.copy(alpha = 0.6f),
                 fontSize = 13.sp,
                 maxLines = 1,
                 overflow = TextOverflow.Ellipsis

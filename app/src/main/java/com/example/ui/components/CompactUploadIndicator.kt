@@ -12,6 +12,7 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.example.data.database.PendingUploadEntity
+import com.example.ui.theme.PanalinkPalette
 
 @Composable
 fun CompactUploadIndicator(
@@ -53,7 +54,7 @@ fun CompactUploadIndicator(
             
             Text(
                 text = statusText,
-                color = Color.White,
+                color = PanalinkPalette.textPrimary,
                 fontWeight = FontWeight.Bold,
                 fontSize = 14.sp
             )
@@ -61,7 +62,7 @@ fun CompactUploadIndicator(
             if (upload.status == "uploading") {
                 Text(
                     text = "${(progress * 100).toInt()}%",
-                    color = Color.White,
+                    color = PanalinkPalette.textPrimary,
                     fontSize = 14.sp
                 )
             }

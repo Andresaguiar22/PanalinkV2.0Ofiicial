@@ -33,6 +33,7 @@ import androidx.lifecycle.viewmodel.compose.viewModel
 import coil.compose.AsyncImage
 import com.example.feature.settings.model.DashboardAction
 import com.example.ui.settings.viewmodel.DashboardViewModel
+import com.example.ui.theme.PanalinkPalette
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -70,15 +71,15 @@ fun ControlCenterScreen(
         modifier = Modifier.nestedScroll(scrollBehavior.nestedScrollConnection),
         topBar = {
             LargeTopAppBar(
-                title = { Text("Centro de Control", color = Color.White, fontWeight = FontWeight.Bold) },
+                title = { Text("Centro de Control", color = PanalinkPalette.textPrimary, fontWeight = FontWeight.Bold) },
                 navigationIcon = {
                     IconButton(onClick = onBack) {
-                        Icon(Icons.AutoMirrored.Filled.ArrowBack, contentDescription = "Regresar", tint = Color.White)
+                        Icon(Icons.AutoMirrored.Filled.ArrowBack, contentDescription = "Regresar", tint = PanalinkPalette.textPrimary)
                     }
                 },
                 actions = {
                     IconButton(onClick = { viewModel.dispatch(DashboardAction.RefreshDashboard) }) {
-                        Icon(Icons.Default.Refresh, contentDescription = "Actualizar", tint = Color.White)
+                        Icon(Icons.Default.Refresh, contentDescription = "Actualizar", tint = PanalinkPalette.textPrimary)
                     }
                 },
                 colors = TopAppBarDefaults.largeTopAppBarColors(
@@ -145,7 +146,7 @@ fun ControlCenterScreen(
                                         Icon(
                                             imageVector = Icons.Default.Person,
                                             contentDescription = null,
-                                            tint = Color.White,
+                                            tint = PanalinkPalette.textPrimary,
                                             modifier = Modifier.size(44.dp)
                                         )
                                     }
@@ -155,7 +156,7 @@ fun ControlCenterScreen(
 
                                 Text(
                                     text = uiState.userName,
-                                    color = Color.White,
+                                    color = PanalinkPalette.textPrimary,
                                     fontSize = 20.sp,
                                     fontWeight = FontWeight.Bold
                                 )
@@ -254,7 +255,7 @@ fun ControlCenterScreen(
                     item {
                         Text(
                             text = "Módulos Inteligentes",
-                            color = Color.White,
+                            color = PanalinkPalette.textPrimary,
                             fontSize = 16.sp,
                             fontWeight = FontWeight.Bold,
                             modifier = Modifier.padding(vertical = 4.dp)
@@ -301,7 +302,7 @@ fun ControlCenterScreen(
                     item {
                         Text(
                             text = "Ajustes Generales",
-                            color = Color.White,
+                            color = PanalinkPalette.textPrimary,
                             fontSize = 16.sp,
                             fontWeight = FontWeight.Bold,
                             modifier = Modifier.padding(top = 8.dp, bottom = 4.dp)
@@ -330,8 +331,8 @@ fun ControlCenterScreen(
     if (showLogoutDialog) {
         androidx.compose.material3.AlertDialog(
             onDismissRequest = { showLogoutDialog = false },
-            title = { Text("Cerrar sesión", color = Color.White) },
-            text = { Text("¿Estás seguro de que quieres cerrar la sesión?", color = Color.White) },
+            title = { Text("Cerrar sesión", color = PanalinkPalette.textPrimary) },
+            text = { Text("¿Estás seguro de que quieres cerrar la sesión?", color = PanalinkPalette.textPrimary) },
             containerColor = Color(0xFF1E2B33),
             confirmButton = {
                 androidx.compose.material3.TextButton(
@@ -345,7 +346,7 @@ fun ControlCenterScreen(
             },
             dismissButton = {
                 androidx.compose.material3.TextButton(onClick = { showLogoutDialog = false }) {
-                    Text("Cancelar", color = Color.White)
+                    Text("Cancelar", color = PanalinkPalette.textPrimary)
                 }
             }
         )
@@ -354,8 +355,8 @@ fun ControlCenterScreen(
     if (showDeleteAccountDialog) {
         androidx.compose.material3.AlertDialog(
             onDismissRequest = { showDeleteAccountDialog = false },
-            title = { Text("Eliminar cuenta", color = Color.White) },
-            text = { Text("Esta acción es irreversible y borrará todos tus datos. ¿Estás seguro?", color = Color.White) },
+            title = { Text("Eliminar cuenta", color = PanalinkPalette.textPrimary) },
+            text = { Text("Esta acción es irreversible y borrará todos tus datos. ¿Estás seguro?", color = PanalinkPalette.textPrimary) },
             containerColor = Color(0xFF1E2B33),
             confirmButton = {
                 androidx.compose.material3.TextButton(
@@ -369,7 +370,7 @@ fun ControlCenterScreen(
             },
             dismissButton = {
                 androidx.compose.material3.TextButton(onClick = { showDeleteAccountDialog = false }) {
-                    Text("Cancelar", color = Color.White)
+                    Text("Cancelar", color = PanalinkPalette.textPrimary)
                 }
             }
         )
@@ -382,7 +383,7 @@ fun QuickInfoItem(icon: ImageVector, label: String, value: String) {
         Row(verticalAlignment = Alignment.CenterVertically) {
             Icon(icon, contentDescription = null, tint = Color(0xFF90A4AE), modifier = Modifier.size(14.dp))
             Spacer(modifier = Modifier.width(4.dp))
-            Text(value, color = Color.White, fontSize = 12.sp, fontWeight = FontWeight.Bold)
+            Text(value, color = PanalinkPalette.textPrimary, fontSize = 12.sp, fontWeight = FontWeight.Bold)
         }
         Text(label, color = Color(0xFF90A4AE), fontSize = 10.sp)
     }
@@ -421,7 +422,7 @@ fun IndividualSettingCard(
                 Icon(icon, contentDescription = null, tint = iconColor, modifier = Modifier.size(22.dp))
             }
             Column(modifier = Modifier.weight(1f)) {
-                Text(title, color = Color.White, fontSize = 15.sp, fontWeight = FontWeight.SemiBold)
+                Text(title, color = PanalinkPalette.textPrimary, fontSize = 15.sp, fontWeight = FontWeight.SemiBold)
                 Spacer(modifier = Modifier.height(2.dp))
                 Text(description, color = Color(0xFF90A4AE), fontSize = 12.sp, maxLines = 2, overflow = TextOverflow.Ellipsis)
             }
@@ -470,7 +471,7 @@ fun SmartDomainCard(
             }
 
             Column(modifier = Modifier.weight(1f)) {
-                Text(title, color = Color.White, fontSize = 14.sp, fontWeight = FontWeight.Bold, maxLines = 1, overflow = TextOverflow.Ellipsis)
+                Text(title, color = PanalinkPalette.textPrimary, fontSize = 14.sp, fontWeight = FontWeight.Bold, maxLines = 1, overflow = TextOverflow.Ellipsis)
                 Spacer(modifier = Modifier.height(4.dp))
                 Text(subtitle, color = Color(0xFF90A4AE), fontSize = 11.sp, maxLines = 2, overflow = TextOverflow.Ellipsis)
                 if (statusBadge.isNotBlank()) {

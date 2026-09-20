@@ -30,6 +30,7 @@ import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.example.data.model.Profile
+import com.example.ui.theme.PanalinkPalette
 
 /**
  * Accion 4: Barra superior flotante de cristal (glassmorphism premium), calcada de
@@ -106,7 +107,7 @@ fun ChatTopBar(
                 BasicTextField(
                     value = localSearchQuery,
                     onValueChange = onSearchQueryChange,
-                    textStyle = TextStyle(color = Color.White, fontSize = 16.sp),
+                    textStyle = TextStyle(color = PanalinkPalette.textPrimary, fontSize = 16.sp),
                     cursorBrush = SolidColor(accentCyan),
                     decorationBox = { innerTextField ->
                         Box(
@@ -226,7 +227,7 @@ fun ChatTopBar(
                                     )
                                 ) {
                                     DropdownMenuItem(
-                                        text = { Text("Ver contacto", color = Color.White) },
+                                        text = { Text("Ver contacto", color = PanalinkPalette.textPrimary) },
                                         onClick = {
                                             showChatMenu = false
                                             onShowContactDetail()
@@ -240,7 +241,7 @@ fun ChatTopBar(
                                         }
                                     )
                                     DropdownMenuItem(
-                                        text = { Text("Buscar en este chat", color = Color.White) },
+                                        text = { Text("Buscar en este chat", color = PanalinkPalette.textPrimary) },
                                         onClick = {
                                             showChatMenu = false
                                             onStartSearch()
@@ -257,7 +258,7 @@ fun ChatTopBar(
                                         text = {
                                             Text(
                                                 if (isMuted) "Activar notificaciones" else "Silenciar notificaciones",
-                                                color = Color.White
+                                                color = PanalinkPalette.textPrimary
                                             )
                                         },
                                         onClick = {
@@ -276,7 +277,7 @@ fun ChatTopBar(
                                         text = {
                                             Text(
                                                 if (isPinned) "Desanclar chat" else "Fijar chat",
-                                                color = Color.White
+                                                color = PanalinkPalette.textPrimary
                                             )
                                         },
                                         onClick = {
@@ -292,7 +293,7 @@ fun ChatTopBar(
                                         }
                                     )
                                     DropdownMenuItem(
-                                        text = { Text("Archivos multimedia", color = Color.White) },
+                                        text = { Text("Archivos multimedia", color = PanalinkPalette.textPrimary) },
                                         onClick = {
                                             showChatMenu = false
                                             onNavigateToChatMedia()
@@ -306,7 +307,7 @@ fun ChatTopBar(
                                         }
                                     )
                                     DropdownMenuItem(
-                                        text = { Text("Buscar", color = Color.White) },
+                                        text = { Text("Buscar", color = PanalinkPalette.textPrimary) },
                                         onClick = {
                                             showChatMenu = false
                                             onNavigateToSearch()
@@ -316,7 +317,7 @@ fun ChatTopBar(
                                         }
                                     )
                                     DropdownMenuItem(
-                                        text = { Text("Fondo de chat", color = Color.White) },
+                                        text = { Text("Fondo de chat", color = PanalinkPalette.textPrimary) },
                                         onClick = {
                                             showChatMenu = false
                                             onShowBackgroundDialog()
@@ -326,7 +327,7 @@ fun ChatTopBar(
                                         }
                                     )
                                     DropdownMenuItem(
-                                        text = { Text("Color de burbujas", color = Color.White) },
+                                        text = { Text("Color de burbujas", color = PanalinkPalette.textPrimary) },
                                         onClick = {
                                             showChatMenu = false
                                             onShowBubblePaletteDialog()
@@ -336,7 +337,7 @@ fun ChatTopBar(
                                         }
                                     )
                                     DropdownMenuItem(
-                                        text = { Text("Vaciar chat", color = Color.White) },
+                                        text = { Text("Vaciar chat", color = PanalinkPalette.textPrimary) },
                                         onClick = {
                                             showChatMenu = false
                                             onClearChat()
@@ -382,7 +383,7 @@ fun ChatTopBar(
                         text = otherUser?.displayName ?: "Cargando pana...",
                         fontWeight = FontWeight.Bold,
                         fontSize = 15.sp,
-                        color = Color.White,
+                        color = PanalinkPalette.textPrimary,
                         maxLines = 1,
                         softWrap = false,
                         overflow = TextOverflow.Ellipsis,

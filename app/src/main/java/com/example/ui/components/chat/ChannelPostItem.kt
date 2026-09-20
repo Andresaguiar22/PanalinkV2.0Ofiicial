@@ -20,6 +20,7 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import coil.compose.AsyncImage
 import com.example.data.model.Message
+import com.example.ui.theme.PanalinkPalette
 
 @Composable
 fun ChannelPostItem(
@@ -60,7 +61,7 @@ fun ChannelPostItem(
             if (!message.content.isNullOrEmpty()) {
                 Text(
                     text = message.content,
-                    color = Color.White,
+                    color = PanalinkPalette.textPrimary,
                     fontSize = 15.sp
                 )
                 Spacer(modifier = Modifier.height(12.dp))
@@ -91,7 +92,7 @@ fun ChannelPostItem(
                         Spacer(modifier = Modifier.width(6.dp))
                         Text(
                             text = reactionsCount.toString(),
-                            color = Color.White,
+                            color = PanalinkPalette.textPrimary,
                             fontSize = 13.sp,
                             fontWeight = FontWeight.Bold
                         )
@@ -119,7 +120,7 @@ fun ChannelPostItem(
                                 Spacer(modifier = Modifier.width(6.dp))
                                 Text(
                                     text = commentsCount.toString(),
-                                    color = Color.White,
+                                    color = PanalinkPalette.textPrimary,
                                     fontSize = 13.sp,
                                     fontWeight = FontWeight.Bold
                                 )

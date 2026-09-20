@@ -29,6 +29,7 @@ import com.example.data.repository.UploadRepository
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.activity.compose.rememberLauncherForActivityResult
 import coil.compose.AsyncImage
+import com.example.ui.theme.PanalinkPalette
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -68,7 +69,7 @@ fun CreateChannelDialog(
                     Text(
                         text = "Nuevo Canal 🔥",
                         style = MaterialTheme.typography.headlineSmall,
-                        color = Color.White,
+                        color = PanalinkPalette.textPrimary,
                         fontWeight = FontWeight.ExtraBold,
                         modifier = Modifier.fillMaxWidth(),
                         textAlign = TextAlign.Center
@@ -264,7 +265,7 @@ fun CreateChannelDialog(
                                         contentScale = ContentScale.Crop
                                     )
                                     Box(modifier = Modifier.fillMaxSize().background(Color.Black.copy(alpha = 0.3f)))
-                                    Icon(Icons.Default.Edit, contentDescription = null, tint = Color.White, modifier = Modifier.align(Alignment.TopEnd).padding(8.dp))
+                                    Icon(Icons.Default.Edit, contentDescription = null, tint = PanalinkPalette.textPrimary, modifier = Modifier.align(Alignment.TopEnd).padding(8.dp))
                                 } else if (isUploadingCover) {
                                     CircularProgressIndicator(color = Color(0xFFD500F9))
                                 } else {
@@ -305,7 +306,7 @@ fun CreateChannelDialog(
                                 }
                                 Spacer(modifier = Modifier.width(16.dp))
                                 Column {
-                                    Text("Foto de Perfil del Canal", color = Color.White, fontWeight = FontWeight.Bold)
+                                    Text("Foto de Perfil del Canal", color = PanalinkPalette.textPrimary, fontWeight = FontWeight.Bold)
                                     Text("Toca el círculo para subir una foto", color = Color.Gray, fontSize = 12.sp)
                                 }
                             }
@@ -326,7 +327,7 @@ fun CreateChannelDialog(
                                 verticalAlignment = Alignment.CenterVertically
                             ) {
                                 Column(modifier = Modifier.weight(1f)) {
-                                    Text("Visibilidad", color = Color.White, fontWeight = FontWeight.Bold)
+                                    Text("Visibilidad", color = PanalinkPalette.textPrimary, fontWeight = FontWeight.Bold)
                                     Text(
                                         if (visibility == "public") "Cualquiera puede encontrar el canal" else "Solo por invitación",
                                         color = Color.Gray,
@@ -356,7 +357,7 @@ fun CreateChannelDialog(
                                 verticalAlignment = Alignment.CenterVertically
                             ) {
                                 Column(modifier = Modifier.weight(1f)) {
-                                    Text("Solo Lectura", color = Color.White, fontWeight = FontWeight.Bold)
+                                    Text("Solo Lectura", color = PanalinkPalette.textPrimary, fontWeight = FontWeight.Bold)
                                     Text(
                                         if (isReadonly) "Solo tú puedes publicar" else "Los miembros pueden interactuar",
                                         color = Color.Gray,

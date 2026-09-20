@@ -23,6 +23,7 @@ import coil.compose.AsyncImage
 import com.example.data.repository.YouTubeRepository
 import com.example.data.repository.OEmbedResponse
 import kotlinx.coroutines.launch
+import com.example.ui.theme.PanalinkPalette
 
 @Composable
 fun YouTubePostCard(
@@ -51,7 +52,7 @@ fun YouTubePostCard(
         if (cleanText.isNotBlank()) {
             Text(
                 text = cleanText,
-                color = Color.White,
+                color = PanalinkPalette.textPrimary,
                 fontSize = 15.sp
             )
             Spacer(modifier = Modifier.height(8.dp))
@@ -92,7 +93,7 @@ fun YouTubePostCard(
                     Icon(
                         imageVector = Icons.Default.PlayArrow,
                         contentDescription = "Reproducir",
-                        tint = Color.White,
+                        tint = PanalinkPalette.textPrimary,
                         modifier = Modifier.size(40.dp)
                     )
                 }
@@ -112,7 +113,7 @@ fun YouTubePostCard(
                     ) {
                         Text(
                             text = metadata?.title ?: "",
-                            color = Color.White,
+                            color = PanalinkPalette.textPrimary,
                             fontWeight = FontWeight.Bold,
                             fontSize = 14.sp,
                             maxLines = 2,

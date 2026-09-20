@@ -24,6 +24,7 @@ import coil.compose.AsyncImage
 import coil.compose.AsyncImagePainter
 import com.example.ui.components.chat.media.loading.MediaLoadingState
 import com.example.ui.components.chat.media.loading.PremiumMediaLoadingOverlay
+import com.example.ui.theme.PanalinkPalette
 
 @Composable
 fun PremiumImageViewer(
@@ -105,7 +106,7 @@ fun PremiumImageViewer(
                 .align(Alignment.TopStart)
                 .padding(16.dp)
         ) {
-            Icon(Icons.Default.Close, contentDescription = "Cerrar", tint = Color.White)
+            Icon(Icons.Default.Close, contentDescription = "Cerrar", tint = PanalinkPalette.textPrimary)
         }
     }
 }

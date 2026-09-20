@@ -31,6 +31,7 @@ import com.example.feature.chat.presentation.EmojiMediaUiState
 import androidx.compose.foundation.lazy.grid.LazyVerticalGrid
 import androidx.compose.foundation.lazy.grid.GridCells
 import androidx.compose.foundation.lazy.grid.items
+import com.example.ui.theme.PanalinkPalette
 
 data class EmojiCategory(val name: String, val icon: String, val emojis: List<String>)
 
@@ -117,7 +118,7 @@ fun EmojiAndMediaSheet(
                     Spacer(modifier = Modifier.height(12.dp))
                     Text(
                         text = "Vista Previa",
-                        color = Color.White,
+                        color = PanalinkPalette.textPrimary,
                         fontSize = 15.sp,
                         fontWeight = FontWeight.Bold
                     )
@@ -174,7 +175,7 @@ fun EmojiAndMediaSheet(
                         .weight(1f)
                         .background(Color(0xFF202C33), RoundedCornerShape(24.dp))
                         .padding(horizontal = 16.dp, vertical = 8.dp),
-                    textStyle = androidx.compose.ui.text.TextStyle(color = Color.White, fontSize = 15.sp),
+                    textStyle = androidx.compose.ui.text.TextStyle(color = PanalinkPalette.textPrimary, fontSize = 15.sp),
                     cursorBrush = androidx.compose.ui.graphics.SolidColor(Color(0xFF00A884)),
                     singleLine = true,
                     decorationBox = { innerTextField ->

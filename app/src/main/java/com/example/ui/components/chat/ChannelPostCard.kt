@@ -40,6 +40,7 @@ import androidx.compose.ui.unit.sp
 import coil.compose.AsyncImage
 import com.example.data.model.Message
 import com.example.data.supabase.SupabaseClient
+import com.example.ui.theme.PanalinkPalette
 
 @OptIn(ExperimentalLayoutApi::class)
 @Composable
@@ -162,7 +163,7 @@ fun ChannelPostCard(
                 // 4. Main Body Text
                 Text(
                     text = formattedText,
-                    color = Color.White,
+                    color = PanalinkPalette.textPrimary,
                     fontSize = 14.5.sp,
                     lineHeight = 20.sp,
                     modifier = Modifier.fillMaxWidth()
@@ -370,7 +371,7 @@ fun ApkFileAttachmentCard(
                 Icon(
                     imageVector = if (isDownloaded) Icons.Default.Check else Icons.Default.ArrowDownward,
                     contentDescription = "Descargar",
-                    tint = Color.White,
+                    tint = PanalinkPalette.textPrimary,
                     modifier = Modifier.size(24.dp)
                 )
             }
@@ -380,7 +381,7 @@ fun ApkFileAttachmentCard(
             Column(modifier = Modifier.weight(1f)) {
                 Text(
                     text = fileInfo.fileName,
-                    color = Color.White,
+                    color = PanalinkPalette.textPrimary,
                     fontWeight = FontWeight.Bold,
                     fontSize = 14.sp,
                     maxLines = 1,
@@ -448,7 +449,7 @@ private fun formatChannelMessageText(text: String): androidx.compose.ui.text.Ann
                 line.contains("Note:", ignoreCase = true) || line.contains("Title:", ignoreCase = true) || line.contains("Fast Download", ignoreCase = true) -> {
                     val parts = line.split(":", limit = 2)
                     if (parts.size == 2) {
-                        withStyle(SpanStyle(fontWeight = FontWeight.Bold, color = Color.White)) {
+                        withStyle(SpanStyle(fontWeight = FontWeight.Bold, color = PanalinkPalette.textPrimary)) {
                             append("${parts[0]}:")
                         }
                         append(parts[1])

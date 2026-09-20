@@ -35,6 +35,7 @@ import com.example.ui.viewmodel.NotificationsViewModel
 import com.example.identity.model.toIdentityUiState
 import java.text.SimpleDateFormat
 import java.util.*
+import com.example.ui.theme.PanalinkPalette
 
 @OptIn(ExperimentalMaterial3Api::class, ExperimentalFoundationApi::class)
 @Composable
@@ -162,7 +163,7 @@ fun NotificationsScreen(
 fun NotificationGroup(title: String) {
     Text(
         text = title,
-        color = Color.White,
+        color = PanalinkPalette.textPrimary,
         fontWeight = FontWeight.Bold,
         fontSize = 18.sp,
         modifier = Modifier
@@ -218,7 +219,7 @@ fun NotificationCard(
                     Icon(
                         imageVector = icon,
                         contentDescription = null,
-                        tint = Color.White,
+                        tint = PanalinkPalette.textPrimary,
                         modifier = Modifier.size(10.dp)
                     )
                 }
@@ -234,7 +235,7 @@ fun NotificationCard(
             Row(verticalAlignment = Alignment.CenterVertically) {
                 Text(
                     text = name,
-                    color = Color.White,
+                    color = PanalinkPalette.textPrimary,
                     fontWeight = FontWeight.Bold,
                     fontSize = 15.sp,
                     maxLines = 1,
@@ -253,7 +254,7 @@ fun NotificationCard(
             
             Text(
                 text = notification.actionText,
-                color = Color.White.copy(alpha = 0.8f),
+                color = PanalinkPalette.textPrimary.copy(alpha = 0.8f),
                 fontSize = 14.sp,
                 maxLines = 2,
                 overflow = TextOverflow.Ellipsis
@@ -499,7 +500,7 @@ fun NotificationBadge(count: Int, modifier: Modifier = Modifier) {
         ) {
             Text(
                 text = if (count > 99) "+99" else count.toString(),
-                color = Color.White,
+                color = PanalinkPalette.textPrimary,
                 fontSize = 11.sp,
                 fontWeight = FontWeight.Bold
             )

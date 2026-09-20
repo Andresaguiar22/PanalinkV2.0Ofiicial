@@ -36,6 +36,7 @@ import com.example.data.supabase.SupabaseClient
 import com.example.ui.viewmodel.StatesUiState
 import com.example.ui.viewmodel.StatesViewModel
 import kotlinx.coroutines.launch
+import com.example.ui.theme.PanalinkPalette
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -253,14 +254,14 @@ fun UserProfileScreen(
                             ) {
                                 Text(
                                     text = profile.displayName ?: "",
-                                    color = Color.White,
+                                    color = PanalinkPalette.textPrimary,
                                     fontWeight = FontWeight.Bold,
                                     fontSize = 22.sp
                                 )
                                 Spacer(modifier = Modifier.height(4.dp))
                                 Text(
                                     text = "@${profile.displayName?.lowercase()?.replace(" ", "") ?: "pana"}",
-                                    color = Color.White.copy(alpha = 0.8f),
+                                    color = PanalinkPalette.textPrimary.copy(alpha = 0.8f),
                                     fontSize = 14.sp
                                 )
                             }
@@ -301,22 +302,22 @@ fun UserProfileScreen(
                                         horizontalArrangement = Arrangement.spacedBy(16.dp)
                                     ) {
                                         Column(horizontalAlignment = Alignment.CenterHorizontally) {
-                                            Text(text = "$followerCount", color = Color.White, fontWeight = FontWeight.Bold, fontSize = 16.sp)
-                                            Text(text = "Seguidores", color = Color.White.copy(alpha = 0.6f), fontSize = 11.sp)
+                                            Text(text = "$followerCount", color = PanalinkPalette.textPrimary, fontWeight = FontWeight.Bold, fontSize = 16.sp)
+                                            Text(text = "Seguidores", color = PanalinkPalette.textPrimary.copy(alpha = 0.6f), fontSize = 11.sp)
                                         }
                                         Column(horizontalAlignment = Alignment.CenterHorizontally) {
-                                            Text(text = "$followingCount", color = Color.White, fontWeight = FontWeight.Bold, fontSize = 16.sp)
-                                            Text(text = "Siguiendo", color = Color.White.copy(alpha = 0.6f), fontSize = 11.sp)
+                                            Text(text = "$followingCount", color = PanalinkPalette.textPrimary, fontWeight = FontWeight.Bold, fontSize = 16.sp)
+                                            Text(text = "Siguiendo", color = PanalinkPalette.textPrimary.copy(alpha = 0.6f), fontSize = 11.sp)
                                         }
                                         Column(horizontalAlignment = Alignment.CenterHorizontally) {
-                                            Text(text = "$totalLikesCount", color = Color.White, fontWeight = FontWeight.Bold, fontSize = 16.sp)
-                                            Text(text = "Me gusta", color = Color.White.copy(alpha = 0.6f), fontSize = 11.sp)
+                                            Text(text = "$totalLikesCount", color = PanalinkPalette.textPrimary, fontWeight = FontWeight.Bold, fontSize = 16.sp)
+                                            Text(text = "Me gusta", color = PanalinkPalette.textPrimary.copy(alpha = 0.6f), fontSize = 11.sp)
                                         }
                                     }
                                     
                                     Text(
                                         text = presenceStatusLabel,
-                                        color = Color.White.copy(alpha = 0.7f),
+                                        color = PanalinkPalette.textPrimary.copy(alpha = 0.7f),
                                         fontSize = 12.sp,
                                         modifier = Modifier.padding(vertical = 2.dp)
                                     )
@@ -586,12 +587,12 @@ fun UserProfileScreen(
                                                     Icon(
                                                         imageVector = Icons.Default.PlayArrow,
                                                         contentDescription = null,
-                                                        tint = Color.White,
+                                                        tint = PanalinkPalette.textPrimary,
                                                         modifier = Modifier.size(12.dp)
                                                     )
                                                     Text(
                                                         text = (reel.state.viewsCount ?: 0).toString(),
-                                                        color = Color.White,
+                                                        color = PanalinkPalette.textPrimary,
                                                         fontSize = 11.sp,
                                                         fontWeight = FontWeight.Bold
                                                     )

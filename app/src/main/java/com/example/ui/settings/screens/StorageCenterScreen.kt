@@ -28,6 +28,7 @@ import com.example.ui.settings.viewmodel.ActivityViewModel
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
+import com.example.ui.theme.PanalinkPalette
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -51,10 +52,10 @@ fun StorageCenterScreen(
     Scaffold(
         topBar = {
             TopAppBar(
-                title = { Text("Almacenamiento y datos", color = Color.White) },
+                title = { Text("Almacenamiento y datos", color = PanalinkPalette.textPrimary) },
                 navigationIcon = {
                     IconButton(onClick = onBack) {
-                        Icon(Icons.AutoMirrored.Filled.ArrowBack, contentDescription = "Regresar", tint = Color.White)
+                        Icon(Icons.AutoMirrored.Filled.ArrowBack, contentDescription = "Regresar", tint = PanalinkPalette.textPrimary)
                     }
                 },
                 colors = TopAppBarDefaults.topAppBarColors(containerColor = Color(0xFF161618))
@@ -166,14 +167,14 @@ fun StorageCenterScreen(
         AlertDialog(
             onDismissRequest = { if (!isCleaning) showStorageDialog = false },
             containerColor = Color(0xFF1E2D35),
-            title = { Text("Administrar almacenamiento", color = Color.White, fontWeight = FontWeight.Bold, fontSize = 16.sp) },
+            title = { Text("Administrar almacenamiento", color = PanalinkPalette.textPrimary, fontWeight = FontWeight.Bold, fontSize = 16.sp) },
             text = {
                 Column(verticalArrangement = Arrangement.spacedBy(10.dp)) {
                     Text("Uso local actual:", color = Color(0xFF90A4AE), fontSize = 12.sp)
-                    Text("• Total: ${uiState.storageUsed}", color = Color.White, fontSize = 13.sp)
-                    Text("• Base de datos (Room): ${uiState.databaseSize}", color = Color.White, fontSize = 13.sp)
-                    Text("• Medios y archivos: ${uiState.mediaSize}", color = Color.White, fontSize = 13.sp)
-                    HorizontalDivider(color = Color.White.copy(alpha = 0.1f))
+                    Text("• Total: ${uiState.storageUsed}", color = PanalinkPalette.textPrimary, fontSize = 13.sp)
+                    Text("• Base de datos (Room): ${uiState.databaseSize}", color = PanalinkPalette.textPrimary, fontSize = 13.sp)
+                    Text("• Medios y archivos: ${uiState.mediaSize}", color = PanalinkPalette.textPrimary, fontSize = 13.sp)
+                    HorizontalDivider(color = PanalinkPalette.textPrimary.copy(alpha = 0.1f))
                     Text(
                         "Limpiar caché elimina imágenes, miniaturas y descargas temporales. Tus mensajes y fotos enviadas/recibidas no se borran.",
                         color = Color(0xFF90A4AE),
@@ -200,7 +201,7 @@ fun StorageCenterScreen(
             },
             dismissButton = {
                 TextButton(enabled = !isCleaning, onClick = { showStorageDialog = false }) {
-                    Text("Cerrar", color = Color.White.copy(alpha = 0.7f))
+                    Text("Cerrar", color = PanalinkPalette.textPrimary.copy(alpha = 0.7f))
                 }
             }
         )
@@ -255,7 +256,7 @@ fun StorageItemRow(
             )
             Spacer(modifier = Modifier.width(24.dp))
             Column {
-                Text(text = title, color = Color.White, fontSize = 16.sp)
+                Text(text = title, color = PanalinkPalette.textPrimary, fontSize = 16.sp)
                 if (subtitle.isNotEmpty()) {
                     Text(text = subtitle, color = Color.Gray, fontSize = 14.sp)
                 }
@@ -277,7 +278,7 @@ fun StorageSwitchRow(
         horizontalArrangement = Arrangement.SpaceBetween,
         verticalAlignment = Alignment.CenterVertically
     ) {
-        Text(text = title, color = Color.White, fontSize = 16.sp)
+        Text(text = title, color = PanalinkPalette.textPrimary, fontSize = 16.sp)
         Switch(
             checked = checked,
             onCheckedChange = onCheckedChange,
@@ -305,7 +306,7 @@ fun StorageSettingRow(
         Column(
             modifier = Modifier.padding(horizontal = 16.dp, vertical = 16.dp)
         ) {
-            Text(text = title, color = Color.White, fontSize = 16.sp)
+            Text(text = title, color = PanalinkPalette.textPrimary, fontSize = 16.sp)
             if (subtitle.isNotEmpty()) {
                 Text(text = subtitle, color = Color(0xFF25D366), fontSize = 14.sp, modifier = Modifier.padding(top = 2.dp))
             }

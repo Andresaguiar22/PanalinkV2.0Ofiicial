@@ -25,6 +25,7 @@ import com.example.ui.viewmodel.AuthViewModel
 import com.example.ui.components.AuroraBackground
 import com.example.ui.components.AuroraButton
 import com.example.ui.components.GlassCard
+import com.example.ui.theme.PanalinkPalette
 
 @Composable
 fun RegisterScreen(
@@ -59,7 +60,7 @@ fun RegisterScreen(
                     text = "Únete a PanaLink 🇻🇪",
                     fontSize = 28.sp,
                     fontWeight = FontWeight.ExtraBold,
-                    color = Color.White,
+                    color = PanalinkPalette.textPrimary,
                     letterSpacing = 0.5.sp
                 )
                 Spacer(modifier = Modifier.height(6.dp))
@@ -67,7 +68,7 @@ fun RegisterScreen(
                     text = "Regístrate de pana",
                     fontSize = 20.sp,
                     fontWeight = FontWeight.Bold,
-                    color = Color.White.copy(alpha = 0.8f)
+                    color = PanalinkPalette.textPrimary.copy(alpha = 0.8f)
                 )
                 
                 Spacer(modifier = Modifier.height(32.dp))
@@ -161,7 +162,7 @@ fun RegisterScreen(
                                 Spacer(modifier = Modifier.width(8.dp))
                                 Text(
                                     text = (uiState as AuthUiState.Error).message,
-                                    color = Color.White,
+                                    color = PanalinkPalette.textPrimary,
                                     fontSize = 13.sp,
                                     modifier = Modifier.weight(1f)
                                 )
@@ -183,7 +184,7 @@ fun RegisterScreen(
                     modifier = Modifier.fillMaxWidth(),
                     horizontalArrangement = Arrangement.Center
                 ) {
-                    Text(text = "¿Ya eres un pana? ", color = Color.White.copy(alpha = 0.6f), fontSize = 15.sp)
+                    Text(text = "¿Ya eres un pana? ", color = PanalinkPalette.textPrimary.copy(alpha = 0.6f), fontSize = 15.sp)
                     Text(
                         text = "Inicia Sesión",
                         color = Color(0xFF00E5FF),

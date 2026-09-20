@@ -49,6 +49,7 @@ import androidx.compose.ui.hapticfeedback.HapticFeedbackType
 import androidx.compose.ui.platform.LocalHapticFeedback
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
+import com.example.ui.theme.PanalinkPalette
 
 @OptIn(ExperimentalMaterial3Api::class, ExperimentalFoundationApi::class)
 @Composable
@@ -63,7 +64,7 @@ fun StoriesCarousel(
     Column(modifier = Modifier.fillMaxWidth().padding(vertical = 12.dp)) {
         Text(
             text = "Historias 🇻🇪✨",
-            color = Color.White,
+            color = PanalinkPalette.textPrimary,
             fontSize = 14.sp,
             fontWeight = FontWeight.Bold,
             modifier = Modifier.padding(start = 16.dp, end = 16.dp, bottom = 8.dp)
@@ -105,7 +106,7 @@ fun StoriesCarousel(
                                 .align(Alignment.BottomCenter)
                                 .background(Color(0xFF161618))
                         ) {
-                            Text("Tu historia", color = Color.White, fontSize = 11.sp, fontWeight = FontWeight.Bold, modifier = Modifier.align(Alignment.BottomCenter).padding(bottom = 8.dp))
+                            Text("Tu historia", color = PanalinkPalette.textPrimary, fontSize = 11.sp, fontWeight = FontWeight.Bold, modifier = Modifier.align(Alignment.BottomCenter).padding(bottom = 8.dp))
                         }
                         Box(
                             modifier = Modifier
@@ -116,7 +117,7 @@ fun StoriesCarousel(
                                 .border(2.dp, Color(0xFF161618), CircleShape),
                             contentAlignment = Alignment.Center
                         ) {
-                            Icon(Icons.Default.Add, contentDescription = null, tint = Color.White, modifier = Modifier.size(18.dp))
+                            Icon(Icons.Default.Add, contentDescription = null, tint = PanalinkPalette.textPrimary, modifier = Modifier.size(18.dp))
                         }
                     }
                 }
@@ -183,7 +184,7 @@ fun StoriesCarousel(
                             )
                             Box(modifier = Modifier.fillMaxSize().background(brush = Brush.verticalGradient(colors = listOf(Color.Transparent, Color.Black.copy(alpha = 0.7f)), startY = 100f)))
                             PanaAvatar(avatarUrl = safeAvatarUrl, userId = safeUserId, size = 32.dp, borderWidth = 2.dp, borderColor = if (hasUnread) Color(0xFFB026FF) else Color.Gray.copy(alpha = 0.5f), placeholderName = safeDisplayName, modifier = Modifier.padding(8.dp))
-                            Text(text = safeDisplayName?.take(15) ?: "", color = Color.White, fontSize = 11.sp, fontWeight = FontWeight.Bold, maxLines = 1, overflow = TextOverflow.Ellipsis, modifier = Modifier.align(Alignment.BottomStart).padding(8.dp))
+                            Text(text = safeDisplayName?.take(15) ?: "", color = PanalinkPalette.textPrimary, fontSize = 11.sp, fontWeight = FontWeight.Bold, maxLines = 1, overflow = TextOverflow.Ellipsis, modifier = Modifier.align(Alignment.BottomStart).padding(8.dp))
                         }
                     }
                 }

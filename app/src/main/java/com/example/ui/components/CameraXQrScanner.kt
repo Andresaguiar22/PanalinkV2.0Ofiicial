@@ -45,6 +45,7 @@ import com.google.mlkit.vision.barcode.BarcodeScanning
 import com.google.mlkit.vision.barcode.common.Barcode
 import com.google.mlkit.vision.common.InputImage
 import java.util.concurrent.Executors
+import com.example.ui.theme.PanalinkPalette
 
 @Composable
 fun CameraXQrScannerDialog(
@@ -102,7 +103,7 @@ fun CameraXQrScannerDialog(
                 ) {
                     Text(
                         text = "Permiso de Cámara Requerido",
-                        color = Color.White,
+                        color = PanalinkPalette.textPrimary,
                         fontSize = 20.sp,
                         fontWeight = FontWeight.Bold
                     )
@@ -118,11 +119,11 @@ fun CameraXQrScannerDialog(
                         onClick = { launcher.launch(Manifest.permission.CAMERA) },
                         colors = ButtonDefaults.buttonColors(containerColor = LocalAppColors.current.primary)
                     ) {
-                        Text("Conceder Permiso 📸", color = Color.White)
+                        Text("Conceder Permiso 📸", color = PanalinkPalette.textPrimary)
                     }
                     Spacer(modifier = Modifier.height(12.dp))
                     TextButton(onClick = onDismiss) {
-                        Text("Cancelar", color = Color.White)
+                        Text("Cancelar", color = PanalinkPalette.textPrimary)
                     }
                 }
             }
@@ -238,7 +239,7 @@ fun CameraXPreviewContainer(
         ) {
             Text(
                 text = "panalink ESCÁNER 📸",
-                color = Color.White,
+                color = PanalinkPalette.textPrimary,
                 fontSize = 20.sp,
                 fontWeight = FontWeight.ExtraBold,
                 letterSpacing = 1.sp
@@ -288,7 +289,7 @@ fun CameraXPreviewContainer(
                 Icon(
                     imageVector = Icons.Default.Close,
                     contentDescription = "Cerrar",
-                    tint = Color.White
+                    tint = PanalinkPalette.textPrimary
                 )
             }
         }

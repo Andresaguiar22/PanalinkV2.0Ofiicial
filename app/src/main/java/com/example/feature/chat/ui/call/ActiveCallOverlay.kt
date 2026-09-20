@@ -26,6 +26,7 @@ import androidx.compose.ui.unit.sp
 import com.example.data.model.Profile
 import com.example.ui.components.PanaAvatar
 import com.example.ui.theme.bounceClick
+import com.example.ui.theme.PanalinkPalette
 
 @Composable
 fun ActiveCallOverlay(
@@ -93,7 +94,7 @@ fun ActiveCallOverlay(
         
         Text(
         text = otherName,
-        color = Color.White,
+        color = PanalinkPalette.textPrimary,
         fontSize = 24.sp,
         fontWeight = FontWeight.Bold
         )
@@ -123,10 +124,10 @@ fun ActiveCallOverlay(
         .bounceClick()
         .background(Color.Red, CircleShape)
         ) {
-        Icon(Icons.Default.Close, contentDescription = "Rechazar", tint = Color.White, modifier = Modifier.size(32.dp))
+        Icon(Icons.Default.Close, contentDescription = "Rechazar", tint = PanalinkPalette.textPrimary, modifier = Modifier.size(32.dp))
         }
         Spacer(modifier = Modifier.height(8.dp))
-        Text("Rechazar", color = Color.White, fontSize = 12.sp)
+        Text("Rechazar", color = PanalinkPalette.textPrimary, fontSize = 12.sp)
         }
         
         // Accept call
@@ -138,10 +139,10 @@ fun ActiveCallOverlay(
         .bounceClick()
         .background(Color(0xFF25D366), CircleShape)
         ) {
-        Icon(Icons.Default.Call, contentDescription = "Contestar", tint = Color.White, modifier = Modifier.size(32.dp))
+        Icon(Icons.Default.Call, contentDescription = "Contestar", tint = PanalinkPalette.textPrimary, modifier = Modifier.size(32.dp))
         }
         Spacer(modifier = Modifier.height(8.dp))
-        Text("Atender", color = Color.White, fontSize = 12.sp)
+        Text("Atender", color = PanalinkPalette.textPrimary, fontSize = 12.sp)
         }
         }
         } else if (activeCallState == "active") {
@@ -149,7 +150,7 @@ fun ActiveCallOverlay(
         val secs = callTimerSeconds % 60
         Text(
         text = String.format("Llamada activa • %02d:%02d", mins, secs),
-        color = Color.White.copy(alpha = 0.7f),
+        color = PanalinkPalette.textPrimary.copy(alpha = 0.7f),
         fontSize = 16.sp
         )
         
@@ -174,10 +175,10 @@ fun ActiveCallOverlay(
         .bounceClick()
         .background(Color.Red, CircleShape)
         ) {
-        Icon(Icons.Default.Close, contentDescription = "Colgar", tint = Color.White, modifier = Modifier.size(32.dp))
+        Icon(Icons.Default.Close, contentDescription = "Colgar", tint = PanalinkPalette.textPrimary, modifier = Modifier.size(32.dp))
         }
         Spacer(modifier = Modifier.height(8.dp))
-        Text("Colgar", color = Color.White, fontSize = 12.sp)
+        Text("Colgar", color = PanalinkPalette.textPrimary, fontSize = 12.sp)
         }
         }
         }

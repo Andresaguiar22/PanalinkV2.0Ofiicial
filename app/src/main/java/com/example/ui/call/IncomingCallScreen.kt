@@ -39,6 +39,7 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.example.ui.components.PanaAvatar
+import com.example.ui.theme.PanalinkPalette
 
 /**
  * Premium incoming call screen (WhatsApp-style) with a soft gradient
@@ -99,7 +100,7 @@ fun IncomingCallScreen(
                 Spacer(modifier = Modifier.height(10.dp))
                 Text(
                     text = opponentName,
-                    color = Color.White,
+                    color = PanalinkPalette.textPrimary,
                     fontSize = 26.sp,
                     fontWeight = FontWeight.Bold
                 )
@@ -169,7 +170,7 @@ fun IncomingCallScreen(
                         Icon(
                             imageVector = Icons.Default.CallEnd,
                             contentDescription = "Rechazar",
-                            tint = Color.White,
+                            tint = PanalinkPalette.textPrimary,
                             modifier = Modifier.padding(20.dp)
                         )
                     }
@@ -194,7 +195,7 @@ fun IncomingCallScreen(
                         Icon(
                             imageVector = if (isVideo) Icons.Default.Videocam else Icons.Default.Call,
                             contentDescription = "Aceptar",
-                            tint = Color.White,
+                            tint = PanalinkPalette.textPrimary,
                             modifier = Modifier.padding(20.dp)
                         )
                     }

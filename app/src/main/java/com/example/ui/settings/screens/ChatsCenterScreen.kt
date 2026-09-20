@@ -43,6 +43,7 @@ import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.lifecycle.viewmodel.compose.viewModel
 import com.example.feature.settings.model.ChatsSettingsAction
 import com.example.ui.settings.viewmodel.ChatsSettingsViewModel
+import com.example.ui.theme.PanalinkPalette
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -55,10 +56,10 @@ fun ChatsCenterScreen(
     Scaffold(
         topBar = {
             TopAppBar(
-                title = { Text("Chats y Apariencia", color = Color.White) },
+                title = { Text("Chats y Apariencia", color = PanalinkPalette.textPrimary) },
                 navigationIcon = {
                     IconButton(onClick = onBack) {
-                        Icon(Icons.AutoMirrored.Filled.ArrowBack, contentDescription = "Regresar", tint = Color.White)
+                        Icon(Icons.AutoMirrored.Filled.ArrowBack, contentDescription = "Regresar", tint = PanalinkPalette.textPrimary)
                     }
                 },
                 colors = TopAppBarDefaults.topAppBarColors(containerColor = Color(0xFF121B22))
@@ -93,7 +94,7 @@ fun ChatsCenterScreen(
                             ) {
                                 Text(
                                     text = "Tamaño del texto en los Chats",
-                                    color = Color.White,
+                                    color = PanalinkPalette.textPrimary,
                                     fontWeight = FontWeight.SemiBold,
                                     fontSize = 14.sp
                                 )
@@ -148,7 +149,7 @@ fun ChatsCenterScreen(
                                     ) {
                                         Text(
                                             text = "¿Qué pasó chamo? ¿Cómo vas?",
-                                            color = Color.White,
+                                            color = PanalinkPalette.textPrimary,
                                             fontSize = uiState.textSize.sp,
                                             lineHeight = (uiState.textSize + 5).sp
                                         )
@@ -164,7 +165,7 @@ fun ChatsCenterScreen(
                                     ) {
                                         Text(
                                             text = "¡Todo fino de pana! Mira el tamaño de letra.",
-                                            color = Color.White,
+                                            color = PanalinkPalette.textPrimary,
                                             fontSize = uiState.textSize.sp,
                                             lineHeight = (uiState.textSize + 5).sp
                                         )
@@ -179,7 +180,7 @@ fun ChatsCenterScreen(
                         Column {
                             Text(
                                 text = "Fondo de Pantalla de Chats",
-                                color = Color.White,
+                                color = PanalinkPalette.textPrimary,
                                 fontWeight = FontWeight.SemiBold,
                                 fontSize = 14.sp
                             )
@@ -237,7 +238,7 @@ fun ChatsCenterScreen(
                             Column(modifier = Modifier.weight(1f)) {
                                 Text(
                                     text = "Enter para enviar mensaje",
-                                    color = Color.White,
+                                    color = PanalinkPalette.textPrimary,
                                     fontWeight = FontWeight.SemiBold,
                                     fontSize = 14.sp
                                 )

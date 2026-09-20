@@ -116,6 +116,7 @@ import kotlinx.coroutines.withTimeoutOrNull
 import java.io.File
 import java.text.SimpleDateFormat
 import java.util.*
+import com.example.ui.theme.PanalinkPalette
 
 
 @OptIn(ExperimentalMaterial3Api::class, ExperimentalFoundationApi::class)
@@ -1218,7 +1219,7 @@ fun ChatScreen(
         val isMultimediaForward = forwardSource.mediaUrl?.isNotBlank() == true
         AlertDialog(
             onDismissRequest = { showForwardDialog = false },
-            title = { Text("Reenviar mensaje de pana 🇻🇪", color = Color.White) },
+            title = { Text("Reenviar mensaje de pana 🇻🇪", color = PanalinkPalette.textPrimary) },
             text = {
                 Column(modifier = Modifier.fillMaxWidth()) {
                     Text(
@@ -1284,7 +1285,7 @@ fun ChatScreen(
                                         borderWidth = 0.dp
                                     )
                                     Spacer(modifier = Modifier.width(12.dp))
-                                    Text(contact.displayName, color = Color.White, fontWeight = FontWeight.Bold)
+                                    Text(contact.displayName, color = PanalinkPalette.textPrimary, fontWeight = FontWeight.Bold)
                                 }
                             }
                         }
@@ -1366,7 +1367,7 @@ fun PlaylistPickerDialog(
 ) {
     AlertDialog(
         onDismissRequest = onDismiss,
-        title = { Text("Selecciona una Playlist", color = Color.White) },
+        title = { Text("Selecciona una Playlist", color = PanalinkPalette.textPrimary) },
         text = {
             if (playlists.isEmpty()) {
                 Box(modifier = Modifier.fillMaxWidth().height(100.dp), contentAlignment = Alignment.Center) {
@@ -1402,11 +1403,11 @@ fun PlaylistPickerDialog(
                             }
                             Spacer(modifier = Modifier.width(12.dp))
                             Column {
-                                Text(playlist.name, color = Color.White, fontWeight = FontWeight.Bold, fontSize = 14.sp)
+                                Text(playlist.name, color = PanalinkPalette.textPrimary, fontWeight = FontWeight.Bold, fontSize = 14.sp)
                                 Text("Playlist • Actualizada recientemente", color = Color.Gray, fontSize = 11.sp)
                             }
                         }
-                        HorizontalDivider(color = Color.White.copy(alpha = 0.1f))
+                        HorizontalDivider(color = PanalinkPalette.textPrimary.copy(alpha = 0.1f))
                     }
                 }
             }

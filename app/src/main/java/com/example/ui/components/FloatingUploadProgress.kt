@@ -13,6 +13,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import com.example.ui.theme.PanalinkPalette
 
 @Composable
 fun FloatingUploadProgress(
@@ -33,7 +34,7 @@ fun FloatingUploadProgress(
             verticalAlignment = Alignment.CenterVertically
         ) {
             Column(modifier = Modifier.weight(1f)) {
-                Text(text = text, color = Color.White, fontSize = 14.sp)
+                Text(text = text, color = PanalinkPalette.textPrimary, fontSize = 14.sp)
                 Spacer(modifier = Modifier.height(4.dp))
                 LinearProgressIndicator(
                     progress = { progress },
@@ -44,7 +45,7 @@ fun FloatingUploadProgress(
             }
             Spacer(modifier = Modifier.width(8.dp))
             IconButton(onClick = onCancel, modifier = Modifier.size(24.dp)) {
-                Icon(Icons.Default.Close, contentDescription = "Cancelar", tint = Color.White)
+                Icon(Icons.Default.Close, contentDescription = "Cancelar", tint = PanalinkPalette.textPrimary)
             }
         }
     }

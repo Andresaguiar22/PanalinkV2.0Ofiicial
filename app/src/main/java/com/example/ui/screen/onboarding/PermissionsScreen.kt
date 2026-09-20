@@ -15,6 +15,7 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import com.example.ui.theme.PanalinkPalette
 
 @Composable
 fun PermissionsScreen(
@@ -52,7 +53,7 @@ fun PermissionsScreen(
                 text = "¡Mantente Conectado! 📡",
                 fontSize = 26.sp,
                 fontWeight = FontWeight.Bold,
-                color = Color.White,
+                color = PanalinkPalette.textPrimary,
                 textAlign = TextAlign.Center
             )
             Spacer(modifier = Modifier.height(12.dp))

@@ -28,6 +28,7 @@ import com.example.creative.templates.CaptionDesignerEngine
 import com.example.creative.templates.PostTemplate
 import com.example.creative.templates.PostTemplateEngine
 import com.example.creative.templates.TemplateVariable
+import com.example.ui.theme.PanalinkPalette
 
 /**
  * P6.6.5 - Smart Assistant Panel V2 ("✨ Asistente Pana AI Brain")
@@ -75,7 +76,7 @@ fun SmartAssistantPanel(
                     Column {
                         Text(
                             text = "Asistente Pana AI Brain ✨",
-                            color = Color.White,
+                            color = PanalinkPalette.textPrimary,
                             fontSize = 18.sp,
                             fontWeight = FontWeight.Bold
                         )
@@ -148,7 +149,7 @@ fun SmartAssistantPanel(
                                     )
                                     Text(
                                         text = brainResult.recommendedTemplate.name,
-                                        color = Color.White,
+                                        color = PanalinkPalette.textPrimary,
                                         fontSize = 16.sp,
                                         fontWeight = FontWeight.Bold
                                     )
@@ -173,7 +174,7 @@ fun SmartAssistantPanel(
                         }
 
                         item {
-                            Text("Sugerencias de Composición:", color = Color.White, fontWeight = FontWeight.Bold, fontSize = 13.sp)
+                            Text("Sugerencias de Composición:", color = PanalinkPalette.textPrimary, fontWeight = FontWeight.Bold, fontSize = 13.sp)
                         }
 
                         items(brainResult.layoutSuggestions) { suggestion ->
@@ -190,7 +191,7 @@ fun SmartAssistantPanel(
                                     verticalAlignment = Alignment.CenterVertically
                                 ) {
                                     Column(modifier = Modifier.weight(1f)) {
-                                        Text(text = suggestion.title, color = Color.White, fontSize = 13.sp, fontWeight = FontWeight.Bold)
+                                        Text(text = suggestion.title, color = PanalinkPalette.textPrimary, fontSize = 13.sp, fontWeight = FontWeight.Bold)
                                         Text(text = suggestion.description, color = Color.Gray, fontSize = 11.sp)
                                     }
                                     Button(
@@ -200,7 +201,7 @@ fun SmartAssistantPanel(
                                         },
                                         colors = ButtonDefaults.buttonColors(containerColor = Color(0xFF10B981))
                                     ) {
-                                        Text("Optimizar", color = Color.White, fontSize = 11.sp)
+                                        Text("Optimizar", color = PanalinkPalette.textPrimary, fontSize = 11.sp)
                                     }
                                 }
                             }
@@ -242,7 +243,7 @@ fun SmartAssistantPanel(
                 2 -> { // Captions Generator & Typography Presets
                     LazyColumn(verticalArrangement = Arrangement.spacedBy(10.dp)) {
                         item {
-                            Text("Captions Sugeridos por IA:", color = Color.White, fontWeight = FontWeight.Bold, fontSize = 13.sp)
+                            Text("Captions Sugeridos por IA:", color = PanalinkPalette.textPrimary, fontWeight = FontWeight.Bold, fontSize = 13.sp)
                         }
 
                         items(brainResult.suggestedCaptions) { genCaption ->
@@ -273,14 +274,14 @@ fun SmartAssistantPanel(
                                         )
                                     }
                                     Spacer(modifier = Modifier.height(4.dp))
-                                    Text(text = genCaption.text, color = Color.White, fontSize = 12.sp)
+                                    Text(text = genCaption.text, color = PanalinkPalette.textPrimary, fontSize = 12.sp)
                                 }
                             }
                         }
 
                         item {
                             Spacer(modifier = Modifier.height(8.dp))
-                            Text("Estilos de Tipografía Visual:", color = Color.White, fontWeight = FontWeight.Bold, fontSize = 13.sp)
+                            Text("Estilos de Tipografía Visual:", color = PanalinkPalette.textPrimary, fontWeight = FontWeight.Bold, fontSize = 13.sp)
                         }
 
                         item {
@@ -304,7 +305,7 @@ fun SmartAssistantPanel(
                                             modifier = Modifier.padding(10.dp),
                                             horizontalAlignment = Alignment.CenterHorizontally
                                         ) {
-                                            Text(text = preset.name, color = Color.White, fontSize = 11.sp, fontWeight = FontWeight.Bold)
+                                            Text(text = preset.name, color = PanalinkPalette.textPrimary, fontSize = 11.sp, fontWeight = FontWeight.Bold)
                                             Spacer(modifier = Modifier.height(6.dp))
                                             Text(
                                                 text = "TEXTO",
@@ -341,7 +342,7 @@ fun SmartAssistantPanel(
                                     verticalAlignment = Alignment.CenterVertically
                                 ) {
                                     Column {
-                                        Text(text = animType.name.replace("_", " "), color = Color.White, fontWeight = FontWeight.Bold, fontSize = 14.sp)
+                                        Text(text = animType.name.replace("_", " "), color = PanalinkPalette.textPrimary, fontWeight = FontWeight.Bold, fontSize = 14.sp)
                                         Text(text = "Efecto de movimiento dinámico para esta página", color = Color.Gray, fontSize = 11.sp)
                                     }
                                     Icon(Icons.Default.PlayArrow, contentDescription = null, tint = Color(0xFF38BDF8))
@@ -375,14 +376,14 @@ fun SmartAssistantPanel(
                         }
 
                         item {
-                            Text("Recomendaciones para Viralizar:", color = Color.White, fontWeight = FontWeight.Bold, fontSize = 13.sp)
+                            Text("Recomendaciones para Viralizar:", color = PanalinkPalette.textPrimary, fontWeight = FontWeight.Bold, fontSize = 13.sp)
                         }
 
                         items(brainResult.viralReport.recommendations) { rec ->
                             Row(verticalAlignment = Alignment.CenterVertically) {
                                 Icon(Icons.Default.AutoAwesome, contentDescription = null, tint = Color(0xFFF59E0B), modifier = Modifier.size(16.dp))
                                 Spacer(modifier = Modifier.width(8.dp))
-                                Text(text = rec, color = Color.White, fontSize = 12.sp)
+                                Text(text = rec, color = PanalinkPalette.textPrimary, fontSize = 12.sp)
                             }
                         }
                     }

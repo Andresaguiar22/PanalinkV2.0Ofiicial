@@ -28,6 +28,7 @@ import com.example.identity.model.toIdentityUiState
 import com.example.live.domain.model.LiveStream
 import com.example.live.ui.formatLiveCount
 import com.example.ui.components.PanaAvatar
+import com.example.ui.theme.PanalinkPalette
 
 @Composable
 fun LiveViewerHeader(
@@ -88,7 +89,7 @@ fun LiveViewerHeader(
                 Row(verticalAlignment = Alignment.CenterVertically) {
                     Text(
                         text = displayName,
-                        color = Color.White,
+                        color = PanalinkPalette.textPrimary,
                         fontSize = 14.sp,
                         fontWeight = FontWeight.Bold,
                         maxLines = 1,
@@ -119,7 +120,7 @@ fun LiveViewerHeader(
                 Icon(
                     imageVector = Icons.Default.Close,
                     contentDescription = "Cerrar",
-                    tint = Color.White,
+                    tint = PanalinkPalette.textPrimary,
                     modifier = Modifier.size(18.dp)
                 )
             }
@@ -131,12 +132,12 @@ fun LiveViewerHeader(
 private fun LiveBadge() {
     Surface(
         shape = RoundedCornerShape(9.dp),
-        color = Color.White.copy(alpha = 0.22f),
+        color = PanalinkPalette.textPrimary.copy(alpha = 0.22f),
         border = BorderStroke(1.dp, Color.White.copy(alpha = 0.7f))
     ) {
         Text(
             text = "LIVE",
-            color = Color.White,
+            color = PanalinkPalette.textPrimary,
             fontSize = 9.sp,
             fontWeight = FontWeight.Bold,
             modifier = Modifier.padding(horizontal = 6.dp, vertical = 2.dp)
@@ -156,13 +157,13 @@ private fun StatChip(label: String, value: String) {
         ) {
             Text(
                 text = label,
-                color = Color.White.copy(alpha = 0.85f),
+                color = PanalinkPalette.textPrimary.copy(alpha = 0.85f),
                 fontSize = 11.sp
             )
             Spacer(modifier = Modifier.width(4.dp))
             Text(
                 text = value,
-                color = Color.White,
+                color = PanalinkPalette.textPrimary,
                 fontSize = 11.sp,
                 fontWeight = FontWeight.Bold
             )

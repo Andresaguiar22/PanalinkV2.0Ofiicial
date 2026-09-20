@@ -22,6 +22,7 @@ import com.example.ui.components.chat.bubble.MessageGroupPosition
 import com.example.feature.chat.presentation.ChatViewModel
 import com.example.util.AudioPlayer
 import com.example.data.supabase.SupabaseClient
+import com.example.ui.theme.PanalinkPalette
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -64,7 +65,7 @@ fun FavoritesScreen(
                 },
                 navigationIcon = {
                     IconButton(onClick = onBack) {
-                        Icon(Icons.AutoMirrored.Filled.ArrowBack, "Volver", tint = Color.White)
+                        Icon(Icons.AutoMirrored.Filled.ArrowBack, "Volver", tint = PanalinkPalette.textPrimary)
                     }
                 },
                 colors = TopAppBarDefaults.topAppBarColors(
@@ -87,7 +88,7 @@ fun FavoritesScreen(
                     Spacer(modifier = Modifier.height(16.dp))
                     Text(
                         "No tienes mensajes guardados",
-                        color = Color.White,
+                        color = PanalinkPalette.textPrimary,
                         fontWeight = FontWeight.Bold
                     )
                     Text(

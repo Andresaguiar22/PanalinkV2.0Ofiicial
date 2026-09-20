@@ -1,6 +1,7 @@
 package com.example.ui.theme
 
 import androidx.compose.runtime.*
+import androidx.compose.material3.LocalContentColor
 import androidx.compose.ui.graphics.Color
 import androidx.compose.foundation.isSystemInDarkTheme
 import androidx.compose.material3.MaterialTheme
@@ -264,37 +265,39 @@ val MinimalWhiteColors = AppColors(
 )
 
 val HaloLightColors = AppColors(
-    primary = Color(0xFF4FA37D),      // Elegant Soft Mint Green
-    secondary = Color(0xFFE8F2ED),    // Soft minty cream
-    background = Color(0xFFF4FAF7),   // Warm minty white
-    surface = Color(0xFFFAFDFD),      // Clean white card
-    bubbleMe = Color(0xFF4FA37D),     // Soft Mint Green
-    bubbleOther = Color(0xFFE8F2ED),  // Warm cream bubble
-    topBar = Color(0xFFF4FAF7),
-    bottomBar = Color(0xFFF4FAF7),
-    accent = Color(0xFFD4EFE3),       // Soft minty accent
+    // Tema claro estilo Instagram/Facebook: blanco limpio, letras casi negras.
+    primary = Color(0xFF1DA060),      // verde de marca
+    secondary = Color(0xFFF1F3F7),    // superficie secundaria / inputs
+    background = Color(0xFFFFFFFF),   // blanco limpio (fondo global)
+    surface = Color(0xFFFFFFFF),
+    bubbleMe = Color(0xFF1DA060),     // burbuja propia verde con texto blanco
+    bubbleOther = Color(0xFFF1F3F7),
+    topBar = Color(0xFFFFFFFF),
+    bottomBar = Color(0xFFFFFFFF),
+    accent = Color(0xFF8A6F3E),       // dorado bronce (legible sobre blanco)
     isDark = false,
     onPrimary = Color.White,
-    onSecondary = Color.Black,
-    onBackground = Color.Black,
-    onSurface = Color.Black
+    onSecondary = Color(0xFF0B0F14),
+    onBackground = Color(0xFF0B0F14), // letras negras sobre blanco (pedido del mantenedor)
+    onSurface = Color(0xFF0B0F14)
 )
 
 val HaloDarkColors = AppColors(
-    primary = Color(0xFF00E5FF),
-    secondary = Color(0xFF222A37), // Neutral dark gray for inputs/surfaces
+    // Identidad de marca Panalink: mint del mockup + dorado, sobre navy.
+    primary = Color(0xFF3FCF8E),
+    secondary = Color(0xFF212936), // superficie de tarjetas/barras
     background = Color(0xFF171D29),
-    surface = Color(0xFF222A37),
-    bubbleMe = Color(0xFF7C3AED),
-    bubbleOther = Color(0xFF222A37),
+    surface = Color(0xFF212936),
+    bubbleMe = Color(0xFF1D5C4E),  // burbuja propia: teal profundo (texto claro legible)
+    bubbleOther = Color(0xFF212936),
     topBar = Color(0xFF171D29),
     bottomBar = Color(0xFF171D29),
-    accent = Color(0xFF00E5FF),
+    accent = Color(0xFFC9A96A),    // dorado de acentos
     isDark = true,
-    onPrimary = Color.Black,
-    onSecondary = Color(0xFFF0E4C8),
-    onBackground = Color(0xFFF0E4C8),
-    onSurface = Color(0xFFF0E4C8)
+    onPrimary = Color(0xFF06231A),
+    onSecondary = Color(0xFFF4F7FB),
+    onBackground = Color(0xFFF4F7FB), // letras blancas sobre oscuro (pedido del mantenedor)
+    onSurface = Color(0xFFF4F7FB)
 )
 
 object ThemeManager {
@@ -303,7 +306,7 @@ object ThemeManager {
     // Global light/dark/system mode. Real: MainActivity resolves the effective
     // theme key from this every recomposition, so "Claro/Oscuro/Sistema"
     // instantly restyles the whole app (no longer just persisted smoke).
-    val themeMode = kotlinx.coroutines.flow.MutableStateFlow("system")
+    val themeMode = kotlinx.coroutines.flow.MutableStateFlow("oscuro")
 
     val customPrimary = kotlinx.coroutines.flow.MutableStateFlow(Color(0xFF76CE9F))
     val customBackground = kotlinx.coroutines.flow.MutableStateFlow(Color(0xFF0F1412))
@@ -417,16 +420,12 @@ fun MyApplicationTheme(
     customColors: AppColors? = null,
     content: @Composable () -> Unit,
 ) {
-    // Panalink tiene una identidad de marca OSCURA (navy + constelacion + crema).
-    // El modo del sistema no debe aclararla: para ver la app clara hay que elegir
-    // "Claro" explicitamente. Sin esto, un telefono en modo claro resuelve a
-    // halo_light y desaparece el fondo de constelacion en toda la app.
-    val themeMode by ThemeManager.themeMode.collectAsState()
-    val explicitLight = themeMode == "claro"
-
-    val activeColors = remember(themeKey, customColors, explicitLight) {
-        val base = getColorsForTheme(themeKey, customColors)
-        if (base.isDark || explicitLight) base else HaloDarkColors
+    // El tema activo ya viene resuelto por resolveThemeForMode() segun el modo
+    // elegido (claro / oscuro / sistema). Aqui no se re-interpreta: si el
+    // resultado es claro, la app se pinta clara con tinta oscura; si es oscuro,
+    // usa la identidad de marca (navy + constelacion + letras blancas).
+    val activeColors = remember(themeKey, customColors) {
+        getColorsForTheme(themeKey, customColors)
     }
 
     val isDark = activeColors.isDark
@@ -454,31 +453,36 @@ fun MyApplicationTheme(
         )
     }
 
+    // Publica el modo a la paleta viva: asi el codigo no-composable (constantes,
+    // valores por defecto) tambien lee el color correcto del tema vigente.
+    PanalinkPalette.isDark = isDark
+
     CompositionLocalProvider(
         LocalAppColors provides activeColors,
-        LocalTextStyle provides LocalTextStyle.current.copy(fontFamily = FontFamily.Serif)
+        LocalTextStyle provides LocalTextStyle.current.copy(fontFamily = FontFamily.Serif),
+        LocalContentColor provides if (isDark) TitleColorDark else TitleColorLight
     ) {
         MaterialTheme(
             colorScheme = colorScheme,
             typography = Typography,
         ) {
-            // Fondo global por defecto de la app: constelacion navy + letras crema.
-            // Solo en temas oscuros, para no arruinar las identidades claras.
-            if (activeColors.isDark) {
-                androidx.compose.foundation.layout.Box(
-                    modifier = androidx.compose.ui.Modifier
-                        .fillMaxSize()
-                        .background(PanalinkSkin.NavyBase)
-                ) {
-                    ConstellationBackground()
-                    content()
-                }
-            } else {
+            // Fondo de marca global: la constelacion (oscuro) o el blanco limpio
+            // (claro) viven detras de TODO el contenido. Cualquier pantalla que no
+            // pinte su propio fondo opaco lo muestra.
+            androidx.compose.foundation.layout.Box(
+                modifier = androidx.compose.ui.Modifier
+                    .fillMaxSize()
+                    .background(PanalinkPalette.background)
+            ) {
+                if (isDark) ConstellationBackground() else LightBrandBackground()
                 content()
             }
         }
     }
 }
+
+private val TitleColorDark = Color(0xFFF4F7FB)
+private val TitleColorLight = Color(0xFF0B0F14)
 
 // 🦴 SHIMMER SKELETON LOADERS
 fun Modifier.shimmerEffect(): Modifier = composed {

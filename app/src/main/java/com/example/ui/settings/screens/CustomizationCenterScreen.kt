@@ -49,6 +49,7 @@ import com.example.feature.settings.model.CustomizationAction
 import com.example.ui.settings.viewmodel.CustomizationViewModel
 import com.example.ui.theme.ThemeManager
 import kotlin.math.pow
+import com.example.ui.theme.PanalinkPalette
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -438,7 +439,7 @@ private fun ThemeIdentityGrid(
                                     .border(1.dp, Color.White.copy(alpha =0.35f), CircleShape),
                                 contentAlignment = Alignment.Center
                             ) {
-                                Icon(icon, contentDescription = null, tint = Color.White, modifier = Modifier.size(17.dp))
+                                Icon(icon, contentDescription = null, tint = PanalinkPalette.textPrimary, modifier = Modifier.size(17.dp))
                             }
                             Text(label, color = if (selected) pal.accent else pal.on, fontSize =10.5.sp, fontWeight = if (selected) FontWeight.Bold else FontWeight.Medium, maxLines =1)
                             if (selected) {

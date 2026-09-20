@@ -34,6 +34,7 @@ import com.example.ui.viewmodel.SaveProfileUiState
 import com.example.util.PanalinkMediaManager
 import kotlinx.coroutines.launch
 import java.io.File
+import com.example.ui.theme.PanalinkPalette
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -194,10 +195,10 @@ fun ProfileEditScreen(
     Scaffold(
         topBar = {
             TopAppBar(
-                title = { Text("Perfil y Datos de Identidad", color = Color.White, fontWeight = FontWeight.Bold) },
+                title = { Text("Perfil y Datos de Identidad", color = PanalinkPalette.textPrimary, fontWeight = FontWeight.Bold) },
                 navigationIcon = {
                     IconButton(onClick = onBack) {
-                        Icon(Icons.AutoMirrored.Filled.ArrowBack, contentDescription = "Regresar", tint = Color.White)
+                        Icon(Icons.AutoMirrored.Filled.ArrowBack, contentDescription = "Regresar", tint = PanalinkPalette.textPrimary)
                     }
                 },
                 colors = TopAppBarDefaults.topAppBarColors(containerColor = Color(0xFF121B22))

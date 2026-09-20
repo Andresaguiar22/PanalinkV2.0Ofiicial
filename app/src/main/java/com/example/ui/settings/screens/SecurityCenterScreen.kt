@@ -41,6 +41,7 @@ import androidx.lifecycle.viewmodel.compose.viewModel
 import com.example.ui.components.QrCodeView
 import com.example.feature.settings.model.SecurityAction
 import com.example.ui.settings.viewmodel.SecurityViewModel
+import com.example.ui.theme.PanalinkPalette
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -68,10 +69,10 @@ fun SecurityCenterScreen(
     Scaffold(
         topBar = {
             TopAppBar(
-                title = { Text("Centro de Seguridad", color = Color.White) },
+                title = { Text("Centro de Seguridad", color = PanalinkPalette.textPrimary) },
                 navigationIcon = {
                     IconButton(onClick = onBack) {
-                        Icon(Icons.AutoMirrored.Filled.ArrowBack, contentDescription = "Regresar", tint = Color.White)
+                        Icon(Icons.AutoMirrored.Filled.ArrowBack, contentDescription = "Regresar", tint = PanalinkPalette.textPrimary)
                     }
                 },
                 colors = TopAppBarDefaults.topAppBarColors(containerColor = Color(0xFF121B22))
@@ -128,7 +129,7 @@ fun SecurityCenterScreen(
                             Column {
                                 Text(
                                     text = if (isProtected) "Nivel de Protección: Alto 🛡️" else "Nivel de Protección: Estándar ⚠️",
-                                    color = Color.White,
+                                    color = PanalinkPalette.textPrimary,
                                     fontWeight = FontWeight.Bold,
                                     fontSize = 15.sp
                                 )
@@ -170,7 +171,7 @@ fun SecurityCenterScreen(
                                     Spacer(modifier = Modifier.width(8.dp))
                                     Text(
                                         text = "PIN de Seguridad de la App",
-                                        color = Color.White,
+                                        color = PanalinkPalette.textPrimary,
                                         fontWeight = FontWeight.SemiBold,
                                         fontSize = 14.sp
                                     )
@@ -257,7 +258,7 @@ fun SecurityCenterScreen(
                                     Spacer(modifier = Modifier.width(8.dp))
                                     Text(
                                         text = "Patrón de Desbloqueo",
-                                        color = Color.White,
+                                        color = PanalinkPalette.textPrimary,
                                         fontWeight = FontWeight.SemiBold,
                                         fontSize = 14.sp
                                     )
@@ -337,7 +338,7 @@ fun SecurityCenterScreen(
                                 Spacer(modifier = Modifier.width(8.dp))
                                 Text(
                                     text = "Bloqueo Automático",
-                                    color = Color.White,
+                                    color = PanalinkPalette.textPrimary,
                                     fontWeight = FontWeight.SemiBold,
                                     fontSize = 14.sp
                                 )
@@ -416,7 +417,7 @@ fun SecurityCenterScreen(
                                 Spacer(modifier = Modifier.width(8.dp))
                                 Text(
                                     text = "Identidad Digital y QR Pana",
-                                    color = Color.White,
+                                    color = PanalinkPalette.textPrimary,
                                     fontWeight = FontWeight.SemiBold,
                                     fontSize = 14.sp
                                 )
@@ -457,7 +458,7 @@ fun SecurityCenterScreen(
                                             Toast.makeText(context, "PIN copiado al portapapeles 📋", Toast.LENGTH_SHORT).show()
                                         }
                                     ) {
-                                        Icon(Icons.Default.ContentCopy, contentDescription = "Copiar PIN", tint = Color.White)
+                                        Icon(Icons.Default.ContentCopy, contentDescription = "Copiar PIN", tint = PanalinkPalette.textPrimary)
                                     }
                                 }
                             }
@@ -516,7 +517,7 @@ fun SecurityCenterScreen(
                                 Column(modifier = Modifier.weight(1f)) {
                                     Text(
                                         text = "Bloquear Ahora",
-                                        color = Color.White,
+                                        color = PanalinkPalette.textPrimary,
                                         fontWeight = FontWeight.SemiBold,
                                         fontSize = 14.sp
                                     )
@@ -540,7 +541,7 @@ fun SecurityCenterScreen(
                                 }
                             }
 
-                            HorizontalDivider(color = Color.White.copy(alpha = 0.1f))
+                            HorizontalDivider(color = PanalinkPalette.textPrimary.copy(alpha = 0.1f))
 
                             // Biometrics Switch
                             Row(
@@ -559,7 +560,7 @@ fun SecurityCenterScreen(
                                         Spacer(modifier = Modifier.width(6.dp))
                                         Text(
                                             text = "Desbloqueo Biométrico",
-                                            color = Color.White,
+                                            color = PanalinkPalette.textPrimary,
                                             fontWeight = FontWeight.SemiBold,
                                             fontSize = 14.sp
                                         )
@@ -603,7 +604,7 @@ fun SecurityCenterScreen(
             title = {
                 Text(
                     text = if (uiState.hasPin) "Cambiar PIN de Seguridad" else "Configurar PIN de Seguridad",
-                    color = Color.White,
+                    color = PanalinkPalette.textPrimary,
                     fontWeight = FontWeight.Bold,
                     fontSize = 16.sp
                 )
@@ -612,7 +613,7 @@ fun SecurityCenterScreen(
                 Column(verticalArrangement = Arrangement.spacedBy(12.dp)) {
                     Text(
                         text = "Ingresa un PIN numérico de 4 a 6 dígitos para proteger la aplicación:",
-                        color = Color.White.copy(alpha = 0.7f),
+                        color = PanalinkPalette.textPrimary.copy(alpha = 0.7f),
                         fontSize = 12.sp
                     )
                     OutlinedTextField(
@@ -644,7 +645,7 @@ fun SecurityCenterScreen(
             },
             dismissButton = {
                 TextButton(onClick = { viewModel.dispatch(SecurityAction.ShowPinDialog(false)) }) {
-                    Text("Cancelar", color = Color.White.copy(alpha = 0.7f))
+                    Text("Cancelar", color = PanalinkPalette.textPrimary.copy(alpha = 0.7f))
                 }
             }
         )
@@ -658,7 +659,7 @@ fun SecurityCenterScreen(
             title = {
                 Text(
                     text = "Tu Código QR de Identidad",
-                    color = Color.White,
+                    color = PanalinkPalette.textPrimary,
                     fontWeight = FontWeight.Bold,
                     fontSize = 16.sp
                 )
@@ -693,7 +694,7 @@ fun SecurityCenterScreen(
 
                     Text(
                         text = "Muestra este código a otro Pana para que te agregue instantáneamente.",
-                        color = Color.White.copy(alpha = 0.7f),
+                        color = PanalinkPalette.textPrimary.copy(alpha = 0.7f),
                         fontSize = 11.sp,
                         textAlign = androidx.compose.ui.text.style.TextAlign.Center
                     )
@@ -718,7 +719,7 @@ fun SecurityCenterScreen(
             title = {
                 Text(
                     text = if (firstPattern == null) "Dibuja tu nuevo patrón" else "Confirma tu patrón",
-                    color = Color.White,
+                    color = PanalinkPalette.textPrimary,
                     fontWeight = FontWeight.Bold,
                     fontSize = 16.sp
                 )
@@ -734,7 +735,7 @@ fun SecurityCenterScreen(
                             "Conecta al menos 4 puntos. Lo usarás para desbloquear PanaLink."
                         else
                             "Dibuja el mismo patrón otra vez para confirmarlo.",
-                        color = Color.White.copy(alpha = 0.7f),
+                        color = PanalinkPalette.textPrimary.copy(alpha = 0.7f),
                         fontSize = 12.sp
                     )
                     com.example.ui.security.PatternPad(
@@ -769,7 +770,7 @@ fun SecurityCenterScreen(
             confirmButton = {},
             dismissButton = {
                 TextButton(onClick = { viewModel.dispatch(SecurityAction.ShowPatternDialog(false)) }) {
-                    Text("Cancelar", color = Color.White.copy(alpha = 0.7f))
+                    Text("Cancelar", color = PanalinkPalette.textPrimary.copy(alpha = 0.7f))
                 }
             }
         )
@@ -783,7 +784,7 @@ fun SecurityCenterScreen(
             title = {
                 Text(
                     text = "Escanear QR de Pana",
-                    color = Color.White,
+                    color = PanalinkPalette.textPrimary,
                     fontWeight = FontWeight.Bold,
                     fontSize = 16.sp
                 )
@@ -795,7 +796,7 @@ fun SecurityCenterScreen(
                 ) {
                     Text(
                         text = "Ingresa o escanea el código payload recibido (ej: panalink:pin:123456):",
-                        color = Color.White.copy(alpha = 0.7f),
+                        color = PanalinkPalette.textPrimary.copy(alpha = 0.7f),
                         fontSize = 12.sp
                     )
                     OutlinedTextField(
@@ -826,7 +827,7 @@ fun SecurityCenterScreen(
             },
             dismissButton = {
                 TextButton(onClick = { viewModel.dispatch(SecurityAction.ShowScanner(false)) }) {
-                    Text("Cancelar", color = Color.White.copy(alpha = 0.7f))
+                    Text("Cancelar", color = PanalinkPalette.textPrimary.copy(alpha = 0.7f))
                 }
             }
         )

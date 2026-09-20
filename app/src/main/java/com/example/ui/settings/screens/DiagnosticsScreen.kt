@@ -28,6 +28,7 @@ import com.example.feature.diagnostics.model.DiagnosticEvent
 import com.example.feature.diagnostics.model.DiagnosticSeverity
 import com.example.feature.diagnostics.model.matches
 import com.example.ui.settings.viewmodel.DiagnosticsViewModel
+import com.example.ui.theme.PanalinkPalette
 
 private val DiagnosticBackground = Color(0xFF121B22)
 private val DiagnosticCard = Color(0xFF1E2B33)
@@ -61,10 +62,10 @@ fun DiagnosticsScreen(
     Scaffold(
         topBar = {
             TopAppBar(
-                title = { Text("Diagnóstico del sistema", color = Color.White) },
+                title = { Text("Diagnóstico del sistema", color = PanalinkPalette.textPrimary) },
                 navigationIcon = {
                     IconButton(onClick = onBack) {
-                        Icon(Icons.AutoMirrored.Filled.ArrowBack, contentDescription = "Regresar", tint = Color.White)
+                        Icon(Icons.AutoMirrored.Filled.ArrowBack, contentDescription = "Regresar", tint = PanalinkPalette.textPrimary)
                     }
                 },
                 colors = TopAppBarDefaults.topAppBarColors(containerColor = DiagnosticBackground)
@@ -93,7 +94,7 @@ fun DiagnosticsScreen(
                             )
                             Spacer(Modifier.width(12.dp))
                             Column(modifier = Modifier.weight(1f)) {
-                                Text("Monitor de procesos", color = Color.White, fontSize = 16.sp, fontWeight = FontWeight.Bold)
+                                Text("Monitor de procesos", color = PanalinkPalette.textPrimary, fontSize = 16.sp, fontWeight = FontWeight.Bold)
                                 Text(
                                     if (captureState == DiagnosticCaptureState.CAPTURING) "Capturando eventos en tiempo real"
                                     else "Captura detenida; los errores siguen registrándose",
@@ -133,7 +134,7 @@ fun DiagnosticsScreen(
             }
 
             item {
-                Text("Filtros", color = Color.White, fontSize = 16.sp, fontWeight = FontWeight.Bold)
+                Text("Filtros", color = PanalinkPalette.textPrimary, fontSize = 16.sp, fontWeight = FontWeight.Bold)
                 Spacer(Modifier.height(8.dp))
                 Row(
                     modifier = Modifier.fillMaxWidth().horizontalScroll(rememberScrollState()),
@@ -152,7 +153,7 @@ fun DiagnosticsScreen(
             item {
                 Text(
                     "Línea de tiempo · ${visibleEvents.size} eventos",
-                    color = Color.White,
+                    color = PanalinkPalette.textPrimary,
                     fontSize = 16.sp,
                     fontWeight = FontWeight.Bold
                 )
@@ -167,7 +168,7 @@ fun DiagnosticsScreen(
                         ) {
                             Icon(Icons.Default.Timeline, contentDescription = null, tint = DiagnosticMuted, modifier = Modifier.size(36.dp))
                             Spacer(Modifier.height(8.dp))
-                            Text("Sin eventos todavía", color = Color.White, fontWeight = FontWeight.Medium)
+                            Text("Sin eventos todavía", color = PanalinkPalette.textPrimary, fontWeight = FontWeight.Medium)
                             Text("Activa la captura y reproduce el problema que quieres investigar.", color = DiagnosticMuted, fontSize = 12.sp)
                         }
                     }
@@ -204,10 +205,10 @@ private fun DiagnosticEventCard(event: DiagnosticEvent) {
                 Row(verticalAlignment = Alignment.CenterVertically) {
                     Text(event.displayTime(), color = DiagnosticMuted, fontSize = 11.sp)
                     Spacer(Modifier.width(8.dp))
-                    Text(event.category.label, color = Color.White, fontSize = 11.sp, fontWeight = FontWeight.Bold)
+                    Text(event.category.label, color = PanalinkPalette.textPrimary, fontSize = 11.sp, fontWeight = FontWeight.Bold)
                 }
                 Spacer(Modifier.height(4.dp))
-                Text(event.event, color = Color.White, fontSize = 14.sp, fontWeight = FontWeight.Medium)
+                Text(event.event, color = PanalinkPalette.textPrimary, fontSize = 14.sp, fontWeight = FontWeight.Medium)
                 event.durationMs?.let {
                     Text("Duración: ${it} ms", color = DiagnosticMuted, fontSize = 12.sp)
                 }

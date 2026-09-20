@@ -22,6 +22,7 @@ import androidx.compose.ui.unit.sp
 import androidx.compose.ui.window.Dialog
 import androidx.compose.ui.window.DialogProperties
 import java.util.Locale
+import com.example.ui.theme.PanalinkPalette
 
 @Composable
 fun UpdateDialog(
@@ -86,7 +87,7 @@ fun UpdateDialog(
                     Spacer(modifier = Modifier.width(12.dp))
                     Text(
                         text = if (isMandatory) "Actualización Obligatoria" else "Nueva Versión Disponible",
-                        color = Color.White,
+                        color = PanalinkPalette.textPrimary,
                         fontSize = 22.sp,
                         fontWeight = FontWeight.Bold,
                         modifier = Modifier.weight(1f)
@@ -104,7 +105,7 @@ fun UpdateDialog(
                 ) {
                     Column(modifier = Modifier.weight(1f)) {
                         Text("Instalada", color = Color(0xFF90A4AE), fontSize = 12.sp)
-                        Text("v${viewModel.getInstalledVersionName()}", color = Color.White, fontSize = 16.sp, fontWeight = FontWeight.Bold)
+                        Text("v${viewModel.getInstalledVersionName()}", color = PanalinkPalette.textPrimary, fontSize = 16.sp, fontWeight = FontWeight.Bold)
                     }
                     Column(modifier = Modifier.weight(1f)) {
                         Text("Nueva versión", color = Color(0xFF90A4AE), fontSize = 12.sp)
@@ -117,7 +118,7 @@ fun UpdateDialog(
                 // Changelog (Scrollable container — más alto para leer todas las mejoras)
                 Text(
                     text = "Novedades de esta versión:",
-                    color = Color.White,
+                    color = PanalinkPalette.textPrimary,
                     fontSize = 15.sp,
                     fontWeight = FontWeight.SemiBold
                 )

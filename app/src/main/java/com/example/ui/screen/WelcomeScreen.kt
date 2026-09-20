@@ -29,6 +29,7 @@ import androidx.compose.ui.unit.sp
 import coil.compose.rememberAsyncImagePainter
 import com.example.ui.components.AuroraBackground
 import com.example.ui.theme.LocalAppColors
+import com.example.ui.theme.PanalinkPalette
 
 @Composable
 fun AnimatedPanaWelcomeLogo(
@@ -199,7 +200,7 @@ fun WelcomeScreen(
                     text = "¡Bienvenido a\nPanaLink! 🇻🇪",
                     fontSize = 38.sp,
                     fontWeight = FontWeight.ExtraBold,
-                    color = Color.White,
+                    color = PanalinkPalette.textPrimary,
                     textAlign = TextAlign.Center,
                     lineHeight = 44.sp,
                     style = androidx.compose.ui.text.TextStyle(
@@ -214,7 +215,7 @@ fun WelcomeScreen(
                 Text(
                     text = "Tu app de mensajería bien criolla.",
                     fontSize = 17.sp,
-                    color = Color.White.copy(alpha = 0.95f),
+                    color = PanalinkPalette.textPrimary.copy(alpha = 0.95f),
                     fontWeight = FontWeight.SemiBold,
                     textAlign = TextAlign.Center
                 )
@@ -228,7 +229,7 @@ fun WelcomeScreen(
                 Text(
                     text = "Mensajes rápidos, estados que desaparecen y privacidad real.",
                     fontSize = 15.sp,
-                    color = Color.White.copy(alpha = 0.9f),
+                    color = PanalinkPalette.textPrimary.copy(alpha = 0.9f),
                     textAlign = TextAlign.Center,
                     fontWeight = FontWeight.Medium,
                     lineHeight = 22.sp
@@ -239,7 +240,7 @@ fun WelcomeScreen(
                 Text(
                     text = "Conéctate de pana con tus panas en todo el país sin límites.",
                     fontSize = 12.sp,
-                    color = Color.White.copy(alpha = 0.75f),
+                    color = PanalinkPalette.textPrimary.copy(alpha = 0.75f),
                     textAlign = TextAlign.Center,
                     lineHeight = 16.sp
                 )
@@ -308,7 +309,7 @@ fun WelcomeScreen(
                     shape = RoundedCornerShape(16.dp),
                     border = androidx.compose.foundation.BorderStroke(
                         width = 1.2.dp,
-                        color = Color.White.copy(alpha = borderAlpha)
+                        color = PanalinkPalette.textPrimary.copy(alpha = borderAlpha)
                     )
                 ) {
                     Text(

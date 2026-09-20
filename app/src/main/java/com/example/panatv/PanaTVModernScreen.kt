@@ -64,6 +64,7 @@ import androidx.media3.ui.PlayerView
 import coil.compose.AsyncImage
 import coil.request.ImageRequest
 import kotlinx.coroutines.delay
+import com.example.ui.theme.PanalinkPalette
 
 private val PanaTvBackground = Color(0xFF0B1017)
 private val PanaTvSurface = Color(0xFF151D26)
@@ -571,10 +572,10 @@ fun PanaTVModernScreen(viewModel: PanaTVViewModel = viewModel()) {
                         verticalAlignment = Alignment.CenterVertically
                     ) {
                         Surface(shape = RoundedCornerShape(5.dp), color = Color(0xFFE53935)) {
-                            Text("EN VIVO", color = Color.White, fontSize = 8.sp, fontWeight = FontWeight.Bold, modifier = Modifier.padding(horizontal = 6.dp, vertical = 3.dp))
+                            Text("EN VIVO", color = PanalinkPalette.textPrimary, fontSize = 8.sp, fontWeight = FontWeight.Bold, modifier = Modifier.padding(horizontal = 6.dp, vertical = 3.dp))
                         }
                         Spacer(Modifier.width(8.dp))
-                        Text(currentChannel?.name.orEmpty(), color = Color.White, fontSize = 12.sp, fontWeight = FontWeight.SemiBold, maxLines = 1, overflow = TextOverflow.Ellipsis, modifier = Modifier.weight(1f))
+                        Text(currentChannel?.name.orEmpty(), color = PanalinkPalette.textPrimary, fontSize = 12.sp, fontWeight = FontWeight.SemiBold, maxLines = 1, overflow = TextOverflow.Ellipsis, modifier = Modifier.weight(1f))
                     }
 
                     Row(
@@ -586,10 +587,10 @@ fun PanaTVModernScreen(viewModel: PanaTVViewModel = viewModel()) {
                         verticalAlignment = Alignment.CenterVertically
                     ) {
                         IconButton(onClick = { player?.let { if (it.isPlaying) it.pause() else it.play() } }, modifier = Modifier.size(38.dp)) {
-                            Icon(if (isPlaying) Icons.Default.Pause else Icons.Default.PlayArrow, "Reproducir", tint = Color.White, modifier = Modifier.size(22.dp))
+                            Icon(if (isPlaying) Icons.Default.Pause else Icons.Default.PlayArrow, "Reproducir", tint = PanalinkPalette.textPrimary, modifier = Modifier.size(22.dp))
                         }
                         IconButton(onClick = { isMuted = !isMuted }, modifier = Modifier.size(38.dp)) {
-                            Icon(if (isMuted) Icons.Default.VolumeOff else Icons.Default.VolumeUp, "Volumen", tint = Color.White, modifier = Modifier.size(20.dp))
+                            Icon(if (isMuted) Icons.Default.VolumeOff else Icons.Default.VolumeUp, "Volumen", tint = PanalinkPalette.textPrimary, modifier = Modifier.size(20.dp))
                         }
                         Spacer(Modifier.weight(1f))
                         Text(
@@ -615,7 +616,7 @@ fun PanaTVModernScreen(viewModel: PanaTVViewModel = viewModel()) {
                             )
                         }
                         IconButton(onClick = { enterFullscreen() }, modifier = Modifier.size(38.dp)) {
-                            Icon(Icons.Default.Fullscreen, "Pantalla completa", tint = Color.White, modifier = Modifier.size(20.dp))
+                            Icon(Icons.Default.Fullscreen, "Pantalla completa", tint = PanalinkPalette.textPrimary, modifier = Modifier.size(20.dp))
                         }
                     }
                 }
@@ -659,11 +660,11 @@ fun PanaTVModernScreen(viewModel: PanaTVViewModel = viewModel()) {
                     verticalAlignment = Alignment.CenterVertically
                 ) {
                     IconButton(onClick = { exitFullscreen() }) {
-                        Icon(Icons.Default.ArrowBack, "Atrás", tint = Color.White, modifier = Modifier.size(24.dp))
+                        Icon(Icons.Default.ArrowBack, "Atrás", tint = PanalinkPalette.textPrimary, modifier = Modifier.size(24.dp))
                     }
                     Text(
                         currentChannel?.name.orEmpty(),
-                        color = Color.White,
+                        color = PanalinkPalette.textPrimary,
                         fontSize = 16.sp,
                         fontWeight = FontWeight.SemiBold,
                         maxLines = 1,
@@ -671,10 +672,10 @@ fun PanaTVModernScreen(viewModel: PanaTVViewModel = viewModel()) {
                         modifier = Modifier.weight(1f)
                     )
                     IconButton(onClick = shareChannel) {
-                        Icon(Icons.Default.Share, "Compartir", tint = Color.White, modifier = Modifier.size(22.dp))
+                        Icon(Icons.Default.Share, "Compartir", tint = PanalinkPalette.textPrimary, modifier = Modifier.size(22.dp))
                     }
                     IconButton(onClick = showHelp) {
-                        Icon(Icons.Default.HelpOutline, "Ayuda", tint = Color.White, modifier = Modifier.size(22.dp))
+                        Icon(Icons.Default.HelpOutline, "Ayuda", tint = PanalinkPalette.textPrimary, modifier = Modifier.size(22.dp))
                     }
                     IconButton(onClick = { currentChannel?.let { viewModel.toggleFavorite(it.id) } }) {
                         val fav = currentChannel?.let { favorites.contains(it.id) } == true
@@ -743,7 +744,7 @@ fun PanaTVModernScreen(viewModel: PanaTVViewModel = viewModel()) {
                         }
                     ) {
                         Box(contentAlignment = Alignment.Center) {
-                            Icon(Icons.Default.LockOpen, "Desbloquear", tint = Color.White, modifier = Modifier.size(26.dp))
+                            Icon(Icons.Default.LockOpen, "Desbloquear", tint = PanalinkPalette.textPrimary, modifier = Modifier.size(26.dp))
                         }
                     }
                 }
@@ -864,9 +865,9 @@ fun PanaTVModernScreen(viewModel: PanaTVViewModel = viewModel()) {
                             Text(selectedCountry.ifBlank { "Todos" }, color = PanaTvMuted, fontSize = 11.sp, maxLines = 1)
                         }
                         DropdownMenu(expanded = showCountries, onDismissRequest = { showCountries = false }, modifier = Modifier.background(PanaTvSurface)) {
-                            DropdownMenuItem(text = { Text("Todos los países", color = Color.White) }, onClick = { viewModel.updateSelectedCountry(""); showCountries = false })
+                            DropdownMenuItem(text = { Text("Todos los países", color = PanalinkPalette.textPrimary) }, onClick = { viewModel.updateSelectedCountry(""); showCountries = false })
                             availableCountries.forEach { country ->
-                                DropdownMenuItem(text = { Text(country, color = Color.White) }, onClick = { viewModel.updateSelectedCountry(country); showCountries = false })
+                                DropdownMenuItem(text = { Text(country, color = PanalinkPalette.textPrimary) }, onClick = { viewModel.updateSelectedCountry(country); showCountries = false })
                             }
                         }
                     }
@@ -1126,7 +1127,7 @@ private fun ChannelListRow(
                 .clickable(onClick = onWatchNow),
             contentAlignment = Alignment.Center
         ) {
-            Icon(Icons.Default.ArrowForward, "Ver en pantalla completa", tint = Color.White, modifier = Modifier.size(18.dp))
+            Icon(Icons.Default.ArrowForward, "Ver en pantalla completa", tint = PanalinkPalette.textPrimary, modifier = Modifier.size(18.dp))
         }
     }
 }
@@ -1190,9 +1191,9 @@ private fun LandscapeAction(icon: ImageVector, label: String, onClick: () -> Uni
             .clickable(onClick = onClick)
             .padding(horizontal = 10.dp, vertical = 6.dp)
     ) {
-        Icon(icon, label, tint = Color.White, modifier = Modifier.size(24.dp))
+        Icon(icon, label, tint = PanalinkPalette.textPrimary, modifier = Modifier.size(24.dp))
         Spacer(Modifier.height(5.dp))
-        Text(label, color = Color.White, fontSize = 12.sp)
+        Text(label, color = PanalinkPalette.textPrimary, fontSize = 12.sp)
     }
 }
 
@@ -1205,7 +1206,7 @@ private fun VerticalSlider(
 ) {
     val v = value.coerceIn(0f, 1f)
     Column(modifier, horizontalAlignment = Alignment.CenterHorizontally) {
-        Icon(icon, null, tint = Color.White, modifier = Modifier.size(20.dp))
+        Icon(icon, null, tint = PanalinkPalette.textPrimary, modifier = Modifier.size(20.dp))
         Spacer(Modifier.height(10.dp))
         Box(
             Modifier

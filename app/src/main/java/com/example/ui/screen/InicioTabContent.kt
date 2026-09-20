@@ -93,6 +93,7 @@ import java.text.SimpleDateFormat
 import java.util.*
 
 import com.example.ui.viewmodel.NotificationsViewModel
+import com.example.ui.theme.PanalinkPalette
 
 @OptIn(ExperimentalMaterial3Api::class)
 
@@ -180,7 +181,7 @@ fun TuTabContent(
                     ) {
                         Text(
                             text = displayName,
-                            color = Color.White,
+                            color = PanalinkPalette.textPrimary,
                             fontSize = 22.sp,
                             fontWeight = FontWeight.Bold
                         )
@@ -264,7 +265,7 @@ fun TuTabContent(
                         ) {
                             Text(
                                 text = "PIN: $userPinState",
-                                color = Color.White,
+                                color = PanalinkPalette.textPrimary,
                                 fontSize = 20.sp,
                                 fontWeight = FontWeight.Bold,
                                 letterSpacing = 2.sp
@@ -302,7 +303,7 @@ fun TuTabContent(
                         colors = ButtonDefaults.buttonColors(containerColor = colors.accent),
                         shape = RoundedCornerShape(8.dp)
                     ) {
-                        Text("Configurar PIN de Seguridad", color = Color.White, fontWeight = FontWeight.Bold)
+                        Text("Configurar PIN de Seguridad", color = PanalinkPalette.textPrimary, fontWeight = FontWeight.Bold)
                     }
                 }
             }
@@ -331,7 +332,7 @@ fun TuTabContent(
 
                     // Tema de Pana Selector
                     Column {
-                        Text("Tema Visual de Pana", color = Color.White, fontSize = 14.sp, fontWeight = FontWeight.SemiBold)
+                        Text("Tema Visual de Pana", color = PanalinkPalette.textPrimary, fontSize = 14.sp, fontWeight = FontWeight.SemiBold)
                         Spacer(modifier = Modifier.height(8.dp))
                         Row(
                             horizontalArrangement = Arrangement.spacedBy(6.dp),
@@ -374,7 +375,7 @@ fun TuTabContent(
                         verticalAlignment = Alignment.CenterVertically
                     ) {
                         Column(modifier = Modifier.weight(1f)) {
-                            Text("Modo Minimalista", color = Color.White, fontSize = 14.sp, fontWeight = FontWeight.SemiBold)
+                            Text("Modo Minimalista", color = PanalinkPalette.textPrimary, fontSize = 14.sp, fontWeight = FontWeight.SemiBold)
                             Text("Simplifica los menús y acciones", color = Color.LightGray, fontSize = 11.sp)
                         }
                         Switch(
@@ -401,7 +402,7 @@ fun TuTabContent(
                         verticalAlignment = Alignment.CenterVertically
                     ) {
                         Column(modifier = Modifier.weight(1f)) {
-                            Text("Ventanas Flotantes (PiP)", color = Color.White, fontSize = 14.sp, fontWeight = FontWeight.SemiBold)
+                            Text("Ventanas Flotantes (PiP)", color = PanalinkPalette.textPrimary, fontSize = 14.sp, fontWeight = FontWeight.SemiBold)
                             Text("Permitir que Pana TV y Reels floten al salir", color = Color.LightGray, fontSize = 11.sp)
                         }
                         Switch(
@@ -432,9 +433,9 @@ fun TuTabContent(
                         shape = RoundedCornerShape(8.dp),
                         modifier = Modifier.fillMaxWidth()
                     ) {
-                        Icon(Icons.Default.ExitToApp, contentDescription = null, tint = Color.White)
+                        Icon(Icons.Default.ExitToApp, contentDescription = null, tint = PanalinkPalette.textPrimary)
                         Spacer(modifier = Modifier.width(8.dp))
-                        Text("Cerrar Sesión de Pana", color = Color.White, fontWeight = FontWeight.Bold)
+                        Text("Cerrar Sesión de Pana", color = PanalinkPalette.textPrimary, fontWeight = FontWeight.Bold)
                     }
                 }
             }
@@ -445,7 +446,7 @@ fun TuTabContent(
     if (showEditNameDialog) {
         AlertDialog(
             onDismissRequest = { showEditNameDialog = false },
-            title = { Text("Editar Nombre de Pana", color = Color.White) },
+            title = { Text("Editar Nombre de Pana", color = PanalinkPalette.textPrimary) },
             containerColor = Color(0xFF121214),
             text = {
                 OutlinedTextField(
@@ -567,7 +568,7 @@ fun InicioTabContent(
                     ) {
                         Text(
                             text = "Historias 🇻🇪✨",
-                            color = Color.White,
+                            color = PanalinkPalette.textPrimary,
                             fontSize = 14.sp,
                             fontWeight = FontWeight.Bold,
                             modifier = Modifier.padding(start = 16.dp, end = 16.dp, bottom = 8.dp)
@@ -620,7 +621,7 @@ fun InicioTabContent(
                                         ) {
                                             Text(
                                                 "Tu historia",
-                                                color = Color.White,
+                                                color = PanalinkPalette.textPrimary,
                                                 fontSize = 11.sp,
                                                 fontWeight = FontWeight.Bold,
                                                 modifier = Modifier.align(Alignment.BottomCenter).padding(bottom = 8.dp)
@@ -637,7 +638,7 @@ fun InicioTabContent(
                                                 .border(2.dp, Color(0xFF161618), CircleShape),
                                             contentAlignment = Alignment.Center
                                         ) {
-                                            Icon(Icons.Default.Add, contentDescription = null, tint = Color.White, modifier = Modifier.size(18.dp))
+                                            Icon(Icons.Default.Add, contentDescription = null, tint = PanalinkPalette.textPrimary, modifier = Modifier.size(18.dp))
                                         }
                                     }
                                 }
@@ -742,7 +743,7 @@ fun InicioTabContent(
                                             // Username bottom
                                             Text(
                                                 text = safeDisplayName?.take(15) ?: "",
-                                                color = Color.White,
+                                                color = PanalinkPalette.textPrimary,
                                                 fontSize = 11.sp,
                                                 fontWeight = FontWeight.Bold,
                                                 maxLines = 1,
@@ -818,7 +819,7 @@ fun InicioTabContent(
                                 Spacer(modifier = Modifier.width(8.dp))
                                 Text(
                                     text = "Sin conexión: estás viendo tus publicaciones e historias guardadas. Se actualizarán solas al volver el internet.",
-                                    color = Color.White.copy(alpha =  0.85f),
+                                    color = PanalinkPalette.textPrimary.copy(alpha =  0.85f),
                                     fontSize =  12.sp,
                                     lineHeight =  16.sp
                                 )
@@ -838,7 +839,7 @@ fun InicioTabContent(
                     ) {
                         Text(
                             text = "El Muro 💬",
-                            color = Color.White,
+                            color = PanalinkPalette.textPrimary,
                             fontSize = 18.sp,
                             fontWeight = FontWeight.Bold
                         )
@@ -957,7 +958,7 @@ fun InicioTabContent(
                             Spacer(modifier = Modifier.height(16.dp))
                             Text(
                                 text = "El muro está vacío por ahora",
-                                color = Color.White,
+                                color = PanalinkPalette.textPrimary,
                                 fontSize = 16.sp,
                                 fontWeight = FontWeight.Medium
                             )
@@ -979,8 +980,8 @@ fun InicioTabContent(
                                     verticalAlignment = Alignment.CenterVertically,
                                     horizontalArrangement = Arrangement.spacedBy(8.dp)
                                 ) {
-                                    Icon(Icons.Default.Add, contentDescription = null, tint = Color.White, modifier = Modifier.size(18.dp))
-                                    Text("Crear publicación", color = Color.White, fontWeight = FontWeight.Bold, fontSize = 14.sp)
+                                    Icon(Icons.Default.Add, contentDescription = null, tint = PanalinkPalette.textPrimary, modifier = Modifier.size(18.dp))
+                                    Text("Crear publicación", color = PanalinkPalette.textPrimary, fontWeight = FontWeight.Bold, fontSize = 14.sp)
                                 }
                             }
                         }
@@ -1040,7 +1041,7 @@ fun InicioTabContent(
             ) {
                 Text(
                     "Comentarios",
-                    color = Color.White,
+                    color = PanalinkPalette.textPrimary,
                     fontSize = 18.sp,
                     fontWeight = FontWeight.Bold,
                     modifier = Modifier.padding(bottom = 16.dp)
@@ -1080,7 +1081,7 @@ fun InicioTabContent(
                                 Spacer(modifier = Modifier.width(10.dp))
                                 Column(modifier = Modifier.weight(1f)) {
                                     Row(verticalAlignment = Alignment.CenterVertically) {
-                                        Text(comment.authorName, color = Color.White, fontWeight = FontWeight.Bold, fontSize = 13.sp)
+                                        Text(comment.authorName, color = PanalinkPalette.textPrimary, fontWeight = FontWeight.Bold, fontSize = 13.sp)
                                         Spacer(modifier = Modifier.width(6.dp))
                                         Text(
                                             text = remember(comment.createdAt) {
@@ -1103,7 +1104,7 @@ fun InicioTabContent(
                                         )
                                     }
                                     Spacer(modifier = Modifier.height(2.dp))
-                                    Text(comment.text, color = Color.White.copy(alpha = 0.9f), fontSize = 14.sp)
+                                    Text(comment.text, color = PanalinkPalette.textPrimary.copy(alpha = 0.9f), fontSize = 14.sp)
                                 }
                             }
                         }
@@ -1148,7 +1149,7 @@ fun InicioTabContent(
                         },
                         modifier = Modifier.size(48.dp).background(Color(0xFFB026FF), CircleShape)
                     ) {
-                        Icon(Icons.Default.Send, contentDescription = "Enviar", tint = Color.White, modifier = Modifier.size(20.dp))
+                        Icon(Icons.Default.Send, contentDescription = "Enviar", tint = PanalinkPalette.textPrimary, modifier = Modifier.size(20.dp))
                     }
                 }
             }
@@ -1166,7 +1167,7 @@ fun InicioTabContent(
     if (editingPostId != null) {
         AlertDialog(
             onDismissRequest = { editingPostId = null },
-            title = { Text("Editar publicación", color = Color.White) },
+            title = { Text("Editar publicación", color = PanalinkPalette.textPrimary) },
             text = {
                 TextField(
                     value = editingPostContent,
@@ -1200,7 +1201,7 @@ fun InicioTabContent(
     if (postToDeleteId != null) {
         AlertDialog(
             onDismissRequest = { postToDeleteId = null },
-            title = { Text("Eliminar publicación", color = Color.White) },
+            title = { Text("Eliminar publicación", color = PanalinkPalette.textPrimary) },
             text = { Text("¿Estás seguro de que quieres eliminar esta publicación? Esta acción no se puede deshacer.", color = Color.LightGray) },
             confirmButton = {
                 TextButton(onClick = {
@@ -1352,13 +1353,13 @@ fun InicioTabContent(
                     },
                     modifier = Modifier.background(Color.Black.copy(alpha = 0.5f), CircleShape)
                 ) {
-                    Icon(Icons.Default.Close, contentDescription = "Cerrar", tint = Color.White)
+                    Icon(Icons.Default.Close, contentDescription = "Cerrar", tint = PanalinkPalette.textPrimary)
                 }
 
                 if (mediaList.size > 1) {
                     Text(
                         text = "${pagerState.currentPage + 1}/${mediaList.size}",
-                        color = Color.White,
+                        color = PanalinkPalette.textPrimary,
                         fontWeight = FontWeight.Bold,
                         fontSize = 16.sp,
                         modifier = Modifier
@@ -1376,7 +1377,7 @@ fun InicioTabContent(
                         Icon(
                             imageVector = if (backgroundAudioMuted) Icons.Default.VolumeMute else Icons.Default.VolumeUp,
                             contentDescription = if (backgroundAudioMuted) "Activar audio" else "Silenciar audio",
-                            tint = Color.White,
+                            tint = PanalinkPalette.textPrimary,
                             modifier = Modifier.size(20.dp)
                         )
                     }
@@ -1406,7 +1407,7 @@ fun InicioTabContent(
                     Icon(
                         imageVector = Icons.Default.ArrowDownward,
                         contentDescription = "Descargar",
-                        tint = Color.White
+                        tint = PanalinkPalette.textPrimary
                     )
                 }
             }
@@ -1489,7 +1490,7 @@ fun InicioTabContent(
                 ) {
                     Text(
                         text = "Reproductor de Audios (${audiosList.size})",
-                        color = Color.White,
+                        color = PanalinkPalette.textPrimary,
                         fontSize = 18.sp,
                         fontWeight = FontWeight.Bold
                     )
@@ -1497,7 +1498,7 @@ fun InicioTabContent(
                         exoPlayer.stop()
                         activePlaylistPost = null 
                     }) {
-                        Icon(Icons.Default.Close, contentDescription = "Cerrar", tint = Color.White)
+                        Icon(Icons.Default.Close, contentDescription = "Cerrar", tint = PanalinkPalette.textPrimary)
                     }
                 }
                 
@@ -1543,7 +1544,7 @@ fun InicioTabContent(
                                     Column {
                                         Text(
                                             text = "Audio ${index + 1}",
-                                            color = Color.White,
+                                            color = PanalinkPalette.textPrimary,
                                             fontWeight = if (isCurrent) FontWeight.Bold else FontWeight.Medium,
                                             fontSize = 14.sp
                                         )
@@ -1795,7 +1796,7 @@ internal fun FeedFullscreenVideoPlayer(
                 Icon(
                     imageVector = if (isPlaying) Icons.Default.Pause else Icons.Default.PlayArrow,
                     contentDescription = if (isPlaying) "Pausar" else "Reproducir",
-                    tint = Color.White,
+                    tint = PanalinkPalette.textPrimary,
                     modifier = Modifier.size(36.dp)
                 )
             }
@@ -1813,7 +1814,7 @@ internal fun FeedFullscreenVideoPlayer(
                     val totalSec = (ms / 1000).coerceAtLeast(0)
                     return "%d:%02d".format(totalSec / 60, totalSec % 60)
                 }
-                Text(text = fmt(position), color = Color.White, fontSize = 12.sp)
+                Text(text = fmt(position), color = PanalinkPalette.textPrimary, fontSize = 12.sp)
                 Slider(
                     value = if (duration > 0) position.toFloat() / duration.toFloat() else 0f,
                     onValueChange = { frac ->
@@ -1833,7 +1834,7 @@ internal fun FeedFullscreenVideoPlayer(
                         inactiveTrackColor = Color.White.copy(alpha = 0.3f)
                     )
                 )
-                Text(text = fmt(duration), color = Color.White, fontSize = 12.sp)
+                Text(text = fmt(duration), color = PanalinkPalette.textPrimary, fontSize = 12.sp)
             }
         }
     }

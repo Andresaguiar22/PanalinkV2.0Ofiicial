@@ -45,6 +45,7 @@ import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.example.R
+import com.example.ui.theme.PanalinkPalette
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -52,10 +53,10 @@ fun AboutScreen(onBack: () -> Unit) {
     Scaffold(
         topBar = {
             TopAppBar(
-                title = { Text("Información", color = Color.White) },
+                title = { Text("Información", color = PanalinkPalette.textPrimary) },
                 navigationIcon = {
                     IconButton(onClick = onBack) {
-                        Icon(Icons.AutoMirrored.Filled.ArrowBack, contentDescription = "Regresar", tint = Color.White)
+                        Icon(Icons.AutoMirrored.Filled.ArrowBack, contentDescription = "Regresar", tint = PanalinkPalette.textPrimary)
                     }
                 },
                 colors = TopAppBarDefaults.topAppBarColors(containerColor = Color(0xFF121B22))
@@ -86,7 +87,7 @@ fun AboutScreen(onBack: () -> Unit) {
                 
                 Text(
                     text = "PanaLink",
-                    color = Color.White,
+                    color = PanalinkPalette.textPrimary,
                     fontSize = 28.sp,
                     fontWeight = FontWeight.Bold
                 )
@@ -145,7 +146,7 @@ fun AboutScreen(onBack: () -> Unit) {
                     ) {
                         Text(
                             text = "Actualizaciones de Software",
-                            color = Color.White,
+                            color = PanalinkPalette.textPrimary,
                             fontSize = 16.sp,
                             fontWeight = FontWeight.Bold,
                             modifier = Modifier.fillMaxWidth(),
@@ -259,11 +260,11 @@ fun AboutFeatureRow(icon: ImageVector, title: String, description: String) {
                 .background(Color(0xFF2A3942), CircleShape),
             contentAlignment = Alignment.Center
         ) {
-            Icon(icon, contentDescription = null, tint = Color.White, modifier = Modifier.size(20.dp))
+            Icon(icon, contentDescription = null, tint = PanalinkPalette.textPrimary, modifier = Modifier.size(20.dp))
         }
         Spacer(modifier = Modifier.width(16.dp))
         Column {
-            Text(title, color = Color.White, fontSize = 15.sp, fontWeight = FontWeight.Medium)
+            Text(title, color = PanalinkPalette.textPrimary, fontSize = 15.sp, fontWeight = FontWeight.Medium)
             Text(description, color = Color(0xFF90A4AE), fontSize = 13.sp)
         }
     }

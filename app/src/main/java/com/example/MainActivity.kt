@@ -65,6 +65,7 @@ import androidx.annotation.OptIn
 import androidx.media3.common.util.UnstableApi
 
 import androidx.core.splashscreen.SplashScreen.Companion.installSplashScreen
+import com.example.ui.theme.PanalinkPalette
 
 @UnstableApi
 class MainActivity : androidx.fragment.app.FragmentActivity() {
@@ -189,7 +190,18 @@ class MainActivity : androidx.fragment.app.FragmentActivity() {
             val savedTheme = prefs.getString("profile_theme_global", "halo_dark") ?: "halo_dark"
             com.example.ui.theme.ThemeManager.themeKey.value = savedTheme
 
-            val savedThemeMode = prefs.getString("theme_mode_global", "system") ?: "system"
+            // Migracion unica: la identidad de marca de Panalink es la oscura (el
+            // mockup aprobado). Quien nunca eligio modo tiene guardado "system" por
+            // el default viejo; se pasa a "oscuro" para que vea la identidad real.
+            // Quien haya elegido "claro" lo conserva.
+            if (!prefs.getBoolean("theme_mode_brand_migration", false)) {
+                if ((prefs.getString("theme_mode_global", null)) == "system") {
+                    prefs.edit().putString("theme_mode_global", "oscuro").apply()
+                }
+                prefs.edit().putBoolean("theme_mode_brand_migration", true).apply()
+            }
+
+            val savedThemeMode = prefs.getString("theme_mode_global", "oscuro") ?: "oscuro"
             com.example.ui.theme.ThemeManager.themeMode.value = savedThemeMode
 
             val isMinimal = prefs.getBoolean("minimalist_mode_global", false)
@@ -539,7 +551,7 @@ class MainActivity : androidx.fragment.app.FragmentActivity() {
                                 modifier = Modifier.fillMaxSize()
                             )
                         } else {
-                            Text("Cargando video...", color = Color.White, fontSize = 14.sp)
+                            Text("Cargando video...", color = PanalinkPalette.textPrimary, fontSize = 14.sp)
                         }
                     }
                 } else {

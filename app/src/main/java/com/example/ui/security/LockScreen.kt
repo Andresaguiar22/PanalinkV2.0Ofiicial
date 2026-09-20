@@ -32,6 +32,7 @@ import androidx.fragment.app.FragmentActivity
 import com.example.security.AppLockManager
 import kotlin.math.pow
 import kotlin.math.sqrt
+import com.example.ui.theme.PanalinkPalette
 
 /**
  * Full-screen real lock overlay. Rendered on top of everything while
@@ -72,7 +73,7 @@ fun LockScreen() {
             Spacer(modifier = Modifier.height(16.dp))
             Text(
                 text = if (method == AppLockManager.LockMethod.PATTERN) "Dibuja tu patrón" else "Ingresa tu PIN",
-                color = Color.White,
+                color = PanalinkPalette.textPrimary,
                 fontSize = 20.sp,
                 fontWeight = FontWeight.Bold
             )
@@ -172,7 +173,7 @@ private fun PinLockSection(onError: (String?) -> Unit) {
                                 },
                             contentAlignment = Alignment.Center
                         ) {
-                            Icon(Icons.Default.Backspace, contentDescription = "Borrar", tint = Color.White)
+                            Icon(Icons.Default.Backspace, contentDescription = "Borrar", tint = PanalinkPalette.textPrimary)
                         }
                         else -> Box(
                             modifier = Modifier
@@ -185,7 +186,7 @@ private fun PinLockSection(onError: (String?) -> Unit) {
                                 },
                             contentAlignment = Alignment.Center
                         ) {
-                            Text(key, color = Color.White, fontSize = 22.sp, fontWeight = FontWeight.SemiBold)
+                            Text(key, color = PanalinkPalette.textPrimary, fontSize = 22.sp, fontWeight = FontWeight.SemiBold)
                         }
                     }
                 }

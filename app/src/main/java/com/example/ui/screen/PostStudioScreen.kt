@@ -31,6 +31,7 @@ import com.example.creative.canvas.CanvasEditorEngine
 import com.example.creative.core.CreativeLayer
 import com.example.creative.inspector.PropertyInspector
 import com.example.creative.post.*
+import com.example.ui.theme.PanalinkPalette
 
 /**
  * P6.6.3 - PanaLink Post Studio Pro Screen
@@ -104,7 +105,7 @@ fun PostStudioScreen(
                     Column {
                         Text(
                             text = uiState.project.title,
-                            color = Color.White,
+                            color = PanalinkPalette.textPrimary,
                             fontSize = 16.sp,
                             fontWeight = FontWeight.Bold
                         )
@@ -126,7 +127,7 @@ fun PostStudioScreen(
                 },
                 navigationIcon = {
                     IconButton(onClick = onDismiss) {
-                        Icon(Icons.Default.ArrowBack, contentDescription = "Regresar", tint = Color.White)
+                        Icon(Icons.Default.ArrowBack, contentDescription = "Regresar", tint = PanalinkPalette.textPrimary)
                     }
                 },
                 actions = {
@@ -257,7 +258,7 @@ fun PostStudioScreen(
                                 Icon(
                                     Icons.Default.PlayCircle,
                                     contentDescription = "Video",
-                                    tint = Color.White,
+                                    tint = PanalinkPalette.textPrimary,
                                     modifier = Modifier.size(48.dp)
                                 )
                             }
@@ -328,7 +329,7 @@ fun PostStudioScreen(
             ) {
                 Text(
                     text = "Seleccionar Relación de Aspecto",
-                    color = Color.White,
+                    color = PanalinkPalette.textPrimary,
                     fontSize = 16.sp,
                     fontWeight = FontWeight.Bold
                 )
@@ -372,7 +373,7 @@ fun PostStudioScreen(
             ) {
                 Text(
                     text = "Filtros de Imagen",
-                    color = Color.White,
+                    color = PanalinkPalette.textPrimary,
                     fontSize = 16.sp,
                     fontWeight = FontWeight.Bold
                 )
@@ -389,7 +390,7 @@ fun PostStudioScreen(
                             },
                             colors = ButtonDefaults.buttonColors(containerColor = Color(0xFF1E293B))
                         ) {
-                            Text(fName, color = Color.White)
+                            Text(fName, color = PanalinkPalette.textPrimary)
                         }
                     }
                 }
@@ -410,7 +411,7 @@ fun PostStudioScreen(
             ) {
                 Text(
                     text = "Seleccionar Sticker",
-                    color = Color.White,
+                    color = PanalinkPalette.textPrimary,
                     fontSize = 16.sp,
                     fontWeight = FontWeight.Bold
                 )
@@ -455,7 +456,7 @@ fun PostStudioScreen(
             ) {
                 Text(
                     text = "Texto de la Publicación",
-                    color = Color.White,
+                    color = PanalinkPalette.textPrimary,
                     fontSize = 16.sp,
                     fontWeight = FontWeight.Bold
                 )

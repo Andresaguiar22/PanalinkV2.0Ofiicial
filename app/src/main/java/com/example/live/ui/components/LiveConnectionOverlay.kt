@@ -21,6 +21,7 @@ import androidx.compose.ui.unit.sp
 import com.example.live.domain.model.LiveConnectionState
 import kotlinx.coroutines.delay
 import kotlin.math.abs
+import com.example.ui.theme.PanalinkPalette
 
 @Composable
 fun LiveConnectionOverlay(
@@ -95,7 +96,7 @@ fun LiveConnectionOverlay(
                     Spacer(modifier = Modifier.height(8.dp))
                     Text(
                         text = text,
-                        color = Color.White,
+                        color = PanalinkPalette.textPrimary,
                         fontSize = 14.sp,
                         fontWeight = FontWeight.Medium
                     )

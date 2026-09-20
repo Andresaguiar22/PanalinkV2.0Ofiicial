@@ -8,6 +8,7 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import java.util.concurrent.TimeUnit
+import com.example.ui.theme.PanalinkPalette
 
 /**
  * P6.7.3 - Player Progress Bar
@@ -40,12 +41,12 @@ fun PlayerProgressBar(
         ) {
             Text(
                 text = formatDuration(currentPositionMs),
-                color = Color.White.copy(alpha = 0.7f),
+                color = PanalinkPalette.textPrimary.copy(alpha = 0.7f),
                 fontSize = 12.sp
             )
             Text(
                 text = formatDuration(durationMs),
-                color = Color.White.copy(alpha = 0.7f),
+                color = PanalinkPalette.textPrimary.copy(alpha = 0.7f),
                 fontSize = 12.sp
             )
         }

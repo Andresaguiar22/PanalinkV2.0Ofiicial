@@ -39,6 +39,7 @@ import com.example.ui.settings.screens.ProfileEditScreen
 import com.example.ui.viewmodel.AuthViewModel
 import com.example.ui.viewmodel.ProfileUiState
 import com.example.ui.viewmodel.ProfileViewModel
+import com.example.ui.theme.PanalinkPalette
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -127,12 +128,12 @@ fun ProfileScreen(
                 title = { PanaTopBarTitle(sectionName = "Mi Perfil", primaryColor = Color(0xFF00FF85)) },
                 navigationIcon = {
                     IconButton(onClick = onBack) {
-                        Icon(Icons.AutoMirrored.Filled.ArrowBack, contentDescription = "Atrás", tint = Color.White)
+                        Icon(Icons.AutoMirrored.Filled.ArrowBack, contentDescription = "Atrás", tint = PanalinkPalette.textPrimary)
                     }
                 },
                 actions = {
                     IconButton(onClick = { showControlCenter = true }) {
-                        Icon(Icons.Default.Settings, contentDescription = "Centro de Control", tint = Color.White)
+                        Icon(Icons.Default.Settings, contentDescription = "Centro de Control", tint = PanalinkPalette.textPrimary)
                     }
                 },
                 colors = TopAppBarDefaults.topAppBarColors(containerColor = Color(0xFF075E54))
@@ -181,7 +182,7 @@ fun ProfileScreen(
                                         .background(Color.Black.copy(alpha = 0.2f)),
                                     contentAlignment = Alignment.Center
                                 ) {
-                                    Icon(Icons.Default.AddAPhoto, null, tint = Color.White.copy(alpha = 0.5f))
+                                    Icon(Icons.Default.AddAPhoto, null, tint = PanalinkPalette.textPrimary.copy(alpha = 0.5f))
                                 }
                             }
                         }
@@ -225,7 +226,7 @@ fun ProfileScreen(
                                     Row(verticalAlignment = Alignment.CenterVertically) {
                                         Text(
                                             text = displayName.ifEmpty { "Pana de Panalink" },
-                                            color = Color.White,
+                                            color = PanalinkPalette.textPrimary,
                                             fontWeight = FontWeight.Bold,
                                             fontSize = 20.sp
                                         )
@@ -241,7 +242,7 @@ fun ProfileScreen(
                                     }
                                     Text(
                                         text = SupabaseClient.currentUser?.email ?: "sin_correo@panalink.com",
-                                        color = Color.White.copy(alpha = 0.7f),
+                                        color = PanalinkPalette.textPrimary.copy(alpha = 0.7f),
                                         fontSize = 12.sp
                                     )
                                 }
@@ -265,8 +266,8 @@ fun ProfileScreen(
                                 )
                                 stats.forEach { (count, label) ->
                                     Column {
-                                        Text(text = "$count", color = Color.White, fontWeight = FontWeight.Bold, fontSize = 16.sp)
-                                        Text(text = label, color = Color.White.copy(alpha = 0.6f), fontSize = 11.sp)
+                                        Text(text = "$count", color = PanalinkPalette.textPrimary, fontWeight = FontWeight.Bold, fontSize = 16.sp)
+                                        Text(text = label, color = PanalinkPalette.textPrimary.copy(alpha = 0.6f), fontSize = 11.sp)
                                     }
                                 }
                             }

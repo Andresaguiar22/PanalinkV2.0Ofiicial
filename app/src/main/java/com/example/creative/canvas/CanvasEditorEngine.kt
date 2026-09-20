@@ -26,6 +26,7 @@ import com.example.creative.core.CreativeLayer
 import com.example.creative.core.CreativeProject
 import kotlin.math.abs
 import kotlin.math.roundToInt
+import com.example.ui.theme.PanalinkPalette
 
 @Composable
 fun CanvasEditorEngine(
@@ -288,7 +289,7 @@ fun CanvasEditorEngine(
             ) {
                 Text(
                     text = hudText!!,
-                    color = Color.White,
+                    color = PanalinkPalette.textPrimary,
                     fontSize = 11.sp,
                     fontWeight = FontWeight.Bold
                 )

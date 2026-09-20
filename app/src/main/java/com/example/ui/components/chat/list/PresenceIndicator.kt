@@ -35,6 +35,7 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import com.example.ui.theme.PanalinkPalette
 
 @Composable
 fun PresenceIndicator(
@@ -121,7 +122,7 @@ fun PresenceIndicator(
                 Icon(
                     imageVector = iconVector,
                     contentDescription = labelText,
-                    tint = Color.White,
+                    tint = PanalinkPalette.textPrimary,
                     modifier = Modifier.size(size * 0.7f)
                 )
             }

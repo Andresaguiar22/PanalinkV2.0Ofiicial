@@ -41,6 +41,7 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import coil.compose.AsyncImage
 import com.example.ui.viewmodel.StatesViewModel
+import com.example.ui.theme.PanalinkPalette
 
 private enum class StoryMode { IMAGE, VIDEO, TEXT }
 
@@ -326,10 +327,10 @@ fun CleanStoryEditorScreen(
             verticalAlignment = Alignment.CenterVertically
         ) {
             IconButton(onClick = onBack) {
-                Icon(Icons.AutoMirrored.Filled.ArrowBack, "Regresar", tint = Color.White)
+                Icon(Icons.AutoMirrored.Filled.ArrowBack, "Regresar", tint = PanalinkPalette.textPrimary)
             }
             Spacer(Modifier.width(4.dp))
-            Text("Nueva historia", color = Color.White, fontWeight = FontWeight.Bold, fontSize = 18.sp)
+            Text("Nueva historia", color = PanalinkPalette.textPrimary, fontWeight = FontWeight.Bold, fontSize = 18.sp)
             Spacer(Modifier.weight(1f))
             AnimatedVisibility(visible = publishing, enter = fadeIn(), modifier = Modifier.widthIn(min = 24.dp)) {
                 CircularProgressIndicator(color = Color(0xFF00FF85), modifier = Modifier.size(18.dp), strokeWidth = 2.dp)
@@ -441,7 +442,7 @@ fun CleanStoryEditorScreen(
                         if (mode == StoryMode.VIDEO) {
                             Icon(
                                 Icons.Filled.Videocam, null,
-                                tint = Color.White,
+                                tint = PanalinkPalette.textPrimary,
                                 modifier = Modifier
                                     .align(Alignment.TopEnd)
                                     .padding(10.dp)
@@ -451,7 +452,7 @@ fun CleanStoryEditorScreen(
                         if (overlayTextEnabled && textContent.isNotBlank()) {
                             Text(
                                 textContent,
-                                color = Color.White,
+                                color = PanalinkPalette.textPrimary,
                                 fontSize = 18.sp,
                                 fontWeight = FontWeight.SemiBold,
                                 textAlign = TextAlign.Center,
@@ -497,7 +498,7 @@ fun CleanStoryEditorScreen(
                     verticalAlignment = Alignment.CenterVertically,
                     horizontalArrangement = Arrangement.SpaceBetween
                 ) {
-                    Text("Texto sobre el medio (opcional)", color = Color.White, fontSize = 13.sp)
+                    Text("Texto sobre el medio (opcional)", color = PanalinkPalette.textPrimary, fontSize = 13.sp)
                     Switch(
                         checked = overlayTextEnabled,
                         onCheckedChange = { overlayTextEnabled = it },
@@ -528,7 +529,7 @@ fun CleanStoryEditorScreen(
                 verticalAlignment = Alignment.CenterVertically,
                 horizontalArrangement = Arrangement.SpaceBetween
             ) {
-                Text("Audio de fondo (opcional)", color = Color.White, fontSize = 13.sp)
+                Text("Audio de fondo (opcional)", color = PanalinkPalette.textPrimary, fontSize = 13.sp)
                 Switch(
                     checked = audioEnabled,
                     onCheckedChange = { audioEnabled = it },
@@ -608,12 +609,12 @@ fun CleanStoryEditorScreen(
     if (showOverlongClipDialog) {
         AlertDialog(
             onDismissRequest = { showOverlongClipDialog = false },
-            title = { Text("Tu vídeo dura más de 2 minutos", color = Color.White) },
+            title = { Text("Tu vídeo dura más de 2 minutos", color = PanalinkPalette.textPrimary) },
             text = {
                 Text(
                     "Las historias de vídeo tienen un límite de 2 minutos. Tu vídeo se publicará " +
                         "recortado a los primeros 2 minutos; el resto no se verá. ¿Quieres continuar?",
-                    color = Color.White.copy(alpha = 0.85f)
+                    color = PanalinkPalette.textPrimary.copy(alpha = 0.85f)
                 )
             },
             confirmButton = {
@@ -623,7 +624,7 @@ fun CleanStoryEditorScreen(
             },
             dismissButton = {
                 TextButton(onClick = { showOverlongClipDialog = false }) {
-                    Text("Cancelar", color = Color.White.copy(alpha = 0.7f))
+                    Text("Cancelar", color = PanalinkPalette.textPrimary.copy(alpha = 0.7f))
                 }
             },
             containerColor = Color(0xFF1E2D35)

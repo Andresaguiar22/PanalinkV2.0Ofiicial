@@ -23,6 +23,7 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import coil.compose.AsyncImage
 import com.example.media.playlist.PlaylistSharePayload
+import com.example.ui.theme.PanalinkPalette
 
 /**
  * Premium shared-playlist card for the chat (Spotify-style):
@@ -98,7 +99,7 @@ fun PlaylistChatBubble(
                 // "PLAYLIST" tag
                 Text(
                     text = "PLAYLIST",
-                    color = Color.White,
+                    color = PanalinkPalette.textPrimary,
                     fontSize = 10.sp,
                     letterSpacing = 2.sp,
                     fontWeight = FontWeight.Bold,
@@ -133,7 +134,7 @@ fun PlaylistChatBubble(
             Column(modifier = Modifier.padding(horizontal = 12.dp, vertical = 10.dp)) {
                 Text(
                     text = payload.title,
-                    color = Color.White,
+                    color = PanalinkPalette.textPrimary,
                     fontSize = 15.sp,
                     fontWeight = FontWeight.Bold,
                     maxLines = 1,
@@ -144,7 +145,7 @@ fun PlaylistChatBubble(
 
                 Text(
                     text = "${payload.trackCount} canciones • ${formatTotalDuration(payload.durationMs)}",
-                    color = Color.White.copy(alpha = 0.65f),
+                    color = PanalinkPalette.textPrimary.copy(alpha = 0.65f),
                     fontSize = 12.sp,
                     maxLines = 1
                 )
@@ -196,7 +197,7 @@ fun PlaylistChatBubble(
 
                 Text(
                     text = formattedTime,
-                    color = Color.White.copy(alpha = 0.5f),
+                    color = PanalinkPalette.textPrimary.copy(alpha = 0.5f),
                     fontSize = 10.sp,
                     modifier = Modifier.align(Alignment.End).padding(top = 4.dp)
                 )

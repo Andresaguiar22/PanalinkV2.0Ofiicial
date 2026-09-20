@@ -94,6 +94,7 @@ import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.ui.graphics.SolidColor
 import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.text.input.ImeAction
+import com.example.ui.theme.PanalinkPalette
 
 
 // Acción 4: Floating reaction data
@@ -339,7 +340,7 @@ fun ViewStateScreen(
             modifier = Modifier.fillMaxSize().background(Color.Black),
             contentAlignment = Alignment.Center
         ) {
-            CircularProgressIndicator(color = Color.White)
+            CircularProgressIndicator(color = PanalinkPalette.textPrimary)
         }
         return
     }
@@ -349,7 +350,7 @@ fun ViewStateScreen(
             modifier = Modifier.fillMaxSize().background(Color.Black),
             contentAlignment = Alignment.Center
         ) {
-            Text("Error al cargar estados. Reintentando...", color = Color.White)
+            Text("Error al cargar estados. Reintentando...", color = PanalinkPalette.textPrimary)
             LaunchedEffect(Unit) {
                 delay(2000)
                 onClose()
@@ -368,7 +369,7 @@ fun ViewStateScreen(
                 .background(Color.Black),
             contentAlignment = Alignment.Center
         ) {
-            Text("Estado expirado o no encontrado.", color = Color.White)
+            Text("Estado expirado o no encontrado.", color = PanalinkPalette.textPrimary)
             LaunchedEffect(Unit) {
                 delay(1500)
                 onClose()
@@ -910,7 +911,7 @@ fun UserStoryViewer(
                 ) {
                     Text(
                         text = cleanCaption,
-                        color = Color.White,
+                        color = PanalinkPalette.textPrimary,
                         fontSize = 24.sp,
                         fontWeight = FontWeight.Bold,
                         textAlign = TextAlign.Center,
@@ -968,7 +969,7 @@ fun UserStoryViewer(
                     contentAlignment = Alignment.Center
                 ) {
                     if (resolvedVideoUrl.isNullOrBlank()) {
-                        CircularProgressIndicator(color = Color.White)
+                        CircularProgressIndicator(color = PanalinkPalette.textPrimary)
                         LaunchedEffect(state.id, resolveRetry) {
                             kotlinx.coroutines.delay(6000L)
                             if (resolvedVideoUrl.isNullOrBlank()) {
@@ -1121,7 +1122,7 @@ fun UserStoryViewer(
                     .background(Color.Black.copy(alpha = 0.4f)),
                 contentAlignment = Alignment.Center
             ) {
-                CircularProgressIndicator(color = Color.White, strokeWidth = 3.dp)
+                CircularProgressIndicator(color = PanalinkPalette.textPrimary, strokeWidth = 3.dp)
             }
         }
 
@@ -1157,7 +1158,7 @@ fun UserStoryViewer(
                         var y = 0f
                         while (y < h) {
                             drawLine(
-                                color = Color.White.copy(alpha = 0.08f),
+                                color = PanalinkPalette.textPrimary.copy(alpha = 0.08f),
                                 start = Offset(0f, y),
                                 end = Offset(w, y),
                                 strokeWidth = 1.5f
@@ -1232,7 +1233,7 @@ fun UserStoryViewer(
                             .weight(1f)
                             .height(3.dp)
                             .clip(RoundedCornerShape(2.dp)),
-                        color = Color.White,
+                        color = PanalinkPalette.textPrimary,
                         trackColor = Color.White.copy(alpha = 0.3f)
                     )
                 }
@@ -1273,13 +1274,13 @@ fun UserStoryViewer(
                         Column {
                             Text(
                                 text = (identityState?.displayName ?: profile.displayName),
-                                color = Color.White,
+                                color = PanalinkPalette.textPrimary,
                                 fontWeight = FontWeight.SemiBold,
                                 fontSize = 14.sp
                             )
                             Text(
                                 text = formattedTime,
-                                color = Color.White.copy(alpha = 0.6f),
+                                color = PanalinkPalette.textPrimary.copy(alpha = 0.6f),
                                 fontSize = 11.sp
                             )
                         }
@@ -1310,7 +1311,7 @@ fun UserStoryViewer(
                             Icon(
                                 imageVector = Icons.Default.MoreVert,
                                 contentDescription = "Opciones",
-                                tint = Color.White
+                                tint = PanalinkPalette.textPrimary
                             )
                         }
                         
@@ -1331,7 +1332,7 @@ fun UserStoryViewer(
                                     }
                                 )
                                 DropdownMenuItem(
-                                    text = { Text("Ver espectadores", color = Color.White) },
+                                    text = { Text("Ver espectadores", color = PanalinkPalette.textPrimary) },
                                     leadingIcon = { Text("👁", fontSize = 16.sp) },
                                     onClick = {
                                         showOwnerMenu = false
@@ -1350,8 +1351,8 @@ fun UserStoryViewer(
                                     }
                                 )
                                 DropdownMenuItem(
-                                    text = { Text("Silenciar historias", color = Color.White) },
-                                    leadingIcon = { Icon(Icons.Default.MoreVert, contentDescription = null, tint = Color.White) },
+                                    text = { Text("Silenciar historias", color = PanalinkPalette.textPrimary) },
+                                    leadingIcon = { Icon(Icons.Default.MoreVert, contentDescription = null, tint = PanalinkPalette.textPrimary) },
                                     onClick = {
                                         showOwnerMenu = false
                                         Toast.makeText(context, "Historias de ${(identityState?.displayName ?: profile.displayName)} silenciadas", Toast.LENGTH_SHORT).show()
@@ -1359,8 +1360,8 @@ fun UserStoryViewer(
                                 )
                             }
                             DropdownMenuItem(
-                                text = { Text("Compartir enlace", color = Color.White) },
-                                leadingIcon = { Icon(Icons.Rounded.Share, contentDescription = null, tint = Color.White) },
+                                text = { Text("Compartir enlace", color = PanalinkPalette.textPrimary) },
+                                leadingIcon = { Icon(Icons.Rounded.Share, contentDescription = null, tint = PanalinkPalette.textPrimary) },
                                 onClick = {
                                     showOwnerMenu = false
                                     viewModel.incrementShare(state.id)
@@ -1377,7 +1378,7 @@ fun UserStoryViewer(
                         onClick = onClose,
                         modifier = Modifier.background(Color.Black.copy(alpha = 0.4f), CircleShape)
                     ) {
-                        Icon(Icons.Default.Close, contentDescription = "Cerrar", tint = Color.White)
+                        Icon(Icons.Default.Close, contentDescription = "Cerrar", tint = PanalinkPalette.textPrimary)
                     }
                 }
                 } // closes outer Row (inside Box)
@@ -1453,7 +1454,7 @@ fun UserStoryViewer(
                             showSpectatorsSheet = true
                         },
                         shape = RoundedCornerShape(16.dp),
-                        color = Color.White.copy(alpha = 0.18f),
+                        color = PanalinkPalette.textPrimary.copy(alpha = 0.18f),
                         modifier = Modifier
                             .align(Alignment.CenterStart)
                             .testTag("views_counter_pill")
@@ -1466,12 +1467,12 @@ fun UserStoryViewer(
                             Icon(
                                 imageVector = Icons.Default.Visibility,
                                 contentDescription = "Ver espectadores",
-                                tint = Color.White,
+                                tint = PanalinkPalette.textPrimary,
                                 modifier = Modifier.size(18.dp)
                             )
                             Text(
                                 text = "$realViewsCount",
-                                color = Color.White,
+                                color = PanalinkPalette.textPrimary,
                                 fontSize = 12.sp,
                                 fontWeight = FontWeight.SemiBold
                             )
@@ -1483,7 +1484,7 @@ fun UserStoryViewer(
                 if (state.mediaType != "text" && cleanCaption.isNotBlank()) {
                     Text(
                         text = cleanCaption,
-                        color = Color.White,
+                        color = PanalinkPalette.textPrimary,
                         fontSize = 13.sp,
                         fontWeight = FontWeight.SemiBold,
                         textAlign = TextAlign.Center,
@@ -1600,7 +1601,7 @@ fun UserStoryViewer(
                         modifier = Modifier
                             .fillMaxWidth()
                             .onFocusChanged { isInputFocused = it.isFocused },
-                        textStyle = TextStyle(color = Color.White, fontSize = 14.sp),
+                        textStyle = TextStyle(color = PanalinkPalette.textPrimary, fontSize = 14.sp),
                         singleLine = true,
                         cursorBrush = SolidColor(Color(0xFF00FF85)),
                         keyboardOptions = KeyboardOptions(imeAction = ImeAction.Send),
@@ -1629,7 +1630,7 @@ fun UserStoryViewer(
                             if (replyText.isEmpty()) {
                                 Text(
                                     text = if (isOwner) "Añade un comentario..." else "Responde a ${(identityState?.displayName ?: profile.displayName)}...",
-                                    color = Color.White.copy(alpha = 0.5f),
+                                    color = PanalinkPalette.textPrimary.copy(alpha = 0.5f),
                                     fontSize = 13.sp,
                                     maxLines = 1,
                                     overflow = TextOverflow.Ellipsis
@@ -1722,7 +1723,7 @@ fun UserStoryViewer(
                     Icon(
                         imageVector = Icons.Rounded.Share,
                         contentDescription = "Compartir",
-                        tint = Color.White,
+                        tint = PanalinkPalette.textPrimary,
                         modifier = Modifier.size(20.dp)
                     )
                 }
@@ -1795,18 +1796,18 @@ fun UserStoryViewer(
                     ) {
                         Text(
                             text = "Comentarios (${filteredComments.size})",
-                            color = Color.White,
+                            color = PanalinkPalette.textPrimary,
                             fontSize = 16.sp,
                             fontWeight = FontWeight.Bold
                         )
                         IconButton(
                             onClick = { showCommentsSheet = false }
                         ) {
-                            Icon(Icons.Default.Close, contentDescription = "Cerrar", tint = Color.White)
+                            Icon(Icons.Default.Close, contentDescription = "Cerrar", tint = PanalinkPalette.textPrimary)
                         }
                     }
 
-                    Divider(color = Color.White.copy(alpha = 0.08f))
+                    Divider(color = PanalinkPalette.textPrimary.copy(alpha = 0.08f))
 
                     // List of comments
                     LazyColumn(
@@ -1826,7 +1827,7 @@ fun UserStoryViewer(
                                 ) {
                                     Text(
                                         text = "Aún no hay comentarios.\n¡Sé el primero en comentar! 💬",
-                                        color = Color.White.copy(alpha = 0.5f),
+                                        color = PanalinkPalette.textPrimary.copy(alpha = 0.5f),
                                         fontSize = 14.sp,
                                         textAlign = TextAlign.Center
                                     )
@@ -1862,13 +1863,13 @@ fun UserStoryViewer(
                                         ) {
                                             Text(
                                                 text = if (comment.deletedAt != null) "Eliminado" else comment.authorName,
-                                                color = Color.White,
+                                                color = PanalinkPalette.textPrimary,
                                                 fontWeight = FontWeight.SemiBold,
                                                 fontSize = 13.sp
                                             )
                                             Text(
                                                 text = formatCreatedTime(comment.createdAt),
-                                                color = Color.White.copy(alpha = 0.45f),
+                                                color = PanalinkPalette.textPrimary.copy(alpha = 0.45f),
                                                 fontSize = 11.sp
                                             )
                                         }
@@ -1908,7 +1909,7 @@ fun UserStoryViewer(
                                             Icon(
                                                 imageVector = Icons.Outlined.Delete,
                                                 contentDescription = "Borrar comentario",
-                                                tint = Color.White.copy(alpha = 0.5f),
+                                                tint = PanalinkPalette.textPrimary.copy(alpha = 0.5f),
                                                 modifier = Modifier.size(16.dp)
                                             )
                                         }
@@ -1918,7 +1919,7 @@ fun UserStoryViewer(
                         }
                     }
 
-                    Divider(color = Color.White.copy(alpha = 0.08f))
+                    Divider(color = PanalinkPalette.textPrimary.copy(alpha = 0.08f))
 
                     // Text write comments input bar
                     Row(
@@ -1931,9 +1932,9 @@ fun UserStoryViewer(
                         OutlinedTextField(
                             value = replyText,
                             onValueChange = { replyText = it },
-                            placeholder = { Text("Escribe un comentario...", color = Color.White.copy(alpha = 0.4f), fontSize = 13.sp) },
+                            placeholder = { Text("Escribe un comentario...", color = PanalinkPalette.textPrimary.copy(alpha = 0.4f), fontSize = 13.sp) },
                             modifier = Modifier.weight(1f),
-                            textStyle = androidx.compose.ui.text.TextStyle(color = Color.White, fontSize = 14.sp),
+                            textStyle = androidx.compose.ui.text.TextStyle(color = PanalinkPalette.textPrimary, fontSize = 14.sp),
                             shape = RoundedCornerShape(24.dp),
                             colors = OutlinedTextFieldDefaults.colors(
                                 focusedContainerColor = Color(0xFF1E222B),
@@ -2011,18 +2012,18 @@ fun UserStoryViewer(
                     ) {
                         Text(
                             text = "Personas que vieron tu estado (${spectatorsList.size})",
-                            color = Color.White,
+                            color = PanalinkPalette.textPrimary,
                             fontSize = 16.sp,
                             fontWeight = FontWeight.Bold
                         )
                         IconButton(
                             onClick = { showSpectatorsSheet = false }
                         ) {
-                            Icon(Icons.Default.Close, contentDescription = "Cerrar", tint = Color.White)
+                            Icon(Icons.Default.Close, contentDescription = "Cerrar", tint = PanalinkPalette.textPrimary)
                         }
                     }
 
-                    Divider(color = Color.White.copy(alpha = 0.08f))
+                    Divider(color = PanalinkPalette.textPrimary.copy(alpha = 0.08f))
 
                     LazyColumn(
                         modifier = Modifier
@@ -2041,7 +2042,7 @@ fun UserStoryViewer(
                                 ) {
                                     Text(
                                         text = "Nadie ha visto tu estado todavía.\n¡Comparte el enlace para tener más vistas! 👁",
-                                        color = Color.White.copy(alpha = 0.5f),
+                                        color = PanalinkPalette.textPrimary.copy(alpha = 0.5f),
                                         fontSize = 14.sp,
                                         textAlign = TextAlign.Center
                                     )
@@ -2073,13 +2074,13 @@ fun UserStoryViewer(
                                     Column(modifier = Modifier.weight(1f)) {
                                         Text(
                                             text = spectator.name,
-                                            color = Color.White,
+                                            color = PanalinkPalette.textPrimary,
                                             fontWeight = FontWeight.SemiBold,
                                             fontSize = 14.sp
                                         )
                                         Text(
                                             text = "Visto hace ${formatCreatedTime(spectator.viewedAt)}",
-                                            color = Color.White.copy(alpha = 0.5f),
+                                            color = PanalinkPalette.textPrimary.copy(alpha = 0.5f),
                                             fontSize = 11.sp
                                         )
                                     }
@@ -2239,7 +2240,7 @@ fun ViewersMarquee(
                 ) {
                     Text(
                         text = "+${spectators.size - 20}",
-                        color = Color.White,
+                        color = PanalinkPalette.textPrimary,
                         fontSize = 9.sp,
                         fontWeight = FontWeight.Bold
                     )
@@ -2349,7 +2350,7 @@ fun VideoPlayer(
 
         if (isBuffering && !hasError) {
             CircularProgressIndicator(
-                color = Color.White,
+                color = PanalinkPalette.textPrimary,
                 modifier = Modifier.align(Alignment.Center)
             )
         }
@@ -2362,9 +2363,9 @@ fun VideoPlayer(
                     .padding(16.dp),
                 horizontalAlignment = Alignment.CenterHorizontally
             ) {
-                Icon(Icons.Default.Close, contentDescription = null, tint = Color.White, modifier = Modifier.size(48.dp))
+                Icon(Icons.Default.Close, contentDescription = null, tint = PanalinkPalette.textPrimary, modifier = Modifier.size(48.dp))
                 Spacer(modifier = Modifier.height(8.dp))
-                Text("Error al reproducir video", color = Color.White, fontWeight = FontWeight.Bold)
+                Text("Error al reproducir video", color = PanalinkPalette.textPrimary, fontWeight = FontWeight.Bold)
                 Spacer(modifier = Modifier.height(8.dp))
                 Button(onClick = {
                     val ctx = context

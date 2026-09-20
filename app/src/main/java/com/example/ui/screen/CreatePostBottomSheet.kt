@@ -32,6 +32,7 @@ import androidx.compose.ui.unit.sp
 import androidx.lifecycle.viewmodel.compose.viewModel
 import coil.compose.AsyncImage
 import com.example.ui.viewmodel.CreatePostViewModel
+import com.example.ui.theme.PanalinkPalette
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -90,12 +91,12 @@ fun CreatePostBottomSheet(
                 verticalAlignment = Alignment.CenterVertically
             ) {
                 IconButton(onClick = onDismiss) {
-                    Icon(Icons.Default.Close, contentDescription = "Cerrar", tint = Color.White)
+                    Icon(Icons.Default.Close, contentDescription = "Cerrar", tint = PanalinkPalette.textPrimary)
                 }
                 
                 Text(
                     text = "Nuevo Post",
-                    color = Color.White,
+                    color = PanalinkPalette.textPrimary,
                     fontSize = 18.sp,
                     fontWeight = FontWeight.Bold
                 )
@@ -170,7 +171,7 @@ fun CreatePostBottomSheet(
                             val next = if (uiState.privacy == "PUBLIC") "PANAS" else "PUBLIC"
                             viewModel.onPrivacyChanged(next)
                         },
-                        color = Color.White.copy(alpha = 0.05f),
+                        color = PanalinkPalette.textPrimary.copy(alpha = 0.05f),
                         shape = RoundedCornerShape(16.dp),
                         modifier = Modifier.wrapContentWidth()
                     ) {
@@ -187,7 +188,7 @@ fun CreatePostBottomSheet(
                             Spacer(modifier = Modifier.width(6.dp))
                             Text(
                                 text = if (uiState.privacy == "PUBLIC") "Público" else "Solo Panas",
-                                color = Color.White,
+                                color = PanalinkPalette.textPrimary,
                                 fontSize = 12.sp,
                                 fontWeight = FontWeight.Medium
                             )
@@ -264,7 +265,7 @@ fun CreatePostBottomSheet(
                                     .padding(4.dp)
                                     .background(Color.Black.copy(alpha = 0.6f), CircleShape)
                             ) {
-                                Icon(Icons.Default.Close, contentDescription = "Eliminar", tint = Color.White, modifier = Modifier.size(12.dp))
+                                Icon(Icons.Default.Close, contentDescription = "Eliminar", tint = PanalinkPalette.textPrimary, modifier = Modifier.size(12.dp))
                             }
                         }
                     }
@@ -314,7 +315,7 @@ fun CreatePostBottomSheet(
                         )
                         Spacer(modifier = Modifier.width(8.dp))
                         Column(modifier = Modifier.weight(1f)) {
-                            Text(preview.title, color = Color.White, fontSize = 14.sp, fontWeight = FontWeight.Bold, maxLines = 2)
+                            Text(preview.title, color = PanalinkPalette.textPrimary, fontSize = 14.sp, fontWeight = FontWeight.Bold, maxLines = 2)
                             Text("YouTube", color = Color.Gray, fontSize = 12.sp)
                         }
                         IconButton(onClick = { /* Implementar eliminar preview en VM */ }) {
@@ -324,7 +325,7 @@ fun CreatePostBottomSheet(
                 }
             }
 
-            HorizontalDivider(color = Color.White.copy(alpha = 0.1f))
+            HorizontalDivider(color = PanalinkPalette.textPrimary.copy(alpha = 0.1f))
 
             // Accessory Bar
             Row(

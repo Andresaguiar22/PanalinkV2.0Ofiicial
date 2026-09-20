@@ -11,6 +11,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.unit.dp
+import com.example.ui.theme.PanalinkPalette
 
 /**
  * ActiveCallControls displays the primary interactive bottom bar controls during an active call.
@@ -110,28 +111,28 @@ fun ActiveCallControls(
                         modifier = Modifier.background(Color(0xFF1E293B)) // Slate 800
                     ) {
                         DropdownMenuItem(
-                            text = { Text("Cambiar a video", color = Color.White) },
+                            text = { Text("Cambiar a video", color = PanalinkPalette.textPrimary) },
                             onClick = {
                                 showMoreMenu = false
                                 onMoreOptionSelected("change_to_video")
                             },
-                            leadingIcon = { Icon(Icons.Default.Videocam, contentDescription = null, tint = Color.White) }
+                            leadingIcon = { Icon(Icons.Default.Videocam, contentDescription = null, tint = PanalinkPalette.textPrimary) }
                         )
                         DropdownMenuItem(
-                            text = { Text("Dispositivo Bluetooth", color = Color.White) },
+                            text = { Text("Dispositivo Bluetooth", color = PanalinkPalette.textPrimary) },
                             onClick = {
                                 showMoreMenu = false
                                 onMoreOptionSelected("bluetooth")
                             },
-                            leadingIcon = { Icon(Icons.Default.Bluetooth, contentDescription = null, tint = Color.White) }
+                            leadingIcon = { Icon(Icons.Default.Bluetooth, contentDescription = null, tint = PanalinkPalette.textPrimary) }
                         )
                         DropdownMenuItem(
-                            text = { Text("Enviar mensaje", color = Color.White) },
+                            text = { Text("Enviar mensaje", color = PanalinkPalette.textPrimary) },
                             onClick = {
                                 showMoreMenu = false
                                 onMoreOptionSelected("send_message")
                             },
-                            leadingIcon = { Icon(Icons.Default.Message, contentDescription = null, tint = Color.White) }
+                            leadingIcon = { Icon(Icons.Default.Message, contentDescription = null, tint = PanalinkPalette.textPrimary) }
                         )
                     }
                 }

@@ -33,6 +33,7 @@ import kotlinx.coroutines.launch
 import kotlin.math.roundToInt
 import androidx.compose.material3.MaterialTheme
 import coil.compose.AsyncImage // As a placeholder for the video if we don't have ExoPlayer here, or we can use the same video component as TikTok Video
+import com.example.ui.theme.PanalinkPalette
 
 @Composable
 fun FloatingVideoOverlay(
@@ -82,7 +83,7 @@ fun FloatingVideoOverlay(
                 Icon(
                     imageVector = Icons.Default.Delete,
                     contentDescription = "Trash",
-                    tint = Color.White,
+                    tint = PanalinkPalette.textPrimary,
                     modifier = Modifier.size(if (isOverTrash) 40.dp else 32.dp)
                 )
             }
@@ -150,7 +151,7 @@ fun FloatingVideoOverlay(
                     .padding(4.dp)
                     .background(Color.Black.copy(alpha = 0.5f), CircleShape)
             ) {
-                Icon(Icons.Default.Close, contentDescription = "Close", tint = Color.White, modifier = Modifier.size(16.dp))
+                Icon(Icons.Default.Close, contentDescription = "Close", tint = PanalinkPalette.textPrimary, modifier = Modifier.size(16.dp))
             }
         }
     }

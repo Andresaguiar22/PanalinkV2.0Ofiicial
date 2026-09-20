@@ -12,6 +12,7 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import com.example.ui.theme.PanalinkPalette
 
 /**
  * CallStatusText displays elegant typography indicating the status of the call,
@@ -52,7 +53,7 @@ fun CallStatusText(
         // Contact Name
         Text(
             text = opponentName,
-            color = Color.White,
+            color = PanalinkPalette.textPrimary,
             fontSize = 28.sp,
             fontWeight = FontWeight.Bold,
             letterSpacing = 0.5.sp

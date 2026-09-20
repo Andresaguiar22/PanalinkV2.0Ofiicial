@@ -36,6 +36,7 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.example.live.domain.model.GuestStatus
 import com.example.live.domain.model.LiveGuest
+import com.example.ui.theme.PanalinkPalette
 
 @Composable
 fun LiveGuestControls(
@@ -68,7 +69,7 @@ fun LiveGuestControls(
             Spacer(modifier = Modifier.width(6.dp))
             Text(
                 "Invitar Co-Host",
-                color = Color.White,
+                color = PanalinkPalette.textPrimary,
                 fontWeight = FontWeight.Bold,
                 fontSize = 13.sp
             )

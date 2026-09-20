@@ -89,6 +89,7 @@ import java.text.SimpleDateFormat
 import java.util.*
 
 import com.example.ui.viewmodel.NotificationsViewModel
+import com.example.ui.theme.PanalinkPalette
 
 @OptIn(ExperimentalMaterial3Api::class)
 
@@ -147,14 +148,14 @@ fun EstadosTabContent(
                             .border(1.5.dp, colors.background, CircleShape),
                         contentAlignment = Alignment.Center
                     ) {
-                        Icon(Icons.Default.Add, contentDescription = null, tint = Color.White, modifier = Modifier.size(14.dp))
+                        Icon(Icons.Default.Add, contentDescription = null, tint = PanalinkPalette.textPrimary, modifier = Modifier.size(14.dp))
                     }
                 }
 
                 Spacer(modifier = Modifier.width(16.dp))
 
                 Column {
-                    Text("Mi Estado", color = Color.White, fontWeight = FontWeight.Bold, fontSize = 16.sp)
+                    Text("Mi Estado", color = PanalinkPalette.textPrimary, fontWeight = FontWeight.Bold, fontSize = 16.sp)
                     Spacer(modifier = Modifier.height(2.dp))
                     Text("Añade una actualización de texto, foto o vídeo", color = Color(0xFF90A4AE), fontSize = 13.sp)
                 }
@@ -172,7 +173,7 @@ fun EstadosTabContent(
             ) {
                 Text(
                     text = "Recientes de los Panas ✨👥",
-                    color = Color.White,
+                    color = PanalinkPalette.textPrimary,
                     fontSize = 12.sp,
                     fontWeight = FontWeight.Bold
                 )
@@ -315,11 +316,11 @@ fun EstadosTabContent(
                                                 .border(2.dp, colors.secondary, CircleShape),
                                             contentAlignment = Alignment.Center
                                         ) {
-                                            Icon(Icons.Default.Add, contentDescription = null, tint = Color.White, modifier = Modifier.size(18.dp))
+                                            Icon(Icons.Default.Add, contentDescription = null, tint = PanalinkPalette.textPrimary, modifier = Modifier.size(18.dp))
                                         }
                                         Text(
                                             text = "Crear Estado",
-                                            color = Color.White,
+                                            color = PanalinkPalette.textPrimary,
                                             fontWeight = FontWeight.Bold,
                                             fontSize = 11.sp,
                                             textAlign = TextAlign.Center,
@@ -454,7 +455,7 @@ fun EstadosTabContent(
                                             ) {
                                                 Text(
                                                     text = state.caption ?: "",
-                                                    color = Color.White,
+                                                    color = PanalinkPalette.textPrimary,
                                                     fontSize = 11.sp,
                                                     fontWeight = FontWeight.Bold,
                                                     textAlign = TextAlign.Center,
@@ -523,7 +524,7 @@ fun EstadosTabContent(
                                                     Icon(
                                                         imageVector = Icons.Default.VolumeUp,
                                                         contentDescription = "Contenido Multimedia",
-                                                        tint = Color.White,
+                                                        tint = PanalinkPalette.textPrimary,
                                                         modifier = Modifier.size(12.dp)
                                                     )
                                                 }
@@ -572,7 +573,7 @@ fun EstadosTabContent(
                                         // Bottom name text
                                         Text(
                                             text = safeDisplayName.split(" ").first(),
-                                            color = Color.White,
+                                            color = PanalinkPalette.textPrimary,
                                             fontWeight = FontWeight.Bold,
                                             fontSize = 11.sp,
                                             maxLines = 1,
@@ -609,11 +610,11 @@ fun EstadosTabContent(
                     .padding(horizontal = 16.dp, vertical = 10.dp)
             ) {
                 Row(verticalAlignment = Alignment.CenterVertically) {
-                    Icon(Icons.Default.PlayArrow, contentDescription = null, tint = Color.White, modifier = Modifier.size(16.dp))
+                    Icon(Icons.Default.PlayArrow, contentDescription = null, tint = PanalinkPalette.textPrimary, modifier = Modifier.size(16.dp))
                     Spacer(modifier = Modifier.width(6.dp))
                     Text(
                         text = "El Feed de Panalink 🇻🇪",
-                        color = Color.White,
+                        color = PanalinkPalette.textPrimary,
                         fontSize = 13.sp,
                         fontWeight = FontWeight.Bold
                     )
@@ -721,7 +722,7 @@ fun EstadosTabContent(
                                         Icon(
                                             imageVector = Icons.Default.PlayArrow,
                                             contentDescription = "Ver Video",
-                                            tint = Color.White,
+                                            tint = PanalinkPalette.textPrimary,
                                             modifier = Modifier.size(24.dp)
                                         )
                                     }
@@ -746,7 +747,7 @@ fun EstadosTabContent(
                                             )
                                             Text(
                                                 text = safeDisplayName.split(" ").first(),
-                                                color = Color.White,
+                                                color = PanalinkPalette.textPrimary,
                                                 fontWeight = FontWeight.Bold,
                                                 fontSize = 11.sp,
                                                 maxLines = 1,
@@ -757,7 +758,7 @@ fun EstadosTabContent(
                                         if (!videoState.state.caption.isNullOrBlank()) {
                                             Text(
                                                 text = videoState.state.caption,
-                                                color = Color.White.copy(alpha = 0.9f),
+                                                color = PanalinkPalette.textPrimary.copy(alpha = 0.9f),
                                                 fontSize = 11.sp,
                                                 maxLines = 1,
                                                 overflow = TextOverflow.Ellipsis
@@ -874,7 +875,7 @@ fun StateItemRow(
         Column {
             Text(
                 text = safeDisplayName,
-                color = Color.White,
+                color = PanalinkPalette.textPrimary,
                 fontWeight = FontWeight.Bold,
                 fontSize = 15.sp
             )
@@ -944,7 +945,7 @@ fun VideoThumbnail(
             )
         } else if (isLoading) {
             CircularProgressIndicator(
-                color = Color.White,
+                color = PanalinkPalette.textPrimary,
                 modifier = Modifier.size(24.dp),
                 strokeWidth = 2.dp
             )

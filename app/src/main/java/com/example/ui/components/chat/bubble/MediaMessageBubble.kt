@@ -21,6 +21,7 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import coil.compose.AsyncImage
 import com.example.ui.components.chat.media.DownloadProgressOverlay
+import com.example.ui.theme.PanalinkPalette
 
 /**
  * Componente principal para visualizar imágenes y videos en las burbujas de chat.
@@ -141,7 +142,7 @@ private fun SingleMediaView(
                 Icon(
                     imageVector = Icons.Default.PlayArrow,
                     contentDescription = "Reproducir Video",
-                    tint = Color.White,
+                    tint = PanalinkPalette.textPrimary,
                     modifier = Modifier.size(36.dp)
                 )
             }
@@ -162,12 +163,12 @@ private fun SingleMediaView(
                         Icon(
                             imageVector = Icons.Default.Videocam,
                             contentDescription = null,
-                            tint = Color.White,
+                            tint = PanalinkPalette.textPrimary,
                             modifier = Modifier.size(12.dp)
                         )
                         Text(
                             text = durationLabel!!,
-                            color = Color.White,
+                            color = PanalinkPalette.textPrimary,
                             fontSize = 11.sp,
                             fontWeight = FontWeight.SemiBold
                         )
@@ -332,7 +333,7 @@ private fun GridImageItem(
             ) {
                 Text(
                     text = "+$overlayCount",
-                    color = Color.White,
+                    color = PanalinkPalette.textPrimary,
                     fontSize = 22.sp,
                     fontWeight = FontWeight.Bold
                 )

@@ -21,6 +21,7 @@ import coil.compose.AsyncImage
 import com.example.data.model.ChannelComment
 import java.text.SimpleDateFormat
 import java.util.*
+import com.example.ui.theme.PanalinkPalette
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -53,10 +54,10 @@ fun FeedCommentsBottomSheet(
                     text = "Comentarios (${comments.size})",
                     fontSize = 18.sp,
                     fontWeight = FontWeight.Bold,
-                    color = Color.White
+                    color = PanalinkPalette.textPrimary
                 )
                 IconButton(onClick = onDismissRequest) {
-                    Icon(imageVector = Icons.Default.Close, contentDescription = "Cerrar", tint = Color.White)
+                    Icon(imageVector = Icons.Default.Close, contentDescription = "Cerrar", tint = PanalinkPalette.textPrimary)
                 }
             }
             HorizontalDivider(color = Color(0xFF1F2C34))
@@ -109,7 +110,7 @@ fun FeedCommentsBottomSheet(
                     Icon(
                         imageVector = Icons.AutoMirrored.Filled.Send,
                         contentDescription = "Enviar",
-                        tint = Color.White
+                        tint = PanalinkPalette.textPrimary
                     )
                 }
             }
@@ -139,7 +140,7 @@ fun CommentItem(comment: ChannelComment) {
                     text = comment.author?.displayName ?: "",
                     fontSize = 14.sp,
                     fontWeight = FontWeight.Bold,
-                    color = Color.White
+                    color = PanalinkPalette.textPrimary
                 )
                 Spacer(modifier = Modifier.width(8.dp))
                 Text(
@@ -152,7 +153,7 @@ fun CommentItem(comment: ChannelComment) {
             Text(
                 text = comment.contentText,
                 fontSize = 14.sp,
-                color = Color.White
+                color = PanalinkPalette.textPrimary
             )
         }
     }

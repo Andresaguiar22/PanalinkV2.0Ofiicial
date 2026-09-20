@@ -87,6 +87,7 @@ import java.text.SimpleDateFormat
 import java.util.*
 
 import com.example.ui.viewmodel.NotificationsViewModel
+import com.example.ui.theme.PanalinkPalette
 
 @OptIn(ExperimentalMaterial3Api::class)
 
@@ -227,7 +228,7 @@ fun LlamadasTabContent(
                     Column(modifier = Modifier.weight(1f)) {
                         Text(
                             text = if (liveKitEnabled) "Servicio de Llamadas LiveKit" else "Servicio de Llamadas",
-                            color = Color.White,
+                            color = PanalinkPalette.textPrimary,
                             fontSize = 14.sp,
                             fontWeight = FontWeight.Bold
                         )
@@ -247,7 +248,7 @@ fun LlamadasTabContent(
                             Icon(
                                 imageVector = Icons.Default.MoreVert,
                                 contentDescription = "Opciones de llamadas",
-                                tint = Color.White
+                                tint = PanalinkPalette.textPrimary
                             )
                         }
                         DropdownMenu(
@@ -290,7 +291,7 @@ fun LlamadasTabContent(
             if (callHistory.isNotEmpty()) {
                 Text(
                     text = "Recientes",
-                    color = Color.White,
+                    color = PanalinkPalette.textPrimary,
                     fontSize = 12.sp,
                     fontWeight = FontWeight.Bold,
                     modifier = Modifier.padding(start = 4.dp, bottom = 8.dp)
@@ -335,7 +336,7 @@ fun LlamadasTabContent(
                             Column(modifier = Modifier.weight(1f)) {
                                 Text(
                                     text = peerName,
-                                    color = Color.White,
+                                    color = PanalinkPalette.textPrimary,
                                     fontWeight = FontWeight.SemiBold,
                                     fontSize = 14.sp,
                                     maxLines = 1,
@@ -379,7 +380,7 @@ fun LlamadasTabContent(
                                 },
                                 modifier = Modifier
                                     .background(
-                                        color = Color.White.copy(alpha = 0.12f),
+                                        color = PanalinkPalette.textPrimary.copy(alpha = 0.12f),
                                         shape = androidx.compose.foundation.shape.CircleShape
                                     )
                                     .size(38.dp)
@@ -436,7 +437,7 @@ fun LlamadasTabContent(
 
             Text(
                 text = "Llamar a un Pana",
-                color = Color.White,
+                color = PanalinkPalette.textPrimary,
                 fontSize = 12.sp,
                 fontWeight = FontWeight.Bold,
                 modifier = Modifier.padding(bottom = 12.dp)
@@ -450,7 +451,7 @@ fun LlamadasTabContent(
                             .weight(1f),
                         contentAlignment = Alignment.Center
                     ) {
-                        CircularProgressIndicator(color = Color.White)
+                        CircularProgressIndicator(color = PanalinkPalette.textPrimary)
                     }
                 }
                 is ContactsUiState.Success -> {
@@ -474,7 +475,7 @@ fun LlamadasTabContent(
                                 )
                                 Text(
                                     text = "No tienes panas para llamar",
-                                    color = Color.White,
+                                    color = PanalinkPalette.textPrimary,
                                     fontSize = 18.sp,
                                     fontWeight = FontWeight.Bold,
                                     modifier = Modifier.padding(bottom = 8.dp)
@@ -524,7 +525,7 @@ fun LlamadasTabContent(
                                     Column(modifier = Modifier.weight(1f)) {
                                         Text(
                                             text = contact.displayName,
-                                            color = Color.White,
+                                            color = PanalinkPalette.textPrimary,
                                             fontWeight = FontWeight.Bold,
                                             fontSize = 15.sp
                                         )
@@ -549,7 +550,7 @@ fun LlamadasTabContent(
                                             },
                                             modifier = Modifier
                                                 .background(
-                                                    color = Color.White.copy(alpha = 0.12f),
+                                                    color = PanalinkPalette.textPrimary.copy(alpha = 0.12f),
                                                     shape = androidx.compose.foundation.shape.CircleShape
                                                 )
                                                 .size(40.dp)
@@ -557,7 +558,7 @@ fun LlamadasTabContent(
                                             Icon(
                                                 imageVector = Icons.Default.Call,
                                                 contentDescription = "Llamada de voz",
-                                                tint = Color.White,
+                                                tint = PanalinkPalette.textPrimary,
                                                 modifier = Modifier.size(20.dp)
                                             )
                                         }
@@ -644,7 +645,7 @@ fun LlamadasTabContent(
     if (showClearHistoryDialog) {
         androidx.compose.material3.AlertDialog(
             onDismissRequest = { showClearHistoryDialog = false },
-            title = { Text("¿Borrar historial de llamadas?", color = Color.White) },
+            title = { Text("¿Borrar historial de llamadas?", color = PanalinkPalette.textPrimary) },
             text = { Text("Se eliminarán todos los registros de llamadas. Esta acción no se puede deshacer.", color = Color.LightGray) },
             confirmButton = {
                 TextButton(onClick = {
@@ -654,7 +655,7 @@ fun LlamadasTabContent(
                 }) { Text("Borrar", color = Color(0xFFEF4444)) }
             },
             dismissButton = {
-                TextButton(onClick = { showClearHistoryDialog = false }) { Text("Cancelar", color = Color.White) }
+                TextButton(onClick = { showClearHistoryDialog = false }) { Text("Cancelar", color = PanalinkPalette.textPrimary) }
             },
             containerColor = Color(0xFF1A1A1A),
             titleContentColor = Color.White,

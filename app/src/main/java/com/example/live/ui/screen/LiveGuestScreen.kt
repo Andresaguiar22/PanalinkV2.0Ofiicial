@@ -28,6 +28,7 @@ import com.example.live.ui.viewmodel.LiveGuestViewModel
 import com.example.live.ui.viewmodel.LiveViewModel
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
+import com.example.ui.theme.PanalinkPalette
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -81,7 +82,7 @@ fun LiveGuestScreen(
                 title = { Text("Co-Host Invitado", fontWeight = FontWeight.Bold) },
                 navigationIcon = {
                     IconButton(onClick = { leaveCoHost() }) {
-                        Icon(Icons.Default.ArrowBack, contentDescription = "Regresar", tint = Color.White)
+                        Icon(Icons.Default.ArrowBack, contentDescription = "Regresar", tint = PanalinkPalette.textPrimary)
                     }
                 },
                 colors = TopAppBarDefaults.topAppBarColors(
@@ -105,7 +106,7 @@ fun LiveGuestScreen(
                 ) {
                     Text(
                         text = "¡Has sido invitado como Co-Host a este Live!",
-                        color = Color.White,
+                        color = PanalinkPalette.textPrimary,
                         fontSize = 18.sp,
                         fontWeight = FontWeight.Bold
                     )
@@ -141,7 +142,7 @@ fun LiveGuestScreen(
                             },
                             colors = ButtonDefaults.buttonColors(containerColor = Color(0xFF00A884))
                         ) {
-                            Text("Aceptar Invitación", color = Color.White)
+                            Text("Aceptar Invitación", color = PanalinkPalette.textPrimary)
                         }
                         OutlinedButton(
                             onClick = {
@@ -178,7 +179,7 @@ fun LiveGuestScreen(
                     ) {
                         Text(
                             text = "● CO-HOST EN VIVO",
-                            color = Color.White,
+                            color = PanalinkPalette.textPrimary,
                             fontSize = 12.sp,
                             fontWeight = FontWeight.Bold,
                             modifier = Modifier.padding(horizontal = 12.dp, vertical = 6.dp)
@@ -203,7 +204,7 @@ fun LiveGuestScreen(
                             Icon(
                                 imageVector = if (isMicMuted) Icons.Default.MicOff else Icons.Default.Mic,
                                 contentDescription = "Micrófono",
-                                tint = Color.White
+                                tint = PanalinkPalette.textPrimary
                             )
                         }
 
@@ -217,7 +218,7 @@ fun LiveGuestScreen(
                             Icon(
                                 imageVector = if (isCameraOff) Icons.Default.VideocamOff else Icons.Default.Videocam,
                                 contentDescription = "Cámara",
-                                tint = Color.White
+                                tint = PanalinkPalette.textPrimary
                             )
                         }
 
@@ -225,7 +226,7 @@ fun LiveGuestScreen(
                             onClick = { leaveCoHost() },
                             colors = ButtonDefaults.buttonColors(containerColor = Color(0xFFEF5350))
                         ) {
-                            Text("SALIR", color = Color.White)
+                            Text("SALIR", color = PanalinkPalette.textPrimary)
                         }
                     }
                 }

@@ -17,6 +17,7 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import coil.compose.AsyncImage
 import com.example.media.playlist.PlaylistEntity
+import com.example.ui.theme.PanalinkPalette
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -53,7 +54,7 @@ fun PlaylistMetadataEditor(
                 } else {
                     Icon(Icons.Default.Edit, contentDescription = null, modifier = Modifier.align(Alignment.Center))
                 }
-                Text("Cambiar Portada", color = Color.White, fontSize = 12.sp, modifier = Modifier.align(Alignment.BottomCenter).background(Color.Black.copy(alpha = 0.5f)).fillMaxWidth().padding(4.dp))
+                Text("Cambiar Portada", color = PanalinkPalette.textPrimary, fontSize = 12.sp, modifier = Modifier.align(Alignment.BottomCenter).background(Color.Black.copy(alpha = 0.5f)).fillMaxWidth().padding(4.dp))
             }
 
             Spacer(modifier = Modifier.height(24.dp))

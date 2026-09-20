@@ -27,6 +27,7 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import kotlin.math.abs
 import com.example.ui.components.PanaAvatar
+import com.example.ui.theme.PanalinkPalette
 
 @Composable
 fun PremiumVoicePlayer(
@@ -266,7 +267,7 @@ fun PremiumVoicePlayer(
                             }
                             onSpeedChange(playbackSpeed)
                         },
-                    color = Color.White.copy(alpha = 0.08f)
+                    color = PanalinkPalette.textPrimary.copy(alpha = 0.08f)
                 ) {
                     Text(
                         text = "${if (playbackSpeed % 1f == 0f) playbackSpeed.toInt() else playbackSpeed}x",
@@ -302,7 +303,7 @@ fun PremiumVoicePlayer(
                     Icon(
                         imageVector = Icons.Default.Mic,
                         contentDescription = null,
-                        tint = Color.White,
+                        tint = PanalinkPalette.textPrimary,
                         modifier = Modifier.size(9.dp)
                     )
                 }

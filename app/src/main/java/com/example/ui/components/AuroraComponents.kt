@@ -21,6 +21,7 @@ import androidx.compose.ui.unit.sp
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.ChevronRight
 import androidx.compose.ui.graphics.vector.ImageVector
+import com.example.ui.theme.PanalinkPalette
 
 @Composable
 fun AuroraButton(
@@ -47,19 +48,19 @@ fun AuroraButton(
         contentAlignment = Alignment.Center
     ) {
         if (isLoading) {
-            CircularProgressIndicator(color = Color.White, modifier = Modifier.size(24.dp))
+            CircularProgressIndicator(color = PanalinkPalette.textPrimary, modifier = Modifier.size(24.dp))
         } else {
             Row(
                 verticalAlignment = Alignment.CenterVertically,
                 horizontalArrangement = Arrangement.Center
             ) {
                 if (icon != null) {
-                    Icon(icon, contentDescription = null, tint = Color.White, modifier = Modifier.size(24.dp))
+                    Icon(icon, contentDescription = null, tint = PanalinkPalette.textPrimary, modifier = Modifier.size(24.dp))
                     Spacer(modifier = Modifier.width(8.dp))
                 }
                 Text(
                     text = text,
-                    color = Color.White,
+                    color = PanalinkPalette.textPrimary,
                     fontWeight = FontWeight.Bold,
                     fontSize = 16.sp
                 )
@@ -81,7 +82,7 @@ fun AuroraOutlinedButton(
         enabled = enabled,
         modifier = modifier.fillMaxWidth().height(56.dp),
         shape = RoundedCornerShape(16.dp),
-        color = Color.White.copy(alpha = 0.05f),
+        color = PanalinkPalette.textPrimary.copy(alpha = 0.05f),
         border = BorderStroke(1.dp, Color.White.copy(alpha = 0.2f))
     ) {
         Row(
@@ -90,12 +91,12 @@ fun AuroraOutlinedButton(
             horizontalArrangement = Arrangement.Center
         ) {
             if (icon != null) {
-                Icon(icon, contentDescription = null, tint = Color.White, modifier = Modifier.size(24.dp))
+                Icon(icon, contentDescription = null, tint = PanalinkPalette.textPrimary, modifier = Modifier.size(24.dp))
                 Spacer(modifier = Modifier.width(8.dp))
             }
             Text(
                 text = text,
-                color = Color.White,
+                color = PanalinkPalette.textPrimary,
                 fontWeight = FontWeight.Bold,
                 fontSize = 16.sp
             )

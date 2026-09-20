@@ -27,6 +27,7 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import coil.compose.AsyncImage
 import com.example.ui.viewmodel.onboarding.OnboardingViewModel
+import com.example.ui.theme.PanalinkPalette
 
 data class PresetAvatar(val emoji: String, val brush: Brush)
 
@@ -75,7 +76,7 @@ fun OnboardingCongratsScreen(
                 text = "¡Felicidades, ya eres un Pana! 🇻🇪",
                 fontSize = 26.sp,
                 fontWeight = FontWeight.Bold,
-                color = Color.White,
+                color = PanalinkPalette.textPrimary,
                 textAlign = TextAlign.Center
             )
 
@@ -145,7 +146,7 @@ fun OnboardingCongratsScreen(
                                     text = displayName.firstOrNull()?.uppercase()?.toString() ?: "P",
                                     fontSize = 36.sp,
                                     fontWeight = FontWeight.Bold,
-                                    color = Color.White
+                                    color = PanalinkPalette.textPrimary
                                 )
                             }
                         }
@@ -157,7 +158,7 @@ fun OnboardingCongratsScreen(
                         text = displayName,
                         fontSize = 20.sp,
                         fontWeight = FontWeight.Bold,
-                        color = Color.White
+                        color = PanalinkPalette.textPrimary
                     )
 
                     Spacer(modifier = Modifier.height(4.dp))
@@ -192,7 +193,7 @@ fun OnboardingCongratsScreen(
                                 text = pin,
                                 fontSize = 32.sp,
                                 fontWeight = FontWeight.Bold,
-                                color = Color.White,
+                                color = PanalinkPalette.textPrimary,
                                 letterSpacing = 8.sp
                             )
                         }

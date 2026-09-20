@@ -47,6 +47,7 @@ import androidx.compose.ui.hapticfeedback.HapticFeedbackType
 import androidx.compose.ui.platform.LocalHapticFeedback
 import androidx.compose.ui.platform.LocalDensity
 import kotlin.math.abs
+import com.example.ui.theme.PanalinkPalette
 
 @Composable
 internal fun rememberResolvedMediaUrl(rawUrl: String?): String {
@@ -238,7 +239,7 @@ fun FeedPostCard(
                     Row(verticalAlignment = Alignment.CenterVertically) {
                         Text(
                             text = identityState?.displayName ?: post.profile?.displayName ?: "Pana de la Comunidad",
-                            color = Color.White,
+                            color = PanalinkPalette.textPrimary,
                             fontWeight = FontWeight.Bold,
                             fontSize = 15.sp,
                             maxLines = 1,
@@ -318,8 +319,8 @@ fun FeedPostCard(
                     ) {
                         if (isMyPost) {
                             DropdownMenuItem(
-                                text = { Text("Editar", color = Color.White) },
-                                leadingIcon = { Icon(Icons.Default.Edit, contentDescription = null, tint = Color.White) },
+                                text = { Text("Editar", color = PanalinkPalette.textPrimary) },
+                                leadingIcon = { Icon(Icons.Default.Edit, contentDescription = null, tint = PanalinkPalette.textPrimary) },
                                 onClick = {
                                     showMenu = false
                                     onEditClick(post.content ?: "")
@@ -360,7 +361,7 @@ fun FeedPostCard(
                 Column(modifier = Modifier.padding(horizontal = 14.dp, vertical = 6.dp)) {
                     Text(
                         text = cleanCaption,
-                        color = Color.White,
+                        color = PanalinkPalette.textPrimary,
                         fontSize = 15.sp,
                         lineHeight = 22.sp,
                         maxLines = if (isExpandedText) Int.MAX_VALUE else 4,
@@ -506,7 +507,7 @@ fun FeedPostCard(
                             Icon(
                                 imageVector = if (isMuted) Icons.Default.VolumeMute else Icons.Default.VolumeUp,
                                 contentDescription = "Sonido",
-                                tint = Color.White,
+                                tint = PanalinkPalette.textPrimary,
                                 modifier = Modifier.size(20.dp)
                             )
                         }
@@ -522,7 +523,7 @@ fun FeedPostCard(
                             Icon(
                                 imageVector = Icons.Default.Fullscreen,
                                 contentDescription = "Expandir",
-                                tint = Color.White.copy(alpha = 0.7f),
+                                tint = PanalinkPalette.textPrimary.copy(alpha = 0.7f),
                                 modifier = Modifier
                                     .size(20.dp)
                                     .background(Color.Black.copy(alpha = 0.5f), CircleShape)
@@ -530,7 +531,7 @@ fun FeedPostCard(
                             )
                             Text(
                                 text = "${pagerState.currentPage + 1}/${mediaImagesAndVideos.size}",
-                                color = Color.White,
+                                color = PanalinkPalette.textPrimary,
                                 modifier = Modifier
                                     .background(Color.Black.copy(alpha = 0.6f), RoundedCornerShape(16.dp))
                                     .padding(horizontal = 10.dp, vertical = 4.dp),
@@ -659,7 +660,7 @@ fun FeedPostCard(
                         Text(text = tail, color = Color.Gray, fontSize = 13.sp, modifier = Modifier.clickable { onCommentClick() })
                     }
                 }
-                HorizontalDivider(color = Color.White.copy(alpha = 0.06f), thickness = 0.5.dp, modifier = Modifier.padding(horizontal = 12.dp))
+                HorizontalDivider(color = PanalinkPalette.textPrimary.copy(alpha = 0.06f), thickness = 0.5.dp, modifier = Modifier.padding(horizontal = 12.dp))
             }
 
             Row(
@@ -694,7 +695,7 @@ fun FeedPostCard(
                 }
 
                 VerticalDivider(
-                    color = Color.White.copy(alpha = 0.08f),
+                    color = PanalinkPalette.textPrimary.copy(alpha = 0.08f),
                     modifier = Modifier.height(24.dp).padding(vertical = 4.dp)
                 )
 
@@ -722,7 +723,7 @@ fun FeedPostCard(
                 }
 
                 VerticalDivider(
-                    color = Color.White.copy(alpha = 0.08f),
+                    color = PanalinkPalette.textPrimary.copy(alpha = 0.08f),
                     modifier = Modifier.height(24.dp).padding(vertical = 4.dp)
                 )
 

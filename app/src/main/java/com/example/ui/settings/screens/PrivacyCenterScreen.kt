@@ -25,6 +25,7 @@ import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.lifecycle.viewmodel.compose.viewModel
 import com.example.feature.settings.model.PrivacyAction
 import com.example.ui.settings.viewmodel.PrivacyViewModel
+import com.example.ui.theme.PanalinkPalette
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -45,10 +46,10 @@ fun PrivacyCenterScreen(
     Scaffold(
         topBar = {
             TopAppBar(
-                title = { Text("Privacidad de Pana", color = Color.White) },
+                title = { Text("Privacidad de Pana", color = PanalinkPalette.textPrimary) },
                 navigationIcon = {
                     IconButton(onClick = onBack) {
-                        Icon(Icons.AutoMirrored.Filled.ArrowBack, contentDescription = "Regresar", tint = Color.White)
+                        Icon(Icons.AutoMirrored.Filled.ArrowBack, contentDescription = "Regresar", tint = PanalinkPalette.textPrimary)
                     }
                 },
                 colors = TopAppBarDefaults.topAppBarColors(containerColor = Color(0xFF121B22))
@@ -96,7 +97,7 @@ fun PrivacyCenterScreen(
                             Column {
                                 Text(
                                     text = "Control Total de tu Privacidad",
-                                    color = Color.White,
+                                    color = PanalinkPalette.textPrimary,
                                     fontWeight = FontWeight.Bold,
                                     fontSize = 15.sp
                                 )
@@ -125,7 +126,7 @@ fun PrivacyCenterScreen(
                         ) {
                             Text(
                                 text = "Última vez y En línea",
-                                color = Color.White,
+                                color = PanalinkPalette.textPrimary,
                                 fontWeight = FontWeight.SemiBold,
                                 fontSize = 14.sp
                             )
@@ -196,7 +197,7 @@ fun PrivacyCenterScreen(
                                 Column(modifier = Modifier.weight(1f)) {
                                     Text(
                                         text = "Confirmaciones de Lectura",
-                                        color = Color.White,
+                                        color = PanalinkPalette.textPrimary,
                                         fontWeight = FontWeight.SemiBold,
                                         fontSize = 14.sp
                                     )
@@ -253,7 +254,7 @@ fun PrivacyCenterScreen(
                                         Spacer(modifier = Modifier.width(6.dp))
                                         Text(
                                             text = "Modo Invisible (Ghost)",
-                                            color = Color.White,
+                                            color = PanalinkPalette.textPrimary,
                                             fontWeight = FontWeight.SemiBold,
                                             fontSize = 14.sp
                                         )
@@ -303,7 +304,7 @@ fun PrivacyCenterScreen(
                                 Column(modifier = Modifier.weight(1f)) {
                                     Text(
                                         text = "Lectura Inteligente",
-                                        color = Color.White,
+                                        color = PanalinkPalette.textPrimary,
                                         fontWeight = FontWeight.SemiBold,
                                         fontSize = 14.sp
                                     )
@@ -346,7 +347,7 @@ fun PrivacyCenterScreen(
                         ) {
                             Text(
                                 text = "Estado de Presencia Predeterminado",
-                                color = Color.White,
+                                color = PanalinkPalette.textPrimary,
                                 fontWeight = FontWeight.SemiBold,
                                 fontSize = 14.sp
                             )

@@ -12,6 +12,7 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.unit.dp
 import com.example.creative.canvas.CanvasEditorEngine
 import com.example.creative.ui.StudioLayout
+import com.example.ui.theme.PanalinkPalette
 
 /**
  * P6.7.4 - Playlist Cover Studio Screen
@@ -30,10 +31,10 @@ fun PlaylistCoverStudioScreen(
     Scaffold(
         topBar = {
             TopAppBar(
-                title = { Text("Playlist Cover Studio", color = Color.White) },
+                title = { Text("Playlist Cover Studio", color = PanalinkPalette.textPrimary) },
                 navigationIcon = {
                     IconButton(onClick = onBack) {
-                        Icon(Icons.Default.ArrowBack, contentDescription = "Atrás", tint = Color.White)
+                        Icon(Icons.Default.ArrowBack, contentDescription = "Atrás", tint = PanalinkPalette.textPrimary)
                     }
                 },
                 actions = {
@@ -73,7 +74,7 @@ fun PlaylistCoverStudioScreen(
                 ) {
                     Text(
                         "Preview del Canvas", 
-                        color = Color.White, 
+                        color = PanalinkPalette.textPrimary, 
                         modifier = Modifier.align(Alignment.Center)
                     )
                     // Integration with CanvasEditorEngine goes here
@@ -101,16 +102,16 @@ fun CoverStudioControls(
             horizontalArrangement = Arrangement.SpaceEvenly
         ) {
             IconButton(onClick = onAddText) {
-                Icon(Icons.Default.TextFields, contentDescription = "Texto", tint = Color.White)
+                Icon(Icons.Default.TextFields, contentDescription = "Texto", tint = PanalinkPalette.textPrimary)
             }
             IconButton(onClick = onAddImage) {
-                Icon(Icons.Default.Image, contentDescription = "Imagen", tint = Color.White)
+                Icon(Icons.Default.Image, contentDescription = "Imagen", tint = PanalinkPalette.textPrimary)
             }
             IconButton(onClick = onAddSticker) {
-                Icon(Icons.Default.EmojiEmotions, contentDescription = "Sticker", tint = Color.White)
+                Icon(Icons.Default.EmojiEmotions, contentDescription = "Sticker", tint = PanalinkPalette.textPrimary)
             }
             IconButton(onClick = onUndo) {
-                Icon(Icons.Default.Undo, contentDescription = "Deshacer", tint = Color.White)
+                Icon(Icons.Default.Undo, contentDescription = "Deshacer", tint = PanalinkPalette.textPrimary)
             }
         }
     }

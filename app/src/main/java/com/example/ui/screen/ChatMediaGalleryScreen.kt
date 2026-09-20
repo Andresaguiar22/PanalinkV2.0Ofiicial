@@ -23,6 +23,7 @@ import com.example.ui.components.chat.gallery.MediaGalleryItem
 import com.example.ui.components.chat.gallery.MediaGridItem
 import com.example.ui.viewmodel.MediaGalleryUiState
 import com.example.ui.viewmodel.MediaGalleryViewModel
+import com.example.ui.theme.PanalinkPalette
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -164,13 +165,13 @@ fun EmptyGalleryState(tabName: String) {
         Icon(
             imageVector = icon,
             contentDescription = null,
-            tint = Color.White.copy(alpha = 0.2f),
+            tint = PanalinkPalette.textPrimary.copy(alpha = 0.2f),
             modifier = Modifier.size(80.dp)
         )
         Spacer(modifier = Modifier.height(16.dp))
         Text(
             text = "No hay $tabName aún",
-            color = Color.White.copy(alpha = 0.4f),
+            color = PanalinkPalette.textPrimary.copy(alpha = 0.4f),
             fontSize = 16.sp
         )
     }

@@ -16,6 +16,7 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
+import com.example.ui.theme.PanalinkPalette
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -28,10 +29,10 @@ fun MediaDebugScreen(
     Scaffold(
         topBar = {
             TopAppBar(
-                title = { Text("Media Engine Diagnostic", color = Color.White) },
+                title = { Text("Media Engine Diagnostic", color = PanalinkPalette.textPrimary) },
                 navigationIcon = {
                     IconButton(onClick = onBack) {
-                        Icon(Icons.Default.ArrowBack, contentDescription = "Regresar", tint = Color.White)
+                        Icon(Icons.Default.ArrowBack, contentDescription = "Regresar", tint = PanalinkPalette.textPrimary)
                     }
                 },
                 colors = TopAppBarDefaults.topAppBarColors(containerColor = Color(0xFF121214))
@@ -51,7 +52,7 @@ fun MediaDebugScreen(
                     text = "Estado global del Media Engine V2",
                     fontSize = 18.sp,
                     fontWeight = FontWeight.Bold,
-                    color = Color.White
+                    color = PanalinkPalette.textPrimary
                 )
             }
 
@@ -104,10 +105,10 @@ fun MediaDebugScreen(
                     Column(modifier = Modifier.padding(16.dp)) {
                         Text("Detalles de Solicitudes", color = Color.Gray, fontSize = 13.sp)
                         Spacer(modifier = Modifier.height(8.dp))
-                        Text("Cache Hits: ${state.report?.cacheHitCount ?: 0}", color = Color.White, fontSize = 14.sp)
-                        Text("Cache Misses: ${state.report?.cacheMissCount ?: 0}", color = Color.White, fontSize = 14.sp)
-                        Text("Descargas exitosas: ${state.report?.downloadSuccessCount ?: 0}", color = Color.White, fontSize = 14.sp)
-                        Text("Descargas fallidas: ${state.report?.downloadFailureCount ?: 0}", color = Color.White, fontSize = 14.sp)
+                        Text("Cache Hits: ${state.report?.cacheHitCount ?: 0}", color = PanalinkPalette.textPrimary, fontSize = 14.sp)
+                        Text("Cache Misses: ${state.report?.cacheMissCount ?: 0}", color = PanalinkPalette.textPrimary, fontSize = 14.sp)
+                        Text("Descargas exitosas: ${state.report?.downloadSuccessCount ?: 0}", color = PanalinkPalette.textPrimary, fontSize = 14.sp)
+                        Text("Descargas fallidas: ${state.report?.downloadFailureCount ?: 0}", color = PanalinkPalette.textPrimary, fontSize = 14.sp)
                     }
                 }
             }
@@ -163,7 +164,7 @@ private fun MetricCard(
             Icon(imageVector = icon, contentDescription = null, tint = Color(0xFF00E5FF), modifier = Modifier.size(24.dp))
             Spacer(modifier = Modifier.height(8.dp))
             Text(text = title, color = Color.Gray, fontSize = 12.sp)
-            Text(text = value, color = Color.White, fontSize = 18.sp, fontWeight = FontWeight.Bold)
+            Text(text = value, color = PanalinkPalette.textPrimary, fontSize = 18.sp, fontWeight = FontWeight.Bold)
         }
     }
 }

@@ -22,6 +22,7 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import coil.compose.AsyncImage
+import com.example.ui.theme.PanalinkPalette
 
 @Composable
 fun ProfileHeaderEditor(
@@ -103,7 +104,7 @@ fun ProfileHeaderEditor(
                             Icon(
                                 imageVector = Icons.Default.Person,
                                 contentDescription = null,
-                                tint = Color.White,
+                                tint = PanalinkPalette.textPrimary,
                                 modifier = Modifier.size(44.dp)
                             )
                         }
@@ -137,7 +138,7 @@ fun ProfileHeaderEditor(
                 ) {
                     Text(
                         text = displayName.ifEmpty { "Tu Apodo de Pana" },
-                        color = Color.White,
+                        color = PanalinkPalette.textPrimary,
                         fontSize = 18.sp,
                         fontWeight = FontWeight.Bold
                     )

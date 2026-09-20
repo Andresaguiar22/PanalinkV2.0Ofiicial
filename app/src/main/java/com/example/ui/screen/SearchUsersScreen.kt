@@ -26,6 +26,7 @@ import coil.compose.AsyncImage
 import com.example.data.model.Profile
 import com.example.ui.viewmodel.ChatsViewModel
 import com.example.ui.viewmodel.UserSearchUiState
+import com.example.ui.theme.PanalinkPalette
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -52,7 +53,7 @@ fun SearchUsersScreen(
                             query = it
                             viewModel.searchUsers(it)
                         },
-                        placeholder = { Text("Buscar panas...", color = Color.White.copy(alpha = 0.5f)) },
+                        placeholder = { Text("Buscar panas...", color = PanalinkPalette.textPrimary.copy(alpha = 0.5f)) },
                         modifier = Modifier
                             .fillMaxWidth()
                             .testTag("search_users_input"),
@@ -72,7 +73,7 @@ fun SearchUsersScreen(
                                     query = ""
                                     viewModel.searchUsers("")
                                 }) {
-                                    Icon(Icons.Default.Close, contentDescription = "Limpiar", tint = Color.White)
+                                    Icon(Icons.Default.Close, contentDescription = "Limpiar", tint = PanalinkPalette.textPrimary)
                                 }
                             }
                         }
@@ -80,7 +81,7 @@ fun SearchUsersScreen(
                 },
                 navigationIcon = {
                     IconButton(onClick = onBack, modifier = Modifier.testTag("back_button")) {
-                        Icon(Icons.AutoMirrored.Filled.ArrowBack, contentDescription = "Volver", tint = Color.White)
+                        Icon(Icons.AutoMirrored.Filled.ArrowBack, contentDescription = "Volver", tint = PanalinkPalette.textPrimary)
                     }
                 },
                 actions = {
@@ -88,7 +89,7 @@ fun SearchUsersScreen(
                         Icon(
                             imageVector = Icons.Default.Person,
                             contentDescription = null,
-                            tint = Color.White.copy(alpha = 0.3f),
+                            tint = PanalinkPalette.textPrimary.copy(alpha = 0.3f),
                             modifier = Modifier.size(32.dp)
                         )
                     }
@@ -143,7 +144,7 @@ fun SearchUsersScreen(
                             horizontalAlignment = Alignment.CenterHorizontally,
                             verticalArrangement = Arrangement.Center
                         ) {
-                            Text("No se encontraron panas con \"$query\"", color = Color.White.copy(alpha = 0.6f))
+                            Text("No se encontraron panas con \"$query\"", color = PanalinkPalette.textPrimary.copy(alpha = 0.6f))
                         }
                     } else {
                         LazyColumn(modifier = Modifier.fillMaxSize()) {
@@ -196,7 +197,7 @@ fun UserSearchResultItem(
         Column {
             Text(
                 text = user.displayName,
-                color = Color.White,
+                color = PanalinkPalette.textPrimary,
                 fontWeight = FontWeight.Bold,
                 fontSize = 16.sp
             )

@@ -14,6 +14,7 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import com.example.ui.theme.PanalinkPalette
 
 @Composable
 fun AvatarPicker(
@@ -40,7 +41,7 @@ fun AvatarPicker(
                     tint = Color(0xFF25D366)
                 )
                 Spacer(modifier = Modifier.width(8.dp))
-                Text("Elegir de mi Galería 🖼️", color = Color.White, fontSize = 13.sp)
+                Text("Elegir de mi Galería 🖼️", color = PanalinkPalette.textPrimary, fontSize = 13.sp)
             }
         }
 

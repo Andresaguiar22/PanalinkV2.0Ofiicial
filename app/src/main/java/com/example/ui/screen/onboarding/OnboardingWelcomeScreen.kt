@@ -13,6 +13,7 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import com.example.ui.theme.PanalinkPalette
 
 @Composable
 fun OnboardingWelcomeScreen(
@@ -42,7 +43,7 @@ fun OnboardingWelcomeScreen(
                 text = "¡Bienvenido a Panalink! 👋",
                 fontSize = 28.sp,
                 fontWeight = FontWeight.Bold,
-                color = Color.White,
+                color = PanalinkPalette.textPrimary,
                 textAlign = TextAlign.Center
             )
             

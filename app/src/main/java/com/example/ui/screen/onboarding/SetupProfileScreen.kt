@@ -32,6 +32,7 @@ import androidx.compose.ui.platform.testTag
 import com.example.ui.viewmodel.onboarding.OnboardingUiState
 import com.example.ui.viewmodel.onboarding.OnboardingViewModel
 import com.example.ui.components.AuroraBackground
+import com.example.ui.theme.PanalinkPalette
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -78,19 +79,19 @@ fun SetupProfileScreen(
                                 "Configura tu Pana Profile",
                                 fontSize = 18.sp,
                                 fontWeight = FontWeight.Bold,
-                                color = Color.White
+                                color = PanalinkPalette.textPrimary
                             )
                             Text(
                                 "Paso $currentStep de $totalSteps",
                                 fontSize = 12.sp,
-                                color = Color.White.copy(alpha = 0.7f)
+                                color = PanalinkPalette.textPrimary.copy(alpha = 0.7f)
                             )
                         }
                     },
                     navigationIcon = {
                         if (currentStep > 1) {
                             IconButton(onClick = { currentStep-- }) {
-                                Icon(Icons.AutoMirrored.Filled.ArrowBack, contentDescription = "Atrás", tint = Color.White)
+                                Icon(Icons.AutoMirrored.Filled.ArrowBack, contentDescription = "Atrás", tint = PanalinkPalette.textPrimary)
                             }
                         }
                     },
@@ -251,13 +252,13 @@ fun IdentityStep(
             "Tu Identidad Visual 💎",
             fontSize = 24.sp,
             fontWeight = FontWeight.ExtraBold,
-            color = Color.White,
+            color = PanalinkPalette.textPrimary,
             textAlign = TextAlign.Center
         )
         Text(
             "Sube una foto de portada y de perfil para destacar.",
             fontSize = 14.sp,
-            color = Color.White.copy(alpha = 0.6f),
+            color = PanalinkPalette.textPrimary.copy(alpha = 0.6f),
             textAlign = TextAlign.Center,
             modifier = Modifier.padding(top = 8.dp, bottom = 24.dp)
         )
@@ -293,8 +294,8 @@ fun IdentityStep(
                         contentAlignment = Alignment.Center
                     ) {
                         Column(horizontalAlignment = Alignment.CenterHorizontally) {
-                            Icon(Icons.Default.AddAPhoto, "Add Cover", tint = Color.White.copy(alpha = 0.3f), modifier = Modifier.size(32.dp))
-                            Text("Añadir Portada", fontSize = 12.sp, color = Color.White.copy(alpha = 0.3f))
+                            Icon(Icons.Default.AddAPhoto, "Add Cover", tint = PanalinkPalette.textPrimary.copy(alpha = 0.3f), modifier = Modifier.size(32.dp))
+                            Text("Añadir Portada", fontSize = 12.sp, color = PanalinkPalette.textPrimary.copy(alpha = 0.3f))
                         }
                     }
                 }
@@ -330,7 +331,7 @@ fun IdentityStep(
                         )
                     }
                 } else {
-                    Icon(Icons.Default.Person, null, tint = Color.White.copy(alpha = 0.3f), modifier = Modifier.size(48.dp))
+                    Icon(Icons.Default.Person, null, tint = PanalinkPalette.textPrimary.copy(alpha = 0.3f), modifier = Modifier.size(48.dp))
                 }
                 
                 if (isUploadingAvatar) {
@@ -417,12 +418,12 @@ fun DetailsStep(
             "Algo de ti 📝",
             fontSize = 24.sp,
             fontWeight = FontWeight.ExtraBold,
-            color = Color.White
+            color = PanalinkPalette.textPrimary
         )
         Text(
             "Tu nombre real y fecha nos ayudan a personalizar tu experiencia.",
             fontSize = 14.sp,
-            color = Color.White.copy(alpha = 0.6f),
+            color = PanalinkPalette.textPrimary.copy(alpha = 0.6f),
             textAlign = TextAlign.Center,
             modifier = Modifier.padding(top = 8.dp, bottom = 24.dp)
         )
@@ -457,7 +458,7 @@ fun DetailsStep(
             modifier = Modifier.fillMaxWidth().clickable { showDatePicker = true },
             shape = RoundedCornerShape(16.dp),
             colors = textFieldColors(),
-            leadingIcon = { Icon(Icons.Default.CalendarToday, null, tint = Color.White.copy(alpha = 0.5f)) },
+            leadingIcon = { Icon(Icons.Default.CalendarToday, null, tint = PanalinkPalette.textPrimary.copy(alpha = 0.5f)) },
             enabled = false
         )
 
@@ -467,7 +468,7 @@ fun DetailsStep(
             "Género / Identidad",
             fontSize = 14.sp,
             fontWeight = FontWeight.Bold,
-            color = Color.White,
+            color = PanalinkPalette.textPrimary,
             modifier = Modifier.fillMaxWidth()
         )
         Spacer(modifier = Modifier.height(12.dp))
@@ -528,12 +529,12 @@ fun VibeStep(
             "Tu Vibe ✨",
             fontSize = 24.sp,
             fontWeight = FontWeight.ExtraBold,
-            color = Color.White
+            color = PanalinkPalette.textPrimary
         )
         Text(
             "¿Qué estás haciendo? ¿Qué te gusta? Cuéntale al mundo.",
             fontSize = 14.sp,
-            color = Color.White.copy(alpha = 0.6f),
+            color = PanalinkPalette.textPrimary.copy(alpha = 0.6f),
             textAlign = TextAlign.Center,
             modifier = Modifier.padding(top = 8.dp, bottom = 24.dp)
         )
@@ -555,7 +556,7 @@ fun VibeStep(
             "Intereses (Elige tus favoritos)",
             fontSize = 14.sp,
             fontWeight = FontWeight.Bold,
-            color = Color.White,
+            color = PanalinkPalette.textPrimary,
             modifier = Modifier.fillMaxWidth()
         )
         Spacer(modifier = Modifier.height(12.dp))
@@ -607,12 +608,12 @@ fun PreviewStep(
             "¡Casi listo! 🏁",
             fontSize = 24.sp,
             fontWeight = FontWeight.ExtraBold,
-            color = Color.White
+            color = PanalinkPalette.textPrimary
         )
         Text(
             "Así es como te verán los demás panas.",
             fontSize = 14.sp,
-            color = Color.White.copy(alpha = 0.6f),
+            color = PanalinkPalette.textPrimary.copy(alpha = 0.6f),
             textAlign = TextAlign.Center,
             modifier = Modifier.padding(top = 8.dp, bottom = 24.dp)
         )
@@ -659,7 +660,7 @@ fun PreviewStep(
                                 )
                             }
                         } else {
-                            Icon(Icons.Default.Person, null, tint = Color.White.copy(alpha = 0.2f), modifier = Modifier.size(40.dp))
+                            Icon(Icons.Default.Person, null, tint = PanalinkPalette.textPrimary.copy(alpha = 0.2f), modifier = Modifier.size(40.dp))
                         }
                     }
                 }
@@ -671,12 +672,12 @@ fun PreviewStep(
                         displayName,
                         fontSize = 22.sp,
                         fontWeight = FontWeight.Bold,
-                        color = Color.White
+                        color = PanalinkPalette.textPrimary
                     )
                     Text(
                         "$firstName $lastName",
                         fontSize = 14.sp,
-                        color = Color.White.copy(alpha = 0.5f)
+                        color = PanalinkPalette.textPrimary.copy(alpha = 0.5f)
                     )
                     
                     Spacer(modifier = Modifier.height(12.dp))

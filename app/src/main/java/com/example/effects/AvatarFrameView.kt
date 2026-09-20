@@ -32,6 +32,7 @@ import kotlin.math.cos
 import kotlin.math.roundToInt
 import kotlin.math.sin
 import kotlin.random.Random
+import com.example.ui.theme.PanalinkPalette
 
 /**
  * Dibuja un marco de avatar ([AvatarFrameCatalog]) alrededor de la foto del asiento.
@@ -698,7 +699,7 @@ private fun DrawScope.drawBubbles(
             style = stroke(rFrame * 0.006f)
         )
         drawCircle(
-            color = Color.White.copy(alpha = alpha * 0.8f),
+            color = PanalinkPalette.textPrimary.copy(alpha = alpha * 0.8f),
             radius = r * 0.28f,
             center = Offset(c.x - r * 0.32f, c.y - r * 0.32f)
         )

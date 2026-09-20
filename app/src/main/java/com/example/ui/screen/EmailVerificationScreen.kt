@@ -25,6 +25,7 @@ import com.example.ui.components.AuroraOutlinedButton
 import com.example.ui.components.GlassCard
 import com.example.ui.viewmodel.AuthUiState
 import com.example.ui.viewmodel.AuthViewModel
+import com.example.ui.theme.PanalinkPalette
 
 @Composable
 fun EmailVerificationScreen(
@@ -97,7 +98,7 @@ fun EmailVerificationScreen(
                     text = "Verifica tu correo",
                     fontSize = 28.sp,
                     fontWeight = FontWeight.ExtraBold,
-                    color = Color.White,
+                    color = PanalinkPalette.textPrimary,
                     letterSpacing = 0.5.sp
                 )
                 
@@ -106,7 +107,7 @@ fun EmailVerificationScreen(
                 Text(
                     text = "Hemos enviado un correo mágico a tu bandeja. Verifícalo antes de iniciar sesión en Panalink.",
                     fontSize = 15.sp,
-                    color = Color.White.copy(alpha = 0.7f),
+                    color = PanalinkPalette.textPrimary.copy(alpha = 0.7f),
                     textAlign = TextAlign.Center,
                     lineHeight = 22.sp,
                     modifier = Modifier.padding(horizontal = 16.dp)
@@ -174,7 +175,7 @@ fun EmailVerificationScreen(
                                 Spacer(modifier = Modifier.width(8.dp))
                                 Text(
                                     text = (uiState as AuthUiState.Error).message,
-                                    color = Color.White,
+                                    color = PanalinkPalette.textPrimary,
                                     fontSize = 13.sp,
                                     modifier = Modifier.weight(1f)
                                 )

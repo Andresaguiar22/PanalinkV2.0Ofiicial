@@ -27,6 +27,7 @@ import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.lifecycle.viewmodel.compose.viewModel
 import com.example.feature.settings.model.PresenceAction
 import com.example.ui.settings.viewmodel.PresenceViewModel
+import com.example.ui.theme.PanalinkPalette
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -51,10 +52,10 @@ fun PresenceCenterScreen(
     Scaffold(
         topBar = {
             TopAppBar(
-                title = { Text("Centro de Presencia", color = Color.White) },
+                title = { Text("Centro de Presencia", color = PanalinkPalette.textPrimary) },
                 navigationIcon = {
                     IconButton(onClick = onBack) {
-                        Icon(Icons.AutoMirrored.Filled.ArrowBack, contentDescription = "Regresar", tint = Color.White)
+                        Icon(Icons.AutoMirrored.Filled.ArrowBack, contentDescription = "Regresar", tint = PanalinkPalette.textPrimary)
                     }
                 },
                 colors = TopAppBarDefaults.topAppBarColors(containerColor = Color(0xFF121B22))
@@ -116,7 +117,7 @@ fun PresenceCenterScreen(
                             Column {
                                 Text(
                                     text = statusTitle,
-                                    color = Color.White,
+                                    color = PanalinkPalette.textPrimary,
                                     fontWeight = FontWeight.Bold,
                                     fontSize = 16.sp
                                 )
@@ -146,7 +147,7 @@ fun PresenceCenterScreen(
                         ) {
                             Text(
                                 text = "Estado de Presencia en Tiempo Real",
-                                color = Color.White,
+                                color = PanalinkPalette.textPrimary,
                                 fontWeight = FontWeight.SemiBold,
                                 fontSize = 14.sp
                             )
@@ -223,7 +224,7 @@ fun PresenceCenterScreen(
                         ) {
                             Text(
                                 text = "Privacidad de Última Conexión",
-                                color = Color.White,
+                                color = PanalinkPalette.textPrimary,
                                 fontWeight = FontWeight.SemiBold,
                                 fontSize = 14.sp
                             )
@@ -302,7 +303,7 @@ fun PresenceCenterScreen(
                                         Spacer(modifier = Modifier.width(6.dp))
                                         Text(
                                             text = "Modo Invisible Automático",
-                                            color = Color.White,
+                                            color = PanalinkPalette.textPrimary,
                                             fontWeight = FontWeight.SemiBold,
                                             fontSize = 14.sp
                                         )

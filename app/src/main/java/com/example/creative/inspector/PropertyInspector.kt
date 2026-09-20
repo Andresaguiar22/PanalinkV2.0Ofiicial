@@ -24,6 +24,7 @@ import com.example.creative.animation.CreativeKeyframe
 import com.example.creative.animation.EasingType
 import com.example.creative.core.CreativeLayer
 import com.example.creative.timeline.CreativeTrack
+import com.example.ui.theme.PanalinkPalette
 
 /**
  * P6.5A - Unified Property Inspector Composable
@@ -71,13 +72,13 @@ fun PropertyInspector(
                         selectedTrack is CreativeTrack.AudioTrack -> "Inspector de Pista de Audio 🎧"
                         else -> "Inspector de Propiedades ⚙️"
                     },
-                    color = Color.White,
+                    color = PanalinkPalette.textPrimary,
                     fontWeight = FontWeight.Bold,
                     fontSize = 16.sp
                 )
 
                 IconButton(onClick = onDismiss) {
-                    Icon(Icons.Default.Close, contentDescription = "Cerrar Inspector", tint = Color.White)
+                    Icon(Icons.Default.Close, contentDescription = "Cerrar Inspector", tint = PanalinkPalette.textPrimary)
                 }
             }
 
@@ -137,7 +138,7 @@ private fun TransformInspectorPanel(
     if (layer == null) return
 
     Column(verticalArrangement = Arrangement.spacedBy(10.dp)) {
-        Text("Escala: ${(layer.scale * 100).toInt()}%", color = Color.White, fontSize = 12.sp)
+        Text("Escala: ${(layer.scale * 100).toInt()}%", color = PanalinkPalette.textPrimary, fontSize = 12.sp)
         Slider(
             value = layer.scale,
             onValueChange = { newScale ->
@@ -157,7 +158,7 @@ private fun TransformInspectorPanel(
             colors = SliderDefaults.colors(thumbColor = Color(0xFF00E5FF), activeTrackColor = Color(0xFF00E5FF))
         )
 
-        Text("Rotación: ${layer.rotation.toInt()}°", color = Color.White, fontSize = 12.sp)
+        Text("Rotación: ${layer.rotation.toInt()}°", color = PanalinkPalette.textPrimary, fontSize = 12.sp)
         Slider(
             value = layer.rotation,
             onValueChange = { newRot ->
@@ -177,7 +178,7 @@ private fun TransformInspectorPanel(
             colors = SliderDefaults.colors(thumbColor = Color(0xFF00E5FF), activeTrackColor = Color(0xFF00E5FF))
         )
 
-        Text("Opacidad: ${(layer.opacity * 100).toInt()}%", color = Color.White, fontSize = 12.sp)
+        Text("Opacidad: ${(layer.opacity * 100).toInt()}%", color = PanalinkPalette.textPrimary, fontSize = 12.sp)
         Slider(
             value = layer.opacity,
             onValueChange = { newOpacity ->
@@ -206,7 +207,7 @@ private fun StyleInspectorPanel(
 ) {
     if (layer is CreativeLayer.Text) {
         Column(verticalArrangement = Arrangement.spacedBy(10.dp)) {
-            Text("Tipografía:", color = Color.White, fontSize = 12.sp, fontWeight = FontWeight.Bold)
+            Text("Tipografía:", color = PanalinkPalette.textPrimary, fontSize = 12.sp, fontWeight = FontWeight.Bold)
             val fonts = listOf("SansSerif", "Serif", "Monospace", "Cursive")
             Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
                 fonts.forEach { font ->
@@ -219,7 +220,7 @@ private fun StyleInspectorPanel(
                 }
             }
 
-            Text("Color del Texto:", color = Color.White, fontSize = 12.sp, fontWeight = FontWeight.Bold)
+            Text("Color del Texto:", color = PanalinkPalette.textPrimary, fontSize = 12.sp, fontWeight = FontWeight.Bold)
             val colors = listOf("#FFFFFF", "#00E5FF", "#FF4081", "#FFD54F", "#00FF85", "#E040FB", "#000000")
             LazyRow(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
                 items(colors) { hex ->
@@ -231,7 +232,7 @@ private fun StyleInspectorPanel(
                             .background(Color(colorInt))
                             .border(
                                 width = if (layer.colorHex == hex) 2.dp else 0.dp,
-                                color = Color.White,
+                                color = PanalinkPalette.textPrimary,
                                 shape = CircleShape
                             )
                             .clickable { onUpdateLayer(layer.copy(colorHex = hex)) }
@@ -244,7 +245,7 @@ private fun StyleInspectorPanel(
                 horizontalArrangement = Arrangement.SpaceBetween,
                 verticalAlignment = Alignment.CenterVertically
             ) {
-                Text("Sombra de Texto", color = Color.White, fontSize = 12.sp)
+                Text("Sombra de Texto", color = PanalinkPalette.textPrimary, fontSize = 12.sp)
                 Switch(
                     checked = layer.hasShadow,
                     onCheckedChange = { onUpdateLayer(layer.copy(hasShadow = it)) },
@@ -270,7 +271,7 @@ private fun KeyframeAnimationPanel(
     var selectedEasing by remember { mutableStateOf(EasingType.EASE_IN_OUT) }
 
     Column(verticalArrangement = Arrangement.spacedBy(10.dp)) {
-        Text("Pistas de Propiedad (Keyframes):", color = Color.White, fontSize = 12.sp, fontWeight = FontWeight.Bold)
+        Text("Pistas de Propiedad (Keyframes):", color = PanalinkPalette.textPrimary, fontSize = 12.sp, fontWeight = FontWeight.Bold)
 
         Row(horizontalArrangement = Arrangement.spacedBy(6.dp)) {
             listOf("scale" to "Escala", "rotation" to "Rotación", "opacity" to "Opacidad").forEach { (prop, label) ->
@@ -320,10 +321,10 @@ private fun AudioControlPanel(
     onUpdateTrack: (CreativeTrack) -> Unit
 ) {
     Column(verticalArrangement = Arrangement.spacedBy(10.dp)) {
-        Text("Controles de Audio Profesional 🎧", color = Color.White, fontSize = 12.sp, fontWeight = FontWeight.Bold)
+        Text("Controles de Audio Profesional 🎧", color = PanalinkPalette.textPrimary, fontSize = 12.sp, fontWeight = FontWeight.Bold)
 
         if (layer is CreativeLayer.Audio) {
-            Text("Volumen: ${(layer.volume * 100).toInt()}%", color = Color.White, fontSize = 12.sp)
+            Text("Volumen: ${(layer.volume * 100).toInt()}%", color = PanalinkPalette.textPrimary, fontSize = 12.sp)
             Slider(
                 value = layer.volume,
                 onValueChange = { onUpdateLayer(layer.copy(volume = it)) },
@@ -331,7 +332,7 @@ private fun AudioControlPanel(
                 colors = SliderDefaults.colors(thumbColor = Color(0xFF00E5FF), activeTrackColor = Color(0xFF00E5FF))
             )
         } else if (track is CreativeTrack.AudioTrack) {
-            Text("Volumen de Música: ${(track.volume * 100).toInt()}%", color = Color.White, fontSize = 12.sp)
+            Text("Volumen de Música: ${(track.volume * 100).toInt()}%", color = PanalinkPalette.textPrimary, fontSize = 12.sp)
             Slider(
                 value = track.volume,
                 onValueChange = { onUpdateTrack(track.copy(volume = it)) },
@@ -339,7 +340,7 @@ private fun AudioControlPanel(
                 colors = SliderDefaults.colors(thumbColor = Color(0xFF00E5FF), activeTrackColor = Color(0xFF00E5FF))
             )
         } else if (track is CreativeTrack.VideoTrack) {
-            Text("Volumen del Video Original: ${(track.volume * 100).toInt()}%", color = Color.White, fontSize = 12.sp)
+            Text("Volumen del Video Original: ${(track.volume * 100).toInt()}%", color = PanalinkPalette.textPrimary, fontSize = 12.sp)
             Slider(
                 value = track.volume,
                 onValueChange = { onUpdateTrack(track.copy(volume = it)) },

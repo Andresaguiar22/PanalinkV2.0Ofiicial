@@ -89,6 +89,7 @@ import java.text.SimpleDateFormat
 import java.util.*
 
 import com.example.ui.viewmodel.NotificationsViewModel
+import com.example.ui.theme.PanalinkPalette
 
 @OptIn(ExperimentalMaterial3Api::class)
 
@@ -130,7 +131,7 @@ fun ContactsTabContent(
                     .padding(40.dp),
                 contentAlignment = Alignment.Center
             ) {
-                CircularProgressIndicator(color = Color.White)
+                CircularProgressIndicator(color = PanalinkPalette.textPrimary)
             }
         }
         is ContactsUiState.Success -> {
@@ -155,7 +156,7 @@ fun ContactsTabContent(
                         item {
                             Text(
                                 text = "Solicitudes pendientes (${requests.size})",
-                                color = Color.White,
+                                color = PanalinkPalette.textPrimary,
                                 fontSize = 12.sp,
                                 fontWeight = FontWeight.Bold,
                                 modifier = Modifier.padding(16.dp, 8.dp)
@@ -177,7 +178,7 @@ fun ContactsTabContent(
                         item {
                             Text(
                                 text = "Mis solicitudes (${sentRequests.size})",
-                                color = Color.White,
+                                color = PanalinkPalette.textPrimary,
                                 fontSize = 12.sp,
                                 fontWeight = FontWeight.Bold,
                                 modifier = Modifier.padding(16.dp, 8.dp)
@@ -201,7 +202,7 @@ fun ContactsTabContent(
                                 Column(modifier = Modifier.weight(1f)) {
                                     Text(
                                         text = request.receiver?.displayName ?: "Pana",
-                                        color = Color.White
+                                        color = PanalinkPalette.textPrimary
                                     )
                                     Text(
                                         text = "Esperando respuesta",
@@ -262,10 +263,10 @@ fun ContactsTabContent(
                                     verticalAlignment = Alignment.CenterVertically,
                                     horizontalArrangement = Arrangement.spacedBy(8.dp)
                                 ) {
-                                    Icon(Icons.Default.Email, contentDescription = null, tint = Color.White)
+                                    Icon(Icons.Default.Email, contentDescription = null, tint = PanalinkPalette.textPrimary)
                                     Text(
                                         text = "Selecciona un pana para chatear 💬",
-                                        color = Color.White,
+                                        color = PanalinkPalette.textPrimary,
                                         fontWeight = FontWeight.Bold,
                                         fontSize = 14.sp
                                     )
@@ -276,7 +277,7 @@ fun ContactsTabContent(
                     item {
                         Text(
                             text = if (isSelectingContactOnly) "Seleccionar Contacto" else "Tus Panas Agregados (${contacts.size})",
-                            color = Color.White,
+                            color = PanalinkPalette.textPrimary,
                             fontSize = 12.sp,
                             fontWeight = FontWeight.Bold,
                             modifier = Modifier.padding(start = 16.dp, top = if (isSelectingContactOnly) 4.dp else 16.dp, bottom = 8.dp)
@@ -322,7 +323,7 @@ fun ContactsTabContent(
                             Column(modifier = Modifier.weight(1f)) {
                                 Text(
                                     text = contact.displayName,
-                                    color = Color.White,
+                                    color = PanalinkPalette.textPrimary,
                                     fontWeight = FontWeight.Bold,
                                     fontSize = 16.sp
                                 )
@@ -465,7 +466,7 @@ private fun AddPanaHeroCard(
         ) {
             Text(
                 text = "Agregar un Pana 🤝",
-                color = Color.White,
+                color = PanalinkPalette.textPrimary,
                 fontWeight = FontWeight.Bold,
                 fontSize = 17.sp
             )
@@ -538,7 +539,7 @@ private fun AddPanaHeroCard(
                             Row(verticalAlignment = Alignment.CenterVertically) {
                                 Text(
                                     text = myPin.chunked(3).joinToString(" "),
-                                    color = Color.White,
+                                    color = PanalinkPalette.textPrimary,
                                     fontSize = 26.sp,
                                     fontWeight = FontWeight.Bold,
                                     letterSpacing = 2.sp
@@ -609,7 +610,7 @@ private fun AddPanaHeroCard(
                         modifier = Modifier.size(18.dp)
                     )
                     Spacer(Modifier.width(6.dp))
-                    Text("Ingresar PIN", color = Color.White, fontWeight = FontWeight.Bold, fontSize = 14.sp)
+                    Text("Ingresar PIN", color = PanalinkPalette.textPrimary, fontWeight = FontWeight.Bold, fontSize = 14.sp)
                 }
             }
         }

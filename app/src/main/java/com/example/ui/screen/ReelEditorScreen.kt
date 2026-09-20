@@ -80,6 +80,7 @@ import com.example.creative.animation.CreativeKeyframe
 import com.example.creative.animation.EasingType
 import com.example.creative.export.ExportQueueManager
 import com.example.creative.export.ExportJob
+import com.example.ui.theme.PanalinkPalette
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -411,7 +412,7 @@ fun ReelEditorScreen(
                     ) {
                         Text(
                             text = "Estudio de Reels 🎬🇻🇪",
-                            color = Color.White,
+                            color = PanalinkPalette.textPrimary,
                             fontSize = 28.sp,
                             fontWeight = FontWeight.ExtraBold,
                             textAlign = TextAlign.Center
@@ -452,7 +453,7 @@ fun ReelEditorScreen(
                                     modifier = Modifier.size(48.dp)
                                 )
                                 Spacer(modifier = Modifier.height(12.dp))
-                                Text("Grabar en Estudio 🎙️", color = Color.White, fontWeight = FontWeight.Bold, fontSize = 16.sp)
+                                Text("Grabar en Estudio 🎙️", color = PanalinkPalette.textPrimary, fontWeight = FontWeight.Bold, fontSize = 16.sp)
                                 Text("Abre la cámara de producción con conteo de tiempo", color = Color.Gray, fontSize = 11.sp)
                             }
                         }
@@ -485,7 +486,7 @@ fun ReelEditorScreen(
                                     modifier = Modifier.size(48.dp)
                                 )
                                 Spacer(modifier = Modifier.height(12.dp))
-                                Text("Subir Video o Imagen 🎞️", color = Color.White, fontWeight = FontWeight.Bold, fontSize = 16.sp)
+                                Text("Subir Video o Imagen 🎞️", color = PanalinkPalette.textPrimary, fontWeight = FontWeight.Bold, fontSize = 16.sp)
                                 Text("Las imágenes se animan automáticamente con efecto Ken Burns", color = Color.Gray, fontSize =  11.sp)
                             }
                         }
@@ -518,7 +519,7 @@ fun ReelEditorScreen(
                                     modifier = Modifier.size(48.dp)
                                 )
                                 Spacer(modifier = Modifier.height(12.dp))
-                                Text("Pegar URL de Video 🌐", color = Color.White, fontWeight = FontWeight.Bold, fontSize =  16.sp)
+                                Text("Pegar URL de Video 🌐", color = PanalinkPalette.textPrimary, fontWeight = FontWeight.Bold, fontSize =  16.sp)
                                 Text("Importa TikTok, Instagram, YouTube y más sin marca de agua", color = Color.Gray, fontSize =  11.sp)
                             }
                         }
@@ -720,23 +721,23 @@ fun ReelEditorScreen(
                             IconButton(
                                 onClick = { currentStep = "picker" },
                                 modifier = Modifier.background(Color.Black.copy(alpha = 0.5f), CircleShape)
-                            ) { Icon(Icons.AutoMirrored.Default.ArrowBack, contentDescription = null, tint = Color.White) }
+                            ) { Icon(Icons.AutoMirrored.Default.ArrowBack, contentDescription = null, tint = PanalinkPalette.textPrimary) }
 
                             Row(horizontalArrangement = Arrangement.spacedBy(12.dp)) {
                                 IconButton(
                                     onClick = { showTextEditor = true },
                                     modifier = Modifier.background(Color.Black.copy(alpha = 0.5f), CircleShape)
-                                ) { Icon(Icons.Default.TextFields, contentDescription = "Texto", tint = Color.White) }
+                                ) { Icon(Icons.Default.TextFields, contentDescription = "Texto", tint = PanalinkPalette.textPrimary) }
                                 
                                 IconButton(
                                     onClick = { showStickers = true },
                                     modifier = Modifier.background(Color.Black.copy(alpha = 0.5f), CircleShape)
-                                ) { Icon(Icons.Default.EmojiEmotions, contentDescription = "Stickers", tint = Color.White) }
+                                ) { Icon(Icons.Default.EmojiEmotions, contentDescription = "Stickers", tint = PanalinkPalette.textPrimary) }
 
                                 IconButton(
                                     onClick = { showFilters = !showFilters; showAudioPro = false; showTransitions = false },
                                     modifier = Modifier.background(Color.Black.copy(alpha = 0.5f), CircleShape)
-                                ) { Icon(Icons.Default.AutoAwesome, contentDescription = "Filtros", tint = Color.White) }
+                                ) { Icon(Icons.Default.AutoAwesome, contentDescription = "Filtros", tint = PanalinkPalette.textPrimary) }
 
                 IconButton(
                                     onClick = {
@@ -812,12 +813,12 @@ fun ReelEditorScreen(
                             IconButton(
                                 onClick = { showAudioPro = !showAudioPro; showFilters = false; showTransitions = false },
                                 modifier = Modifier.background(Color.Black.copy(alpha = 0.5f), CircleShape)
-                            ) { Icon(Icons.Default.MusicNote, contentDescription = "Audio Pro", tint = Color.White) }
+                            ) { Icon(Icons.Default.MusicNote, contentDescription = "Audio Pro", tint = PanalinkPalette.textPrimary) }
                             
                             IconButton(
                                 onClick = { showTransitions = !showTransitions; showFilters = false; showAudioPro = false },
                                 modifier = Modifier.background(Color.Black.copy(alpha = 0.5f), CircleShape)
-                            ) { Icon(Icons.Default.Animation, contentDescription = "Transiciones", tint = Color.White) }
+                            ) { Icon(Icons.Default.Animation, contentDescription = "Transiciones", tint = PanalinkPalette.textPrimary) }
                         }
 
                         // Render Button
@@ -873,7 +874,7 @@ fun ReelEditorScreen(
                                             OutlinedButton(
                                                 onClick = { tempFont = f },
                                                 border = BorderStroke(1.dp, if(tempFont == f) Color(0xFF00FF85) else Color.Gray)
-                                            ) { Text(f, color = Color.White) }
+                                            ) { Text(f, color = PanalinkPalette.textPrimary) }
                                         }
                                     }
                                     LazyRow(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
@@ -923,7 +924,7 @@ fun ReelEditorScreen(
                                     shape = RoundedCornerShape(topStart = 24.dp, topEnd = 24.dp)
                                 ) {
                                     Column(modifier = Modifier.padding(16.dp)) {
-                                        Text("Stickers Giphy (API)", color = Color.White, fontWeight = FontWeight.Bold)
+                                        Text("Stickers Giphy (API)", color = PanalinkPalette.textPrimary, fontWeight = FontWeight.Bold)
                                         Spacer(modifier = Modifier.height(16.dp))
                                         LazyRow(horizontalArrangement = Arrangement.spacedBy(16.dp)) {
                                             val urls = listOf(
@@ -1027,7 +1028,7 @@ fun ReelEditorScreen(
                                         Column(horizontalAlignment = Alignment.CenterHorizontally, modifier = Modifier.clickable { activeFilter = f }) {
                                             Box(modifier = Modifier.size(60.dp).clip(CircleShape).background(Color.DarkGray).border(2.dp, if(activeFilter==f) Color(0xFF00FF85) else Color.Transparent, CircleShape))
                                             Spacer(modifier = Modifier.height(4.dp))
-                                            Text(f, color = Color.White, fontSize = 12.sp)
+                                            Text(f, color = PanalinkPalette.textPrimary, fontSize = 12.sp)
                                         }
                                     }
                                 }
@@ -1054,7 +1055,7 @@ fun ReelEditorScreen(
                             ) {
                                 Column(modifier = Modifier.padding(16.dp).navigationBarsPadding()) {
                                     Row(horizontalArrangement = Arrangement.SpaceBetween, modifier = Modifier.fillMaxWidth()) {
-                                        Text("Edición de Audio Pro 🎙️", color = Color.White, fontWeight = FontWeight.Bold)
+                                        Text("Edición de Audio Pro 🎙️", color = PanalinkPalette.textPrimary, fontWeight = FontWeight.Bold)
                                         Icon(Icons.Default.Close, contentDescription = null, tint = Color.Gray, modifier = Modifier.clickable { showAudioPro = false })
                                     }
                                     Spacer(modifier = Modifier.height(16.dp))
@@ -1082,7 +1083,7 @@ fun ReelEditorScreen(
                                     Spacer(modifier = Modifier.height(16.dp))
                                     Text("Mezclador (Mixer)", color = Color.Gray, fontSize = 12.sp)
                                     Row(verticalAlignment = Alignment.CenterVertically) {
-                                        Icon(Icons.Default.Mic, contentDescription = null, tint = Color.White, modifier = Modifier.size(16.dp))
+                                        Icon(Icons.Default.Mic, contentDescription = null, tint = PanalinkPalette.textPrimary, modifier = Modifier.size(16.dp))
                                         Slider(value = originalVideoVolume, onValueChange = { originalVideoVolume = it }, valueRange = 0f..100f, modifier = Modifier.weight(1f).padding(horizontal = 8.dp), colors = SliderDefaults.colors(activeTrackColor = Color.White))
                                         Icon(Icons.Default.MusicNote, contentDescription = null, tint = Color(0xFF00FF85), modifier = Modifier.size(16.dp))
                                     }
@@ -1099,7 +1100,7 @@ fun ReelEditorScreen(
                             ) {
                                 Column(modifier = Modifier.padding(16.dp).navigationBarsPadding()) {
                                     Row(horizontalArrangement = Arrangement.SpaceBetween, modifier = Modifier.fillMaxWidth()) {
-                                        Text("Ajustes Técnicos", color = Color.White, fontWeight = FontWeight.Bold)
+                                        Text("Ajustes Técnicos", color = PanalinkPalette.textPrimary, fontWeight = FontWeight.Bold)
                                         Icon(Icons.Default.Close, contentDescription = null, tint = Color.Gray, modifier = Modifier.clickable { showAdjustments = false })
                                     }
                                     Text("Brillo", color = Color.Gray, fontSize = 12.sp)
@@ -1207,7 +1208,7 @@ fun ReelEditorScreen(
                                 Column(horizontalAlignment = Alignment.CenterHorizontally, modifier = Modifier.padding(32.dp)) {
                                     CircularProgressIndicator(progress = { renderProgress }, color = Color(0xFF00FF85), modifier = Modifier.size(64.dp))
                                     Spacer(modifier = Modifier.height(24.dp))
-                                    Text("Procesando edición...", color = Color.White, fontWeight = FontWeight.Bold, fontSize = 20.sp)
+                                    Text("Procesando edición...", color = PanalinkPalette.textPrimary, fontWeight = FontWeight.Bold, fontSize = 20.sp)
                                     Spacer(modifier = Modifier.height(8.dp))
                                     Text("Motor FFmpeg combinando capas, audio y efectos cinemáticos", color = Color.Gray, fontSize = 12.sp, textAlign = TextAlign.Center)
                                     Spacer(modifier = Modifier.height(16.dp))
@@ -1231,15 +1232,15 @@ fun ReelEditorScreen(
                             verticalAlignment = Alignment.CenterVertically
                         ) {
                             IconButton(onClick = { currentStep = "studio" }) {
-                                Icon(Icons.AutoMirrored.Filled.ArrowBack, contentDescription = null, tint = Color.White)
+                                Icon(Icons.AutoMirrored.Filled.ArrowBack, contentDescription = null, tint = PanalinkPalette.textPrimary)
                             }
                             Spacer(modifier = Modifier.width(16.dp))
-                            Text("Ajustes de Publicación 🌍", color = Color.White, fontSize = 20.sp, fontWeight = FontWeight.Bold)
+                            Text("Ajustes de Publicación 🌍", color = PanalinkPalette.textPrimary, fontSize = 20.sp, fontWeight = FontWeight.Bold)
                         }
 
                         // Reel Description (Mandatory)
                         Row(verticalAlignment = Alignment.CenterVertically) {
-                            Text("Descripción del Reel", color = Color.White, fontWeight = FontWeight.Bold)
+                            Text("Descripción del Reel", color = PanalinkPalette.textPrimary, fontWeight = FontWeight.Bold)
                             Text(" *Obligatorio", color = Color.Red, fontSize = 11.sp, modifier = Modifier.padding(start = 8.dp))
                         }
                         OutlinedTextField(
@@ -1257,7 +1258,7 @@ fun ReelEditorScreen(
 
                         // Hashtags input (Mandatory: Min 1)
                         Row(verticalAlignment = Alignment.CenterVertically) {
-                            Text("Hashtags", color = Color.White, fontWeight = FontWeight.Bold)
+                            Text("Hashtags", color = PanalinkPalette.textPrimary, fontWeight = FontWeight.Bold)
                             Text(" *Obligatorio (mínimo 1)", color = Color.Red, fontSize = 11.sp, modifier = Modifier.padding(start = 8.dp))
                         }
                         OutlinedTextField(
@@ -1274,7 +1275,7 @@ fun ReelEditorScreen(
                         )
 
                         // Selector de Tipo: Reel vs Historia
-                        Text("¿Dónde publicar?", color = Color.White, fontWeight = FontWeight.Bold)
+                        Text("¿Dónde publicar?", color = PanalinkPalette.textPrimary, fontWeight = FontWeight.Bold)
                         Row(
                             modifier = Modifier.fillMaxWidth(),
                             horizontalArrangement = Arrangement.spacedBy(12.dp)
@@ -1336,7 +1337,7 @@ fun ReelEditorScreen(
                                 verticalAlignment = Alignment.CenterVertically
                             ) {
                                 Column(modifier = Modifier.weight(1f)) {
-                                    Text("Programar Publicación 📆", color = Color.White, fontWeight = FontWeight.Bold, fontSize = 14.sp)
+                                    Text("Programar Publicación 📆", color = PanalinkPalette.textPrimary, fontWeight = FontWeight.Bold, fontSize = 14.sp)
                                     Text(
                                         text = if (scheduledDateTimeString.isEmpty()) "Publicación inmediata" else "Programado para: $scheduledDateTimeString",
                                         color = if (scheduledDateTimeString.isEmpty()) Color.Gray else Color(0xFF00FF85),
@@ -1348,7 +1349,7 @@ fun ReelEditorScreen(
                                     colors = ButtonDefaults.buttonColors(containerColor = Color.White.copy(alpha = 0.1f)),
                                     contentPadding = PaddingValues(horizontal = 12.dp, vertical = 6.dp)
                                 ) {
-                                    Text(if (scheduledDateTimeString.isEmpty()) "Definir" else "Cambiar", color = Color.White, fontSize = 12.sp)
+                                    Text(if (scheduledDateTimeString.isEmpty()) "Definir" else "Cambiar", color = PanalinkPalette.textPrimary, fontSize = 12.sp)
                                 }
                             }
                         }
@@ -1404,7 +1405,7 @@ fun ReelEditorScreen(
                             verticalArrangement = Arrangement.spacedBy(16.dp),
                             horizontalAlignment = Alignment.CenterHorizontally
                         ) {
-                            Text("Programar Hora 🕒", color = Color.White, fontWeight = FontWeight.Bold, fontSize = 18.sp)
+                            Text("Programar Hora 🕒", color = PanalinkPalette.textPrimary, fontWeight = FontWeight.Bold, fontSize = 18.sp)
                             
                             val options = listOf("Hoy a las 6:00 PM", "Hoy a las 9:00 PM", "Mañana a las 9:00 AM", "Mañana a las 3:00 PM")
                             options.forEach { opt ->
@@ -1420,7 +1421,7 @@ fun ReelEditorScreen(
                                         .padding(12.dp),
                                     contentAlignment = Alignment.Center
                                 ) {
-                                    Text(opt, color = Color.White, fontSize = 13.sp)
+                                    Text(opt, color = PanalinkPalette.textPrimary, fontSize = 13.sp)
                                 }
                             }
 
@@ -1460,7 +1461,7 @@ fun ReelEditorScreen(
                             ) {
                                 Icon(Icons.Default.Public, contentDescription = null, tint = Color.Black, modifier = Modifier.size(28.dp))
                             }
-                            Text("Importar Vídeo 🌐", color = Color.White, fontWeight = FontWeight.Bold, fontSize = 18.sp)
+                            Text("Importar Vídeo 🌐", color = PanalinkPalette.textPrimary, fontWeight = FontWeight.Bold, fontSize = 18.sp)
                             Text(
                                 "Pega el enlace del vídeo que quieres publicar. Lo importaremos limpio (sin la marca de la app de origen).",
                                 color = Color.Gray, fontSize =  12.sp, textAlign = TextAlign.Center
@@ -1557,7 +1558,7 @@ fun ReelEditorScreen(
                             ) {
                                 Icon(Icons.Default.Drafts, contentDescription = null, tint = Color.Black, modifier = Modifier.size(32.dp))
                             }
-                            Text("Borrador Guardado 📝", color = Color.White, fontWeight = FontWeight.Bold, fontSize = 18.sp)
+                            Text("Borrador Guardado 📝", color = PanalinkPalette.textPrimary, fontWeight = FontWeight.Bold, fontSize = 18.sp)
                             Text("Tu borrador se ha guardado localmente en tu dispositivo.", color = Color.Gray, fontSize = 12.sp, textAlign = TextAlign.Center)
                             Button(
                                 onClick = {

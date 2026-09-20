@@ -31,6 +31,7 @@ import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 import com.example.identity.model.AvatarDownloadResult
 import com.example.identity.model.toIdentityUiState
+import com.example.ui.theme.PanalinkPalette
 
 @Composable
 fun PanaAvatar(
@@ -194,7 +195,7 @@ private fun InitialsAvatar(
     ) {
         Text(
             text = initials,
-            color = Color.White,
+            color = PanalinkPalette.textPrimary,
             fontWeight = FontWeight.Bold,
             fontSize = (size.value * 0.42f).sp,
             maxLines = 1

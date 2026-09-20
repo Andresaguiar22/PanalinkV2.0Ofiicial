@@ -129,6 +129,7 @@ import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.collect
 import kotlinx.coroutines.flow.distinctUntilChanged
 import kotlinx.coroutines.launch
+import com.example.ui.theme.PanalinkPalette
 
 private const val MIN_REEL_SCALE = 1f
 private const val MAX_REEL_SCALE = 4f
@@ -312,7 +313,7 @@ fun ReelsFeedScreen(
 
     if (filteredReels.isEmpty()) {
         Box(modifier = Modifier.fillMaxSize().background(Color.Black), contentAlignment = Alignment.Center) {
-            Text("Sin reels todavía", color = Color.White)
+            Text("Sin reels todavía", color = PanalinkPalette.textPrimary)
         }
         return
     }
@@ -507,17 +508,17 @@ fun ReelsFeedScreen(
                 verticalAlignment = Alignment.CenterVertically
             ) {
                 IconButton(onClick = onBack, modifier = Modifier.size(36.dp)) {
-                    Icon(Icons.Default.ArrowBack, "Volver", tint = Color.White)
+                    Icon(Icons.Default.ArrowBack, "Volver", tint = PanalinkPalette.textPrimary)
                 }
                 IconButton(
                     onClick = onSearchReels,
                     modifier = Modifier.size(34.dp)
                 ) {
-                    Icon(Icons.Default.Search, "Buscar", tint = Color.White)
+                    Icon(Icons.Default.Search, "Buscar", tint = PanalinkPalette.textPrimary)
                 }
                 Text(
                     "Reels",
-                    color = Color.White,
+                    color = PanalinkPalette.textPrimary,
                     fontWeight = FontWeight.Bold,
                     style = MaterialTheme.typography.titleSmall,
                     modifier = Modifier.padding(end = 2.dp)
@@ -552,7 +553,7 @@ fun ReelsFeedScreen(
                         ) {
                             Text(
                                 option.label,
-                                color = Color.White,
+                                color = PanalinkPalette.textPrimary,
                                 fontSize = 12.sp,
                                 fontWeight = if (selected) FontWeight.Bold else FontWeight.Medium,
                                 maxLines = 1,
@@ -572,7 +573,7 @@ fun ReelsFeedScreen(
                     },
                     modifier = Modifier.size(34.dp)
                 ) {
-                    Icon(Icons.Default.Refresh, "Actualizar reels", tint = Color.White)
+                    Icon(Icons.Default.Refresh, "Actualizar reels", tint = PanalinkPalette.textPrimary)
                 }
             }
         }
@@ -724,7 +725,7 @@ private fun ReelFeedOverlay(
                     Icon(
                         if (paused) Icons.Filled.PlayArrow else Icons.Filled.Pause,
                         "ReproducciГіn",
-                        tint = Color.White,
+                        tint = PanalinkPalette.textPrimary,
                         modifier = Modifier.size(30.dp)
                     )
                 }
@@ -781,7 +782,7 @@ private fun ReelFeedOverlay(
                         Icon(
                             if (isFollowing) Icons.Filled.Check else Icons.Filled.Add,
                             contentDescription = if (isFollowing) "Dejar de seguir" else "Seguir",
-                            tint = Color.White,
+                            tint = PanalinkPalette.textPrimary,
                             modifier = Modifier.size(13.dp)
                         )
                     }
@@ -833,7 +834,7 @@ private fun ReelFeedOverlay(
                     DropdownMenuItem(text = { Text("No me interesa") }, onClick = { menuExpanded = false; onNotInterested() })
                     DropdownMenuItem(text = { Text("Ver perfil") }, onClick = { menuExpanded = false; onProfile() })
                     if (isOwner) {
-                        HorizontalDivider(color = Color.White.copy(alpha = 0.14f))
+                        HorizontalDivider(color = PanalinkPalette.textPrimary.copy(alpha = 0.14f))
                         DropdownMenuItem(
                             text = { Text("Eliminar vídeo", color = Color(0xFFFF5252)) },
                             onClick = { menuExpanded = false; onDelete() },
@@ -864,7 +865,7 @@ private fun ReelFeedOverlay(
                 Spacer(Modifier.width(9.dp))
                 Text(
                     profile.displayName?.ifBlank { "pana" } ?: "pana",
-                    color = Color.White,
+                    color = PanalinkPalette.textPrimary,
                     style = MaterialTheme.typography.titleMedium,
                     fontWeight = FontWeight.SemiBold,
                     maxLines = 1,
@@ -875,7 +876,7 @@ private fun ReelFeedOverlay(
                     Spacer(Modifier.width(8.dp))
                     Text(
                         if (isFollowing) "Siguiendo" else "Seguir",
-                        color = Color.White,
+                        color = PanalinkPalette.textPrimary,
                         fontWeight = FontWeight.Bold,
                         style = MaterialTheme.typography.labelMedium,
                         modifier = Modifier
@@ -914,7 +915,7 @@ private fun ReelFeedOverlay(
                 ) {
                     Text(
                         cleanCaption,
-                        color = Color.White,
+                        color = PanalinkPalette.textPrimary,
                         fontSize = 14.sp,
                         lineHeight = 17.sp,
                         maxLines = if (expanded) Int.MAX_VALUE else 2,
@@ -1014,8 +1015,8 @@ private fun ReelProgressBar(
 
     Column(modifier = modifier, verticalArrangement = Arrangement.spacedBy(2.dp)) {
         Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween) {
-            Text(formatTimeV2(shownPosition), color = Color.White, style = MaterialTheme.typography.labelSmall)
-            Text(formatTimeV2(durationMs), color = Color.White.copy(alpha = 0.72f), style = MaterialTheme.typography.labelSmall)
+            Text(formatTimeV2(shownPosition), color = PanalinkPalette.textPrimary, style = MaterialTheme.typography.labelSmall)
+            Text(formatTimeV2(durationMs), color = PanalinkPalette.textPrimary.copy(alpha = 0.72f), style = MaterialTheme.typography.labelSmall)
         }
         Box(
             modifier = Modifier
@@ -1095,7 +1096,7 @@ private fun ReelActionButtonV2(
         if (!count.isNullOrBlank()) {
             Text(
                 count,
-                color = Color.White,
+                color = PanalinkPalette.textPrimary,
                 fontSize = 12.sp,
                 fontWeight = FontWeight.SemiBold,
                 style = TextStyle(
@@ -1210,16 +1211,16 @@ private fun ReelsCommentsSheetV2(
                     ) {
                         Text(
                             text = "Comentarios (${comments.size})",
-                            color = Color.White,
+                            color = PanalinkPalette.textPrimary,
                             fontWeight = FontWeight.Bold,
                             fontSize = 16.sp
                         )
                         IconButton(onClick = onDismiss) {
-                            Icon(Icons.Filled.Close, contentDescription = "Cerrar", tint = Color.White)
+                            Icon(Icons.Filled.Close, contentDescription = "Cerrar", tint = PanalinkPalette.textPrimary)
                         }
                     }
 
-                    HorizontalDivider(color = Color.White.copy(alpha = 0.1f))
+                    HorizontalDivider(color = PanalinkPalette.textPrimary.copy(alpha = 0.1f))
 
                     // Scrollable comment list (threaded replies inline).
                     LazyColumn(
@@ -1240,7 +1241,7 @@ private fun ReelsCommentsSheetV2(
                                 if (isReply) {
                                     Text(
                                         text = "в””в”Җ ",
-                                        color = Color.White.copy(alpha = 0.3f),
+                                        color = PanalinkPalette.textPrimary.copy(alpha = 0.3f),
                                         fontSize = 14.sp,
                                         modifier = Modifier.padding(end = 4.dp, top = 2.dp)
                                     )
@@ -1263,7 +1264,7 @@ private fun ReelsCommentsSheetV2(
                                         Text(
                                             text = if (comment.deletedAt != null) "Eliminado"
                                                 else PublicProfileResolver.formatForUi(comment.authorName, "Pana"),
-                                            color = Color.White.copy(alpha = 0.9f),
+                                            color = PanalinkPalette.textPrimary.copy(alpha = 0.9f),
                                             fontWeight = FontWeight.Bold,
                                             fontSize = if (isReply) 12.sp else 13.sp,
                                             modifier = Modifier.clickable { }
@@ -1287,7 +1288,7 @@ private fun ReelsCommentsSheetV2(
                                         }
                                         Text(
                                             text = timeStr,
-                                            color = Color.White.copy(alpha = 0.5f),
+                                            color = PanalinkPalette.textPrimary.copy(alpha = 0.5f),
                                             fontSize = 11.sp
                                         )
                                         if (comment.deletedAt == null) {
@@ -1318,7 +1319,7 @@ private fun ReelsCommentsSheetV2(
                                     )
                                     if (comment.deletedAt != null) {
                                         IconButton(onClick = { viewModel.deleteComment(reelId, comment.id) }) {
-                                            Icon(Icons.Filled.Delete, contentDescription = "Eliminar", tint = Color.White.copy(alpha = 0.5f))
+                                            Icon(Icons.Filled.Delete, contentDescription = "Eliminar", tint = PanalinkPalette.textPrimary.copy(alpha = 0.5f))
                                         }
                                     }
                                 }
@@ -1326,7 +1327,7 @@ private fun ReelsCommentsSheetV2(
                         }
                     }
 
-                    HorizontalDivider(color = Color.White.copy(alpha = 0.1f))
+                    HorizontalDivider(color = PanalinkPalette.textPrimary.copy(alpha = 0.1f))
 
                     // Replying banner
                     val currentReplyingTo = replyingTo
@@ -1377,7 +1378,7 @@ private fun ReelsCommentsSheetV2(
                             modifier = Modifier
                                 .weight(1f)
                                 .focusRequester(focusRequester),
-                            textStyle = TextStyle(color = Color.White, fontSize = 14.sp),
+                            textStyle = TextStyle(color = PanalinkPalette.textPrimary, fontSize = 14.sp),
                             maxLines = 2,
                             colors = OutlinedTextFieldDefaults.colors(
                                 focusedTextColor = Color.White,

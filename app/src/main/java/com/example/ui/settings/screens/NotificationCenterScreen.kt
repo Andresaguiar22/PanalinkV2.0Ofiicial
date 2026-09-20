@@ -51,6 +51,7 @@ import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.lifecycle.viewmodel.compose.viewModel
 import com.example.feature.settings.model.NotificationAction
 import com.example.ui.settings.viewmodel.NotificationSettingsViewModel
+import com.example.ui.theme.PanalinkPalette
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -83,10 +84,10 @@ fun NotificationCenterScreen(
     Scaffold(
         topBar = {
             TopAppBar(
-                title = { Text("Notificaciones de Pana", color = Color.White) },
+                title = { Text("Notificaciones de Pana", color = PanalinkPalette.textPrimary) },
                 navigationIcon = {
                     IconButton(onClick = onBack) {
-                        Icon(Icons.AutoMirrored.Filled.ArrowBack, contentDescription = "Regresar", tint = Color.White)
+                        Icon(Icons.AutoMirrored.Filled.ArrowBack, contentDescription = "Regresar", tint = PanalinkPalette.textPrimary)
                     }
                 },
                 colors = TopAppBarDefaults.topAppBarColors(containerColor = Color(0xFF121B22))
@@ -146,7 +147,7 @@ fun NotificationCenterScreen(
                                     Spacer(modifier = Modifier.height(6.dp))
                                     Text(
                                         text = "El sistema Android requiere tu permiso expreso para poder mostrarte alertas sonoras y visuales cuando recibes nuevos mensajes de Pana.",
-                                        color = Color.White.copy(alpha = 0.8f),
+                                        color = PanalinkPalette.textPrimary.copy(alpha = 0.8f),
                                         fontSize = 11.sp
                                     )
                                     Spacer(modifier = Modifier.height(10.dp))
@@ -159,7 +160,7 @@ fun NotificationCenterScreen(
                                         shape = RoundedCornerShape(6.dp),
                                         contentPadding = PaddingValues(vertical = 8.dp)
                                     ) {
-                                        Text("Activar Notificaciones 🔔", color = Color.White, fontWeight = FontWeight.Bold, fontSize = 12.sp)
+                                        Text("Activar Notificaciones 🔔", color = PanalinkPalette.textPrimary, fontWeight = FontWeight.Bold, fontSize = 12.sp)
                                     }
                                 }
                             }
@@ -175,7 +176,7 @@ fun NotificationCenterScreen(
                             Column(modifier = Modifier.weight(1f)) {
                                 Text(
                                     text = "Notificaciones Generales",
-                                    color = Color.White,
+                                    color = PanalinkPalette.textPrimary,
                                     fontWeight = FontWeight.SemiBold,
                                     fontSize = 14.sp
                                 )
@@ -225,7 +226,7 @@ fun NotificationCenterScreen(
                                 Column(modifier = Modifier.weight(1f)) {
                                     Text(
                                         text = "Sonido de Notificación",
-                                        color = Color.White,
+                                        color = PanalinkPalette.textPrimary,
                                         fontWeight = FontWeight.SemiBold,
                                         fontSize = 14.sp
                                     )
@@ -327,7 +328,7 @@ fun NotificationCenterScreen(
                                 Column(modifier = Modifier.weight(1f)) {
                                     Text(
                                         text = "Vibración de Alerta",
-                                        color = Color.White,
+                                        color = PanalinkPalette.textPrimary,
                                         fontWeight = FontWeight.SemiBold,
                                         fontSize = 14.sp
                                     )
@@ -441,7 +442,7 @@ fun NotificationCenterScreen(
                                 Column(modifier = Modifier.weight(1f)) {
                                     Text(
                                         text = "Sonidos en el Chat",
-                                        color = Color.White,
+                                        color = PanalinkPalette.textPrimary,
                                         fontWeight = FontWeight.SemiBold,
                                         fontSize = 14.sp
                                     )
@@ -538,7 +539,7 @@ fun NotificationCenterScreen(
                                 Column(modifier = Modifier.weight(1f)) {
                                     Text(
                                         text = "Sonido de Envío",
-                                        color = Color.White,
+                                        color = PanalinkPalette.textPrimary,
                                         fontWeight = FontWeight.SemiBold,
                                         fontSize = 14.sp
                                     )

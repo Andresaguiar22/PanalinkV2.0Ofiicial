@@ -17,6 +17,7 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.example.ui.viewmodel.onboarding.OnboardingUiState
 import com.example.ui.viewmodel.onboarding.OnboardingViewModel
+import com.example.ui.theme.PanalinkPalette
 
 @Composable
 fun FinalizingSetupScreen(
@@ -53,7 +54,7 @@ fun FinalizingSetupScreen(
                     Spacer(modifier = Modifier.height(24.dp))
                     Text(
                         text = "Preparando tu experiencia Panalink... 🚀",
-                        color = Color.White,
+                        color = PanalinkPalette.textPrimary,
                         fontSize = 18.sp,
                         fontWeight = FontWeight.Bold
                     )

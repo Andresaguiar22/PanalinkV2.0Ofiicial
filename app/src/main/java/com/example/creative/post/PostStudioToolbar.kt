@@ -19,6 +19,7 @@ import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import com.example.ui.theme.PanalinkPalette
 
 data class PostToolItem(
     val id: String,
@@ -85,7 +86,7 @@ fun PostStudioToolbar(
                     Spacer(modifier = Modifier.height(4.dp))
                     Text(
                         text = tool.name,
-                        color = Color.White,
+                        color = PanalinkPalette.textPrimary,
                         fontSize = 11.sp,
                         fontWeight = FontWeight.Medium
                     )

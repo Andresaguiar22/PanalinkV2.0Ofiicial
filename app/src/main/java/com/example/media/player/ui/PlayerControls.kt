@@ -11,6 +11,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.unit.dp
 import com.example.media.audio.RepeatMode
+import com.example.ui.theme.PanalinkPalette
 
 /**
  * P6.7.3 - Player Controls
@@ -45,7 +46,7 @@ fun PlayerControls(
             Icon(
                 Icons.Rounded.SkipPrevious,
                 contentDescription = "Previous",
-                tint = Color.White,
+                tint = PanalinkPalette.textPrimary,
                 modifier = Modifier.size(36.dp)
             )
         }
@@ -69,7 +70,7 @@ fun PlayerControls(
             Icon(
                 Icons.Rounded.SkipNext,
                 contentDescription = "Next",
-                tint = Color.White,
+                tint = PanalinkPalette.textPrimary,
                 modifier = Modifier.size(36.dp)
             )
         }

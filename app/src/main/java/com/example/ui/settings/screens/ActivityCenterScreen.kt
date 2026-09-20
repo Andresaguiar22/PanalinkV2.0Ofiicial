@@ -24,6 +24,7 @@ import androidx.lifecycle.viewmodel.compose.viewModel
 import com.example.feature.settings.model.ActivityAction
 import com.example.feature.settings.model.DeviceInfo
 import com.example.ui.settings.viewmodel.ActivityViewModel
+import com.example.ui.theme.PanalinkPalette
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -45,15 +46,15 @@ fun ActivityCenterScreen(
     Scaffold(
         topBar = {
             TopAppBar(
-                title = { Text("Centro de Actividad", color = Color.White) },
+                title = { Text("Centro de Actividad", color = PanalinkPalette.textPrimary) },
                 navigationIcon = {
                     IconButton(onClick = onBack) {
-                        Icon(Icons.AutoMirrored.Filled.ArrowBack, contentDescription = "Regresar", tint = Color.White)
+                        Icon(Icons.AutoMirrored.Filled.ArrowBack, contentDescription = "Regresar", tint = PanalinkPalette.textPrimary)
                     }
                 },
                 actions = {
                     IconButton(onClick = { viewModel.dispatch(ActivityAction.RefreshSummary) }) {
-                        Icon(Icons.Default.Refresh, contentDescription = "Actualizar", tint = Color.White)
+                        Icon(Icons.Default.Refresh, contentDescription = "Actualizar", tint = PanalinkPalette.textPrimary)
                     }
                 },
                 colors = TopAppBarDefaults.topAppBarColors(containerColor = Color(0xFF121B22))
@@ -72,7 +73,7 @@ fun ActivityCenterScreen(
                 verticalArrangement = Arrangement.spacedBy(16.dp)
             ) {
                 item {
-                    Text("Resumen de uso", color = Color.White, fontSize = 18.sp, fontWeight = FontWeight.Bold, modifier = Modifier.padding(bottom = 8.dp))
+                    Text("Resumen de uso", color = PanalinkPalette.textPrimary, fontSize = 18.sp, fontWeight = FontWeight.Bold, modifier = Modifier.padding(bottom = 8.dp))
                     Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(16.dp)) {
                         ActivityStatCard(Modifier.weight(1f), "Mensajes", uiState.messagesCount.toString(), Icons.Default.Chat, Color(0xFF03A9F4))
                         ActivityStatCard(Modifier.weight(1f), "Llamadas", uiState.callsCount.toString(), Icons.Default.Call, Color(0xFF4CAF50))
@@ -87,7 +88,7 @@ fun ActivityCenterScreen(
                 item {
                     Card(colors = CardDefaults.cardColors(containerColor = Color(0xFF1E2B33)), shape = RoundedCornerShape(16.dp), modifier = Modifier.fillMaxWidth()) {
                         Column(Modifier.padding(16.dp)) {
-                            Text("Diagnóstico del sistema", color = Color.White, fontSize = 16.sp, fontWeight = FontWeight.Bold)
+                            Text("Diagnóstico del sistema", color = PanalinkPalette.textPrimary, fontSize = 16.sp, fontWeight = FontWeight.Bold)
                             Spacer(Modifier.height(6.dp))
                             Text("Monitoriza procesos de Panalink y captura la línea de tiempo de Reels, VCDN, ExoPlayer, caché, red y errores directamente desde el teléfono.", color = Color(0xFF90A4AE), fontSize = 13.sp)
                             Spacer(Modifier.height(12.dp))
@@ -103,7 +104,7 @@ fun ActivityCenterScreen(
                 item {
                     Card(colors = CardDefaults.cardColors(containerColor = Color(0xFF1E2B33)), shape = RoundedCornerShape(16.dp), modifier = Modifier.fillMaxWidth()) {
                         Column(Modifier.padding(16.dp)) {
-                            Text("Desglose de Almacenamiento Local", color = Color.White, fontSize = 15.sp, fontWeight = FontWeight.Bold, modifier = Modifier.padding(bottom = 12.dp))
+                            Text("Desglose de Almacenamiento Local", color = PanalinkPalette.textPrimary, fontSize = 15.sp, fontWeight = FontWeight.Bold, modifier = Modifier.padding(bottom = 12.dp))
                             SystemStatusRow("Base de Datos (Room)", uiState.databaseSize, Icons.Default.Storage, Color(0xFF00E5FF))
                             Spacer(Modifier.height(12.dp))
                             SystemStatusRow("Caché y Multimedia", uiState.mediaSize, Icons.Default.Folder, Color(0xFFFFB300))
@@ -112,7 +113,7 @@ fun ActivityCenterScreen(
                 }
 
                 item {
-                    Text("Estado del sistema", color = Color.White, fontSize = 18.sp, fontWeight = FontWeight.Bold, modifier = Modifier.padding(bottom = 8.dp))
+                    Text("Estado del sistema", color = PanalinkPalette.textPrimary, fontSize = 18.sp, fontWeight = FontWeight.Bold, modifier = Modifier.padding(bottom = 8.dp))
                     Card(colors = CardDefaults.cardColors(containerColor = Color(0xFF1E2B33)), shape = RoundedCornerShape(16.dp), modifier = Modifier.fillMaxWidth()) {
                         Column(Modifier.padding(16.dp)) {
                             SystemStatusRow("Sincronización de chats", uiState.lastSynchronization, Icons.Default.CheckCircle, Color(0xFF4CAF50))
@@ -125,7 +126,7 @@ fun ActivityCenterScreen(
                 }
 
                 item {
-                    Text("Dispositivos activos", color = Color.White, fontSize = 18.sp, fontWeight = FontWeight.Bold, modifier = Modifier.padding(bottom = 8.dp))
+                    Text("Dispositivos activos", color = PanalinkPalette.textPrimary, fontSize = 18.sp, fontWeight = FontWeight.Bold, modifier = Modifier.padding(bottom = 8.dp))
                     Card(colors = CardDefaults.cardColors(containerColor = Color(0xFF1E2B33)), shape = RoundedCornerShape(16.dp), modifier = Modifier.fillMaxWidth()) {
                         Column(Modifier.padding(16.dp)) {
                             if (uiState.activeDevices.isEmpty()) {
@@ -157,7 +158,7 @@ fun ActivityStatCard(modifier: Modifier = Modifier, title: String, value: String
                 Icon(icon, contentDescription = null, tint = iconColor, modifier = Modifier.size(24.dp))
             }
             Spacer(Modifier.height(12.dp))
-            Text(value, color = Color.White, fontSize = 22.sp, fontWeight = FontWeight.Bold)
+            Text(value, color = PanalinkPalette.textPrimary, fontSize = 22.sp, fontWeight = FontWeight.Bold)
             Text(title, color = Color(0xFF90A4AE), fontSize = 13.sp)
         }
     }
@@ -169,7 +170,7 @@ fun SystemStatusRow(title: String, subtitle: String, icon: ImageVector, iconColo
         Icon(icon, contentDescription = null, tint = iconColor, modifier = Modifier.size(24.dp))
         Spacer(Modifier.width(16.dp))
         Column {
-            Text(title, color = Color.White, fontSize = 15.sp, fontWeight = FontWeight.Medium)
+            Text(title, color = PanalinkPalette.textPrimary, fontSize = 15.sp, fontWeight = FontWeight.Medium)
             Text(subtitle, color = Color(0xFF90A4AE), fontSize = 13.sp)
         }
     }
@@ -179,11 +180,11 @@ fun SystemStatusRow(title: String, subtitle: String, icon: ImageVector, iconColo
 fun DeviceRow(name: String, time: String, icon: ImageVector, isCurrent: Boolean) {
     Row(verticalAlignment = Alignment.CenterVertically) {
         Box(Modifier.size(44.dp).background(Color(0xFF2A3942), CircleShape), contentAlignment = Alignment.Center) {
-            Icon(icon, contentDescription = null, tint = Color.White, modifier = Modifier.size(22.dp))
+            Icon(icon, contentDescription = null, tint = PanalinkPalette.textPrimary, modifier = Modifier.size(22.dp))
         }
         Spacer(Modifier.width(16.dp))
         Column(Modifier.weight(1f)) {
-            Text(name, color = Color.White, fontSize = 15.sp, fontWeight = FontWeight.Medium)
+            Text(name, color = PanalinkPalette.textPrimary, fontSize = 15.sp, fontWeight = FontWeight.Medium)
             Row(verticalAlignment = Alignment.CenterVertically) {
                 if (isCurrent) {
                     Box(Modifier.size(8.dp).background(Color(0xFF4CAF50), CircleShape))

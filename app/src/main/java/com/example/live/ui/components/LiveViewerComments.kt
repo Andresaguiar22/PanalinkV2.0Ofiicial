@@ -34,6 +34,7 @@ import androidx.compose.ui.unit.sp
 import com.example.data.supabase.SupabaseClient
 import com.example.live.domain.model.LiveComment
 import com.example.ui.components.PanaAvatar
+import com.example.ui.theme.PanalinkPalette
 
 private val MENTION_REGEX = Regex("@[\\p{L}\\p{N}._]+")
 
@@ -187,7 +188,7 @@ private fun CommentRow(
                 }
                 Text(
                     text = highlightMentions(comment.text),
-                    color = Color.White,
+                    color = PanalinkPalette.textPrimary,
                     fontSize = 12.5.sp,
                     style = shadow
                 )
@@ -196,7 +197,7 @@ private fun CommentRow(
             if (canModerate) {
                 Text(
                     text = "⋮",
-                    color = Color.White.copy(alpha = 0.7f),
+                    color = PanalinkPalette.textPrimary.copy(alpha = 0.7f),
                     fontSize = 14.sp,
                     modifier = Modifier
                         .padding(start = 4.dp)
@@ -215,7 +216,7 @@ private fun CommentRow(
             containerColor = Color(0xFF1F2C34)
         ) {
             DropdownMenuItem(
-                text = { Text("Eliminar comentario", color = Color.White, fontSize = 14.sp) },
+                text = { Text("Eliminar comentario", color = PanalinkPalette.textPrimary, fontSize = 14.sp) },
                 onClick = onDelete
             )
             DropdownMenuItem(
@@ -249,7 +250,7 @@ private fun JoinEventRow(displayName: String, shadow: TextStyle) {
                 withStyle(SpanStyle(fontWeight = FontWeight.Bold, color = Color(0xFFB9F6CA))) {
                     append(displayName)
                 }
-                withStyle(SpanStyle(fontStyle = FontStyle.Italic, color = Color.White.copy(alpha = 0.9f))) {
+                withStyle(SpanStyle(fontStyle = FontStyle.Italic, color = PanalinkPalette.textPrimary.copy(alpha = 0.9f))) {
                     append(" se unió")
                 }
             },
@@ -265,7 +266,7 @@ private fun RoleBadge(text: String, color: Color) {
     Surface(shape = RoundedCornerShape(5.dp), color = color) {
         Text(
             text = text,
-            color = Color.White,
+            color = PanalinkPalette.textPrimary,
             fontSize = 8.sp,
             fontWeight = FontWeight.Bold,
             modifier = Modifier.padding(horizontal = 5.dp, vertical = 1.dp)

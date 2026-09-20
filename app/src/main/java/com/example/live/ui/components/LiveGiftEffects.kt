@@ -39,6 +39,7 @@ import kotlin.math.PI
 import kotlin.math.cos
 import kotlin.math.sin
 import kotlin.random.Random
+import com.example.ui.theme.PanalinkPalette
 
 /**
  * Regalos premium con efecto de pantalla completa estilo TikTok.
@@ -414,7 +415,7 @@ private fun GiftBanner(
             Row(verticalAlignment = Alignment.CenterVertically) {
                 Text(
                     text = senderName,
-                    color = Color.White,
+                    color = PanalinkPalette.textPrimary,
                     fontSize = 13.sp,
                     fontWeight = FontWeight.Bold,
                     maxLines = 1
@@ -422,13 +423,13 @@ private fun GiftBanner(
                 Spacer(modifier = Modifier.width(6.dp))
                 Text(
                     text = "envió",
-                    color = Color.White.copy(alpha = 0.8f),
+                    color = PanalinkPalette.textPrimary.copy(alpha = 0.8f),
                     fontSize = 12.sp
                 )
             }
             Text(
                 text = "${pulse.name}${if (pulse.quantity > 1) " x${pulse.quantity}" else ""}${if (combo > 1) " · $combo combo" else ""}",
-                color = Color.White.copy(alpha = 0.95f),
+                color = PanalinkPalette.textPrimary.copy(alpha = 0.95f),
                 fontSize = 13.sp,
                 fontWeight = FontWeight.SemiBold
             )

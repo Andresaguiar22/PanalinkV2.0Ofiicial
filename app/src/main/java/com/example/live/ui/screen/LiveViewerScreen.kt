@@ -42,6 +42,7 @@ import com.example.live.ui.formatLiveCount
 import com.example.live.ui.viewmodel.LiveViewModel
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
+import com.example.ui.theme.PanalinkPalette
 
 private enum class LiveSheet { None, Gifts, Requests, Studio, More }
 
@@ -293,13 +294,13 @@ fun LiveViewerScreen(
                 Column(horizontalAlignment = Alignment.CenterHorizontally) {
                     Text(
                         text = "🔴 La transmisión terminó",
-                        color = Color.White,
+                        color = PanalinkPalette.textPrimary,
                         fontSize = 17.sp,
                         fontWeight = FontWeight.Bold
                     )
                     Spacer(modifier = Modifier.height(14.dp))
                     Button(onClick = { close() }) {
-                        Text("Salir", color = Color.White)
+                        Text("Salir", color = PanalinkPalette.textPrimary)
                     }
                 }
             }
@@ -320,13 +321,13 @@ fun LiveViewerScreen(
                     ) {
                         Text(
                             text = message,
-                            color = Color.White,
+                            color = PanalinkPalette.textPrimary,
                             fontSize = 14.sp,
                             textAlign = TextAlign.Center
                         )
                         Spacer(modifier = Modifier.height(12.dp))
                         Button(onClick = { close() }) {
-                            Text("Volver", color = Color.White)
+                            Text("Volver", color = PanalinkPalette.textPrimary)
                         }
                     }
                 }
@@ -464,7 +465,7 @@ private fun LiveRailHeartButton(
         Spacer(modifier = Modifier.height(4.dp))
         Text(
             text = formatLiveCount(likeCount),
-            color = Color.White,
+            color = PanalinkPalette.textPrimary,
             fontSize = 12.sp,
             fontWeight = FontWeight.Bold
         )
@@ -495,7 +496,7 @@ private fun LiveRailAction(
         Spacer(modifier = Modifier.height(4.dp))
         Text(
             text = label,
-            color = Color.White,
+            color = PanalinkPalette.textPrimary,
             fontSize = 10.sp
         )
     }

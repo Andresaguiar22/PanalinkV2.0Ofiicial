@@ -11,6 +11,7 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import com.example.ui.theme.PanalinkPalette
 
 val LIVE_REPORT_REASONS = listOf(
     "Spam o publicidad",
@@ -36,7 +37,7 @@ fun LiveMoreSheet(
         contentColor = Color.White
     ) {
         Column(modifier = Modifier.padding(horizontal = 16.dp)) {
-            Text("Más opciones", fontSize = 18.sp, fontWeight = FontWeight.Bold, color = Color.White)
+            Text("Más opciones", fontSize = 18.sp, fontWeight = FontWeight.Bold, color = PanalinkPalette.textPrimary)
             Spacer(modifier = Modifier.height(10.dp))
 
             MoreAction(text = "Compartir directo", onClick = onShare)
@@ -63,7 +64,7 @@ fun LiveMoreSheet(
             Spacer(modifier = Modifier.height(16.dp))
 
             TextButton(onClick = onDismiss, modifier = Modifier.fillMaxWidth()) {
-                Text("Cancelar", color = Color.White)
+                Text("Cancelar", color = PanalinkPalette.textPrimary)
             }
 
             Spacer(modifier = Modifier.height(20.dp))
@@ -80,7 +81,7 @@ private fun MoreAction(text: String, onClick: () -> Unit) {
             .padding(vertical = 14.dp),
         verticalAlignment = Alignment.CenterVertically
     ) {
-        Text(text = text, color = Color.White, fontSize = 14.sp)
+        Text(text = text, color = PanalinkPalette.textPrimary, fontSize = 14.sp)
     }
-    HorizontalDivider(color = Color.White.copy(alpha = 0.08f))
+    HorizontalDivider(color = PanalinkPalette.textPrimary.copy(alpha = 0.08f))
 }

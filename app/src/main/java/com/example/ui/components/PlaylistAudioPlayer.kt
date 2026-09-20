@@ -29,6 +29,7 @@ import kotlinx.coroutines.delay
 import kotlinx.coroutines.isActive
 import java.net.URI
 import java.net.URLDecoder
+import com.example.ui.theme.PanalinkPalette
 
 fun extractFilename(url: String): String {
     return try {
@@ -131,7 +132,7 @@ fun PlaylistAudioPlayer(audioUrls: List<String>) {
                 Icon(
                     imageVector = Icons.Default.MusicNote,
                     contentDescription = null,
-                    tint = Color.White,
+                    tint = PanalinkPalette.textPrimary,
                     modifier = Modifier.size(32.dp)
                 )
             }
@@ -142,7 +143,7 @@ fun PlaylistAudioPlayer(audioUrls: List<String>) {
             Column(modifier = Modifier.weight(1f)) {
                 Text(
                     text = extractFilename(currentUrl),
-                    color = Color.White,
+                    color = PanalinkPalette.textPrimary,
                     fontSize = 16.sp,
                     fontWeight = FontWeight.Bold,
                     maxLines = 1,
@@ -267,7 +268,7 @@ fun PlaylistAudioPlayer(audioUrls: List<String>) {
         // Playlist (if multiple)
         if (audioUrls.size > 1) {
             Spacer(modifier = Modifier.height(16.dp))
-            Divider(color = Color.White.copy(alpha = 0.1f))
+            Divider(color = PanalinkPalette.textPrimary.copy(alpha = 0.1f))
             Spacer(modifier = Modifier.height(8.dp))
             
             Column(

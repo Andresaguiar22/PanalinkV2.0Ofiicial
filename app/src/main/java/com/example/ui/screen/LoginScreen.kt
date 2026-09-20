@@ -28,6 +28,7 @@ import com.example.ui.components.AuroraBackground
 import com.example.ui.components.AuroraButton
 import com.example.ui.components.GlassCard
 import com.example.util.SecurityManager
+import com.example.ui.theme.PanalinkPalette
 
 @Composable
 fun LoginScreen(
@@ -73,7 +74,7 @@ fun LoginScreen(
                         text = "Blindaje Shield: ${audit.status}",
                         fontSize = 11.sp,
                         fontWeight = FontWeight.Bold,
-                        color = Color.White.copy(alpha = 0.9f)
+                        color = PanalinkPalette.textPrimary.copy(alpha = 0.9f)
                     )
                 }
 
@@ -87,7 +88,7 @@ fun LoginScreen(
                     text = "PanaLink 🇻🇪",
                     fontSize = 32.sp,
                     fontWeight = FontWeight.ExtraBold,
-                    color = Color.White,
+                    color = PanalinkPalette.textPrimary,
                     letterSpacing = 0.5.sp
                 )
                 Spacer(modifier = Modifier.height(6.dp))
@@ -95,7 +96,7 @@ fun LoginScreen(
                     text = "Inicia Sesión",
                     fontSize = 20.sp,
                     fontWeight = FontWeight.Bold,
-                    color = Color.White.copy(alpha = 0.8f)
+                    color = PanalinkPalette.textPrimary.copy(alpha = 0.8f)
                 )
                 
                 Spacer(modifier = Modifier.height(32.dp))
@@ -168,7 +169,7 @@ fun LoginScreen(
                                 Spacer(modifier = Modifier.width(8.dp))
                                 Text(
                                     text = (uiState as AuthUiState.Error).message,
-                                    color = Color.White,
+                                    color = PanalinkPalette.textPrimary,
                                     fontSize = 13.sp,
                                     modifier = Modifier.weight(1f)
                                 )
@@ -190,7 +191,7 @@ fun LoginScreen(
                     modifier = Modifier.fillMaxWidth(),
                     horizontalArrangement = Arrangement.Center
                 ) {
-                    Text(text = "¿No tienes una cuenta? ", color = Color.White.copy(alpha = 0.6f), fontSize = 15.sp)
+                    Text(text = "¿No tienes una cuenta? ", color = PanalinkPalette.textPrimary.copy(alpha = 0.6f), fontSize = 15.sp)
                     Text(
                         text = "Regístrate aquí",
                         color = Color(0xFF00E5FF),

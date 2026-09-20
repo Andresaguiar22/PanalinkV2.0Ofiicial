@@ -42,6 +42,7 @@ import com.example.media.audio.AudioTrackEntity
 import com.example.media.audio.RepeatMode
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
+import com.example.ui.theme.PanalinkPalette
 
 /**
  * Poweramp-style full-screen music player.
@@ -100,7 +101,7 @@ fun MusicPlayerScreen(
                 title = {
                     Text(
                         "REPRODUCIENDO",
-                        color = Color.White.copy(alpha = 0.7f),
+                        color = PanalinkPalette.textPrimary.copy(alpha = 0.7f),
                         fontSize = 12.sp,
                         letterSpacing = 3.sp,
                         fontWeight = FontWeight.SemiBold,
@@ -110,7 +111,7 @@ fun MusicPlayerScreen(
                 },
                 navigationIcon = {
                     IconButton(onClick = onClose) {
-                        Icon(Icons.Rounded.KeyboardArrowDown, contentDescription = "Cerrar", tint = Color.White, modifier = Modifier.size(32.dp))
+                        Icon(Icons.Rounded.KeyboardArrowDown, contentDescription = "Cerrar", tint = PanalinkPalette.textPrimary, modifier = Modifier.size(32.dp))
                     }
                 },
                 actions = {
@@ -229,7 +230,7 @@ fun MusicPlayerScreen(
                 ) {
                     Text(
                         track?.title ?: "Sin título",
-                        color = Color.White,
+                        color = PanalinkPalette.textPrimary,
                         fontSize = 22.sp,
                         fontWeight = FontWeight.Bold,
                         maxLines = 1,
@@ -239,7 +240,7 @@ fun MusicPlayerScreen(
                     Spacer(modifier = Modifier.height(4.dp))
                     Text(
                         "${track?.artist ?: "Artista desconocido"}  •  ${track?.album ?: "Sencillo"}",
-                        color = Color.White.copy(alpha = 0.65f),
+                        color = PanalinkPalette.textPrimary.copy(alpha = 0.65f),
                         fontSize = 14.sp,
                         maxLines = 1,
                         overflow = TextOverflow.Ellipsis,
@@ -318,7 +319,7 @@ fun MusicPlayerScreen(
                     }
 
                     IconButton(onClick = { showQueue = true }) {
-                        Icon(Icons.Rounded.QueueMusic, contentDescription = "Cola", tint = Color.White.copy(alpha = 0.8f))
+                        Icon(Icons.Rounded.QueueMusic, contentDescription = "Cola", tint = PanalinkPalette.textPrimary.copy(alpha = 0.8f))
                     }
                 }
 
@@ -384,7 +385,7 @@ fun MusicPlayerScreen(
 private fun EqPresetSheet(currentPreset: String, onSelect: (String) -> Unit) {
     val presets = listOf("Normal", "Rock", "Pop", "Jazz", "Clásica", "Bass Boost", "Vocal", "Electrónica")
     Column(modifier = Modifier.fillMaxWidth().padding(20.dp)) {
-        Text("Ecualizador", color = Color.White, fontSize = 18.sp, fontWeight = FontWeight.Bold)
+        Text("Ecualizador", color = PanalinkPalette.textPrimary, fontSize = 18.sp, fontWeight = FontWeight.Bold)
         Spacer(modifier = Modifier.height(16.dp))
         presets.chunked(4).forEach { row ->
             Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(8.dp)) {
@@ -421,7 +422,7 @@ private fun EqPresetSheet(currentPreset: String, onSelect: (String) -> Unit) {
 private fun SleepTimerSheet(isActive: Boolean, onSelect: (Int?) -> Unit) {
     val options = listOf(5, 10, 15, 30, 45, 60)
     Column(modifier = Modifier.fillMaxWidth().padding(20.dp)) {
-        Text("Temporizador de apagado", color = Color.White, fontSize = 18.sp, fontWeight = FontWeight.Bold)
+        Text("Temporizador de apagado", color = PanalinkPalette.textPrimary, fontSize = 18.sp, fontWeight = FontWeight.Bold)
         Spacer(modifier = Modifier.height(16.dp))
         options.chunked(3).forEach { row ->
             Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(8.dp)) {
@@ -435,7 +436,7 @@ private fun SleepTimerSheet(isActive: Boolean, onSelect: (Int?) -> Unit) {
                             .padding(vertical = 14.dp),
                         contentAlignment = Alignment.Center
                     ) {
-                        Text("$minutes min", color = Color.White, fontSize = 14.sp)
+                        Text("$minutes min", color = PanalinkPalette.textPrimary, fontSize = 14.sp)
                     }
                 }
             }

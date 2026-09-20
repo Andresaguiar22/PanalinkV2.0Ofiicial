@@ -29,6 +29,7 @@ import androidx.compose.ui.unit.sp
 import com.example.data.model.Profile
 import com.example.ui.components.PanaAvatar
 import com.example.ui.theme.bounceClick
+import com.example.ui.theme.PanalinkPalette
 
 @Composable
 fun ChatContactDetailSheet(
@@ -92,7 +93,7 @@ fun ChatContactDetailSheet(
     
     Text(
     text = otherName,
-    color = Color.White,
+    color = PanalinkPalette.textPrimary,
     fontSize = 20.sp,
     fontWeight = FontWeight.Bold
     )
@@ -127,7 +128,7 @@ fun ChatContactDetailSheet(
     color = Color(0xFF8596A0),
     fontSize = 11.sp
     )
-    Text(otherBio, color = Color.White, fontSize = 14.sp)
+    Text(otherBio, color = PanalinkPalette.textPrimary, fontSize = 14.sp)
     
     Spacer(modifier = Modifier.height(4.dp))
     Text(otherPin, color = Color(0xFF8596A0), fontSize = 13.sp)
