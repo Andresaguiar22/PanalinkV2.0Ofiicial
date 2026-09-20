@@ -830,10 +830,14 @@ factor `0.55 + pow(1.7)*(3.8-0.55)`, halo `1.7x` alpha `0x08` (casi invisible), 
 
 ### Decisión adoptada
 1. **`UploadFailoverRouter` deja de estar hardcodeado a B2**: vuelve el flujo histórico
-   **CDN primario → fallback B2** usando el callback `cdnUpload` que ya pasan los workers
-   (`UploadRepository().uploadVideo` / `PanalinkMediaManager.uploadMediaAndThumbnail`), con circuito de 15 min
-   (`markCdnFailed()` / `markCdnHealthy()`, persistido en `panalink_upload_failover`).
-   Si B2 también falla → último intento CDN.
+   **CDN primario**, usando el callback `cdnUpload` que ya pasan los workers
+   (`UploadRepository().uploadVideo` / `PanalinkMediaManager.uploadMediaAndThumbnail`).
+   ⚠️ **El fallback automático a B2 fue DESACTIVADO** porque el cap Class B de B2 rompe la
+   reproducción de los mensajes ya enviados (403 al leer). El router ahora:
+   - Si no hay callback CDN → B2 directo (casos legacy que no pasan por worker).
+   - Si hay callback → reintenta el CDN **2 veces** y devuelve el error (el worker reintenta);
+     **NO** marca cooldown/circuit breaker y **NO** duplica a B2.
+   Se eliminaron `isCdnDown` / `markCdnFailed` / `markCdnHealthy` / cooldown (código muerto).
 2. **`MediaUploadWorker` → TODA la multimedia del chat (imagen, vídeo, audio, documento) pasa por el failover CDN→B2.**
    Se eliminó la rama `VideoRouter.uploadPublicVideo` para el chat. **vCDN queda SOLO para reels/stories/publicaciones**
    (`PostUploadWorker` y `SocialMediaUploadWorker` NO se tocan). La función `shouldRouteVideoToVcdn` se conserva
@@ -841,6 +845,11 @@ factor `0.55 + pow(1.7)*(3.8-0.55)`, halo `1.7x` alpha `0x08` (casi invisible), 
 3. **`CdnManager.isDeadCdnHost`**: antes marcaba TODO `*.trycloudflare.com` como muerto y devolvía `""` → el chat
    no reproducía nada. Ahora solo se consideran dead los túneles **que NO coinciden con el host CDN activo**
    (comparado contra `currentCachedCdnBase()`). El host activo se resuelve/reproduce normal.
+4. **`UploadRepository` / `B2UploadManager` timeouts 120s → 600s**: el túnel trycloudflare puede tardar
+   >2 min en responder para archivos grandes; OkHttp cortaba la conexión DESPUÉS de que el túnel ya había
+   guardado el archivo → el worker veía error, el mensaje quedaba "subiendo" aunque el archivo estaba en el CDN.
+   Ahora read/write timeout = 600s (connect 600/60 respectivamente). Síntoma que diagnostica esto: el archivo
+   SÍ aparece en el CDN (PC) pero el mensaje NO se envía a `thread_messages` y la burbuja queda "procesando".
 
 ### Reglas/lecciones
 * El CDN de PanaLink es un **túnel trycloudflare** (host efímero): puede cambiar de host de una sesión a otra.

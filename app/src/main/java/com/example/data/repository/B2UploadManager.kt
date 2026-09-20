@@ -30,9 +30,11 @@ object B2UploadManager {
 
     private val client by lazy {
         OkHttpClient.Builder()
-            .connectTimeout(30, TimeUnit.SECONDS)
-            .readTimeout(120, TimeUnit.SECONDS)
-            .writeTimeout(120, TimeUnit.SECONDS)
+            // Subimos el timeout: aunque B2 es el fallback, una respuesta lenta
+            // del CDN/edge no debe cortar la subida mientras el archivo se envio.
+            .connectTimeout(60, TimeUnit.SECONDS)
+            .readTimeout(600, TimeUnit.SECONDS)
+            .writeTimeout(600, TimeUnit.SECONDS)
             .retryOnConnectionFailure(true)
             .build()
     }
