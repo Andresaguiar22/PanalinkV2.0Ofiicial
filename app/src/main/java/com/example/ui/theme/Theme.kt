@@ -6,6 +6,9 @@ import androidx.compose.foundation.isSystemInDarkTheme
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.darkColorScheme
 import androidx.compose.material3.lightColorScheme
+import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.material3.LocalTextStyle
+import androidx.compose.ui.text.font.FontFamily
 import androidx.compose.animation.core.*
 import androidx.compose.ui.composed
 import androidx.compose.ui.Modifier
@@ -279,19 +282,19 @@ val HaloLightColors = AppColors(
 
 val HaloDarkColors = AppColors(
     primary = Color(0xFF00E5FF),
-    secondary = Color(0xFF161618), // Neutral dark gray for inputs/surfaces
-    background = Color(0xFF020617),
-    surface = Color(0xFF0F172A),
+    secondary = Color(0xFF222A37), // Neutral dark gray for inputs/surfaces
+    background = Color(0xFF171D29),
+    surface = Color(0xFF222A37),
     bubbleMe = Color(0xFF7C3AED),
-    bubbleOther = Color(0xFF161618),
-    topBar = Color(0xFF020617),
-    bottomBar = Color(0xFF020617),
+    bubbleOther = Color(0xFF222A37),
+    topBar = Color(0xFF171D29),
+    bottomBar = Color(0xFF171D29),
     accent = Color(0xFF00E5FF),
     isDark = true,
     onPrimary = Color.Black,
-    onSecondary = Color.White,
-    onBackground = Color.White,
-    onSurface = Color.White
+    onSecondary = Color(0xFFF0E4C8),
+    onBackground = Color(0xFFF0E4C8),
+    onSurface = Color(0xFFF0E4C8)
 )
 
 object ThemeManager {
@@ -443,12 +446,29 @@ fun MyApplicationTheme(
         )
     }
 
-    CompositionLocalProvider(LocalAppColors provides activeColors) {
+    CompositionLocalProvider(
+        LocalAppColors provides activeColors,
+        LocalTextStyle provides LocalTextStyle.current.copy(fontFamily = FontFamily.Serif)
+    ) {
         MaterialTheme(
             colorScheme = colorScheme,
             typography = Typography,
-            content = content
-        )
+        ) {
+            // Fondo global por defecto de la app: constelacion navy + letras crema.
+            // Solo en temas oscuros, para no arruinar las identidades claras.
+            if (activeColors.isDark) {
+                androidx.compose.foundation.layout.Box(
+                    modifier = androidx.compose.ui.Modifier
+                        .fillMaxSize()
+                        .background(PanalinkSkin.NavyBase)
+                ) {
+                    ConstellationBackground()
+                    content()
+                }
+            } else {
+                content()
+            }
+        }
     }
 }
 

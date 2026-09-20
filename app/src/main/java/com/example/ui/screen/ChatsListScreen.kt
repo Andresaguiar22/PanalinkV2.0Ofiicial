@@ -551,7 +551,6 @@ fun ChatsListScreen(
 
     val currentBackStackEntry by tabNavController.currentBackStackEntryAsState()
     val currentRoute = currentBackStackEntry?.destination?.route ?: "chats"
-    val isChatsTab = currentRoute == "chats"
     val currentPageIndex = when (currentRoute) {
         "chats" -> 0
         "momentos" -> 1
@@ -572,10 +571,6 @@ fun ChatsListScreen(
                 }
             }
     ) {
-        if (isChatsTab) {
-            com.example.ui.theme.ConstellationBackground(modifier = Modifier.fillMaxSize())
-        }
-
         Scaffold(
             snackbarHost = { SnackbarHost(snackbarHostState) },
             topBar = {
@@ -682,7 +677,7 @@ fun ChatsListScreen(
                     Column(
                         modifier = Modifier
                             .fillMaxWidth()
-                            .background(if (isChatsTab) Color.Transparent else Color.Black)
+                            .background(Color.Transparent)
                             .statusBarsPadding()
                             .padding(horizontal = 16.dp, vertical = 8.dp)
                     ) {
@@ -695,7 +690,7 @@ fun ChatsListScreen(
                             Text(
                                 text = "PanaLink",
                                 style = androidx.compose.ui.text.TextStyle(
-                                    color = if (isChatsTab) com.example.ui.theme.PanalinkSkin.Cream else Color.White,
+                                    color = com.example.ui.theme.PanalinkSkin.Cream,
                                     fontSize = 25.sp,
                                     fontWeight = FontWeight.ExtraBold,
                                     fontFamily = androidx.compose.ui.text.font.FontFamily.Serif,
@@ -711,7 +706,7 @@ fun ChatsListScreen(
                                     Icon(
                                         imageVector = Icons.Default.PersonAdd,
                                         contentDescription = "Crear",
-                                        tint = if (isChatsTab) com.example.ui.theme.PanalinkSkin.Cream else Color.White,
+                                        tint = com.example.ui.theme.PanalinkSkin.Cream,
                                         modifier = Modifier.size(24.dp)
                                     )
                                 }
@@ -723,7 +718,7 @@ fun ChatsListScreen(
                                     Icon(
                                         imageVector = Icons.Default.Search,
                                         contentDescription = "Buscar Panas",
-                                        tint = if (isChatsTab) com.example.ui.theme.PanalinkSkin.Cream else Color.White,
+                                        tint = com.example.ui.theme.PanalinkSkin.Cream,
                                         modifier = Modifier.size(24.dp)
                                     )
                                 }
@@ -735,7 +730,7 @@ fun ChatsListScreen(
                                     Icon(
                                         imageVector = Icons.Default.Bookmark,
                                         contentDescription = "Mensajes guardados",
-                                        tint = if (isChatsTab) com.example.ui.theme.PanalinkSkin.Cream else Color.White,
+                                        tint = com.example.ui.theme.PanalinkSkin.Cream,
                                         modifier = Modifier.size(24.dp)
                                     )
                                 }
@@ -749,7 +744,7 @@ fun ChatsListScreen(
                                         Icon(
                                             imageVector = Icons.Default.Notifications,
                                             contentDescription = "Notificaciones",
-                                            tint = if (isChatsTab) com.example.ui.theme.PanalinkSkin.Cream else Color.White,
+                                            tint = com.example.ui.theme.PanalinkSkin.Cream,
                                             modifier = Modifier.size(24.dp)
                                         )
                                     }
@@ -775,16 +770,16 @@ fun ChatsListScreen(
                             }
                             Box(
                                 modifier = Modifier
-                                    .size(if (isChatsTab) 38.dp else 32.dp)
+                                    .size(38.dp)
                                     .clip(CircleShape)
                                     .clickable { onNavigateToProfile() }
                             ) {
                                 com.example.ui.components.PanaAvatar(
                                     avatarUrl = SupabaseClient.currentProfile?.avatarUrl,
                                     userId = SupabaseClient.currentUser?.id,
-                                    size = if (isChatsTab) 38.dp else 32.dp,
+                                    size = 38.dp,
                                     borderWidth = 1.5.dp,
-                                    borderColor = if (isChatsTab) Color(0xFF3FD9A6) else Color(0xFFB026FF),
+                                    borderColor = Color(0xFF3FD9A6),
                                     placeholderName = SupabaseClient.currentProfile?.displayName ?: "",
                                     contentDescription = "Perfil"
                                 )
@@ -868,7 +863,7 @@ fun ChatsListScreen(
                     )
                 }
             },
-            containerColor = if (isChatsTab) Color.Transparent else colors.background
+            containerColor = Color.Transparent
         ) { innerPadding ->
             Column(
                 modifier = Modifier

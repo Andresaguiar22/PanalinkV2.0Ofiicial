@@ -146,8 +146,7 @@ fun TuTabContent(
 
     LazyColumn(
         modifier = Modifier
-            .fillMaxSize()
-            .background(colors.background),
+            .fillMaxSize(),
         contentPadding = PaddingValues(16.dp, bottom = 32.dp),
         verticalArrangement = Arrangement.spacedBy(16.dp)
     ) {

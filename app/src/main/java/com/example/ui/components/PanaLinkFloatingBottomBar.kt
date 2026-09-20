@@ -180,11 +180,11 @@ fun PanaLinkFloatingBottomBar(
                 verticalAlignment = Alignment.CenterVertically
             ) {
                 val sections = listOf(
-                    Triple(0, "Chats", Icons.Default.Chat),
-                    Triple(1, "Momentos", Icons.Default.Star),
-                    Triple(2, "Clips", Icons.Default.PlayArrow),
-                    Triple(3, "Llamadas", Icons.Default.Call),
-                    Triple(4, "Gente", Icons.Default.Person)
+                    Triple(0, "Chats", com.example.ui.theme.PanalinkIcons.Chats),
+                    Triple(1, "Momentos", com.example.ui.theme.PanalinkIcons.Momentos),
+                    Triple(2, "Clips", com.example.ui.theme.PanalinkIcons.Clips),
+                    Triple(3, "Llamadas", com.example.ui.theme.PanalinkIcons.Llamadas),
+                    Triple(4, "Gente", com.example.ui.theme.PanalinkIcons.Gente)
                 )
 
                 sections.forEach { (index, label, icon) ->
