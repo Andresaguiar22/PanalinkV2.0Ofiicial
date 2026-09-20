@@ -26,19 +26,24 @@ const SERVICE_KEY = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY") || Deno.env.get("S
 // 403 caused by a race between the token request and the status update.
 async function canJoinRoom(userId: string, room: string): Promise<{ ok: boolean; publish: boolean; reason?: string }> {
   if (room.startsWith("live_")) {
-    const streamId = room.slice("live_".length);
-    if (!/^[0-9a-fA-F-]{36}$/.test(streamId)) return { ok: false, publish: false, reason: "invalid live room" };
+    // The Android client generates a random UUID for the room name
+    // (live_<random uuid>) that is stored in live_streams.room_name — it is NOT
+    // the stream's PK (id). Lookups must filter by room_name, never by id.
+    const roomName = room;
+    const roomUuid = room.slice("live_".length);
+    if (!/^[0-9a-fA-F-]{36}$/.test(roomUuid)) return { ok: false, publish: false, reason: "invalid live room" };
     if (!SUPABASE_URL || !SERVICE_KEY) return { ok: false, publish: false, reason: "server not configured" };
     try {
       const headers = { "apikey": SERVICE_KEY, "Authorization": `Bearer ${SERVICE_KEY}`, "Content-Type": "application/json" };
       const streamRes = await fetch(
-        `${SUPABASE_URL}/rest/v1/live_streams?id=eq.${streamId}&select=id,host_id,status&limit=1`,
+        `${SUPABASE_URL}/rest/v1/live_streams?room_name=eq.${roomName}&select=id,host_id,status&limit=1`,
         { headers },
       );
       if (!streamRes.ok) return { ok: false, publish: false, reason: "stream lookup failed" };
       const streams = await streamRes.json();
       const stream = Array.isArray(streams) ? streams[0] : null;
       if (!stream) return { ok: false, publish: false, reason: "live stream not found" };
+      const streamId = stream.id;
 
       // The host can always join (and publish) — even before the client flips the
       // stream to LIVE. Any other participant requires the stream to be LIVE.
