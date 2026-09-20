@@ -813,3 +813,48 @@ factor `0.55 + pow(1.7)*(3.8-0.55)`, halo `1.7x` alpha `0x08` (casi invisible), 
 * `build_beta.sh` apunta por defecto a `origin/kilo/fancy-bloom-c6g`; para otra rama hay que pasar
   `BETA_BRANCH=origin/<rama>` y **subirla antes** (el script hace fetch del remoto, no del worktree local).
 
+---
+
+## 📦 Chat media al CDN de PanaLink (REACTIVACIÓN 2026-09-20, rama `kilo/chat-media-cdn`)
+
+**Síntoma reportado**: en chat todos los multimedia se envían pero no se ven/reproducen (imágenes, vídeos, notas de voz ni documentos), aunque quedan "enviado".
+
+### Causa raíz (medida, no inferida)
+* **B2 agotó el cap Class B (descargas)**: probando una URL real de la BD (firma AWS válida de hoy) el GET devuelve
+  `AccessDenied: Cannot download file, download bandwidth or transaction (Class B) cap exceeded` (HTTP 403).
+  Los PUT de subida siguen entrando (Class C2 write) → por eso "se envía perfecto" pero "no se ve nada".
+* **Además**: los vídeos del chat guardaban URL **B2** (verificado en `thread_messages`: TODOS los recientes son
+  `s3.us-east-005.backblazeb2.com/.../video/...`, ninguno `vcdn://`), o sea el `VideoRouter` del chat estaba
+  cayendo a B2. El CDN de PanaLink (túnel trycloudflare en `global_server_config`, `active=true`) seguía VIVO:
+  `/health` 200, `/upload` 200, GET con Range 206.
+
+### Decisión adoptada
+1. **`UploadFailoverRouter` deja de estar hardcodeado a B2**: vuelve el flujo histórico
+   **CDN primario → fallback B2** usando el callback `cdnUpload` que ya pasan los workers
+   (`UploadRepository().uploadVideo` / `PanalinkMediaManager.uploadMediaAndThumbnail`), con circuito de 15 min
+   (`markCdnFailed()` / `markCdnHealthy()`, persistido en `panalink_upload_failover`).
+   Si B2 también falla → último intento CDN.
+2. **`MediaUploadWorker` → TODA la multimedia del chat (imagen, vídeo, audio, documento) pasa por el failover CDN→B2.**
+   Se eliminó la rama `VideoRouter.uploadPublicVideo` para el chat. **vCDN queda SOLO para reels/stories/publicaciones**
+   (`PostUploadWorker` y `SocialMediaUploadWorker` NO se tocan). La función `shouldRouteVideoToVcdn` se conserva
+   (compat) pero ya no se usa en el worker.
+3. **`CdnManager.isDeadCdnHost`**: antes marcaba TODO `*.trycloudflare.com` como muerto y devolvía `""` → el chat
+   no reproducía nada. Ahora solo se consideran dead los túneles **que NO coinciden con el host CDN activo**
+   (comparado contra `currentCachedCdnBase()`). El host activo se resuelve/reproduce normal.
+
+### Reglas/lecciones
+* El CDN de PanaLink es un **túnel trycloudflare** (host efímero): puede cambiar de host de una sesión a otra.
+  La **fuente de verdad es `global_server_config.cdn_url`** (lo lee `CdnManager.getCDNUrl()`); NO hardcodear hosts.
+* El endpoint `/upload` del CDN devuelve `{ url: <cdn>/files/chat/<ts>-<rand>.<ext>, type }` (sin mime ni thumb).
+  Genera el thumbnail localmente (Supabase Storage `thumbnails` bucket) como ya hace `uploadMediaAndThumbnail`.
+* El CDN sirve con `Accept-Ranges: bytes` (206) → ExoPlayer puede hacer streaming/seeking normal.
+* No tocar el flujo de **avatares** (`resolveAvatarUrl` sigue devolviendo null para trycloudflare): los avatares viven
+  en Supabase Storage, no en el CDN.
+* Al validar un fix "no se ve el media en chat": comprobar SIEMPRE con un GET real a la URL guardada en
+  `thread_messages` y leer el mensaje de error del body (B2 cap ≠ firma caducada ≠ objeto inexistente).
+
+### Backend
+* `global_server_config` ya apuntaba al túnel activo (verificado). No se requirió migración.
+* **PENDIENTE para producción**: subir el **cap de transacciones Class B** en Backblaze B2 (Caps & Alerts,
+  bucket `panalink-media-storage`) o el fallback seguirá devolviendo 403 aunque la app quiera usar B2.
+
