@@ -512,7 +512,11 @@ app.post("/import-url", authUserMiddleware, async (req, res) => {
   console.log(`🌐 Import URL: ${userId} (${domain}) [${importId}]`);
   try {
     const startedAt = Date.now();
-    const ytdlpArgs = ["--no-playlist", "--no-warnings", "--no-check-certificates", "--max-filesize", String(IMPORT_URL_MAX_BYTES), "--merge-output-format", "mp4", "-f", "bv*[ext=mp4]+ba[ext=m4a]/bv*+ba/b", "-o", tmpPath, "--no-part", rawUrl];
+    // Reels no necesitan mas de 1080p: limitar resolucion evita bajar un
+    // 4K/8K de 500+ MB. Ademas --remux-video mp4 fusiona video+audio
+    // (ffmpeg si esta) y si no, yt-dlp deja los fragmentos .fXXX; el
+    // fallback de abajo promociona el mejor .mp4 de video descargado.
+    const ytdlpArgs = ["--no-playlist", "--no-warnings", "--no-check-certificates", "--max-filesize", String(IMPORT_URL_MAX_BYTES), "--merge-output-format", "mp4", "--remux-video", "mp4", "-f", "bv*[height<=1080]+ba/b", "-o", tmpPath, "--no-part", rawUrl];
     const child = spawn("yt-dlp", ytdlpArgs, { timeout: IMPORT_URL_TIMEOUT_MS });
     let stderrBuf = "";
     child.stderr.on("data", d => { stderrBuf = (stderrBuf + d.toString()).slice(-4000); });
@@ -531,15 +535,29 @@ app.post("/import-url", authUserMiddleware, async (req, res) => {
           res.status(422).json({ error: "No se pudo descargar ese vídeo. Verifica el enlace.", details: stderrBuf.slice(0, 300) });
           return;
         }
-        const fileSize = fs.statSync(tmpPath).size;
+        // Fallback: si ffmpeg no esta o el merge/remux no produjo el .mp4
+        // exacto, yt-dlp deja fragmentos .fXXX.mp4/.m4a sueltos. Promocionamos
+        // el mejor .mp4 de video real que haya quedado y borramos el resto.,
+        let finalPath = tmpPath;
+        if (!fs.existsSync(finalPath)) {
+          const leftovers = fs.readdirSync(tmpBase)
+            .filter(f => f.startsWith(`import-${importId}.f`) && f.endsWith(".mp4"))
+            .map(f => path.join(tmpBase, f))
+            .sort((a, b) => fs.statSync(b).size - fs.statSync(a).size);
+          if (leftovers.length > 0) finalPath = leftovers[0];
+        }
+        const fileSize = fs.statSync(finalPath).size;
         if (fileSize > IMPORT_URL_MAX_BYTES) {
-
+          safeRmImport(tmpPath);
+          if (finalPath != tmpPath) safeRmImport(finalPath);
           if (res.headersSent) return;
           res.status(413).json({ error: "El vídeo excede el límite de tamaño." });
           return;
         }
-        const detectedMime = getMimeTypeByMagic(tmpPath, "video/mp4");
+        const detectedMime = getMimeTypeByMagic(finalPath, "video/mp4");
         if (!detectedMime || !detectedMime.startsWith("video/")) {
+          safeRmImport(tmpPath);
+          if (finalPath != tmpPath) safeRmImport(finalPath);
           if (res.headersSent) return;
           res.status(422).json({ error: "El archivo descargado no es un vídeo válido." });
           return;
@@ -549,9 +567,16 @@ app.post("/import-url", authUserMiddleware, async (req, res) => {
         res.setHeader("Content-Disposition", `attachment; filename="import-${importId}.mp4"`);
         res.setHeader("X-Import-Size", String(fileSize));
         res.setHeader("Cache-Control", "no-store");
-        res.sendFile(tmpPath, {}, err => {
+        res.sendFile(finalPath, {}, err => {
           if (err) console.error("❌ Error enviando import:", err.message);
           safeRmImport(tmpPath);
+          if (finalPath != tmpPath) safeRmImport(finalPath);
+          // Limpieza de fragmentos .fXXX sueltos que hayan quedado
+          try {
+            for (const f of fs.readdirSync(tmpBase)) {
+              if (f.startsWith(`import-${importId}.f`)) fs.rmSync(path.join(tmpBase, f), { force: true });
+            }
+          } catch (_) {}
         });
       } catch (e) {
         console.error("❌ Error envío:", e);
