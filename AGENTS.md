@@ -757,3 +757,59 @@ Se dibujaron las cajas calculadas sobre la captura para confirmar alineacion y a
 * **Leccion de diseno**: el fondo/tipografia de marca NO deben depender de una bandera derivada del sistema operativo. Si es el aspecto por defecto de la app, se fija como identidad base.
 * **Beta**: `v1.3.51-beta`, code **78**, SHA-256 `542e22122d128c9ca625dd7b940168de9348b298bf5148580522650e9b7fef61` (69.569.807 bytes). Verificado: sha servido == local, `zipalign` OK, `apksigner` v2 `CN=Panalink Beta`, ABIs ARM, `zip.testzip()=None`.
 * **Nota de servidor**: en esta sesion el 12001 volvio a dar **502** (el sandbox mata los `nohup`); se recupero relanzando `scripts/serve_apk_watchdog.sh` y `scripts/serve_upload_watchdog.sh`. **El puerto 12000 (`upload_server.py`) sigue sin servir `/apk/...`** (404): entregar siempre por 12001.
+
+---
+
+## 🎨 Identidad Prestige calibrada por medicion + tema claro real (sesion 2026-09-20, rama `kilo/chats-prestige-skin`)
+
+### Metodo: calibrar el fondo MIDIENDO la foto, no a ojo
+Repetir esto para cualquier "replicar exactamente el mockup" de textura/fondo:
+1. Render PIL **espejo** de la implementacion (mismos radios/angulos/alphas, ver `/tmp/calib_constel.py`).
+2. Medir ambos con las MISMAS metricas sobre la MISMA region: mediana (fondo), p90 (lineas), p98/p99.7 (puntos),
+   % de pixeles >1.25x y >1.55x el fondo, nº de blobs >=8px, radio mediano y maximo.
+3. **Elegir la region de comparacion con cuidado**: en la captura del mockup la zona y>1290 contiene el
+   resplandor de la barra inferior y los avatares -> si entra en el recorte, "los puntos" salen enormes y
+   el % de area se dispara. Usar una franja solo-fondo (aqui y 620..1290, x 24..664).
+4. Iterar parametros hasta que TODOS los deltas queden dentro de +-30% (objetivo +-10%).
+
+**Hallazgo**: el look "azul convencional" del fondo no venia del color, venia de **como se dibujaban los puntos**:
+halo grande + nucleo brillante los convertia en *dianas* (anillos concentricos). En el mockup los puntos son
+**planos** (un solo circulo) y el fondo no tiene el degradado oscuro que lo apagaba. Valores finales:
+fondo `#171D29` -> `#141A26` (casi plano), 95 puntos en 10 nucleos, radio base `minDim*0.0042`,
+factor `0.55 + pow(1.7)*(3.8-0.55)`, halo `1.7x` alpha `0x08` (casi invisible), punto plano
+`#7E8A99` alpha `0x52`, enlaces a `minDim*0.24`, linea `#94A3B8` alpha `0x12` grosor `minDim*0.0019`.
+
+### Regla de tema (quitar parches, no anadirlos)
+* `resolveThemeForMode(themeKey, mode, systemDark)` es la **unica** autoridad: `claro` -> `resolveLightTheme`,
+  `oscuro` -> la identidad, `system` -> sigue al telefono. `MyApplicationTheme` **no** debe re-interpretar el
+  resultado (el parche previo "si no es claro explicito, forzar oscuro" se elimino).
+* Default de `theme_mode_global` = **`oscuro`** (la identidad de marca es la del mockup; "claro" es eleccion).
+* Migracion unica en `MainActivity` (`theme_mode_brand_migration`): quien tenga guardado `system` por el default
+  viejo pasa a `oscuro`; quien haya elegido `claro` lo conserva.
+
+### Letras claras/oscuras sin tocar 1000 sitios a mano
+* `Color.White` es una **constante**: no se puede volver reactiva. `PanalinkPalette` expone los colores del tema
+  como **snapshot state** (`isDark` se sincroniza desde la composicion), asi que un `object`/`val` de nivel
+  superior puede leerlos y ADEMAS recomponerse al cambiar de tema. Patron replicable en cualquier app Compose.
+* Barrido: 1018 usos en 168 archivos (`Color.White` -> `PanalinkPalette.textPrimary`). **En oscuro el valor es
+  practicamente el mismo blanco** -> cero riesgo de regresion visual; en claro pasa a tinta casi negra.
+* `PanalinkSkin` (cristales, nombres, tildes, borde) paso a **getters** dependientes del tema. Si se dejan como
+  `val` fijos, el modo claro muestra tarjetas oscuras con texto negro (ilegible).
+* Tema claro = estilo Instagram/Facebook: blanco, tinta `#0B0F14`, bronce `#8A6F3E` para acentos, tarjetas
+  blancas con borde `#E4E6EB`.
+
+### Checkout del mockup
+* Iconos de la barra inferior en **Rounded relleno** (`Forum`, `Star`, `SmartDisplay`, `Phone`, `Contacts`).
+  `Icons.Default.X` = Filled plano (look generico); `Icons.Rounded.X` es el lenguaje de las apps modernas.
+* `material-icons-extended` ya estaba en el proyecto: los Rounded salen gratis.
+
+### Beta
+* `v1.3.52-beta`, code **79**, SHA-256 `4011fabc92a1b9f76ebb8866e35959778610978b1ec718f695178f5493c2ba79`
+  (69.571.683 bytes), package `com.panalink.app.beta`, firma estable `CN=Panalink Beta`.
+* URL (verificar SIEMPRE con `curl -sI`; el host cambia por sesion):
+  `https://work-2-yzygfzsztwhqdzwh.prod-runtime.all-hands.dev/Panalink-BETA-v1.3.52-code79.apk` (12001).
+* Verificado: descarga publica == sha local byte a byte, `zipalign` OK, `apksigner` v2, `extractNativeLibs=0xffffffff`,
+  ABIs `arm64-v8a`+`armeabi-v7a`, `zip.testzip()=None`.
+* `build_beta.sh` apunta por defecto a `origin/kilo/fancy-bloom-c6g`; para otra rama hay que pasar
+  `BETA_BRANCH=origin/<rama>` y **subirla antes** (el script hace fetch del remoto, no del worktree local).
+
