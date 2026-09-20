@@ -1,0 +1,32 @@
+name: Solicitud de funcionalidad
+description: Propón una mejora o funcionalidad nueva
+title: "[Feature] "
+labels: [enhancement]
+body:
+  - type: markdown
+    attributes:
+      value: |
+        Antes de proponer: revisá el [CONTRIBUTING.md](../../CONTRIBUTING.md)**. Las decisiones de producto se toman con el mantenedor **antes** de escribir código.
+  - type: textarea
+    id: propuesta
+    attributes:
+      label: ¿Qué funcionalidad proponés?
+      description: Describe el comportamiento deseado y el problema que resuelve para el usuario.
+
+      placeholder: "Ej.: reproducción en segundo plano de las salas de voz, para poder escuchar con la pantalla apagada."
+    validations:
+      required: true
+  - type: textarea
+    id: impacto
+    attributes:
+      label: Impacto y alcance
+      description: ¿Qué pantallas/servicios se verían afectados? ¿Es cambio de UI, de lógica, o de backend?
+    validations:
+      required: true
+  - type: textarea
+    id: alternativas
+    attributes:
+      label: Alternativas consideradas
+      description: ¿Hay workarounds hoy? ¿Algo parecido en otra app que podamos tomar como referencia (sin copiar código de terceros sin citarlo)?
+    validations:
+      required: false

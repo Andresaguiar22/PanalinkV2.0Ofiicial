@@ -1,0 +1,5 @@
+blank_issues_enabled: false
+contact_links:
+  - name: Mantenedor (acceso y permisos)
+    url: https://github.com/Andresaguiar22
+    about: Para pedir acceso al repositorio, cambios de permisos o preguntas del proyecto, contactá directamente al mantenedor. Asuntos de acceso no se tratan en issues públicos.

@@ -88,6 +88,26 @@ app/src/main/java/com/example/
 
 ---
 
-## 🛡️ Licencia
+## 🤝 Colaboración
 
-Este proyecto se distribuye bajo términos de desarrollo privado para demostraciones técnicas y portafolio.
+Este proyecto **acepta colaboradores** bajo un modelo seguro de *fork + Pull Request*:
+
+1. Hacé un **fork** del repositorio a tu cuenta.
+2. Trabajá en una rama descriptiva de tu fork y probá que compila.
+3. Abrí un **Pull Request** contra `main`: el mantenedor lo revisa **línea por línea** antes de integrarlo. Revisá [CONTRIBUTING.md](CONTRIBUTING.md)** y el [Código de Conducta](CODE_OF_CONDUCT.md)** antes de empezar.
+
+
+
+### ⚠️ Lo que NO se comparte con colaboradores
+- **Secretos y credenciales** (`google-services.json`, claves de Supabase/Giphy/vCDN, keystores, tokens) — se inyectan solo como secretos de CI o del entorno local del mantenedor.
+- **Infraestructura** (schema de Supabase, edge functions, buckets, vCDN, cron jobs) — se gestiona aparte.
+
+- **Roadmap** — se discute con el mantenedor antes de escribir código.
+
+
+
+---
+
+## 🔒 Licencia y Propiedad
+
+**Todos los derechos reservados.** Este proyecto es **propiedad privada** del mantenedor: el código, la aplicación, la infraestructura y la idea de producto están protegidos por derechos de autor y no se concede licencia de uso, copia, modificación ni distribución fuera del equipo autorizado. Al colaborar vía Pull Request, cedés al mantenedor los derechos de integración y distribución de tu contribución.(Detalles en [CONTRIBUTING.md](CONTRIBUTING.md#4-cesión-de-derechos-cla-implícito)。

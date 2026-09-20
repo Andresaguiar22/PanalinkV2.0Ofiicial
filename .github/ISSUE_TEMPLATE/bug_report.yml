@@ -1,0 +1,51 @@
+name: Reporte de bug
+description: Informa de un fallo de la aplicación (solo colaboradores autorizados)
+title: "[Bug] "
+labels: [bug]
+body:
+  - type: markdown
+    attributes:
+      value: |
+        Gracias por reportar. **No** incluyas datos personales de usuarios reales ni URLs de servicios internos.
+  - type: textarea
+    id: que-paso
+    attributes:
+      label: ¿Qué pasó?
+      description: Describe el comportamiento incorrecto y qué esperabas que pasara.
+      placeholder: "Ej.: al enviar una foto de 20 MB en un chat 1:1, la app crashea tras ~15 s."
+    validations:
+      required: true
+  - type: textarea
+    id: reproducir
+    attributes:
+      label: Pasos para reproducir
+      description: Lista numerada minimo practicable (pasos, estado de red, modelo, versión Android).
+      placeholder: |
+        1. Abro el chat con usuario X
+        2. Adjunto una foto de 20 MB
+        3. ...
+    validations:
+      required: true
+  - type: input
+    id: version
+    attributes:
+      label: Versión de la app
+      description: "versionName + versionCode (visible en Ajustes, Acerca de o el manifest). Ej.: v1.3.48 / 75"
+    validations:
+      required: true
+  - type: dropdown
+    id: severidad
+    attributes:
+      label: Severidad
+      options:
+        - Crítica (app inutilizable / pérdida de datos)
+        - Alta (función principal rota)
+        - Media (función secundaria rota con workaround)
+        - Baja (cosmético / mejora)
+    validations:
+      required: true
+  - type: textarea
+    id: contexto
+    attributes:
+      label: Contexto adicional
+      description: "Capturas, logcat, grabación de pantalla. Recuerda: si el log contiene tokens o URLs internas, recórtalo antes de pegarlo."
