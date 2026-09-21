@@ -928,3 +928,51 @@ factor `0.55 + pow(1.7)*(3.8-0.55)`, halo `1.7x` alpha `0x08` (casi invisible), 
 * **PENDIENTE para producción**: subir el **cap de transacciones Class B** en Backblaze B2 (Caps & Alerts,
   bucket `panalink-media-storage`) o el fallback seguirá devolviendo 403 aunque la app quiera usar B2.
 
+
+---
+
+## 🎬 Klipy GIFs/stickers (sustituye a Giphy) - sesión 2026-09-21, rama `kilo/klipy-gifs`
+
+**Pedido**: integrar los GIFs de Klipy en la app **sin anuncios**. La key vive en el secreto `KLIPY_API_KEY`.
+
+### API real (medida, no inferida)
+* Klipy tiene **dos** superficies y ambas responden 200:
+  1. **Nativa**: `https://api.klipy.com/api/v1/<KEY>/gifs/search?q=cat&limit=24` (la key va en el **path**).
+     También `gifs/trending`, `gifs/categories`, `stickers/search`, `stickers/trending`.
+     Respuesta: `{"result":true,"data":{"data":[{id,slug,title,file,type,blur_preview,tags}],"current_page","per_page","has_next","meta"}}`.
+  2. **Compatible Tenor**: `https://api.klipy.com/v2/search?q=cat&key=<KEY>&limit=3` (key en query, y `v2/featured` para trending).
+* **`file`** trae 4 calidades `hd/md/sm/xs`, cada una con `gif|webp|jpg|mp4|webm` y `{url,width,height,size}`.
+  `sm.gif` ~220 px (17-870 KB, ideal para el selector); `md.gif` puede pasar de 5 MB y `hd.gif` de 9 MB.
+* **`id` es NUMÉRICO** (ej. `2484942301552561`), no string: modelarlo como `String` rompe Moshi con `JsonDataException`.
+  `per_page` por defecto = 24.
+* **Cloudflare bloquea según User-Agent**: con `urllib`/UA por defecto la API devolvió **403** (y con endpoints/paths
+  equivocados, **204 sin body**, que NO significa "key inválida"). Regla: enviar `User-Agent` propio + `Accept: application/json`
+  en el OkHttp de Klipy (por eso `KlipyClient` monta su propio `OkHttpClient` con interceptor).
+
+### Implementación
+* `app/src/main/java/com/example/service/KlipyApiService.kt` (Retrofit, key en `@Path`) y `KlipyClient.kt`
+  (base `https://api.klipy.com/`, OkHttp con UA `PanaLink/Android`). **No** hay endpoint de ads: la app no muestra publicidad.
+* Modelos en `Models.kt`: `KlipyResponse/KlipyData/KlipyItem/KlipyFile/KlipyFormats/KlipyMedia` (Moshi `generateAdapter`).
+* `StickerRepository`: cadena **Klipy → Giphy (legacy) → fallback estático**. `fetchXFromKlipy` devuelve **null**
+  cuando no está configurado o falla (para encadenar), y una **lista vacía es respuesta válida** (no dispara fallback).
+* Mapeo (`toStickerResult`, `internal` para test): `url` = **md**, pero si `md.size > MAX_SEND_BYTES (2.5 MB)` cae a **sm**;
+  `preview` = **sm.gif animado** (el selector pinta `gif.preview`, así que debe ser GIF y no el jpg estático).
+  **Filtro defensivo**: items con `type = "ad"/"ads"` se descartan.
+* `ChatViewModel`: la consulta vacía ahora carga **trending** (antes forzaba `"funny"`), también al cerrar la búsqueda y en el debounce.
+* `build.gradle.kts`: `buildConfigField("String","KLIPY_API_KEY", ...)` desde `System.getenv("KLIPY_API_KEY")` / `secrets.properties`.
+  (La key queda embebida en el APK, igual que el patrón previo de `GIPHY_API_KEY`.)
+* `GiphyApiService/GiphyClient` se conservan solo como fallback legacy.
+
+### Verificación
+* `./gradlew :app:compileDebugKotlin` → **BUILD SUCCESSFUL**; `sanitize_invisible.sh` limpio.
+* `KlipyGifMappingTest` (5 tests) → **5/5 verde**: parseo del payload nativo, mapeo md/sm, filtro de ads,
+  caída a sm por peso, item sin URL → null. (Este test se añadió tras detectar en el JSON real que `id` era numérico.)
+* Validación contra la API real (con UA): 4 endpoints → 24/24 items mapeados, `types` solo `gif`/`sticker`
+  (sin ads) y `HEAD` de `url`/`preview` → 200 `image/gif`.
+* Beta: `v1.3.54-beta`, code **81**, SHA-256 `e4bc689c46e75256d97331134cae139893d93c11408a304d25c6577b3bd2ca58`
+  (69.585.414 bytes), package `com.panalink.app.beta`, label `PanaLink Beta`, firma estable `CN=Panalink Beta`,
+  `extractNativeLibs=0xffffffff`, ABIs `arm64-v8a`+`armeabi-v7a`, `zipalign` OK, zip íntegro.
+  La descarga pública del 12001 coincide byte a byte con el SHA local.
+* **12001** (`serve_apk.py`) sirve el APK con 206/Range; **12000** (`upload_server.py`) devuelve **501** en `/apk/...`:
+  entregar siempre por 12001. URL: `https://work-2-vbwmdmbkyoqizcpr.prod-runtime.all-hands.dev/Panalink-BETA-v1.3.54-code81.apk`.
+
