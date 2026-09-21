@@ -16,7 +16,11 @@ object OfflineMediaCache {
     const val MAX_FILE_BYTES = 100L * 1024L * 1024L
 
     private fun root(context: Context): File =
-        context.applicationContext.filesDir.resolve(DIRECTORY).also { it.mkdirs() }
+        context.applicationContext.filesDir.resolve(DIRECTORY).also {
+            if (!it.isDirectory) it.mkdirs()
+        }
+
+    private val HEX = "0123456789abcdef".toCharArray()
 
     private fun canonicalKey(url: String): String {
         val trimmed = url.trim()
@@ -28,7 +32,14 @@ object OfflineMediaCache {
         }
         val digest = MessageDigest.getInstance("SHA-256")
             .digest(identity.toByteArray(Charsets.UTF_8))
-        return digest.joinToString("") { "%02x".format(it) }
+        // Equivale a joinToString { "%02x".format(it) } pero sin crear 32 Strings
+        // por llamada: esto corre para cada mensaje en cada emision de Room.
+        val out = StringBuilder(digest.size * 2)
+        for (b in digest) {
+            val v = b.toInt() and 0xFF
+            out.append(HEX[v ushr 4]).append(HEX[v and 0x0F])
+        }
+        return out.toString()
     }
 
     private fun extension(url: String, mime: String?): String {
@@ -57,6 +68,34 @@ object OfflineMediaCache {
         if (url.isNullOrBlank()) return null
         val file = fileFor(context, url, mime)
         return file.takeIf { it.isFile && it.length() > 0L }?.let { Uri.fromFile(it).toString() }
+    }
+
+    /**
+     * Adopta un archivo local (p.ej. la miniatura generada al enviar) dentro del store
+     * persistente usando [url] como clave. Asi la miniatura sobrevive al borrado del
+     * archivo temporal y a la limpieza de `pending_media`, y el chat puede pintarla
+     * sin red. Devuelve la URI file:// persistente o null si no se pudo copiar.
+     */
+    fun adoptLocalFile(context: Context, url: String?, mime: String?, source: File?): String? {
+        if (url.isNullOrBlank() || source == null || !source.isFile || source.length() <= 0L) return null
+        if (source.length() > MAX_FILE_BYTES) return null
+        return try {
+            val target = fileFor(context, url, mime)
+            if (target.isFile && target.length() > 0L) {
+                Uri.fromFile(target).toString()
+            } else {
+                val tmp = File(target.parentFile, target.name + ".part")
+                source.copyTo(tmp, overwrite = true)
+                if (!tmp.renameTo(target)) {
+                    tmp.copyTo(target, overwrite = true)
+                    tmp.delete()
+                }
+                Uri.fromFile(target).toString()
+            }
+        } catch (e: Exception) {
+            Log.w(TAG, "No se pudo adoptar el archivo local como cache persistente: ${e.message}")
+            null
+        }
     }
 
     /** Streams an OkHttp response into persistent storage without readBytes(). */

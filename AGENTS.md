@@ -812,6 +812,67 @@ factor `0.55 + pow(1.7)*(3.8-0.55)`, halo `1.7x` alpha `0x08` (casi invisible), 
   ABIs `arm64-v8a`+`armeabi-v7a`, `zip.testzip()=None`.
 * `build_beta.sh` apunta por defecto a `origin/kilo/fancy-bloom-c6g`; para otra rama hay que pasar
   `BETA_BRANCH=origin/<rama>` y **subirla antes** (el script hace fetch del remoto, no del worktree local).
+---
+
+## 🎬 FIX multimedia "cargando" eterno + burbujas vacias (sesion 2026-09-20, rama `kilo/fix-chat-media-send`)
+
+### Sintomas (reportados por el mantenedor)
+* La multimedia tarda en dar el "enviado" aunque el archivo ya subio; se queda un rato con el
+  spinner y,a veces, despues de enviarse, no se muestra (imagenes, videos, notas de voz;
+  no todo el tiempo).
+* No es la subida (B2) ni el API: es la **transicion de estado** local.
+
+
+
+### Causa raiz 1: el registro dependia de OTRO worker (la principal)
+* `MediaUploadWorker` subia el archivo, guardaba `mediaUrl` y solo ENCOLABA un `SyncMessagesWorker`.
+  El sync use `enqueueUniqueWork(..., KEEP, ...)`: si ya habia un sync corriendo o en backoff, el
+  encolado se IGNORA y el mensaje quedaba en `sending` hasta el siguiente ciclo.
+  El texto NO sufre esto: se registra inline; por eso el bug era SOLO multimedia.
+
+### Causa raiz 2: la burbuja apuntaba a archivos ya borrados
+* Tras subir, el worker ponia `localMediaUri=null` y borraba el archivo (y la miniatura) aunque el
+  registro remoto aun no se confirmara. Sin copia persistente, la burbuja no tenia de donde pintar.
+
+### Causa raiz 3: progreso saturaba la DB de WorkManager
+* Cada callback de 64 KB persistia el progreso (50 MB => ~800 escrituras). `setProgressAsync` se
+  publica ahora SOLO cuando cambia el porcentaje
+
+
+### Fix aplicado
+* **Registro inmediato**: tras la subida, `MediaUploadWorker` llama a
+  `messagesRepository.syncPendingMessages()` en el propio worker; si falla o no confirma,
+  se conserva el archivo local (respaldo offline, la burbuja sigue pintando) y se deja el sync
+  encolado como respaldo. Al confirmarse se libera el archivo local (solo entonces puede
+  borrarlo `MediaCleanupManager` sin romper el chat).
+* **Miniatura persistente**: `OfflineMediaCache.adoptLocalFile(context, mediaUrl, "image/jpeg", thumbFile)`
+  copia la miniatura generada al cache persistente bajo la clave del **mediaUrl remoto** (B2 no devuelve
+  `thumbnailUrl`, asi que sin esto la burbuja quedaba sin imagen). `MessageEntity.toMessage()` busca el
+  thumbnail persistente tambien bajo esa clave (`thumbnailUrl ?: mediaUrl`). `localThumbnailUri` se libera
+  a proposito para no dejar referencias muertas (Coil fallaba y la burbuja quedaba en blanco).
+* **Perf del mapeo**: `canonicalKey` con conversion hex directa (sin `joinToString`+`format`, que creaba
+  32 Strings por mensaje por emision)y `mkdirs` condicional. **La clave del fichero NO cambia**: la fija
+  un test (`OfflineMediaCacheAdoptionTest` 6 tests). No invalidar las caches ya existentes.en los
+  dispositivos.ca
+* **KEEP se mantiene**: `scheduleMediaUpload` sigue con `ExistingWorkPolicy.KEEP` (hay test que la protege:
+  `MediaStateMachineTest.test5`). El sync paralelo ahora es un RESGUARDO, no el camino unico.
+
+
+### Verificacion (cero regresiones)
+* `:app:compileDebugKotlin` -> BUILD SUCCESSFUL.
+ `OfflineMediaCacheAdoptionTest` 6/6 verde; `MediaStateMachineTest` 10/10,
+  `ChatMultimediaHardenTest` 10/10, `OfflineQueueRecoveryTest` 5/5, `WorkerCleanupTest` 1/1.
+* APK beta: `v1.3.53-beta`, code **80**, SHA-256
+  `e1fead10bb00fb52184ddf0b5a2b27da1e31e3e5aaca6bf1cb89175c89ec8e45` (69.573.828 bytes),
+  package `com.panalink.app.beta`, firma estable, ABIs ARM, zipalign OK, zip integro.
+* Descarga === SHA local byte a byte, `Accept-Ranges` 200, `Content-Length` exacto.
+* URL (host de esta sesion): `https://work-2-yzygfzsztwhqdzwh.prod-runtime.all-hands.dev/Panalink-BETA-v1.3.53-code80.apk`.
+  Tambien sirve `/files/<archivo>`.
+* **Leccion**: cuando un flujo asincrono reporta "ya termino pero la UI sigue esperando", buscar
+  **quien avanza el estado despues de terminar**; si es OTRO worker en cola (especialmente con
+  `KEEP`, que ignora encolados nuevos si el previo sigue activo), esa es la causa: el avance es
+  oportunista y nunca llega. La correccion = avanzar inline en el propio worker + dejar el`worker` de
+  cola como red de seguridad, no como camino principal.
 
 ---
 

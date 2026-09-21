@@ -237,10 +237,17 @@ class MediaUploadWorker(
             val ext = if (file.name.contains(".")) file.name.substringAfterLast(".") else "bin"
             val stableFileName = "${stableKey}.$ext"
 
+            // Un archivo de 50 MB produce ~800 callbacks de 64 KB; persistir el progreso
+            // en cada uno satura la base de WorkManager y compite con la propia subida.
+            // Se publica solo cuando cambia el porcentaje.
+            var lastPublishedPct = -1
             val progressCb: (Long, Long) -> Unit = { written, total ->
                 if (total > 0L) {
                     val pct = ((written.toDouble() / total.toDouble()) * 100.0).toInt()
-                    setProgressAsync(androidx.work.workDataOf("messageId" to messageId, "progress" to pct, "bytesWritten" to written, "totalBytes" to total, "status" to "Subiendo ($pct%)"))
+                    if (pct != lastPublishedPct) {
+                        lastPublishedPct = pct
+                        setProgressAsync(androidx.work.workDataOf("messageId" to messageId, "progress" to pct, "bytesWritten" to written, "totalBytes" to total, "status" to "Subiendo ($pct%)"))
+                    }
                 }
             }
             // Decisión 2026-09-20: TODA la multimedia del chat (imagen, vídeo, audio,
@@ -269,29 +276,66 @@ class MediaUploadWorker(
 
             if (uploadResult.isSuccess) {
                 val mediaInfo = uploadResult.getOrThrow()
+
+                // La miniatura generada localmente se adopta en la cache persistente bajo
+                // la clave del mediaUrl remoto: B2 no devuelve thumbnail propio, y sin esto
+                // la burbuja quedaria sin imagen hasta que cargue el medio remoto.
+                val localThumbFile = entity.localThumbnailUri
+                    ?.let { File(it) }
+                    ?.takeIf { it.isFile && it.length() > 0L }
+                val persistedThumb = localThumbFile?.let {
+                    com.example.util.OfflineMediaCache.adoptLocalFile(context, mediaInfo.url, "image/jpeg", it)
+                }
+
                 val updatedEntity = entity.copy(
                     mediaUrl = mediaInfo.url,
-                    thumbnailUrl = mediaInfo.thumbnailUrl ?: entity.thumbnailUrl?.takeIf { it.startsWith("http") },
+                    thumbnailUrl = mediaInfo.thumbnailUrl
+                        ?: persistedThumb
+                        ?: entity.thumbnailUrl?.takeIf { it.startsWith("http") },
                     mediaMime = mediaInfo.mime ?: entity.mediaMime,
                     mediaSize = mediaInfo.size ?: entity.mediaSize,
                     mediaDuration = mediaInfo.duration?.takeIf { it > 0L } ?: entity.mediaDuration,
                     mediaWidth = mediaInfo.width?.takeIf { it > 0 } ?: entity.mediaWidth,
                     mediaHeight = mediaInfo.height?.takeIf { it > 0 } ?: entity.mediaHeight,
-                    localMediaUri = null,
+                    // Su archivo se borra mas abajo; ya hay copia persistente si se pudo adoptar.
+                    localThumbnailUri = null,
+                    // localMediaUri se CONSERVA a proposito: es el respaldo que permite
+                    // pintar la burbuja mientras el mensaje se registra y tambien sin red.
                     status = "sending"
                 )
                 val effectiveClearedAt = messagesRepository.getEffectiveClearedAt(updatedEntity.chatId, null)
                 val shouldKeep = com.example.util.MessageFilter.shouldKeepMessage(messageId = updatedEntity.id, messageClientUuid = updatedEntity.clientMessageUuid, messageCreatedAt = updatedEntity.createdAt, lastClearedAt = effectiveClearedAt, deletedMessageIds = messagesRepository.getUserDeletedMessageIds())
                 if (shouldKeep) {
                     messageDao.insertMessage(updatedEntity)
-                    entity.localMediaUri?.let { runCatching { File(it).delete() } }
-                    entity.localThumbnailUri?.let { runCatching { File(it).delete() } }
                 } else {
                     messageDao.deleteMessageById(updatedEntity.id)
-                    entity.localMediaUri?.let { runCatching { File(it).delete() } }
-                    entity.localThumbnailUri?.let { runCatching { File(it).delete() } }
                 }
-                messagesRepository.scheduleSync()
+                localThumbFile?.let { runCatching { it.delete() } }
+
+                // El archivo ya esta subido: se registra el mensaje en el servidor aqui mismo
+                // en vez de depender de que el SyncMessagesWorker (unique work con KEEP)
+                // encuentre un hueco. Con un sync ya en curso o en backoff, el encolado se
+                // ignoraba y el mensaje quedaba en "sending" hasta el siguiente ciclo.
+                val registered = if (!shouldKeep) {
+                    true
+                } else {
+                    try {
+                        messagesRepository.syncPendingMessages()
+                    } catch (e: Exception) {
+                        Log.w(TAG, "Registro inmediato fallo para $messageId; se reintentara por sync", e)
+                        false
+                    }
+                }
+
+                if (registered) {
+                    // Confirmado por el servidor: la fila temporal fue reemplazada por la
+                    // remota, asi que el archivo local ya no lo referencia nadie.
+                    entity.localMediaUri?.let { runCatching { File(it).delete() } }
+                } else {
+                    // Sin confirmacion: conservar el archivo local (respaldo offline) y dejar
+                    // que el sync encolado complete el registro.
+                    messagesRepository.scheduleSync()
+                }
                 logFinalStateAndResult(messageId, Result.success())
             } else {
                 val error = uploadResult.exceptionOrNull()

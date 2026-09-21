@@ -52,8 +52,12 @@ data class MessageEntity(
         val persistentMedia = try {
             OfflineMediaCache.existingUri(PanaApplication.instance, mediaUrl, mediaMime)
         } catch (_: Throwable) { null }
+        // La miniatura puede haberse persistido bajo la clave del mediaUrl (ver
+        // MediaUploadWorker: B2 no devuelve thumbnail propio, asi que la generada
+        // localmente se adopta en la cache usando la URL remota como clave).
         val persistentThumb = try {
             OfflineMediaCache.existingUri(PanaApplication.instance, thumbnailUrl, "image/jpeg")
+                ?: OfflineMediaCache.existingUri(PanaApplication.instance, mediaUrl, "image/jpeg")
         } catch (_: Throwable) { null }
 
         return Message(
