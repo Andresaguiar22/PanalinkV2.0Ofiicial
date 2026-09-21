@@ -438,6 +438,12 @@ class MainActivity : androidx.fragment.app.FragmentActivity() {
                         try {
                             com.example.premium.domain.PremiumManager.initialize()
                             com.example.premium.domain.MissionManager.refresh()
+                            SupabaseClient.currentUser?.id?.let { uid ->
+                                com.example.premium.domain.PremiumNotificationManager.initialize(
+                                    context = applicationContext,
+                                    uid = uid
+                                )
+                            }
                         } catch (e: Throwable) {
                             android.util.Log.e("MainActivity", "Premium init failed", e)
                         }

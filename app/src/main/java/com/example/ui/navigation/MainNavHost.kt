@@ -985,6 +985,10 @@ fun MainNavHost(
         }
     )
 
+    // Premium 2.0: overlay de recompensas (recompensa diaria, misión, nivel,
+    // monedas). 100% aditivo sobre la navegación.
+    com.example.premium.ui.PremiumRewardsOverlay()
+
     if (isPlayerFullVisible) {
         com.example.media.player.ui.MusicPlayerScreen(
             viewModel = playerViewModel,

@@ -69,6 +69,15 @@ class PremiumViewModel : ViewModel() {
                 if (buy.ok) {
                     _state.value = _state.value.copy(wallet = _state.value.wallet.copy(coins = buy.balance ?: _state.value.wallet.coins))
                     loadEntitlements()
+                    com.example.premium.domain.PremiumEventBus.publish(
+                        com.example.premium.domain.PremiumEvent.PurchaseCompleted(
+                            productCode = productCode,
+                            featureKey = buy.featureKey ?: "",
+                            productName = _state.value.products.firstOrNull { it.code == productCode }?.name ?: productCode,
+                            emoji = _state.value.products.firstOrNull { it.code == productCode }?.emoji ?: "💎",
+                            balance = buy.balance
+                        )
+                    )
                     _message.value = "✅ ${buy.featureKey ?: "Premium"} activado hasta ${buy.expiresAt?.take(10) ?: ""}"
                 } else {
                     _message.value = when (buy.reason) {
@@ -99,6 +108,14 @@ class PremiumViewModel : ViewModel() {
                     if (r.ok) {
                         _state.value = _state.value.copy(dailyReward = _state.value.dailyReward.copy(streak = r.streak ?: 0, claimedToday = true))
                         repository.getWalletBalance().onSuccess { b -> _state.value = _state.value.copy(wallet = b) }
+                        com.example.premium.domain.PremiumEventBus.publish(
+                            com.example.premium.domain.PremiumEvent.RewardClaimed(
+                                amount = r.amount ?: 0,
+                                day = r.day ?: 0,
+                                streak = r.streak ?: 0,
+                                currency = r.currency ?: "coins"
+                            )
+                        )
                         _message.value = "🎁 Recibiste ${r.amount} ${r.currency} (día ${r.day}, racha ${r.streak})"
                     } else {
                         _message.value = r.reason?.let {
@@ -141,9 +158,19 @@ class PremiumViewModel : ViewModel() {
             repository.claimMissionRewards()
                 .onSuccess { r ->
                     if (r.ok && r.claimed.isNotEmpty()) {
+                        val total = r.claimed.sumOf { it.reward }
                         repository.getWalletBalance().onSuccess { b -> _state.value = _state.value.copy(wallet = b) }
                         loadAll()
-                        _message.value = "🎯 Reclamaste ${r.claimed.size} ${if (r.claimed.size == 1) "misión" else "misiones"}"
+                        r.claimed.forEach { c ->
+                            com.example.premium.domain.PremiumEventBus.publish(
+                                com.example.premium.domain.PremiumEvent.CoinsEarned(
+                                    amount = c.reward,
+                                    source = "mission",
+                                    note = c.title
+                                )
+                            )
+                        }
+                        _message.value = "🎯 Reclamaste ${r.claimed.size} ${if (r.claimed.size == 1) "misión" else "misiones"} (+$total 🪙)"
                     } else {
                         _message.value = "No hay misiones completadas para reclamar"
                     }
