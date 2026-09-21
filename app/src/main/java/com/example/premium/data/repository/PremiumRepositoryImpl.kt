@@ -7,6 +7,7 @@ import com.example.premium.data.remote.RpcBuyRequest
 import com.example.premium.data.remote.RpcExchangeRequest
 import com.example.premium.data.remote.RpcMissionProgressRequest
 import com.example.premium.data.remote.RpcNotifReadRequest
+import com.example.premium.data.remote.RpcWalletHistoryRequest
 import com.example.premium.domain.model.*
 import com.example.premium.domain.repository.PremiumRepository
 import okhttp3.OkHttpClient
@@ -405,7 +406,91 @@ class PremiumRepositoryImpl : PremiumRepository {
         }
     }
 
+    override suspend fun getWalletHistory(limit: Int, currency: String?): Result<WalletHistoryResponse> {
+        return try {
+            val response = api.rpcWalletHistory(
+                apiKey = SupabaseClient.supabaseAnonKey,
+                authorization = getAuthHeader(),
+                body = RpcWalletHistoryRequest(limit, currency)
+            )
+            if (response.isSuccessful) {
+                val map = parseJson(response.body()?.string()) ?: emptyMap()
+                val walletMap = map["wallet"] as? Map<*, *>
+                val wallet = WalletBalance(
+                    coins = asInt(walletMap as? Map<String, Any>, "coins"),
+                    diamonds = asInt(walletMap as? Map<String, Any>, "diamonds"),
+                    tickets = asInt(walletMap as? Map<String, Any>, "tickets"),
+                    xp = asInt(walletMap as? Map<String, Any>, "xp"),
+                    level = asInt(walletMap as? Map<String, Any>, "level")
+                )
+                val tx = asMapList(map, "transactions").map {
+                    WalletTransaction(
+                        id = asStr(it, "id") ?: "",
+                        kind = asStr(it, "kind") ?: "",
+                        currency = asStr(it, "currency") ?: "coins",
+                        amount = asInt(it, "amount"),
+                        balanceAfter = asInt(it, "balance_after"),
+                        description = asStr(it, "description"),
+                        refType = asStr(it, "ref_type"),
+                        createdAt = asStr(it, "created_at") ?: ""
+                    )
+                }
+                Result.success(WalletHistoryResponse(ok = true, wallet = wallet, transactions = tx, count = tx.size))
+            } else {
+                Result.failure(Exception("Error wallet_history: ${response.errorBody()?.string()}"))
+            }
+        } catch (e: Exception) {
+            Log.e(TAG, "Exception wallet_history", e)
+            Result.failure(e)
+        }
+    }
+
+    override suspend fun getLevelInfo(): Result<LevelInfo> {
+        return try {
+            val response = api.rpcLevelInfo(
+                apiKey = SupabaseClient.supabaseAnonKey,
+                authorization = getAuthHeader()
+            )
+            if (response.isSuccessful) {
+                val map = parseJson(response.body()?.string()) ?: emptyMap()
+                Result.success(
+                    LevelInfo(
+                        ok = asBool(map, "ok"),
+                        level = asInt(map, "level"),
+                        xp = asInt(map, "xp"),
+                        xpForNext = asInt(map, "xp_for_next"),
+                        current = (map["current"] as? Map<*, *>)?.let { tier ->
+                            tier as? Map<String, Any>
+                        }?.toLevelTier(),
+                        next = (map["next"] as? Map<*, *>)?.let { tier ->
+                            tier as? Map<String, Any>
+                        }?.toLevelTier(),
+                        levelTiers = asMapList(map, "level_tiers").mapNotNull { it.toLevelTier() }
+                    )
+                )
+            } else {
+                Result.failure(Exception("Error level_info: ${response.errorBody()?.string()}"))
+            }
+        } catch (e: Exception) {
+            Log.e(TAG, "Exception premium_level_info", e)
+            Result.failure(e)
+        }
+    }
+
     // ---- Mapeo de map -> modelo ---------------------------------------------------
+
+    private fun Map<String, Any>.toLevelTier(): LevelTierInfo? {
+        val level = asInt(this, "level")
+        if (level <= 0) return null
+        return LevelTierInfo(
+            level = level,
+            title = asStr(this, "title") ?: "Pana",
+            emoji = asStr(this, "emoji") ?: "⭐",
+            rewardCurrency = asStr(this, "reward_currency"),
+            rewardAmount = asInt(this, "reward_amount"),
+            cosmeticCode = asStr(this, "cosmetic_code")
+        )
+    }
 
     private fun Map<String, Any>.toEntitlement(): Entitlement? {
         val id = asStr(this, "id") ?: return null

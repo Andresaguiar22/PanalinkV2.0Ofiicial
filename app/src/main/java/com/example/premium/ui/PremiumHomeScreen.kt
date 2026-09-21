@@ -40,6 +40,7 @@ import com.example.ui.theme.PanalinkSkin
 fun PremiumHomeScreen(
     onBack: () -> Unit,
     onOpenShop: () -> Unit,
+    onOpenWallet: () -> Unit = {},
     viewModel: PremiumViewModel = viewModel()
 ) {
     LaunchedEffect(Unit) { viewModel.loadAll() }
@@ -76,8 +77,8 @@ fun PremiumHomeScreen(
                 .padding(innerPadding)
                 .padding(horizontal = 16.dp)
         ) {
-            // Saldo principal (card dorada)
-            WalletHeroCard(wallet = state.wallet)
+            // Saldo principal (card dorada) — tocar abre el Wallet.
+            WalletHeroCard(wallet = state.wallet, onClick = onOpenWallet)
 
             Spacer(modifier = Modifier.height(12.dp))
 
@@ -167,11 +168,15 @@ private fun SectionTitle(text: String) {
 
 /** Card principal con saldo completo. */
 @Composable
-fun WalletHeroCard(wallet: com.example.premium.domain.model.WalletBalance) {
+fun WalletHeroCard(
+    wallet: com.example.premium.domain.model.WalletBalance,
+    onClick: () -> Unit = {}
+) {
     val gold = PanalinkSkin.Gold
     Box(
         modifier = Modifier
             .fillMaxWidth()
+            .clickable(onClick = onClick)
             .background(
                 Brush.linearGradient(listOf(Color(0xFF2A2320), Color(0xFF171A24))),
                 RoundedCornerShape(24.dp)

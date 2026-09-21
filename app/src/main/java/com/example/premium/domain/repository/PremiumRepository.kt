@@ -21,4 +21,6 @@ interface PremiumRepository {
     suspend fun exchangeDiamonds(amount: Int, requestId: String? = null): Result<ExchangeResult>
     suspend fun getNotifications(): Result<List<PremiumNotification>>
     suspend fun markNotificationRead(notificationId: String): Result<SimpleResult>
+    suspend fun getWalletHistory(limit: Int = 100, currency: String? = null): Result<WalletHistoryResponse>
+    suspend fun getLevelInfo(): Result<LevelInfo>
 }

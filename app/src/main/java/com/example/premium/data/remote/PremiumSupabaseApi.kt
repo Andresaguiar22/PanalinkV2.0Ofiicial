@@ -144,4 +144,24 @@ interface PremiumSupabaseApi {
         @Header("Authorization") authorization: String,
         @Body body: RpcNotifReadRequest
     ): Response<ResponseBody>
+
+    @POST("rest/v1/rpc/wallet_history")
+    suspend fun rpcWalletHistory(
+        @Header("apikey") apiKey: String,
+        @Header("Authorization") authorization: String,
+        @Body body: RpcWalletHistoryRequest
+    ): Response<ResponseBody>
+
+    @POST("rest/v1/rpc/premium_level_info")
+    suspend fun rpcLevelInfo(
+        @Header("apikey") apiKey: String,
+        @Header("Authorization") authorization: String,
+        @Body body: RpcEmptyRequest = RpcEmptyRequest()
+    ): Response<ResponseBody>
 }
+
+@JsonClass(generateAdapter = true)
+data class RpcWalletHistoryRequest(
+    @Json(name = "p_limit") val limit: Int = 100,
+    @Json(name = "p_currency") val currency: String? = null
+)

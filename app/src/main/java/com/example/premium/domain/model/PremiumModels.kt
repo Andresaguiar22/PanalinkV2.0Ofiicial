@@ -241,3 +241,48 @@ data class SimpleResult(
     @Json(name = "ok") val ok: Boolean,
     @Json(name = "reason") val reason: String? = null
 )
+
+/** Transacción del ledger para el WalletScreen. */
+@JsonClass(generateAdapter = true)
+data class WalletTransaction(
+    @Json(name = "id") val id: String,
+    @Json(name = "kind") val kind: String,
+    @Json(name = "currency") val currency: String,
+    @Json(name = "amount") val amount: Int,
+    @Json(name = "balance_after") val balanceAfter: Int,
+    @Json(name = "description") val description: String?,
+    @Json(name = "ref_type") val refType: String?,
+    @Json(name = "created_at") val createdAt: String
+)
+
+/** Respuesta de wallet_history(). */
+@JsonClass(generateAdapter = true)
+data class WalletHistoryResponse(
+    @Json(name = "ok") val ok: Boolean = false,
+    @Json(name = "wallet") val wallet: WalletBalance? = null,
+    @Json(name = "transactions") val transactions: List<WalletTransaction> = emptyList(),
+    @Json(name = "count") val count: Int = 0
+)
+
+/** Tier de nivel con recompensa. */
+@JsonClass(generateAdapter = true)
+data class LevelTierInfo(
+    @Json(name = "level") val level: Int,
+    @Json(name = "title") val title: String,
+    @Json(name = "emoji") val emoji: String,
+    @Json(name = "reward_currency") val rewardCurrency: String?,
+    @Json(name = "reward_amount") val rewardAmount: Int,
+    @Json(name = "cosmetic_code") val cosmeticCode: String?
+)
+
+/** Información de nivel actual + próximos hitos. */
+@JsonClass(generateAdapter = true)
+data class LevelInfo(
+    @Json(name = "ok") val ok: Boolean = false,
+    @Json(name = "level") val level: Int = 1,
+    @Json(name = "xp") val xp: Int = 0,
+    @Json(name = "xp_for_next") val xpForNext: Int = 100,
+    @Json(name = "current") val current: LevelTierInfo? = null,
+    @Json(name = "next") val next: LevelTierInfo? = null,
+    @Json(name = "level_tiers") val levelTiers: List<LevelTierInfo> = emptyList()
+)

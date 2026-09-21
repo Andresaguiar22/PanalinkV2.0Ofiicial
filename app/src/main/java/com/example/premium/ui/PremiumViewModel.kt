@@ -57,6 +57,12 @@ class PremiumViewModel : ViewModel() {
             repository.getNotifications().onSuccess { list ->
                 _state.value = _state.value.copy(notifications = list)
             }
+            repository.getWalletHistory().onSuccess { h ->
+                _state.value = _state.value.copy(walletHistory = h)
+            }
+            repository.getLevelInfo().onSuccess { li ->
+                _state.value = _state.value.copy(levelInfo = li)
+            }
             _state.value = _state.value.copy(loading = false)
         }
     }
@@ -205,6 +211,8 @@ data class PremiumUiState(
     val events: List<PremiumEvent> = emptyList(),
     val dailyReward: DailyRewardStatus = DailyRewardStatus(),
     val missions: List<Mission> = emptyList(),
-    val notifications: List<PremiumNotification> = emptyList()
+    val notifications: List<PremiumNotification> = emptyList(),
+    val walletHistory: WalletHistoryResponse = WalletHistoryResponse(),
+    val levelInfo: LevelInfo = LevelInfo()
 )
 

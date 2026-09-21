@@ -944,6 +944,19 @@ fun MainNavHost(
                 onBack = { mainNavController.popBackStack() },
                 onOpenShop = {
                     mainNavController.navigate("premiumShop") { launchSingleTop = true }
+                },
+                onOpenWallet = {
+                    mainNavController.navigate("premiumWallet") { launchSingleTop = true }
+                }
+            )
+        }
+
+        // Premium 2.0 — Wallet (saldo completo + historial + niveles)
+        composable("premiumWallet") {
+            com.example.premium.ui.PremiumWalletScreen(
+                onBack = { mainNavController.popBackStack() },
+                onOpenShop = {
+                    mainNavController.navigate("premiumShop") { launchSingleTop = true }
                 }
             )
         }
