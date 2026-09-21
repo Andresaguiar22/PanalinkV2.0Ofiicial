@@ -919,7 +919,8 @@ fun ChatsListScreen(
                             statesViewModel = statesViewModel,
                             onNavigateToViewState = onNavigateToViewState,
                             onNavigateToCreateState = onNavigateToCreateState,
-                            onNavigateToChat = onNavigateToChat
+                            onNavigateToChat = onNavigateToChat,
+                            onOpenPremium = onNavigateToPremium
                         )
                         }
                     composable("clips") {
@@ -1190,9 +1191,17 @@ fun ChatsListScreen(
                         Column(modifier = Modifier.weight(1f)) {
                             Row(verticalAlignment = Alignment.CenterVertically) {
                                 Text("PanaTV", color = PanalinkPalette.textPrimary, fontWeight = FontWeight.Bold, fontSize = 15.sp)
-                                if (!com.example.premium.domain.PremiumManager.hasFeature(com.example.premium.domain.PremiumFeatures.PANATV)) {
-                                    Spacer(modifier = Modifier.width(6.dp))
+                                val panatvLocked = !com.example.premium.domain.PremiumManager.hasFeature(com.example.premium.domain.PremiumFeatures.PANATV)
+                                Spacer(modifier = Modifier.width(6.dp))
+                                if (panatvLocked) {
                                     Text("💎", fontSize = 12.sp)
+                                } else {
+                                    Text(
+                                        "👑 Gold",
+                                        color = com.example.ui.theme.PanalinkSkin.Gold,
+                                        fontSize = 11.sp,
+                                        fontWeight = FontWeight.Bold
+                                    )
                                 }
                             }
                             Text("Canales nacionales en vivo", color = Color.Gray, fontSize = 12.sp)

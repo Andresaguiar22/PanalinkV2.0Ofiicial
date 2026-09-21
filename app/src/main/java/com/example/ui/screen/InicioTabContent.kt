@@ -495,6 +495,7 @@ fun InicioTabContent(
     onNavigateToViewState: (String) -> Unit,
     onNavigateToCreateState: () -> Unit,
     onNavigateToChat: (String, String) -> Unit,
+    onOpenPremium: (() -> Unit)? = null,
     feedViewModel: com.example.ui.viewmodel.FeedViewModel = androidx.lifecycle.viewmodel.compose.viewModel()
 ) {
     val colors = com.example.ui.theme.LocalAppColors.current
@@ -852,6 +853,81 @@ fun InicioTabContent(
                                 contentDescription = "Publicar",
                                 tint = Color(0xFF00E5FF)
                             )
+                        }
+                    }
+                }
+
+                // Wall Gold: si la feature está activa, banner con adornos; si no, invitación.
+                item {
+                    val wallEntitlements by com.example.premium.domain.PremiumManager.entitlements.collectAsState()
+                    val wallActive = wallEntitlements.any {
+                        it.featureKey == com.example.premium.domain.PremiumFeatures.WALL && it.isActive
+                    }
+                    if (wallActive) {
+                        Box(
+                            modifier = Modifier
+                                .fillMaxWidth()
+                                .padding(horizontal = 16.dp, vertical = 6.dp)
+                                .clip(RoundedCornerShape(14.dp))
+                                .background(
+                                    Brush.linearGradient(
+                                        listOf(Color(0xFF3D2E00), Color(0xFF6B5310))
+                                    )
+                                )
+                                .border(1.dp, Color(0xFFE9C46A).copy(alpha = 0.6f), RoundedCornerShape(14.dp))
+                                .clickable { showCreatePostSheet = true }
+                                .padding(horizontal = 16.dp, vertical = 12.dp)
+                        ) {
+                            Row(verticalAlignment = Alignment.CenterVertically) {
+                                Text("👑", fontSize = 20.sp)
+                                Spacer(modifier = Modifier.width(10.dp))
+                                Column(modifier = Modifier.weight(1f)) {
+                                    Text(
+                                        "Wall Gold activo",
+                                        color = Color(0xFFFFE29A),
+                                        fontWeight = FontWeight.Bold,
+                                        fontSize = 14.sp
+                                    )
+                                    Text(
+                                        "Tu muro tiene boost de visibilidad y estadísticas detalladas.",
+                                        color = Color(0xFFFFF3C4).copy(alpha = 0.85f),
+                                        fontSize = 11.sp
+                                    )
+                                }
+                            }
+                        }
+                    } else {
+                        Box(
+                            modifier = Modifier
+                                .fillMaxWidth()
+                                .padding(horizontal = 16.dp, vertical = 6.dp)
+                                .clip(RoundedCornerShape(14.dp))
+                                .background(Color(0xFF1A1410))
+                                .border(1.dp, com.example.ui.theme.PanalinkSkin.Gold.copy(alpha = 0.35f), RoundedCornerShape(14.dp))
+                                .clickable {
+                                    if (onOpenPremium != null) onOpenPremium()
+                                    else onNavigateToChat("", "")
+                                }
+                                .padding(horizontal = 16.dp, vertical = 12.dp)
+                        ) {
+                            Row(verticalAlignment = Alignment.CenterVertically) {
+                                Text("🪙", fontSize = 20.sp)
+                                Spacer(modifier = Modifier.width(10.dp))
+                                Column(modifier = Modifier.weight(1f)) {
+                                    Text(
+                                        "Activa Wall Gold",
+                                        color = com.example.ui.theme.PanalinkSkin.TitleCream,
+                                        fontWeight = FontWeight.Bold,
+                                        fontSize = 14.sp
+                                    )
+                                    Text(
+                                        "Boost de visibilidad y estadísticas en tu muro por días con monedas.",
+                                        color = com.example.ui.theme.PanalinkPalette.textPrimary.copy(alpha = 0.7f),
+                                        fontSize = 11.sp
+                                    )
+                                }
+                                Text("Ver tienda →", color = com.example.ui.theme.PanalinkSkin.Gold, fontSize = 11.sp, fontWeight = FontWeight.Bold)
+                            }
                         }
                     }
                 }
