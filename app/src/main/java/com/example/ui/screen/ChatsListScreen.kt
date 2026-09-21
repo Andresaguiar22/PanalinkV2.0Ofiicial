@@ -253,7 +253,8 @@ fun ChatsListScreen(
     onNavigateToFavorites: () -> Unit = {},
     onNavigateToMusic: () -> Unit = {},
     onNavigateToVoiceRoom: () -> Unit = {},
-    onNavigateToLive: () -> Unit = {}
+    onNavigateToLive: () -> Unit = {},
+    onNavigateToPremium: (() -> Unit)? = null
 ) {
     val context = androidx.compose.ui.platform.LocalContext.current
     var selectedChatIds by remember { mutableStateOf(emptySet<String>()) }
@@ -1153,14 +1154,18 @@ fun ChatsListScreen(
                         Icon(Icons.Default.KeyboardArrowRight, contentDescription = null, tint = Color.Gray)
                     }
 
-                    // PanaTV
+                    // PanaTV (Premium 2.0 — requiere beneficio)
                     Row(
                         modifier = Modifier
                             .fillMaxWidth()
                             .clickable {
                                 showPlusBottomSheet = false
-                                val intent = android.content.Intent(context, com.example.panatv.PanaTVActivity::class.java)
-                                context.startActivity(intent)
+                                if (com.example.premium.domain.PremiumManager.hasFeature(com.example.premium.domain.PremiumFeatures.PANATV)) {
+                                    val intent = android.content.Intent(context, com.example.panatv.PanaTVActivity::class.java)
+                                    context.startActivity(intent)
+                                } else {
+                                    onNavigateToPremium?.invoke()
+                                }
                             }
                             .padding(vertical = 12.dp),
                         verticalAlignment = Alignment.CenterVertically
@@ -1175,7 +1180,13 @@ fun ChatsListScreen(
                         }
                         Spacer(modifier = Modifier.width(16.dp))
                         Column(modifier = Modifier.weight(1f)) {
-                            Text("PanaTV", color = PanalinkPalette.textPrimary, fontWeight = FontWeight.Bold, fontSize = 15.sp)
+                            Row(verticalAlignment = Alignment.CenterVertically) {
+                                Text("PanaTV", color = PanalinkPalette.textPrimary, fontWeight = FontWeight.Bold, fontSize = 15.sp)
+                                if (!com.example.premium.domain.PremiumManager.hasFeature(com.example.premium.domain.PremiumFeatures.PANATV)) {
+                                    Spacer(modifier = Modifier.width(6.dp))
+                                    Text("💎", fontSize = 12.sp)
+                                }
+                            }
                             Text("Canales nacionales en vivo", color = Color.Gray, fontSize = 12.sp)
                         }
                     }

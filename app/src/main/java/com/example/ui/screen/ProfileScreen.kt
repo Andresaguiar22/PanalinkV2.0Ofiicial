@@ -47,7 +47,8 @@ fun ProfileScreen(
     viewModel: ProfileViewModel,
     authViewModel: AuthViewModel,
     onBack: () -> Unit,
-    onNavigateToReel: (String) -> Unit = {}
+    onNavigateToReel: (String) -> Unit = {},
+    onOpenPremium: (() -> Unit)? = null
 ) {
     var showControlCenter by remember { mutableStateOf(false) }
     var isEditingProfile by remember { mutableStateOf(false) }
@@ -132,6 +133,16 @@ fun ProfileScreen(
                     }
                 },
                 actions = {
+                    if (onOpenPremium != null) {
+                        androidx.compose.foundation.layout.Row(
+                            verticalAlignment = androidx.compose.ui.Alignment.CenterVertically
+                        ) {
+                            com.example.premium.ui.CoinChip(onClick = onOpenPremium)
+                            IconButton(onClick = onOpenPremium) {
+                                Text("💎", fontSize = 18.sp)
+                            }
+                        }
+                    }
                     IconButton(onClick = { showControlCenter = true }) {
                         Icon(Icons.Default.Settings, contentDescription = "Centro de Control", tint = PanalinkPalette.textPrimary)
                     }

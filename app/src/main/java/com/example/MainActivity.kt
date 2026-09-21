@@ -434,6 +434,12 @@ class MainActivity : androidx.fragment.app.FragmentActivity() {
                             chatsViewModel.loadChats(forceRefresh = true)
                             statesViewModel.loadActiveStates(showLoading = false)
                         }
+                        // Premium 2.0: carga saldo y entitlements del usuario al entrar.
+                        try {
+                            com.example.premium.domain.PremiumManager.initialize()
+                        } catch (e: Throwable) {
+                            android.util.Log.e("MainActivity", "Premium init failed", e)
+                        }
                     } else {
                         // No resetear lastUserId en estados transitorios: previene re-splash
                     }

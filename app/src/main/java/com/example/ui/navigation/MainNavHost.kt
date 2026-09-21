@@ -328,7 +328,8 @@ fun MainNavHost(
                 onNavigateToFavorites = { mainNavController.navigate("favorites") { launchSingleTop = true } },
                 onNavigateToMusic = { mainNavController.navigate("musicHome") { launchSingleTop = true } },
                 onNavigateToVoiceRoom = { mainNavController.navigate("voiceRooms") { launchSingleTop = true } },
-                onNavigateToLive = { mainNavController.navigate("live_feed") { launchSingleTop = true } }
+                onNavigateToLive = { mainNavController.navigate("live_feed") { launchSingleTop = true } },
+                onNavigateToPremium = { mainNavController.navigate("premiumHome") { launchSingleTop = true } }
             )
         }
 
@@ -924,7 +925,27 @@ fun MainNavHost(
                 onBack = { mainNavController.popBackStack() },
                 onNavigateToReel = { reelId ->
                     mainNavController.navigate("tiktok/$reelId") { launchSingleTop = true }
+                },
+                onOpenPremium = {
+                    mainNavController.navigate("premiumHome") { launchSingleTop = true }
                 }
+            )
+        }
+
+        // Premium 2.0 — Centro de beneficios
+        composable("premiumHome") {
+            com.example.premium.ui.PremiumHomeScreen(
+                onBack = { mainNavController.popBackStack() },
+                onOpenShop = {
+                    mainNavController.navigate("premiumShop") { launchSingleTop = true }
+                }
+            )
+        }
+
+        // Premium 2.0 — Tienda (comprar con monedas)
+        composable("premiumShop") {
+            com.example.premium.ui.PremiumShopScreen(
+                onBack = { mainNavController.popBackStack() }
             )
         }
 
