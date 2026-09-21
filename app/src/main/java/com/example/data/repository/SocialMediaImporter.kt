@@ -25,7 +25,7 @@ import java.util.concurrent.TimeUnit
 object SocialMediaImporter {
 
     private const val TAG = "SocialMediaImporter"
-    private const val IMPORT_POLL_DOWNLOAD_TIMEOUT_SECONDS = 20L
+    private const val IMPORT_POLL_DOWNLOAD_TIMEOUT_SECONDS = 180L
 
     private val client by lazy {
         OkHttpClient.Builder()
@@ -107,11 +107,66 @@ object SocialMediaImporter {
                 }
             }
 
-            val bodyBytes = response.body?.bytes() ?: return@withContext Result.failure(Exception("Respuesta vacía del servidor de importación."))
-            if (bodyBytes.isEmpty()) return@withContext Result.failure(Exception("El archivo importado está vacío."))
+            val responseBody = response.body?.string().orEmpty()
+            response.close()
 
-            val mime = response.header("X-Import-Mime") ?: "video/mp4"
-            val sizeHeader = response.header("X-Import-Size")?.toLongOrNull() ?: bodyBytes.size.toLong()
+            if (responseBody.isBlank()) {
+                return@withContext Result.failure(Exception("Respuesta vacía del servidor de importación."))
+            }
+
+            val json = runCatching { org.json.JSONObject(responseBody) }.getOrElse {
+                return@withContext Result.failure(Exception("Respuesta inválida del servidor de importación."))
+            }
+
+            if (!json.optBoolean("success", false)) {
+                return@withContext Result.failure(
+                    Exception(json.optString("error", "No se pudo importar el vídeo."))
+                )
+            }
+
+            val importedUrl = json.optString("url", "").trim()
+            if (importedUrl.isEmpty()) {
+                return@withContext Result.failure(
+                    Exception("El servidor importó el vídeo pero no devolvió una URL.")
+                )
+            }
+
+            if (!importedUrl.startsWith("http://") && !importedUrl.startsWith("https://")) {
+                return@withContext Result.failure(Exception("La URL devuelta por el servidor no es válida."))
+            }
+
+            Log.i(TAG, "Importación completada; descargando MP4")
+
+            val mediaRequest = Request.Builder()
+                .url(importedUrl)
+                .header("Accept", "video/mp4,video/*,*/*")
+                .build()
+
+            val mediaResponse = client.newCall(mediaRequest).execute()
+
+            if (!mediaResponse.isSuccessful) {
+                val code = mediaResponse.code
+                mediaResponse.close()
+                return@withContext Result.failure(
+                    Exception("No se pudo descargar el vídeo importado (HTTP $code).")
+                )
+            }
+
+            val mediaBody = mediaResponse.body
+                ?: run {
+                    mediaResponse.close()
+                    return@withContext Result.failure(
+                        Exception("El servidor devolvió una respuesta de vídeo vacía.")
+                    )
+                }
+
+            val sizeHeader = mediaBody.contentLength()
+            val bodyBytes = mediaBody.bytes()
+            mediaResponse.close()
+
+            if (bodyBytes.isEmpty()) {
+                return@withContext Result.failure(Exception("El archivo importado está vacío."))
+            }
 
             val mediaDir = File(context.filesDir, "pending_media")
             if (!mediaDir.exists()) mediaDir.mkdirs()
@@ -119,18 +174,19 @@ object SocialMediaImporter {
             destFile.writeBytes(bodyBytes)
 
             if (destFile.length() <= 0L) {
-
                 destFile.delete()
                 return@withContext Result.failure(Exception("El archivo importado se guardó vacío."))
             }
 
-            Log.i(TAG, "Import OK: ${destFile.name} (${destFile.length()} bytes, mime=$mime")
+            val finalSize = if (sizeHeader > 0L) sizeHeader else destFile.length()
+
+            Log.i(TAG, "Import OK: ${destFile.name} (${destFile.length()} bytes, mime=video/mp4)")
             return@withContext Result.success(
                 ImportResult(
                     uri = Uri.fromFile(destFile),
                     file = destFile,
-                    mimeType = mime,
-                    sizeBytes = sizeHeader
+                    mimeType = "video/mp4",
+                    sizeBytes = finalSize
                 )
             )
         } catch (e: Exception) {
