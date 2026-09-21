@@ -91,14 +91,8 @@ fun LiveFeedScreen(
                 )
             },
             floatingActionButton = {
-                // Premium 2.0: transmitir en directo es función Live Gold.
-                LiveBroadcastFab(onClick = {
-                    com.example.premium.domain.PremiumAccess.run(
-                        com.example.premium.domain.PremiumFeatures.LIVE,
-                        allowed = { onNavigateToBroadcast() },
-                        blocked = { if (onNavigateToPremium != null) onNavigateToPremium() else onNavigateToBroadcast() }
-                    )
-                })
+                // Premium 2.0: beneficios aditivos — transmitir NUNCA se bloquea.
+                LiveBroadcastFab(onClick = { onNavigateToBroadcast() })
             },
             containerColor = Color.Transparent
         ) { paddingValues ->

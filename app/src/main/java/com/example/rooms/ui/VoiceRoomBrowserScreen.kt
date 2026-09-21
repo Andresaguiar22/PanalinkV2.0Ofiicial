@@ -43,12 +43,8 @@ fun VoiceRoomBrowserScreen(onBack:()->Unit,onEnterRoom:(String)->Unit,viewModel:
             }
             if(state.rooms.isEmpty()&&!state.isLoading) Text("No hay salas activas ahora",color=Color.Gray,modifier=Modifier.align(Alignment.Center).padding(bottom=80.dp))
             FloatingActionButton(onClick={
-                // Premium 2.0: crear una sala de voz es función Voice Gold.
-                com.example.premium.domain.PremiumAccess.run(
-                    com.example.premium.domain.PremiumFeatures.VOICE,
-                    allowed = { showCreate = true },
-                    blocked = { if (onNavigateToPremium != null) onNavigateToPremium() else showCreate = true }
-                )
+                // Premium 2.0: beneficios aditivos — crear sala NUNCA se bloquea.
+                showCreate = true
             },modifier=Modifier.align(Alignment.BottomEnd).padding(20.dp),containerColor=Color(0xFF4ADEAF)){Icon(Icons.Default.Add,"Crear sala",tint=Color(0xFF1A120E))}
             if(showCreate) VoiceRoomCreateDialog(onDismiss={showCreate=false},onCreate={showCreate=false;viewModel.createRoom(it)})
         }

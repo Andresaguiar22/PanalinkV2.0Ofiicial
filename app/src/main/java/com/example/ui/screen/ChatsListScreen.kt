@@ -1046,17 +1046,13 @@ fun ChatsListScreen(
                         modifier = Modifier.fillMaxWidth(),
                         horizontalArrangement = Arrangement.spacedBy(16.dp)
                     ) {
-                        // Historia Card (Premium 2.0: crear y publicar es función Story Gold)
+                        // Historia Card (Premium 2.0: beneficios aditivos — crear NUNCA se bloquea)
                         Card(
                             modifier = Modifier
                                 .weight(1f)
                                 .clickable {
                                     showPlusBottomSheet = false
-                                    com.example.premium.domain.PremiumAccess.run(
-                                        com.example.premium.domain.PremiumFeatures.STORY,
-                                        allowed = { onNavigateToCreateStory() },
-                                        blocked = { if (onNavigateToPremium != null) onNavigateToPremium() else onNavigateToCreateStory() }
-                                    )
+                                    onNavigateToCreateStory()
                                 },
                             shape = RoundedCornerShape(16.dp),
                             colors = CardDefaults.cardColors(containerColor = Color(0xFF161618)),
@@ -1088,17 +1084,13 @@ fun ChatsListScreen(
                             }
                         }
 
-                        // Reel Card (Premium 2.0: crear y publicar reels es función Wall/Story Gold)
+                        // Reel Card (Premium 2.0: beneficios aditivos — crear NUNCA se bloquea)
                         Card(
                             modifier = Modifier
                                 .weight(1f)
                                 .clickable {
                                     showPlusBottomSheet = false
-                                    com.example.premium.domain.PremiumAccess.run(
-                                        com.example.premium.domain.PremiumFeatures.STORY,
-                                        allowed = { onNavigateToCreateReel() },
-                                        blocked = { if (onNavigateToPremium != null) onNavigateToPremium() else onNavigateToCreateReel() }
-                                    )
+                                    onNavigateToCreateReel()
                                 },
                             shape = RoundedCornerShape(16.dp),
                             colors = CardDefaults.cardColors(containerColor = Color(0xFF161618)),
@@ -1163,18 +1155,16 @@ fun ChatsListScreen(
                         Icon(Icons.Default.KeyboardArrowRight, contentDescription = null, tint = Color.Gray)
                     }
 
-                    // PanaTV (Premium 2.0 — requiere beneficio)
+                    // PanaTV (Premium 2.0 — beneficio aditivo)
                     Row(
                         modifier = Modifier
                             .fillMaxWidth()
                             .clickable {
                                 showPlusBottomSheet = false
-                                if (com.example.premium.domain.PremiumManager.hasFeature(com.example.premium.domain.PremiumFeatures.PANATV)) {
-                                    val intent = android.content.Intent(context, com.example.panatv.PanaTVActivity::class.java)
-                                    context.startActivity(intent)
-                                } else {
-                                    onNavigateToPremium?.invoke()
-                                }
+                                // Aditivo: PanaTV siempre abre (fue gratis antes del
+                                // Premium 2.0). PanaTV Gold añade badge/beneficios.
+                                val intent = android.content.Intent(context, com.example.panatv.PanaTVActivity::class.java)
+                                context.startActivity(intent)
                             }
                             .padding(vertical = 12.dp),
                         verticalAlignment = Alignment.CenterVertically

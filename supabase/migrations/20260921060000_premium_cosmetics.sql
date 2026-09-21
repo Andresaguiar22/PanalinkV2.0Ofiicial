@@ -118,6 +118,14 @@ begin
         raise exception 'invalid_code';
     end if;
 
+    -- 'none' = des-equipar (deja el avatar sin marco). No requiere poseerlo.
+    if p_cosmetic_code = 'none' then
+        update public.profiles
+           set pendant_code = 'none'
+         where id = v_uid;
+        return jsonb_build_object('ok', true, 'equipped', 'none');
+    end if;
+
     -- Debe poseerlo (desbloqueado por nivel u otorgado).
     select exists(
         select 1 from public.user_cosmetics c where c.user_id = v_uid and c.cosmetic_code = p_cosmetic_code

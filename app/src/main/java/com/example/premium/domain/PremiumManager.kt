@@ -53,6 +53,41 @@ object PremiumManager {
     private val _initialized = MutableStateFlow(false)
     val initialized: StateFlow<Boolean> = _initialized.asStateFlow()
 
+    /** Job del timer de expiración local (invalida una feature al vencer). */
+    private var expiryJob: kotlinx.coroutines.Job? = null
+
+    /**
+     * Agenda una invalidación local cuando el entitlement activo más próximo
+     * expira. Sin esto, la feature seguiría activa en memoria hasta el próximo
+     * refresh aunque el servidor ya la considere vencida.
+     */
+    private fun scheduleExpiry() {
+        expiryJob?.cancel()
+        val now = System.currentTimeMillis()
+        val next = _entitlements.value
+            .asSequence()
+            .filter { it.isActive }
+            .mapNotNull { parseIsoToMillis(it.expiresAt) }
+            .filter { it > now }
+            .minOrNull()
+            ?: return
+        val delayMs = next - now
+        expiryJob = scope.launch {
+            kotlinx.coroutines.delay(delayMs)
+            // Re-evalúa localmente: marca como expirados los que vencieron.
+            _entitlements.value = _entitlements.value.map {
+                if (it.isActive && (parseIsoToMillis(it.expiresAt) ?: Long.MAX_VALUE) < System.currentTimeMillis()) {
+                    it.copy(status = "expired", daysLeft = 0)
+                } else it
+            }
+            scheduleExpiry()
+        }
+    }
+
+    private fun parseIsoToMillis(iso: String): Long? = runCatching {
+        java.time.Instant.parse(iso).toEpochMilli()
+    }.getOrNull()
+
     /**
      * Carga inicial asíncrona (llamar en el arranque de la app o al entrar al
      * centro Premium).
@@ -66,7 +101,10 @@ object PremiumManager {
     fun refreshAll() {
         scope.launch {
             repository.getWalletBalance().onSuccess { _wallet.value = it }
-            repository.getMyEntitlements().onSuccess { _entitlements.value = it }
+            repository.getMyEntitlements().onSuccess {
+                _entitlements.value = it
+                scheduleExpiry()
+            }
             repository.getCatalog().onSuccess { _catalog.value = it }
             _initialized.value = true
         }
@@ -82,8 +120,23 @@ object PremiumManager {
     /** Refresca solo entitlements. */
     fun refreshEntitlements() {
         scope.launch {
-            repository.getMyEntitlements().onSuccess { _entitlements.value = it }
+            repository.getMyEntitlements().onSuccess {
+                _entitlements.value = it
+                scheduleExpiry()
+            }
         }
+    }
+
+    /**
+     * Limpia todo el estado en memoria (logout o cambio de usuario). Sin esto,
+     * el siguiente usuario heredaría saldo/entitlements del anterior.
+     */
+    fun reset() {
+        expiryJob?.cancel()
+        _wallet.value = WalletBalance()
+        _entitlements.value = emptyList()
+        _catalog.value = emptyList()
+        _initialized.value = false
     }
 
     /** Devuelve el entitlement activo de una feature (o null). */
