@@ -6,6 +6,7 @@ import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
+import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
@@ -131,6 +132,17 @@ fun PremiumHomeScreen(
                         ) {
                             Text("🎯 Reclamar recompensas de misiones", color = Color.White, fontWeight = FontWeight.Bold)
                         }
+                    }
+                }
+
+                // Notificaciones Premium (in-app)
+                if (state.notifications.isNotEmpty()) {
+                    item { SectionTitle("📬 Centro de mensajes") }
+                    items(state.notifications.take(8)) { n ->
+                        PremiumNotifRow(
+                            notification = n,
+                            onRead = { viewModel.markNotificationRead(n.id) }
+                        )
                     }
                 }
 
@@ -370,4 +382,63 @@ private fun currencyEmoji(c: String): String = when (c) {
     "tickets" -> "🎟️"
     "xp" -> "⭐"
     else -> "🪙"
+}
+
+/** Fila de notificación Premium en el centro de mensajes. */
+@Composable
+private fun PremiumNotifRow(
+    notification: com.example.premium.domain.model.PremiumNotification,
+    onRead: () -> Unit
+) {
+    Row(
+        modifier = Modifier
+            .fillMaxWidth()
+            .background(
+                if (notification.isRead) Color(0xFF121A24) else Color(0xFF1B2432),
+                RoundedCornerShape(12.dp)
+            )
+            .clickable(enabled = !notification.isRead, onClick = onRead)
+            .padding(12.dp),
+        verticalAlignment = Alignment.CenterVertically
+    ) {
+        Text(categoryEmoji(notification.category), fontSize = 18.sp)
+        Spacer(modifier = Modifier.width(10.dp))
+        Column(modifier = Modifier.weight(1f)) {
+            Text(
+                notification.title,
+                color = if (notification.isRead) Color.White.copy(alpha = 0.6f) else Color.White,
+                fontWeight = if (notification.isRead) FontWeight.Normal else FontWeight.Bold,
+                fontSize = 13.sp
+            )
+            notification.body?.let {
+                Text(
+                    it,
+                    color = Color.White.copy(alpha = 0.55f),
+                    fontSize = 11.sp,
+                    maxLines = 2,
+                    overflow = androidx.compose.ui.text.style.TextOverflow.Ellipsis
+                )
+            }
+        }
+        if (!notification.isRead) {
+            Spacer(modifier = Modifier.width(6.dp))
+            Box(
+                modifier = Modifier
+                    .size(9.dp)
+                    .background(Color(0xFFE8B23A), CircleShape)
+            )
+        }
+    }
+}
+
+private fun categoryEmoji(category: String): String = when (category) {
+    "PREMIUM" -> "💎"
+    "SOCIAL" -> "👥"
+    "LIVE" -> "🔴"
+    "REWARD" -> "🎁"
+    "COINS" -> "🪙"
+    "PROMOTION" -> "🔥"
+    "SYSTEM" -> "⚙️"
+    "SECURITY" -> "🔒"
+    else -> "📬"
 }

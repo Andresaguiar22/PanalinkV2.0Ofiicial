@@ -36,6 +36,9 @@ fun PremiumShopScreen(
     val buyingCode by viewModel.buyingCode.collectAsState()
     val message by viewModel.message.collectAsState()
 
+    // Canje de diamantes -> monedas (visible si el usuario tiene diamantes).
+    val diamonds = state.wallet.diamonds
+
     LaunchedEffect(message) {
         if (message != null) {
             kotlinx.coroutines.delay(2600)
@@ -78,6 +81,15 @@ fun PremiumShopScreen(
                 Text("${state.wallet.coins} 🪙", color = PanalinkSkin.TitleCream, fontSize = 18.sp, fontWeight = FontWeight.ExtraBold)
             }
 
+            // Promociones activas (precios descontados)
+            if (state.promotions.isNotEmpty()) {
+                state.promotions.take(3).forEach { p ->
+                    com.example.premium.ui.PremiumPromotionChip(p)
+                    Spacer(modifier = Modifier.height(8.dp))
+                }
+                Spacer(modifier = Modifier.height(4.dp))
+            }
+
             LazyColumn(
                 modifier = Modifier.fillMaxSize(),
                 contentPadding = PaddingValues(start = 16.dp, end = 16.dp, top = 0.dp, bottom = 24.dp),
@@ -91,6 +103,33 @@ fun PremiumShopScreen(
                         activeEntitlement = state.entitlements.firstOrNull { it.featureKey == product.featureKey && it.isActive },
                         onBuy = { viewModel.buyProduct(product.code) }
                     )
+                }
+
+                // Canje de diamantes por monedas (economía viva: eventos -> 💎 -> 🪙).
+                if (diamonds > 0) {
+                    item {
+                        Row(
+                            modifier = Modifier
+                                .fillMaxWidth()
+                                .background(Color(0xFF152038), RoundedCornerShape(16.dp))
+                                .border(1.dp, Color(0xFF5B7BE8).copy(alpha = 0.4f), RoundedCornerShape(16.dp))
+                                .clickable { viewModel.exchangeDiamonds() }
+                                .padding(14.dp),
+                            verticalAlignment = Alignment.CenterVertically
+                        ) {
+                            Text("💎", fontSize = 24.sp)
+                            Spacer(modifier = Modifier.width(10.dp))
+                            Column(modifier = Modifier.weight(1f)) {
+                                Text("Canjear diamantes", color = Color.White, fontWeight = FontWeight.Bold, fontSize = 14.sp)
+                                Text(
+                                    "$diamonds 💎 disponibles → monedas 🪙 (100 🪙 c/u)",
+                                    color = Color.White.copy(alpha = 0.6f),
+                                    fontSize = 11.sp
+                                )
+                            }
+                            Text("Canjear", color = Color(0xFF5B7BE8), fontWeight = FontWeight.Bold, fontSize = 13.sp)
+                        }
+                    }
                 }
             }
         }
