@@ -69,6 +69,9 @@ class PremiumViewModel : ViewModel() {
                 if (buy.ok) {
                     _state.value = _state.value.copy(wallet = _state.value.wallet.copy(coins = buy.balance ?: _state.value.wallet.coins))
                     loadEntitlements()
+                    // Refrescar el manager global para que los gates se actualicen ya.
+                    com.example.premium.domain.PremiumManager.refreshWallet()
+                    com.example.premium.domain.PremiumManager.refreshEntitlements()
                     com.example.premium.domain.PremiumEventBus.publish(
                         com.example.premium.domain.PremiumEvent.PurchaseCompleted(
                             productCode = productCode,
