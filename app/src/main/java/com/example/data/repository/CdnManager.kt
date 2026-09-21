@@ -236,12 +236,20 @@ object CdnManager {
 
     /** Un túnel trycloudflare puede ser el CDN ACTIVO (global_server_config) o un
      *  túnel muerto/histórico. Solo se consideran "dead" los hosts que NO coinciden
-     *  con el CDN activo configurado; el host activo se resuelve y reproduce normal.
+     *  con el CDN activo configurado; el host activo se resuelve y reproduce normal..
+     *  Las URLs de un túnel muerto con ruta de media re-anchorable ([isCdnRelated])
+     *  NO se anulan: caen al re-anchor y se repuntan sobre el CDN activo, así
+     *  los mensajes históricos se siguen viendo aunque Supabase cambie cdn_url.
+
+
+     *  Solo los hosts muertos SIN ruta de media re-anchorable (p.ej. un avatar
+     *  suelto de un túnel viejo) devuelven "" (no-reproducible..
      */
-    private fun isDeadCdnHost(url: String): Boolean {
+    private fun isDeadCdnHost(url: String, isReanchorable: Boolean = false): Boolean {
         return try {
             val host = URI(url).host?.lowercase() ?: return false
             if (host.contains("trycloudflare.com")) {
+                if (isReanchorable) return false
                 val activeHost = try { URI(currentCachedCdnBase()).host?.lowercase() } catch (_: Exception) { null }
                 !(activeHost != null && activeHost == host)
             } else false
@@ -253,7 +261,10 @@ object CdnManager {
         if (raw.isEmpty()) return ""
         if (raw.startsWith("content://") || raw.startsWith("file://") ||
             raw.startsWith("android.resource://") || raw.startsWith("/")) return raw
-        if (isDeadCdnHost(raw)) return ""
+        // Dead túnel sin ruta de media re-anchorable (p.ej. avatar suelto) → no jugable..
+        // Con ruta de media, el re-anchor de abajo lo repunta sobre el CDN activo..
+        val isCdnMediaUrlSync = isCdnRelated(raw)
+        if (isDeadCdnHost(raw, isReanchorable = isCdnMediaUrlSync)) return ""
         
         // 1. Priority: VCDN
         if (VcdnUrlResolver.isVcdnUrl(raw)) return VcdnUrlResolver.resolveBlocking(raw)
@@ -274,7 +285,10 @@ object CdnManager {
         if (raw.isEmpty()) return@withContext ""
         if (raw.startsWith("content://") || raw.startsWith("file://") ||
             raw.startsWith("android.resource://") || raw.startsWith("/")) return@withContext raw
-        if (isDeadCdnHost(raw)) return@withContext ""
+        // Dead túnel sin ruta de media re-anchorable (p.ej. avatar suelto) → no jugable..
+        // Con ruta de media, el re-anchor de abajo lo repunta sobre el CDN activo..
+        val isCdnMediaUrl =isCdnRelated(raw)
+        if (isDeadCdnHost(raw, isReanchorable =isCdnMediaUrl)) return@withContext ""
         
         // 1. Priority: VCDN
         if (VcdnUrlResolver.isVcdnUrl(raw)) return@withContext (VcdnUrlResolver.resolve(raw) ?: "")
@@ -304,7 +318,10 @@ object CdnManager {
         if (raw.isEmpty()) return ""
         if (raw.startsWith("content://") || raw.startsWith("file://") ||
             raw.startsWith("android.resource://") || raw.startsWith("/")) return raw
-        if (isDeadCdnHost(raw)) return ""
+        // Dead túnel sin ruta de media re-anchorable (p.ej. avatar suelto) → no jugable..
+        // Con ruta de media, el re-anchor de abajo lo repunta sobre el CDN activo..
+        val isCdnMediaUrlFresh =isCdnRelated(raw)
+        if (isDeadCdnHost(raw, isReanchorable =isCdnMediaUrlFresh)) return ""
 
         // VCDN: force-refresh to bypass any stale cached signed URL
         if (VcdnUrlResolver.isVcdnUrl(raw)) return VcdnUrlResolver.resolve(raw, forceRefresh = true) ?: ""
