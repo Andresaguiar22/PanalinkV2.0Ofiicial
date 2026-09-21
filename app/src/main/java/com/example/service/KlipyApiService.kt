@@ -1,5 +1,6 @@
 package com.example.service
 
+import com.example.data.model.KlipyCategoriesResponse
 import com.example.data.model.KlipyResponse
 import retrofit2.Response
 import retrofit2.http.GET
@@ -23,6 +24,13 @@ interface KlipyApiService {
         @Query("locale") locale: String = DEFAULT_LOCALE,
         @Query("content_filter") contentFilter: String = DEFAULT_CONTENT_FILTER
     ): Response<KlipyResponse>
+
+    @GET("api/v1/{apiKey}/gifs/categories")
+    suspend fun gifCategories(
+        @Path("apiKey") apiKey: String,
+        @Query("limit") limit: Int = 30,
+        @Query("locale") locale: String = DEFAULT_LOCALE
+    ): Response<KlipyCategoriesResponse>
 
     @GET("api/v1/{apiKey}/gifs/trending")
     suspend fun trendingGifs(

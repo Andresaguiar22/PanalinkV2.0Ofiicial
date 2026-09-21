@@ -1150,6 +1150,7 @@ private fun ReelsCommentsSheetV2(
 ) {
     var commentText by remember(reelId) { mutableStateOf("") }
     var replyingTo by remember(reelId) { mutableStateOf<com.example.data.model.Comment?>(null) }
+    var showGifPicker by remember(reelId) { mutableStateOf(false) }
     val focusRequester = remember { FocusRequester() }
     val scope = rememberCoroutineScope()
 
@@ -1266,7 +1267,7 @@ private fun ReelsCommentsSheetV2(
                                                 else PublicProfileResolver.formatForUi(comment.authorName, "Pana"),
                                             color = PanalinkPalette.textPrimary.copy(alpha = 0.9f),
                                             fontWeight = FontWeight.Bold,
-                                            fontSize = if (isReply) 12.sp else 13.sp,
+                                              fontSize = if (isReply) 12.sp else 13.sp,
                                             modifier = Modifier.clickable { }
                                         )
                                         val timeStr = remember(comment.createdAt) {
@@ -1311,12 +1312,19 @@ private fun ReelsCommentsSheetV2(
                                         }
                                     }
                                     Spacer(modifier = Modifier.height(2.dp))
-                                    Text(
-                                        text = if (comment.deletedAt != null) "Este comentario ha sido eliminado" else comment.text,
-                                        color = if (comment.deletedAt != null) Color.White.copy(alpha = 0.4f) else Color.White,
-                                        fontSize = if (isReply) 13.sp else 14.sp,
-                                        fontStyle = if (comment.deletedAt != null) FontStyle.Italic else FontStyle.Normal
-                                    )
+                                    if (comment.deletedAt != null) {
+                                        Text(
+                                            text = "Este comentario ha sido eliminado",
+                                            color = Color.White.copy(alpha = 0.4f),
+                                              fontSize = if (isReply) 13.sp else 14.sp,
+                                            fontStyle = FontStyle.Italic
+                                        )
+                                    } else {
+                                        com.example.ui.components.CommentMediaText(
+                                            text = comment.text,
+                                            fallbackColor = Color.White
+                                        )
+                                    }
                                     if (comment.deletedAt != null) {
                                         IconButton(onClick = { viewModel.deleteComment(reelId, comment.id) }) {
                                             Icon(Icons.Filled.Delete, contentDescription = "Eliminar", tint = PanalinkPalette.textPrimary.copy(alpha = 0.5f))
@@ -1390,6 +1398,15 @@ private fun ReelsCommentsSheetV2(
                             ),
                             shape = RoundedCornerShape(24.dp)
                         )
+IconButton(
+                                onClick = { showGifPicker = true },
+                                modifier = Modifier
+                                    .size(40.dp)
+                                    .clip(CircleShape)
+                                    .background(Color(0xFF1E2D35))
+                            ) {
+                                Text("GIF", fontSize = 13.sp, fontWeight = FontWeight.Bold, color = Color(0xFF4FC3F7))
+                            }
                         IconButton(
                             onClick = {
                                 if (commentText.isNotBlank()) {
@@ -1410,6 +1427,15 @@ private fun ReelsCommentsSheetV2(
                             )
                         }
                     }
+if (showGifPicker) {
+                            com.example.ui.components.KlipyGifStickerPicker(
+                                onSelected = { sticker ->
+                                    commentText = com.example.ui.components.buildCommentGifText(sticker)
+                                    showGifPicker = false
+    },
+                                onDismiss = { showGifPicker = false }
+                            )
+                        }
                 }
             }
         }

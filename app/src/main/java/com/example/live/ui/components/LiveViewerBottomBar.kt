@@ -52,6 +52,7 @@ fun LiveViewerBottomBar(
     modifier: Modifier = Modifier
 ) {
     var commentText by remember { mutableStateOf("") }
+    var showGifPicker by remember { mutableStateOf(false) }
     val focusRequester = remember { FocusRequester() }
 
     fun submit() {
@@ -107,6 +108,20 @@ fun LiveViewerBottomBar(
                         .focusRequester(focusRequester)
                 )
             }
+            Box(
+                modifier = Modifier
+                    .size(32.dp)
+                    .clip(RoundedCornerShape(8.dp))
+                    .background(Color(0xFF1F2C34))
+                    .clickable(
+                        interactionSource = remember { MutableInteractionSource() },
+                        indication = null
+                    ) { showGifPicker = true },
+                contentAlignment = Alignment.Center
+            ) {
+                Text("GIF", color = Color(0xFF4FC3F7), fontSize =  11.sp, fontWeight = FontWeight.Bold)
+            }
+            Spacer(modifier = Modifier.width(4.dp))
 
             Box(
                 modifier = Modifier
@@ -154,6 +169,15 @@ fun LiveViewerBottomBar(
             onClick = onOpenMore
         )
     }
+if (showGifPicker) {
+            com.example.ui.components.KlipyGifStickerPicker(
+                onSelected = { sticker ->
+                    onSendComment(com.example.ui.components.buildCommentGifText(sticker))
+                    showGifPicker = false
+    },
+                onDismiss = { showGifPicker = false }
+            )
+        }
 }
 
 @Composable

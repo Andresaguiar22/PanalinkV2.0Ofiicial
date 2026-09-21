@@ -184,14 +184,21 @@ private fun CommentRow(
                     if (isMine) {
                         Spacer(modifier = Modifier.width(5.dp))
                         RoleBadge(text = "Tú", color = Color(0xFF00A884))
-                    }
+}
                 }
-                Text(
-                    text = highlightMentions(comment.text),
-                    color = PanalinkPalette.textPrimary,
-                    fontSize = 12.5.sp,
-                    style = shadow
-                )
+                if (com.example.ui.components.parseCommentGif(comment.text) != null) {
+                    com.example.ui.components.CommentMediaText(
+                        text = comment.text,
+                        fallbackColor = PanalinkPalette.textPrimary
+                    )
+                } else {
+                    Text(
+                        text = highlightMentions(comment.text),
+                        color = PanalinkPalette.textPrimary,
+                        fontSize = 12.5.sp,
+                        style = shadow
+                    )
+                }
             }
 
             if (canModerate) {

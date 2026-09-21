@@ -528,6 +528,7 @@ fun UserStoryViewer(
     
     // Reply & Reactions State
     var replyText by remember { mutableStateOf("") }
+var showGifPicker by remember { mutableStateOf(false) }
     var reactionMessage by remember { mutableStateOf<String?>(null) }
 
     // Acción 4: Floating reactions (live-style)
@@ -1874,12 +1875,19 @@ fun UserStoryViewer(
                                             )
                                         }
                                         Spacer(modifier = Modifier.height(2.dp))
-                                        Text(
-                                            text = if (comment.deletedAt != null) "Este comentario ha sido eliminado" else comment.text,
-                                            color = if (comment.deletedAt != null) Color.White.copy(alpha = 0.4f) else Color.White.copy(alpha = 0.9f),
-                                            fontSize = 13.sp,
-                                            fontStyle = if (comment.deletedAt != null) androidx.compose.ui.text.font.FontStyle.Italic else androidx.compose.ui.text.font.FontStyle.Normal
-                                        )
+                                            if (comment.deletedAt != null) {
+                                                Text(
+                                                    text = "Este comentario ha sido eliminado",
+                                                    color = Color.White.copy(alpha =   0.4f),
+                                                    fontSize = 13.sp,
+                                                    fontStyle = androidx.compose.ui.text.font.FontStyle.Italic
+                                                )
+                                            } else {
+                                                com.example.ui.components.CommentMediaText(
+                                                    text = comment.text,
+                                                    fallbackColor = Color.White.copy(alpha =   0.9f)
+                                                )
+                                            }
                                         Spacer(modifier = Modifier.height(4.dp))
                                         
                                         // Reply handler
@@ -1929,6 +1937,19 @@ fun UserStoryViewer(
                         verticalAlignment = Alignment.CenterVertically,
                         horizontalArrangement = Arrangement.spacedBy(10.dp)
                     ) {
+Box(
+                        modifier = Modifier
+                            .size(32.dp)
+                            .clip(androidx.compose.foundation.shape.RoundedCornerShape(8.dp))
+                            .background(Color(0xFF1F2C34))
+                            .clickable(
+                                interactionSource = remember { androidx.compose.foundation.interaction.MutableInteractionSource() },
+                                indication = null
+                            ) { showGifPicker = true },
+                        contentAlignment = Alignment.Center
+                    ) {
+                    Text("GIF", color = Color(0xFF4FC3F7), fontSize =   11.sp, fontWeight = FontWeight.Bold)
+                }
                         OutlinedTextField(
                             value = replyText,
                             onValueChange = { replyText = it },
@@ -1968,6 +1989,19 @@ fun UserStoryViewer(
                     }
                 }
             }
+        }
+if (showGifPicker) {
+            com.example.ui.components.KlipyGifStickerPicker(
+                onSelected = { sticker ->
+                    val textToSend = com.example.ui.components.buildCommentGifText(sticker)
+
+                    viewModel.addComment(state.id, textToSend, onError = { err ->
+                        android.widget.Toast.makeText(context, "Error: $err", android.widget.Toast.LENGTH_LONG).show()
+                    })
+                    showGifPicker = false
+    },
+                onDismiss = { showGifPicker = false }
+            )
         }
 
         // --- Custom BottomSheet: Spectators (Who viewed) ---

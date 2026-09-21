@@ -26,7 +26,7 @@ object StickerRepository {
     private val searchCache = java.util.Collections.synchronizedMap(HashMap<String, List<StickerResult>>())
 
 
-    suspend fun getStickers(context: Context, query: String?, limit: Int = 24): List<StickerResult> = withContext(Dispatchers.IO) {
+    suspend fun getStickers(context: Context, query: String?, limit: Int = 40): List<StickerResult> = withContext(Dispatchers.IO) {
         val trimmed = query?.trim().orEmpty()
         val cacheKey = if (trimmed.isEmpty()) "sticker_$TRENDING_KEY" else "sticker_${trimmed.lowercase()}"
         if (searchCache.containsKey(cacheKey)) {
@@ -57,7 +57,7 @@ object StickerRepository {
 
     /** Busca GIFs en Klipy. Query vacío => trending.
      *  Cache en memoria y fallback estático si falla o no hay red. */
-    suspend fun searchGifs(query: String, limit: Int = 24): List<StickerResult> = withContext(Dispatchers.IO) {
+    suspend fun searchGifs(query: String, limit: Int = 40): List<StickerResult> = withContext(Dispatchers.IO) {
         val trimmed = query.trim()
         val cacheKey = "gif_" + (if (trimmed.isEmpty()) TRENDING_KEY else trimmed.lowercase())
         if (searchCache.containsKey(cacheKey)) {
@@ -86,7 +86,24 @@ object StickerRepository {
     }
 
     /** GIFs trending de Klipy (sin término de búsqueda). */
-    suspend fun getTrendingGifs(limit: Int = 24): List<StickerResult> = searchGifs("", limit)
+    suspend fun getTrendingGifs(limit: Int = 40): List<StickerResult> = searchGifs("", limit)
+
+    /** Categorías de GIFs de Klipy (SEO queries para chips/exploración). */
+    suspend fun getGifCategories(): List<String> = withContext(Dispatchers.IO){
+        if (BuildConfig.KLIPY_API_KEY.isBlank()) return@withContext emptyList()
+        try {
+            val response = com.example.service.KlipyClient.apiService.gifCategories(
+                apiKey = BuildConfig.KLIPY_API_KEY,
+                limit = 40
+            )
+            if (!response.isSuccessful) return@withContext emptyList()
+            val raw = response.body()?.data?.categories.orEmpty()
+            raw.mapNotNull { it.query ?: it.category }.map { it.trim() }.filter { it.isNotEmpty() }.distinct()
+        } catch (e: Exception) {
+            Log.w(TAG, "Klipy GIF categorías falló", e)
+            emptyList()
+        }
+    }
 
     /**
      * Klipy devuelve null cuando la API no está configurada o la llamada falló
@@ -96,32 +113,50 @@ object StickerRepository {
     private suspend fun fetchGifsFromKlipy(query: String, limit: Int): List<StickerResult>? {
         if (BuildConfig.KLIPY_API_KEY.isBlank()) return null
         return try {
-            val response = if (query.isEmpty()) {
-                com.example.service.KlipyClient.apiService.trendingGifs(
-                    apiKey = BuildConfig.KLIPY_API_KEY,
-                    limit = limit
-                )
+            val mapped = if (query.isEmpty()) {
+                val page1 = fetchGifsFromKlipyPage("", limit, 1)
+                if (page1 == null) return null
+                val page2 = fetchGifsFromKlipyPage("", limit,   2) ?: emptyList()
+                if (page2.isEmpty()) page1 else page1 + page2.filter { existing ->
+                    page1.none { it.id == existing.id }
+                }
             } else {
-                com.example.service.KlipyClient.apiService.searchGifs(
-                    apiKey = BuildConfig.KLIPY_API_KEY,
-                    query = query,
-                    limit = limit
-                )
+                val page1 = fetchGifsFromKlipyPage(query, limit, 1) ?: emptyList()
+                val page2 = fetchGifsFromKlipyPage(query, limit, 2) ?: emptyList()
+                if (page2.isEmpty()) page1 else page1 + page2.filter { existing -> page1.none { it.id == existing.id } }
             }
-            if (!response.isSuccessful) {
-                Log.w(TAG, "Klipy GIF API HTTP ${response.code()}")
-                return null
-            }
-            val mapped = response.body()?.data?.items.orEmpty().mapNotNull { it.toStickerResult() }
-            Log.d(TAG, "Klipy GIFs (${if (query.isEmpty()) "trending" else "q='$query'"}): ${mapped.size}")
+            Log.d(TAG, "Klipy GIFs (" + (if (query.isEmpty()) "trending+categorias" else "q=$query") + "): ${mapped.size}")
             mapped
         } catch (e: Exception) {
-            Log.w(TAG, "Klipy GIF API falló", e)
+            Log.w(TAG, "Klipy GIF API fallo", e)
             null
         }
     }
 
-    private suspend fun fetchStickersFromKlipy(query: String, limit: Int): List<StickerResult>? {
+    private suspend fun fetchGifsFromKlipyPage(query: String, limit: Int, page: Int): List<StickerResult>? {
+        if (BuildConfig.KLIPY_API_KEY.isBlank()) return null
+        val response = if (query.isEmpty()) {
+            com.example.service.KlipyClient.apiService.trendingGifs(
+                apiKey = BuildConfig.KLIPY_API_KEY,
+                limit = limit,
+                page = page
+            )
+        } else {
+            com.example.service.KlipyClient.apiService.searchGifs(
+                apiKey = BuildConfig.KLIPY_API_KEY,
+                query = query,
+                limit = limit,
+                page = page
+            )
+        }
+        if (!response.isSuccessful) {
+            Log.w(TAG, "Klipy GIF API HTTP ${response.code()}")
+            return null
+        }
+        return response.body()?.data?.items.orEmpty().mapNotNull { it.toStickerResult() }
+    }
+
+private suspend fun fetchStickersFromKlipy(query: String, limit: Int): List<StickerResult>? {
         if (BuildConfig.KLIPY_API_KEY.isBlank()) return null
         return try {
             val response = if (query.isEmpty()) {
@@ -230,7 +265,8 @@ object StickerRepository {
             url = url,
             preview = preview,
             width = full.width ?: sm?.width,
-            height = full.height ?: sm?.height
+            height = full.height ?: sm?.height,
+            isGif = true
         )
     }
 

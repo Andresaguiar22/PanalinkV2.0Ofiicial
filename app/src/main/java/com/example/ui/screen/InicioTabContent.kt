@@ -820,7 +820,7 @@ fun InicioTabContent(
                                 Text(
                                     text = "Sin conexión: estás viendo tus publicaciones e historias guardadas. Se actualizarán solas al volver el internet.",
                                     color = PanalinkPalette.textPrimary.copy(alpha =  0.85f),
-                                    fontSize =  12.sp,
+                                    fontSize = 12.sp,
                                     lineHeight =  16.sp
                                 )
                             }
@@ -1104,7 +1104,7 @@ fun InicioTabContent(
                                         )
                                     }
                                     Spacer(modifier = Modifier.height(2.dp))
-                                    Text(comment.text, color = PanalinkPalette.textPrimary.copy(alpha = 0.9f), fontSize = 14.sp)
+                                    com.example.ui.components.CommentMediaText(text = comment.text, fallbackColor = PanalinkPalette.textPrimary.copy(alpha = 0.9f))
                                 }
                             }
                         }
@@ -1113,6 +1113,7 @@ fun InicioTabContent(
 
                 // Comment Input
                 var commentText by remember { mutableStateOf("") }
+                var showGifPicker by remember { mutableStateOf(false) }
                 Row(
                     modifier = Modifier
                         .fillMaxWidth()
@@ -1138,6 +1139,12 @@ fun InicioTabContent(
                     )
                     Spacer(modifier = Modifier.width(8.dp))
                     IconButton(
+                        onClick = { showGifPicker = true },
+                        modifier = Modifier.size(38.dp).background(Color(0xFF1F2C34), CircleShape)
+                    ) {
+                        Text("GIF", fontSize = 13.sp, fontWeight = FontWeight.Bold, color = Color(0xFF4FC3F7))
+                    }
+                    IconButton(
                         onClick = {
                             if (commentText.isNotBlank()) {
                                 statesViewModel.addComment(activeCommentStateId!!, commentText, onError = { err ->
@@ -1151,6 +1158,15 @@ fun InicioTabContent(
                     ) {
                         Icon(Icons.Default.Send, contentDescription = "Enviar", tint = PanalinkPalette.textPrimary, modifier = Modifier.size(20.dp))
                     }
+                }
+                if (showGifPicker) {
+                    com.example.ui.components.KlipyGifStickerPicker(
+                        onSelected = { sticker ->
+                            commentText = com.example.ui.components.buildCommentGifText(sticker)
+                            showGifPicker = false
+                        },
+                        onDismiss = { showGifPicker = false }
+                    )
                 }
             }
         }

@@ -49,6 +49,7 @@ fun FeedCommentsBottomSheet(
     var commentText by remember { mutableStateOf("") }
     var isSending by remember { mutableStateOf(false) }
     var showEmojiPicker by remember { mutableStateOf(false) }
+    var showGifPicker by remember { mutableStateOf(false) }
 
     LaunchedEffect(postId) {
         viewModel.loadComments(postId)
@@ -228,6 +229,15 @@ fun FeedCommentsBottomSheet(
                         }
 
                         IconButton(
+                            onClick = { showGifPicker = true },
+                            modifier = Modifier
+                                .size(32.dp)
+                                .clip(RoundedCornerShape(8.dp))
+                                .background(Color(0xFF1F2C34))
+                        ) {
+                            Text("GIF", fontSize = 13.sp, fontWeight = FontWeight.Bold, color = Color(0xFF4FC3F7))
+                        }
+                        IconButton(
                             onClick = {
                                 if (commentText.isNotBlank() && !isSending) {
                                     isSending = true
@@ -262,10 +272,19 @@ fun FeedCommentsBottomSheet(
                     }
                 }
             }
-        }
+            if (showGifPicker) {
+                com.example.ui.components.KlipyGifStickerPicker(
+                    onSelected = { sticker ->
+                        commentText = com.example.ui.components.buildCommentGifText(sticker)
+                        showGifPicker = false
+                    },
+                    onDismiss = { showGifPicker = false }
+                )
+            }
     }
 }
 
+}
 @Composable
 fun TikTokCommentRow(
     comment: PostCommentDto,
@@ -305,10 +324,9 @@ fun TikTokCommentRow(
             Spacer(modifier = Modifier.height(2.dp))
 
             // Comment text
-            Text(
+            com.example.ui.components.CommentMediaText(
                 text = comment.content ?: "",
-                color = PanalinkPalette.textPrimary,
-                fontSize = 14.sp
+                fallbackColor = PanalinkPalette.textPrimary
             )
 
             if (!comment.mediaUrl.isNullOrBlank()) {

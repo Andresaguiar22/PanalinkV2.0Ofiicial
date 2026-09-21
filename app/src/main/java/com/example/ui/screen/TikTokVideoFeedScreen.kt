@@ -904,6 +904,7 @@ fun TikTokPageItem(
         }
     }
     var commentText by remember { mutableStateOf("") }
+    var showGifPicker by remember { mutableStateOf(false) }
     val focusRequester = remember { FocusRequester() }
     val coroutineScope = rememberCoroutineScope()
 
@@ -2487,12 +2488,19 @@ fun TikTokPageItem(
                                         }
                                     }
                                     Spacer(modifier = Modifier.height(2.dp))
-                                    Text(
-                                        text = if (comment.deletedAt != null) "Este comentario ha sido eliminado" else comment.text,
-                                        color = if (comment.deletedAt != null) Color.White.copy(alpha = 0.4f) else Color.White,
-                                        fontSize = if (isReply) 13.sp else 14.sp,
-                                        fontStyle = if (comment.deletedAt != null) androidx.compose.ui.text.font.FontStyle.Italic else androidx.compose.ui.text.font.FontStyle.Normal
-                                    )
+                                    if (comment.deletedAt != null) {
+                                        Text(
+                                            text = "Este comentario ha sido eliminado",
+                                            color = Color.White.copy(alpha =   0.4f),
+                                            fontSize = if (isReply) 13.sp else 14.sp,
+                                            fontStyle = androidx.compose.ui.text.font.FontStyle.Italic
+                                        )
+                                    } else {
+                                        com.example.ui.components.CommentMediaText(
+                                            text = comment.text,
+                                            fallbackColor = Color.White
+                                        )
+                                    }
                                 }
                             }
                         }
@@ -2561,6 +2569,20 @@ fun TikTokPageItem(
                             ),
                             shape = RoundedCornerShape(24.dp)
                         )
+Box(
+                    modifier = Modifier
+                        .size(32.dp)
+                        .clip(androidx.compose.foundation.shape.RoundedCornerShape(8.dp))
+                        .background(Color(0xFF1F2C34))
+                        .clickable(
+                            interactionSource = remember { androidx.compose.foundation.interaction.MutableInteractionSource() },
+                            indication = null
+                        ) { showGifPicker = true },
+                    contentAlignment = Alignment.Center
+                ) {
+                    Text("GIF", color = Color(0xFF4FC3F7), fontSize =   11.sp, fontWeight = FontWeight.Bold)
+                }
+                Spacer(modifier = Modifier.width(4.dp))
 
                         IconButton(
                             onClick = {
@@ -2593,6 +2615,24 @@ fun TikTokPageItem(
             }
         }
     }
+if (showGifPicker) {
+                com.example.ui.components.KlipyGifStickerPicker(
+                    onSelected = { sticker ->
+                        val gifText = com.example.ui.components.buildCommentGifText(sticker)
+
+                        viewModel.addComment(
+                            stateId = state.id,
+                            commentText = gifText,
+                            parentId = replyingTo?.id,
+                            onError = { err ->
+                                android.widget.Toast.makeText(context, "Error: $err", android.widget.Toast.LENGTH_SHORT).show()
+                            }
+                        )
+                        showGifPicker = false
+    },
+                    onDismiss = { showGifPicker = false }
+                )
+            }
 }
 
 // Data class representation for beautiful bottom sheet comments

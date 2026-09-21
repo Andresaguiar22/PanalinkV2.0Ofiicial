@@ -205,7 +205,15 @@ data class AddContactByPinResponse(@Json(name = "success") val success: Boolean,
 data class ContactIdentifierResponse(@Json(name = "pin") val pin: String = "", @Json(name = "qr_token") val qrToken: String? = null, @Json(name = "qr_payload") val qrPayload: String = "")
 fun formatIsoDateTime(isoStr: String?): String { if (isoStr.isNullOrEmpty()) return ""; return try { val cleanStr = if (isoStr.contains(".")) isoStr.substringBefore(".") else if (isoStr.contains("+")) isoStr.substringBefore("+") else if (isoStr.endsWith("Z")) isoStr.substringBefore("Z") else isoStr; val parser = java.text.SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss", java.util.Locale.US).apply { timeZone = java.util.TimeZone.getTimeZone("UTC") }; val date = parser.parse(cleanStr); if (date != null) java.text.SimpleDateFormat("hh:mm a", java.util.Locale.getDefault()).format(date) else "" } catch (e: Exception) { "" } }
 @JsonClass(generateAdapter = true)
-data class StickerResult(@Json(name = "id") val id: String? = null, @Json(name = "title") val title: String? = null, @Json(name = "url") val url: String, @Json(name = "preview") val preview: String, @Json(name = "width") val width: Int? = null, @Json(name = "height") val height: Int? = null)
+data class StickerResult(
+    @Json(name = "id") val id: String? = null,
+    @Json(name = "title") val title: String? = null,
+    @Json(name = "url") val url: String,
+    @Json(name = "preview") val preview: String,
+    @Json(name = "width") val width: Int? = null,
+    @Json(name = "height") val height: Int? = null,
+    @Json(name = "is_gif") val isGif: Boolean = false
+)
 @JsonClass(generateAdapter = true)
 data class StickerSearchResponse(@Json(name = "results") val results: List<StickerResult>)
 @JsonClass(generateAdapter = true)
@@ -220,6 +228,24 @@ data class GiphyImages(@Json(name = "fixed_width") val fixedWidth: GiphyImage)
 data class GiphyImage(@Json(name = "url") val url: String, @Json(name = "width") val width: String, @Json(name = "height") val height: String)
 @JsonClass(generateAdapter = true)
 data class KlipyResponse(@Json(name = "result") val result: Boolean = true, @Json(name = "data") val data: KlipyData? = null)
+
+@JsonClass(generateAdapter = true)
+data class KlipyCategoriesResponse(
+    @Json(name = "result") val result: Boolean = true,
+    @Json(name = "data") val data: KlipyCategoriesData? = null
+)
+
+@JsonClass(generateAdapter = true)
+data class KlipyCategoriesData(
+    @Json(name = "categories") val categories: List<KlipyCategory> = emptyList()
+)
+
+@JsonClass(generateAdapter = true)
+data class KlipyCategory(
+    @Json(name = "category") val category: String? = null,
+    @Json(name = "query") val query: String? = null,
+    @Json(name = "preview_url") val previewUrl: String? = null
+)
 @JsonClass(generateAdapter = true)
 data class KlipyData(
     @Json(name = "data") val items: List<KlipyItem> = emptyList(),
