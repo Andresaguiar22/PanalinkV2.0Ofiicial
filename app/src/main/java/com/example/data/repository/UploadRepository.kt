@@ -40,10 +40,15 @@ open class UploadRepository {
 
     private val client: OkHttpClient by lazy {
         OkHttpClient.Builder()
-            .connectTimeout(120, TimeUnit.SECONDS)
-            .readTimeout(120, TimeUnit.SECONDS)
-            .writeTimeout(120, TimeUnit.SECONDS)
-            .pingInterval(20, TimeUnit.SECONDS)
+            // El túnel trycloudflare del CDN puede tardar más de 2 min en responder
+            // para archivos grandes (vídeo/lotes). Un timeout corto cortaba la
+            // conexión DESPUÉS de que el túnel ya había guardado el archivo, y la
+            // app lo interpretaba como fallo → el mensaje quedaba "subiendo"
+            // mientras el archivo ya estaba en el CDN.
+            .connectTimeout(600, TimeUnit.SECONDS)
+            .readTimeout(600, TimeUnit.SECONDS)
+            .writeTimeout(600, TimeUnit.SECONDS)
+            .pingInterval(60, TimeUnit.SECONDS)
             .retryOnConnectionFailure(true)
             .build()
     }

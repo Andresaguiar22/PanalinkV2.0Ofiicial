@@ -7,7 +7,6 @@ import androidx.work.WorkerParameters
 import com.example.data.database.PanalinkDatabase
 import com.example.data.repository.MessagesRepository
 import com.example.data.repository.UploadFailoverRouter
-import com.example.data.repository.VideoRouter
 import com.example.util.PanalinkMediaManager
 import java.io.File
 
@@ -66,7 +65,9 @@ class MediaUploadWorker(
         fun albumStableFileName(stableUuid: String, index: Int, extension: String): String =
             "${stableUuid}_$index.${extension.trimStart('.').ifEmpty { "jpg" }}"
 
-        /** Decisión P2-A: vídeo de chat va a vCDN (VideoRouter); el resto a B2. */
+        /** Decisión histórica P2-A vCDN para vídeos; desde 2026-09-20 los vídeos
+         *  del chat van al CDN de PanaLink (ver decisión en doWork()). Se conserva
+         *  por compatibilidad con tests/llamadas externas; ya no se usa en el worker. */
         fun shouldRouteVideoToVcdn(messageType: String?, mimeType: String?): Boolean {
             val type = messageType?.lowercase()?.trim().orEmpty()
             val mime = mimeType?.lowercase()?.trim().orEmpty()
@@ -242,36 +243,28 @@ class MediaUploadWorker(
                     setProgressAsync(androidx.work.workDataOf("messageId" to messageId, "progress" to pct, "bytesWritten" to written, "totalBytes" to total, "status" to "Subiendo ($pct%)"))
                 }
             }
-            val isVideo = shouldRouteVideoToVcdn(typeLabel, mimeType)
-            val uploadResult = if (isVideo) {
-                VideoRouter.uploadPublicVideo(
-                    file = file,
+            // Decisión 2026-09-20: TODA la multimedia del chat (imagen, vídeo, audio,
+            // documento) sube al CDN de PanaLink como destino primario, con fallback B2.
+            // Los vídeos del chat ya NO se enrutan a vCDN (no se reproducían tras el
+            // envio); vCDN queda para reels/stories/publicaciones (PostUploadWorker y
+            // SocialMediaUploadWorker no se tocan).
+            val uploadResult = UploadFailoverRouter.uploadWithFailover(
+                file = file,
+                mimeType = mimeType,
+                userId = userId,
+                uploadType = typeLabel,
+                customFileName = stableFileName,
+                clientMessageUuid = stableUuid,
+                onProgress = progressCb
+            ) {
+                PanalinkMediaManager.uploadMediaAndThumbnail(
+                    context = context,
+                    mediaFile = file,
                     mimeType = mimeType,
+                    typeLabel = typeLabel,
                     userId = userId,
-                    uploadType = typeLabel,
-                    customFileName = stableFileName,
-                    clientMessageUuid = stableUuid,
-                    onProgress = progressCb
+                    caption = entity.content ?: "Multimedia message"
                 )
-            } else {
-                UploadFailoverRouter.uploadWithFailover(
-                    file = file,
-                    mimeType = mimeType,
-                    userId = userId,
-                    uploadType = typeLabel,
-                    customFileName = stableFileName,
-                    clientMessageUuid = stableUuid,
-                    onProgress = progressCb
-                ) {
-                    PanalinkMediaManager.uploadMediaAndThumbnail(
-                        context = context,
-                        mediaFile = file,
-                        mimeType = mimeType,
-                        typeLabel = typeLabel,
-                        userId = userId,
-                        caption = entity.content ?: "Multimedia message"
-                    )
-                }
             }
 
             if (uploadResult.isSuccess) {

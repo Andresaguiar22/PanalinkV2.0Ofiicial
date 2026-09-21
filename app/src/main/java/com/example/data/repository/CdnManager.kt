@@ -234,14 +234,17 @@ object CdnManager {
         }
     }
 
-    /** CDN tunnel muerto permanentemente (trycloudflare.com). Las URLs subidas
-     *  a el ya no volveran jamas; devolver "" (no-playable) para que la UI
-     *  muestre Reintentar/Unavailable en vez de un bucle falso de error 403.
+    /** Un túnel trycloudflare puede ser el CDN ACTIVO (global_server_config) o un
+     *  túnel muerto/histórico. Solo se consideran "dead" los hosts que NO coinciden
+     *  con el CDN activo configurado; el host activo se resuelve y reproduce normal.
      */
     private fun isDeadCdnHost(url: String): Boolean {
         return try {
-            val host = URI(url).host?.lowercase() ?: ""
-            host.contains("trycloudflare.com")
+            val host = URI(url).host?.lowercase() ?: return false
+            if (host.contains("trycloudflare.com")) {
+                val activeHost = try { URI(currentCachedCdnBase()).host?.lowercase() } catch (_: Exception) { null }
+                !(activeHost != null && activeHost == host)
+            } else false
         } catch (_: Exception) { false }
     }
 

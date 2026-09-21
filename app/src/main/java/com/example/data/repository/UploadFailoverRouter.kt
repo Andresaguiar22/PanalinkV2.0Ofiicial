@@ -8,57 +8,27 @@ import java.io.File
 /**
  * Failover CDN Panalink <-> B2 para TODA la multimedia (imagen, video, audio, docs).
  *
- * El CDN es el destino primario (genera thumbnails server-side). Si falla, el archivo
- * va directo a Backblaze B2 (presigned URL, credenciales solo en la edge function) y se abre un
- * circuit breaker de 15 min: durante esa ventana las subidas van directo a B2 sin
- * quemar timeouts contra el CDN caido. Vencida la ventana se vuelve a probar el CDN
- * (half-open); si responde, se cierra el circuito y todo vuelve al CDN.
- * Si B2 tambien falla, se prueba el CDN como ultimo recurso.
+ * El CDN de PanaLink es el destino PRIMARIO (y preferido) para el chat: genera
+ * thumbnails server-side, URL estable y sin expiración. B2 queda SOLO como respaldo
+ * cuando no hay callback CDN (p.ej. llamadas que no pasan por un worker), porque su
+ * cap de descargas (Class B) rompía la reproducción de los mensajes ya enviados.
  *
- * No se sube en paralelo a ambos: duplicaria datos moviles y almacenamiento.
+ * Se reintenta el CDN antes de rendirse (el servidor pudo haber guardado el archivo
+ * aunque la respuesta se tarde — un timeout de OkHttp no significa que el body no
+ * llegó). No se sube en paralelo a ambos ni se abre circuit breaker: duplicaría
+ * datos móviles y es inútil cuando B2 está con el cap agotado.
+ *
+ * REACTIVACIÓN 2026-09-20: el CDN de PanaLink volvió a ser el destino primario del
+ * chat tras confirmarse que el túnel trycloudflare activo (global_server_config)
+ * responde /upload y /health correctamente. El callback [cdnUpload], provisto por
+ * los workers, sube al CDN vía UploadRepository/uploadMediaAndThumbnail.
  */
 object UploadFailoverRouter {
     private const val TAG = "UploadFailoverRouter"
-    private const val PREFS_NAME = "panalink_upload_failover"
-    private const val KEY_CDN_DOWN_UNTIL = "cdn_down_until_ms"
-    private const val CDN_DOWN_COOLDOWN_MS = 15L * 60L * 1000L
-
-    private var context: Context? = null
-    @Volatile private var cdnDownUntilMs = 0L
 
     fun init(appContext: Context) {
-        if (context != null) return
-        val ctx = appContext.applicationContext
-        context = ctx
-        try {
-            cdnDownUntilMs = ctx.getSharedPreferences(PREFS_NAME, Context.MODE_PRIVATE)
-                .getLong(KEY_CDN_DOWN_UNTIL, 0L)
-        } catch (e: Exception) {
-            Log.e(TAG, "Error restoring failover state", e)
-        }
-    }
-
-    fun isCdnDown(): Boolean = System.currentTimeMillis() < cdnDownUntilMs
-
-    fun markCdnFailed() {
-        cdnDownUntilMs = System.currentTimeMillis() + CDN_DOWN_COOLDOWN_MS
-        persist()
-        Log.w(TAG, "CDN marcado como caido por ${CDN_DOWN_COOLDOWN_MS / 60000} min; las subidas iran directo a B2")
-    }
-
-    fun markCdnHealthy() {
-        if (cdnDownUntilMs != 0L) {
-            cdnDownUntilMs = 0L
-            persist()
-            Log.i(TAG, "CDN recuperado; las subidas vuelven al CDN")
-        }
-    }
-
-    private fun persist() {
-        try {
-            context?.getSharedPreferences(PREFS_NAME, Context.MODE_PRIVATE)
-                ?.edit()?.putLong(KEY_CDN_DOWN_UNTIL, cdnDownUntilMs)?.apply()
-        } catch (_: Exception) {}
+        // Conservado por compatibilidad con PanaApplication; el router ya no
+        // mantiene circuit breaker (el CDN siempre se reintenta antes de rendirse).
     }
 
     suspend fun uploadWithFailover(
@@ -71,15 +41,43 @@ object UploadFailoverRouter {
         onProgress: ((Long, Long) -> Unit)? = null,
         cdnUpload: (suspend (onProgress: ((Long, Long) -> Unit)?) -> Result<UploadMediaResult>)? = null
     ): Result<UploadMediaResult> {
-        // CDN has been decommissioned. Always use B2 as primary storage for non-public-video media.
-        return B2UploadManager.upload(
-            file = file,
-            mimeType = mimeType,
-            userId = userId,
-            uploadType = uploadType,
-            customFileName = customFileName,
-            clientMessageUuid = clientMessageUuid,
-            onProgress = onProgress
-        )
+        // El CDN de PanaLink es el destino primario. B2 queda SOLO como respaldo
+        // cuando el CDN no está configurado (sin callback), nunca como primer
+        // fallback normal: su cap de descargas (Class B) rompe la reproducción.
+        if (cdnUpload == null) {
+            return B2UploadManager.upload(
+                file = file,
+                mimeType = mimeType,
+                userId = userId,
+                uploadType = uploadType,
+                customFileName = customFileName,
+                clientMessageUuid = clientMessageUuid,
+                onProgress = onProgress
+            )
+        }
+
+        // Primer intento contra el CDN (2 intentos: el servidor pudo haber
+        // guardado el archivo aunque la respuesta se tarde).
+        var lastError: Throwable? = null
+        var attempts = 2
+        while (attempts-- > 0) {
+            try {
+                val res = cdnUpload!!(onProgress)
+                if (res.isSuccess) {
+                    Log.i(TAG, "CDN upload exitoso")
+                    return res
+                }
+                lastError = res.exceptionOrNull()
+                Log.w(TAG, "CDN intento falló (${lastError?.message}); reintentos restantes=$attempts")
+            } catch (e: Exception) {
+                lastError = e
+                Log.e(TAG, "CDN upload lanzó excepción: ${e.javaClass.simpleName}: ${e.message}")
+            }
+        }
+
+        // Después de agotar reintentos del CDN, DEvolvemos el error y dejamos que
+        // el worker reintente (NO se marcará cooldown permanente ni se duplicará
+        // a B2, que está con el cap de descargas roto).
+        return Result.failure(lastError ?: Exception("CDN upload falló"))
     }
 }
