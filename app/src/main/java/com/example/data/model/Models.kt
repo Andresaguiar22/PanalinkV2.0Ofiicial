@@ -219,6 +219,44 @@ data class GiphyImages(@Json(name = "fixed_width") val fixedWidth: GiphyImage)
 @JsonClass(generateAdapter = true)
 data class GiphyImage(@Json(name = "url") val url: String, @Json(name = "width") val width: String, @Json(name = "height") val height: String)
 @JsonClass(generateAdapter = true)
+data class KlipyResponse(@Json(name = "result") val result: Boolean = true, @Json(name = "data") val data: KlipyData? = null)
+@JsonClass(generateAdapter = true)
+data class KlipyData(
+    @Json(name = "data") val items: List<KlipyItem> = emptyList(),
+    @Json(name = "current_page") val currentPage: Int? = null,
+    @Json(name = "per_page") val perPage: Int? = null,
+    @Json(name = "has_next") val hasNext: Boolean? = null
+)
+@JsonClass(generateAdapter = true)
+data class KlipyItem(
+    @Json(name = "id") val id: Long? = null,
+    @Json(name = "slug") val slug: String? = null,
+    @Json(name = "title") val title: String? = null,
+    @Json(name = "type") val type: String? = null,
+    @Json(name = "file") val file: KlipyFile? = null
+)
+@JsonClass(generateAdapter = true)
+data class KlipyFile(
+    @Json(name = "hd") val hd: KlipyFormats? = null,
+    @Json(name = "md") val md: KlipyFormats? = null,
+    @Json(name = "sm") val sm: KlipyFormats? = null,
+    @Json(name = "xs") val xs: KlipyFormats? = null
+)
+@JsonClass(generateAdapter = true)
+data class KlipyFormats(
+    @Json(name = "gif") val gif: KlipyMedia? = null,
+    @Json(name = "webp") val webp: KlipyMedia? = null,
+    @Json(name = "jpg") val jpg: KlipyMedia? = null,
+    @Json(name = "mp4") val mp4: KlipyMedia? = null
+)
+@JsonClass(generateAdapter = true)
+data class KlipyMedia(
+    @Json(name = "url") val url: String? = null,
+    @Json(name = "width") val width: Int? = null,
+    @Json(name = "height") val height: Int? = null,
+    @Json(name = "size") val size: Long? = null
+)
+@JsonClass(generateAdapter = true)
 data class ChannelComment(@Json(name = "id") val id: String = "", @Json(name = "chat_message_id") val chatMessageId: String, @Json(name = "chat_id") val chatId: String, @Json(name = "author_user_id") val authorUserId: String, @Json(name = "content_text") val contentText: String, @Json(name = "created_at") val createdAt: String? = null, @Json(name = "edited_at") val editedAt: String? = null, @Json(name = "deleted_at") val deletedAt: String? = null, @Json(name = "author") val author: Profile? = null)
 @JsonClass(generateAdapter = true)
 data class BlockedUser(@Json(name = "id") val id: String? = null, @Json(name = "user_id") val userId: String = "", @Json(name = "blocked_user_id") val blockedUserId: String = "", @Json(name = "created_at") val createdAt: String? = null)

@@ -50,6 +50,12 @@ android {
 
         val giphyApiKey = System.getenv("GIPHY_API_KEY") ?: secrets.getProperty("GIPHY_API_KEY") ?: ""
         buildConfigField("String", "GIPHY_API_KEY", "\"$giphyApiKey\"")
+
+        // Klipy: fuente de GIFs y stickers (api.klipy.com). La key se inyecta en
+        // build time (env KLIPY_API_KEY / secrets.properties). Solo se consumen los
+        // endpoints de contenido: la app no integra el endpoint de anuncios.
+        val klipyApiKey = System.getenv("KLIPY_API_KEY") ?: secrets.getProperty("KLIPY_API_KEY") ?: ""
+        buildConfigField("String", "KLIPY_API_KEY", "\"$klipyApiKey\"")
     }
 
     signingConfigs {

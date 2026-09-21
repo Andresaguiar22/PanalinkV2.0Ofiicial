@@ -25,120 +25,225 @@ object StickerRepository {
     // In-memory cache for search queries
     private val searchCache = java.util.Collections.synchronizedMap(HashMap<String, List<StickerResult>>())
 
+
     suspend fun getStickers(context: Context, query: String?, limit: Int = 24): List<StickerResult> = withContext(Dispatchers.IO) {
-        val cacheKey = query?.trim()?.lowercase() ?: ""
+        val trimmed = query?.trim().orEmpty()
+        val cacheKey = if (trimmed.isEmpty()) "sticker_$TRENDING_KEY" else "sticker_${trimmed.lowercase()}"
         if (searchCache.containsKey(cacheKey)) {
             Log.d(TAG, "Returning cached stickers for query: '$cacheKey'")
             return@withContext searchCache[cacheKey]!!
         }
 
-        // 1. Try calling Giphy API directly if key is configured
-        if (BuildConfig.GIPHY_API_KEY.isNotBlank()) {
-            try {
-                // Directly call Giphy API
-                val response = com.example.service.GiphyClient.apiService.searchStickers(
-                    apiKey = BuildConfig.GIPHY_API_KEY,
-                    query = query ?: "",
-                    limit = limit
-                )
-                    
-                    val fullUrl = response.raw().request.url.toString()
-                    val httpMethod = response.raw().request.method
-                    val reqHeaders = response.raw().request.headers.toString()
-                    val bodySent = "{\"query\":\"${query ?: ""}\",\"limit\":$limit}"
-                    val httpCode = response.code()
-                    val respHeaders = response.headers().toString()
-                    
-                    Log.d(TAG, "=== STICKERS GIPHY API REQ ===")
-                    Log.d(TAG, "URL completa: $fullUrl")
-                    Log.d(TAG, "Método HTTP: $httpMethod")
-                    Log.d(TAG, "Headers del Request:\n$reqHeaders")
-                    Log.d(TAG, "Body enviado: $bodySent")
-                    Log.d(TAG, "Código HTTP recibido: $httpCode")
-                    Log.d(TAG, "Headers de la Respuesta:\n$respHeaders")
-                    
-                    if (response.isSuccessful) {
-                        val searchResponse = response.body()
-                        val results = searchResponse?.data?.map { sticker ->
-                            StickerResult(
-                                id = sticker.id,
-                                url = sticker.images.fixedWidth.url,
-                                preview = sticker.images.fixedWidth.url,
-                                width = sticker.images.fixedWidth.width.toIntOrNull(),
-                                height = sticker.images.fixedWidth.height.toIntOrNull()
-                            )
-                        } ?: emptyList()
-                        
-                        Log.d(TAG, "Cantidad de stickers recibidos: ${results.size}")
-                        if (results.isNotEmpty()) {
-                            val first = results.first()
-                            Log.d(TAG, "Primer sticker recibido -> ID: ${first.id}, URL: ${first.url}")
-                        } else {
-                            Log.d(TAG, "No se recibieron stickers en la lista 'data'")
-                        }
-                        
-                        searchCache[cacheKey] = results
-                        return@withContext results
-                    } else {
-                        val errorBody = response.errorBody()?.string() ?: ""
-                        Log.w(TAG, "Giphy API returned error code $httpCode")
-                        Log.w(TAG, "Body completo de la respuesta (error): $errorBody")
-                    }
-            } catch (e: Exception) {
-                Log.w(TAG, "Giphy API call failed, resorting to backup stickers", e)
-            }
+        // 1. Klipy (fuente principal). Query vacío => trending.
+        val klipy = fetchStickersFromKlipy(trimmed, limit)
+        if (klipy != null) {
+            searchCache[cacheKey] = klipy
+            return@withContext klipy
         }
 
-        // 2. Last Resort Fallback: Static high-quality trending stickers if offline or APIs fail
-        Log.w(TAG, "Supabase Edge Function failed or is not configured. Loading static backup stickers.")
+        // 2. Legacy: Giphy si sigue configurado y Klipy no está disponible.
+        val giphy = fetchStickersFromGiphy(trimmed, limit)
+        if (giphy != null) {
+            searchCache[cacheKey] = giphy
+            return@withContext giphy
+        }
+
+        // 3. Last Resort Fallback: static stickers if offline or APIs fail
+        Log.w(TAG, "Proveedores remotos no disponibles. Cargando stickers de respaldo estáticos.")
         val backups = getBackupStickers(query)
         searchCache[cacheKey] = backups
         return@withContext backups
     }
 
-    /** Busca GIFs en Giphy a través de la API key de build time.
-     *  Misma política que getStickers: cache en memoria y fallback estático si falla.o no hay red. */
+    /** Busca GIFs en Klipy. Query vacío => trending.
+     *  Cache en memoria y fallback estático si falla o no hay red. */
     suspend fun searchGifs(query: String, limit: Int = 24): List<StickerResult> = withContext(Dispatchers.IO) {
-        val cacheKey = "gif_${query.trim().lowercase()}"
+        val trimmed = query.trim()
+        val cacheKey = "gif_" + (if (trimmed.isEmpty()) TRENDING_KEY else trimmed.lowercase())
         if (searchCache.containsKey(cacheKey)) {
             return@withContext searchCache[cacheKey]!!
         }
-        if (BuildConfig.GIPHY_API_KEY.isNotBlank()) {
-            try {
-                val response = com.example.service.GiphyClient.apiService.searchGifs(
-                    apiKey = BuildConfig.GIPHY_API_KEY,
-                    query = query,
-                    limit = limit
-                )
-                if (response.isSuccessful) {
-                    val giphyResponse = response.body()
-                    val results = giphyResponse?.data?.map { gif ->
-                        StickerResult(
-                            id = gif.id,
-                            url = gif.images.fixedWidth.url,
-                            preview = gif.images.fixedWidth.url,
-                            width = gif.images.fixedWidth.width.toIntOrNull(),
-                            height = gif.images.fixedWidth.height.toIntOrNull()
-                        )
-                    } ?: emptyList()
-                    searchCache[cacheKey] = results
-                    return@withContext results
-                } else {
-                    Log.w(TAG, "Giphy GIF API returned error code ${response.code()}")
-                }
-            } catch (e: Exception) {
-                Log.w(TAG, "Giphy GIF API call failed, resorting to static fallback GIFs", e)
-            }
+
+        // 1. Klipy (fuente principal).
+        val klipy = fetchGifsFromKlipy(trimmed, limit)
+        if (klipy != null) {
+            searchCache[cacheKey] = klipy
+            return@withContext klipy
         }
-        val fallbackGifs = listOf(
-            StickerResult(id = "gif_fb_1", url = "https://media.giphy.com/media/l0HlSgH9bXWbBMtQ4/giphy.gif", preview = "https://media.giphy.com/media/l0HlSgH9bXWbBMtQ4/giphy.gif"),
-            StickerResult(id = "gif_fb_2", url = "https://media.giphy.com/media/3o7TKSjRrfIPjeiVyM/giphy.gif", preview = "https://media.giphy.com/media/3o7TKSjRrfIPjeiVyM/giphy.gif"),
-            StickerResult(id = "gif_fb_3", url = "https://media.giphy.com/media/26AHONQ79FdYzhAI0/giphy.gif", preview = "https://media.giphy.com/media/26AHONQ79FdYzhAI0/giphy.gif"),
-            StickerResult(id = "gif_fb_4", url = "https://media.giphy.com/media/l41YptBC8A0gD9XEY/giphy.gif", preview = "https://media.giphy.com/media/l41YptBC8A0gD9XEY/giphy.gif")
-        )
+
+        // 2. Legacy: Giphy si sigue configurado y Klipy no está disponible.
+        val giphy = fetchGifsFromGiphy(trimmed, limit)
+        if (giphy != null) {
+            searchCache[cacheKey] = giphy
+            return@withContext giphy
+        }
+
+        // 3. Fallback estático (offline / APIs caídas).
+        Log.w(TAG, "Proveedores remotos no disponibles. Cargando GIFs de respaldo estáticos.")
+        val fallbackGifs = getFallbackGifs()
         searchCache[cacheKey] = fallbackGifs
         return@withContext fallbackGifs
     }
+
+    /** GIFs trending de Klipy (sin término de búsqueda). */
+    suspend fun getTrendingGifs(limit: Int = 24): List<StickerResult> = searchGifs("", limit)
+
+    /**
+     * Klipy devuelve null cuando la API no está configurada o la llamada falló
+     * (para poder encadenar el fallback). Una lista vacía es una respuesta válida
+     * (el término no tuvo resultados) y NO dispara el fallback.
+     */
+    private suspend fun fetchGifsFromKlipy(query: String, limit: Int): List<StickerResult>? {
+        if (BuildConfig.KLIPY_API_KEY.isBlank()) return null
+        return try {
+            val response = if (query.isEmpty()) {
+                com.example.service.KlipyClient.apiService.trendingGifs(
+                    apiKey = BuildConfig.KLIPY_API_KEY,
+                    limit = limit
+                )
+            } else {
+                com.example.service.KlipyClient.apiService.searchGifs(
+                    apiKey = BuildConfig.KLIPY_API_KEY,
+                    query = query,
+                    limit = limit
+                )
+            }
+            if (!response.isSuccessful) {
+                Log.w(TAG, "Klipy GIF API HTTP ${response.code()}")
+                return null
+            }
+            val mapped = response.body()?.data?.items.orEmpty().mapNotNull { it.toStickerResult() }
+            Log.d(TAG, "Klipy GIFs (${if (query.isEmpty()) "trending" else "q='$query'"}): ${mapped.size}")
+            mapped
+        } catch (e: Exception) {
+            Log.w(TAG, "Klipy GIF API falló", e)
+            null
+        }
+    }
+
+    private suspend fun fetchStickersFromKlipy(query: String, limit: Int): List<StickerResult>? {
+        if (BuildConfig.KLIPY_API_KEY.isBlank()) return null
+        return try {
+            val response = if (query.isEmpty()) {
+                com.example.service.KlipyClient.apiService.trendingStickers(
+                    apiKey = BuildConfig.KLIPY_API_KEY,
+                    limit = limit
+                )
+            } else {
+                com.example.service.KlipyClient.apiService.searchStickers(
+                    apiKey = BuildConfig.KLIPY_API_KEY,
+                    query = query,
+                    limit = limit
+                )
+            }
+            if (!response.isSuccessful) {
+                Log.w(TAG, "Klipy sticker API HTTP ${response.code()}")
+                return null
+            }
+            val mapped = response.body()?.data?.items.orEmpty().mapNotNull { it.toStickerResult() }
+            Log.d(TAG, "Klipy stickers (${if (query.isEmpty()) "trending" else "q='$query'"}): ${mapped.size}")
+            mapped
+        } catch (e: Exception) {
+            Log.w(TAG, "Klipy sticker API falló", e)
+            null
+        }
+    }
+
+    private suspend fun fetchGifsFromGiphy(query: String, limit: Int): List<StickerResult>? {
+        if (BuildConfig.GIPHY_API_KEY.isBlank()) return null
+        return try {
+            val response = com.example.service.GiphyClient.apiService.searchGifs(
+                apiKey = BuildConfig.GIPHY_API_KEY,
+                query = query.ifEmpty { "funny" },
+                limit = limit
+            )
+            if (!response.isSuccessful) {
+                Log.w(TAG, "Giphy GIF API HTTP ${response.code()}")
+                return null
+            }
+            response.body()?.data?.map { gif ->
+                StickerResult(
+                    id = gif.id,
+                    url = gif.images.fixedWidth.url,
+                    preview = gif.images.fixedWidth.url,
+                    width = gif.images.fixedWidth.width.toIntOrNull(),
+                    height = gif.images.fixedWidth.height.toIntOrNull()
+                )
+            }.orEmpty()
+        } catch (e: Exception) {
+            Log.w(TAG, "Giphy GIF API falló", e)
+            null
+        }
+    }
+
+    private suspend fun fetchStickersFromGiphy(query: String, limit: Int): List<StickerResult>? {
+        if (BuildConfig.GIPHY_API_KEY.isBlank()) return null
+        return try {
+            val response = com.example.service.GiphyClient.apiService.searchStickers(
+                apiKey = BuildConfig.GIPHY_API_KEY,
+                query = query.ifEmpty { "funny" },
+                limit = limit
+            )
+            if (!response.isSuccessful) {
+                Log.w(TAG, "Giphy sticker API HTTP ${response.code()}")
+                return null
+            }
+            response.body()?.data?.map { sticker ->
+                StickerResult(
+                    id = sticker.id,
+                    url = sticker.images.fixedWidth.url,
+                    preview = sticker.images.fixedWidth.url,
+                    width = sticker.images.fixedWidth.width.toIntOrNull(),
+                    height = sticker.images.fixedWidth.height.toIntOrNull()
+                )
+            }.orEmpty()
+        } catch (e: Exception) {
+            Log.w(TAG, "Giphy sticker API falló", e)
+            null
+        }
+    }
+
+    /**
+     * Mapea una pieza de Klipy al modelo de la app.
+     * url = GIF en mayor calidad (lo que se envía en el mensaje).
+     * preview = GIF animado pequeño (lo que pinta el selector).
+     * Las piezas marcadas como publicidad se descartan.
+     */
+    internal fun com.example.data.model.KlipyItem.toStickerResult(): StickerResult? {
+        if (type?.equals("ad", ignoreCase = true) == true || type?.equals("ads", ignoreCase = true) == true) return null
+        val file = file ?: return null
+        // md da mejor resolución, pero algunos superan los ~5 MB; si el md es
+        // demasiado pesado se usa el sm (220 px, equivalente al fixed_width previo).
+        val md = file.md?.gif
+        val sm = file.sm?.gif
+        val full = when {
+            md == null -> file.hd?.gif ?: sm ?: file.md?.webp
+            (md.size ?: 0L) <= MAX_SEND_BYTES -> md
+            else -> sm ?: md
+        } ?: return null
+        val url = full.url ?: return null
+        // sm/xs: GIF animado liviano para el selector.
+        val preview = sm?.url ?: file.xs?.gif?.url ?: file.sm?.jpg?.url ?: url
+        return StickerResult(
+            id = id?.toString() ?: slug,
+            title = title,
+            url = url,
+            preview = preview,
+            width = full.width ?: sm?.width,
+            height = full.height ?: sm?.height
+        )
+    }
+
+    private const val MAX_SEND_BYTES = 2_500_000L
+
+    private fun getFallbackGifs(): List<StickerResult> = listOf(
+        StickerResult(id = "gif_fb_1", url = "https://media.giphy.com/media/l0HlSgH9bXWbBMtQ4/giphy.gif", preview = "https://media.giphy.com/media/l0HlSgH9bXWbBMtQ4/giphy.gif"),
+        StickerResult(id = "gif_fb_2", url = "https://media.giphy.com/media/3o7TKSjRrfIPjeiVyM/giphy.gif", preview = "https://media.giphy.com/media/3o7TKSjRrfIPjeiVyM/giphy.gif"),
+        StickerResult(id = "gif_fb_3", url = "https://media.giphy.com/media/26AHONQ79FdYzhAI0/giphy.gif", preview = "https://media.giphy.com/media/26AHONQ79FdYzhAI0/giphy.gif"),
+        StickerResult(id = "gif_fb_4", url = "https://media.giphy.com/media/l41YptBC8A0gD9XEY/giphy.gif", preview = "https://media.giphy.com/media/l41YptBC8A0gD9XEY/giphy.gif")
+    )
+
+    private const val TRENDING_KEY = "__trending__"
 
     private fun getBackupStickers(query: String?): List<StickerResult> {
         val backups = listOf(

@@ -554,7 +554,7 @@ private var chatJob: kotlinx.coroutines.Job? = null
 
         // Replica el LaunchedEffect original: al cambiar de pestaña se recargan
         // SOLO los datos de la pestaña activa.
-        if (tab == 1) loadGifs(query = _emojiMedia.value.searchQuery.ifEmpty { "funny" })
+        if (tab == 1) loadGifs(query = _emojiMedia.value.searchQuery)
         if (tab == 2) loadEmojiStickers(query = _emojiMedia.value.searchQuery.ifEmpty { null })
     }
 
@@ -565,7 +565,7 @@ private var chatJob: kotlinx.coroutines.Job? = null
         // al trending (mismo efecto que el LaunchedEffect keyed on debouncedSearchQuery).
         if (!isActive) {
             loadEmojiStickers(query = null)
-            loadGifs(query = "funny")
+            loadGifs(query = "")
         }
     }
 
@@ -579,7 +579,7 @@ private var chatJob: kotlinx.coroutines.Job? = null
         emojiSearchDebounceJob = viewModelScope.launch {
             kotlinx.coroutines.delay(300)
             val state = _emojiMedia.value
-            if (state.selectedTab == 1) loadGifs(query = state.searchQuery.ifEmpty { "funny" })
+            if (state.selectedTab == 1) loadGifs(query = state.searchQuery)
             if (state.selectedTab == 2) loadEmojiStickers(query = state.searchQuery.ifEmpty { null })
         }
     }
@@ -609,7 +609,7 @@ private var chatJob: kotlinx.coroutines.Job? = null
     fun loadGifs(query: String) {
         viewModelScope.launch(Dispatchers.IO) {
             _emojiMedia.value = _emojiMedia.value.copy(isGifsLoading = true)
-            val result = StickerRepository.searchGifs(query = query.ifEmpty { "funny" })
+            val result = StickerRepository.searchGifs(query = query)
             _emojiMedia.value = _emojiMedia.value.copy(gifs = result, isGifsLoading = false)
         }
     }
