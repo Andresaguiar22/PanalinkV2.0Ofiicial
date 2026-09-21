@@ -23,6 +23,13 @@ class SendMessageUseCase(private val context: Context) {
                 content = content,
                 messageType = messageType
             )
+            // Premium 2.0: registra actividad de misión (sin bloquear el envío).
+            try {
+                com.example.premium.domain.PremiumEventBus.publishActivity(
+                    com.example.premium.domain.MissionActivities.MESSAGE_SENT
+                )
+            } catch (_: Exception) {
+            }
             ResultState.Success(Unit)
         } catch (e: Exception) {
             ResultState.Error(ErrorMapper.map(e))

@@ -30,7 +30,7 @@ import com.example.rooms.model.VoiceRoom
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun VoiceRoomBrowserScreen(onBack:()->Unit,onEnterRoom:(String)->Unit,viewModel:VoiceRoomBrowserViewModel=viewModel()) {
+fun VoiceRoomBrowserScreen(onBack:()->Unit,onEnterRoom:(String)->Unit,viewModel:VoiceRoomBrowserViewModel=viewModel(),onNavigateToPremium:(()->Unit)?=null) {
     val state by viewModel.uiState.collectAsState()
     var showCreate by remember{mutableStateOf(false)}
     LaunchedEffect(state.createdRoom){state.createdRoom?.let{onEnterRoom(it.id)}}
@@ -42,7 +42,14 @@ fun VoiceRoomBrowserScreen(onBack:()->Unit,onEnterRoom:(String)->Unit,viewModel:
                 items(state.rooms,key={it.id}){room->RoomCard(room,state.memberCounts[room.id]?:0){onEnterRoom(room.id)}}
             }
             if(state.rooms.isEmpty()&&!state.isLoading) Text("No hay salas activas ahora",color=Color.Gray,modifier=Modifier.align(Alignment.Center).padding(bottom=80.dp))
-            FloatingActionButton(onClick={showCreate=true},modifier=Modifier.align(Alignment.BottomEnd).padding(20.dp),containerColor=Color(0xFF4ADEAF)){Icon(Icons.Default.Add,"Crear sala",tint=Color(0xFF1A120E))}
+            FloatingActionButton(onClick={
+                // Premium 2.0: crear una sala de voz es función Voice Gold.
+                com.example.premium.domain.PremiumAccess.run(
+                    com.example.premium.domain.PremiumFeatures.VOICE,
+                    allowed = { showCreate = true },
+                    blocked = { if (onNavigateToPremium != null) onNavigateToPremium() else showCreate = true }
+                )
+            },modifier=Modifier.align(Alignment.BottomEnd).padding(20.dp),containerColor=Color(0xFF4ADEAF)){Icon(Icons.Default.Add,"Crear sala",tint=Color(0xFF1A120E))}
             if(showCreate) VoiceRoomCreateDialog(onDismiss={showCreate=false},onCreate={showCreate=false;viewModel.createRoom(it)})
         }
     }

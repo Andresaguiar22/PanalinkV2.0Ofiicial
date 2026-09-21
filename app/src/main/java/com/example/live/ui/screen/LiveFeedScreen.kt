@@ -51,7 +51,8 @@ fun LiveFeedScreen(
     viewModel: LiveViewModel = androidx.lifecycle.viewmodel.compose.viewModel(),
     onNavigateBack: () -> Unit,
     onNavigateToViewer: (String) -> Unit = {},
-    onNavigateToBroadcast: () -> Unit = {}
+    onNavigateToBroadcast: () -> Unit = {},
+    onNavigateToPremium: (() -> Unit)? = null
 ) {
     val uiState by viewModel.uiState.collectAsStateWithLifecycle()
     val isRefreshing by remember { mutableStateOf(false) }
@@ -90,7 +91,14 @@ fun LiveFeedScreen(
                 )
             },
             floatingActionButton = {
-                LiveBroadcastFab(onClick = onNavigateToBroadcast)
+                // Premium 2.0: transmitir en directo es función Live Gold.
+                LiveBroadcastFab(onClick = {
+                    com.example.premium.domain.PremiumAccess.run(
+                        com.example.premium.domain.PremiumFeatures.LIVE,
+                        allowed = { onNavigateToBroadcast() },
+                        blocked = { if (onNavigateToPremium != null) onNavigateToPremium() else onNavigateToBroadcast() }
+                    )
+                })
             },
             containerColor = Color.Transparent
         ) { paddingValues ->

@@ -18,10 +18,24 @@ class LiveRoomRepositoryImpl(context: Context) : LiveRoomRepository {
 
     override suspend fun joinRoom(url: String, token: String) {
         liveKitManager.connect(url, token)
+        // Premium 2.0: ver/participar en un live cuenta para la misión diaria.
+        try {
+            com.example.premium.domain.PremiumEventBus.publishActivity(
+                com.example.premium.domain.MissionActivities.LIVE_JOINED
+            )
+        } catch (_: Exception) {
+        }
     }
 
     override suspend fun startBroadcast(url: String, token: String) {
         liveKitManager.startBroadcasting(url, token)
+        // Premium 2.0: iniciar un live cuenta para la misión diaria.
+        try {
+            com.example.premium.domain.PremiumEventBus.publishActivity(
+                com.example.premium.domain.MissionActivities.LIVE_STARTED
+            )
+        } catch (_: Exception) {
+        }
     }
 
     override suspend fun switchCamera() {

@@ -785,6 +785,10 @@ fun ChatScreen(
                 onNavigateToChatMedia = onNavigateToChatMedia,
                 onNavigateToSearch = onNavigateToSearch,
             )
+            // Premium 2.0: banner Chat Gold (aditivo, no bloquea la mensajería).
+            com.example.premium.ui.ChatGoldUpgradeBanner(onNavigateToPremium = {
+                navController?.navigate("premiumHome") { launchSingleTop = true }
+            })
             // Pinned Message Bar
             val state = uiState as? ChatUiState.Success
             

@@ -437,6 +437,7 @@ class MainActivity : androidx.fragment.app.FragmentActivity() {
                         // Premium 2.0: carga saldo y entitlements del usuario al entrar.
                         try {
                             com.example.premium.domain.PremiumManager.initialize()
+                            com.example.premium.domain.MissionManager.refresh()
                         } catch (e: Throwable) {
                             android.util.Log.e("MainActivity", "Premium init failed", e)
                         }

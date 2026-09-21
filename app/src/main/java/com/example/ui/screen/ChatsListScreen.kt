@@ -1045,13 +1045,17 @@ fun ChatsListScreen(
                         modifier = Modifier.fillMaxWidth(),
                         horizontalArrangement = Arrangement.spacedBy(16.dp)
                     ) {
-                        // Historia Card
+                        // Historia Card (Premium 2.0: crear y publicar es función Story Gold)
                         Card(
                             modifier = Modifier
                                 .weight(1f)
                                 .clickable {
                                     showPlusBottomSheet = false
-                                    onNavigateToCreateStory()
+                                    com.example.premium.domain.PremiumAccess.run(
+                                        com.example.premium.domain.PremiumFeatures.STORY,
+                                        allowed = { onNavigateToCreateStory() },
+                                        blocked = { if (onNavigateToPremium != null) onNavigateToPremium() else onNavigateToCreateStory() }
+                                    )
                                 },
                             shape = RoundedCornerShape(16.dp),
                             colors = CardDefaults.cardColors(containerColor = Color(0xFF161618)),
@@ -1083,13 +1087,17 @@ fun ChatsListScreen(
                             }
                         }
 
-                        // Reel Card
+                        // Reel Card (Premium 2.0: crear y publicar reels es función Wall/Story Gold)
                         Card(
                             modifier = Modifier
                                 .weight(1f)
                                 .clickable {
                                     showPlusBottomSheet = false
-                                    onNavigateToCreateReel()
+                                    com.example.premium.domain.PremiumAccess.run(
+                                        com.example.premium.domain.PremiumFeatures.STORY,
+                                        allowed = { onNavigateToCreateReel() },
+                                        blocked = { if (onNavigateToPremium != null) onNavigateToPremium() else onNavigateToCreateReel() }
+                                    )
                                 },
                             shape = RoundedCornerShape(16.dp),
                             colors = CardDefaults.cardColors(containerColor = Color(0xFF161618)),

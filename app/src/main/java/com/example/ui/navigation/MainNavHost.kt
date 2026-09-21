@@ -339,6 +339,9 @@ fun MainNavHost(
                 onBack = { mainNavController.popBackStack() },
                 onEnterRoom = { id ->
                     mainNavController.navigate("voiceRoom/$id")
+                },
+                onNavigateToPremium = {
+                    mainNavController.navigate("premiumHome") { launchSingleTop = true }
                 }
             )
         }
@@ -391,6 +394,9 @@ fun MainNavHost(
                 },
                 onNavigateToBroadcast = {
                     mainNavController.navigate(com.example.live.LiveRoutes.LIVE_BROADCAST) { launchSingleTop = true }
+                },
+                onNavigateToPremium = {
+                    mainNavController.navigate("premiumHome") { launchSingleTop = true }
                 }
             )
         }
