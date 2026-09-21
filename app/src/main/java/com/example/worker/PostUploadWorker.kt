@@ -139,24 +139,9 @@ open class PostUploadWorker(
                 // to standard H.264/AVC before uploading to VCDN. This prevents hardware codec
                 // failures on devices that don't fully support HEVC/10-bit decode, which causes
                 // MediaCodecVideoDecoderException and freezes the reel feed.
-                var finalUploadFile = tempFile
-                if (mimeType.startsWith("video/") && !tempFile.name.contains("_compressed_")) {
-                    try {
-                        val compressed = com.example.util.VideoCompressorHelper.compressVideo(
-                            context,
-                            uri,
-                            tempFile,
-                            { }
-                        )
-                        if (compressed.exists() && compressed.length() > 0 && compressed.absolutePath != tempFile.absolutePath) {
-                            finalUploadFile = compressed
-                        } else if (compressed.exists() && compressed.absolutePath != tempFile.absolutePath) {
-                            compressed.delete()
-                        }
-                    } catch (e: Exception) {
-                        Log.w(TAG, "Video compression failed, uploading original", e)
-                    }
-                }
+                // VCDN debe recibir el archivo original sin transcodificación local.
+                // Esto preserva codec, pixel format y metadatos de color del video fuente.
+                val finalUploadFile = tempFile
 
                 val ext = if (finalUploadFile.name.contains(".")) finalUploadFile.name.substringAfterLast(".") else "bin"
                 val stableFileName = "post_${pendingPostId}_${mediaRow.mediaIndex}.$ext"
