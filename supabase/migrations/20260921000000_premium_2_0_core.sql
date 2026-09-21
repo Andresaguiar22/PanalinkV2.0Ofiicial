@@ -993,7 +993,8 @@ begin
     left join public.user_missions um
         on um.mission_id = m.id
        and um.user_id = v_uid
-       and um.period_start = date_trunc('week', current_date)::date
+       and ( (m.scope = 'daily'  and um.period_start = current_date)
+          or (m.scope = 'weekly' and um.period_start = date_trunc('week', current_date)::date) )
     where m.is_active;
 
     return jsonb_build_object('ok', true, 'missions', v_result);
@@ -1093,7 +1094,8 @@ begin
          where um.user_id = v_uid
            and um.completed_at is not null
            and um.claimed_at is null
-           and um.period_start = date_trunc('week', current_date)::date
+           and ( (m.scope = 'daily'  and um.period_start = current_date)
+              or (m.scope = 'weekly' and um.period_start = date_trunc('week', current_date)::date) )
     loop
         v_bal := public.ledger_apply(
             v_uid,
