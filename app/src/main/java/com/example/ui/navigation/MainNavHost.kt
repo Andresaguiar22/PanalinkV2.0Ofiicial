@@ -957,7 +957,17 @@ fun MainNavHost(
                 onBack = { mainNavController.popBackStack() },
                 onOpenShop = {
                     mainNavController.navigate("premiumShop") { launchSingleTop = true }
+                },
+                onOpenCosmetics = {
+                    mainNavController.navigate("premiumCosmetics") { launchSingleTop = true }
                 }
+            )
+        }
+
+        // Premium 2.0 — Colección de cosméticos (marcos por nivel)
+        composable("premiumCosmetics") {
+            com.example.premium.ui.PremiumCosmeticsScreen(
+                onBack = { mainNavController.popBackStack() }
             )
         }
 

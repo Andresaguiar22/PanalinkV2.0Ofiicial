@@ -23,4 +23,6 @@ interface PremiumRepository {
     suspend fun markNotificationRead(notificationId: String): Result<SimpleResult>
     suspend fun getWalletHistory(limit: Int = 100, currency: String? = null): Result<WalletHistoryResponse>
     suspend fun getLevelInfo(): Result<LevelInfo>
+    suspend fun getMyCosmetics(): Result<MyCosmeticsResponse>
+    suspend fun equipCosmetic(cosmeticCode: String): Result<SimpleResult>
 }

@@ -264,6 +264,31 @@ data class WalletHistoryResponse(
     @Json(name = "count") val count: Int = 0
 )
 
+/** Cosmético poseído por el usuario. */
+@JsonClass(generateAdapter = true)
+data class OwnedCosmetic(
+    @Json(name = "cosmetic_code") val cosmeticCode: String,
+    @Json(name = "source_level") val sourceLevel: Int?,
+    @Json(name = "acquired_at") val acquiredAt: String?
+)
+
+/** Cosmético desbloqueable ya (por nivel alcanzado) pero aún no reclamado. */
+@JsonClass(generateAdapter = true)
+data class UnlockedCosmetic(
+    @Json(name = "level") val level: Int,
+    @Json(name = "cosmetic_code") val cosmeticCode: String
+)
+
+/** Respuesta de my_cosmetics(). */
+@JsonClass(generateAdapter = true)
+data class MyCosmeticsResponse(
+    @Json(name = "ok") val ok: Boolean = false,
+    @Json(name = "level") val level: Int = 1,
+    @Json(name = "equipped") val equipped: String? = null,
+    @Json(name = "owned") val owned: List<OwnedCosmetic> = emptyList(),
+    @Json(name = "upgradable_now") val upgradableNow: List<UnlockedCosmetic> = emptyList()
+)
+
 /** Tier de nivel con recompensa. */
 @JsonClass(generateAdapter = true)
 data class LevelTierInfo(

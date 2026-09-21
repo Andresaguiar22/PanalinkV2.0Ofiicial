@@ -158,10 +158,29 @@ interface PremiumSupabaseApi {
         @Header("Authorization") authorization: String,
         @Body body: RpcEmptyRequest = RpcEmptyRequest()
     ): Response<ResponseBody>
+
+    @POST("rest/v1/rpc/my_cosmetics")
+    suspend fun rpcMyCosmetics(
+        @Header("apikey") apiKey: String,
+        @Header("Authorization") authorization: String,
+        @Body body: RpcEmptyRequest = RpcEmptyRequest()
+    ): Response<ResponseBody>
+
+    @POST("rest/v1/rpc/equip_cosmetic")
+    suspend fun rpcEquipCosmetic(
+        @Header("apikey") apiKey: String,
+        @Header("Authorization") authorization: String,
+        @Body body: RpcEquipRequest
+    ): Response<ResponseBody>
 }
 
 @JsonClass(generateAdapter = true)
 data class RpcWalletHistoryRequest(
     @Json(name = "p_limit") val limit: Int = 100,
     @Json(name = "p_currency") val currency: String? = null
+)
+
+@JsonClass(generateAdapter = true)
+data class RpcEquipRequest(
+    @Json(name = "p_cosmetic_code") val cosmeticCode: String
 )

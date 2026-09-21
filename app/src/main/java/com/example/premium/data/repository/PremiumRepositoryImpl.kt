@@ -8,6 +8,7 @@ import com.example.premium.data.remote.RpcExchangeRequest
 import com.example.premium.data.remote.RpcMissionProgressRequest
 import com.example.premium.data.remote.RpcNotifReadRequest
 import com.example.premium.data.remote.RpcWalletHistoryRequest
+import com.example.premium.data.remote.RpcEquipRequest
 import com.example.premium.domain.model.*
 import com.example.premium.domain.repository.PremiumRepository
 import okhttp3.OkHttpClient
@@ -473,6 +474,62 @@ class PremiumRepositoryImpl : PremiumRepository {
             }
         } catch (e: Exception) {
             Log.e(TAG, "Exception premium_level_info", e)
+            Result.failure(e)
+        }
+    }
+
+    override suspend fun getMyCosmetics(): Result<MyCosmeticsResponse> {
+        return try {
+            val response = api.rpcMyCosmetics(
+                apiKey = SupabaseClient.supabaseAnonKey,
+                authorization = getAuthHeader()
+            )
+            if (response.isSuccessful) {
+                val map = parseJson(response.body()?.string()) ?: emptyMap()
+                Result.success(
+                    MyCosmeticsResponse(
+                        ok = asBool(map, "ok"),
+                        level = asInt(map, "level"),
+                        equipped = asStr(map, "equipped"),
+                        owned = asMapList(map, "owned").map {
+                            OwnedCosmetic(
+                                cosmeticCode = asStr(it, "cosmetic_code") ?: "",
+                                sourceLevel = (it["source_level"] as? Number)?.toInt(),
+                                acquiredAt = asStr(it, "acquired_at")
+                            )
+                        },
+                        upgradableNow = asMapList(map, "upgradable_now").map {
+                            UnlockedCosmetic(
+                                level = asInt(it, "level"),
+                                cosmeticCode = asStr(it, "cosmetic_code") ?: ""
+                            )
+                        }
+                    )
+                )
+            } else {
+                Result.failure(Exception("Error my_cosmetics: ${response.errorBody()?.string()}"))
+            }
+        } catch (e: Exception) {
+            Log.e(TAG, "Exception my_cosmetics", e)
+            Result.failure(e)
+        }
+    }
+
+    override suspend fun equipCosmetic(cosmeticCode: String): Result<SimpleResult> {
+        return try {
+            val response = api.rpcEquipCosmetic(
+                apiKey = SupabaseClient.supabaseAnonKey,
+                authorization = getAuthHeader(),
+                body = RpcEquipRequest(cosmeticCode)
+            )
+            if (response.isSuccessful) {
+                val map = parseJson(response.body()?.string()) ?: emptyMap()
+                Result.success(SimpleResult(ok = asBool(map, "ok"), reason = asStr(map, "reason")))
+            } else {
+                Result.failure(Exception("Error equip_cosmetic: ${response.errorBody()?.string()}"))
+            }
+        } catch (e: Exception) {
+            Log.e(TAG, "Exception equip_cosmetic", e)
             Result.failure(e)
         }
     }

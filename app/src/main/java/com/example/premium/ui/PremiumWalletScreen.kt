@@ -39,6 +39,7 @@ import com.example.ui.theme.PanalinkSkin
 fun PremiumWalletScreen(
     onBack: () -> Unit,
     onOpenShop: () -> Unit,
+    onOpenCosmetics: () -> Unit = {},
     viewModel: PremiumViewModel = viewModel()
 ) {
     val state by viewModel.state.collectAsState()
@@ -71,12 +72,7 @@ fun PremiumWalletScreen(
             item {
                 Row(horizontalArrangement = Arrangement.spacedBy(10.dp)) {
                     ActionChip("🛍️ Tienda", enabled = true, onClick = onOpenShop, modifier = Modifier.weight(1f))
-                    ActionChip(
-                        "💎 Canjear",
-                        enabled = state.wallet.diamonds > 0,
-                        onClick = { viewModel.exchangeDiamonds() },
-                        modifier = Modifier.weight(1f)
-                    )
+                    ActionChip("👑 Colección", enabled = true, onClick = onOpenCosmetics, modifier = Modifier.weight(1f))
                 }
             }
 

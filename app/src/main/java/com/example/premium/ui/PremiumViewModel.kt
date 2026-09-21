@@ -30,6 +30,12 @@ class PremiumViewModel : ViewModel() {
     private val _message = MutableStateFlow<String?>(null)
     val message: StateFlow<String?> = _message.asStateFlow()
 
+    private val _cosmetics = MutableStateFlow<MyCosmeticsResponse?>(null)
+    val cosmetics: StateFlow<MyCosmeticsResponse?> = _cosmetics.asStateFlow()
+
+    private val _equippingCode = MutableStateFlow<String?>(null)
+    val equippingCode: StateFlow<String?> = _equippingCode.asStateFlow()
+
     fun loadAll() {
         viewModelScope.launch {
             _state.value = _state.value.copy(loading = true)
@@ -64,6 +70,33 @@ class PremiumViewModel : ViewModel() {
                 _state.value = _state.value.copy(levelInfo = li)
             }
             _state.value = _state.value.copy(loading = false)
+        }
+    }
+
+    fun loadCosmetics() {
+        viewModelScope.launch {
+            repository.getMyCosmetics().onSuccess { c ->
+                _cosmetics.value = c
+            }
+        }
+    }
+
+    fun equipCosmetic(cosmeticCode: String) {
+        viewModelScope.launch {
+            _equippingCode.value = cosmeticCode
+            repository.equipCosmetic(cosmeticCode).onSuccess { res ->
+                if (res.ok) {
+                    _message.value = "Marco equipado ✓"
+                    // Refresca el estado: equipado actualiza el nivel también.
+                    loadCosmetics()
+                } else {
+                    _message.value = res.reason ?: "No se pudo equipar"
+                }
+                _equippingCode.value = null
+            }.onFailure { e ->
+                _message.value = e.message ?: "Error al equipar"
+                _equippingCode.value = null
+            }
         }
     }
 
