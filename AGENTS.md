@@ -976,3 +976,21 @@ factor `0.55 + pow(1.7)*(3.8-0.55)`, halo `1.7x` alpha `0x08` (casi invisible), 
 * **12001** (`serve_apk.py`) sirve el APK con 206/Range; **12000** (`upload_server.py`) devuelve **501** en `/apk/...`:
   entregar siempre por 12001. URL: `https://work-2-vbwmdmbkyoqizcpr.prod-runtime.all-hands.dev/Panalink-BETA-v1.3.54-code81.apk`.
 
+
+---
+
+## 💎 PanaLink Premium 2.0 (economía de monedas + funciones por días) - sesión 2026-09-21, rama `kilo/premium-2.0`
+
+* **Concepto**: los usuarios ganan monedas (🪙) con recompensa diaria, misiones, eventos y conversión de diamantes; las gastan para comprar **funciones premium por días** (chat, story, live, wall, voice, panatv). Cada compra suma días al entitlement (apilable); al vencer se muestra bloqueado y hay que renovar. Motor extensible para futuras features sin reescribir.
+
+* **Backend**: migración `supabase/migrations/20260921000000_premium_2_0_core.sql` (~1470 líneas, 20 funciones). NO está aplicada en prod todavía (regla repo: cero cambios en Supabase hasta que el diseño esté final). Tables: `premium_features`, `premium_products`, `premium_promotions`, `premium_events`, `missions`, `user_missions` (ventana semanal), `user_rewards` (+ streak), `user_entitlements`, `wallet_transactions`, `admin_grants`, `in_app_notifications`. Todo SECURITY DEFINER + `set search_path=''` + `auth.uid()` + grant solo authenticated. Cron `premium_expire_entitlements` cada 10 min (patrón live-auto-end-stale).
+
+* **RPCs clave**: `wallet_balance_full`, `premium_catalog`, `premium_buy(p_code,p_request_id)` (idempotente por request_id, apila días), `premium_my_entitlements`, `premium_active_promotions`, `premium_active_events`, `claim_daily_reward`/s`daily_reward_status`, `missions_in_progress`, `mission_progress`/`mission_claim_all`, `diamonds_exchange`, `notifications_for_me`/`notification_read`, `admin_grant_coins`, `ledger_apply`.
+
+* **Android** (`app/src/main/java/com/example/premium/`): `domain/model` (data classes Moshi), `data/remote/PremiumSupabaseApi.kt` (Retrofit RPC con data classes tipadas, patrón LiveRpcDtos), `data/repository/PremiumRepositoryImpl.kt` (parseo con `SupabaseClient.moshi` + `ResponseBody`), `domain/PremiumManager.kt` (singleton con StateFlow wallet/entitlements/catalog + `hasFeature(featureKey)`), UI: `PremiumHomeScreen` (saldo, beneficios activos, ofertas, eventos, recompensa diaria, misiones), `PremiumShopScreen` (comprar), `PremiumGate` (composable para bloquear/desbloquear), `CoinChip`/`PremiumBadge`.
+
+* **Integración**: `MainActivity` llama `PremiumManager.initialize()` en el LaunchedEffect de auth-ok; rutas `premiumHome`/`premiumShop` en MainNavHost; ProfileScreen muestra CoinChip+💎 en la TopAppBar (param `onOpenPremium`); PanaTV en ChatsListScreen gated (sin entitlement → `onNavigateToPremium`; con entitlement → lanza `PanaTVActivity`).
+
+* **Validado en local**: PostgreSQL 17.11 (migración EXIT=0, smoke tests de compra/apilamiento/idempotencia/recompensa/misiones/exchange/expiración) y `:app:compileDebugKotlin` → BUILD SUCCESSFUL sin warnings. Bug encontrado y corregido: `jsonb_agg` + `ORDER BY` externo sin GROUP BY daba error en `premium_my_entitlements`/catalog/promotions/events/missions/notifications — el ORDER BY debe ir DENTRO de `jsonb_agg(...)` y el LIMIT en subquery.
+
+* **PRÓXIMO (fases 3+)**: gates en más features (chat/story/live/voice/wall), sondeo de misiones desde las pantallas (al enviar mensaje → `mission_progress`), notificaciones por expiración de entitlement, y pasar el gate del catálogo a la nueva features. No mergear a main ni publicar OTA hasta que el mantenedor confirme el diseño.
