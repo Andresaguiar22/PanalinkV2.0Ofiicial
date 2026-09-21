@@ -75,24 +75,10 @@ class SocialMediaUploadWorker(
 
             var uploadedUrl: String? = entity.remoteUrl
             var thumbnailUrlForCreate: String? = null
-            var finalUploadFile = file
-            var intermediateTempFile: File? = null
-
-            if (uploadedUrl == null && file.exists() && entity.mimeType.startsWith("video/") && !file.name.contains("_compressed_")) {
-                setProgress(workDataOf("uploadId" to uploadId, "progress" to 15, "bytesWritten" to 0L, "totalBytes" to file.length(), "status" to "Comprimiendo video...", "uploadType" to entity.uploadType))
-                try {
-                    val pendingMediaDir = File(context.filesDir, "pending_media")
-                    if (!pendingMediaDir.exists()) pendingMediaDir.mkdirs()
-                    val compressed = com.example.util.VideoCompressorHelper.compressVideo(context, android.net.Uri.fromFile(file), null) { compProgress ->
-                        val p = 10 + (compProgress * 0.15).toInt()
-                        setProgressAsync(workDataOf("uploadId" to uploadId, "progress" to p, "bytesWritten" to 0L, "totalBytes" to file.length(), "status" to "Comprimiendo video ($compProgress%)...", "uploadType" to entity.uploadType))
-                    }
-                    if (compressed.exists() && compressed.length() > 0 && compressed.absolutePath != file.absolutePath) {
-                        intermediateTempFile = compressed
-                        finalUploadFile = compressed
-                    } else if (compressed.exists() && compressed.absolutePath != file.absolutePath) compressed.delete()
-                } catch (e: Exception) { Log.e(TAG, "Fallo al comprimir video, subiendo original", e) }
-            }
+            // VCDN debe recibir el archivo original sin transcodificación local.
+            // Esto preserva codec, pixel format y metadatos de color del video fuente.
+            val finalUploadFile = file
+            val intermediateTempFile: File? = null
 
             if (uploadedUrl == null) {
                 val totalLength = finalUploadFile.length().coerceAtLeast(1L)
