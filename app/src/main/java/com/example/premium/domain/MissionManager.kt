@@ -111,9 +111,9 @@ object MissionManager {
         MissionActivities.STORY_CREATED -> listOf("publish_story")
         MissionActivities.STORY_VIEWED -> listOf("view_3_stories")
         MissionActivities.LIVE_JOINED -> listOf("watch_live")
-        MissionActivities.LIVE_STARTED -> listOf("watch_live")
+        MissionActivities.LIVE_STARTED -> emptyList()                 // transmitir no equivale a ver
         MissionActivities.VOICE_ROOM_JOINED -> listOf("join_voice_room")
-        MissionActivities.POST_CREATED -> listOf("publish_story")     // reel/post: no hay misión semilla propia
+        MissionActivities.POST_CREATED -> emptyList()                  // no existe misión específica de post/reel
         MissionActivities.REACTION_SENT -> emptyList()                // sin misión semilla; reservado
         else -> emptyList()
     }
