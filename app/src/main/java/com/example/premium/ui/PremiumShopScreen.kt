@@ -15,6 +15,7 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.style.TextDecoration
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.lifecycle.viewmodel.compose.viewModel
@@ -148,7 +149,6 @@ private fun ProductCard(
     activeEntitlement: Entitlement?,
     onBuy: () -> Unit
 ) {
-    val canAfford = buying
     Column(
         modifier = Modifier
             .fillMaxWidth()
@@ -198,10 +198,25 @@ private fun ProductCard(
             shape = RoundedCornerShape(14.dp),
             modifier = Modifier.fillMaxWidth()
         ) {
-            Text(
-                if (buying) "Comprando..." else "Comprar por ${product.priceCoins} 🪙",
-                fontWeight = FontWeight.Bold
-            )
+            if (buying) {
+                Text("Comprando...", fontWeight = FontWeight.Bold)
+            } else if (product.promoDiscountPercent > 0 && product.originalPriceCoins != null && product.originalPriceCoins > product.priceCoins) {
+                Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+                    Text(
+                        "${product.originalPriceCoins} 🪙",
+                        color = Color.White.copy(alpha = 0.5f),
+                        textDecoration = TextDecoration.LineThrough,
+                        fontSize = 12.sp
+                    )
+                    Text(
+                        "${product.priceCoins} 🪙 · -${product.promoDiscountPercent}%",
+                        fontWeight = FontWeight.Bold,
+                        color = PanalinkSkin.GoldBright
+                    )
+                }
+            } else {
+                Text("Comprar por ${product.priceCoins} 🪙", fontWeight = FontWeight.Bold)
+            }
         }
     }
 }
