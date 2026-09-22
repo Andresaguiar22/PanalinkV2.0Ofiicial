@@ -314,6 +314,7 @@ data class LevelInfo(
     @Json(name = "level") val level: Int = 1,
     @Json(name = "xp") val xp: Int = 0,
     @Json(name = "xp_for_next") val xpForNext: Int = 100,
+    @Json(name = "xp_for_prev") val xpPrev: Int = 0,
     @Json(name = "current") val current: LevelTierInfo? = null,
     @Json(name = "next") val next: LevelTierInfo? = null,
     @Json(name = "level_tiers") val levelTiers: List<LevelTierInfo> = emptyList()
