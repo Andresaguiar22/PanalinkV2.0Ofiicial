@@ -73,6 +73,26 @@ class PremiumViewModel : ViewModel() {
         }
     }
 
+    /** Carga únicamente lo necesario para abrir la tienda directamente. */
+    fun loadShop() {
+        viewModelScope.launch {
+            _state.value = _state.value.copy(loading = true)
+            repository.getWalletBalance().onSuccess { b ->
+                _state.value = _state.value.copy(wallet = b)
+            }
+            repository.getMyEntitlements().onSuccess { list ->
+                _state.value = _state.value.copy(entitlements = list)
+            }
+            repository.getCatalog().onSuccess { list ->
+                _state.value = _state.value.copy(products = list)
+            }
+            repository.getPromotions().onSuccess { list ->
+                _state.value = _state.value.copy(promotions = list)
+            }
+            _state.value = _state.value.copy(loading = false)
+        }
+    }
+
     fun loadCosmetics() {
         viewModelScope.launch {
             repository.getMyCosmetics().onSuccess { c ->
