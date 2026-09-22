@@ -44,6 +44,8 @@ fun PremiumWalletScreen(
 ) {
     val state by viewModel.state.collectAsState()
 
+    LaunchedEffect(Unit) { viewModel.loadWallet() }
+
     Scaffold(
         topBar = {
             CenterAlignedTopAppBar(
@@ -141,7 +143,8 @@ private fun BalanceItem(emoji: String, amount: Int) {
 private fun LevelProgressCard(levelInfo: com.example.premium.domain.model.LevelInfo) {
     val next = levelInfo.next
     val current = levelInfo.current
-    val progress = (levelInfo.xp.toFloat() / levelInfo.xpForNext.toFloat()).coerceIn(0f, 1f)
+    val denominator = (levelInfo.xpForNext - levelInfo.xpPrev).coerceAtLeast(1)
+    val progress = ((levelInfo.xp - levelInfo.xpPrev).toFloat() / denominator.toFloat()).coerceIn(0f, 1f)
 
     Column(
         modifier = Modifier
