@@ -36,6 +36,10 @@ fun PremiumShopScreen(
     val buyingCode by viewModel.buyingCode.collectAsState()
     val message by viewModel.message.collectAsState()
 
+    // La tienda puede abrirse directamente desde cualquier gate; por eso
+    // debe iniciar su propia carga en lugar de depender de PremiumHomeScreen.
+    LaunchedEffect(Unit) { viewModel.loadShop() }
+
     // Canje de diamantes -> monedas (visible si el usuario tiene diamantes).
     val diamonds = state.wallet.diamonds
 
