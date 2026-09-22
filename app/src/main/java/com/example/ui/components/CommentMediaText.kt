@@ -28,13 +28,16 @@ import com.example.ui.theme.PanalinkPalette
 fun CommentMediaText(
     text: String?,
     modifier: Modifier = Modifier,
-    fallbackColor: Color = PanalinkPalette.textPrimary.copy(alpha = 0.9f)
+    fallbackColor: Color = PanalinkPalette.textPrimary.copy(alpha = 0.9f),
+    /** true = versión compacta para el chat de comentarios en directo (GIFs más pequeños). */
+    compact: Boolean = false
 ) {
     val gif = parseCommentGif(text)
     if (gif != null) {
+        val maxHeight = if (compact) 96.dp else 260.dp
         Box(
             modifier = modifier
-                .fillMaxWidth()
+                .fillMaxWidth(if (compact) 0.72f else 1f)
                 .padding(top = 2.dp)
                 .background(Color(0xFF111B21), RoundedCornerShape(8.dp))
                 .clip(RoundedCornerShape(8.dp)),
@@ -45,7 +48,7 @@ fun CommentMediaText(
                 contentDescription = gif.title ?: (if (gif.isGif) "GIF" else "Sticker"),
                 modifier = Modifier
                     .fillMaxWidth()
-                    .heightIn(max = 260.dp)
+                    .heightIn(max = maxHeight)
                     .padding(4.dp),
                 contentScale = ContentScale.Fit
             )

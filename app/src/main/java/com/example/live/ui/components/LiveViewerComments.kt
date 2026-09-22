@@ -20,6 +20,7 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.geometry.Offset
+import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.Shadow
 import androidx.compose.ui.text.AnnotatedString
@@ -47,7 +48,9 @@ fun LiveViewerComments(
     onDeleteComment: (String) -> Unit,
     onBlockUser: (String) -> Unit,
     hostId: String? = null,
-    modifier: Modifier = Modifier
+    modifier: Modifier = Modifier,
+    newOnTop: Boolean = false,
+    fadeOutBottom: Boolean = false
 ) {
     LiveViewerComments(
         comments = comments,
@@ -55,7 +58,9 @@ fun LiveViewerComments(
         onBlockUser = onBlockUser,
         isBroadcaster = isBroadcaster,
         hostId = hostId,
-        modifier = modifier
+        modifier = modifier,
+        newOnTop = newOnTop,
+        fadeOutBottom = fadeOutBottom
     )
 }
 
@@ -66,15 +71,23 @@ fun LiveViewerComments(
     onBlockUser: (String) -> Unit,
     isBroadcaster: Boolean,
     hostId: String? = null,
-    modifier: Modifier = Modifier
+    modifier: Modifier = Modifier,
+    /** true = los comentarios NUEVOS aparecen arriba y los antiguos van quedando abajo. */
+    newOnTop: Boolean = false,
+    /** true = desvanece el contenido hacia abajo (los antiguos se difuminan). */
+    fadeOutBottom: Boolean = false
 ) {
     val listState = rememberLazyListState()
     var menuForCommentId by remember { mutableStateOf<String?>(null) }
     val myId = SupabaseClient.currentUser?.id
 
-    LaunchedEffect(comments.size) {
+    LaunchedEffect(comments.size, newOnTop) {
         if (comments.isNotEmpty()) {
-            listState.animateScrollToItem(comments.size - 1)
+            if (newOnTop) {
+                listState.animateScrollToItem(0)
+            } else {
+                listState.animateScrollToItem(comments.size - 1)
+            }
         }
     }
 
@@ -86,45 +99,67 @@ fun LiveViewerComments(
         )
     )
 
-    LazyColumn(
-        state = listState,
-        modifier = modifier,
-        verticalArrangement = Arrangement.spacedBy(7.dp)
-    ) {
-        items(comments, key = { it.id }) { comment ->
-            val identity = rememberLiveIdentity(comment.userId)
-            val displayName = identity?.displayName?.takeIf { it.isNotBlank() }
-                ?: comment.userId.take(8)
-            val isHost = !hostId.isNullOrEmpty() && comment.userId == hostId
-            val isMine = comment.userId == myId
+    val listContent: @Composable () -> Unit = {
+        LazyColumn(
+            state = listState,
+            modifier = modifier,
+            verticalArrangement = Arrangement.spacedBy(7.dp)
+        ) {
+            items(if (newOnTop) comments.asReversed() else comments, key = { it.id }) { comment ->
+                val identity = rememberLiveIdentity(comment.userId)
+                val displayName = identity?.displayName?.takeIf { it.isNotBlank() }
+                    ?: comment.userId.take(8)
+                val isHost = !hostId.isNullOrEmpty() && comment.userId == hostId
+                val isMine = comment.userId == myId
 
-            if (comment.isJoinEvent) {
-                JoinEventRow(displayName = displayName, shadow = textShadow)
-            } else {
-                CommentRow(
-                    comment = comment,
-                    displayName = displayName,
-                    avatarUrl = identity?.avatarUrl,
-                    isHost = isHost,
-                    isMine = isMine,
-                    shadow = textShadow,
-                    menuExpanded = menuForCommentId == comment.id,
-                    canModerate = isBroadcaster && !isMine,
-                    onLongPress = {
-                        if (isBroadcaster && !isMine) menuForCommentId = comment.id
-                    },
-                    onDismissMenu = { menuForCommentId = null },
-                    onDelete = {
-                        menuForCommentId = null
-                        onDeleteComment(comment.id)
-                    },
-                    onBlock = {
-                        menuForCommentId = null
-                        onBlockUser(comment.userId)
-                    }
-                )
+                if (comment.isJoinEvent) {
+                    JoinEventRow(displayName = displayName, shadow = textShadow)
+                } else {
+                    CommentRow(
+                        comment = comment,
+                        displayName = displayName,
+                        avatarUrl = identity?.avatarUrl,
+                        isHost = isHost,
+                        isMine = isMine,
+                        shadow = textShadow,
+                        menuExpanded = menuForCommentId == comment.id,
+                        canModerate = isBroadcaster && !isMine,
+                        onLongPress = {
+                            if (isBroadcaster && !isMine) menuForCommentId = comment.id
+                        },
+                        onDismissMenu = { menuForCommentId = null },
+                        onDelete = {
+                            menuForCommentId = null
+                            onDeleteComment(comment.id)
+                        },
+                        onBlock = {
+                            menuForCommentId = null
+                            onBlockUser(comment.userId)
+                        }
+                    )
+                }
             }
         }
+    }
+
+    if (fadeOutBottom) {
+        Box(modifier = modifier) {
+            listContent()
+            // Desvanecido inferior: los comentarios antiguos se difuminan hacia el
+            // borde inferior del contenedor, dejando los nuevos nítidos arriba.
+            Box(
+                modifier = Modifier
+                    .matchParentSize()
+                    .background(
+                        Brush.verticalGradient(
+                            0.62f to Color.Transparent,
+                            1f to Color(0xFF0E0E10)
+                        )
+                    )
+            )
+        }
+    } else {
+        listContent()
     }
 }
 
@@ -172,7 +207,7 @@ private fun CommentRow(
                     Text(
                         text = displayName,
                         color = if (isMine) Color(0xFFFFD54F) else Color.White.copy(alpha = 0.92f),
-                        fontSize = 11.5.sp,
+                        fontSize = 13.sp,
                         fontWeight = FontWeight.Bold,
                         style = shadow,
                         maxLines = 1
@@ -189,13 +224,14 @@ private fun CommentRow(
                 if (com.example.ui.components.parseCommentGif(comment.text) != null) {
                     com.example.ui.components.CommentMediaText(
                         text = comment.text,
-                        fallbackColor = PanalinkPalette.textPrimary
+                        fallbackColor = PanalinkPalette.textPrimary,
+                        compact = true
                     )
                 } else {
                     Text(
                         text = highlightMentions(comment.text),
                         color = PanalinkPalette.textPrimary,
-                        fontSize = 12.5.sp,
+                        fontSize = 13.5.sp,
                         style = shadow
                     )
                 }
@@ -261,7 +297,7 @@ private fun JoinEventRow(displayName: String, shadow: TextStyle) {
                     append(" se unió")
                 }
             },
-            fontSize = 12.sp,
+            fontSize = 13.sp,
             style = shadow,
             maxLines = 1
         )

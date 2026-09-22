@@ -85,6 +85,7 @@ fun LiveBroadcastScreen(
     val comments by viewModel.comments.collectAsStateWithLifecycle()
     val viewerCount by viewModel.viewerCount.collectAsStateWithLifecycle()
     val guests by guestViewModel.guests.collectAsStateWithLifecycle()
+    val giftPulse by viewModel.giftPulse.collectAsStateWithLifecycle()
     val scope = rememberCoroutineScope()
 
     var titleText by remember { mutableStateOf("Mi Transmisión en Vivo") }
@@ -399,6 +400,15 @@ fun LiveBroadcastScreen(
                         modifier = Modifier.align(Alignment.Center)
                     )
 
+                    // Efectos de regalos que llegan de los viewers (Realtime):
+                    // el transmisor tambien ve la animacion en pantalla.
+                    LiveGiftEffectsOverlay(
+                        pulse = giftPulse,
+                        modifier = Modifier
+                            .align(Alignment.Center)
+                            .fillMaxSize()
+                    )
+
                     // Panel de estado flotante (izquierda superior), dentro de los
                     // insets de la status bar.
                     Column(
@@ -504,12 +514,13 @@ fun LiveBroadcastScreen(
                     }
 
                     // Comentarios del directo, sobre la fila de controles.
-                    Box(
+                    // El area llega hasta media pantalla, los comentarios nuevos van
+                    // ARRIBA y los antiguos van quedando abajo, desvaneciendose hacia
+                    // el borde inferior del area.
+                    BoxWithConstraints(
                         modifier = Modifier
                             .align(Alignment.BottomStart)
                             .fillMaxWidth()
-                            .navigationBarsPadding()
-                            .padding(bottom = 76.dp)
                     ) {
                         LiveViewerComments(
                             comments = comments,
@@ -518,7 +529,13 @@ fun LiveBroadcastScreen(
                             onDeleteComment = { commentId -> viewModel.deleteComment(commentId) },
                             onBlockUser = { userId -> activeStream?.let { viewModel.blockUser(it.id, userId) } },
                             hostId = SupabaseClient.currentUser?.id,
-                            modifier = Modifier.fillMaxWidth()
+                            newOnTop = true,
+                            fadeOutBottom = true,
+                            modifier = Modifier
+                                .fillMaxWidth()
+                                .heightIn(max = maxHeight / 2)
+                                .navigationBarsPadding()
+                                .padding(bottom = 76.dp)
                         )
                     }
 
