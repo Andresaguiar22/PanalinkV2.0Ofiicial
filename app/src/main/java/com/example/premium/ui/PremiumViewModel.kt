@@ -157,11 +157,20 @@ class PremiumViewModel : ViewModel() {
                             balance = buy.balance
                         )
                     )
-                    _message.value = "✅ ${buy.featureKey ?: "Premium"} activado hasta ${buy.expiresAt?.take(10) ?: ""}"
+                    val paid = buy.priceCoins
+                    val discount = buy.discountPercent
+                    _message.value = if (discount > 0 && paid != null) {
+                        "✅ ${buy.featureKey ?: "Premium"} activado · $paid 🪙 (-$discount%)"
+                    } else {
+                        "✅ ${buy.featureKey ?: "Premium"} activado hasta ${buy.expiresAt?.take(10) ?: ""}"
+                    }
                 } else {
                     _message.value = when (buy.reason) {
                         "insufficient_funds" -> "Saldo insuficiente 💸"
                         "unknown_product" -> "Producto no válido"
+                        "minimum_level" -> "Necesitas nivel ${buy.requiredLevel ?: "superior"} para comprarlo"
+                        "feature_disabled" -> "Esta función Premium está desactivada"
+                        "rate_limited" -> "Demasiadas compras. Intenta de nuevo en un momento"
                         else -> "No se pudo completar la compra"
                     }
                 }
