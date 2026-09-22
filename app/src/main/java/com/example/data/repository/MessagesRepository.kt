@@ -1926,7 +1926,6 @@ class MessagesRepository private constructor() {
                 "reply_story_id" to replyStoryId,
                 "text_content" to contentToUpload,
                 "client_message_uuid" to clientUuid,
-                "created_at" to nowStr,
                 "media_url" to mediaUrl,
                 "thumbnail_url" to thumbnailUrl,
                 "media_mime" to mediaMime,
