@@ -167,7 +167,7 @@ begin
     left join lateral (
         select pp.price_coins, pp.discount_percent
           from public.premium_promotions pp
-         where pp.is_active
+         where pp.enabled
            and pp.starts_at <= now()
            and pp.ends_at > now()
            and pp.action_type = 'shop'
@@ -263,7 +263,7 @@ begin
     select pp.id, pp.price_coins, pp.discount_percent
       into v_promo_id, v_price, v_discount
       from public.premium_promotions pp
-     where pp.is_active
+     where pp.enabled
        and pp.starts_at <= now()
        and pp.ends_at > now()
        and pp.action_type = 'shop'
