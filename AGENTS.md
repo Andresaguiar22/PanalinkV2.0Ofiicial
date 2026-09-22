@@ -85,8 +85,9 @@ VERSION_NAME=vX.Y.Z VERSION_CODE=N ./gradlew :app:assembleRelease   # release
 ```
 * Release requiere credenciales de firma: `KEYSTORE_FILE` (puede ser el keystore mismo base64-codificado - el propio `app/build.gradle.kts` lo decodifica con `Base64.getDecoder()` si la ruta no existe; NO materializar en disco), `KEYSTORE_PASSWORD`, `KEY_ALIAS`, `KEY_PASSWORD`.
 * En debug el keystore NO es necesario; en release el build FAILS si faltan credenciales.
-* El `google-services.json` real SI se requiere para compilar release: materializarlo desde `GOOGLE_SERVICES_JSON` con `printf '%s' "$GOOGLE_SERVICES_JSON" > app/google-services.json` (gitignoreado, no committear).
-* `./gradlew` puede perder el bit de ejecución tras clonar: `chmod +x gradlew` antes de compilar (caso real en sesión 2026-09-04).
+* El `google-services.json` real SI se requiere para compilar release: materializarlo desde `GOOGLE_SERVICES_JSON` con `printf '%s' "$GOOGLE_SERVICES_JSON" > app/google-services.json` (gitignoreado, no committear.
+* La app SIEMPRE lleva la conexion de la API de GIFs: los scripts `setup_toolchain.sh` y `build_beta.sh` inyectan KLIPY/GIPHY_API_KEY al `secrets.properties` del build desde el entorno (el archivo que el `defaultConfig` de gradle SI lee para `buildConfigField`). Para release/OTA manual: asegurar que la env este presente en el comando (nombre literal `KLIPY_API_KEY`) o que `secrets.properties` exista con la key (gitignoreado; `printf 'KLIPY_API_KEY=%s\n' "$KLIPY_API_KEY" >> secrets.properties`.**
+* `./gradlew` puede perder el bit de ejecución tras clonar: `chmod +x gradlew` antes de compilar(caso real en sesión 2026-09-04).
 * Gotcha secrets y subprocesos: los secrets se inyectan SOLO si su nombre aparece **literal en el comando del terminal**; corren scripts (ej. `bash /tmp/x.sh`) NO los heredan. Pasar los valores como args al script, o invocar el script con el nombre del secret literal en la misma línea.
 * Verificar versiones del APK compilado con `aapt dump badging` (p.ej. `<build-tools>/aapt dump badging app-release.apk`) antes de publicar: confirma `versionCode`/`versionName` reales del binario, no solo los del env..
 
