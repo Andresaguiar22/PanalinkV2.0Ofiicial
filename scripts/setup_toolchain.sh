@@ -156,6 +156,25 @@ if [ ! -f "$PROJECT_DIR/secrets.defaults.properties" ]; then
   log "Generando secrets.defaults.properties vacio (requerido por el secrets plugin)"
   : > "$PROJECT_DIR/secrets.defaults.properties"
 fi
+# La app SIEMPRE lleva la conexion de la API de GIFs en cada compilacion:
+# se inyecta la key (KLIPY / Giphy) desde el entorno del build al secrets.properties
+# del repo (el archivo que el defaultConfig de gradle SI lee), asi un APK
+# compilado en este entorno trae la API funcional sin depender de pasos
+# manuales ni de secrets.properties externo.
+
+_write_gif_keys() {
+  for _key in KLIPY_API_KEY GIPHY_API_KEY; do
+    _val="${!_key:-}"
+    [ -z "$_val" ] && continue
+    if [ -f "$1" ]; then
+      grep -v "^${_key}=" "$1" > "$1.tmp" || true
+      mv "$1.tmp" "$1"
+    fi
+    printf '%s=%s\n' "$_key" "$_val" >> "$1"
+  done
+}
+
+_write_gif_keys "$PROJECT_DIR/secrets.properties"
 
 # --------------------------------------------------------------- env file ----
 {

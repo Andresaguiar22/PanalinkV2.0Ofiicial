@@ -61,6 +61,23 @@ echo "==> [4/7] Aplicando parches BETA (secrets, label, manifest overlay, suffix
 if [ ! -f "$WT/secrets.defaults.properties" ]; then
     : > "$WT/secrets.defaults.properties"
 fi
+# La app SIEMPRE lleva la conexion de la API de GIFs: se inyecta la key
+# (KLIPY / Giphy) desde el entorno del build al secrets del worktree, asi
+# cada APK compilado trae la API funcional sin depender de pasos manuales.
+
+_write_gif_keys() {
+  for _key in KLIPY_API_KEY GIPHY_API_KEY; do
+    _val="${!_key:-}"
+    [ -z "$_val" ] && continue
+    if [ -f "$1" ]; then
+      grep -v "^${_key}=" "$1" > "$1.tmp" || true
+      mv "$1.tmp" "$1"
+    fi
+    printf '%s=%s\n' "$_key" "$_val" >> "$1"
+  done
+}
+
+_write_gif_keys "$WT/secrets.properties"
 
 mkdir -p "$WT/app/src/debug/res/values"
 
