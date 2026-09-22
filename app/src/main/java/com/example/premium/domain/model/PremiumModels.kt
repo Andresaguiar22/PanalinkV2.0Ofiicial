@@ -37,6 +37,8 @@ data class PremiumProduct(
     @Json(name = "description") val description: String?,
     @Json(name = "duration_days") val durationDays: Int,
     @Json(name = "price_coins") val priceCoins: Int,
+    @Json(name = "original_price_coins") val originalPriceCoins: Int? = null,
+    @Json(name = "promo_discount_percent") val promoDiscountPercent: Int = 0,
     @Json(name = "trial_days") val trialDays: Int,
     @Json(name = "sort_order") val sortOrder: Int,
     @Json(name = "feature_enabled") val featureEnabled: Boolean
@@ -72,6 +74,11 @@ data class PremiumBuyResult(
     @Json(name = "expires_at") val expiresAt: String? = null,
     @Json(name = "entitlement_id") val entitlementId: String? = null,
     @Json(name = "feature_key") val featureKey: String? = null,
+    @Json(name = "price_coins") val priceCoins: Int? = null,
+    @Json(name = "original_price_coins") val originalPriceCoins: Int? = null,
+    @Json(name = "discount_percent") val discountPercent: Int = 0,
+    @Json(name = "required_level") val requiredLevel: Int? = null,
+    @Json(name = "current_level") val currentLevel: Int? = null,
     @Json(name = "reason") val reason: String? = null
 )
 
