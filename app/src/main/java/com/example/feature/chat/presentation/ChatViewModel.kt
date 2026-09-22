@@ -1185,7 +1185,17 @@ fun sendSticker(url: String, preview: String?, replyToId: String?) {
             // are uploaded to the CDN on first send so every contact can render them.
             val sendUrl = if (com.example.features.stickers.studio.PanalinkDefaultStickers.isLocalStickerPath(url)) {
                 com.example.features.stickers.studio.PanalinkDefaultStickers.resolveRemoteUrl(context = com.example.PanaApplication.instance, localPath = url) ?: url
-            } else url
+            } else {
+                // Stickers/GIFs de proveedores externos (Klipy/Giphy) se espejan al CDN
+                // de PanaLink para que el mensaje no dependa de terceros. Si el CDN o la
+                // subida fallan, se conserva la URL original (hot-link) y el envío sigue.
+                com.example.util.StickerCdnMirror.mirrorIfExternal(
+                    context = com.example.PanaApplication.instance,
+                    url = url,
+                    typeLabel = if (url.lowercase().contains(".gif")) "GIF" else "Sticker",
+                    mimeType = if (url.lowercase().contains(".gif")) "image/gif" else "image/webp"
+                )
+            }
             val isGif = sendUrl.lowercase().contains(".gif")
             val msgId = "temp_${java.util.UUID.randomUUID()}"
             val nowStr = com.example.data.supabase.SupabaseClient.getNowIsoString()
