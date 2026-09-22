@@ -3,6 +3,7 @@ package com.example.data.database
 import androidx.room.Entity
 import androidx.room.PrimaryKey
 import com.example.PanaApplication
+import java.io.File
 import com.example.data.model.Message
 import com.example.util.OfflineMediaCache
 
@@ -49,6 +50,16 @@ data class MessageEntity(
     val musicPlaylistId: String? = null
 ) {
     fun toMessage(): Message {
+        // localMediaUri puede apuntar a un archivo temporal que el worker ya borró
+        // tras confirmar el envío. Si la ruta no existe, se ignora y se cae al
+        // medio persistente/remoto (el bug: la burbuja del emisor quedaba vacia
+        // en imágenes/vídeos y la nota de voz no reproducía, mientras el receptor si).
+        val localFileExists = try {
+            val localPathStr = localMediaUri?.takeIf { it.isNotBlank() }?.let { android.net.Uri.parse(it).path }
+            !localPathStr.isNullOrEmpty() && File(localPathStr).exists()
+        } catch (_: Throwable) {
+            false
+        }
         val persistentMedia = try {
             OfflineMediaCache.existingUri(PanaApplication.instance, mediaUrl, mediaMime)
         } catch (_: Throwable) { null }
@@ -74,7 +85,8 @@ data class MessageEntity(
             deliveredAt = deliveredAt,
             seenAt = seenAt,
             thumbnailUrl = localThumbnailUri ?: persistentThumb ?: thumbnailUrl,
-            mediaUrl = localMediaUri ?: persistentMedia ?: mediaUrl,
+            mediaUrl = if (localFileExists) localMediaUri ?: persistentMedia ?: mediaUrl
+                else persistentMedia ?: mediaUrl,
             mediaMime = mediaMime,
             mediaSize = mediaSize,
             duration = mediaDuration,
