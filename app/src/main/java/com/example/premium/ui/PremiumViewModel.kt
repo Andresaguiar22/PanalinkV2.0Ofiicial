@@ -73,6 +73,23 @@ class PremiumViewModel : ViewModel() {
         }
     }
 
+    /** Carga únicamente lo necesario para abrir Wallet directamente. */
+    fun loadWallet() {
+        viewModelScope.launch {
+            _state.value = _state.value.copy(loading = true)
+            repository.getWalletBalance().onSuccess { b ->
+                _state.value = _state.value.copy(wallet = b)
+            }
+            repository.getWalletHistory().onSuccess { h ->
+                _state.value = _state.value.copy(walletHistory = h)
+            }
+            repository.getLevelInfo().onSuccess { li ->
+                _state.value = _state.value.copy(levelInfo = li)
+            }
+            _state.value = _state.value.copy(loading = false)
+        }
+    }
+
     /** Carga únicamente lo necesario para abrir la tienda directamente. */
     fun loadShop() {
         viewModelScope.launch {
@@ -222,7 +239,15 @@ class PremiumViewModel : ViewModel() {
                     if (r.ok && r.claimed.isNotEmpty()) {
                         val total = r.claimed.sumOf { it.reward }
                         repository.getWalletBalance().onSuccess { b -> _state.value = _state.value.copy(wallet = b) }
-                        loadAll()
+                        repository.getMissions().onSuccess { list ->
+                            _state.value = _state.value.copy(missions = list)
+                        }
+                        repository.getWalletHistory().onSuccess { h ->
+                            _state.value = _state.value.copy(walletHistory = h)
+                        }
+                        repository.getLevelInfo().onSuccess { li ->
+                            _state.value = _state.value.copy(levelInfo = li)
+                        }
                         r.claimed.forEach { c ->
                             com.example.premium.domain.PremiumEventBus.publish(
                                 com.example.premium.domain.PremiumEvent.CoinsEarned(
