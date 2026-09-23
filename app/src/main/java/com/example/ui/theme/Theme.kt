@@ -282,6 +282,23 @@ val HaloLightColors = AppColors(
     onSurface = Color(0xFF0B0F14)
 )
 
+val CyberpunkGlobalColors = AppColors(
+    primary = Color(0xFF18E7F5),
+    secondary = Color(0xB8131A22),
+    background = Color(0xFF0D0F12),
+    surface = Color(0xB8131A22),
+    bubbleMe = Color(0xFF7B3FF2),
+    bubbleOther = Color(0xFF18202A),
+    topBar = Color(0xB8131A22),
+    bottomBar = Color(0xB8131A22),
+    accent = Color(0xFFFF28C8),
+    isDark = true,
+    onPrimary = Color(0xFF071014),
+    onSecondary = Color(0xFFF5E6C8),
+    onBackground = Color(0xFFF5E6C8),
+    onSurface = Color(0xFFF5E6C8)
+)
+
 val HaloDarkColors = AppColors(
     // Identidad de marca Panalink: mint del mockup + dorado, sobre navy.
     primary = Color(0xFF3FCF8E),
@@ -301,7 +318,7 @@ val HaloDarkColors = AppColors(
 )
 
 object ThemeManager {
-    val themeKey = kotlinx.coroutines.flow.MutableStateFlow("halo_dark")
+    val themeKey = kotlinx.coroutines.flow.MutableStateFlow("cyberpunk_global")
 
     // Global light/dark/system mode. Real: MainActivity resolves the effective
     // theme key from this every recomposition, so "Claro/Oscuro/Sistema"
@@ -402,6 +419,7 @@ fun getColorsForTheme(themeKey: String?, customColors: AppColors? = null): AppCo
         "vivid_ocean" -> VividOceanColors
         "halo_light" -> HaloLightColors
         "halo_dark" -> HaloDarkColors
+        "cyberpunk_global" -> CyberpunkGlobalColors
         "royal_purple" -> RoyalPurpleColors
         "nordic_ice" -> NordicIceColors
         "cyberpunk" -> CyberpunkColors
@@ -416,7 +434,7 @@ val LocalAppColors = staticCompositionLocalOf { HaloDarkColors }
 
 @Composable
 fun MyApplicationTheme(
-    themeKey: String = "dark_teal",
+    themeKey: String = "cyberpunk_global",
     customColors: AppColors? = null,
     content: @Composable () -> Unit,
 ) {
@@ -474,10 +492,56 @@ fun MyApplicationTheme(
                     .fillMaxSize()
                     .background(PanalinkPalette.background)
             ) {
-                if (isDark) ConstellationBackground() else LightBrandBackground()
+                if (themeKey == "cyberpunk_global" && isDark) CyberpunkGlobalBackground() else if (isDark) ConstellationBackground() else LightBrandBackground()
                 content()
             }
         }
+    }
+}
+
+@Composable
+private fun CyberpunkGlobalBackground() {
+    val cyan = Color(0xFF18E7F5)
+    val magenta = Color(0xFFFF28C8)
+    val purple = Color(0xFF9B5CFF)
+    androidx.compose.foundation.layout.Box(modifier = androidx.compose.ui.Modifier.fillMaxSize()) {
+        androidx.compose.foundation.layout.Box(
+            modifier = androidx.compose.ui.Modifier.fillMaxSize().background(Color(0xFF0D0F12))
+        )
+        androidx.compose.foundation.Canvas(modifier = androidx.compose.ui.Modifier.fillMaxSize()) {
+            val step = 22.dp.toPx()
+            var x = 0f
+            while (x < size.width) {
+                drawLine(cyan.copy(alpha = 0.035f), androidx.compose.ui.geometry.Offset(x, 0f), androidx.compose.ui.geometry.Offset(x, size.height))
+                x += step
+            }
+            var y = 0f
+            while (y < size.height) {
+                drawLine(cyan.copy(alpha = 0.025f), androidx.compose.ui.geometry.Offset(0f, y), androidx.compose.ui.geometry.Offset(size.width, y))
+                y += step
+            }
+            val wide = 55.dp.toPx()
+            var mx = 0f
+            while (mx < size.width) {
+                drawLine(magenta.copy(alpha = 0.028f), androidx.compose.ui.geometry.Offset(mx, 0f), androidx.compose.ui.geometry.Offset(mx, size.height))
+                mx += wide
+            }
+        }
+        androidx.compose.foundation.layout.Box(
+            modifier = androidx.compose.ui.Modifier.size(260.dp).offset(x = (-70).dp, y = (-45).dp)
+                .blur(65.dp)
+                .background(androidx.compose.ui.graphics.Brush.radialGradient(listOf(magenta.copy(alpha = 0.16f), Color.Transparent)))
+        )
+        androidx.compose.foundation.layout.Box(
+            modifier = androidx.compose.ui.Modifier.size(300.dp).align(androidx.compose.ui.Alignment.CenterEnd)
+                .offset(x = 80.dp, y = (-20).dp).blur(70.dp)
+                .background(androidx.compose.ui.graphics.Brush.radialGradient(listOf(purple.copy(alpha = 0.13f), Color.Transparent)))
+        )
+        androidx.compose.foundation.layout.Box(
+            modifier = androidx.compose.ui.Modifier.size(260.dp).align(androidx.compose.ui.Alignment.BottomCenter)
+                .offset(y = 100.dp).blur(75.dp)
+                .background(androidx.compose.ui.graphics.Brush.radialGradient(listOf(cyan.copy(alpha = 0.10f), Color.Transparent)))
+        )
     }
 }
 
