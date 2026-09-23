@@ -73,14 +73,14 @@ fun NotificationsScreen(
                     }
                 },
                 colors = TopAppBarDefaults.topAppBarColors(
-                    containerColor = Color(0xFF161618),
-                    titleContentColor = Color.White,
-                    navigationIconContentColor = Color.White
+                    containerColor = Color.Transparent,
+                    titleContentColor = PanalinkPalette.textPrimary,
+                    navigationIconContentColor = PanalinkPalette.textPrimary
                 )
             )
         },
         snackbarHost = { SnackbarHost(snackbarHostState) },
-        containerColor = Color(0xFF161618)
+        containerColor = Color.Transparent
     ) { paddingValues ->
         Box(
             modifier = Modifier
@@ -99,7 +99,7 @@ fun NotificationsScreen(
                                 Icon(
                                     imageVector = if (muted) Icons.Default.NotificationsOff else Icons.Default.Notifications,
                                     contentDescription = null,
-                                    tint = if (muted) Color.Gray else Color(0xFF25D366)
+                                    tint = if (muted) Color(0xFF7D8CA3) else Color(0xFF18E7F5)
                                 )
                                 Spacer(modifier = Modifier.width(8.dp))
                                 Text(type.name.lowercase().replaceFirstChar { it.uppercase() })
@@ -168,7 +168,7 @@ fun NotificationGroup(title: String) {
         fontSize = 18.sp,
         modifier = Modifier
             .fillMaxWidth()
-            .background(Color(0xFF161618).copy(alpha = 0.95f))
+            .background(Color.Transparent.copy(alpha = 0.95f))
             .padding(horizontal = 16.dp, vertical = 12.dp)
     )
 }
@@ -207,7 +207,7 @@ fun NotificationCard(
                 modifier = Modifier
                     .size(20.dp)
                     .align(Alignment.BottomEnd)
-                    .background(Color(0xFF161618), CircleShape)
+                    .background(Color.Transparent, CircleShape)
                     .padding(2.dp)
             ) {
                 Box(
