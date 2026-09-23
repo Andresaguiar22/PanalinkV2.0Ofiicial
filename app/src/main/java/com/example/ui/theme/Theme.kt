@@ -285,7 +285,7 @@ val HaloLightColors = AppColors(
 
 val CyberpunkGlobalColors = AppColors(
     primary = Color(0xFF18E7F5),
-    secondary = Color(0xB8131A22),
+    secondary = Color(0xFF7B3FF2),
     background = Color(0xFF0D0F12),
     surface = Color(0xB8131A22),
     bubbleMe = Color(0xFF7B3FF2),
@@ -452,12 +452,19 @@ fun MyApplicationTheme(
         darkColorScheme(
             primary = activeColors.primary,
             secondary = activeColors.secondary,
+            tertiary = activeColors.accent,
             background = activeColors.background,
             surface = activeColors.surface,
+            surfaceVariant = Color(0xFF18202A),
             onPrimary = activeColors.onPrimary,
             onSecondary = activeColors.onSecondary,
+            onTertiary = Color(0xFF071014),
             onBackground = activeColors.onBackground,
-            onSurface = activeColors.onSurface
+            onSurface = activeColors.onSurface,
+            outline = Color(0xFF18E7F5),
+            outlineVariant = Color(0xFF7B3FF2),
+            error = Color(0xFFFF4D7D),
+            onError = Color.White
         )
     } else {
         lightColorScheme(
