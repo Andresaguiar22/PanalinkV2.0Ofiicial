@@ -66,12 +66,12 @@ import coil.request.ImageRequest
 import kotlinx.coroutines.delay
 import com.example.ui.theme.PanalinkPalette
 
-private val PanaTvBackground = Color(0xFF0B1017)
-private val PanaTvSurface = Color(0xFF151D26)
-private val PanaTvText = Color(0xFFF4F7FA)
-private val PanaTvMuted = Color(0xFF9CA8B3)
-private val PanaTvAccent = Color(0xFFFF6B00)
-private val PanaTvBlue = Color(0xFF2F6BFF)
+private val PanaTvBackground = Color(0xFF0D0F12)
+private val PanaTvSurface = Color(0xFF131A22)
+private val PanaTvText = Color(0xFFF5E6C8)
+private val PanaTvMuted = Color(0xFFB8C4D6)
+private val PanaTvAccent = Color(0xFF18E7F5)
+private val PanaTvBlue = Color(0xFF7B3FF2)
 
 // Automatic source retries per channel: a live server that drops the connection
 // is re-attached silently (2 tries), then the error UI ("Reintentar") appears.
@@ -522,7 +522,7 @@ fun PanaTVModernScreen(viewModel: PanaTVViewModel = viewModel()) {
                 if (playerError != null) {
                     Box(Modifier.fillMaxSize().background(Color.Black.copy(alpha = 0.82f)), contentAlignment = Alignment.Center) {
                         Column(horizontalAlignment = Alignment.CenterHorizontally) {
-                            Icon(Icons.Default.WifiOff, null, tint = Color(0xFFFF6B6B), modifier = Modifier.size(34.dp))
+                            Icon(Icons.Default.WifiOff, null, tint = Color(0xFFFF28C8), modifier = Modifier.size(34.dp))
                             Spacer(Modifier.height(8.dp))
                             Text("No se pudo cargar el canal", color = PanaTvText, fontWeight = FontWeight.Bold, fontSize = 14.sp)
                             Spacer(Modifier.height(4.dp))
@@ -1050,7 +1050,7 @@ private fun CategoryChip(label: String, selected: Boolean, accent: Color = PanaT
 @Composable
 private fun ChannelLogo(channel: PanaTVChannelEntity, size: Int, padding: Int) {
     Box(
-        Modifier.size(size.dp).clip(RoundedCornerShape(8.dp)).background(Color(0xFF10161D)),
+        Modifier.size(size.dp).clip(RoundedCornerShape(8.dp)).background(Color(0xFF0D0F12)),
         contentAlignment = Alignment.Center
     ) {
         if (channel.logoUrl.isNotBlank()) {
