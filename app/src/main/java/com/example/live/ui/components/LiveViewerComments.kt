@@ -183,7 +183,7 @@ private fun CommentRow(
                     }
                     if (isMine) {
                         Spacer(modifier = Modifier.width(5.dp))
-                        RoleBadge(text = "Tú", color = Color(0xFF00A884))
+                        RoleBadge(text = "Tú", color = Color(0xFF18E7F5))
 }
                 }
                 if (com.example.ui.components.parseCommentGif(comment.text) != null) {
