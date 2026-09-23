@@ -419,7 +419,7 @@ fun ChatAvatar(
             .fillMaxSize()
             .border(
                 if (hasUnread) 2.2.dp else 1.4.dp,
-                if (hasUnread) com.example.ui.theme.getPremiumActiveIconGradient() else Brush.linearGradient(listOf(PanaLinkCyberpunkColors.Gold)),
+                if (hasUnread) com.example.ui.theme.getPremiumActiveIconGradient() else Brush.linearGradient(listOf(PanaLinkCyberpunkColors.Gold, PanaLinkCyberpunkColors.Gold.copy(alpha = 0.75f))),
                 CircleShape
             )
             .padding(if (hasUnread) 3.dp else 1.5.dp)
