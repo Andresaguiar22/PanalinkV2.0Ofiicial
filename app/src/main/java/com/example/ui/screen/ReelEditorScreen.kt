@@ -438,8 +438,8 @@ fun ReelEditorScreen(
                                     cameraPermissionState.requestPermissions()
                                 },
                             shape = RoundedCornerShape(20.dp),
-                            colors = CardDefaults.cardColors(containerColor = Color(0xFF151518)),
-                            border = BorderStroke(1.dp, Color(0xFF262629))
+                            colors = CardDefaults.cardColors(containerColor = Color(0xFF0D0F12)),
+                            border = BorderStroke(1.dp, Color(0xFF131A22))
                         ) {
                             Column(
                                 modifier = Modifier.fillMaxSize(),
@@ -449,7 +449,7 @@ fun ReelEditorScreen(
                                 Icon(
                                     imageVector = Icons.Default.Videocam,
                                     contentDescription = null,
-                                    tint = Color(0xFF00FF85),
+                                    tint = Color(0xFF18E7F5),
                                     modifier = Modifier.size(48.dp)
                                 )
                                 Spacer(modifier = Modifier.height(12.dp))
@@ -471,8 +471,8 @@ fun ReelEditorScreen(
                                     )
                                 },
                             shape = RoundedCornerShape(20.dp),
-                            colors = CardDefaults.cardColors(containerColor = Color(0xFF151518)),
-                            border = BorderStroke(1.dp, Color(0xFF262629))
+                            colors = CardDefaults.cardColors(containerColor = Color(0xFF0D0F12)),
+                            border = BorderStroke(1.dp, Color(0xFF131A22))
                         ) {
                             Column(
                                 modifier = Modifier.fillMaxSize(),
@@ -482,7 +482,7 @@ fun ReelEditorScreen(
                                 Icon(
                                     imageVector = Icons.Default.Collections,
                                     contentDescription = null,
-                                    tint = Color(0xFFE040FB),
+                                    tint = Color(0xFFFF28C8),
                                     modifier = Modifier.size(48.dp)
                                 )
                                 Spacer(modifier = Modifier.height(12.dp))
@@ -504,8 +504,8 @@ fun ReelEditorScreen(
                                     showImportUrlDialog = true
                                 },
                             shape = RoundedCornerShape(20.dp),
-                            colors = CardDefaults.cardColors(containerColor = Color(0xFF151518)),
-                            border = BorderStroke(1.dp, Color(0xFF262629))
+                            colors = CardDefaults.cardColors(containerColor = Color(0xFF0D0F12)),
+                            border = BorderStroke(1.dp, Color(0xFF131A22))
                         ) {
                             Column(
                                 modifier = Modifier.fillMaxSize(),
@@ -515,7 +515,7 @@ fun ReelEditorScreen(
                                 Icon(
                                     imageVector = Icons.Default.Public,
                                     contentDescription = null,
-                                    tint = Color(0xFF00B3FF),
+                                    tint = Color(0xFF9B5CFF),
                                     modifier = Modifier.size(48.dp)
                                 )
                                 Spacer(modifier = Modifier.height(12.dp))
@@ -584,8 +584,8 @@ fun ReelEditorScreen(
                                     contentScale = ContentScale.Crop,
                                     colorFilter = when(activeFilter) {
                                         "B&W" -> androidx.compose.ui.graphics.ColorFilter.colorMatrix(androidx.compose.ui.graphics.ColorMatrix().apply { setToSaturation(0f) })
-                                        "Retro" -> androidx.compose.ui.graphics.ColorFilter.tint(Color(0xFFFFD54F).copy(alpha = 0.3f), androidx.compose.ui.graphics.BlendMode.ColorBurn)
-                                        "Vibe" -> androidx.compose.ui.graphics.ColorFilter.tint(Color(0xFFE040FB).copy(alpha = 0.2f), androidx.compose.ui.graphics.BlendMode.Overlay)
+                                        "Retro" -> androidx.compose.ui.graphics.ColorFilter.tint(Color(0xFFF0D9A6).copy(alpha = 0.3f), androidx.compose.ui.graphics.BlendMode.ColorBurn)
+                                        "Vibe" -> androidx.compose.ui.graphics.ColorFilter.tint(Color(0xFFFF28C8).copy(alpha = 0.2f), androidx.compose.ui.graphics.BlendMode.Overlay)
                                         "Pop" -> androidx.compose.ui.graphics.ColorFilter.colorMatrix(androidx.compose.ui.graphics.ColorMatrix().apply { setToSaturation(2f) })
                                         "Cinematic" -> androidx.compose.ui.graphics.ColorFilter.colorMatrix(androidx.compose.ui.graphics.ColorMatrix(floatArrayOf(
                                             0.8f, 0.1f, 0.1f, 0f, 0f,
@@ -606,9 +606,9 @@ fun ReelEditorScreen(
                                     Box(modifier = Modifier.fillMaxSize().background(
                                         when(activeFilter) {
                                             "B&W" -> Color.Black.copy(alpha=0.5f) // fake for video without shaders
-                                            "Retro" -> Color(0xFFFFD54F).copy(alpha = 0.2f)
-                                            "Vibe" -> Color(0xFFE040FB).copy(alpha = 0.2f)
-                                            "Cinematic" -> Color(0xFF1E3C40).copy(alpha = 0.2f)
+                                            "Retro" -> Color(0xFFF0D9A6).copy(alpha = 0.2f)
+                                            "Vibe" -> Color(0xFFFF28C8).copy(alpha = 0.2f)
+                                            "Cinematic" -> Color(0xFF18202A).copy(alpha = 0.2f)
                                             else -> Color.Transparent
                                         }
                                     ))
@@ -769,7 +769,7 @@ fun ReelEditorScreen(
                                         }
                                     },
                                     modifier = Modifier.background(Color.Black.copy(alpha = 0.5f), CircleShape)
-                                ) { Icon(Icons.Default.Subtitles, contentDescription = "Subtítulos IA", tint = Color(0xFFFFD700)) }
+                                ) { Icon(Icons.Default.Subtitles, contentDescription = "Subtítulos IA", tint = Color(0xFFF0D9A6)) }
 
                                 // AI Assistant: remote suggestions via OpenRouter / Claude
                                 IconButton(
@@ -789,7 +789,7 @@ fun ReelEditorScreen(
                                         }
                                     },
                                     modifier = Modifier.background(Color.Black.copy(alpha = 0.5f), CircleShape)
-                                ) { Icon(Icons.Default.AutoAwesomeMotion, contentDescription = "Asistente IA", tint = Color(0xFF00FF85)) }
+                                ) { Icon(Icons.Default.AutoAwesomeMotion, contentDescription = "Asistente IA", tint = Color(0xFF18E7F5)) }
                             }
                         }
 
@@ -802,12 +802,12 @@ fun ReelEditorScreen(
                         ) {
                             IconButton(
                                 onClick = { showTimeline = !showTimeline },
-                                modifier = Modifier.background(if (showTimeline) Color(0xFF00E5FF) else Color.Black.copy(alpha = 0.5f), CircleShape)
+                                modifier = Modifier.background(if (showTimeline) Color(0xFF18E7F5) else Color.Black.copy(alpha = 0.5f), CircleShape)
                             ) { Icon(Icons.Default.Timeline, contentDescription = "Timeline Multipista", tint = if (showTimeline) Color.Black else Color.White) }
 
                             IconButton(
                                 onClick = { showInspector = !showInspector },
-                                modifier = Modifier.background(if (showInspector) Color(0xFF00E5FF) else Color.Black.copy(alpha = 0.5f), CircleShape)
+                                modifier = Modifier.background(if (showInspector) Color(0xFF18E7F5) else Color.Black.copy(alpha = 0.5f), CircleShape)
                             ) { Icon(Icons.Default.Tune, contentDescription = "Inspector de Propiedades", tint = if (showInspector) Color.Black else Color.White) }
 
                             IconButton(
@@ -830,7 +830,7 @@ fun ReelEditorScreen(
                                 .align(Alignment.BottomEnd)
                                 .navigationBarsPadding()
                                 .padding(16.dp),
-                            colors = ButtonDefaults.buttonColors(containerColor = Color(0xFF00FF85))
+                            colors = ButtonDefaults.buttonColors(containerColor = Color(0xFF18E7F5))
                         ) {
                             Text("Siguiente 🚀", color = Color.Black, fontWeight = FontWeight.Bold)
                         }
@@ -873,12 +873,12 @@ fun ReelEditorScreen(
                                         items(fonts) { f ->
                                             OutlinedButton(
                                                 onClick = { tempFont = f },
-                                                border = BorderStroke(1.dp, if(tempFont == f) Color(0xFF00FF85) else Color.Gray)
+                                                border = BorderStroke(1.dp, if(tempFont == f) Color(0xFF18E7F5) else Color.Gray)
                                             ) { Text(f, color = PanalinkPalette.textPrimary) }
                                         }
                                     }
                                     LazyRow(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
-                                        val colors = listOf(Color.White, Color.Black, Color.Red, Color(0xFF00FF85), Color(0xFFE040FB), Color.Yellow)
+                                        val colors = listOf(Color.White, Color.Black, Color.Red, Color(0xFF18E7F5), Color(0xFFFF28C8), Color.Yellow)
                                         items(colors) { c ->
                                             Box(modifier = Modifier
                                                 .size(36.dp)
@@ -910,7 +910,7 @@ fun ReelEditorScreen(
                                         showTextEditor = false 
                                     },
                                     modifier = Modifier.align(Alignment.TopEnd).padding(16.dp).statusBarsPadding(),
-                                    colors = ButtonDefaults.buttonColors(containerColor = Color(0xFF00FF85))
+                                    colors = ButtonDefaults.buttonColors(containerColor = Color(0xFF18E7F5))
                                 ) { Text("Listo", color = Color.Black) }
                             }
                         }
@@ -920,7 +920,7 @@ fun ReelEditorScreen(
                             Box(modifier = Modifier.fillMaxSize().background(Color.Black.copy(alpha = 0.5f)).clickable { showStickers = false }) {
                                 Card(
                                     modifier = Modifier.fillMaxWidth().height(300.dp).align(Alignment.BottomCenter).clickable {},
-                                    colors = CardDefaults.cardColors(containerColor = Color(0xFF151518)),
+                                    colors = CardDefaults.cardColors(containerColor = Color(0xFF0D0F12)),
                                     shape = RoundedCornerShape(topStart = 24.dp, topEnd = 24.dp)
                                 ) {
                                     Column(modifier = Modifier.padding(16.dp)) {
@@ -1026,7 +1026,7 @@ fun ReelEditorScreen(
                                 LazyRow(contentPadding = PaddingValues(horizontal = 16.dp), horizontalArrangement = Arrangement.spacedBy(12.dp)) {
                                     items(filters) { f ->
                                         Column(horizontalAlignment = Alignment.CenterHorizontally, modifier = Modifier.clickable { activeFilter = f }) {
-                                            Box(modifier = Modifier.size(60.dp).clip(CircleShape).background(Color.DarkGray).border(2.dp, if(activeFilter==f) Color(0xFF00FF85) else Color.Transparent, CircleShape))
+                                            Box(modifier = Modifier.size(60.dp).clip(CircleShape).background(Color.DarkGray).border(2.dp, if(activeFilter==f) Color(0xFF18E7F5) else Color.Transparent, CircleShape))
                                             Spacer(modifier = Modifier.height(4.dp))
                                             Text(f, color = PanalinkPalette.textPrimary, fontSize = 12.sp)
                                         }
@@ -1040,7 +1040,7 @@ fun ReelEditorScreen(
                                 LazyRow(contentPadding = PaddingValues(horizontal = 16.dp), horizontalArrangement = Arrangement.spacedBy(12.dp)) {
                                     items(transitions) { t ->
                                         Box(
-                                            modifier = Modifier.clip(RoundedCornerShape(8.dp)).background(if (selectedTransition == t) Color(0xFF00FF85) else Color(0xFF1E1E22)).clickable { selectedTransition = t }.padding(horizontal = 16.dp, vertical = 8.dp)
+                                            modifier = Modifier.clip(RoundedCornerShape(8.dp)).background(if (selectedTransition == t) Color(0xFF18E7F5) else Color(0xFF131A22)).clickable { selectedTransition = t }.padding(horizontal = 16.dp, vertical = 8.dp)
                                         ) { Text(t, color = if(selectedTransition==t) Color.Black else Color.White) }
                                     }
                                 }
@@ -1050,7 +1050,7 @@ fun ReelEditorScreen(
                         if (showAudioPro) {
                             Card(
                                 modifier = Modifier.fillMaxWidth().align(Alignment.BottomCenter),
-                                colors = CardDefaults.cardColors(containerColor = Color(0xFF151518)),
+                                colors = CardDefaults.cardColors(containerColor = Color(0xFF0D0F12)),
                                 shape = RoundedCornerShape(topStart = 24.dp, topEnd = 24.dp)
                             ) {
                                 Column(modifier = Modifier.padding(16.dp).navigationBarsPadding()) {
@@ -1061,7 +1061,7 @@ fun ReelEditorScreen(
                                     Spacer(modifier = Modifier.height(16.dp))
                                     Text("Waveform Musical", color = Color.Gray, fontSize = 12.sp)
                                     // Interactive Audio Waveform Canvas
-                                    Box(modifier = Modifier.fillMaxWidth().height(60.dp).background(Color(0xFF262629), RoundedCornerShape(8.dp)).padding(vertical = 8.dp)) {
+                                    Box(modifier = Modifier.fillMaxWidth().height(60.dp).background(Color(0xFF131A22), RoundedCornerShape(8.dp)).padding(vertical = 8.dp)) {
                                         Canvas(modifier = Modifier.fillMaxSize()) {
                                             val barWidth = 6f
                                             val gap = 4f
@@ -1069,7 +1069,7 @@ fun ReelEditorScreen(
                                             for (i in 0 until count) {
                                                 val h = ((i * 17) % 30 + 10).toFloat()
                                                 val x = i * (barWidth + gap)
-                                                val color = if (x >= size.width * (trimStartPercent/100f) && x <= size.width * (trimEndPercent/100f)) Color(0xFFE040FB) else Color.DarkGray
+                                                val color = if (x >= size.width * (trimStartPercent/100f) && x <= size.width * (trimEndPercent/100f)) Color(0xFFFF28C8) else Color.DarkGray
                                                 drawRoundRect(color = color, topLeft = Offset(x, size.height/2 - h/2), size = androidx.compose.ui.geometry.Size(barWidth, h), cornerRadius = androidx.compose.ui.geometry.CornerRadius(2f))
                                             }
                                         }
@@ -1085,7 +1085,7 @@ fun ReelEditorScreen(
                                     Row(verticalAlignment = Alignment.CenterVertically) {
                                         Icon(Icons.Default.Mic, contentDescription = null, tint = PanalinkPalette.textPrimary, modifier = Modifier.size(16.dp))
                                         Slider(value = originalVideoVolume, onValueChange = { originalVideoVolume = it }, valueRange = 0f..100f, modifier = Modifier.weight(1f).padding(horizontal = 8.dp), colors = SliderDefaults.colors(activeTrackColor = Color.White))
-                                        Icon(Icons.Default.MusicNote, contentDescription = null, tint = Color(0xFF00FF85), modifier = Modifier.size(16.dp))
+                                        Icon(Icons.Default.MusicNote, contentDescription = null, tint = Color(0xFF18E7F5), modifier = Modifier.size(16.dp))
                                     }
                                 }
                             }
@@ -1095,7 +1095,7 @@ fun ReelEditorScreen(
                         if (showAdjustments) {
                             Card(
                                 modifier = Modifier.fillMaxWidth().align(Alignment.BottomCenter),
-                                colors = CardDefaults.cardColors(containerColor = Color(0xFF151518)),
+                                colors = CardDefaults.cardColors(containerColor = Color(0xFF0D0F12)),
                                 shape = RoundedCornerShape(topStart = 24.dp, topEnd = 24.dp)
                             ) {
                                 Column(modifier = Modifier.padding(16.dp).navigationBarsPadding()) {
@@ -1206,13 +1206,13 @@ fun ReelEditorScreen(
                             }
                             Box(modifier = Modifier.fillMaxSize().background(Color.Black.copy(alpha = 0.95f)).clickable{}, contentAlignment = Alignment.Center) {
                                 Column(horizontalAlignment = Alignment.CenterHorizontally, modifier = Modifier.padding(32.dp)) {
-                                    CircularProgressIndicator(progress = { renderProgress }, color = Color(0xFF00FF85), modifier = Modifier.size(64.dp))
+                                    CircularProgressIndicator(progress = { renderProgress }, color = Color(0xFF18E7F5), modifier = Modifier.size(64.dp))
                                     Spacer(modifier = Modifier.height(24.dp))
                                     Text("Procesando edición...", color = PanalinkPalette.textPrimary, fontWeight = FontWeight.Bold, fontSize = 20.sp)
                                     Spacer(modifier = Modifier.height(8.dp))
                                     Text("Motor FFmpeg combinando capas, audio y efectos cinemáticos", color = Color.Gray, fontSize = 12.sp, textAlign = TextAlign.Center)
                                     Spacer(modifier = Modifier.height(16.dp))
-                                    LinearProgressIndicator(progress = { renderProgress }, modifier = Modifier.fillMaxWidth().height(8.dp).clip(RoundedCornerShape(4.dp)), color = Color(0xFF00FF85), trackColor = Color.DarkGray)
+                                    LinearProgressIndicator(progress = { renderProgress }, modifier = Modifier.fillMaxWidth().height(8.dp).clip(RoundedCornerShape(4.dp)), color = Color(0xFF18E7F5), trackColor = Color.DarkGray)
                                 }
                             }
                         }
@@ -1251,7 +1251,7 @@ fun ReelEditorScreen(
                             colors = OutlinedTextFieldDefaults.colors(
                                 focusedTextColor = Color.White,
                                 unfocusedTextColor = Color.White,
-                                focusedBorderColor = Color(0xFF00FF85),
+                                focusedBorderColor = Color(0xFF18E7F5),
                                 unfocusedBorderColor = Color.Gray
                             )
                         )
@@ -1267,9 +1267,9 @@ fun ReelEditorScreen(
                             placeholder = { Text("ej. #Chamo #Panalink #Venezuela") },
                             modifier = Modifier.fillMaxWidth().testTag("reel_hashtags_input"),
                             colors = OutlinedTextFieldDefaults.colors(
-                                focusedTextColor = Color(0xFFE040FB),
+                                focusedTextColor = Color(0xFFFF28C8),
                                 unfocusedTextColor = Color.White,
-                                focusedBorderColor = Color(0xFFE040FB),
+                                focusedBorderColor = Color(0xFFFF28C8),
                                 unfocusedBorderColor = Color.Gray
                             )
                         )
@@ -1284,8 +1284,8 @@ fun ReelEditorScreen(
                                 modifier = Modifier
                                     .weight(1f)
                                     .clickable { isReelSelected = true },
-                                border = BorderStroke(1.dp, if (isReelSelected) Color(0xFF00FF85) else Color.Gray.copy(alpha = 0.3f)),
-                                colors = CardDefaults.cardColors(containerColor = if (isReelSelected) Color(0xFF00FF85).copy(alpha = 0.1f) else Color.Transparent)
+                                border = BorderStroke(1.dp, if (isReelSelected) Color(0xFF18E7F5) else Color.Gray.copy(alpha = 0.3f)),
+                                colors = CardDefaults.cardColors(containerColor = if (isReelSelected) Color(0xFF18E7F5).copy(alpha = 0.1f) else Color.Transparent)
                             ) {
                                 Column(
                                     modifier = Modifier.padding(12.dp),
@@ -1294,9 +1294,9 @@ fun ReelEditorScreen(
                                     Icon(
                                         imageVector = Icons.Default.PlayCircle,
                                         contentDescription = null,
-                                        tint = if (isReelSelected) Color(0xFF00FF85) else Color.Gray
+                                        tint = if (isReelSelected) Color(0xFF18E7F5) else Color.Gray
                                     )
-                                    Text("Reel", color = if (isReelSelected) Color(0xFF00FF85) else Color.Gray, fontSize = 12.sp, fontWeight = FontWeight.Bold)
+                                    Text("Reel", color = if (isReelSelected) Color(0xFF18E7F5) else Color.Gray, fontSize = 12.sp, fontWeight = FontWeight.Bold)
                                     Text("Público y permanente", color = Color.Gray, fontSize = 9.sp)
                                 }
                             }
@@ -1304,8 +1304,8 @@ fun ReelEditorScreen(
                                 modifier = Modifier
                                     .weight(1f)
                                     .clickable { isReelSelected = false },
-                                border = BorderStroke(1.dp, if (!isReelSelected) Color(0xFF00FF85) else Color.Gray.copy(alpha = 0.3f)),
-                                colors = CardDefaults.cardColors(containerColor = if (!isReelSelected) Color(0xFF00FF85).copy(alpha = 0.1f) else Color.Transparent)
+                                border = BorderStroke(1.dp, if (!isReelSelected) Color(0xFF18E7F5) else Color.Gray.copy(alpha = 0.3f)),
+                                colors = CardDefaults.cardColors(containerColor = if (!isReelSelected) Color(0xFF18E7F5).copy(alpha = 0.1f) else Color.Transparent)
                             ) {
                                 Column(
                                     modifier = Modifier.padding(12.dp),
@@ -1314,9 +1314,9 @@ fun ReelEditorScreen(
                                     Icon(
                                         imageVector = Icons.Default.History,
                                         contentDescription = null,
-                                        tint = if (!isReelSelected) Color(0xFF00FF85) else Color.Gray
+                                        tint = if (!isReelSelected) Color(0xFF18E7F5) else Color.Gray
                                     )
-                                    Text("Historia", color = if (!isReelSelected) Color(0xFF00FF85) else Color.Gray, fontSize = 12.sp, fontWeight = FontWeight.Bold)
+                                    Text("Historia", color = if (!isReelSelected) Color(0xFF18E7F5) else Color.Gray, fontSize = 12.sp, fontWeight = FontWeight.Bold)
                                     Text("Contactos, 24h", color = Color.Gray, fontSize = 9.sp)
                                 }
                             }
@@ -1326,7 +1326,7 @@ fun ReelEditorScreen(
                         Card(
                             modifier = Modifier.fillMaxWidth(),
                             shape = RoundedCornerShape(12.dp),
-                            colors = CardDefaults.cardColors(containerColor = Color(0xFF1E1E22)),
+                            colors = CardDefaults.cardColors(containerColor = Color(0xFF131A22)),
                             border = BorderStroke(1.dp, Color.White.copy(alpha = 0.1f))
                         ) {
                             Row(
@@ -1340,7 +1340,7 @@ fun ReelEditorScreen(
                                     Text("Programar Publicación 📆", color = PanalinkPalette.textPrimary, fontWeight = FontWeight.Bold, fontSize = 14.sp)
                                     Text(
                                         text = if (scheduledDateTimeString.isEmpty()) "Publicación inmediata" else "Programado para: $scheduledDateTimeString",
-                                        color = if (scheduledDateTimeString.isEmpty()) Color.Gray else Color(0xFF00FF85),
+                                        color = if (scheduledDateTimeString.isEmpty()) Color.Gray else Color(0xFF18E7F5),
                                         fontSize = 11.sp
                                     )
                                 }
@@ -1374,7 +1374,7 @@ fun ReelEditorScreen(
                             enabled = isPublishAllowed,
                             modifier = Modifier.fillMaxWidth().testTag("reel_editor_publish_button"),
                             colors = ButtonDefaults.buttonColors(
-                                containerColor = Color(0xFF00FF85),
+                                containerColor = Color(0xFF18E7F5),
                                 disabledContainerColor = Color.White.copy(alpha = 0.1f)
                             ),
                             shape = RoundedCornerShape(12.dp)
@@ -1398,7 +1398,7 @@ fun ReelEditorScreen(
                             .width(300.dp)
                             .padding(16.dp),
                         shape = RoundedCornerShape(20.dp),
-                        colors = CardDefaults.cardColors(containerColor = Color(0xFF1E1E22))
+                        colors = CardDefaults.cardColors(containerColor = Color(0xFF131A22))
                     ) {
                         Column(
                             modifier = Modifier.padding(20.dp),
@@ -1446,7 +1446,7 @@ fun ReelEditorScreen(
                             .width(320.dp)
                             .padding(20.dp),
                         shape = RoundedCornerShape(24.dp),
-                        colors = CardDefaults.cardColors(containerColor = Color(0xFF1A1A1F))
+                        colors = CardDefaults.cardColors(containerColor = Color(0xFF0D0F12))
                     ) {
                         Column(
                             modifier = Modifier.padding(20.dp),
@@ -1456,7 +1456,7 @@ fun ReelEditorScreen(
                             Box(
                                 modifier = Modifier
                                     .size(56.dp)
-                                    .background(Color(0xFF00B3FF), CircleShape),
+                                    .background(Color(0xFF9B5CFF), CircleShape),
                                 contentAlignment = Alignment.Center
                             ) {
                                 Icon(Icons.Default.Public, contentDescription = null, tint = Color.Black, modifier = Modifier.size(28.dp))
@@ -1486,7 +1486,7 @@ fun ReelEditorScreen(
                                 colors = androidx.compose.material3.OutlinedTextFieldDefaults.colors(
                                     focusedTextColor = Color.White,
                                     unfocusedTextColor = Color.White,
-                                    focusedBorderColor = Color(0xFF00B3FF),
+                                    focusedBorderColor = Color(0xFF9B5CFF),
                                     unfocusedBorderColor = Color.Gray,
                                     focusedPlaceholderColor = Color.Gray
                                 )
@@ -1503,7 +1503,7 @@ fun ReelEditorScreen(
 
                             if (isImportingUrl) {
                                 CircularProgressIndicator(
-                                    color = Color(0xFF00B3FF),
+                                    color = Color(0xFF9B5CFF),
                                     modifier = Modifier.size(28.dp)
                                 )
                                 Text("Descargando vídeo limpio desde la plataforma...", color = Color.Gray, fontSize =  12.sp, textAlign = TextAlign.Center)
@@ -1520,7 +1520,7 @@ fun ReelEditorScreen(
                                 Button(
                                     onClick = { importFromUrl() },
                                     enabled = !isImportingUrl,
-                                    colors = ButtonDefaults.buttonColors(containerColor = Color(0xFF00B3FF))
+                                    colors = ButtonDefaults.buttonColors(containerColor = Color(0xFF9B5CFF))
                                 ) {
                                     Text("Importar", color = Color.Black, fontWeight = FontWeight.Bold)
                                 }
@@ -1543,7 +1543,7 @@ fun ReelEditorScreen(
                             .width(280.dp)
                             .padding(20.dp),
                         shape = RoundedCornerShape(20.dp),
-                        colors = CardDefaults.cardColors(containerColor = Color(0xFF1E1E22))
+                        colors = CardDefaults.cardColors(containerColor = Color(0xFF131A22))
                     ) {
                         Column(
                             modifier = Modifier.padding(24.dp),
@@ -1553,7 +1553,7 @@ fun ReelEditorScreen(
                             Box(
                                 modifier = Modifier
                                     .size(64.dp)
-                                    .background(Color(0xFFE040FB), CircleShape),
+                                    .background(Color(0xFFFF28C8), CircleShape),
                                 contentAlignment = Alignment.Center
                             ) {
                                 Icon(Icons.Default.Drafts, contentDescription = null, tint = Color.Black, modifier = Modifier.size(32.dp))
@@ -1565,7 +1565,7 @@ fun ReelEditorScreen(
                                     showDraftSuccessDialog = false
                                     onBack()
                                 },
-                                colors = ButtonDefaults.buttonColors(containerColor = Color(0xFFE040FB))
+                                colors = ButtonDefaults.buttonColors(containerColor = Color(0xFFFF28C8))
                             ) {
                                 Text("Entendido", color = Color.Black, fontWeight = FontWeight.Bold)
                             }
