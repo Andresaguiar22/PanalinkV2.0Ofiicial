@@ -673,7 +673,7 @@ fun ChatScreen(
 
     Scaffold(
         contentWindowInsets = WindowInsets(0, 0, 0, 0),
-        containerColor = Color(0xFF070B18)
+        containerColor = Color(0xFF0D0F12)
     ) { innerPadding ->
         Column(
             modifier = Modifier
@@ -684,8 +684,8 @@ fun ChatScreen(
                 .background(
                     Brush.verticalGradient(
                         colors = listOf(
-                            Color(0xFF0E1730),
-                            Color(0xFF070B18)
+                            Color(0xFF131A22),
+                            Color(0xFF0D0F12)
                         )
                     )
                 )
@@ -838,7 +838,7 @@ fun ChatScreen(
                             ) {
                                 Text(
                                     text = if (localSearchQuery.isNotEmpty()) "No se encontraron mensajes de pana 🔍" else "Escribe un mensaje para empezar de pana! 🇻🇪",
-                                    color = Color(0xFF90A4AE),
+                                    color = Color(0xFFB8C4D6),
                                     fontSize = 14.sp
                                 )
                             }
@@ -903,13 +903,13 @@ fun ChatScreen(
                                             contentAlignment = Alignment.Center
                                         ) {
                                             Card(
-                                                colors = CardDefaults.cardColors(containerColor = Color(0xFF1E293B).copy(alpha = 0.7f)),
+                                                colors = CardDefaults.cardColors(containerColor = Color(0xFF18202A).copy(alpha = 0.7f)),
                                                 shape = RoundedCornerShape(10.dp),
                                                 elevation = CardDefaults.cardElevation(defaultElevation = 1.dp)
                                             ) {
                                                 Text(
                                                     text = dateText,
-                                                    color = Color(0xFF94A3B8),
+                                                    color = Color(0xFFB8C4D6),
                                                     fontSize = 12.sp,
                                                     modifier = Modifier.padding(horizontal = 14.dp, vertical = 5.dp),
                                                     fontWeight = FontWeight.Medium
@@ -979,14 +979,14 @@ fun ChatScreen(
                                             Row(
                                             modifier = Modifier
                                                 .padding(horizontal = 16.dp, vertical = 4.dp)
-                                                .background(Color(0xFF1E293B).copy(alpha = 0.7f), RoundedCornerShape(16.dp, 16.dp, 16.dp, 4.dp))
+                                                .background(Color(0xFF18202A).copy(alpha = 0.7f), RoundedCornerShape(16.dp, 16.dp, 16.dp, 4.dp))
                                                 .padding(horizontal = 14.dp, vertical = 10.dp),
                                             verticalAlignment = Alignment.CenterVertically,
                                             horizontalArrangement = Arrangement.spacedBy(8.dp)
                                         ) {
                                             Text(
                                                 text = "${otherUser?.displayName ?: "Tu pana"} está escribiendo...",
-                                                color = Color(0xFF38BDF8),
+                                                color = Color(0xFF18E7F5),
                                                 fontSize = 13.sp,
                                                 fontWeight = FontWeight.Medium
                                             )
@@ -1298,10 +1298,10 @@ fun ChatScreen(
             },
             confirmButton = {
                 TextButton(onClick = { showForwardDialog = false }) {
-                    Text("Cancelar", color = Color(0xFF38BDF8))
+                    Text("Cancelar", color = Color(0xFF18E7F5))
                 }
             },
-            containerColor = Color(0xFF1F2C34)
+            containerColor = Color(0xB8131A22)
         )
     }
 
@@ -1391,7 +1391,7 @@ fun PlaylistPickerDialog(
                                 modifier = Modifier
                                     .size(40.dp)
                                     .clip(RoundedCornerShape(4.dp))
-                                    .background(Color(0xFF202C33)),
+                                    .background(Color(0xFF18202A)),
                                 contentAlignment = Alignment.Center
                             ) {
                                 if (playlist.coverPath != null) {
@@ -1418,10 +1418,10 @@ fun PlaylistPickerDialog(
         },
         confirmButton = {
             TextButton(onClick = onDismiss) {
-                Text("Cancelar", color = Color(0xFF38BDF8))
+                Text("Cancelar", color = Color(0xFF18E7F5))
             }
         },
-        containerColor = Color(0xFF1F2C34),
+        containerColor = Color(0xB8131A22),
         shape = RoundedCornerShape(28.dp)
     )
 }
