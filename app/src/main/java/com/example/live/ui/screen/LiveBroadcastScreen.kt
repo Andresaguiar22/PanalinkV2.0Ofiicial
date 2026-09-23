@@ -242,7 +242,7 @@ fun LiveBroadcastScreen(
                             onClick = {
                                 permissionLauncher.launch(arrayOf(Manifest.permission.CAMERA, Manifest.permission.RECORD_AUDIO))
                             },
-                            colors = ButtonDefaults.buttonColors(containerColor = Color(0xFF00A884))
+                            colors = ButtonDefaults.buttonColors(containerColor = Color(0xFF18E7F5))
                         ) { Text("Conceder Permisos", color = PanalinkPalette.textPrimary) }
                     }
                 }
