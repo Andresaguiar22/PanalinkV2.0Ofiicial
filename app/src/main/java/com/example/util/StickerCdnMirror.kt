@@ -89,7 +89,7 @@ object StickerCdnMirror {
                     PanalinkMediaManager.uploadMediaAndThumbnail(
                         context = context,
                         mediaFile = tempFile,
-                        mimeType = mimeType,
+                        mimeType = detectedMime,
                         typeLabel = typeLabel,
                         userId = userId,
                         caption = "Sticker/GIF espejado al CDN"
