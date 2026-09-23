@@ -2,9 +2,9 @@ package com.example.ui.components
 
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Box
-import androidx.compose.foundation.layout.fillMaxWidth
-import androidx.compose.foundation.layout.heightIn
+import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
@@ -34,10 +34,10 @@ fun CommentMediaText(
 ) {
     val gif = parseCommentGif(text)
     if (gif != null) {
-        val maxHeight = if (compact) 96.dp else 260.dp
+        val gifSize = if (compact) 96.dp else 130.dp
         Box(
             modifier = modifier
-                .fillMaxWidth(if (compact) 0.72f else 1f)
+                .size(gifSize)
                 .padding(top = 2.dp)
                 .background(Color(0xFF111B21), RoundedCornerShape(8.dp))
                 .clip(RoundedCornerShape(8.dp)),
@@ -47,8 +47,7 @@ fun CommentMediaText(
                 model = gif.url,
                 contentDescription = gif.title ?: (if (gif.isGif) "GIF" else "Sticker"),
                 modifier = Modifier
-                    .fillMaxWidth()
-                    .heightIn(max = maxHeight)
+                    .fillMaxSize()
                     .padding(4.dp),
                 contentScale = ContentScale.Fit
             )
