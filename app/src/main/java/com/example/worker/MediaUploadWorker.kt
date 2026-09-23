@@ -328,13 +328,12 @@ class MediaUploadWorker(
                 }
 
                 if (registered) {
-                    // Confirmado por el servidor: la fila temporal fue reemplazada por la
-                    // remota, asi que el archivo local ya no lo referencia nadie.
+                    // syncPendingMessages() ya reconcilia la fila temporal con la fila
+                    // autoritativa del servidor y la deja en estado "sent". NO volver a
+                    // insertar updatedEntity aqui: hacerlo reintroduce el temp_* con
+                    // status="sending" despues de haber sido reemplazado y deja al emisor
+                    // eternamente en loading aunque el receptor ya vea el mensaje.
                     entity.localMediaUri?.let { runCatching { File(it).delete() } }
-                    // Anular la ruta local en la BD: si se conserva apuntando a un archivo ya borrado, la burbuja del emisor queda vacia (imagen/video)y la nota de voz no reproduce--el bug reportado; el receptor si funciona.
-                    runCatching {
-                        messageDao.insertMessageRaw(updatedEntity.copy(localMediaUri = null))
-                    }
                 } else {
                     // Sin confirmacion: conservar el archivo local (respaldo offline) y dejar
                     // que el sync encolado complete el registro.
