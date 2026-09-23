@@ -92,7 +92,7 @@ fun StickerPanel(
         modifier = modifier
             .fillMaxWidth()
             .height(280.dp)
-            .background(Color(0xFF1F2C34))
+            .background(Color(0xFF18202A))
     ) {
         if (isLoading) {
             Box(
@@ -100,20 +100,20 @@ fun StickerPanel(
                     .fillMaxSize(),
                 contentAlignment = Alignment.Center
             ) {
-                CircularProgressIndicator(color = Color(0xFF00A884))
+                CircularProgressIndicator(color = Color(0xFF18E7F5))
             }
         } else if (packs.isEmpty()) {
             Box(
                 modifier = Modifier.fillMaxSize(),
                 contentAlignment = Alignment.Center
             ) {
-                Text("No hay paquetes de stickers disponibles", color = Color(0xFF8596A0), fontSize = 14.sp)
+                Text("No hay paquetes de stickers disponibles", color = Color(0xFF9AA8B5), fontSize = 14.sp)
             }
         } else {
             LazyRow(
                 modifier = Modifier
                     .fillMaxWidth()
-                    .background(Color(0xFF111B21))
+                    .background(Color(0xFF0D0F12))
                     .padding(horizontal = 8.dp, vertical = 6.dp),
                 horizontalArrangement = Arrangement.spacedBy(8.dp),
                 verticalAlignment = Alignment.CenterVertically
@@ -157,7 +157,7 @@ fun StickerPanel(
                             }
                             Text(
                                 text = pack.name,
-                                color = if (isSelected) Color(0xFF00A884) else Color(0xFF8596A0),
+                                color = if (isSelected) Color(0xFF18E7F5) else Color(0xFF9AA8B5),
                                 fontSize = 13.sp,
                                 fontWeight = if (isSelected) FontWeight.Bold else FontWeight.Normal
                             )
@@ -172,7 +172,7 @@ fun StickerPanel(
                         modifier = Modifier.fillMaxSize(),
                         contentAlignment = Alignment.Center
                     ) {
-                        Text("Este paquete no tiene stickers", color = Color(0xFF8596A0), fontSize = 13.sp)
+                        Text("Este paquete no tiene stickers", color = Color(0xFF9AA8B5), fontSize = 13.sp)
                     }
                 } else {
                     LazyVerticalGrid(

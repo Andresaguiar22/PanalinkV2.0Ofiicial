@@ -208,7 +208,7 @@ fun FeedPostCard(
         Column(
             modifier = Modifier
                 .fillMaxWidth()
-                .background(Color(0xFF161618))
+                .background(Color(0xFF0D0F12))
         ) {
             Row(
                 modifier = Modifier
@@ -438,7 +438,7 @@ fun FeedPostCard(
                         ) {
                             if (resolvedUrl.isBlank()) {
                                 Box(modifier = Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
-                                    CircularProgressIndicator(color = Color(0xFF00A884), modifier = Modifier.size(32.dp), strokeWidth = 2.dp)
+                                    CircularProgressIndicator(color = Color(0xFF18E7F5), modifier = Modifier.size(32.dp), strokeWidth = 2.dp)
                                 }
                             } else if (post.type == "VIDEO" || post.type == "REEL" || isVideoUrl(resolvedUrl)) {
                                 val videoUri = remember(resolvedUrl) { Uri.parse(resolvedUrl) }
@@ -590,7 +590,7 @@ fun FeedPostCard(
                                 .padding(horizontal = 10.dp, vertical = 6.dp),
                             verticalAlignment = Alignment.CenterVertically
                         ) {
-                            Text("🎵 Audio", color = Color(0xFF00FF85), fontSize = 12.sp, fontWeight = FontWeight.Bold)
+                            Text("🎵 Audio", color = Color(0xFF18E7F5), fontSize = 12.sp, fontWeight = FontWeight.Bold)
                         }
                     }
                 }
@@ -599,7 +599,7 @@ fun FeedPostCard(
                 Box(modifier = Modifier.fillMaxWidth().padding(horizontal = 14.dp, vertical = 8.dp)) {
                     if (resolvedAudio.isBlank()) {
                         Box(modifier = Modifier.fillMaxWidth().height(80.dp), contentAlignment = Alignment.Center) {
-                            CircularProgressIndicator(color = Color(0xFF00A884), modifier = Modifier.size(28.dp), strokeWidth = 2.dp)
+                            CircularProgressIndicator(color = Color(0xFF18E7F5), modifier = Modifier.size(28.dp), strokeWidth = 2.dp)
                         }
                     } else {
                         PlaylistAudioPlayer(audioUrls = listOf(resolvedAudio))
@@ -768,7 +768,7 @@ fun FeedPostCard(
                     IconButton(onClick = { onAudioPlaylistClick(post) }, modifier = Modifier.size(36.dp)) {
                         Icon(
                             imageVector = Icons.Default.PlaylistPlay,
-                            tint = Color(0xFF00FF85),
+                            tint = Color(0xFF18E7F5),
                             contentDescription = "Reproducir lista",
                             modifier = Modifier.size(22.dp)
                         )

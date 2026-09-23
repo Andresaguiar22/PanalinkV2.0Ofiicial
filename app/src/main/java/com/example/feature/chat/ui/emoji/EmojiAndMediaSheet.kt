@@ -104,7 +104,7 @@ fun EmojiAndMediaSheet(
                     modifier = Modifier
                         .width(260.dp)
                         .clip(RoundedCornerShape(24.dp))
-                        .background(Color(0xFF1F2C34))
+                        .background(Color(0xFF18202A))
                         .padding(20.dp)
                 ) {
                     AsyncImage(
@@ -125,7 +125,7 @@ fun EmojiAndMediaSheet(
                     Spacer(modifier = Modifier.height(4.dp))
                     Text(
                         text = "Toca fuera de la tarjeta para cerrar",
-                        color = Color(0xFF00A884),
+                        color = Color(0xFF18E7F5),
                         fontSize = 12.sp,
                         fontWeight = FontWeight.Medium
                     )
@@ -138,7 +138,7 @@ fun EmojiAndMediaSheet(
         modifier = Modifier
             .fillMaxWidth()
             .height(340.dp)
-            .background(Color(0xFF111B21))
+            .background(Color(0xFF0D0F12))
     ) {
         // Handle (drag indicator bar)
         Box(
@@ -164,7 +164,7 @@ fun EmojiAndMediaSheet(
                     Icon(
                         imageVector = Icons.AutoMirrored.Filled.ArrowBack,
                         contentDescription = "Atrás",
-                        tint = Color(0xFF8596A0)
+                        tint = Color(0xFF9AA8B5)
                     )
                 }
 
@@ -173,10 +173,10 @@ fun EmojiAndMediaSheet(
                     onValueChange = { onSearchQueryChange(it) },
                     modifier = Modifier
                         .weight(1f)
-                        .background(Color(0xFF202C33), RoundedCornerShape(24.dp))
+                        .background(Color(0xFF18202A), RoundedCornerShape(24.dp))
                         .padding(horizontal = 16.dp, vertical = 8.dp),
                     textStyle = androidx.compose.ui.text.TextStyle(color = PanalinkPalette.textPrimary, fontSize = 15.sp),
-                    cursorBrush = androidx.compose.ui.graphics.SolidColor(Color(0xFF00A884)),
+                    cursorBrush = androidx.compose.ui.graphics.SolidColor(Color(0xFF18E7F5)),
                     singleLine = true,
                     decorationBox = { innerTextField ->
                         Box(
@@ -189,7 +189,7 @@ fun EmojiAndMediaSheet(
                                     1 -> "Buscar GIF..."
                                     else -> "Buscar stickers..."
                                 }
-                                Text(hintText, color = Color(0xFF8596A0), fontSize = 15.sp)
+                                Text(hintText, color = Color(0xFF9AA8B5), fontSize = 15.sp)
                             }
                             innerTextField()
                         }
@@ -198,7 +198,7 @@ fun EmojiAndMediaSheet(
 
                 if (searchQuery.isNotEmpty()) {
                     IconButton(onClick = { onSearchQueryChange("") }) {
-                        Icon(Icons.Default.Close, contentDescription = "Limpiar", tint = Color(0xFF8596A0))
+                        Icon(Icons.Default.Close, contentDescription = "Limpiar", tint = Color(0xFF9AA8B5))
                     }
                 }
             }
@@ -212,13 +212,13 @@ fun EmojiAndMediaSheet(
             ) {
                 // Left: Search Button
                 IconButton(onClick = { onSearchActiveChange(true) }) {
-                    Icon(Icons.Default.Search, contentDescription = "Buscar", tint = Color(0xFF8596A0))
+                    Icon(Icons.Default.Search, contentDescription = "Buscar", tint = Color(0xFF9AA8B5))
                 }
 
                 // Center: Unified selector of 3 tabs (Emoji, GIF, Sticker)
                 Surface(
                     shape = RoundedCornerShape(24.dp),
-                    color = Color(0xFF202C33),
+                    color = Color(0xFF18202A),
                     modifier = Modifier
                         .width(220.dp)
                         .height(38.dp)
@@ -242,7 +242,7 @@ fun EmojiAndMediaSheet(
                                     Icon(
                                         imageVector = Icons.Default.SentimentSatisfied,
                                         contentDescription = "Emojis",
-                                        tint = if (isSelected) Color.White else Color(0xFF8596A0),
+                                        tint = if (isSelected) Color.White else Color(0xFF9AA8B5),
                                         modifier = Modifier.size(20.dp)
                                     )
                                 } else if (index == 1) {
@@ -250,13 +250,13 @@ fun EmojiAndMediaSheet(
                                         text = "GIF",
                                         fontWeight = FontWeight.Bold,
                                         fontSize = 13.sp,
-                                        color = if (isSelected) Color.White else Color(0xFF8596A0)
+                                        color = if (isSelected) Color.White else Color(0xFF9AA8B5)
                                     )
                                 } else {
                                     Icon(
                                         imageVector = Icons.Default.StickyNote2,
                                         contentDescription = "Stickers",
-                                        tint = if (isSelected) Color.White else Color(0xFF8596A0),
+                                        tint = if (isSelected) Color.White else Color(0xFF9AA8B5),
                                         modifier = Modifier.size(20.dp)
                                     )
                                 }
@@ -270,14 +270,14 @@ fun EmojiAndMediaSheet(
                     Icon(
                         imageVector = if (isGhostMode) Icons.Default.VisibilityOff else Icons.Default.Visibility,
                         contentDescription = "Mensaje de una vista",
-                        tint = if (isGhostMode) Color(0xFFBB86FC) else Color(0xFF8596A0),
+                        tint = if (isGhostMode) Color(0xFFBB86FC) else Color(0xFF9AA8B5),
                         modifier = Modifier.size(22.dp)
                     )
                 }
 
                 // Right: Backspace/Clear character
                 IconButton(onClick = onBackspace) {
-                    Icon(Icons.Default.Backspace, contentDescription = "Borrar", tint = Color(0xFF8596A0))
+                    Icon(Icons.Default.Backspace, contentDescription = "Borrar", tint = Color(0xFF9AA8B5))
                 }
             }
         }
@@ -329,7 +329,7 @@ fun EmojiAndMediaSheet(
                             Row(
                                 modifier = Modifier
                                     .fillMaxWidth()
-                                    .background(Color(0xFF1F2C34))
+                                    .background(Color(0xFF18202A))
                                     .padding(vertical = 4.dp),
                                 horizontalArrangement = Arrangement.SpaceAround,
                                 verticalAlignment = Alignment.CenterVertically
@@ -340,7 +340,7 @@ fun EmojiAndMediaSheet(
                                         modifier = Modifier
                                             .size(36.dp)
                                             .clip(CircleShape)
-                                            .background(if (isCatSelected) Color(0xFF00A884) else Color.Transparent)
+                                            .background(if (isCatSelected) Color(0xFF18E7F5) else Color.Transparent)
                                             .clickable { selectedEmojiCategory = idx },
                                         contentAlignment = Alignment.Center
                                     ) {
@@ -355,13 +355,13 @@ fun EmojiAndMediaSheet(
                     // Pestaña GIF
                     if (emojiMedia.isGifsLoading) {
                         CircularProgressIndicator(
-                            color = Color(0xFF00A884),
+                            color = Color(0xFF18E7F5),
                             modifier = Modifier.align(Alignment.Center)
                         )
                     } else if (emojiMedia.gifs.isEmpty()) {
                         Text(
                             text = "No se encontraron GIFs",
-                            color = Color(0xFF8596A0),
+                            color = Color(0xFF9AA8B5),
                             fontSize = 13.sp,
                             modifier = Modifier.align(Alignment.Center)
                         )
@@ -378,7 +378,7 @@ fun EmojiAndMediaSheet(
                                         .fillMaxWidth()
                                         .height(100.dp)
                                         .clip(RoundedCornerShape(8.dp))
-                                        .background(Color(0xFF202C33))
+                                        .background(Color(0xFF18202A))
                                         .clickable {
                                             onStickerSelected(gif)
                                         }

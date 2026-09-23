@@ -68,7 +68,19 @@ class StatesRepository {
     suspend fun searchReels(query: String? = null, tag: String? = null, limit: Int = 60): Result<List<UserStateWithUser>> =
         remoteDataSource.searchReels(query, tag, limit)
 
-    suspend fun toggleLike(stateId: String, currentLikeState: Boolean, isReel: Boolean): Result<com.example.data.model.ToggleLikeResponseDto> = interactionDataSource.toggleLike(stateId, currentLikeState, isReel)
+    suspend fun toggleLike(stateId: String, currentLikeState: Boolean, isReel: Boolean): Result<com.example.data.model.ToggleLikeResponseDto> {
+        val result = interactionDataSource.toggleLike(stateId, currentLikeState, isReel)
+        // Premium 2.0: registra actividad de misión cuando se da like (no al quitar).
+        if (result.isSuccess && !currentLikeState) {
+            try {
+                com.example.premium.domain.PremiumEventBus.publishActivity(
+                    com.example.premium.domain.MissionActivities.REACTION_SENT
+                )
+            } catch (_: Exception) {
+            }
+        }
+        return result
+    }
 
     suspend fun toggleFavorite(stateId: String, currentFavState: Boolean, isReel: Boolean): Result<com.example.data.model.ToggleFavoriteResponseDto> = interactionDataSource.toggleFavorite(stateId, currentFavState, isReel)
 
@@ -86,7 +98,19 @@ class StatesRepository {
 
     suspend fun getStatusViews(stateId: String, isReel: Boolean): Result<List<StatusViewer>> = interactionDataSource.getStatusViews(stateId, isReel)
 
-    suspend fun registerView(stateId: String, isReel: Boolean): Result<Unit> = interactionDataSource.registerView(stateId, isReel)
+    suspend fun registerView(stateId: String, isReel: Boolean): Result<Unit> {
+        val result = interactionDataSource.registerView(stateId, isReel)
+        // Premium 2.0: ver una historia cuenta para la misión diaria.
+        if (result.isSuccess && !isReel) {
+            try {
+                com.example.premium.domain.PremiumEventBus.publishActivity(
+                    com.example.premium.domain.MissionActivities.STORY_VIEWED
+                )
+            } catch (_: Exception) {
+            }
+        }
+        return result
+    }
 
     suspend fun getUserReels(userId: String): Result<List<UserStateWithUser>> = remoteDataSource.fetchUserReels(userId)
 
@@ -242,6 +266,19 @@ class StatesRepository {
             }
 
             if (createResponse.isSuccessful) {
+                // Premium 2.0: registra actividad de misión de publicación (story o reel).
+                try {
+                    if (isReel) {
+                        com.example.premium.domain.PremiumEventBus.publishActivity(
+                            com.example.premium.domain.MissionActivities.POST_CREATED
+                        )
+                    } else {
+                        com.example.premium.domain.PremiumEventBus.publishActivity(
+                            com.example.premium.domain.MissionActivities.STORY_CREATED
+                        )
+                    }
+                } catch (_: Exception) {
+                }
                 val newState = UserState(
                     id = stateId,
                     authorId = currentUid,

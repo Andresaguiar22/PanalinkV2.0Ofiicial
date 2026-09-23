@@ -46,7 +46,7 @@ fun PrivacySettingSwitch(
             Spacer(modifier = Modifier.height(2.dp))
             Text(
                 text = description,
-                color = Color(0xFF90A4AE),
+                color = Color(0xFF9AA8B5),
                 fontSize = 11.sp,
                 lineHeight = 15.sp
             )
@@ -66,8 +66,8 @@ fun PrivacySettingSwitch(
             enabled = hasEntitlement || !isPremium,
             colors = SwitchDefaults.colors(
                 checkedThumbColor = Color.White,
-                checkedTrackColor = Color(0xFF128C7E),
-                uncheckedThumbColor = Color(0xFF90A4AE),
+                checkedTrackColor = Color(0xFF7B3FF2),
+                uncheckedThumbColor = Color(0xFF9AA8B5),
                 uncheckedTrackColor = Color(0xFF1E2D35)
             )
         )

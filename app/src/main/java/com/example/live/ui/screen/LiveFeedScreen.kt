@@ -42,7 +42,6 @@ import androidx.compose.ui.unit.sp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.example.live.ui.components.LiveCard
 import com.example.live.ui.components.LiveSkeletonCard
-import com.example.live.ui.components.PanalinkNeonGreen
 import com.example.live.ui.viewmodel.LiveViewModel
 
 @OptIn(ExperimentalMaterial3Api::class)
@@ -51,7 +50,8 @@ fun LiveFeedScreen(
     viewModel: LiveViewModel = androidx.lifecycle.viewmodel.compose.viewModel(),
     onNavigateBack: () -> Unit,
     onNavigateToViewer: (String) -> Unit = {},
-    onNavigateToBroadcast: () -> Unit = {}
+    onNavigateToBroadcast: () -> Unit = {},
+    onNavigateToPremium: (() -> Unit)? = null
 ) {
     val uiState by viewModel.uiState.collectAsStateWithLifecycle()
     val isRefreshing by remember { mutableStateOf(false) }
@@ -64,9 +64,9 @@ fun LiveFeedScreen(
             .background(
                 Brush.radialGradient(
                     colors = listOf(
-                        Color(0xFF14342E),
-                        Color(0xFF161618),
-                        Color(0xFF0E0E10)
+                        Color(0xFF7B3FF2),
+                        Color(0xFF131A22),
+                        Color(0xFF0D0F12)
                     ),
                     center = Offset.Unspecified,
                     radius = 1200f
@@ -90,7 +90,8 @@ fun LiveFeedScreen(
                 )
             },
             floatingActionButton = {
-                LiveBroadcastFab(onClick = onNavigateToBroadcast)
+                // Premium 2.0: beneficios aditivos — transmitir NUNCA se bloquea.
+                LiveBroadcastFab(onClick = { onNavigateToBroadcast() })
             },
             containerColor = Color.Transparent
         ) { paddingValues ->
@@ -126,19 +127,19 @@ fun LiveFeedScreen(
                             Icon(
                                 imageVector = Icons.Default.LiveTv,
                                 contentDescription = null,
-                                tint = Color.Gray.copy(alpha = 0.5f),
+                                tint = Color(0xFFB8C4D6).copy(alpha = 0.5f),
                                 modifier = Modifier.size(72.dp)
                             )
                             Spacer(modifier = Modifier.height(16.dp))
                             Text(
                                 text = "No hay transmisiones en vivo activas",
-                                color = Color.Gray,
+                                color = Color(0xFFB8C4D6),
                                 fontSize = 16.sp
                             )
                             Spacer(modifier = Modifier.height(8.dp))
                             Text(
                                 text = "Sé el primero en transmitir",
-                                color = Color.Gray.copy(alpha = 0.7f),
+                                color = Color(0xFFB8C4D6).copy(alpha = 0.7f),
                                 fontSize = 14.sp
                             )
                         }
@@ -184,15 +185,15 @@ private fun LiveBroadcastFab(onClick: () -> Unit) {
             .shadow(
                 elevation = 24.dp,
                 shape = CircleShape,
-                ambientColor = PanalinkNeonGreen.copy(alpha = 0.9f),
-                spotColor = PanalinkNeonGreen.copy(alpha = 1f)
+                ambientColor = Color(0xFF18E7F5).copy(alpha = 0.9f),
+                spotColor = Color(0xFF18E7F5).copy(alpha = 1f)
             )
             .clip(CircleShape),
         contentAlignment = Alignment.Center
     ) {
         FloatingActionButton(
             onClick = onClick,
-            containerColor = PanalinkNeonGreen,
+            containerColor = Color(0xFF18E7F5),
             contentColor = Color(0xFF04231A),
             shape = CircleShape
         ) {

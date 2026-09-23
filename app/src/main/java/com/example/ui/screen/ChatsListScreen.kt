@@ -253,7 +253,8 @@ fun ChatsListScreen(
     onNavigateToFavorites: () -> Unit = {},
     onNavigateToMusic: () -> Unit = {},
     onNavigateToVoiceRoom: () -> Unit = {},
-    onNavigateToLive: () -> Unit = {}
+    onNavigateToLive: () -> Unit = {},
+    onNavigateToPremium: (() -> Unit)? = null
 ) {
     val context = androidx.compose.ui.platform.LocalContext.current
     var selectedChatIds by remember { mutableStateOf(emptySet<String>()) }
@@ -675,6 +676,14 @@ fun ChatsListScreen(
                         }
                     )
                 } else if (currentRoute != "clips") {
+                    if (currentRoute == "chats") {
+                        PanaLinkCyberpunkTopBar(
+                            onAdd = { showPlusBottomSheet = true },
+                            onSearch = onNavigateToSearch,
+                            onFolder = onNavigateToFavorites,
+                            onProfile = onNavigateToProfile
+                        )
+                    } else {
                     Column(
                         modifier = Modifier
                             .fillMaxWidth()
@@ -796,6 +805,7 @@ fun ChatsListScreen(
                         }
                     }
                 }
+                    }
             },
             bottomBar = {
                 AnimatedVisibility(
@@ -897,14 +907,14 @@ fun ChatsListScreen(
                                 statesViewModel.loadActiveStates()
                             },
                             selectedChatIds = selectedChatIds,
-                            onToggleChatSelection = { id ->
+                            onToggleChatSelection = { id: String ->
                                 if (selectedChatIds.contains(id)) {
                                     selectedChatIds = selectedChatIds - id
                                 } else {
                                     selectedChatIds = selectedChatIds + id
                                 }
                             },
-                            onStartChatSelection = { id ->
+                            onStartChatSelection = { id: String ->
                                 selectedChatIds = setOf(id)
                             },
                             deletedChatIds = deletedChatIds,
@@ -918,7 +928,8 @@ fun ChatsListScreen(
                             statesViewModel = statesViewModel,
                             onNavigateToViewState = onNavigateToViewState,
                             onNavigateToCreateState = onNavigateToCreateState,
-                            onNavigateToChat = onNavigateToChat
+                            onNavigateToChat = onNavigateToChat,
+                            onOpenPremium = onNavigateToPremium
                         )
                         }
                     composable("clips") {
@@ -1044,7 +1055,7 @@ fun ChatsListScreen(
                         modifier = Modifier.fillMaxWidth(),
                         horizontalArrangement = Arrangement.spacedBy(16.dp)
                     ) {
-                        // Historia Card
+                        // Historia Card (Premium 2.0: beneficios aditivos — crear NUNCA se bloquea)
                         Card(
                             modifier = Modifier
                                 .weight(1f)
@@ -1082,7 +1093,7 @@ fun ChatsListScreen(
                             }
                         }
 
-                        // Reel Card
+                        // Reel Card (Premium 2.0: beneficios aditivos — crear NUNCA se bloquea)
                         Card(
                             modifier = Modifier
                                 .weight(1f)
@@ -1153,12 +1164,14 @@ fun ChatsListScreen(
                         Icon(Icons.Default.KeyboardArrowRight, contentDescription = null, tint = Color.Gray)
                     }
 
-                    // PanaTV
+                    // PanaTV (Premium 2.0 — beneficio aditivo)
                     Row(
                         modifier = Modifier
                             .fillMaxWidth()
                             .clickable {
                                 showPlusBottomSheet = false
+                                // Aditivo: PanaTV siempre abre (fue gratis antes del
+                                // Premium 2.0). PanaTV Gold añade badge/beneficios.
                                 val intent = android.content.Intent(context, com.example.panatv.PanaTVActivity::class.java)
                                 context.startActivity(intent)
                             }
@@ -1175,7 +1188,21 @@ fun ChatsListScreen(
                         }
                         Spacer(modifier = Modifier.width(16.dp))
                         Column(modifier = Modifier.weight(1f)) {
-                            Text("PanaTV", color = PanalinkPalette.textPrimary, fontWeight = FontWeight.Bold, fontSize = 15.sp)
+                            Row(verticalAlignment = Alignment.CenterVertically) {
+                                Text("PanaTV", color = PanalinkPalette.textPrimary, fontWeight = FontWeight.Bold, fontSize = 15.sp)
+                                val panatvLocked = !com.example.premium.domain.PremiumManager.hasFeature(com.example.premium.domain.PremiumFeatures.PANATV)
+                                Spacer(modifier = Modifier.width(6.dp))
+                                if (panatvLocked) {
+                                    Text("💎", fontSize = 12.sp)
+                                } else {
+                                    Text(
+                                        "👑 Gold",
+                                        color = com.example.ui.theme.PanalinkSkin.Gold,
+                                        fontSize = 11.sp,
+                                        fontWeight = FontWeight.Bold
+                                    )
+                                }
+                            }
                             Text("Canales nacionales en vivo", color = Color.Gray, fontSize = 12.sp)
                         }
                     }

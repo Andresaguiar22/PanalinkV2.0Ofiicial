@@ -187,18 +187,22 @@ class MainActivity : androidx.fragment.app.FragmentActivity() {
         // Initialize dynamic ThemeManager from preferences on start
         try {
             val prefs = getSharedPreferences("panalink_prefs", android.content.Context.MODE_PRIVATE)
-            val savedTheme = prefs.getString("profile_theme_global", "halo_dark") ?: "halo_dark"
+            val savedTheme = prefs.getString("profile_theme_global", "cyberpunk_global") ?: "cyberpunk_global"
             com.example.ui.theme.ThemeManager.themeKey.value = savedTheme
 
             // Migracion unica: la identidad de marca de Panalink es la oscura (el
             // mockup aprobado). Quien nunca eligio modo tiene guardado "system" por
             // el default viejo; se pasa a "oscuro" para que vea la identidad real.
             // Quien haya elegido "claro" lo conserva.
-            if (!prefs.getBoolean("theme_mode_brand_migration", false)) {
-                if ((prefs.getString("theme_mode_global", null)) == "system") {
-                    prefs.edit().putString("theme_mode_global", "oscuro").apply()
-                }
-                prefs.edit().putBoolean("theme_mode_brand_migration", true).apply()
+            if (!prefs.getBoolean("cyberpunk_global_theme_migration_v1", false)) {
+                // Nueva identidad global: migra una sola vez las preferencias visuales
+                // existentes al sistema Cyberpunk Neon sin tocar datos ni lógica.
+                prefs.edit()
+                    .putString("profile_theme_global", "cyberpunk_global")
+                    .putString("theme_mode_global", "oscuro")
+                    .putString("bottom_bar_color_preset", "neon_cyber")
+                    .putBoolean("cyberpunk_global_theme_migration_v1", true)
+                    .apply()
             }
 
             val savedThemeMode = prefs.getString("theme_mode_global", "oscuro") ?: "oscuro"
@@ -207,7 +211,7 @@ class MainActivity : androidx.fragment.app.FragmentActivity() {
             val isMinimal = prefs.getBoolean("minimalist_mode_global", false)
             com.example.ui.theme.ThemeManager.isMinimalistMode.value = isMinimal
 
-            val savedColorPreset = prefs.getString("bottom_bar_color_preset", "tropical") ?: "tropical"
+            val savedColorPreset = prefs.getString("bottom_bar_color_preset", "neon_cyber") ?: "neon_cyber"
             com.example.ui.theme.ThemeManager.bottomBarColorPreset.value = savedColorPreset
 
             val savedShapePreset = prefs.getString("bottom_bar_shape_preset", "pill") ?: "pill"
@@ -433,6 +437,19 @@ class MainActivity : androidx.fragment.app.FragmentActivity() {
 
                             chatsViewModel.loadChats(forceRefresh = true)
                             statesViewModel.loadActiveStates(showLoading = false)
+                        }
+                        // Premium 2.0: carga saldo y entitlements del usuario al entrar.
+                        try {
+                            com.example.premium.domain.PremiumManager.initialize()
+                            com.example.premium.domain.MissionManager.refresh()
+                            SupabaseClient.currentUser?.id?.let { uid ->
+                                com.example.premium.domain.PremiumNotificationManager.initialize(
+                                    context = applicationContext,
+                                    uid = uid
+                                )
+                            }
+                        } catch (e: Throwable) {
+                            android.util.Log.e("MainActivity", "Premium init failed", e)
                         }
                     } else {
                         // No resetear lastUserId en estados transitorios: previene re-splash

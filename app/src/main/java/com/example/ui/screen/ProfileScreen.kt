@@ -47,7 +47,8 @@ fun ProfileScreen(
     viewModel: ProfileViewModel,
     authViewModel: AuthViewModel,
     onBack: () -> Unit,
-    onNavigateToReel: (String) -> Unit = {}
+    onNavigateToReel: (String) -> Unit = {},
+    onOpenPremium: (() -> Unit)? = null
 ) {
     var showControlCenter by remember { mutableStateOf(false) }
     var isEditingProfile by remember { mutableStateOf(false) }
@@ -109,7 +110,7 @@ fun ProfileScreen(
             "neon" -> Brush.linearGradient(listOf(Color(0xFFFF007F), Color(0xFF39FF14)))
             "minimal_white" -> Brush.linearGradient(listOf(Color(0xFFF0F0F0), Color(0xFFCCCCCC)))
             "custom" -> Brush.linearGradient(listOf(customPState, customSState))
-            else -> Brush.linearGradient(listOf(Color(0xFF075E54), Color(0xFF128C7E)))
+            else -> Brush.linearGradient(listOf(Color(0xFF131A22), Color(0xFF18202A)))
         }
     }
 
@@ -125,21 +126,31 @@ fun ProfileScreen(
     Scaffold(
         topBar = {
             TopAppBar(
-                title = { PanaTopBarTitle(sectionName = "Mi Perfil", primaryColor = Color(0xFF00FF85)) },
+                title = { PanaTopBarTitle(sectionName = "Mi Perfil", primaryColor = Color(0xFF18E7F5)) },
                 navigationIcon = {
                     IconButton(onClick = onBack) {
                         Icon(Icons.AutoMirrored.Filled.ArrowBack, contentDescription = "Atrás", tint = PanalinkPalette.textPrimary)
                     }
                 },
                 actions = {
+                    if (onOpenPremium != null) {
+                        androidx.compose.foundation.layout.Row(
+                            verticalAlignment = androidx.compose.ui.Alignment.CenterVertically
+                        ) {
+                            com.example.premium.ui.CoinChip(onClick = onOpenPremium)
+                            IconButton(onClick = onOpenPremium) {
+                                Text("💎", fontSize = 18.sp)
+                            }
+                        }
+                    }
                     IconButton(onClick = { showControlCenter = true }) {
                         Icon(Icons.Default.Settings, contentDescription = "Centro de Control", tint = PanalinkPalette.textPrimary)
                     }
                 },
-                colors = TopAppBarDefaults.topAppBarColors(containerColor = Color(0xFF075E54))
+                colors = TopAppBarDefaults.topAppBarColors(containerColor = Color(0xFF131A22))
             )
         },
-        containerColor = Color(0xFF101D24)
+        containerColor = Color(0xFF0D0F12)
     ) { innerPadding ->
         Column(
             modifier = Modifier
@@ -205,7 +216,7 @@ fun ProfileScreen(
                                         avatarUrl = selectedAvatarUrl.ifEmpty { null },
                                         size = 86.dp,
                                         borderWidth = 3.dp,
-                                        borderColor = Color(0xFF101D24),
+                                        borderColor = Color(0xFF0D0F12),
                                         contentDescription = "Avatar de Perfil",
                                         placeholderName = displayName
                                     )
@@ -215,8 +226,8 @@ fun ProfileScreen(
                                             .align(Alignment.BottomEnd)
                                             .offset(x = (-4).dp, y = (-4).dp)
                                             .clip(CircleShape)
-                                            .background(Color(0xFF25D366))
-                                            .border(2.5.dp, Color(0xFF101D24), CircleShape)
+                                            .background(Color(0xFFFF28C8))
+                                            .border(2.5.dp, Color(0xFF0D0F12), CircleShape)
                                     )
                                 }
 
@@ -235,7 +246,7 @@ fun ProfileScreen(
                                             Icon(
                                                 imageVector = Icons.Default.CheckCircle,
                                                 contentDescription = "Cuenta Verificada",
-                                                tint = Color(0xFF00E5FF),
+                                                tint = Color(0xFF18E7F5),
                                                 modifier = Modifier.size(18.dp)
                                             )
                                         }
@@ -281,7 +292,7 @@ fun ProfileScreen(
                             ) {
                                 Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
                                     BadgeSurface(reputationState, when (reputationState) {
-                                        "Verificado" -> Color(0xFF00E5FF)
+                                        "Verificado" -> Color(0xFF18E7F5)
                                         "Confiable" -> Color(0xFF64B5F6)
                                         else -> Color(0xFFFFD54F)
                                     })
@@ -303,13 +314,13 @@ fun ProfileScreen(
 
                                     Button(
                                         onClick = { showControlCenter = true },
-                                        colors = ButtonDefaults.buttonColors(containerColor = Color(0xFF25D366)),
+                                        colors = ButtonDefaults.buttonColors(containerColor = Color(0xFFFF28C8)),
                                         shape = RoundedCornerShape(12.dp),
                                         contentPadding = PaddingValues(horizontal = 12.dp, vertical = 6.dp)
                                     ) {
-                                        Icon(Icons.Default.Settings, contentDescription = null, tint = Color(0xFF121B22), modifier = Modifier.size(14.dp))
+                                        Icon(Icons.Default.Settings, contentDescription = null, tint = Color(0xFF131A22), modifier = Modifier.size(14.dp))
                                         Spacer(modifier = Modifier.width(4.dp))
-                                        Text("Ajustes", color = Color(0xFF121B22), fontWeight = FontWeight.Bold, fontSize = 12.sp)
+                                        Text("Ajustes", color = Color(0xFF131A22), fontWeight = FontWeight.Bold, fontSize = 12.sp)
                                     }
                                 }
                             }
@@ -322,13 +333,13 @@ fun ProfileScreen(
             TabRow(
                 selectedTabIndex = selectedTabIndex,
                 containerColor = Color.Transparent,
-                contentColor = Color(0xFF25D366),
+                contentColor = Color(0xFFFF28C8),
                 divider = {},
                 indicator = { tabPositions ->
                     if (selectedTabIndex < tabPositions.size) {
                         TabRowDefaults.SecondaryIndicator(
                             modifier = Modifier.tabIndicatorOffset(tabPositions[selectedTabIndex]),
-                            color = Color(0xFF25D366)
+                            color = Color(0xFFFF28C8)
                         )
                     }
                 }
@@ -336,7 +347,7 @@ fun ProfileScreen(
                 Tab(
                     selected = selectedTabIndex == 0,
                     onClick = { selectedTabIndex = 0 },
-                    text = { Text("Reels 🎬", color = if (selectedTabIndex == 0) Color(0xFF25D366) else Color.White.copy(alpha = 0.6f)) }
+                    text = { Text("Reels 🎬", color = if (selectedTabIndex == 0) Color(0xFFFF28C8) else Color.White.copy(alpha = 0.6f)) }
                 )
                 Tab(
                     selected = selectedTabIndex == 1,
@@ -344,7 +355,7 @@ fun ProfileScreen(
                         selectedTabIndex = 1
                         viewModel.loadSavedContent()
                     },
-                    text = { Text("Guardados 🔖", color = if (selectedTabIndex == 1) Color(0xFF25D366) else Color.White.copy(alpha = 0.6f)) }
+                    text = { Text("Guardados 🔖", color = if (selectedTabIndex == 1) Color(0xFFFF28C8) else Color.White.copy(alpha = 0.6f)) }
                 )
             }
 

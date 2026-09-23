@@ -95,11 +95,11 @@ fun SearchUsersScreen(
                     }
                 },
                 colors = TopAppBarDefaults.topAppBarColors(
-                    containerColor = Color(0xFF075E54)
+                    containerColor = Color(0xFF131A22)
                 )
             )
         },
-        containerColor = Color(0xFF101D24)
+        containerColor = Color(0xFF0D0F12)
     ) { innerPadding ->
         Box(
             modifier = Modifier
@@ -115,18 +115,18 @@ fun SearchUsersScreen(
                         horizontalAlignment = Alignment.CenterHorizontally,
                         verticalArrangement = Arrangement.Center
                     ) {
-                        Icon(Icons.Default.Person, contentDescription = null, tint = Color(0xFF37474F), modifier = Modifier.size(80.dp))
+                        Icon(Icons.Default.Person, contentDescription = null, tint = Color(0xFF18202A), modifier = Modifier.size(80.dp))
                         Spacer(modifier = Modifier.height(16.dp))
                         Text(
                             text = "Escribe un nombre para buscar",
-                            color = Color(0xFF90A4AE),
+                            color = Color(0xFFB8C4D6),
                             fontWeight = FontWeight.Bold,
                             fontSize = 16.sp
                         )
                         Spacer(modifier = Modifier.height(4.dp))
                         Text(
                             text = "Busca a tus panas para empezar a mensajear.",
-                            color = Color(0xFF607D8B),
+                            color = Color(0xFF7D8CA3),
                             fontSize = 13.sp
                         )
                     }
@@ -134,7 +134,7 @@ fun SearchUsersScreen(
                 is UserSearchUiState.Loading -> {
                     CircularProgressIndicator(
                         modifier = Modifier.align(Alignment.Center),
-                        color = Color(0xFF00A884)
+                        color = Color(0xFF18E7F5)
                     )
                 }
                 is UserSearchUiState.Success -> {

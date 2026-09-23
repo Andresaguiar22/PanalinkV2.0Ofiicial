@@ -79,7 +79,7 @@ internal fun PreviewAudioWaveform(
                 val startX = i * (barWidthPx + spacingPx)
                 val isPlayed = i <= activeBarIndex
 
-                val color = if (isPlayed) Color(0xFF00A884) else Color(0xFF53636E)
+                val color = if (isPlayed) Color(0xFF18E7F5) else Color(0xFF53636E)
 
                 drawRoundRect(
                     color = color,

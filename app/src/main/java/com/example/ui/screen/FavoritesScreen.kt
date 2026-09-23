@@ -59,7 +59,7 @@ fun FavoritesScreen(
                         Text(
                             "${favoritedMessages.size} mensajes",
                             style = MaterialTheme.typography.bodySmall,
-                            color = Color(0xFF8596A0)
+                            color = Color(0xFFB8C4D6)
                         )
                     }
                 },
@@ -69,12 +69,12 @@ fun FavoritesScreen(
                     }
                 },
                 colors = TopAppBarDefaults.topAppBarColors(
-                    containerColor = Color(0xFF202C33),
+                    containerColor = Color(0xFF131A22),
                     titleContentColor = Color.White
                 )
             )
         },
-        containerColor = Color(0xFF0B141A)
+        containerColor = Color(0xFF0D0F12)
     ) { padding ->
         if (favoritedMessages.isEmpty()) {
             Box(
@@ -93,7 +93,7 @@ fun FavoritesScreen(
                     )
                     Text(
                         "Mantén presionado un mensaje para guardarlo",
-                        color = Color(0xFF8596A0),
+                        color = Color(0xFFB8C4D6),
                         fontSize = 14.sp
                     )
                 }
@@ -103,7 +103,7 @@ fun FavoritesScreen(
                 modifier = Modifier
                     .fillMaxSize()
                     .padding(padding)
-                    .background(Color(0xFF0B141A)),
+                    .background(Color(0xFF0D0F12)),
                 contentPadding = PaddingValues(bottom = 16.dp)
             ) {
                 itemsIndexed(favoritedMessages, key = { index, message -> "${message.id}_$index" }) { _, message ->

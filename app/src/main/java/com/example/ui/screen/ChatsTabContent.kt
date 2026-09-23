@@ -91,8 +91,6 @@ import java.util.*
 import com.example.ui.viewmodel.NotificationsViewModel
 import com.example.ui.theme.PanalinkPalette
 
-@OptIn(ExperimentalMaterial3Api::class)
-
 
 @Composable
 fun ChatsTabContent(
@@ -114,151 +112,88 @@ fun ChatsTabContent(
     customUnreadCounts: Map<String, Int> = emptyMap()
 ) {
     val context = androidx.compose.ui.platform.LocalContext.current
-    val colors = com.example.ui.theme.LocalAppColors.current
     var isRefreshing by remember { mutableStateOf(false) }
     val scope = rememberCoroutineScope()
-    var searchQuery by remember { mutableStateOf("") }
-
     val listState = androidx.compose.foundation.lazy.rememberLazyListState()
 
-    // Restore scroll position
     LaunchedEffect(Unit) {
         val pos = ChatListScrollManager.getPosition(context)
-        if (pos != null) {
-            listState.scrollToItem(pos.first, pos.second)
-        }
+        if (pos != null) listState.scrollToItem(pos.first, pos.second)
     }
 
-    // Save scroll position
     LaunchedEffect(listState.firstVisibleItemIndex, listState.firstVisibleItemScrollOffset) {
         if (listState.firstVisibleItemIndex > 0 || listState.firstVisibleItemScrollOffset > 0) {
-            ChatListScrollManager.savePosition(
-                context,
-                listState.firstVisibleItemIndex,
-                listState.firstVisibleItemScrollOffset
-            )
+            ChatListScrollManager.savePosition(context, listState.firstVisibleItemIndex, listState.firstVisibleItemScrollOffset)
         }
     }
 
-    Column(modifier = Modifier.fillMaxSize()) {
-        // High-fidelity Search Bar
-        OutlinedTextField(
-            value = searchQuery,
-            onValueChange = { searchQuery = it },
+    val visibleChats = remember(chatsState, deletedChatIds) {
+        (chatsState as? ChatsUiState.Success)?.chats
+            ?.filterNot { deletedChatIds.contains(it.chat.id) || it.chat.isArchived }
+            ?.sortedWith(
+                compareByDescending<ChatWithDetails> { it.chat.isPinned }
+                    .thenByDescending { it.chat.pinnedAt ?: "" }
+                    .thenByDescending { it.lastMessage?.createdAt ?: it.chat.createdAt ?: "" }
+            )
+            ?: emptyList()
+    }
+
+    Box(Modifier.fillMaxSize()) {
+        PanaLinkCyberpunkBackground(Modifier.matchParentSize())
+
+        PanaLinkNeonGlassPanel(
             modifier = Modifier
-                .fillMaxWidth()
-                .padding(horizontal = 16.dp, vertical = 8.dp),
-            placeholder = { Text("Buscar panas o mensajes...", color = com.example.ui.theme.PanalinkSkin.Sub) },
-            leadingIcon = {
-                Icon(
-                    imageVector = Icons.Default.Search,
-                    contentDescription = "Icono de búsqueda",
-                    tint = com.example.ui.theme.PanalinkSkin.CreamDim
-                )
-            },
-            trailingIcon = {
-                if (searchQuery.isNotEmpty()) {
-                    IconButton(onClick = { searchQuery = "" }) {
-                        Icon(
-                            imageVector = Icons.Default.Close,
-                            contentDescription = "Limpiar búsqueda",
-                            tint = Color.Gray
-                        )
+                .fillMaxSize()
+                .padding(horizontal = 14.dp, vertical = 6.dp)
+        ) {
+            PanalinkPullToRefreshBox(
+                isRefreshing = isRefreshing,
+                onRefresh = {
+                    scope.launch {
+                        isRefreshing = true
+                        onRefresh()
+                        kotlinx.coroutines.delay(700)
+                        isRefreshing = false
                     }
                 }
-            },
-            singleLine = true,
-            colors = OutlinedTextFieldDefaults.colors(
-                focusedBorderColor = com.example.ui.theme.PanalinkSkin.Gold.copy(alpha = 0.55f),
-                unfocusedBorderColor = Color(0x804A5160),
-                focusedContainerColor = com.example.ui.theme.PanalinkSkin.Glass,
-                unfocusedContainerColor = com.example.ui.theme.PanalinkSkin.Glass,
-                focusedTextColor = com.example.ui.theme.PanalinkSkin.Cream,
-                unfocusedTextColor = com.example.ui.theme.PanalinkSkin.Cream,
-                cursorColor = com.example.ui.theme.PanalinkSkin.Gold
-            ),
-            shape = RoundedCornerShape(28.dp)
-        )
-
-        PanalinkPullToRefreshBox(
-            isRefreshing = isRefreshing,
-            onRefresh = {
-                scope.launch {
-                    isRefreshing = true
-                    onRefresh()
-                    kotlinx.coroutines.delay(1200)
-                    isRefreshing = false
-                }
-            }
-        ) {
-            LazyColumn(
-                state = listState,
-                modifier = Modifier.fillMaxSize(),
-                contentPadding = PaddingValues(top = 8.dp, bottom = 32.dp)
             ) {
-                // Chats Header
-                item {
-                    Spacer(modifier = Modifier.height(8.dp))
-                }
-
-                if (searchQuery.isEmpty()) {
-                    // Active Chats List
+                LazyColumn(
+                    state = listState,
+                    modifier = Modifier.fillMaxSize(),
+                    contentPadding = PaddingValues(start = 10.dp, end = 10.dp, top = 12.dp, bottom = 22.dp),
+                    verticalArrangement = Arrangement.spacedBy(2.dp)
+                ) {
                     when (chatsState) {
                         is ChatsUiState.Loading -> {
-                            items(5) {
-                                ShimmerChatItemRow()
-                            }
+                            items(6) { ShimmerChatItemRow() }
                         }
                         is ChatsUiState.Success -> {
-                            var chats = chatsState.chats
-                            // Filter deleted and archived
-                            chats = chats.filterNot { deletedChatIds.contains(it.chat.id) || it.chat.isArchived }
-                            // Sort pinned to the top
-                            chats = chats.sortedWith(
-                                compareByDescending<ChatWithDetails> { it.chat.isPinned }
-                                    .thenByDescending { it.chat.pinnedAt ?: "" }
-                                    .thenByDescending { it.lastMessage?.createdAt ?: it.chat.createdAt ?: "" }
-                            )
-
-                            if (chats.isEmpty()) {
+                            if (visibleChats.isEmpty()) {
                                 item {
                                     Column(
-                                        modifier = Modifier
-                                            .fillMaxWidth()
-                                            .padding(40.dp),
-                                        horizontalAlignment = Alignment.CenterHorizontally,
-                                        verticalArrangement = Arrangement.Center
+                                        modifier = Modifier.fillMaxWidth().padding(48.dp),
+                                        horizontalAlignment = Alignment.CenterHorizontally
                                     ) {
-                                        Icon(Icons.Default.Email, contentDescription = null, tint = Color(0xFF37474F), modifier = Modifier.size(72.dp))
-                                        Spacer(modifier = Modifier.height(16.dp))
-                                        Text("No tienes chats activos", color = Color(0xFF90A4AE), fontWeight = FontWeight.Bold, fontSize = 16.sp)
-                                        Spacer(modifier = Modifier.height(4.dp))
-                                        Text("Presiona el botón de abajo para buscar panas.", color = Color(0xFF607D8B), fontSize = 13.sp)
+                                        Icon(Icons.Default.Email, contentDescription = null, tint = PanaLinkCyberpunkColors.Cyan.copy(alpha = 0.65f), modifier = Modifier.size(64.dp))
+                                        Spacer(Modifier.height(14.dp))
+                                        Text("No tienes chats activos", color = PanaLinkCyberpunkColors.Cream, fontWeight = FontWeight.Bold, fontSize = 17.sp)
+                                        Spacer(Modifier.height(6.dp))
+                                        Text("Usa + para comenzar una nueva conversación.", color = PanaLinkCyberpunkColors.Message.copy(alpha = 0.72f), fontSize = 13.sp, textAlign = TextAlign.Center)
                                     }
                                 }
                             } else {
-                                itemsIndexed(chats, key = { index, chatDetails -> "${chatDetails.chat.id}_$index" }) { cardIndex, chatDetails ->
-                                    ChatPreviewCard(
-                                        chatDetails = if (customUnreadCounts.containsKey(chatDetails.chat.id)) {
-                                            chatDetails.copy(unreadCount = customUnreadCounts[chatDetails.chat.id]!!)
-                                        } else {
-                                            chatDetails
-                                        },
+                                itemsIndexed(visibleChats, key = { _, chatDetails -> chatDetails.chat.id }) { index, chatDetails ->
+                                    ChatItemRow(
+                                        chatDetails = if (customUnreadCounts.containsKey(chatDetails.chat.id)) chatDetails.copy(unreadCount = customUnreadCounts[chatDetails.chat.id]!!) else chatDetails,
+                                        chatsViewModel = chatsViewModel,
                                         isTyping = typingChats[chatDetails.chat.id] == true,
                                         isSelected = selectedChatIds.contains(chatDetails.chat.id),
-                                        isPinned = chatDetails.chat.isPinned,
-                                        position = chatCardPositionFor(cardIndex, chats.size),
-                                        onLongClick = {
-                                            if (selectedChatIds.isEmpty()) {
-                                                onStartChatSelection(chatDetails.chat.id)
-                                            }
-                                        },
+                                        isMuted = mutedChatIds.contains(chatDetails.chat.id) || chatDetails.chat.isMuted,
+                                        isPinned = pinnedChatIds.contains(chatDetails.chat.id) || chatDetails.chat.isPinned,
+                                        onLongClick = { if (selectedChatIds.isEmpty()) onStartChatSelection(chatDetails.chat.id) },
                                         onClick = {
-                                            if (selectedChatIds.isNotEmpty()) {
-                                                onToggleChatSelection(chatDetails.chat.id)
-                                            } else {
-                                                onNavigateToChat(chatDetails.chat.id, chatDetails.otherMember?.id ?: "")
-                                            }
+                                            if (selectedChatIds.isNotEmpty()) onToggleChatSelection(chatDetails.chat.id)
+                                            else onNavigateToChat(chatDetails.chat.id, chatDetails.otherMember?.id ?: "")
                                         }
                                     )
                                 }
@@ -266,183 +201,7 @@ fun ChatsTabContent(
                         }
                         is ChatsUiState.Error -> {
                             item {
-                                Text(
-                                    text = chatsState.message,
-                                    color = Color.Red,
-                                    modifier = Modifier.padding(16.dp),
-                                    textAlign = TextAlign.Center
-                                )
-                            }
-                        }
-                    }
-                } else {
-                    // Filtered results
-                    when (chatsState) {
-                        is ChatsUiState.Loading -> {
-                            items(3) {
-                                ShimmerChatItemRow()
-                            }
-                        }
-                        is ChatsUiState.Success -> {
-                            var chats = chatsState.chats
-                            // Filter deleted and archived
-                            chats = chats.filterNot { deletedChatIds.contains(it.chat.id) || it.chat.isArchived }
-                            // Sort pinned to the top
-                            chats = chats.sortedWith(
-                                compareByDescending<ChatWithDetails> { it.chat.isPinned }
-                                    .thenByDescending { it.chat.pinnedAt ?: "" }
-                                    .thenByDescending { it.lastMessage?.createdAt ?: it.chat.createdAt ?: "" }
-                            )
-
-                            val filteredChats = chats.filter { chatDetails ->
-                                val otherUser = chatDetails.otherMember
-                                val nameMatches = otherUser?.displayName?.contains(searchQuery, ignoreCase = true) == true
-                                val msgMatches = chatDetails.lastMessage?.content?.contains(searchQuery, ignoreCase = true) == true
-                                nameMatches || msgMatches
-                            }
-
-                            val filteredContacts = if (contactsState is ContactsUiState.Success) {
-                                contactsState.contacts.filter { contact ->
-                                    contact.displayName.contains(searchQuery, ignoreCase = true)
-                                }.filter { contact ->
-                                    filteredChats.none { chatDetails -> chatDetails.otherMember?.id == contact.id }
-                                }
-                            } else {
-                                emptyList()
-                            }
-
-                            if (filteredChats.isEmpty() && filteredContacts.isEmpty()) {
-                                item {
-                                    Column(
-                                        modifier = Modifier
-                                            .fillMaxWidth()
-                                            .padding(40.dp),
-                                        horizontalAlignment = Alignment.CenterHorizontally,
-                                        verticalArrangement = Arrangement.Center
-                                    ) {
-                                        Icon(Icons.Default.SearchOff, contentDescription = null, tint = Color(0xFF37474F), modifier = Modifier.size(72.dp))
-                                        Spacer(modifier = Modifier.height(16.dp))
-                                        Text("Sin resultados para \"$searchQuery\"", color = Color(0xFF90A4AE), fontWeight = FontWeight.Bold, fontSize = 16.sp)
-                                        Spacer(modifier = Modifier.height(4.dp))
-                                        Text("Prueba con otro nombre o palabra clave.", color = Color(0xFF607D8B), fontSize = 13.sp)
-                                    }
-                                }
-                            } else {
-                                if (filteredChats.isNotEmpty()) {
-                                    item {
-                                        Text(
-                                            text = "CONVERSACIONES ACTIVAS",
-                                            color = PanalinkPalette.textPrimary,
-                                            fontSize = 11.sp,
-                                            fontWeight = FontWeight.Bold,
-                                            modifier = Modifier.padding(horizontal = 16.dp, vertical = 8.dp)
-                                        )
-                                    }
-                                    itemsIndexed(filteredChats, key = { index, chatDetails -> "${chatDetails.chat.id}_$index" }) { cardIndex, chatDetails ->
-                                        ChatPreviewCard(
-                                            chatDetails = if (customUnreadCounts.containsKey(chatDetails.chat.id)) {
-                                                chatDetails.copy(unreadCount = customUnreadCounts[chatDetails.chat.id]!!)
-                                            } else {
-                                                chatDetails
-                                            },
-                                            isTyping = typingChats[chatDetails.chat.id] == true,
-                                            isSelected = selectedChatIds.contains(chatDetails.chat.id),
-                                            isPinned = chatDetails.chat.isPinned,
-                                            position = chatCardPositionFor(cardIndex, filteredChats.size),
-                                            onLongClick = {
-                                                if (selectedChatIds.isEmpty()) {
-                                                    onStartChatSelection(chatDetails.chat.id)
-                                                }
-                                            },
-                                            onClick = {
-                                                if (selectedChatIds.isNotEmpty()) {
-                                                    onToggleChatSelection(chatDetails.chat.id)
-                                                } else {
-                                                    onNavigateToChat(chatDetails.chat.id, chatDetails.otherMember?.id ?: "")
-                                                }
-                                            }
-                                        )
-                                    }
-                                }
-
-                                if (filteredContacts.isNotEmpty()) {
-                                    item {
-                                        Spacer(modifier = Modifier.height(12.dp))
-                                        Text(
-                                            text = "PANAS / CONTACTOS",
-                                            color = colors.accent,
-                                            fontSize = 11.sp,
-                                            fontWeight = FontWeight.Bold,
-                                            modifier = Modifier.padding(horizontal = 16.dp, vertical = 8.dp)
-                                        )
-                                    }
-                                    items(filteredContacts) { contact ->
-                                        Row(
-                                            verticalAlignment = Alignment.CenterVertically,
-                                            modifier = Modifier
-                                                .fillMaxWidth()
-                                                .clickable {
-                                                    chatsViewModel.createChat(contact) { chat ->
-                                                        onNavigateToChat(chat.id, contact.id)
-                                                    }
-                                                }
-                                                .padding(horizontal = 16.dp, vertical = 12.dp)
-                                        ) {
-                                            val presenceMap by com.example.data.repository.PresenceRepository.presenceMap.collectAsStateWithLifecycle()
-                                            val presenceInfo = presenceMap[contact.id]
-                                            val statusStr = presenceInfo?.status?.rawValue ?: "offline"
-                                            val secondaryStr = if (presenceInfo?.secondaryStatus != com.example.data.repository.SecondaryPresenceStatus.NONE) presenceInfo?.secondaryStatus?.rawValue else null
-                                            ChatAvatar(
-                                                name = contact.displayName,
-                                                avatarUrl = contact.avatarUrl,
-                                                status = statusStr,
-                                                secondaryStatus = secondaryStr,
-                                                size = 54.dp
-                                            )
-
-                                            Spacer(modifier = Modifier.width(16.dp))
-
-                                            Column(modifier = Modifier.weight(1f)) {
-                                                Text(
-                                                    text = contact.displayName,
-                                                    color = PanalinkPalette.textPrimary,
-                                                    fontWeight = FontWeight.Bold,
-                                                    fontSize = 16.sp
-                                                )
-                                                Spacer(modifier = Modifier.height(2.dp))
-                                                Text(
-                                                    text = "Conectado por panalink",
-                                                    color = Color(0xFF90A4AE),
-                                                    fontSize = 13.sp
-                                                )
-                                            }
-
-                                            IconButton(
-                                                onClick = {
-                                                    chatsViewModel.createChat(contact) { chat ->
-                                                        onNavigateToChat(chat.id, contact.id)
-                                                    }
-                                                }
-                                            ) {
-                                                Icon(
-                                                    imageVector = Icons.Default.Email,
-                                                    contentDescription = "Enviar mensaje",
-                                                    tint = PanalinkPalette.textPrimary
-                                                )
-                                            }
-                                        }
-                                    }
-                                }
-                            }
-                        }
-                        is ChatsUiState.Error -> {
-                            item {
-                                Text(
-                                    text = chatsState.message,
-                                    color = Color.Red,
-                                    modifier = Modifier.padding(16.dp),
-                                    textAlign = TextAlign.Center
-                                )
+                                Text(chatsState.message, color = Color(0xFFFF6B7A), textAlign = TextAlign.Center, modifier = Modifier.fillMaxWidth().padding(40.dp))
                             }
                         }
                     }
@@ -452,141 +211,139 @@ fun ChatsTabContent(
     }
 }
 
-
 @Composable
 fun ChatItemRow(
     chatDetails: ChatWithDetails,
     chatsViewModel: ChatsViewModel,
-    onNavigateToChat: (String, String) -> Unit,
+    onNavigateToChat: (String, String) -> Unit = { _, _ -> },
     isSelected: Boolean = false,
     isMuted: Boolean = false,
     isPinned: Boolean = false,
     customUnreadCount: Int? = null,
+    isTyping: Boolean = false,
     onLongClick: () -> Unit = {},
     onClick: () -> Unit = {}
 ) {
-    val colors = com.example.ui.theme.LocalAppColors.current
     val otherUser = chatDetails.otherMember
     val lastMessage = chatDetails.lastMessage
-    
-    // Format timestamp nicely
     val formattedTime = com.example.data.model.formatIsoDateTime(lastMessage?.createdAt)
-
     val presenceMap by com.example.data.repository.PresenceRepository.presenceMap.collectAsStateWithLifecycle()
-    val isOnline = presenceMap[otherUser?.id ?: ""]?.status != com.example.data.repository.UserPresenceStatus.OFFLINE
-
-    val rowBackground = if (isSelected) Color(0x1F25D366) else Color.Transparent
+    val status = presenceMap[otherUser?.id ?: ""]?.status?.rawValue ?: "offline"
+    val secondaryStatus = presenceMap[otherUser?.id ?: ""]?.secondaryStatus
+        ?.takeIf { it != com.example.data.repository.SecondaryPresenceStatus.NONE }
+        ?.rawValue
+    val unread = customUnreadCount ?: chatDetails.unreadCount
+    val isMine = lastMessage?.senderId == SupabaseClient.currentUser?.id
+    val rowShape = RoundedCornerShape(18.dp)
 
     Row(
         verticalAlignment = Alignment.CenterVertically,
         modifier = Modifier
             .fillMaxWidth()
-            .background(rowBackground)
-            .combinedClickable(
-                onLongClick = onLongClick,
-                onClick = onClick
+            .clip(rowShape)
+            .background(
+                if (isSelected) PanaLinkCyberpunkColors.Purple.copy(alpha = 0.13f)
+                else Color.Transparent
             )
-            .padding(horizontal = 16.dp, vertical = 12.dp)
+            .combinedClickable(onLongClick = onLongClick, onClick = onClick)
+            .padding(horizontal = 12.dp, vertical = 10.dp)
     ) {
-        // User Profile Pic with dynamic gradient and status badges
         ChatAvatar(
             name = otherUser?.displayName ?: "Pana de panalink",
             avatarUrl = otherUser?.avatarUrl,
-            status = presenceMap[otherUser?.id ?: ""]?.status?.rawValue ?: "offline", secondaryStatus = if (presenceMap[otherUser?.id ?: ""]?.secondaryStatus != com.example.data.repository.SecondaryPresenceStatus.NONE) presenceMap[otherUser?.id ?: ""]?.secondaryStatus?.rawValue else null,
-            hasUnread = (customUnreadCount ?: chatDetails.unreadCount) > 0,
-            size = 54.dp,
+            status = status,
+            secondaryStatus = secondaryStatus,
+            hasUnread = unread > 0,
+            size = 56.dp,
             isSelected = isSelected
         )
 
-        Spacer(modifier = Modifier.width(16.dp))
+        Spacer(Modifier.width(14.dp))
 
-        // Text Info (Name + Last Message)
-        Column(
-            modifier = Modifier.weight(1f)
-        ) {
+        Column(Modifier.weight(1f)) {
             Row(
-                modifier = Modifier.fillMaxWidth(),
+                Modifier.fillMaxWidth(),
                 horizontalArrangement = Arrangement.SpaceBetween,
                 verticalAlignment = Alignment.CenterVertically
             ) {
                 Row(
-                    verticalAlignment = Alignment.CenterVertically,
-                    modifier = Modifier.weight(1f)
+                    Modifier.weight(1f),
+                    verticalAlignment = Alignment.CenterVertically
                 ) {
                     Text(
                         text = otherUser?.displayName ?: "Pana de panalink",
-                        color = PanalinkPalette.textPrimary,
+                        color = PanaLinkCyberpunkColors.Cream,
                         fontWeight = FontWeight.Bold,
                         fontSize = 16.sp,
                         maxLines = 1,
                         overflow = TextOverflow.Ellipsis
                     )
                     if (isPinned) {
-                        Spacer(modifier = Modifier.width(6.dp))
-                        Icon(
-                            imageVector = Icons.Default.PushPin,
-                            contentDescription = "Anclado",
-                            tint = Color(0xFF00A884),
-                            modifier = Modifier.size(14.dp)
-                        )
+                        Spacer(Modifier.width(5.dp))
+                        Icon(Icons.Default.PushPin, contentDescription = "Anclado", tint = PanaLinkCyberpunkColors.Gold, modifier = Modifier.size(13.dp))
                     }
                 }
+
                 Text(
                     text = formattedTime,
-                    color = Color(0xFF90A4AE),
-                    fontSize = 12.sp
+                    color = PanaLinkCyberpunkColors.Message.copy(alpha = 0.72f),
+                    fontSize = 11.sp
                 )
             }
 
-            Spacer(modifier = Modifier.height(4.dp))
+            Spacer(Modifier.height(4.dp))
 
             Row(
-                modifier = Modifier.fillMaxWidth(),
-                horizontalArrangement = Arrangement.SpaceBetween,
+                Modifier.fillMaxWidth(),
                 verticalAlignment = Alignment.CenterVertically
             ) {
                 Text(
-                    text = lastMessage?.previewText() ?: "Inicia la conversación chamo...",
-                    color = Color(0xFF90A4AE),
+                    text = if (isTyping) "escribiendo…" else (lastMessage?.previewText() ?: "Inicia la conversación chamo..."),
+                    color = if (isTyping) PanaLinkCyberpunkColors.Cyan else PanaLinkCyberpunkColors.Message.copy(alpha = 0.78f),
                     fontSize = 13.sp,
+                    fontWeight = if (isTyping) FontWeight.SemiBold else FontWeight.Normal,
                     maxLines = 1,
                     overflow = TextOverflow.Ellipsis,
                     modifier = Modifier.weight(1f)
                 )
-                
-                Row(verticalAlignment = Alignment.CenterVertically) {
-                    if (isMuted) {
-                        Icon(
-                            imageVector = Icons.Default.NotificationsOff,
-                            contentDescription = "Silenciado",
-                            tint = Color.Gray,
-                            modifier = Modifier.size(14.dp)
+
+                if (isMuted) {
+                    Spacer(Modifier.width(6.dp))
+                    Icon(Icons.Default.NotificationsOff, contentDescription = "Silenciado", tint = Color.Gray, modifier = Modifier.size(14.dp))
+                }
+
+                if (isMine && lastMessage != null) {
+                    Spacer(Modifier.width(6.dp))
+                    Icon(
+                        imageVector = if (lastMessage.seenAt != null) Icons.Default.DoneAll else Icons.Default.Done,
+                        contentDescription = if (lastMessage.seenAt != null) "Visto" else "Enviado",
+                        tint = PanaLinkCyberpunkColors.Cyan,
+                        modifier = Modifier.size(18.dp)
+                    )
+                }
+
+                if (unread > 0) {
+                    Spacer(Modifier.width(7.dp))
+                    Box(
+                        modifier = Modifier
+                            .defaultMinSize(minWidth = 20.dp)
+                            .height(20.dp)
+                            .background(PanaLinkCyberpunkColors.Cyan.copy(alpha = 0.90f), CircleShape)
+                            .padding(horizontal = 5.dp),
+                        contentAlignment = Alignment.Center
+                    ) {
+                        Text(
+                            text = if (unread > 99) "99+" else unread.toString(),
+                            color = Color(0xFF0D0F12),
+                            fontWeight = FontWeight.Bold,
+                            fontSize = 10.sp
                         )
-                        Spacer(modifier = Modifier.width(6.dp))
-                    }
-                    
-                    val finalUnreadCount = customUnreadCount ?: chatDetails.unreadCount
-                    if (finalUnreadCount > 0) {
-                        Box(
-                            modifier = Modifier
-                                .size(20.dp)
-                                .background(colors.accent, CircleShape),
-                            contentAlignment = Alignment.Center
-                        ) {
-                            Text(
-                                text = finalUnreadCount.toString(),
-                                color = PanalinkPalette.textPrimary,
-                                fontWeight = FontWeight.Bold,
-                                fontSize = 11.sp
-                            )
-                        }
                     }
                 }
             }
         }
     }
 }
-
 
 @Composable
 fun ShimmerChatItemRow() {
@@ -653,20 +410,19 @@ fun ChatAvatar(
     size: androidx.compose.ui.unit.Dp = 54.dp,
     isSelected: Boolean = false
 ) {
-    val colors = com.example.ui.theme.LocalAppColors.current
     Box(
         modifier = Modifier
             .size(size)
             .bounceClick()
     ) {
-        val borderModifier = if (hasUnread) {
-            Modifier
-                .fillMaxSize()
-                .border(2.5.dp, com.example.ui.theme.getPremiumActiveIconGradient(), CircleShape)
-                .padding(3.dp)
-        } else {
-            Modifier.fillMaxSize()
-        }
+        val borderModifier = Modifier
+            .fillMaxSize()
+            .border(
+                if (hasUnread) 2.2.dp else 1.4.dp,
+                if (hasUnread) com.example.ui.theme.getPremiumActiveIconGradient() else Brush.linearGradient(listOf(PanaLinkCyberpunkColors.Gold, PanaLinkCyberpunkColors.Gold.copy(alpha = 0.75f))),
+                CircleShape
+            )
+            .padding(if (hasUnread) 3.dp else 1.5.dp)
 
         Box(
             modifier = borderModifier
@@ -711,7 +467,7 @@ fun ChatAvatar(
                 Icon(
                     imageVector = Icons.Default.CheckCircle,
                     contentDescription = "Selected",
-                    tint = Color(0xFF00A884), // WhatsApp primary green
+                    tint = Color(0xFF18E7F5), // WhatsApp primary green
                     modifier = Modifier.size(20.dp)
                 )
             }
@@ -725,7 +481,7 @@ fun ChatAvatar(
                     size = 13.dp,
                     showText = false,
                     showOffline = false,
-                    borderColor = colors.background,
+                    borderColor = PanaLinkCyberpunkColors.Background,
                     modifier = Modifier.align(Alignment.BottomEnd)
                 )
             }

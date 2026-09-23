@@ -113,7 +113,7 @@ fun LiveStudioSheet(
 
             Button(
                 onClick = onStartOwnLive,
-                colors = ButtonDefaults.buttonColors(containerColor = Color(0xFF00A884)),
+                colors = ButtonDefaults.buttonColors(containerColor = Color(0xFF18E7F5)),
                 shape = RoundedCornerShape(50),
                 modifier = Modifier
                     .fillMaxWidth()

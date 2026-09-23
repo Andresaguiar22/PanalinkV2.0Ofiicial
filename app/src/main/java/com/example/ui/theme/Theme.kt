@@ -8,11 +8,14 @@ import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.darkColorScheme
 import androidx.compose.material3.lightColorScheme
 import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.offset
+import androidx.compose.foundation.layout.size
 import androidx.compose.material3.LocalTextStyle
 import androidx.compose.ui.text.font.FontFamily
 import androidx.compose.animation.core.*
 import androidx.compose.ui.composed
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.blur
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.foundation.background
@@ -78,7 +81,7 @@ class AppColors(
 }
 
 val WhatsAppDarkColors = AppColors(
-    primary = Color(0xFF00A884),      // WhatsApp Green
+    primary = Color(0xFF18E7F5),      // WhatsApp Green
     secondary = Color(0xFF1F2C34),    // Dark Gray surface
     background = Color(0xFF0B141A),   // Dark background
     surface = Color(0xFF1F2C34),      // Dark card surface
@@ -86,7 +89,7 @@ val WhatsAppDarkColors = AppColors(
     bubbleOther = Color(0xFF202C33),  // Other bubble (dark gray)
     topBar = Color(0xFF202C33),
     bottomBar = Color(0xFF202C33),
-    accent = Color(0xFF00A884),       // WhatsApp Green
+    accent = Color(0xFF18E7F5),       // WhatsApp Green
     isDark = true,
     onPrimary = Color.White,
     onSecondary = Color.White,
@@ -95,7 +98,7 @@ val WhatsAppDarkColors = AppColors(
 )
 
 val DarkTealColors = AppColors(
-    primary = Color(0xFF00E5FF),      // Electric Cyan
+    primary = Color(0xFF18E7F5),      // Electric Cyan
     secondary = Color(0xFF161618),    // Dark Gray surface
     background = Color(0xFF000000),   // Deep Black
     surface = Color(0xFF121212),      // Dark Gray Surface
@@ -282,6 +285,23 @@ val HaloLightColors = AppColors(
     onSurface = Color(0xFF0B0F14)
 )
 
+val CyberpunkGlobalColors = AppColors(
+    primary = Color(0xFF18E7F5),
+    secondary = Color(0xFF7B3FF2),
+    background = Color(0xFF0D0F12),
+    surface = Color(0xB8131A22),
+    bubbleMe = Color(0xFF7B3FF2),
+    bubbleOther = Color(0xFF18202A),
+    topBar = Color(0xB8131A22),
+    bottomBar = Color(0xB8131A22),
+    accent = Color(0xFFFF28C8),
+    isDark = true,
+    onPrimary = Color(0xFF071014),
+    onSecondary = Color(0xFFF5E6C8),
+    onBackground = Color(0xFFF5E6C8),
+    onSurface = Color(0xFFF5E6C8)
+)
+
 val HaloDarkColors = AppColors(
     // Identidad de marca Panalink: mint del mockup + dorado, sobre navy.
     primary = Color(0xFF3FCF8E),
@@ -301,7 +321,7 @@ val HaloDarkColors = AppColors(
 )
 
 object ThemeManager {
-    val themeKey = kotlinx.coroutines.flow.MutableStateFlow("halo_dark")
+    val themeKey = kotlinx.coroutines.flow.MutableStateFlow("cyberpunk_global")
 
     // Global light/dark/system mode. Real: MainActivity resolves the effective
     // theme key from this every recomposition, so "Claro/Oscuro/Sistema"
@@ -316,17 +336,17 @@ object ThemeManager {
 
     val isMinimalistMode = kotlinx.coroutines.flow.MutableStateFlow(false)
 
-    val bottomBarColorPreset = kotlinx.coroutines.flow.MutableStateFlow("tropical")
+    val bottomBarColorPreset = kotlinx.coroutines.flow.MutableStateFlow("neon_cyber")
     val bottomBarShapePreset = kotlinx.coroutines.flow.MutableStateFlow("pill")
 
     fun getBottomBarColors(preset: String): List<Color> {
         return when (preset) {
             "neon_cyber" -> listOf(
-                Color(0xFF00F0FF), // Cyan
-                Color(0xFFBC00DD), // Magenta
-                Color(0xFFFF007F), // Neon Pink
-                Color(0xFF39FF14), // Lime Green
-                Color(0xFF00F0FF)
+                Color(0xFF18E7F5), // Cyan
+                Color(0xFF7B3FF2), // Purple
+                Color(0xFFFF28C8), // Magenta
+                Color(0xFFF0D9A6), // Gold
+                Color(0xFF18E7F5)
             )
             "monochrome" -> listOf(
                 Color(0xFFFFFFFF),
@@ -343,11 +363,11 @@ object ThemeManager {
                 Color(0xFFFF3D00)
             )
             "aurora" -> listOf(
-                Color(0xFF00E5FF), // Cyan
+                Color(0xFF18E7F5), // Cyan
                 Color(0xFF1DE9B6), // Teal
                 Color(0xFF00E676), // Lime Accent
                 Color(0xFF651FFF), // Purple Accent
-                Color(0xFF00E5FF)
+                Color(0xFF18E7F5)
             )
             else -> listOf( // "tropical" / default elegant mint
                 Color(0xFF76CE9F), // Soft Mint Green
@@ -402,6 +422,7 @@ fun getColorsForTheme(themeKey: String?, customColors: AppColors? = null): AppCo
         "vivid_ocean" -> VividOceanColors
         "halo_light" -> HaloLightColors
         "halo_dark" -> HaloDarkColors
+        "cyberpunk_global" -> CyberpunkGlobalColors
         "royal_purple" -> RoyalPurpleColors
         "nordic_ice" -> NordicIceColors
         "cyberpunk" -> CyberpunkColors
@@ -416,7 +437,7 @@ val LocalAppColors = staticCompositionLocalOf { HaloDarkColors }
 
 @Composable
 fun MyApplicationTheme(
-    themeKey: String = "dark_teal",
+    themeKey: String = "cyberpunk_global",
     customColors: AppColors? = null,
     content: @Composable () -> Unit,
 ) {
@@ -433,12 +454,19 @@ fun MyApplicationTheme(
         darkColorScheme(
             primary = activeColors.primary,
             secondary = activeColors.secondary,
+            tertiary = activeColors.accent,
             background = activeColors.background,
             surface = activeColors.surface,
+            surfaceVariant = Color(0xFF18202A),
             onPrimary = activeColors.onPrimary,
             onSecondary = activeColors.onSecondary,
+            onTertiary = Color(0xFF071014),
             onBackground = activeColors.onBackground,
-            onSurface = activeColors.onSurface
+            onSurface = activeColors.onSurface,
+            outline = Color(0xFF18E7F5),
+            outlineVariant = Color(0xFF7B3FF2),
+            error = Color(0xFFFF4D7D),
+            onError = Color.White
         )
     } else {
         lightColorScheme(
@@ -474,10 +502,64 @@ fun MyApplicationTheme(
                     .fillMaxSize()
                     .background(PanalinkPalette.background)
             ) {
-                if (isDark) ConstellationBackground() else LightBrandBackground()
+                if (themeKey == "cyberpunk_global" && isDark) CyberpunkGlobalBackground() else if (isDark) ConstellationBackground() else LightBrandBackground()
                 content()
             }
         }
+    }
+}
+
+@Composable
+private fun CyberpunkGlobalBackground() {
+    val cyan = Color(0xFF18E7F5)
+    val magenta = Color(0xFFFF28C8)
+    val purple = Color(0xFF9B5CFF)
+    androidx.compose.foundation.layout.Box(modifier = androidx.compose.ui.Modifier.fillMaxSize()) {
+        androidx.compose.foundation.layout.Box(
+            modifier = androidx.compose.ui.Modifier.fillMaxSize().background(Color(0xFF0D0F12))
+        )
+        androidx.compose.foundation.Canvas(modifier = androidx.compose.ui.Modifier.fillMaxSize()) {
+            val step = 22.dp.toPx()
+            var x = 0f
+            while (x < size.width) {
+                drawLine(cyan.copy(alpha = 0.035f), androidx.compose.ui.geometry.Offset(x, 0f), androidx.compose.ui.geometry.Offset(x, size.height))
+                x += step
+            }
+            var y = 0f
+            while (y < size.height) {
+                drawLine(cyan.copy(alpha = 0.025f), androidx.compose.ui.geometry.Offset(0f, y), androidx.compose.ui.geometry.Offset(size.width, y))
+                y += step
+            }
+            val wide = 55.dp.toPx()
+            var mx = 0f
+            while (mx < size.width) {
+                drawLine(magenta.copy(alpha = 0.028f), androidx.compose.ui.geometry.Offset(mx, 0f), androidx.compose.ui.geometry.Offset(mx, size.height))
+                mx += wide
+            }
+        }
+        androidx.compose.foundation.layout.Box(
+            modifier = androidx.compose.ui.Modifier
+                .size(260.dp)
+                .offset(x = (-70).dp, y = (-45).dp)
+                .blur(65.dp)
+                .background(androidx.compose.ui.graphics.Brush.radialGradient(listOf(magenta.copy(alpha = 0.16f), Color.Transparent)))
+        )
+        androidx.compose.foundation.layout.Box(
+            modifier = androidx.compose.ui.Modifier
+                .size(300.dp)
+                .align(androidx.compose.ui.Alignment.CenterEnd)
+                .offset(x = 80.dp, y = (-20).dp)
+                .blur(70.dp)
+                .background(androidx.compose.ui.graphics.Brush.radialGradient(listOf(purple.copy(alpha = 0.13f), Color.Transparent)))
+        )
+        androidx.compose.foundation.layout.Box(
+            modifier = androidx.compose.ui.Modifier
+                .size(260.dp)
+                .align(androidx.compose.ui.Alignment.BottomCenter)
+                .offset(y = 100.dp)
+                .blur(75.dp)
+                .background(androidx.compose.ui.graphics.Brush.radialGradient(listOf(cyan.copy(alpha = 0.10f), Color.Transparent)))
+        )
     }
 }
 
@@ -561,7 +643,7 @@ fun getPremiumGradient(): Brush {
         colors = listOf(
             Color(0xFF0052FF), // Electric Blue
             Color(0xFF7C3AED), // Violet
-            Color(0xFF00E5FF)  // Cyan
+            Color(0xFF18E7F5)  // Cyan
         ),
         start = androidx.compose.ui.geometry.Offset.Zero,
         end = androidx.compose.ui.geometry.Offset.Infinite
@@ -571,7 +653,7 @@ fun getPremiumGradient(): Brush {
 fun getPremiumActiveIconGradient(): Brush {
     return Brush.linearGradient(
         colors = listOf(
-            Color(0xFF00E5FF), // Cyan
+            Color(0xFF18E7F5), // Cyan
             Color(0xFF8B5CF6)  // Violet
         )
     )

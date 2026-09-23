@@ -546,6 +546,7 @@ class AuthManager {
         pendingEmail = null
         pendingPassword = null
         com.example.data.repository.PresenceRepository.onLogout()
+        com.example.premium.domain.PremiumManager.reset()
         SessionManager.clearSession()
         SupabaseClient.disconnectRealtime()
     }

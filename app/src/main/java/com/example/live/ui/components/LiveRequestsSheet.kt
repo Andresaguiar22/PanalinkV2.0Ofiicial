@@ -68,7 +68,7 @@ fun LiveRequestsSheet(
                             subtitle = "Quiere ser co-host",
                             actions = {
                                 TextButton(onClick = { onAccept(guest.userId) }) {
-                                    Text("Aceptar", color = Color(0xFF00A884), fontWeight = FontWeight.Bold)
+                                    Text("Aceptar", color = Color(0xFF18E7F5), fontWeight = FontWeight.Bold)
                                 }
                                 TextButton(onClick = { onReject(guest.userId) }) {
                                     Text("Rechazar", color = Color(0xFFEF5350))
@@ -92,7 +92,7 @@ fun LiveRequestsSheet(
                             )
                             GuestStatus.ACCEPTED, GuestStatus.ACTIVE, GuestStatus.CONNECTED -> Text(
                                 text = "✅ Eres co-host de este directo.",
-                                color = Color(0xFF00A884),
+                                color = Color(0xFF18E7F5),
                                 fontSize = 13.sp,
                                 fontWeight = FontWeight.Bold
                             )

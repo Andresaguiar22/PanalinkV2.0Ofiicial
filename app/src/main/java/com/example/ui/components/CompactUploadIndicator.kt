@@ -80,7 +80,7 @@ fun CompactUploadIndicator(
             LinearProgressIndicator(
                 progress = progress,
                 modifier = Modifier.fillMaxWidth().height(4.dp),
-                color = Color(0xFF00FF85),
+                color = Color(0xFF18E7F5),
                 trackColor = Color.DarkGray
             )
         }

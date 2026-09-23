@@ -140,7 +140,7 @@ fun LiveGuestScreen(
                                     }
                                 }
                             },
-                            colors = ButtonDefaults.buttonColors(containerColor = Color(0xFF00A884))
+                            colors = ButtonDefaults.buttonColors(containerColor = Color(0xFF18E7F5))
                         ) {
                             Text("Aceptar Invitación", color = PanalinkPalette.textPrimary)
                         }
@@ -175,7 +175,7 @@ fun LiveGuestScreen(
                             .align(Alignment.TopCenter)
                             .padding(top = 16.dp),
                         shape = RoundedCornerShape(12.dp),
-                        color = Color(0xFF00A884)
+                        color = Color(0xFF18E7F5)
                     ) {
                         Text(
                             text = "● CO-HOST EN VIVO",

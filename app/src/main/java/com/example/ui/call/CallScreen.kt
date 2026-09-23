@@ -45,7 +45,7 @@ fun CallScreen(
     Box(
         modifier = modifier
             .fillMaxSize()
-            .background(Color(0xFF0F172A)) // Premium slate 900
+            .background(Color(0xFF0D0F12)) // Premium slate 900
     ) {
         AnimatedContent(
             targetState = callState,
@@ -62,7 +62,7 @@ fun CallScreen(
                         modifier = Modifier.fillMaxSize(),
                         contentAlignment = Alignment.Center
                     ) {
-                        CircularProgressIndicator(color = Color(0xFF22C55E))
+                        CircularProgressIndicator(color = Color(0xFF18E7F5))
                     }
                 }
 
@@ -92,14 +92,14 @@ fun CallScreen(
                     Box(
                         modifier = Modifier
                             .fillMaxSize()
-                            .background(Color(0xFF0F172A)),
+                            .background(Color(0xFF0D0F12)),
                         contentAlignment = Alignment.Center
                     ) {
                         Column(horizontalAlignment = Alignment.CenterHorizontally) {
                             CallAvatarPulse(
                                 userId = opponentId,
                                 name = opponentName,
-                                pulseColor = Color(0xFF38BDF8),
+                                pulseColor = Color(0xFF18E7F5),
                                 isAnimating = true
                             )
                             Spacer(modifier = Modifier.height(24.dp))

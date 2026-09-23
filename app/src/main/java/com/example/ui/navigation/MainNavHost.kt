@@ -328,7 +328,8 @@ fun MainNavHost(
                 onNavigateToFavorites = { mainNavController.navigate("favorites") { launchSingleTop = true } },
                 onNavigateToMusic = { mainNavController.navigate("musicHome") { launchSingleTop = true } },
                 onNavigateToVoiceRoom = { mainNavController.navigate("voiceRooms") { launchSingleTop = true } },
-                onNavigateToLive = { mainNavController.navigate("live_feed") { launchSingleTop = true } }
+                onNavigateToLive = { mainNavController.navigate("live_feed") { launchSingleTop = true } },
+                onNavigateToPremium = { mainNavController.navigate("premiumHome") { launchSingleTop = true } }
             )
         }
 
@@ -338,6 +339,9 @@ fun MainNavHost(
                 onBack = { mainNavController.popBackStack() },
                 onEnterRoom = { id ->
                     mainNavController.navigate("voiceRoom/$id")
+                },
+                onNavigateToPremium = {
+                    mainNavController.navigate("premiumHome") { launchSingleTop = true }
                 }
             )
         }
@@ -390,6 +394,9 @@ fun MainNavHost(
                 },
                 onNavigateToBroadcast = {
                     mainNavController.navigate(com.example.live.LiveRoutes.LIVE_BROADCAST) { launchSingleTop = true }
+                },
+                onNavigateToPremium = {
+                    mainNavController.navigate("premiumHome") { launchSingleTop = true }
                 }
             )
         }
@@ -924,7 +931,50 @@ fun MainNavHost(
                 onBack = { mainNavController.popBackStack() },
                 onNavigateToReel = { reelId ->
                     mainNavController.navigate("tiktok/$reelId") { launchSingleTop = true }
+                },
+                onOpenPremium = {
+                    mainNavController.navigate("premiumHome") { launchSingleTop = true }
                 }
+            )
+        }
+
+        // Premium 2.0 — Centro de beneficios
+        composable("premiumHome") {
+            com.example.premium.ui.PremiumHomeScreen(
+                onBack = { mainNavController.popBackStack() },
+                onOpenShop = {
+                    mainNavController.navigate("premiumShop") { launchSingleTop = true }
+                },
+                onOpenWallet = {
+                    mainNavController.navigate("premiumWallet") { launchSingleTop = true }
+                }
+            )
+        }
+
+        // Premium 2.0 — Wallet (saldo completo + historial + niveles)
+        composable("premiumWallet") {
+            com.example.premium.ui.PremiumWalletScreen(
+                onBack = { mainNavController.popBackStack() },
+                onOpenShop = {
+                    mainNavController.navigate("premiumShop") { launchSingleTop = true }
+                },
+                onOpenCosmetics = {
+                    mainNavController.navigate("premiumCosmetics") { launchSingleTop = true }
+                }
+            )
+        }
+
+        // Premium 2.0 — Colección de cosméticos (marcos por nivel)
+        composable("premiumCosmetics") {
+            com.example.premium.ui.PremiumCosmeticsScreen(
+                onBack = { mainNavController.popBackStack() }
+            )
+        }
+
+        // Premium 2.0 — Tienda (comprar con monedas)
+        composable("premiumShop") {
+            com.example.premium.ui.PremiumShopScreen(
+                onBack = { mainNavController.popBackStack() }
             )
         }
 
@@ -957,6 +1007,10 @@ fun MainNavHost(
             mainNavController.navigate("clips") { launchSingleTop = true }
         }
     )
+
+    // Premium 2.0: overlay de recompensas (recompensa diaria, misión, nivel,
+    // monedas). 100% aditivo sobre la navegación.
+    com.example.premium.ui.PremiumRewardsOverlay()
 
     if (isPlayerFullVisible) {
         com.example.media.player.ui.MusicPlayerScreen(

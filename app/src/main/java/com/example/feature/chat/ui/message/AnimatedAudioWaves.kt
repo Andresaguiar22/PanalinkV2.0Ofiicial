@@ -35,7 +35,7 @@ internal fun AnimatedAudioWaves(
                 modifier = Modifier
                     .width(3.dp)
                     .height(animatedHeight)
-                    .background(Color(0xFF00A884), RoundedCornerShape(1.5.dp))
+                    .background(Color(0xFF18E7F5), RoundedCornerShape(1.5.dp))
             )
         }
     }

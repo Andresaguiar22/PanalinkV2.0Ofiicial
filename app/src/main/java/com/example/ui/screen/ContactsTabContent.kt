@@ -206,7 +206,7 @@ fun ContactsTabContent(
                                     )
                                     Text(
                                         text = "Esperando respuesta",
-                                        color = Color(0xFF90A4AE),
+                                        color = Color(0xFFB8C4D6),
                                         fontSize = 12.sp
                                     )
                                 }
@@ -227,13 +227,13 @@ fun ContactsTabContent(
                             Icon(
                                 imageVector = Icons.Default.Person,
                                 contentDescription = null,
-                                tint = Color(0xFF37474F),
+                                tint = Color(0xFF18202A),
                                 modifier = Modifier.size(72.dp)
                             )
                             Spacer(modifier = Modifier.height(16.dp))
                             Text(
                                 text = "Aún no tienes panas agregados",
-                                color = Color(0xFF90A4AE),
+                                color = Color(0xFFB8C4D6),
                                 fontWeight = FontWeight.Bold,
                                 fontSize = 16.sp,
                                 textAlign = TextAlign.Center
@@ -241,7 +241,7 @@ fun ContactsTabContent(
                             Spacer(modifier = Modifier.height(4.dp))
                             Text(
                                 text = "Presiona el botón '+' en la esquina superior para agregar a un pana usando su PIN o escaneando su QR.",
-                                color = Color(0xFF607D8B),
+                                color = Color(0xFF7D8CA3),
                                 fontSize = 13.sp,
                                 textAlign = TextAlign.Center,
                                 lineHeight = 18.sp
@@ -330,7 +330,7 @@ fun ContactsTabContent(
                                 Spacer(modifier = Modifier.height(2.dp))
                                 Text(
                                     text = if (isContactOnline) "En línea" else "Conectado por panalink",
-                                    color = if (isContactOnline) Color(0xFF00FF85) else Color(0xFF90A4AE),
+                                    color = if (isContactOnline) Color(0xFF18E7F5) else Color(0xFFB8C4D6),
                                     fontSize = 13.sp
                                 )
                             }
@@ -341,7 +341,7 @@ fun ContactsTabContent(
                                     Icon(
                                         imageVector = Icons.Default.MoreVert,
                                         contentDescription = "Opciones",
-                                        tint = Color(0xFF90A4AE)
+                                        tint = Color(0xFFB8C4D6)
                                     )
                                 }
                                 androidx.compose.material3.DropdownMenu(
@@ -413,7 +413,7 @@ fun ContactsTabContent(
                                 }
                             }
                         }
-                        HorizontalDivider(color = Color(0xFF1E2E36), thickness = 0.5.dp)
+                        HorizontalDivider(color = Color(0xFF18202A), thickness = 0.5.dp)
                     }
                 }
             }
@@ -455,8 +455,8 @@ private fun AddPanaHeroCard(
             .fillMaxWidth()
             .padding(horizontal = 16.dp, vertical = 10.dp),
         shape = RoundedCornerShape(24.dp),
-        colors = CardDefaults.cardColors(containerColor = Color(0xFF101418)),
-        border = BorderStroke(1.dp, Color(0xFF00FF85).copy(alpha = 0.35f))
+        colors = CardDefaults.cardColors(containerColor = Color(0xFF0D0F12)),
+        border = BorderStroke(1.dp, Color(0xFF18E7F5).copy(alpha = 0.35f))
     ) {
         Column(
             modifier = Modifier
@@ -472,7 +472,7 @@ private fun AddPanaHeroCard(
             )
             Text(
                 text = "Comparte tu PIN o QR, o agrega a quien quieras",
-                color = Color(0xFF90A4AE),
+                color = Color(0xFFB8C4D6),
                 fontSize = 12.sp,
                 textAlign = TextAlign.Center
             )
@@ -488,7 +488,7 @@ private fun AddPanaHeroCard(
             ) {
                 Text(
                     text = if (isRevealed) "Ocultar tu PIN/QR" else "Mostrar tu PIN/QR",
-                    color = Color(0xFF00FF85),
+                    color = Color(0xFF18E7F5),
                     fontSize = 13.sp,
                     fontWeight = FontWeight.SemiBold
                 )
@@ -496,7 +496,7 @@ private fun AddPanaHeroCard(
                 Icon(
                     imageVector = if (isRevealed) Icons.Default.KeyboardArrowUp else Icons.Default.KeyboardArrowDown,
                     contentDescription = null,
-                    tint = Color(0xFF00FF85),
+                    tint = Color(0xFF18E7F5),
                     modifier = Modifier.size(18.dp)
                 )
             }
@@ -529,7 +529,7 @@ private fun AddPanaHeroCard(
                     Column(horizontalAlignment = Alignment.CenterHorizontally) {
                         Text(
                             text = "TU PIN",
-                            color = Color(0xFF00FF85),
+                            color = Color(0xFF18E7F5),
                             fontSize = 11.sp,
                             fontWeight = FontWeight.Bold,
                             letterSpacing = 2.sp
@@ -555,14 +555,14 @@ private fun AddPanaHeroCard(
                                     Icon(
                                         imageVector = Icons.Default.Share,
                                         contentDescription = "Copiar PIN",
-                                        tint = Color(0xFF00FF85),
+                                        tint = Color(0xFF18E7F5),
                                         modifier = Modifier.size(18.dp)
                                     )
                                 }
                             }
                         } else {
                             CircularProgressIndicator(
-                                color = Color(0xFF00FF85),
+                                color = Color(0xFF18E7F5),
                                 modifier = Modifier.size(22.dp),
                                 strokeWidth = 2.dp
                             )
@@ -584,7 +584,7 @@ private fun AddPanaHeroCard(
                         .height(46.dp)
                         .bounceClick(),
                     shape = RoundedCornerShape(14.dp),
-                    colors = ButtonDefaults.buttonColors(containerColor = Color(0xFF00C853))
+                    colors = ButtonDefaults.buttonColors(containerColor = Color(0xFF18E7F5))
                 ) {
                     Icon(
                         imageVector = Icons.Default.QrCodeScanner,
@@ -601,12 +601,12 @@ private fun AddPanaHeroCard(
                         .weight(1f)
                         .height(46.dp),
                     shape = RoundedCornerShape(14.dp),
-                    border = BorderStroke(1.dp, Color(0xFF00FF85).copy(alpha = 0.6f))
+                    border = BorderStroke(1.dp, Color(0xFF18E7F5).copy(alpha = 0.6f))
                 ) {
                     Icon(
                         imageVector = Icons.Default.PersonAdd,
                         contentDescription = null,
-                        tint = Color(0xFF00FF85),
+                        tint = Color(0xFF18E7F5),
                         modifier = Modifier.size(18.dp)
                     )
                     Spacer(Modifier.width(6.dp))

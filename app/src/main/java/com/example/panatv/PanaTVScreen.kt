@@ -70,12 +70,12 @@ import androidx.compose.animation.core.*
 import com.example.ui.theme.PanalinkPalette
 
 // ── Xuper TV style palette ──────────────────────────────────────────────
-private val TvBg = Color(0xFF121212)
-private val TvCard = Color(0xFF1E1E1E)
-private val TvCardAlt = Color(0xFF232323)
-private val TvAccent = Color(0xFFFF6F00)
-private val TvAccentSoft = Color(0x33FF6F00)
-private val TvTextSecondary = Color(0xFFB3B3B3)
+private val TvBg = Color(0xFF0D0F12)
+private val TvCard = Color(0xFF131A22)
+private val TvCardAlt = Color(0xFF18202A)
+private val TvAccent = Color(0xFF18E7F5)
+private val TvAccentSoft = Color(0x3318E7F5)
+private val TvTextSecondary = Color(0xFFB8C4D6)
 
 internal fun tvCategoryLabel(category: String): String = when (category) {
     "movies" -> "Películas"
@@ -1253,7 +1253,7 @@ fun PanaTVScreen(viewModel: PanaTVViewModel = viewModel()) {
                             modifier = Modifier
                                 .fillMaxHeight()
                                 .width(260.dp)
-                                .background(Color(0xF2141414))
+                                .background(Color(0xCC131A22))
                         ) {
                             Text(
                                 "Canales",
@@ -1381,9 +1381,9 @@ private fun ChannelCardSkeleton() {
     }
 
     val shimmerColors = listOf(
-        Color(0xFF1E1E1E),
-        Color(0xFF2A2A30),
-        Color(0xFF1E1E1E)
+        Color(0xFF131A22),
+        Color(0xFF18202A),
+        Color(0xFF131A22)
     )
 
     val brush = Brush.horizontalGradient(
@@ -1396,7 +1396,7 @@ private fun ChannelCardSkeleton() {
         modifier = Modifier
             .fillMaxWidth()
             .clip(RoundedCornerShape(10.dp))
-            .background(Color(0xFF1E1E1E))
+            .background(Color(0xFF131A22))
             .padding(bottom = 6.dp)
     ) {
         Box(
@@ -1522,7 +1522,7 @@ private fun ChannelCard(
                         .fillMaxWidth()
                         .height(4.dp)
                         .clip(RoundedCornerShape(2.dp))
-                        .background(Color(0xFF333333))
+                        .background(Color(0xFF1B2430))
                 ) {
                     Box(
                         modifier = Modifier

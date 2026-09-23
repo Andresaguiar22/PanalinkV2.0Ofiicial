@@ -495,6 +495,7 @@ fun InicioTabContent(
     onNavigateToViewState: (String) -> Unit,
     onNavigateToCreateState: () -> Unit,
     onNavigateToChat: (String, String) -> Unit,
+    onOpenPremium: (() -> Unit)? = null,
     feedViewModel: com.example.ui.viewmodel.FeedViewModel = androidx.lifecycle.viewmodel.compose.viewModel()
 ) {
     val colors = com.example.ui.theme.LocalAppColors.current
@@ -813,7 +814,7 @@ fun InicioTabContent(
                                 Icon(
                                     Icons.Default.WifiOff,
                                     contentDescription = null,
-                                    tint = Color(0xFF00E5FF),
+                                    tint = Color(0xFF18E7F5),
                                     modifier = Modifier.size(18.dp),
                                 )
                                 Spacer(modifier = Modifier.width(8.dp))
@@ -850,8 +851,83 @@ fun InicioTabContent(
                             Icon(
                                 imageVector = Icons.Default.AddBox,
                                 contentDescription = "Publicar",
-                                tint = Color(0xFF00E5FF)
+                                tint = Color(0xFF18E7F5)
                             )
+                        }
+                    }
+                }
+
+                // Wall Gold: si la feature está activa, banner con adornos; si no, invitación.
+                item {
+                    val wallEntitlements by com.example.premium.domain.PremiumManager.entitlements.collectAsState()
+                    val wallActive = wallEntitlements.any {
+                        it.featureKey == com.example.premium.domain.PremiumFeatures.WALL && it.isActive
+                    }
+                    if (wallActive) {
+                        Box(
+                            modifier = Modifier
+                                .fillMaxWidth()
+                                .padding(horizontal = 16.dp, vertical = 6.dp)
+                                .clip(RoundedCornerShape(14.dp))
+                                .background(
+                                    Brush.linearGradient(
+                                        listOf(Color(0xFF3D2E00), Color(0xFF6B5310))
+                                    )
+                                )
+                                .border(1.dp, Color(0xFFE9C46A).copy(alpha = 0.6f), RoundedCornerShape(14.dp))
+                                .clickable { showCreatePostSheet = true }
+                                .padding(horizontal = 16.dp, vertical = 12.dp)
+                        ) {
+                            Row(verticalAlignment = Alignment.CenterVertically) {
+                                Text("👑", fontSize = 20.sp)
+                                Spacer(modifier = Modifier.width(10.dp))
+                                Column(modifier = Modifier.weight(1f)) {
+                                    Text(
+                                        "Wall Gold activo",
+                                        color = Color(0xFFFFE29A),
+                                        fontWeight = FontWeight.Bold,
+                                        fontSize = 14.sp
+                                    )
+                                    Text(
+                                        "Tu muro tiene boost de visibilidad y estadísticas detalladas.",
+                                        color = Color(0xFFFFF3C4).copy(alpha = 0.85f),
+                                        fontSize = 11.sp
+                                    )
+                                }
+                            }
+                        }
+                    } else {
+                        Box(
+                            modifier = Modifier
+                                .fillMaxWidth()
+                                .padding(horizontal = 16.dp, vertical = 6.dp)
+                                .clip(RoundedCornerShape(14.dp))
+                                .background(Color(0xFF1A1410))
+                                .border(1.dp, com.example.ui.theme.PanalinkSkin.Gold.copy(alpha = 0.35f), RoundedCornerShape(14.dp))
+                                .clickable {
+                                    if (onOpenPremium != null) onOpenPremium()
+                                    else onNavigateToChat("", "")
+                                }
+                                .padding(horizontal = 16.dp, vertical = 12.dp)
+                        ) {
+                            Row(verticalAlignment = Alignment.CenterVertically) {
+                                Text("🪙", fontSize = 20.sp)
+                                Spacer(modifier = Modifier.width(10.dp))
+                                Column(modifier = Modifier.weight(1f)) {
+                                    Text(
+                                        "Activa Wall Gold",
+                                        color = com.example.ui.theme.PanalinkSkin.TitleCream,
+                                        fontWeight = FontWeight.Bold,
+                                        fontSize = 14.sp
+                                    )
+                                    Text(
+                                        "Boost de visibilidad y estadísticas en tu muro por días con monedas.",
+                                        color = com.example.ui.theme.PanalinkPalette.textPrimary.copy(alpha = 0.7f),
+                                        fontSize = 11.sp
+                                    )
+                                }
+                                Text("Ver tienda →", color = com.example.ui.theme.PanalinkSkin.Gold, fontSize = 11.sp, fontWeight = FontWeight.Bold)
+                            }
                         }
                     }
                 }
@@ -864,7 +940,7 @@ fun InicioTabContent(
                         label = "Subiendo publicación",
                         percent = pct,
                         onCancel = { feedViewModel.cancelPendingPost(pending.id) },
-                        color = Color(0xFF00FF85)
+                        color = Color(0xFF18E7F5)
                     )
                     Spacer(modifier = Modifier.height(4.dp))
                 }
@@ -973,7 +1049,7 @@ fun InicioTabContent(
                             Surface(
                                 onClick = { showCreatePostSheet = true },
                                 shape = RoundedCornerShape(24.dp),
-                                color = Color(0xFF00A884)
+                                color = Color(0xFF18E7F5)
                             ) {
                                 Row(
                                     modifier = Modifier.padding(horizontal = 20.dp, vertical = 10.dp),
@@ -1000,7 +1076,7 @@ fun InicioTabContent(
             modifier = Modifier
                 .align(Alignment.BottomEnd)
                 .padding(bottom = 24.dp, end = 16.dp),
-            containerColor = Color(0xFF00E5FF),
+            containerColor = Color(0xFF18E7F5),
             contentColor = Color.Black
         ) {
             Icon(Icons.Default.Add, contentDescription = "Crear Publicación")
@@ -1129,7 +1205,7 @@ fun InicioTabContent(
                         colors = OutlinedTextFieldDefaults.colors(
                             focusedContainerColor = Color(0xFF262629),
                             unfocusedContainerColor = Color(0xFF262629),
-                            focusedBorderColor = Color(0xFF00FF85),
+                            focusedBorderColor = Color(0xFF18E7F5),
                             unfocusedBorderColor = Color.Transparent,
                             focusedTextColor = Color.White,
                             unfocusedTextColor = Color.White
@@ -1202,7 +1278,7 @@ fun InicioTabContent(
                     editingPostId?.let { feedViewModel.updatePost(it, editingPostContent) }
                     editingPostId = null
                 }) {
-                    Text("Guardar", color = Color(0xFF00E5FF))
+                    Text("Guardar", color = Color(0xFF18E7F5))
                 }
             },
             dismissButton = {
@@ -1529,7 +1605,7 @@ fun InicioTabContent(
                     itemsIndexed(audiosList, key = { _, url -> "audio_${url.hashCode()}" }) { index, url ->
                         val isCurrent = index == currentAudioIndex
                         val itemBgColor = if (isCurrent) Color(0xFF1E293B) else Color(0xFF1E1E24)
-                        val itemBorderColor = if (isCurrent) Color(0xFF00E5FF) else Color.Transparent
+                        val itemBorderColor = if (isCurrent) Color(0xFF18E7F5) else Color.Transparent
                         
                         Card(
                             onClick = {
@@ -1553,7 +1629,7 @@ fun InicioTabContent(
                                     Icon(
                                         imageVector = if (isCurrent && isPlaying) Icons.Default.PauseCircle else Icons.Default.PlayCircle,
                                         contentDescription = null,
-                                        tint = if (isCurrent) Color(0xFF00E5FF) else Color.White,
+                                        tint = if (isCurrent) Color(0xFF18E7F5) else Color.White,
                                         modifier = Modifier.size(28.dp)
                                     )
                                     Spacer(modifier = Modifier.width(12.dp))
@@ -1594,7 +1670,7 @@ fun InicioTabContent(
                                     Icon(
                                         imageVector = Icons.Default.ArrowDownward,
                                         contentDescription = "Descargar",
-                                        tint = Color(0xFF00E5FF),
+                                        tint = Color(0xFF18E7F5),
                                         modifier = Modifier.size(20.dp)
                                     )
                                 }
@@ -1618,7 +1694,7 @@ fun InicioTabContent(
                     ) {
                         Text(
                             text = "Reproduciendo: Audio ${currentAudioIndex + 1}",
-                            color = Color(0xFF00E5FF),
+                            color = Color(0xFF18E7F5),
                             fontWeight = FontWeight.Bold,
                             fontSize = 14.sp
                         )
@@ -1632,8 +1708,8 @@ fun InicioTabContent(
                                 exoPlayer.seekTo(pos)
                             },
                             colors = SliderDefaults.colors(
-                                thumbColor = Color(0xFF00E5FF),
-                                activeTrackColor = Color(0xFF00E5FF),
+                                thumbColor = Color(0xFF18E7F5),
+                                activeTrackColor = Color(0xFF18E7F5),
                                 inactiveTrackColor = Color.Gray
                             )
                         )
@@ -1681,7 +1757,7 @@ fun InicioTabContent(
                                 },
                                 modifier = Modifier
                                     .size(56.dp)
-                                    .background(Color(0xFF00E5FF), CircleShape)
+                                    .background(Color(0xFF18E7F5), CircleShape)
                             ) {
                                 Icon(
                                     imageVector = if (isPlaying) Icons.Default.Pause else Icons.Default.PlayArrow,

@@ -157,7 +157,7 @@ fun EstadosTabContent(
                 Column {
                     Text("Mi Estado", color = PanalinkPalette.textPrimary, fontWeight = FontWeight.Bold, fontSize = 16.sp)
                     Spacer(modifier = Modifier.height(2.dp))
-                    Text("Añade una actualización de texto, foto o vídeo", color = Color(0xFF90A4AE), fontSize = 13.sp)
+                    Text("Añade una actualización de texto, foto o vídeo", color = Color(0xFF9AA8B5), fontSize = 13.sp)
                 }
             }
             HorizontalDivider(color = Color(0xFF1C2D35), thickness = 0.8.dp)
@@ -213,7 +213,7 @@ fun EstadosTabContent(
                         ) {
                             Text(
                                 "No hay estados recientes entre panas. ¡Sé el primero!",
-                                color = Color(0xFF90A4AE),
+                                color = Color(0xFF9AA8B5),
                                 fontSize = 13.sp,
                                 textAlign = TextAlign.Center
                             )
@@ -486,13 +486,13 @@ fun EstadosTabContent(
                                                     // placa neutra en vez de un spinner infinito si la red no vuelve..
                                                     if (!com.example.util.NetworkMonitor.isOnline.value) {
                                                         Box(
-                                                            modifier = Modifier.fillMaxSize().background(Color(0xFF161618)),
+                                                            modifier = Modifier.fillMaxSize().background(Color(0xFF0D0F12)),
                                                             contentAlignment = Alignment.Center
                                                         ) {
                                                             Icon(
                                                                 Icons.Default.VolumeUp,
                                                                 contentDescription = "Video",
-                                                                tint = Color(0xFF90A4AE),
+                                                                tint = Color(0xFF9AA8B5),
                                                                 modifier = Modifier.size(26.dp)
                                                             )
                                                         }
@@ -501,12 +501,12 @@ fun EstadosTabContent(
                                                         Box(
                                                             modifier = Modifier
                                                                 .fillMaxSize()
-                                                                .background(Color(0xFF1E1E1E)),
+                                                                .background(Color(0xFF131A22)),
                                                             contentAlignment = Alignment.Center
                                                         ) {
                                                             CircularProgressIndicator(
                                                                 modifier = Modifier.size(24.dp),
-                                                                color = Color(0xFF00FF85),
+                                                                color = Color(0xFF18E7F5),
                                                                 strokeWidth = 2.dp
                                                             )
                                                         }
@@ -645,7 +645,7 @@ fun EstadosTabContent(
                             Spacer(modifier = Modifier.height(12.dp))
                             Text(
                                 text = "Aún no hay vídeos publicados en la comunidad.",
-                                color = Color(0xFF90A4AE),
+                                color = Color(0xFF9AA8B5),
                                 fontSize = 13.sp,
                                 textAlign = TextAlign.Center
                             )
@@ -882,7 +882,7 @@ fun StateItemRow(
             Spacer(modifier = Modifier.height(2.dp))
             Text(
                 text = "Publicado hoy, $formattedTime",
-                color = Color(0xFF90A4AE),
+                color = Color(0xFF9AA8B5),
                 fontSize = 12.sp
             )
         }

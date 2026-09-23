@@ -223,7 +223,7 @@ fun LiveGuestControls(
                                             },
                                             fontSize =  13.sp,
                                             color = when (guest.status) {
-                                                GuestStatus.ACTIVE -> Color(0xFF00E5FF)
+                                                GuestStatus.ACTIVE -> Color(0xFF18E7F5)
                                                 GuestStatus.PENDING -> Color(0xFFFFC107)
                                                 else -> Color.White
                                             }
@@ -252,7 +252,7 @@ fun LiveGuestControls(
                         },
                         enabled = selectedUser != null
                     ) {
-                        Text("Enviar Invitación", color = Color(0xFF00A884))
+                        Text("Enviar Invitación", color = Color(0xFF18E7F5))
                     }
                 },
                 dismissButton ={

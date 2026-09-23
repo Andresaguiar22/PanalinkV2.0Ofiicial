@@ -76,25 +76,20 @@ fun PanaLinkFloatingBottomBar(
     // Lenguaje visual del mockup: pildora de cristal con gradiente teal -> indigo,
     // rim menta luminoso e iconos dorados. En claro, cristal blanco con rim dorado.
     val barDark = PanalinkPalette.isDark
-    val barInner: Brush = if (barDark) {
-        Brush.horizontalGradient(
-            listOf(
-                PanalinkSkin.barGradient[0].copy(alpha = 0.78f),
-                PanalinkSkin.barGradient[1].copy(alpha = 0.92f),
-                PanalinkSkin.barGradient[2].copy(alpha = 0.78f)
-            )
+    val barInner: Brush = Brush.horizontalGradient(
+        listOf(
+            PanaLinkCyberpunkColors.Glass.copy(alpha = 0.96f),
+            Color(0xD10E151D),
+            Color(0xC7181A27)
         )
-    } else {
-        Brush.horizontalGradient(listOf(Color(0xFFFFFFFF), Color(0xFFF5F7FA), Color(0xFFFFFFFF)))
-    }
-    val barRim = if (barDark) PanalinkSkin.barGlow else PanalinkSkin.GoldDeep
+    )
+    val barRim = PanaLinkCyberpunkColors.Purple
 
-    // Gradient colors for the animated border (from the selected preset palette)
     val gradientColors = listOf(
-        presetPalette.first(),
-        presetPalette.getOrElse(1) { presetPalette.first() },
-        presetPalette.first().copy(alpha = 0f), // Transparent for gaps
-        presetPalette.first()
+        PanaLinkCyberpunkColors.Cyan,
+        PanaLinkCyberpunkColors.Purple,
+        PanaLinkCyberpunkColors.Magenta,
+        PanaLinkCyberpunkColors.Cyan
     )
 
     val infiniteTransition = rememberInfiniteTransition(label = "halo_transition")
@@ -210,7 +205,7 @@ fun PanaLinkFloatingBottomBar(
                     val selected = currentPage == index
                     
                     val animatedWeight by animateFloatAsState(
-                        targetValue = if (selected && !isMinimalist) 1.8f else 1f,
+                        targetValue = 1f,
                         animationSpec = spring(
                             dampingRatio = Spring.DampingRatioMediumBouncy,
                             stiffness = Spring.StiffnessLow
@@ -219,19 +214,19 @@ fun PanaLinkFloatingBottomBar(
                     )
                     
                     val animatedBgColor by animateColorAsState(
-                        targetValue = if (selected) barRim.copy(alpha = if (barDark) 0.22f else 0.18f) else Color.Transparent,
+                        targetValue = if (selected) PanaLinkCyberpunkColors.Purple.copy(alpha = 0.22f) else Color.Transparent,
                         animationSpec = tween(durationMillis = 350),
                         label = "tab_bg"
                     )
                     
                     val animatedBorderColor by animateColorAsState(
-                        targetValue = if (selected) barRim.copy(alpha = 0.75f) else Color.Transparent,
+                        targetValue = if (selected) PanaLinkCyberpunkColors.Purple.copy(alpha = 0.90f) else Color.Transparent,
                         animationSpec = tween(durationMillis = 350),
                         label = "tab_border"
                     )
                     
                     val animatedContentColor by animateColorAsState(
-                        targetValue = if (selected) PanalinkPalette.textPrimary else PanalinkPalette.gold,
+                        targetValue = if (selected) PanaLinkCyberpunkColors.Cream else PanaLinkCyberpunkColors.Gold,
                         animationSpec = tween(durationMillis = 350),
                         label = "tab_content"
                     )
@@ -302,7 +297,7 @@ fun PanaLinkFloatingBottomBar(
                             }
                             
                             AnimatedVisibility(
-                                visible = selected && !isMinimalist,
+                                visible = false,
                                 enter = fadeIn(animationSpec = tween(200, delayMillis = 100)) + expandHorizontally(animationSpec = spring(stiffness = Spring.StiffnessMediumLow)),
                                 exit = fadeOut(animationSpec = tween(150)) + shrinkHorizontally(animationSpec = spring(stiffness = Spring.StiffnessMediumLow))
                             ) {
