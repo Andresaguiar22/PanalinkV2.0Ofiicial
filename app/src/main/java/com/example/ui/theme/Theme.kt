@@ -334,17 +334,17 @@ object ThemeManager {
 
     val isMinimalistMode = kotlinx.coroutines.flow.MutableStateFlow(false)
 
-    val bottomBarColorPreset = kotlinx.coroutines.flow.MutableStateFlow("tropical")
+    val bottomBarColorPreset = kotlinx.coroutines.flow.MutableStateFlow("neon_cyber")
     val bottomBarShapePreset = kotlinx.coroutines.flow.MutableStateFlow("pill")
 
     fun getBottomBarColors(preset: String): List<Color> {
         return when (preset) {
             "neon_cyber" -> listOf(
-                Color(0xFF00F0FF), // Cyan
-                Color(0xFFBC00DD), // Magenta
-                Color(0xFFFF007F), // Neon Pink
-                Color(0xFF39FF14), // Lime Green
-                Color(0xFF00F0FF)
+                Color(0xFF18E7F5), // Cyan
+                Color(0xFF7B3FF2), // Purple
+                Color(0xFFFF28C8), // Magenta
+                Color(0xFFF0D9A6), // Gold
+                Color(0xFF18E7F5)
             )
             "monochrome" -> listOf(
                 Color(0xFFFFFFFF),
