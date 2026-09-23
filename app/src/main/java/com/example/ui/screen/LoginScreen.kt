@@ -66,7 +66,7 @@ fun LoginScreen(
                     Icon(
                         imageVector = if (audit.score >= 70) Icons.Default.CheckCircle else Icons.Default.Warning,
                         contentDescription = "Shield",
-                        tint = if (audit.score >= 70) Color(0xFF4ADE80) else Color(0xFFFACC15),
+                        tint = if (audit.score >= 70) Color(0xFF18E7F5) else Color(0xFFF0D9A6),
                         modifier = Modifier.size(16.dp)
                     )
                     Spacer(modifier = Modifier.width(6.dp))
@@ -110,16 +110,16 @@ fun LoginScreen(
                         OutlinedTextField(
                             value = email,
                             onValueChange = { email = it },
-                            label = { Text("Email", color = Color(0xFF9CA3AF)) },
+                            label = { Text("Email", color = Color(0xFFB8C4D6)) },
                             colors = OutlinedTextFieldDefaults.colors(
-                                focusedBorderColor = Color(0xFF00E5FF),
-                                unfocusedBorderColor = Color(0xFF262629).copy(alpha = 0.5f),
-                                focusedLabelColor = Color(0xFF00E5FF),
+                                focusedBorderColor = Color(0xFF18E7F5),
+                                unfocusedBorderColor = Color(0xFF131A22).copy(alpha = 0.5f),
+                                focusedLabelColor = Color(0xFF18E7F5),
                                 focusedTextColor = Color.White,
                                 unfocusedTextColor = Color.White
                             ),
                             singleLine = true,
-                            leadingIcon = { Icon(Icons.Default.Email, contentDescription = "Email", tint = Color(0xFF9CA3AF)) },
+                            leadingIcon = { Icon(Icons.Default.Email, contentDescription = "Email", tint = Color(0xFFB8C4D6)) },
                             modifier = Modifier
                                 .fillMaxWidth()
                                 .testTag("login_email_input"),
@@ -131,16 +131,16 @@ fun LoginScreen(
                         OutlinedTextField(
                             value = password,
                             onValueChange = { password = it },
-                            label = { Text("Contraseña", color = Color(0xFF9CA3AF)) },
+                            label = { Text("Contraseña", color = Color(0xFFB8C4D6)) },
                             colors = OutlinedTextFieldDefaults.colors(
-                                focusedBorderColor = Color(0xFF00E5FF),
-                                unfocusedBorderColor = Color(0xFF262629).copy(alpha = 0.5f),
-                                focusedLabelColor = Color(0xFF00E5FF),
+                                focusedBorderColor = Color(0xFF18E7F5),
+                                unfocusedBorderColor = Color(0xFF131A22).copy(alpha = 0.5f),
+                                focusedLabelColor = Color(0xFF18E7F5),
                                 focusedTextColor = Color.White,
                                 unfocusedTextColor = Color.White
                             ),
                             singleLine = true,
-                            leadingIcon = { Icon(Icons.Default.Lock, contentDescription = "Contraseña", tint = Color(0xFF9CA3AF)) },
+                            leadingIcon = { Icon(Icons.Default.Lock, contentDescription = "Contraseña", tint = Color(0xFFB8C4D6)) },
                             visualTransformation = PasswordVisualTransformation(),
                             keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Password),
                             modifier = Modifier
@@ -194,7 +194,7 @@ fun LoginScreen(
                     Text(text = "¿No tienes una cuenta? ", color = PanalinkPalette.textPrimary.copy(alpha = 0.6f), fontSize = 15.sp)
                     Text(
                         text = "Regístrate aquí",
-                        color = Color(0xFF00E5FF),
+                        color = Color(0xFF18E7F5),
                         fontWeight = FontWeight.Bold,
                         fontSize = 15.sp,
                         modifier = Modifier
