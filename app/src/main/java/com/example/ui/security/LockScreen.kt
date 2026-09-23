@@ -54,7 +54,7 @@ fun LockScreen() {
         }
     }
 
-    Surface(modifier = Modifier.fillMaxSize(), color = Color(0xFF0B141A)) {
+    Surface(modifier = Modifier.fillMaxSize(), color = Color(0xFF0D0F12)) {
         Column(
             modifier = Modifier
                 .fillMaxSize()
@@ -65,10 +65,10 @@ fun LockScreen() {
             Box(
                 modifier = Modifier
                     .size(72.dp)
-                    .background(Color(0xFF25D366).copy(alpha = 0.15f), CircleShape),
+                    .background(Color(0xFF18E7F5).copy(alpha = 0.15f), CircleShape),
                 contentAlignment = Alignment.Center
             ) {
-                Icon(Icons.Default.Lock, contentDescription = null, tint = Color(0xFF25D366), modifier = Modifier.size(34.dp))
+                Icon(Icons.Default.Lock, contentDescription = null, tint = Color(0xFF18E7F5), modifier = Modifier.size(34.dp))
             }
             Spacer(modifier = Modifier.height(16.dp))
             Text(
@@ -77,7 +77,7 @@ fun LockScreen() {
                 fontSize = 20.sp,
                 fontWeight = FontWeight.Bold
             )
-            Text("PanaLink está protegido", color = Color(0xFF90A4AE), fontSize = 13.sp)
+            Text("PanaLink está protegido", color = Color(0xFFB8C4D6), fontSize = 13.sp)
             Spacer(modifier = Modifier.height(24.dp))
 
             when (method) {
@@ -87,7 +87,7 @@ fun LockScreen() {
 
             errorMessage?.let {
                 Spacer(modifier = Modifier.height(12.dp))
-                Text(it, color = Color(0xFFE53935), fontSize = 13.sp, fontWeight = FontWeight.SemiBold)
+                Text(it, color = Color(0xFFFF28C8), fontSize = 13.sp, fontWeight = FontWeight.SemiBold)
             }
 
             if (biometricAvailable) {
@@ -96,8 +96,8 @@ fun LockScreen() {
                     horizontalAlignment = Alignment.CenterHorizontally,
                     modifier = Modifier.clickable { biometricTrigger++ }
                 ) {
-                    Icon(Icons.Default.Fingerprint, contentDescription = "Desbloquear con biometría", tint = Color(0xFF25D366), modifier = Modifier.size(40.dp))
-                    Text("Usar biometría", color = Color(0xFF90A4AE), fontSize = 12.sp)
+                    Icon(Icons.Default.Fingerprint, contentDescription = "Desbloquear con biometría", tint = Color(0xFF18E7F5), modifier = Modifier.size(40.dp))
+                    Text("Usar biometría", color = Color(0xFFB8C4D6), fontSize = 12.sp)
                 }
             }
         }
@@ -144,7 +144,7 @@ private fun PinLockSection(onError: (String?) -> Unit) {
                 modifier = Modifier
                     .size(if (filled) 14.dp else 12.dp)
                     .background(
-                        if (filled) Color(0xFF25D366) else Color.White.copy(alpha = 0.2f),
+                        if (filled) Color(0xFF18E7F5) else Color.White.copy(alpha = 0.2f),
                         CircleShape
                     )
             )
@@ -220,8 +220,8 @@ private fun PatternLockSection(onError: (String?) -> Unit) {
 fun PatternPad(
     onPatternComplete: (List<Int>) -> Unit,
     modifier: Modifier = Modifier,
-    dotColor: Color = Color(0xFF90A4AE),
-    activeColor: Color = Color(0xFF25D366)
+    dotColor: Color = Color(0xFFB8C4D6),
+    activeColor: Color = Color(0xFF18E7F5)
 ) {
     var selected by remember { mutableStateOf<List<Int>>(emptyList()) }
     var currentDrag by remember { mutableStateOf<Offset?>(null) }
