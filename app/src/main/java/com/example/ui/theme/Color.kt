@@ -11,10 +11,10 @@ val PurpleGrey40 = Color(0xFF625b71)
 val Pink40 = Color(0xFF7D5260)
 
 // WhatsApp Light Theme Colors
-val WhatsAppBackground = Color(0xFFF0F2F5)
-val WhatsAppSurface = Color(0xFFFFFFFF)
-val WhatsAppPrimary = Color(0xFF00A884)
-val WhatsAppTextDark = Color(0xFF111B21)
+val WhatsAppBackground = Color(0xFF0D0F12)
+val WhatsAppSurface = Color(0xFF131A22)
+val WhatsAppPrimary = Color(0xFF18E7F5)
+val WhatsAppTextDark = Color(0xFFF5E6C8)
 
 // Elegant Grey Theme
 val ElegantBackground = Color(0xFF1E1E1E)
@@ -23,7 +23,7 @@ val ElegantPrimary = Color(0xFFB0B0B0)
 val ElegantTextLight = Color(0xFFF0F0F0)
 
 // Vivid Ocean Theme
-val OceanBackground = Color(0xFF0F172A)
-val OceanSurface = Color(0xFF1E293B)
-val OceanPrimary = Color(0xFF38BDF8)
-val OceanTextLight = Color(0xFFF1F5F9)
+val OceanBackground = Color(0xFF0D0F12)
+val OceanSurface = Color(0xFF131A22)
+val OceanPrimary = Color(0xFF9B5CFF)
+val OceanTextLight = Color(0xFFF5E6C8)
