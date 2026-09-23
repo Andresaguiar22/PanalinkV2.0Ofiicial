@@ -28,7 +28,7 @@ fun MiniUploadBar(
     onRetry: (() -> Unit)? = null,
     onDiscard: (() -> Unit)? = null,
     modifier: Modifier = Modifier,
-    color: Color = Color(0xFF00FF85)
+    color: Color = Color(0xFF18E7F5)
 ) {
     Column(
         modifier = modifier
