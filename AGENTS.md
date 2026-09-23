@@ -302,11 +302,19 @@ cd /workspace/project/PanalinkV2.0Ofiicial/.toolchain && nohup python3 serve_ran
  4. Avisar al equipo con la URL fija y el SHA nuevo (NO hace falta re-subir nada - el mismo link sirve el binario nuevo.de.
 5. Cuando el equipo dice *"está fino"* → traer la rama a `main` + compilar release + publicar OTA paso-a-paso (sección "Build & Release").
 
-### 🔑 Firma BETA estable (IMPORTANTE — NO regenerar ni borrar)
-* **Keystore versionado**: `app/panalink-beta.keystore` (en el repo main). Firma **fija para TODAS las rondas** de la beta — asi la beta se instala encima de la anterior sin "conflicto de paquete".
-* Credenciales fijas: store/alias: `panalinkbeta`; store/key password: `panalinkbeta`.
-* **REGLA DURA**: NO regenerar ese keystore ni cambiarlo — si cambia la firma, los instaladores tendran `INSTALL_FAILED_UPDATE_INCOMPATIBLE` y habra que desinstalar la beta (perdiendo datos de prueba).
-* El pipeline `scripts/build_beta.sh` ya lo copia al worktree y aplica `signingConfigs.create("beta")` en el gradle de la beta — no hace falta tocarlo a mano.
+### 🔑 Firma BETA estable (IMPORTANTE - NO regenerar ni borrar)
+* **Keystore FUERA del repo** (desde PR #42): `scripts/build_beta.sh` lo resuelve por entorno
+  (`BETA_KEYSTORE_FILE`, `BETA_KEYSTORE_PASSWORD`, `BETA_KEY_ALIAS`, `BETA_KEY_PASSWORD`)
+  o desde `app/secrets.properties` (git-ignored; `BETA_SECRETS_FILE` para otra ruta).
+  En este sandbox el keystore vive en `/workspace/beta-keystore/panalink-beta.keystore`
+  (recuperado del historial git, SHA `55e4f10b...`) y `app/secrets.properties` apunta a el.
+  Firma **fija para TODAS las rondas** de la beta - asi la beta se instala encima de la anterior sin "conflicto de paquete".
+* **REGLA DURA**: NO regenerar ese keystore ni cambiarlo - si cambia la firma, los instaladores tendran `INSTALL_FAILED_UPDATE_INCOMPATIBLE` y habra que desinstalar la beta (perdiendo datos de prueba).
+* **Ojo**:el keystore **sigue en el historial git** (borrarlo del arbol no lo purga). La purga real
+  (`git filter-repo`/BFG, coordinada con clones/forks) es una accion manual del dueno, pendiente.
+
+
+
 ### Reglas extras de esta modalidad
 * **NUNCA publicar OTA** una rama en progreso ni una beta como release exceto cuando el equipo confirma que está fino.
 * **NUNCA instalar/toquetear** la app real de los usuarios desde la beta (la beta usa paquete aparte, con sus propios datos,y se desinstala con `adb uninstall com.panalink.app.beta` o desde Ajustes → Apps → "PanaLink Beta".)
