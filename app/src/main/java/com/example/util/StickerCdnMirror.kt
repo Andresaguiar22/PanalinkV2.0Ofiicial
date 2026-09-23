@@ -6,6 +6,7 @@ import com.example.data.repository.CdnManager
 import com.example.data.repository.UploadFailoverRouter
 import java.io.File
 import java.util.concurrent.TimeUnit
+import java.util.Locale
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
 import kotlinx.coroutines.withTimeoutOrNull
@@ -73,22 +74,22 @@ object StickerCdnMirror {
         return withTimeoutOrNull(45_000L) {
             val tempFile: File? = downloadToTemp(context, original)
             if (tempFile == null || tempFile.length() == 0L) {
-                Log.w(TAG, "Descarga fallida o vacía de sticker externo; usando URL original")
-                return@withTimeoutOrNull original
+                throw IllegalStateException("No se pudo descargar el sticker/GIF externo")
             }
 
             val userId = com.example.data.supabase.SupabaseClient.currentUser?.id ?: "me_demo_id"
             try {
+                val detectedMime = detectMime(tempFile, mimeType)
                 val upload = UploadFailoverRouter.uploadWithFailover(
                     file = tempFile,
-                    mimeType = mimeType,
+                    mimeType = detectedMime,
                     userId = userId,
                     uploadType = "sticker"
                 ) {
                     PanalinkMediaManager.uploadMediaAndThumbnail(
                         context = context,
                         mediaFile = tempFile,
-                        mimeType = mimeType,
+                        mimeType = detectedMime,
                         typeLabel = typeLabel,
                         userId = userId,
                         caption = "Sticker/GIF espejado al CDN"
@@ -100,13 +101,12 @@ object StickerCdnMirror {
                     Log.i(TAG, "Sticker/GIF espejado al CDN: ${cdnUrl.take(140)}")
                     cdnUrl
                 } else {
-                    Log.w(TAG, "Subida al CDN falló; usando URL original")
-                    original
+                    throw IllegalStateException("La subida del sticker/GIF al CDN falló")
                 }
             } finally {
                 runCatching { tempFile.delete() }
             }
-        } ?: original
+        } ?: throw IllegalStateException("Timeout descargando sticker/GIF externo")
     }
 
     private suspend fun downloadToTemp(context: Context, url: String): File? = withContext(Dispatchers.IO) {
@@ -134,6 +134,17 @@ object StickerCdnMirror {
                     return@withContext null
                 }
                 val body = response.body ?: return@withContext null
+                val responseMime = body.contentType()?.toString()?.substringBefore(";")?.lowercase(Locale.ROOT)
+                val detectedMime = when {
+                    responseMime == "image/gif" -> "image/gif"
+                    responseMime == "image/png" -> "image/png"
+                    responseMime == "image/webp" -> "image/webp"
+                    responseMime == "image/jpeg" -> "image/jpeg"
+                    url.lowercase(Locale.ROOT).substringBefore("?").substringBefore("#").endsWith(".gif") -> "image/gif"
+                    url.lowercase(Locale.ROOT).substringBefore("?").substringBefore("#").endsWith(".png") -> "image/png"
+                    url.lowercase(Locale.ROOT).substringBefore("?").substringBefore("#").endsWith(".jpg") || url.lowercase(Locale.ROOT).substringBefore("?").substringBefore("#").endsWith(".jpeg") -> "image/jpeg"
+                    else -> mimeType
+                }
                 body.byteStream().use { input ->
                     temp.outputStream().use { output -> input.copyTo(output) }
                 }
@@ -147,6 +158,17 @@ object StickerCdnMirror {
         } catch (e: Exception) {
             Log.w(TAG, "Fallo la descarga del sticker externo: ${e.message}")
             null
+        }
+    }
+
+    private fun detectMime(file: File, hint: String): String {
+        val ext = file.extension.lowercase(Locale.ROOT)
+        return when (ext) {
+            "gif" -> "image/gif"
+            "png" -> "image/png"
+            "jpg", "jpeg" -> "image/jpeg"
+            "webp" -> "image/webp"
+            else -> hint
         }
     }
 
