@@ -11,6 +11,9 @@ import androidx.compose.material.icons.filled.Videocam
 import androidx.compose.material3.Icon
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.produceState
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
@@ -20,6 +23,9 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import coil.compose.AsyncImage
+import coil.request.CachePolicy
+import coil.request.ImageRequest
+import com.example.data.repository.CdnManager
 import com.example.ui.components.chat.media.DownloadProgressOverlay
 import com.example.ui.theme.PanalinkPalette
 
@@ -101,6 +107,31 @@ fun MediaMessageBubble(
 }
 
 @Composable
+private fun CdnCachedImage(
+    url: String,
+    contentDescription: String?,
+    modifier: Modifier = Modifier
+) {
+    val context = LocalContext.current
+    val resolvedUrl by produceState(initialValue = CdnManager.resolveMediaUrlSync(url), key1 = url) {
+        value = CdnManager.resolveMediaUrl(url)
+    }
+
+    AsyncImage(
+        model = ImageRequest.Builder(context)
+            .data(resolvedUrl.ifBlank { url })
+            .memoryCachePolicy(CachePolicy.ENABLED)
+            .diskCachePolicy(CachePolicy.ENABLED)
+            .networkCachePolicy(CachePolicy.ENABLED)
+            .crossfade(false)
+            .build(),
+        contentDescription = contentDescription,
+        modifier = modifier,
+        contentScale = ContentScale.Crop
+    )
+}
+
+@Composable
 private fun SingleMediaView(
     url: String,
     isVideo: Boolean,
@@ -116,13 +147,12 @@ private fun SingleMediaView(
             .clickable { onMediaClick() },
         contentAlignment = Alignment.Center
     ) {
-        AsyncImage(
-            model = if (isVideo) thumbnailUrl else url,
+        CdnCachedImage(
+            url = if (isVideo) thumbnailUrl else url,
             contentDescription = if (isVideo) "Video preview" else "Imagen",
             modifier = Modifier
                 .fillMaxWidth()
-                .heightIn(min = 220.dp, max = 400.dp),
-            contentScale = ContentScale.Crop
+                .heightIn(min = 220.dp, max = 400.dp)
         )
 
         if (isVideo) {
@@ -317,11 +347,10 @@ private fun GridImageItem(
             .clip(RoundedCornerShape(4.dp))
             .clickable { onClick() }
     ) {
-        AsyncImage(
-            model = url,
+        CdnCachedImage(
+            url = url,
             contentDescription = null,
-            modifier = Modifier.fillMaxSize(),
-            contentScale = ContentScale.Crop
+            modifier = Modifier.fillMaxSize()
         )
 
         if (overlayCount != null && overlayCount > 0) {
