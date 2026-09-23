@@ -453,7 +453,7 @@ fun ChatItemRow(
                     ) {
                         Text(
                             text = if (unread > 99) "99+" else unread.toString(),
-                            color = Color(0xFF0D0F12),
+color = Color(0xFF071014),
                             fontWeight = FontWeight.Bold,
                             fontSize = 10.sp
                         )
