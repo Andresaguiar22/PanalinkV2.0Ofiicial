@@ -100,7 +100,7 @@ fun ChatContactDetailSheet(
     
     Text(
     text = "en línea",
-    color = Color(0xFF25D366),
+    color = Color(0xFF18E7F5),
     fontSize = 12.sp,
     fontWeight = FontWeight.Medium
     )
@@ -116,22 +116,22 @@ fun ChatContactDetailSheet(
     Row(
     modifier = Modifier
     .fillMaxWidth()
-    .background(Color(0xFF1F2C34), RoundedCornerShape(12.dp))
+    .background(Color(0xFF18202A), RoundedCornerShape(12.dp))
     .padding(16.dp),
     verticalAlignment = Alignment.CenterVertically
     ) {
-    Icon(Icons.Default.Info, contentDescription = null, tint = Color(0xFF00A884), modifier = Modifier.size(24.dp))
+    Icon(Icons.Default.Info, contentDescription = null, tint = Color(0xFF18E7F5), modifier = Modifier.size(24.dp))
     Spacer(modifier = Modifier.width(16.dp))
     Column {
     Text(
     text = "Bio y PIN PanaLink",
-    color = Color(0xFF8596A0),
+    color = Color(0xFF9AA8B5),
     fontSize = 11.sp
     )
     Text(otherBio, color = PanalinkPalette.textPrimary, fontSize = 14.sp)
     
     Spacer(modifier = Modifier.height(4.dp))
-    Text(otherPin, color = Color(0xFF8596A0), fontSize = 13.sp)
+    Text(otherPin, color = Color(0xFF9AA8B5), fontSize = 13.sp)
     }
     }
     }
@@ -153,7 +153,7 @@ fun ChatContactDetailSheet(
     context.startActivity(android.content.Intent.createChooser(shareIntent, "Compartir contacto de pana"))
     },
     colors = ButtonDefaults.filledTonalButtonColors(
-    containerColor = Color(0xFF00A884),
+    containerColor = Color(0xFF18E7F5),
     contentColor = Color.White
     ),
     modifier = Modifier
@@ -170,7 +170,7 @@ fun ChatContactDetailSheet(
     Button(
     onClick = onDismiss,
     colors = ButtonDefaults.buttonColors(
-    containerColor = Color(0xFF1F2C34),
+    containerColor = Color(0xFF18202A),
     contentColor = Color.White
     ),
     modifier = Modifier
