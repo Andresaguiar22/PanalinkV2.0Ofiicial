@@ -55,7 +55,7 @@ fun ChatMediaGalleryScreen(
                     }
                 },
                 colors = TopAppBarDefaults.topAppBarColors(
-                    containerColor = Color(0xFF1F2C34),
+                    containerColor = Color(0xFF18202A),
                     titleContentColor = Color.White,
                     navigationIconContentColor = Color.White
                 )
@@ -66,12 +66,12 @@ fun ChatMediaGalleryScreen(
         Column(modifier = Modifier.padding(padding)) {
             TabRow(
                 selectedTabIndex = selectedTab,
-                containerColor = Color(0xFF1F2C34),
-                contentColor = Color(0xFF00A884),
+                containerColor = Color(0xFF18202A),
+                contentColor = Color(0xFF18E7F5),
                 indicator = { tabPositions ->
                     TabRowDefaults.SecondaryIndicator(
                         Modifier.tabIndicatorOffset(tabPositions[selectedTab]),
-                        color = Color(0xFF00A884)
+                        color = Color(0xFF18E7F5)
                     )
                 }
             ) {
@@ -82,7 +82,7 @@ fun ChatMediaGalleryScreen(
                         text = { 
                             Text(
                                 title,
-                                color = if (selectedTab == index) Color(0xFF00A884) else Color.White.copy(alpha = 0.6f),
+                                color = if (selectedTab == index) Color(0xFF18E7F5) else Color.White.copy(alpha = 0.6f),
                                 fontSize = 14.sp
                             ) 
                         }
@@ -95,7 +95,7 @@ fun ChatMediaGalleryScreen(
                     is MediaGalleryUiState.Loading -> {
                         CircularProgressIndicator(
                             modifier = Modifier.align(Alignment.Center),
-                            color = Color(0xFF00A884)
+                            color = Color(0xFF18E7F5)
                         )
                     }
                     is MediaGalleryUiState.Empty -> {
