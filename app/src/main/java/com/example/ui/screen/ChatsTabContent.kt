@@ -229,11 +229,11 @@ fun ChatsTabContent(
                                         horizontalAlignment = Alignment.CenterHorizontally,
                                         verticalArrangement = Arrangement.Center
                                     ) {
-                                        Icon(Icons.Default.Email, contentDescription = null, tint = Color(0xFF37474F), modifier = Modifier.size(72.dp))
+                                        Icon(Icons.Default.Email, contentDescription = null, tint = Color(0xFF18202A), modifier = Modifier.size(72.dp))
                                         Spacer(modifier = Modifier.height(16.dp))
-                                        Text("No tienes chats activos", color = Color(0xFF90A4AE), fontWeight = FontWeight.Bold, fontSize = 16.sp)
+                                        Text("No tienes chats activos", color = Color(0xFFB8C4D6), fontWeight = FontWeight.Bold, fontSize = 16.sp)
                                         Spacer(modifier = Modifier.height(4.dp))
-                                        Text("Presiona el botón de abajo para buscar panas.", color = Color(0xFF607D8B), fontSize = 13.sp)
+                                        Text("Presiona el botón de abajo para buscar panas.", color = Color(0xFF7D8CA3), fontSize = 13.sp)
                                     }
                                 }
                             } else {
@@ -320,11 +320,11 @@ fun ChatsTabContent(
                                         horizontalAlignment = Alignment.CenterHorizontally,
                                         verticalArrangement = Arrangement.Center
                                     ) {
-                                        Icon(Icons.Default.SearchOff, contentDescription = null, tint = Color(0xFF37474F), modifier = Modifier.size(72.dp))
+                                        Icon(Icons.Default.SearchOff, contentDescription = null, tint = Color(0xFF18202A), modifier = Modifier.size(72.dp))
                                         Spacer(modifier = Modifier.height(16.dp))
-                                        Text("Sin resultados para \"$searchQuery\"", color = Color(0xFF90A4AE), fontWeight = FontWeight.Bold, fontSize = 16.sp)
+                                        Text("Sin resultados para \"$searchQuery\"", color = Color(0xFFB8C4D6), fontWeight = FontWeight.Bold, fontSize = 16.sp)
                                         Spacer(modifier = Modifier.height(4.dp))
-                                        Text("Prueba con otro nombre o palabra clave.", color = Color(0xFF607D8B), fontSize = 13.sp)
+                                        Text("Prueba con otro nombre o palabra clave.", color = Color(0xFF7D8CA3), fontSize = 13.sp)
                                     }
                                 }
                             } else {
@@ -412,7 +412,7 @@ fun ChatsTabContent(
                                                 Spacer(modifier = Modifier.height(2.dp))
                                                 Text(
                                                     text = "Conectado por panalink",
-                                                    color = Color(0xFF90A4AE),
+                                                    color = Color(0xFFB8C4D6),
                                                     fontSize = 13.sp
                                                 )
                                             }
@@ -695,7 +695,7 @@ fun ChatItemRow(
                     ) {
                         Text(
                             text = if (unread > 99) "99+" else unread.toString(),
-                            color = Color(0xFF071014),
+                            color = Color(0xFF0D0F12),
                             fontWeight = FontWeight.Bold,
                             fontSize = 10.sp
                         )
@@ -828,7 +828,7 @@ fun ChatAvatar(
                 Icon(
                     imageVector = Icons.Default.CheckCircle,
                     contentDescription = "Selected",
-                    tint = Color(0xFF00A884), // WhatsApp primary green
+                    tint = Color(0xFF18E7F5), // WhatsApp primary green
                     modifier = Modifier.size(20.dp)
                 )
             }
