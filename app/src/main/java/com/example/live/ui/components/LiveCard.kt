@@ -49,7 +49,7 @@ import com.example.ui.components.rememberAsyncMediaUrl
 import com.example.ui.theme.PanalinkPalette
 
 private val LiveCardShape = RoundedCornerShape(20.dp)
-private val LiveRed = Color(0xFFFF3B30)
+private val LiveRed = Color(0xFFFF28C8)
 
 /**
  * Tarjeta de transmisión con estética glassmorphism: sin bloque de color, borde
@@ -91,7 +91,7 @@ fun LiveCard(
                         .fillMaxSize()
                         .background(
                             Brush.linearGradient(
-                                colors = listOf(Color(0xFF1E3A3A), Color(0xFF12262E))
+                                colors = listOf(Color(0xFF131A22), Color(0xFF0D0F12))
                             )
                         )
                         .blur(28.dp)
@@ -179,7 +179,7 @@ private fun LiveBadge() {
     Row(
         modifier = Modifier
             .clip(CircleShape)
-            .background(Color(0xFF111113).copy(alpha = 0.55f))
+            .background(Color(0xFF0D0F12).copy(alpha = 0.55f))
             .border(1.dp, Color.White.copy(alpha = 0.15f), CircleShape)
             .padding(horizontal = 10.dp, vertical = 5.dp),
         verticalAlignment = Alignment.CenterVertically,
@@ -230,7 +230,7 @@ private fun ViewerCountBadge(viewerCount: Int) {
     Row(
         modifier = Modifier
             .clip(CircleShape)
-            .background(Color(0xFF111113).copy(alpha = 0.55f))
+            .background(Color(0xFF0D0F12).copy(alpha = 0.55f))
             .border(1.dp, Color.White.copy(alpha = 0.12f), CircleShape)
             .padding(horizontal = 9.dp, vertical = 5.dp),
         verticalAlignment = Alignment.CenterVertically,
