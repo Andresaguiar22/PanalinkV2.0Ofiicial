@@ -58,7 +58,7 @@ fun LiveFloatingHeartsOverlay(
                     Icon(
                         imageVector = Icons.Default.Favorite,
                         contentDescription = null,
-                        tint = listOf(Color(0xFFEF5350), Color(0xFFFF4081), Color(0xFFFFEB3B), Color(0xFF00A884)).random(),
+                        tint = listOf(Color(0xFFEF5350), Color(0xFFFF4081), Color(0xFFFFEB3B), Color(0xFF18E7F5)).random(),
                         modifier = Modifier.size(32.dp)
                     )
                 }
