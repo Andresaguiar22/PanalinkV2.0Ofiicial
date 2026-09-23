@@ -1181,61 +1181,55 @@ fun sendSticker(url: String, preview: String?, replyToId: String?) {
         val chatId = currentChatId ?: return
         val otherUserId = currentOtherUserId
         viewModelScope.launch {
-            // Local stickers (Panalink default pack / studio creations saved offline)
-            // are uploaded to the CDN on first send so every contact can render them.
-            val sendUrl = if (com.example.features.stickers.studio.PanalinkDefaultStickers.isLocalStickerPath(url)) {
-                com.example.features.stickers.studio.PanalinkDefaultStickers.resolveRemoteUrl(context = com.example.PanaApplication.instance, localPath = url) ?: url
-            } else {
-                // Stickers/GIFs de proveedores externos (Klipy/Giphy) se espejan al CDN
-                // de PanaLink para que el mensaje no dependa de terceros. Si el CDN o la
-                // subida fallan, se conserva la URL original (hot-link) y el envío sigue.
-                com.example.util.StickerCdnMirror.mirrorIfExternal(
-                    context = com.example.PanaApplication.instance,
-                    url = url,
-                    typeLabel = if (url.lowercase().contains(".gif")) "GIF" else "Sticker",
-                    mimeType = if (url.lowercase().contains(".gif")) "image/gif" else "image/webp"
+            try {
+                val context = com.example.PanaApplication.instance
+                val isSourceGif = url.lowercase().substringBefore("?").substringBefore("#").endsWith(".gif")
+                val sendUrl = if (com.example.features.stickers.studio.PanalinkDefaultStickers.isLocalStickerPath(url)) {
+                    com.example.features.stickers.studio.PanalinkDefaultStickers.resolveRemoteUrl(context = context, localPath = url)
+                        ?: throw IllegalStateException("No se pudo subir el sticker local al CDN")
+                } else {
+                    com.example.util.StickerCdnMirror.mirrorIfExternal(
+                        context = context, url = url,
+                        typeLabel = if (isSourceGif) "GIF" else "Sticker",
+                        mimeType = if (isSourceGif) "image/gif" else "image/webp"
+                    )
+                }
+                if (sendUrl.isBlank() || !sendUrl.startsWith("http")) {
+                    throw IllegalStateException("El sticker no tiene una URL CDN válida")
+                }
+                val isGif = isSourceGif || sendUrl.lowercase().substringBefore("?").substringBefore("#").endsWith(".gif")
+                val msgId = "temp_" + java.util.UUID.randomUUID()
+                val nowStr = com.example.data.supabase.SupabaseClient.getNowIsoString()
+                val mType = if (isGif) "gif" else "sticker"
+                val mMime = if (isGif) "image/gif" else "image/webp"
+                val safePreview = if (preview.isNullOrBlank() || preview == url) sendUrl else {
+                    com.example.util.StickerCdnMirror.mirrorIfExternal(
+                        context = context, url = preview,
+                        typeLabel = if (isGif) "GIF" else "Sticker",
+                        mimeType = if (isGif) "image/gif" else "image/webp"
+                    )
+                }.takeIf { it.isNotBlank() && it.startsWith("http") }
+                val optimisticMsg = com.example.data.model.Message(
+                    id = msgId, chatId = chatId,
+                    senderId = com.example.data.supabase.SupabaseClient.currentUser?.id ?: "",
+                    content = if (isGif) "[GIF]" else "[Sticker]", createdAt = nowStr,
+                    status = "sending", replyToMessageId = replyToId, mediaUrl = sendUrl,
+                    thumbnailUrl = safePreview ?: sendUrl, mediaMime = mMime,
+                    messageType = mType, isGhost = _isGhostMode.value
                 )
+                messagesRepo.insertLocalMessage(optimisticMsg)
+                messagesRepo.sendMessage(
+                    chatId = chatId, content = optimisticMsg.content ?: "", replyToId = replyToId,
+                    receiverUid = otherUserId, messageType = mType, mediaUrl = sendUrl,
+                    thumbnailUrl = safePreview ?: sendUrl, mediaMime = mMime,
+                    isGhost = _isGhostMode.value, messageId = msgId
+                )
+            } catch (e: Exception) {
+                Log.e("ChatViewModel", "No se pudo preparar sticker/GIF para envío: ${e.message}", e)
+                withContext(Dispatchers.Main) {
+                    Toast.makeText(context = com.example.PanaApplication.instance, text = "No se pudo preparar el sticker/GIF. Intenta de nuevo.", Toast.LENGTH_SHORT).show()
+                }
             }
-            val isGif = sendUrl.lowercase().contains(".gif")
-            val msgId = "temp_${java.util.UUID.randomUUID()}"
-            val nowStr = com.example.data.supabase.SupabaseClient.getNowIsoString()
-            val mType = if (isGif) "gif" else "sticker"
-            val mMime = if (isGif) "image/gif" else "image/webp"
-
-            // Optimistic UI for Sticker/GIF (local preview renders instantly).
-            // IMPORTANTE: mediaUrl debe ser la URL DEFINITIVA (la subida al CDN
-            // para stickers locales) para que la burbuja del emisor renderice la
-            // misma imagen que recibirá el destinatario — si se usa la ruta local
-            // original, la burbuja muestra "Sticker no disponible" cuando la ruta
-            // temporal ya no existe tras el sync.
-            val optimisticMsg = com.example.data.model.Message(
-                id = msgId,
-                chatId = chatId,
-                senderId = com.example.data.supabase.SupabaseClient.currentUser?.id ?: "",
-                content = if (isGif) "[GIF]" else "[Sticker]",
-                createdAt = nowStr,
-                status = "sending",
-                replyToMessageId = replyToId,
-                mediaUrl = sendUrl,
-                thumbnailUrl = preview ?: sendUrl,
-                mediaMime = mMime,
-                messageType = mType,
-                isGhost = _isGhostMode.value
-            )
-            messagesRepo.insertLocalMessage(optimisticMsg)
-
-            messagesRepo.sendMessage(
-                chatId = chatId,
-                content = optimisticMsg.content ?: "",
-                replyToId = replyToId,
-                receiverUid = otherUserId,
-                messageType = mType,
-                mediaUrl = sendUrl,
-                thumbnailUrl = preview ?: sendUrl,
-                mediaMime = mMime,
-                isGhost = _isGhostMode.value,
-                messageId = msgId
-            )
         }
     }
 
