@@ -3,6 +3,8 @@ package com.example.live.ui.viewmodel
 import android.app.Application
 import androidx.lifecycle.AndroidViewModel
 import androidx.lifecycle.viewModelScope
+import com.example.data.model.Profile
+import com.example.data.repository.ProfilesRepository
 import com.example.live.data.remote.LiveGuestRealtimeManager
 import com.example.live.data.repository.LiveGuestRepositoryImpl
 import com.example.live.domain.model.LiveGuest
@@ -14,9 +16,13 @@ import kotlinx.coroutines.launch
 
 class LiveGuestViewModel(application: Application) : AndroidViewModel(application) {
     private val repository: LiveGuestRepository = LiveGuestRepositoryImpl(application)
+    private val profilesRepository: ProfilesRepository = ProfilesRepository()
 
     private val _guests = MutableStateFlow<List<LiveGuest>>(emptyList())
     val guests: StateFlow<List<LiveGuest>> = _guests.asStateFlow()
+
+    private val _userSearch = MutableStateFlow<List<Profile>>(emptyList())
+    val userSearch: StateFlow<List<Profile>> = _userSearch.asStateFlow()
 
     private var realtimeManager: LiveGuestRealtimeManager? = null
 
@@ -49,6 +55,26 @@ class LiveGuestViewModel(application: Application) : AndroidViewModel(applicatio
         }.apply {
             start()
         }
+    }
+
+    fun searchUsers(query: String) {
+        if (query.isBlank()) {
+            _userSearch.value = emptyList()
+            return
+        }
+        viewModelScope.launch {
+            profilesRepository.searchProfiles(query)
+                .onSuccess { list ->
+                    _userSearch.value = list
+                }
+                .onFailure {
+                    _userSearch.value = emptyList()
+                }
+        }
+    }
+
+    fun clearUserSearch() {
+        _userSearch.value = emptyList()
     }
 
     fun inviteGuest(streamId: String, userId: String) {

@@ -28,6 +28,9 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.core.content.ContextCompat
+import com.example.data.model.PublicProfile
+import com.example.data.repository.PublicProfileFetchResult
+import com.example.data.repository.PublicProfileRepository
 import com.example.data.supabase.SupabaseClient
 import com.example.live.data.LiveCleanupScope
 import com.example.live.data.repository.LiveRoomRepositoryImpl
@@ -85,7 +88,27 @@ fun LiveBroadcastScreen(
     val comments by viewModel.comments.collectAsStateWithLifecycle()
     val viewerCount by viewModel.viewerCount.collectAsStateWithLifecycle()
     val guests by guestViewModel.guests.collectAsStateWithLifecycle()
+    val userSearch by guestViewModel.userSearch.collectAsStateWithLifecycle()
     val giftPulse by viewModel.giftPulse.collectAsStateWithLifecycle()
+    var guestNames by remember { mutableStateOf<Map<String, String>>(emptyMap()) }
+    LaunchedEffect(guests) {
+        val names = mutableMapOf<String, String>()
+        val ids = guests.map { it.userId }.filter { it.isNotBlank() }.distinct()
+        if (ids.isNotEmpty()) {
+            val result = PublicProfileRepository.getInstance().getPublicProfiles(ids)
+            if (result is PublicProfileFetchResult.Success) {
+                val resolved = result.data
+                for ((uid, profileResult) in resolved) {
+                    val profile = (profileResult as? PublicProfileFetchResult.Success)?.data
+                    if (profile != null) {
+                        val name = listOfNotNull(profile.displayName, profile.firstName, profile.lastName).firstOrNull() ?: uid
+                        names[uid] = name
+                    }
+                }
+            }
+        }
+        guestNames = names
+    }
     val scope = rememberCoroutineScope()
 
     var titleText by remember { mutableStateOf("Mi Transmisión en Vivo") }
@@ -434,8 +457,12 @@ fun LiveBroadcastScreen(
                         ) {
                             LiveGuestControls(
                                 guests = guests,
+                                guestNames = guestNames,
                                 onInvite = { userId -> guestViewModel.inviteGuest(stream.id, userId) },
-                                onRemove = { userId -> guestViewModel.removeGuest(stream.id, userId) }
+                                onRemove = { userId -> guestViewModel.removeGuest(stream.id, userId) },
+                                onSearchUsers = { query -> guestViewModel.searchUsers(query) },
+                                onClearSearch = { guestViewModel.clearUserSearch() },
+                                searchResults = userSearch
                             )
                         }
                     }
