@@ -94,8 +94,8 @@ VERSION_NAME=vX.Y.Z VERSION_CODE=N ./gradlew :app:assembleRelease   # release
 ### Canal OTA (Andresaguiar22/panalink-ota)
 * Repo público de distribución: `https://github.com/Andresaguiar22/panalink-ota` (rama `main`).
 * `manifest.json` en `main` es la fuente de verdad para la app; vivir también se adjunta como asset del release.
-* Convención de versiones: `versionCode` incrementa de 1 en 1;; `versionName` es la tag (`v1.3.x`). Actual: **v1.3.35 / code  62** (publicada 2026-09-11).
-* `minimumSupportedVersionCode` = versionCode de la versión anterior publicada ( 61 para v1.3.35);`mandatory` casi siempre `false`.
+* Convención de versiones: `versionCode` incrementa de 1 en 1;; `versionName` es la tag (`v1.3.x`). Actual: **v1.3.58 / code  85** (publicada 2026-09-23).
+* `minimumSupportedVersionCode` = versionCode de la versión anterior publicada ( 77 para v1.3.58);`mandatory` casi siempre `false`.
 * Últimas publicadas(histórico): v1.3.34/code 61 (2026-09-11), v1.3.33/code  60 (2026-09-11), v1.3.32/code 59 (2026-09-10), v1.3.31/code  58 (2026-09-10)y v1.3.30/code  ⁵⁷ (2026-09-10.
 * **Política de build universal (desde v1.3.33):** `app/build.gradle.kts` incluye `packaging { jniLibs { useLegacyPackaging = true } } }` con las 4 ABIs→ el APK sale con `extractNativeLibs=true` (fix de instalación en XOS/Transsion - Infinix/Tecno/itel y ROMs estrictas Android   7-11+) y `Panalink-<versionName>.apk` de ~78 MB. Adjuntar también `manifest.json` al release.
 * `sha256` del APK es obligatorio en el manifest (64 hex).
