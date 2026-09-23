@@ -977,3 +977,18 @@ factor `0.55 + pow(1.7)*(3.8-0.55)`, halo `1.7x` alpha `0x08` (casi invisible), 
 * **12001** (`serve_apk.py`) sirve el APK con 206/Range; **12000** (`upload_server.py`) devuelve **501** en `/apk/...`:
   entregar siempre por 12001. URL: `https://work-2-vbwmdmbkyoqizcpr.prod-runtime.all-hands.dev/Panalink-BETA-v1.3.54-code81.apk`.
 
+### 🎬 Buscador de GIFs/stickers con ~280 resultados por búsqueda (sesión 2026-09-22, rama `kilo/chat-timestamp-server-authority`)
+* **Pedido**: al buscar "oso" (o cualquier término) el selector debe rendir como mínimo 200-300 GIFs, en cualquier chat.
+* **Causa**: `StickerRepository` solo pedía 1-2 páginas de `limit` (24-40) a Klipy → 24-80 resultados. El selector y `ChatViewModel` usaban `limit=24`/default 40.
+* **Fix** (`StickerRepository.kt`): paginación multi-pagina genérica `fetchKlipyPaged(query, pageLoader)`:
+  - `KLIPY_PAGE_SIZE = 100` (items por página a la API), `MAX_KLIPY_PAGES =  ‎6`, `DESIRED_RESULT_COUNT =  ‎280`.
+  - Itera `page=1..` mientras `has_next` y `acc.size < 280`, deduplicando por `id` (`seenIds`), corta por `DESIRED_RESULT_COUNT` (cada búsqueda rinde ~280 resultados).
+  - Se aplica a GIFs y stickers de Klipy (search + trending. Giphy fallback ahora usa `limit = DESIRED_RESULT_COUNT` directo.
+
+  - **Cuidado al añadir KDoc en strings multilínea**: el canal de generación pierde el `*/` de cierre(queda "Unclosed comment" y el compilador se traga TODO el archivo como comentario → errores masivos "Unresolved reference" falsos. Si aparece ese síntoma, buscar el `/**` sin `*/` ANTES del punto reportado.
+  - El `file_editor`/canal tienden a perder el paréntesis final tras `"\n"` → **NO generar scripts Python con literales `"\n"` en el editor**; usar slicing por índices de línea en scripts creados con `file_editor` y paréntesis verificados con `py_compile` antes de correr.
+* **Tests**: `KlipyGifMappingTest` y `StickerCdnMirrorTest` verdes; `sanitize_invisible.sh` limpio; BUILD SUCCESSFUL.
+* **Commits** (rama `kilo/chat-timestamp-server-authority`): `a3e48be` (live invite por username) + `700b05a` (Klipy paginación 280). Push `ff33c9d..700b05a`.
+* **Live invite por username** (sesión previa pendiente, completada en esta): `LiveGuestViewModel.searchUsers(query)` (vía `ProfilesRepository.searchProfiles`) + `LiveGuestControls` rediseñado con buscador con `PanaAvatar` y selección; `LiveBroadcastScreen` resuelve `guestNames` vía `PublicProfileRepository.getPublicProfiles(ids)` y pasa los nuevos params (compila y committeado `a3e48be`).
+* **Merges pendientes confirmados YA en `main`**: `93c83ba` "Merge kilo/live-broadcast-chat-fixes" (comentarios host tope/fade, GIFs compactos, regalos) y `5721e06` "Merge kilo/sticker-gif-cdn-mirror" (CDN mirror + inyección KLIPY/GIPHY_API_KEY en cada build en `fd73af5`/`ad1122b`)**. Ambas ramas ya borradas de origin.
+.
