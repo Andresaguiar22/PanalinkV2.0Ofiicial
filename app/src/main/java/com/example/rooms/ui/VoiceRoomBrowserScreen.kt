@@ -35,9 +35,9 @@ fun VoiceRoomBrowserScreen(onBack:()->Unit,onEnterRoom:(String)->Unit,viewModel:
     var showCreate by remember{mutableStateOf(false)}
     LaunchedEffect(state.createdRoom){state.createdRoom?.let{onEnterRoom(it.id)}}
     LaunchedEffect(Unit){viewModel.refresh()}
-    Scaffold(topBar={TopAppBar(title={Text("Salas de voz",fontWeight=FontWeight.Bold)},navigationIcon={IconButton(onClick=onBack){Icon(Icons.Default.ArrowBack,"Volver")}},colors=TopAppBarDefaults.topAppBarColors(containerColor=Color(0xFF2C1912),titleContentColor=Color.White))},containerColor=Color(0xFF1A120E)){padding->
+    Scaffold(topBar={TopAppBar(title={Text("Salas de voz",fontWeight=FontWeight.Bold)},navigationIcon={IconButton(onClick=onBack){Icon(Icons.Default.ArrowBack,"Volver")}},colors=TopAppBarDefaults.topAppBarColors(containerColor=Color(0xB8131A22),titleContentColor=Color.White))},containerColor=Color(0xFF0D0F12)){padding->
         Box(Modifier.fillMaxSize()) {
-            if(state.isLoading && state.rooms.isEmpty()) CircularProgressIndicator(Modifier.align(Alignment.Center),color=Color(0xFF4ADEAF))
+            if(state.isLoading && state.rooms.isEmpty()) CircularProgressIndicator(Modifier.align(Alignment.Center),color=Color(0xFF18E7F5))
             LazyVerticalGrid(columns=GridCells.Fixed(2),modifier=Modifier.fillMaxSize().padding(padding).padding(12.dp),horizontalArrangement=Arrangement.spacedBy(10.dp),verticalArrangement=Arrangement.spacedBy(10.dp)){
                 items(state.rooms,key={it.id}){room->RoomCard(room,state.memberCounts[room.id]?:0){onEnterRoom(room.id)}}
             }
@@ -45,7 +45,7 @@ fun VoiceRoomBrowserScreen(onBack:()->Unit,onEnterRoom:(String)->Unit,viewModel:
             FloatingActionButton(onClick={
                 // Premium 2.0: beneficios aditivos — crear sala NUNCA se bloquea.
                 showCreate = true
-            },modifier=Modifier.align(Alignment.BottomEnd).padding(20.dp),containerColor=Color(0xFF4ADEAF)){Icon(Icons.Default.Add,"Crear sala",tint=Color(0xFF1A120E))}
+            },modifier=Modifier.align(Alignment.BottomEnd).padding(20.dp),containerColor=Color(0xFF18E7F5)){Icon(Icons.Default.Add,"Crear sala",tint=Color(0xFF0D0F12))}
             if(showCreate) VoiceRoomCreateDialog(onDismiss={showCreate=false},onCreate={showCreate=false;viewModel.createRoom(it)})
         }
     }
@@ -53,16 +53,16 @@ fun VoiceRoomBrowserScreen(onBack:()->Unit,onEnterRoom:(String)->Unit,viewModel:
 
 @Composable
 private fun RoomCard(room:VoiceRoom,members:Int,onClick:()->Unit){
-    Card(shape=RoundedCornerShape(16.dp),colors=CardDefaults.cardColors(containerColor=Color(0xFF3A231A)),modifier=Modifier.fillMaxWidth().clickable(onClick=onClick)){
+    Card(shape=RoundedCornerShape(16.dp),colors=CardDefaults.cardColors(containerColor=Color(0xB8131A22)),modifier=Modifier.fillMaxWidth().clickable(onClick=onClick)){
         Column {
-            Box(Modifier.fillMaxWidth().height(88.dp).clip(RoundedCornerShape(topStart=16.dp,topEnd=16.dp)).background(Brush.horizontalGradient(listOf(Color(0xFF5E3A28),Color(0xFF3E2417))))){
+            Box(Modifier.fillMaxWidth().height(88.dp).clip(RoundedCornerShape(topStart=16.dp,topEnd=16.dp)).background(Brush.horizontalGradient(listOf(Color(0xFF7B3FF2),Color(0xFF18202A))))){
                 if(!room.coverUrl.isNullOrBlank()) AsyncImage(model=room.coverUrl,contentDescription=room.name,contentScale=ContentScale.Crop,modifier=Modifier.fillMaxSize())
                 if(room.isPrivate) Surface(color=Color(0xCC1A120E),shape=RoundedCornerShape(bottomEnd=10.dp)){Row(Modifier.padding(horizontal=8.dp,vertical=5.dp),verticalAlignment=Alignment.CenterVertically){Icon(Icons.Default.Lock,null,tint=Color.White,modifier=Modifier.size(12.dp));Spacer(Modifier.width(4.dp));Text("Privada",color=Color.White,fontSize=10.sp)}}
             }
             Column(Modifier.padding(10.dp)){
                 Text(room.name,color=Color.White,fontWeight=FontWeight.Bold,fontSize=14.sp,maxLines=1,overflow=TextOverflow.Ellipsis)
-                Text(room.category.replaceFirstChar{it.uppercase()},color=Color(0xFFB8A99A),fontSize=10.sp)
-                if(room.description.isNotBlank()) Text(room.description,color=Color(0xFFD8CDC4),fontSize=11.sp,maxLines=2,overflow=TextOverflow.Ellipsis,modifier=Modifier.padding(top=4.dp))
+                Text(room.category.replaceFirstChar{it.uppercase()},color=Color(0xFFB8C4D6),fontSize=10.sp)
+                if(room.description.isNotBlank()) Text(room.description,color=Color(0xFFD9E3EF),fontSize=11.sp,maxLines=2,overflow=TextOverflow.Ellipsis,modifier=Modifier.padding(top=4.dp))
                 Spacer(Modifier.height(7.dp))
                 Row(verticalAlignment=Alignment.CenterVertically){Icon(Icons.Default.Person,null,tint=Color(0xBAB3FFD4),modifier=Modifier.size(13.dp));Spacer(Modifier.width(3.dp));Text("$members",color=Color.White,fontSize=11.sp,fontWeight=FontWeight.SemiBold);Spacer(Modifier.width(8.dp));Text("${room.maxSeats} sillones",color=Color.Gray,fontSize=10.sp)}
             }
