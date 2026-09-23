@@ -182,125 +182,6 @@ fun ChatsTabContent(
                                     }
                                 }
                             } else {
-                                itemsIndexed(visibleChats, key = { _, chatDetails -> chatDetails.chat.id }) { index, chatDetails ->
-                                    ChatItemRow(
-                                        chatDetails = if (customUnreadCounts.containsKey(chatDetails.chat.id)) chatDetails.copy(unreadCount = customUnreadCounts[chatDetails.chat.id]!!) else chatDetails,
-                                        chatsViewModel = chatsViewModel,
-                                        isTyping = typingChats[chatDetails.chat.id] == true,
-                                        isSelected = selectedChatIds.contains(chatDetails.chat.id),
-                                        isMuted = mutedChatIds.contains(chatDetails.chat.id) || chatDetails.chat.isMuted,
-                                        isPinned = pinnedChatIds.contains(chatDetails.chat.id) || chatDetails.chat.isPinned,
-                                        onLongClick = { if (selectedChatIds.isEmpty()) onStartChatSelection(chatDetails.chat.id) },
-                                        onClick = {
-                                            if (selectedChatIds.isNotEmpty()) onToggleChatSelection(chatDetails.chat.id)
-                                            else onNavigateToChat(chatDetails.chat.id, chatDetails.otherMember?.id ?: "")
-                                        }
-                                    )
-                                }
-                            }
-                        }
-                        is ChatsUiState.Error -> {
-                            item {
-                                Text(chatsState.message, color = Color(0xFFFF6B7A), textAlign = TextAlign.Center, modifier = Modifier.fillMaxWidth().padding(40.dp))
-                            }
-                        }
-                    }
-                }
-            }
-        }
-    }
-}
-
-@Composable
-fun ChatsTabContent(
-    chatsState: ChatsUiState,
-    typingChats: Map<String, Boolean>,
-    contactsState: ContactsUiState,
-    statesState: StatesUiState,
-    chatsViewModel: ChatsViewModel,
-    onNavigateToChat: (String, String) -> Unit,
-    onNavigateToViewState: (String) -> Unit,
-    onNavigateToCreateState: () -> Unit,
-    onRefresh: () -> Unit,
-    selectedChatIds: Set<String> = emptySet(),
-    onToggleChatSelection: (String) -> Unit = {},
-    onStartChatSelection: (String) -> Unit = {},
-    deletedChatIds: Set<String> = emptySet(),
-    pinnedChatIds: Set<String> = emptySet(),
-    mutedChatIds: Set<String> = emptySet(),
-    customUnreadCounts: Map<String, Int> = emptyMap()
-) {
-    val context = androidx.compose.ui.platform.LocalContext.current
-    var isRefreshing by remember { mutableStateOf(false) }
-    val scope = rememberCoroutineScope()
-    val listState = androidx.compose.foundation.lazy.rememberLazyListState()
-
-    LaunchedEffect(Unit) {
-        val pos = ChatListScrollManager.getPosition(context)
-        if (pos != null) listState.scrollToItem(pos.first, pos.second)
-    }
-
-    LaunchedEffect(listState.firstVisibleItemIndex, listState.firstVisibleItemScrollOffset) {
-        if (listState.firstVisibleItemIndex > 0 || listState.firstVisibleItemScrollOffset > 0) {
-            ChatListScrollManager.savePosition(context, listState.firstVisibleItemIndex, listState.firstVisibleItemScrollOffset)
-        }
-    }
-
-    val visibleChats = remember(chatsState, deletedChatIds) {
-        (chatsState as? ChatsUiState.Success)?.chats
-            ?.filterNot { deletedChatIds.contains(it.chat.id) || it.chat.isArchived }
-            ?.sortedWith(
-                compareByDescending<ChatWithDetails> { it.chat.isPinned }
-                    .thenByDescending { it.chat.pinnedAt ?: "" }
-                    .thenByDescending { it.lastMessage?.createdAt ?: it.chat.createdAt ?: "" }
-            )
-            ?: emptyList()
-    }
-
-    Box(Modifier.fillMaxSize()) {
-        PanaLinkCyberpunkBackground(Modifier.matchParentSize())
-
-        PanaLinkNeonGlassPanel(
-            modifier = Modifier
-                .fillMaxSize()
-                .padding(horizontal = 14.dp, vertical = 6.dp)
-        ) {
-            PanalinkPullToRefreshBox(
-                isRefreshing = isRefreshing,
-                onRefresh = {
-                    scope.launch {
-                        isRefreshing = true
-                        onRefresh()
-                        kotlinx.coroutines.delay(700)
-                        isRefreshing = false
-                    }
-                }
-            ) {
-                LazyColumn(
-                    state = listState,
-                    modifier = Modifier.fillMaxSize(),
-                    contentPadding = PaddingValues(start = 10.dp, end = 10.dp, top = 12.dp, bottom = 22.dp),
-                    verticalArrangement = Arrangement.spacedBy(2.dp)
-                ) {
-                    when (chatsState) {
-                        is ChatsUiState.Loading -> {
-                            items(6) { ShimmerChatItemRow() }
-                        }
-                        is ChatsUiState.Success -> {
-                            if (visibleChats.isEmpty()) {
-                                item {
-                                    Column(
-                                        modifier = Modifier.fillMaxWidth().padding(48.dp),
-                                        horizontalAlignment = Alignment.CenterHorizontally
-                                    ) {
-                                        Icon(Icons.Default.Email, contentDescription = null, tint = PanaLinkCyberpunkColors.Cyan.copy(alpha = 0.65f), modifier = Modifier.size(64.dp))
-                                        Spacer(Modifier.height(14.dp))
-                                        Text("No tienes chats activos", color = PanaLinkCyberpunkColors.Cream, fontWeight = FontWeight.Bold, fontSize = 17.sp)
-                                        Spacer(Modifier.height(6.dp))
-                                        Text("Usa + para comenzar una nueva conversación.", color = PanaLinkCyberpunkColors.Message.copy(alpha = 0.72f), fontSize = 13.sp, textAlign = TextAlign.Center)
-                                    }
-                                }
-                            } else {
                                 itemsIndexed(visibleChats, key = { index, chatDetails -> "${'$'}{chatDetails.chat.id}_${'$'}index" }) { index, chatDetails ->
                                     ChatItemRow(
                                         chatDetails = if (customUnreadCounts.containsKey(chatDetails.chat.id)) chatDetails.copy(unreadCount = customUnreadCounts[chatDetails.chat.id]!!) else chatDetails,
@@ -538,7 +419,7 @@ fun ChatAvatar(
             .fillMaxSize()
             .border(
                 if (hasUnread) 2.2.dp else 1.4.dp,
-if (hasUnread) com.example.ui.theme.getPremiumActiveIconGradient() else PanaLinkCyberpunkColors.Gold,
+if (hasUnread) com.example.ui.theme.getPremiumActiveIconGradient() else Brush.linearGradient(listOf(PanaLinkCyberpunkColors.Gold, PanaLinkCyberpunkColors.Gold)),
                 CircleShape
             )
             .padding(if (hasUnread) 3.dp else 1.5.dp)
