@@ -54,7 +54,7 @@ fun ContactRequestPreviewDialog(
                     contentDescription = null,
                     modifier = Modifier
                         .size(72.dp)
-                        .background(Color(0xFF00FF85), RoundedCornerShape(36.dp))
+                        .background(Color(0xFF18E7F5), RoundedCornerShape(36.dp))
                         .padding(2.dp),
                     contentScale = ContentScale.Crop
                 )
@@ -68,13 +68,13 @@ fun ContactRequestPreviewDialog(
                 Spacer(Modifier.height(4.dp))
                 Text(
                     text = "PIN/QR: $pinOrToken",
-                    color = Color(0xFF90A4AE),
+                    color = Color(0xFF9AA8B5),
                     fontSize = 12.sp
                 )
                 Spacer(Modifier.height(6.dp))
                 Text(
                     text = "Cuando acepte, se agregarán como contacto mutuos. Si rechaza, se elimina de tu lista.",
-                    color = Color(0xFF90A4AE),
+                    color = Color(0xFF9AA8B5),
                     fontSize = 12.sp
                 )
             }
@@ -82,7 +82,7 @@ fun ContactRequestPreviewDialog(
         confirmButton = {
             Button(
                 onClick = onConfirm,
-                colors = ButtonDefaults.buttonColors(containerColor = Color(0xFF00FF85))
+                colors = ButtonDefaults.buttonColors(containerColor = Color(0xFF18E7F5))
             ) {
                 Text("Enviar solicitud", color = Color.Black)
             }
@@ -126,14 +126,14 @@ fun ContactRequestRow(
             )
             Text(
                 text = "Quiere ser tu Pana 🤝",
-                color = Color(0xFF90A4AE),
+                color = Color(0xFF9AA8B5),
                 fontSize = 12.sp
             )
         }
         Row() {
             Button(
                 onClick = onAccept,
-                colors = ButtonDefaults.buttonColors(containerColor = Color(0xFF00FF85)),
+                colors = ButtonDefaults.buttonColors(containerColor = Color(0xFF18E7F5)),
                 modifier = Modifier.height(36.dp)
             ) {
                 Icon(Icons.Default.CheckCircle, null, tint = Color.Black, modifier = Modifier.size(16.dp))
