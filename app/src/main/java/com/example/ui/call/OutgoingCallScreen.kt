@@ -28,7 +28,7 @@ fun OutgoingCallScreen(
     Box(
         modifier = modifier
             .fillMaxSize()
-            .background(Color(0xFF0F172A)) // Slate 900
+            .background(Color(0xFF0D0F12)) // Slate 900
             .padding(24.dp),
         contentAlignment = Alignment.Center
     ) {
@@ -41,7 +41,7 @@ fun OutgoingCallScreen(
             CallStatusText(
                 statusText = if (isVideo) "Llamando por video..." else "Llamando...",
                 opponentName = opponentName,
-                statusColor = Color(0xFF38BDF8),
+                statusColor = Color(0xFF18E7F5),
                 modifier = Modifier.padding(top = 64.dp)
             )
 
@@ -49,7 +49,7 @@ fun OutgoingCallScreen(
             CallAvatarPulse(
                 name = opponentName,
                 userId = opponentId,
-                pulseColor = Color(0xFF38BDF8),
+                pulseColor = Color(0xFF18E7F5),
                 avatarSize = 130.dp,
                 isAnimating = true
             )
