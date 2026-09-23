@@ -83,7 +83,7 @@ fun StoriesCarousel(
                         .height(150.dp)
                         .clickable { onNavigateToCreateState() },
                     shape = RoundedCornerShape(12.dp),
-                    colors = CardDefaults.cardColors(containerColor = Color(0xFF161618))
+                    colors = CardDefaults.cardColors(containerColor = Color(0xFF0D0F12))
                 ) {
                     Box(modifier = Modifier.fillMaxSize()) {
                         val resolvedAvatar = remember(SupabaseClient.currentProfile?.avatarUrl) {
@@ -97,14 +97,14 @@ fun StoriesCarousel(
                                 contentScale = ContentScale.Crop
                             )
                         } else {
-                            Box(modifier = Modifier.fillMaxWidth().fillMaxHeight(0.7f).background(Color(0xFF161618)))
+                            Box(modifier = Modifier.fillMaxWidth().fillMaxHeight(0.7f).background(Color(0xFF0D0F12)))
                         }
                         Box(
                             modifier = Modifier
                                 .fillMaxWidth()
                                 .fillMaxHeight(0.3f)
                                 .align(Alignment.BottomCenter)
-                                .background(Color(0xFF161618))
+                                .background(Color(0xFF0D0F12))
                         ) {
                             Text("Tu historia", color = PanalinkPalette.textPrimary, fontSize = 11.sp, fontWeight = FontWeight.Bold, modifier = Modifier.align(Alignment.BottomCenter).padding(bottom = 8.dp))
                         }
@@ -114,7 +114,7 @@ fun StoriesCarousel(
                                 .offset(y = (-20).dp)
                                 .size(28.dp)
                                 .background(Color(0xFFD500F9), CircleShape)
-                                .border(2.dp, Color(0xFF161618), CircleShape),
+                                .border(2.dp, Color(0xFF0D0F12), CircleShape),
                             contentAlignment = Alignment.Center
                         ) {
                             Icon(Icons.Default.Add, contentDescription = null, tint = PanalinkPalette.textPrimary, modifier = Modifier.size(18.dp))
