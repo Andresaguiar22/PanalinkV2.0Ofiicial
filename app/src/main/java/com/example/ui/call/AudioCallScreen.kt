@@ -30,7 +30,7 @@ fun AudioCallScreen(
     Box(
         modifier = modifier
             .fillMaxSize()
-            .background(Color(0xFF0F172A)) // Slate 900
+            .background(Color(0xFF0D0F12)) // Slate 900
             .padding(24.dp),
         contentAlignment = Alignment.Center
     ) {
@@ -53,7 +53,7 @@ fun AudioCallScreen(
             CallAvatarPulse(
                 name = opponentName,
                 userId = opponentId,
-                pulseColor = if (isConnected) Color(0xFF22C55E) else Color(0xFFF59E0B),
+                pulseColor = if (isConnected) Color(0xFF18E7F5) else Color(0xFFF59E0B),
                 avatarSize = 130.dp,
                 isAnimating = isConnected
             )
