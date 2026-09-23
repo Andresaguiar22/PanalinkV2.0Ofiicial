@@ -113,18 +113,28 @@ object StickerRepository {
     private suspend fun fetchGifsFromKlipy(query: String, limit: Int): List<StickerResult>? {
         if (BuildConfig.KLIPY_API_KEY.isBlank()) return null
         return try {
-            val mapped = if (query.isEmpty()) {
-                val page1 = fetchGifsFromKlipyPage("", limit, 1)
-                if (page1 == null) return null
-                val page2 = fetchGifsFromKlipyPage("", limit,   2) ?: emptyList()
-                if (page2.isEmpty()) page1 else page1 + page2.filter { existing ->
-                    page1.none { it.id == existing.id }
+            // Paginacion multi-pagina: la API devuelve como maximo `limit` items por
+            // pagina. Para que una busqueda como "oso" rinda 200-300 resultados,
+            // se pide page tras page (hasta DESIRED_RESULT_COUNT) y se deduplica.
+
+
+
+            val mapped = fetchKlipyPaged(query = query, pageLoader = { page, pageLimit ->
+                if (query.isEmpty()) {
+                    com.example.service.KlipyClient.apiService.trendingGifs(
+                        apiKey = BuildConfig.KLIPY_API_KEY,
+                        limit = pageLimit,
+                        page = page
+                    )
+                } else {
+                    com.example.service.KlipyClient.apiService.searchGifs(
+                        apiKey = BuildConfig.KLIPY_API_KEY,
+                        query = query,
+                        limit = pageLimit,
+                        page = page
+                    )
                 }
-            } else {
-                val page1 = fetchGifsFromKlipyPage(query, limit, 1) ?: emptyList()
-                val page2 = fetchGifsFromKlipyPage(query, limit, 2) ?: emptyList()
-                if (page2.isEmpty()) page1 else page1 + page2.filter { existing -> page1.none { it.id == existing.id } }
-            }
+            })
             Log.d(TAG, "Klipy GIFs (" + (if (query.isEmpty()) "trending+categorias" else "q=$query") + "): ${mapped.size}")
             mapped
         } catch (e: Exception) {
@@ -132,9 +142,9 @@ object StickerRepository {
             null
         }
     }
-
     private suspend fun fetchGifsFromKlipyPage(query: String, limit: Int, page: Int): List<StickerResult>? {
         if (BuildConfig.KLIPY_API_KEY.isBlank()) return null
+
         val response = if (query.isEmpty()) {
             com.example.service.KlipyClient.apiService.trendingGifs(
                 apiKey = BuildConfig.KLIPY_API_KEY,
@@ -156,30 +166,65 @@ object StickerRepository {
         return response.body()?.data?.items.orEmpty().mapNotNull { it.toStickerResult() }
     }
 
-private suspend fun fetchStickersFromKlipy(query: String, limit: Int): List<StickerResult>? {
+    /**
+     * Pagina una consulta de Klipy pidiendo paginas de `limit` items hasta
+     * alcanzar DESIRED_RESULT_COUNT (o agotar `has_next`/errores), deduplicando.
+    */
+
+
+
+
+    private suspend fun fetchKlipyPaged(
+        query: String,
+        pageLoader: suspend (page: Int, pageLimit: Int) -> retrofit2.Response<com.example.data.model.KlipyResponse>
+    ): List<StickerResult> {
+        val pageLimit = KLIPY_PAGE_SIZE
+        val seenIds = hashSetOf<String>()
+        val acc = mutableListOf<StickerResult>()
+        var page = 1
+        var hasMore = true
+        while (hasMore && acc.size < DESIRED_RESULT_COUNT && page <= MAX_KLIPY_PAGES) {
+
+            val response = pageLoader(page, pageLimit) ?: return acc
+            if (!response.isSuccessful) break
+            val data = response.body()?.data ?: break
+            val items = data.items.orEmpty().mapNotNull { it.toStickerResult() }
+            if (items.isEmpty()) break
+            for (item in items) {
+                val itemId = item.id ?: continue
+                if (acc.size >= DESIRED_RESULT_COUNT) break
+                if (seenIds.add(itemId)) acc.add(item)
+            }
+            hasMore = data.hasNext == true
+            page++
+        }
+        return acc
+    }
+
+    private suspend fun fetchStickersFromKlipy(query: String, limit: Int): List<StickerResult>? {
         if (BuildConfig.KLIPY_API_KEY.isBlank()) return null
+
         return try {
-            val response = if (query.isEmpty()) {
-                com.example.service.KlipyClient.apiService.trendingStickers(
-                    apiKey = BuildConfig.KLIPY_API_KEY,
-                    limit = limit
-                )
-            } else {
-                com.example.service.KlipyClient.apiService.searchStickers(
-                    apiKey = BuildConfig.KLIPY_API_KEY,
-                    query = query,
-                    limit = limit
-                )
-            }
-            if (!response.isSuccessful) {
-                Log.w(TAG, "Klipy sticker API HTTP ${response.code()}")
-                return null
-            }
-            val mapped = response.body()?.data?.items.orEmpty().mapNotNull { it.toStickerResult() }
-            Log.d(TAG, "Klipy stickers (${if (query.isEmpty()) "trending" else "q='$query'"}): ${mapped.size}")
+            val mapped = fetchKlipyPaged(query = query, pageLoader = { page, pageLimit ->
+                if (query.isEmpty()) {
+                    com.example.service.KlipyClient.apiService.trendingStickers(
+                        apiKey = BuildConfig.KLIPY_API_KEY,
+                        limit = pageLimit,
+                        page = page
+                    )
+                } else {
+                    com.example.service.KlipyClient.apiService.searchStickers(
+                        apiKey = BuildConfig.KLIPY_API_KEY,
+                        query = query,
+                        limit = pageLimit,
+                        page = page
+                    )
+                }
+            })
+            Log.d(TAG, "Klipy stickers (" + (if (query.isEmpty()) "trending" else "q=$query") + "): ${mapped.size}")
             mapped
         } catch (e: Exception) {
-            Log.w(TAG, "Klipy sticker API falló", e)
+            Log.w(TAG, "Klipy sticker API fallo", e)
             null
         }
     }
@@ -190,7 +235,7 @@ private suspend fun fetchStickersFromKlipy(query: String, limit: Int): List<Stic
             val response = com.example.service.GiphyClient.apiService.searchGifs(
                 apiKey = BuildConfig.GIPHY_API_KEY,
                 query = query.ifEmpty { "funny" },
-                limit = limit
+                limit = DESIRED_RESULT_COUNT
             )
             if (!response.isSuccessful) {
                 Log.w(TAG, "Giphy GIF API HTTP ${response.code()}")
@@ -217,7 +262,7 @@ private suspend fun fetchStickersFromKlipy(query: String, limit: Int): List<Stic
             val response = com.example.service.GiphyClient.apiService.searchStickers(
                 apiKey = BuildConfig.GIPHY_API_KEY,
                 query = query.ifEmpty { "funny" },
-                limit = limit
+                limit = DESIRED_RESULT_COUNT
             )
             if (!response.isSuccessful) {
                 Log.w(TAG, "Giphy sticker API HTTP ${response.code()}")
@@ -269,6 +314,10 @@ private suspend fun fetchStickersFromKlipy(query: String, limit: Int): List<Stic
             isGif = true
         )
     }
+
+    private const val DESIRED_RESULT_COUNT = 280
+    private const val KLIPY_PAGE_SIZE = 100
+    private const val MAX_KLIPY_PAGES = 6
 
     private const val MAX_SEND_BYTES = 2_500_000L
 
