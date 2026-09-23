@@ -62,7 +62,7 @@ fun UpdateDialog(
     ) {
         Card(
             shape = RoundedCornerShape(28.dp),
-            colors = CardDefaults.cardColors(containerColor = Color(0xFF1E2B33)),
+            colors = CardDefaults.cardColors(containerColor = Color(0xFF131A22)),
             modifier = Modifier
                 .fillMaxWidth(0.92f)
                 .padding(8.dp)
@@ -81,7 +81,7 @@ fun UpdateDialog(
                     Icon(
                         imageVector = Icons.Default.CloudDownload,
                         contentDescription = "Actualización",
-                        tint = Color(0xFF25D366),
+                        tint = Color(0xFF18E7F5),
                         modifier = Modifier.size(32.dp)
                     )
                     Spacer(modifier = Modifier.width(12.dp))
@@ -100,16 +100,16 @@ fun UpdateDialog(
                 Row(
                     modifier = Modifier
                         .fillMaxWidth()
-                        .background(Color(0xFF121B22), RoundedCornerShape(14.dp))
+                        .background(Color(0xFF0D0F12), RoundedCornerShape(14.dp))
                         .padding(16.dp)
                 ) {
                     Column(modifier = Modifier.weight(1f)) {
-                        Text("Instalada", color = Color(0xFF90A4AE), fontSize = 12.sp)
+                        Text("Instalada", color = Color(0xFFB8C4D6), fontSize = 12.sp)
                         Text("v${viewModel.getInstalledVersionName()}", color = PanalinkPalette.textPrimary, fontSize = 16.sp, fontWeight = FontWeight.Bold)
                     }
                     Column(modifier = Modifier.weight(1f)) {
-                        Text("Nueva versión", color = Color(0xFF90A4AE), fontSize = 12.sp)
-                        Text("v${versionInfo.versionName}", color = Color(0xFF25D366), fontSize = 16.sp, fontWeight = FontWeight.Bold)
+                        Text("Nueva versión", color = Color(0xFFB8C4D6), fontSize = 12.sp)
+                        Text("v${versionInfo.versionName}", color = Color(0xFF18E7F5), fontSize = 16.sp, fontWeight = FontWeight.Bold)
                     }
                 }
 
@@ -128,12 +128,12 @@ fun UpdateDialog(
                         .fillMaxWidth()
                         .heightIn(max = 300.dp)
                         .verticalScroll(rememberScrollState())
-                        .background(Color(0xFF121B22), RoundedCornerShape(14.dp))
+                        .background(Color(0xFF0D0F12), RoundedCornerShape(14.dp))
                         .padding(14.dp)
                 ) {
                     Column {
                         if (versionInfo.changelog.isEmpty()) {
-                            Text("- Mejoras de estabilidad y rendimiento general.", color = Color(0xFFB0BEC5), fontSize = 14.sp)
+                            Text("- Mejoras de estabilidad y rendimiento general.", color = Color(0xFFB8C4D6), fontSize = 14.sp)
                         } else {
                             versionInfo.changelog.forEach { log ->
                                 Text("• $log", color = Color(0xFFE0E0E0), fontSize = 14.sp, modifier = Modifier.padding(vertical = 3.dp))
@@ -151,8 +151,8 @@ fun UpdateDialog(
                             if (state.progress >= 0f) {
                                 LinearProgressIndicator(
                                     progress = { state.progress },
-                                    color = Color(0xFF25D366),
-                                    trackColor = Color(0xFF2A3942),
+                                    color = Color(0xFF18E7F5),
+                                    trackColor = Color(0xFF18202A),
                                     modifier = Modifier
                                         .fillMaxWidth()
                                         .height(6.dp)
@@ -165,19 +165,19 @@ fun UpdateDialog(
                                 ) {
                                     Text(
                                         text = "Descargando... ${(state.progress * 100).toInt()}%",
-                                        color = Color(0xFF90A4AE),
+                                        color = Color(0xFFB8C4D6),
                                         fontSize = 12.sp
                                     )
                                     Text(
                                         text = formatBytes(state.bytesDownloaded) + " / " + formatBytes(state.totalBytes),
-                                        color = Color(0xFF90A4AE),
+                                        color = Color(0xFFB8C4D6),
                                         fontSize = 12.sp
                                     )
                                 }
                             } else {
                                 LinearProgressIndicator(
-                                    color = Color(0xFF25D366),
-                                    trackColor = Color(0xFF2A3942),
+                                    color = Color(0xFF18E7F5),
+                                    trackColor = Color(0xFF18202A),
                                     modifier = Modifier
                                         .fillMaxWidth()
                                         .height(6.dp)
@@ -185,7 +185,7 @@ fun UpdateDialog(
                                 Spacer(modifier = Modifier.height(8.dp))
                                 Text(
                                     text = "Descargando... " + formatBytes(state.bytesDownloaded),
-                                    color = Color(0xFF90A4AE),
+                                    color = Color(0xFFB8C4D6),
                                     fontSize = 12.sp
                                 )
                             }
@@ -258,7 +258,7 @@ fun UpdateDialog(
                                     viewModel.cancelDownload()
                                     onDismiss()
                                 },
-                                colors = ButtonDefaults.textButtonColors(contentColor = Color(0xFF90A4AE))
+                                colors = ButtonDefaults.textButtonColors(contentColor = Color(0xFFB8C4D6))
                             ) {
                                 Text("Más tarde", fontWeight = FontWeight.SemiBold)
                             }
@@ -269,7 +269,7 @@ fun UpdateDialog(
                                 viewModel.startDownloadAndInstall()
                             },
                             colors = ButtonDefaults.buttonColors(
-                                containerColor = Color(0xFF25D366),
+                                containerColor = Color(0xFF18E7F5),
                                 contentColor = Color.Black
                             ),
                             shape = RoundedCornerShape(50.dp),
