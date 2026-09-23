@@ -42,6 +42,10 @@
     public static final java.lang.String supabaseAnonKey;
 }
 
+# Supabase / Postgrest: los DTO y los clientes se resuelven por reflexion
+-keep class com.example.data.supabase.** { *; }
+-dontwarn com.example.data.supabase.**
+
 # AndroidX and Material protection
 -keep class androidx.** { *; }
 -dontwarn androidx.**
@@ -62,3 +66,59 @@
 -dontwarn org.webrtc.**
 -dontwarn io.livekit.**
 
+# --- Serializacion / reflexion (necesarias al activar R8 en release) ---------
+
+# kotlinx.serialization: cada @Serializable genera un <Clase>$$serializer y un
+# Companion que R8 solo puede resolver por reflexion; sin estas reglas la
+# ofuscacion rompe la deserializacion en runtime (fallos silenciosos de parseo).
+-keepattributes *Annotation*, InnerClasses, AnnotationDefault, RuntimeVisibleAnnotations
+-dontnote kotlinx.serialization.**
+-keep class kotlinx.serialization.** { *; }
+-dontwarn kotlinx.serialization.**
+
+-keepclassmembers class kotlinx.serialization.json.** {
+    *** Companion;
+}
+-keepclasseswithmembers class kotlinx.serialization.json.** {
+    kotlinx.serialization.KSerializer serializer(...);
+}
+
+-if @kotlinx.serialization.Serializable class **
+-keepclassmembers class <1> {
+    static <1>$Companion Companion;
+}
+
+-if @kotlinx.serialization.Serializable class ** {
+    static **$* *;
+}
+-keepclassmembers class <2>$<3> {
+    kotlinx.serialization.KSerializer serializer(...);
+}
+
+-if @kotlinx.serialization.Serializable class ** {
+    public static ** INSTANCE;
+}
+-keepclassmembers class <1> {
+    public static <1> INSTANCE;
+    kotlinx.serialization.KSerializer serializer(...);
+}
+
+# Moshi: los adapters generados por KSP y los qualifiers anotados se localizan
+# por reflexion.
+-keep @com.squareup.moshi.JsonQualifier interface *
+-keepclasseswithmembers class * {
+    @com.squareup.moshi.* <methods>;
+}
+-keepclassmembers @com.squareup.moshi.JsonClass class * extends java.lang.Enum {
+    <fields>;
+    **[] values();
+}
+-dontwarn okio.**
+-dontwarn javax.annotation.**
+
+# Enums serializados por nombre (Moshi/kotlinx): el ofuscado de valores rompe
+# cualquier round-trip de datos ya persistidos o servidos por la API.
+-keepclassmembers enum com.example.** {
+    public static **[] values();
+    public static ** valueOf(java.lang.String);
+}

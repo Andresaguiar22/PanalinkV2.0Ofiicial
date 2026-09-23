@@ -37,11 +37,25 @@ android {
         val secrets = Properties()
         if (secretsFile.exists()) secrets.load(secretsFile.inputStream())
 
-        val appUrl = System.getenv("APP_URL") ?: secrets.getProperty("BACKEND_URL") ?: "http://10.0.2.2:3000"
+        // APP_URL: obligatoria para release. El fallback al emulador local
+        // (10.0.2.2) solo es valido en debug; un release sin APP_URL apuntaria a
+        // una IP inalcanzable en los dispositivos y fallaria en silencio, asi
+        // que el build se detiene (fail-fast) en vez de publicar mal la URL.
+        val configuredAppUrl = (System.getenv("APP_URL") ?: secrets.getProperty("BACKEND_URL"))
+            ?.takeIf { it.isNotBlank() }
+        val isReleaseBuildRequested = gradle.startParameter.taskNames
+            .any { it.contains("Release", ignoreCase = true) && !it.contains("Debug", ignoreCase = true) }
+        if (isReleaseBuildRequested && configuredAppUrl == null) {
+            throw GradleException(
+                "RELEASE BUILD BLOCKED: APP_URL (o BACKEND_URL en secrets.properties) no esta definida." +
+                    " No se permite compilar release con el fallback de emulador http://10.0.2.2:3000."
+            )
+        }
+        val appUrl = configuredAppUrl ?: "http://10.0.2.2:3000"
         buildConfigField("String", "BACKEND_URL", "\"$appUrl\"")
 
         // Panalink OTA: las actualizaciones se distribuyen manualmente desde
-        // el repositorio público dedicado Andresaguiar22/panalink-ota.
+        // el repositorio publico dedicado Andresaguiar22/panalink-ota.
         buildConfigField("String", "GITHUB_OWNER", "\"Andresaguiar22\"")
         buildConfigField("String", "GITHUB_REPOSITORY", "\"panalink-ota\"")
 
@@ -99,9 +113,12 @@ android {
 
     buildTypes {
         release {
-            // Fast Release: keep the official Release signing configuration,
-            // but disable R8/minification so Termux builds finish quickly.
-            isMinifyEnabled = false
+            // Release endurecido: R8 activo (minificado + ofuscado) y recorte de
+            // recursos. Las reglas de app/proguard-rules.pro cubren los modelos
+            // Moshi/kotlinx.serialization, Room, Retrofit y Supabase que se
+            // resuelven por reflexion, para que la ofuscacion no los rompa.
+            isMinifyEnabled = true
+            isShrinkResources = true
             proguardFiles(
                 getDefaultProguardFile("proguard-android-optimize.txt"),
                 "proguard-rules.pro"
