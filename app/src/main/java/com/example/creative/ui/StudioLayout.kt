@@ -54,14 +54,14 @@ fun StudioLayout(
     Column(
         modifier = modifier
             .fillMaxSize()
-            .background(Color(0xFF0F0F14))
+            .background(PanalinkPalette.background)
     ) {
         // ZONA SUPERIOR: Acciones del Proyecto
         Row(
             modifier = Modifier
                 .fillMaxWidth()
                 .height(56.dp)
-                .background(Color(0xFF16161E))
+                .background(PanalinkPalette.surface)
                 .padding(horizontal = 12.dp),
             horizontalArrangement = Arrangement.SpaceBetween,
             verticalAlignment = Alignment.CenterVertically
@@ -109,23 +109,23 @@ fun StudioLayout(
                     Icon(
                         imageVector = Icons.Default.Save,
                         contentDescription = null,
-                        tint = Color(0xFF00E5FF),
+                        tint = Color(0xFF18E7F5),
                         modifier = Modifier.size(18.dp)
                     )
                     Spacer(modifier = Modifier.width(4.dp))
-                    Text("Borrador", color = Color(0xFF00E5FF), fontSize = 13.sp)
+                    Text("Borrador", color = Color(0xFF18E7F5), fontSize = 13.sp)
                 }
 
                 Spacer(modifier = Modifier.width(8.dp))
 
                 Button(
                     onClick = onExportClick,
-                    colors = ButtonDefaults.buttonColors(containerColor = Color(0xFF00E5FF)),
+                    colors = ButtonDefaults.buttonColors(containerColor = Color(0xFF18E7F5)),
                     shape = RoundedCornerShape(20.dp),
                     contentPadding = PaddingValues(horizontal = 16.dp, vertical = 6.dp),
                     modifier = Modifier.testTag("btn_export_studio")
                 ) {
-                    Text("Exportar", color = Color.Black, fontWeight = FontWeight.Bold, fontSize = 13.sp)
+                    Text("Exportar", color = Color(0xFF071014), fontWeight = FontWeight.Bold, fontSize = 13.sp)
                 }
             }
         }
@@ -143,7 +143,7 @@ fun StudioLayout(
                     .fillMaxHeight()
                     .padding(8.dp)
                     .clip(RoundedCornerShape(16.dp))
-                    .background(Color.Black),
+                    ,,
                 contentAlignment = Alignment.Center
             ) {
                 previewContent()
@@ -155,7 +155,7 @@ fun StudioLayout(
                             .align(Alignment.BottomCenter)
                             .fillMaxWidth()
                             .wrapContentHeight()
-                            .background(Color(0xEE16161E), RoundedCornerShape(topStart = 20.dp, topEnd = 20.dp))
+                             .background(Color(0xEE131A22), RoundedCornerShape(topStart = 20.dp, topEnd = 20.dp))
                             .padding(16.dp)
                     ) {
                         activeToolDrawer(activeToolTab)
@@ -168,7 +168,7 @@ fun StudioLayout(
                 modifier = Modifier
                     .width(64.dp)
                     .fillMaxHeight()
-                    .background(Color(0xFF16161E))
+                    .background(PanalinkPalette.surface)
                     .padding(vertical = 8.dp),
                 horizontalAlignment = Alignment.CenterHorizontally,
                 verticalArrangement = Arrangement.SpaceEvenly
@@ -229,7 +229,7 @@ fun StudioLayout(
             modifier = Modifier
                 .fillMaxWidth()
                 .height(110.dp)
-                .background(Color(0xFF16161E))
+                .background(PanalinkPalette.surface)
                 .padding(horizontal = 12.dp, vertical = 6.dp)
         ) {
             timelineContent()
