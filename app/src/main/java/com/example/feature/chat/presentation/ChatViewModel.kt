@@ -1225,7 +1225,7 @@ fun sendSticker(url: String, preview: String?, replyToId: String?) {
                     isGhost = _isGhostMode.value, messageId = msgId
                 )
             } catch (e: Exception) {
-                Log.e("ChatViewModel", "No se pudo preparar sticker/GIF para envío: ${e.message}", e)
+                Log.e("ChatViewModel", "No se pudo preparar sticker/GIF para envío: " + e.message, e)
                 withContext(Dispatchers.Main) {
                     Toast.makeText(context = com.example.PanaApplication.instance, text = "No se pudo preparar el sticker/GIF. Intenta de nuevo.", Toast.LENGTH_SHORT).show()
                 }
