@@ -6,8 +6,8 @@
 #   - El equipo trabaja en una rama de feature (ej. kilo/fancy-bloom-c6g).
 #   - Este script compila esa rama como app BETA aparte:
 #        package com.panalink.app.beta,
- #     label "PanaLink Beta" - NO toca la app real de los usuarios ni sus datos.
-
+#        label "PanaLink Beta" - NO toca la app real de los usuarios ni sus datos.
+#
 # PERSISTE EL WORKTREE: entre builds solo se recompila el delta (rapido).
 #
 # Uso:
@@ -15,10 +15,23 @@
 #
 # Env (opcional):
 #   BETA_BRANCH        Rama remota a compilar. Def: origin/kilo/fancy-bloom-c6g
-#   BETA_WORKTREE     Ruta del worktree. Def: /tmp/panalink_beta
+#   BETA_WORKTREE      Ruta del worktree. Def: /tmp/panalink_beta
 #   BETA_VERSION_NAME  VersionName de la beta. Def: v1.3.39-beta
-#   BETA_VERSION_CODE   VersionCode de la beta. Def: a66
-#   BETA_OUT            APK de salida. Def: /tmp/Panalink-BETA-apk-debug.apk
+#   BETA_VERSION_CODE  VersionCode de la beta. Def: 66
+#   BETA_OUT           APK de salida. Def: /tmp/Panalink-BETA-apk-debug.apk
+#
+# -----------------------------------------------------------------------------
+# FIRMA BETA - el keystore y sus credenciales NUNCA viven en el repositorio.
+# Se resuelven, por este orden:
+#   1) Variables de entorno: BETA_KEYSTORE_FILE, BETA_KEYSTORE_PASSWORD,
+#      BETA_KEY_ALIAS, BETA_KEY_PASSWORD
+#   2) BETA_SECRETS_FILE (def. <repo>/app/secrets.properties, git-ignored), que
+#      puede definir esas mismas cuatro claves.
+# Valores por defecto: BETA_KEY_ALIAS=panalinkbeta y
+# BETA_KEY_PASSWORD=BETA_KEYSTORE_PASSWORD.
+# Si falta el keystore o la contrasena el script aborta con exit 10: no se firma
+# con credenciales embebidas ni se versiona la clave.
+# -----------------------------------------------------------------------------
 # =============================================================================
 
 REPO="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
@@ -29,12 +42,58 @@ VCODE="${BETA_VERSION_CODE:-66}"
 OUT="${BETA_OUT:-/tmp/Panalink-BETA-apk-debug.apk}"
 TOOLCHAIN="$REPO/.toolchain"
 AAPT="$TOOLCHAIN/sdk/build-tools/35.0.0/aapt"
+BETA_SECRETS_FILE="${BETA_SECRETS_FILE:-$REPO/app/secrets.properties}"
 
 export JAVA_HOME="$TOOLCHAIN/jdk17"
 export ANDROID_HOME="$TOOLCHAIN/sdk"
 export ANDROID_SDK_ROOT="$ANDROID_HOME"
 export GRADLE_USER_HOME="$REPO/.toolchain/.gradle-home"
 export PATH="$JAVA_HOME/bin:$ANDROID_HOME/platform-tools:$JAVA_HOME/bin:$PATH"
+
+# --- Resolucion de credenciales de firma BETA --------------------------------
+# Lee una clave de BETA_SECRETS_FILE sin ejecutar el fichero como shell.
+_read_secret() {
+    [ -f "$BETA_SECRETS_FILE" ] || return 1
+    sed -n "s/^[[:space:]]*$1[[:space:]]*=[[:space:]]*//p" "$BETA_SECRETS_FILE" | tail -n 1 | tr -d '\r'
+}
+
+# Entorno primero; fichero de secretos como fallback.
+_resolve_secret() {
+    local _name="$1"
+    local _value=""
+    _value="${!_name:-}"
+    if [ -z "$_value" ]; then
+        _value="$(_read_secret "$_name" || true)"
+    fi
+    printf '%s' "$_value"
+}
+
+BETA_KEYSTORE_FILE="$(_resolve_secret BETA_KEYSTORE_FILE)"
+BETA_KEYSTORE_PASSWORD="$(_resolve_secret BETA_KEYSTORE_PASSWORD)"
+BETA_KEY_ALIAS="$(_resolve_secret BETA_KEY_ALIAS)"
+BETA_KEY_PASSWORD="$(_resolve_secret BETA_KEY_PASSWORD)"
+[ -z "$BETA_KEY_ALIAS" ] && BETA_KEY_ALIAS="panalinkbeta"
+[ -z "$BETA_KEY_PASSWORD" ] && BETA_KEY_PASSWORD="$BETA_KEYSTORE_PASSWORD"
+
+if [ -z "$BETA_KEYSTORE_FILE" ] || [ -z "$BETA_KEYSTORE_PASSWORD" ]; then
+    echo "ERROR: firma BETA sin credenciales."
+    echo "  Define BETA_KEYSTORE_FILE y BETA_KEYSTORE_PASSWORD como variables de"
+    echo "  entorno, o en $BETA_SECRETS_FILE (fichero git-ignored)."
+    echo "  El keystore de la beta ya NO se versiona en el repositorio."
+    exit 10
+fi
+
+case "$BETA_KEYSTORE_FILE" in
+    /*) : ;;
+    *) BETA_KEYSTORE_FILE="$REPO/$BETA_KEYSTORE_FILE" ;;
+esac
+if [ ! -f "$BETA_KEYSTORE_FILE" ]; then
+    echo "ERROR: keystore BETA no encontrado: $BETA_KEYSTORE_FILE"
+    exit 10
+fi
+
+export BETA_KEYSTORE_PASSWORD BETA_KEY_ALIAS BETA_KEY_PASSWORD
+# -----------------------------------------------------------------------------
 
 cd "$REPO" || exit 11
 
@@ -89,7 +148,6 @@ cat > "$WT/app/src/debug/res/values/strings.xml" <<'EOF'
 EOF
 
 cat > "$WT/app/src/debug/AndroidManifest.xml" <<'EOF'
-<?xml version="1.0" encoding="utf-8"?>
 <manifest xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:tools="http://schemas.android.com/tools">
 
@@ -99,8 +157,10 @@ cat > "$WT/app/src/debug/AndroidManifest.xml" <<'EOF'
 </manifest>
 EOF
 
-# Keystore fijo de la beta: firma estable para TODAS las rondas (se instala encima, sin conflicto).
-cp "$REPO/app/panalink-beta.keystore" "$WT/app/panalink-beta.keystore" || { echo "fallo copia keystore"; exit  15; }
+# Keystore BETA: se toma del entorno / secrets.properties (fuera del repo) y se
+# copia al worktree temporal. La firma es estable entre rondas (se instala
+# encima, sin conflicto) sin exponer la clave en el control de versiones.
+cp "$BETA_KEYSTORE_FILE" "$WT/app/panalink-beta.keystore" || { echo "fallo copia keystore"; exit  15; }
 
 python3 - "$WT/app/build.gradle.kts" <<'PY'
 import sys, pathlib, re
@@ -112,17 +172,17 @@ debug_signing = '''
     signingConfigs {
         create("beta") {
             storeFile = file("panalink-beta.keystore")
-            storePassword = "panalinkbeta"
-            keyAlias = "panalinkbeta"
-            keyPassword = "panalinkbeta"
+            // Credenciales por entorno: NO se escriben en el gradle del worktree.
+            storePassword = System.getenv("BETA_KEYSTORE_PASSWORD") ?: ""
+            keyAlias = System.getenv("BETA_KEY_ALIAS") ?: "panalinkbeta"
+            keyPassword = System.getenv("BETA_KEY_PASSWORD") ?: System.getenv("BETA_KEYSTORE_PASSWORD") ?: ""
             isV1SigningEnabled = true
             isV2SigningEnabled = true
         }
     }
 '''
-if "storeFile = file(\"panalink-beta.keystore\")" not in s:
+if 'storeFile = file("panalink-beta.keystore")' not in s:
     # inserta el signingConfig "beta" justo antes del buildTypes.
-
     m = re.search(r"\n(\s*)buildTypes\s*\{", s)
     if not m:
         print("ERROR: no se encontro 'buildTypes {' en build.gradle.kts")
@@ -181,6 +241,6 @@ echo "==> [7/7] SHA256:"
 sha256sum "$OUT" | awk '{print $1}'
 
 echo ""
-echo "✅ APK BETA listo: $OUT"
+echo "OK - APK BETA listo: $OUT"
 echo "   URL fija de descarga (servidor HTTP manual):"
 echo "   https://work-1-kpffhphchmmnrsin.prod-runtime.all-hands.dev/Panalink-BETA-apk-debug.apk"
