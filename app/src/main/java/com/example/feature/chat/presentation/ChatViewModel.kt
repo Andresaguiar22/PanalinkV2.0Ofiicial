@@ -1202,13 +1202,12 @@ fun sendSticker(url: String, preview: String?, replyToId: String?) {
                 val nowStr = com.example.data.supabase.SupabaseClient.getNowIsoString()
                 val mType = if (isGif) "gif" else "sticker"
                 val mMime = if (isGif) "image/gif" else "image/webp"
-                val safePreview = if (preview.isNullOrBlank() || preview == url) sendUrl else {
-                    com.example.util.StickerCdnMirror.mirrorIfExternal(
-                        context = context, url = preview,
-                        typeLabel = if (isGif) "GIF" else "Sticker",
-                        mimeType = if (isGif) "image/gif" else "image/webp"
-                    )
-                }.takeIf { it.isNotBlank() && it.startsWith("http") }
+                // Un preview externo jamás se persiste. Si ya es nuestro, lo
+                // podemos usar; de lo contrario el mediaUrl CDN es el fallback seguro.
+                val safePreview = preview
+                    ?.takeIf { it.isNotBlank() && it.startsWith("http") }
+                    ?.takeIf { com.example.util.StickerCdnMirror.isCdnOwned(it) }
+                    ?: sendUrl
                 val optimisticMsg = com.example.data.model.Message(
                     id = msgId, chatId = chatId,
                     senderId = com.example.data.supabase.SupabaseClient.currentUser?.id ?: "",
