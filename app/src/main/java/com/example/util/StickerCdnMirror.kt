@@ -72,7 +72,7 @@ object StickerCdnMirror {
         // de 600s para archivos grandes y un sticker/GIF no debería jamás retener
         // el envío de un mensaje. Si se supera, se devuelve la URL original.
         return withTimeoutOrNull(45_000L) {
-            val tempFile: File? = downloadToTemp(context, original)
+            val tempFile: File? = downloadToTemp(context, original, mimeType)
             if (tempFile == null || tempFile.length() == 0L) {
                 throw IllegalStateException("No se pudo descargar el sticker/GIF externo")
             }
@@ -109,7 +109,7 @@ object StickerCdnMirror {
         } ?: throw IllegalStateException("Timeout descargando sticker/GIF externo")
     }
 
-    private suspend fun downloadToTemp(context: Context, url: String): File? = withContext(Dispatchers.IO) {
+    private suspend fun downloadToTemp(context: Context, url: String, mimeType: String): File? = withContext(Dispatchers.IO) {
         try {
             val ext = when {
                 url.contains(".gif") -> "gif"
