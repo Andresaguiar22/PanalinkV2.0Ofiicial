@@ -676,6 +676,14 @@ fun ChatsListScreen(
                         }
                     )
                 } else if (currentRoute != "clips") {
+                    if (currentRoute == "chats") {
+                        PanaLinkCyberpunkTopBar(
+                            onAdd = { showPlusBottomSheet = true },
+                            onSearch = onNavigateToSearch,
+                            onFolder = onNavigateToFavorites,
+                            onProfile = onNavigateToProfile
+                        )
+                    } else {
                     Column(
                         modifier = Modifier
                             .fillMaxWidth()
@@ -797,6 +805,7 @@ fun ChatsListScreen(
                         }
                     }
                 }
+                    }
             },
             bottomBar = {
                 AnimatedVisibility(
