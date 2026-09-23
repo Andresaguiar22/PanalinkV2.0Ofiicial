@@ -79,7 +79,7 @@ class AppColors(
 }
 
 val WhatsAppDarkColors = AppColors(
-    primary = Color(0xFF00A884),      // WhatsApp Green
+    primary = Color(0xFF18E7F5),      // WhatsApp Green
     secondary = Color(0xFF1F2C34),    // Dark Gray surface
     background = Color(0xFF0B141A),   // Dark background
     surface = Color(0xFF1F2C34),      // Dark card surface
@@ -87,7 +87,7 @@ val WhatsAppDarkColors = AppColors(
     bubbleOther = Color(0xFF202C33),  // Other bubble (dark gray)
     topBar = Color(0xFF202C33),
     bottomBar = Color(0xFF202C33),
-    accent = Color(0xFF00A884),       // WhatsApp Green
+    accent = Color(0xFF18E7F5),       // WhatsApp Green
     isDark = true,
     onPrimary = Color.White,
     onSecondary = Color.White,
@@ -96,7 +96,7 @@ val WhatsAppDarkColors = AppColors(
 )
 
 val DarkTealColors = AppColors(
-    primary = Color(0xFF00E5FF),      // Electric Cyan
+    primary = Color(0xFF18E7F5),      // Electric Cyan
     secondary = Color(0xFF161618),    // Dark Gray surface
     background = Color(0xFF000000),   // Deep Black
     surface = Color(0xFF121212),      // Dark Gray Surface
@@ -361,11 +361,11 @@ object ThemeManager {
                 Color(0xFFFF3D00)
             )
             "aurora" -> listOf(
-                Color(0xFF00E5FF), // Cyan
+                Color(0xFF18E7F5), // Cyan
                 Color(0xFF1DE9B6), // Teal
                 Color(0xFF00E676), // Lime Accent
                 Color(0xFF651FFF), // Purple Accent
-                Color(0xFF00E5FF)
+                Color(0xFF18E7F5)
             )
             else -> listOf( // "tropical" / default elegant mint
                 Color(0xFF76CE9F), // Soft Mint Green
@@ -633,7 +633,7 @@ fun getPremiumGradient(): Brush {
         colors = listOf(
             Color(0xFF0052FF), // Electric Blue
             Color(0xFF7C3AED), // Violet
-            Color(0xFF00E5FF)  // Cyan
+            Color(0xFF18E7F5)  // Cyan
         ),
         start = androidx.compose.ui.geometry.Offset.Zero,
         end = androidx.compose.ui.geometry.Offset.Infinite
@@ -643,7 +643,7 @@ fun getPremiumGradient(): Brush {
 fun getPremiumActiveIconGradient(): Brush {
     return Brush.linearGradient(
         colors = listOf(
-            Color(0xFF00E5FF), // Cyan
+            Color(0xFF18E7F5), // Cyan
             Color(0xFF8B5CF6)  // Violet
         )
     )
