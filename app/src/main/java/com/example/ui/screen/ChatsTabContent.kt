@@ -182,7 +182,7 @@ fun ChatsTabContent(
                                     }
                                 }
                             } else {
-                                itemsIndexed(visibleChats, key = { index, chatDetails -> "${'$'}{chatDetails.chat.id}_${'$'}index" }) { index, chatDetails ->
+                                itemsIndexed(visibleChats, key = { index, chatDetails -> "${chatDetails.chat.id}_${index}" }) { index, chatDetails ->
                                     ChatItemRow(
                                         chatDetails = if (customUnreadCounts.containsKey(chatDetails.chat.id)) chatDetails.copy(unreadCount = customUnreadCounts[chatDetails.chat.id]!!) else chatDetails,
                                         chatsViewModel = chatsViewModel,
