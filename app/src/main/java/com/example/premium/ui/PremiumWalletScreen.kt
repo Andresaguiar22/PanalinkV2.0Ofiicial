@@ -280,7 +280,7 @@ private fun TransactionRow(tx: WalletTransaction) {
                 fontWeight = FontWeight.Bold,
                 fontSize = 13.sp
             )
-            Text("Saldo $tx.balanceAfter", color = Color.White.copy(alpha = 0.4f), fontSize = 9.sp)
+            Text("Saldo ${tx.balanceAfter}", color = Color.White.copy(alpha = 0.4f), fontSize = 9.sp)
         }
     }
 }

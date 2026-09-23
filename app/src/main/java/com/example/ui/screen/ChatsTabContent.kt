@@ -182,7 +182,7 @@ fun ChatsTabContent(
                                     }
                                 }
                             } else {
-                                itemsIndexed(visibleChats, key = { _, chatDetails -> chatDetails.chat.id }) { index, chatDetails ->
+                                itemsIndexed(visibleChats, key = { index, chatDetails -> "${'$'}{chatDetails.chat.id}_${'$'}index" }) { index, chatDetails ->
                                     ChatItemRow(
                                         chatDetails = if (customUnreadCounts.containsKey(chatDetails.chat.id)) chatDetails.copy(unreadCount = customUnreadCounts[chatDetails.chat.id]!!) else chatDetails,
                                         chatsViewModel = chatsViewModel,
@@ -334,7 +334,7 @@ fun ChatItemRow(
                     ) {
                         Text(
                             text = if (unread > 99) "99+" else unread.toString(),
-                            color = Color(0xFF0D0F12),
+color = Color(0xFF071014),
                             fontWeight = FontWeight.Bold,
                             fontSize = 10.sp
                         )
@@ -419,7 +419,7 @@ fun ChatAvatar(
             .fillMaxSize()
             .border(
                 if (hasUnread) 2.2.dp else 1.4.dp,
-                if (hasUnread) com.example.ui.theme.getPremiumActiveIconGradient() else Brush.linearGradient(listOf(PanaLinkCyberpunkColors.Gold, PanaLinkCyberpunkColors.Gold.copy(alpha = 0.75f))),
+if (hasUnread) com.example.ui.theme.getPremiumActiveIconGradient() else Brush.linearGradient(listOf(PanaLinkCyberpunkColors.Gold, PanaLinkCyberpunkColors.Gold)),
                 CircleShape
             )
             .padding(if (hasUnread) 3.dp else 1.5.dp)
