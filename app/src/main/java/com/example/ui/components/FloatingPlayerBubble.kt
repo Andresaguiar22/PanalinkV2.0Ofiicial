@@ -211,7 +211,7 @@ fun FloatingPlayerBubble(
                 },
             shape = RoundedCornerShape(16.dp),
             colors = CardDefaults.cardColors(containerColor = Color.Black),
-            border = androidx.compose.foundation.BorderStroke(1.5.dp, Color(0xFF00FF85).copy(alpha = 0.8f))
+            border = androidx.compose.foundation.BorderStroke(1.5.dp, Color(0xFF18E7F5).copy(alpha = 0.8f))
         ) {
             Box(modifier = Modifier.fillMaxSize()) {
                 // The Video Player view
@@ -243,7 +243,7 @@ fun FloatingPlayerBubble(
                         Icon(
                             imageVector = Icons.Default.PlayArrow,
                             contentDescription = null,
-                            tint = Color(0xFF00FF85),
+                            tint = Color(0xFF18E7F5),
                             modifier = Modifier.size(12.dp)
                         )
                         Text(
