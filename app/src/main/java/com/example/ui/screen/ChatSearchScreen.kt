@@ -52,7 +52,7 @@ fun ChatSearchScreen(
                             unfocusedContainerColor = Color.Transparent,
                             focusedIndicatorColor = Color.Transparent,
                             unfocusedIndicatorColor = Color.Transparent,
-                            cursorColor = Color(0xFF00A884),
+                            cursorColor = Color(0xFF18E7F5),
                             focusedTextColor = Color.White,
                             unfocusedTextColor = Color.White
                         ),
@@ -72,11 +72,11 @@ fun ChatSearchScreen(
                     }
                 },
                 colors = TopAppBarDefaults.topAppBarColors(
-                    containerColor = Color(0xFF1F2C34)
+                    containerColor = Color(0xB8131A22)
                 )
             )
         },
-        containerColor = Color(0xFF121B22)
+        containerColor = Color(0xFF0D0F12)
     ) { padding ->
         Box(
             modifier = Modifier
@@ -93,7 +93,7 @@ fun ChatSearchScreen(
                 is ChatSearchUiState.Searching -> {
                     CircularProgressIndicator(
                         modifier = Modifier.align(Alignment.Center),
-                        color = Color(0xFF00A884)
+                        color = Color(0xFF18E7F5)
                     )
                 }
                 is ChatSearchUiState.Empty -> {
