@@ -30,7 +30,7 @@ fun MediaRenderer(
 ) {
     Box(
         modifier = modifier
-            .background(Color(0xFF1A1A1E)),
+            .background(Color(0xFF0D0F12)),
         contentAlignment = Alignment.Center
     ) {
         when (resource) {
@@ -56,7 +56,7 @@ fun MediaRenderer(
                     verticalArrangement = Arrangement.Center
                 ) {
                     CircularProgressIndicator(
-                        color = Color(0xFF00E5FF),
+                        color = Color(0xFF18E7F5),
                         modifier = Modifier.size(32.dp),
                         strokeWidth = 2.dp
                     )
