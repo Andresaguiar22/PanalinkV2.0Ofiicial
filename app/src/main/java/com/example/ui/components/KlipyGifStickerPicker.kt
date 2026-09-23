@@ -104,7 +104,7 @@ fun KlipyGifStickerPicker(
     ModalBottomSheet(
         onDismissRequest = onDismiss,
         sheetState = sheetState,
-        containerColor = Color(0xFF111B21),
+        containerColor = Color(0xFF0D0F12),
         dragHandle = {
             Box(
                 modifier = Modifier
@@ -154,7 +154,7 @@ fun KlipyGifStickerPicker(
                         Box(
                             modifier = Modifier
                                 .clip(RoundedCornerShape(16.dp))
-                                .background(if (isSelected) Color(0xFF00A884) else Color(0xFF202C33))
+                                .background(if (isSelected) Color(0xFF18E7F5) else Color(0xFF18202A))
                                 .clickable { selectCategory(cat) }
                                 .padding(horizontal =   12.dp, vertical = 6.dp),
                             contentAlignment = Alignment.Center
@@ -175,7 +175,7 @@ fun KlipyGifStickerPicker(
                 modifier = Modifier
                     .fillMaxWidth()
                     .padding(vertical =   6.dp)
-                    .background(Color(0xFF202C33), RoundedCornerShape(20.dp))
+                    .background(Color(0xFF18202A), RoundedCornerShape(20.dp))
                     .padding(horizontal =   12.dp),
                 verticalAlignment = Alignment.CenterVertically
             ) {
@@ -184,11 +184,11 @@ fun KlipyGifStickerPicker(
                     onValueChange = { onQueryChange(it) },
                     modifier = Modifier.weight(1f),
                     textStyle = androidx.compose.ui.text.TextStyle(color = PanalinkPalette.textPrimary, fontSize =   13.sp),
-                    cursorBrush = androidx.compose.ui.graphics.SolidColor(Color(0xFF00A884)),
+                    cursorBrush = androidx.compose.ui.graphics.SolidColor(Color(0xFF18E7F5)),
                     singleLine = true,
                     decorationBox = { inner ->
                         Box(contentAlignment = Alignment.CenterStart) {
-                            if (query.isEmpty()) Text("Buscar GIFs o stickers...", color = Color(0xFF8596A0), fontSize =   13.sp)
+                            if (query.isEmpty()) Text("Buscar GIFs o stickers...", color = Color(0xFF9AA8B5), fontSize =   13.sp)
                             inner()
                         }
                     }
@@ -203,7 +203,7 @@ fun KlipyGifStickerPicker(
                         },
                         modifier = Modifier.size(24.dp)
                     ) {
-                        Icon(Icons.Default.Close, contentDescription = "Limpiar", tint = Color(0xFF8596A0), modifier = Modifier.size(14.dp))
+                        Icon(Icons.Default.Close, contentDescription = "Limpiar", tint = Color(0xFF9AA8B5), modifier = Modifier.size(14.dp))
                     }
                 } else {
                     Box(modifier = Modifier.size(24.dp))
@@ -218,7 +218,7 @@ fun KlipyGifStickerPicker(
                     modifier = Modifier.fillMaxSize(),
                     contentAlignment = Alignment.Center
                 ) {
-                    CircularProgressIndicator(color = Color(0xFF00A884), strokeWidth = 2.dp)
+                    CircularProgressIndicator(color = Color(0xFF18E7F5), strokeWidth = 2.dp)
                 }
             } else {
                 val list = if (tab == 0) gifs else stickers
@@ -227,7 +227,7 @@ fun KlipyGifStickerPicker(
                         modifier = Modifier.fillMaxSize(),
                         contentAlignment = Alignment.Center
                     ) {
-                        Text("No se encontraron resultados", color = Color(0xFF8596A0), fontSize = 13.sp)
+                        Text("No se encontraron resultados", color = Color(0xFF9AA8B5), fontSize = 13.sp)
                     }
                 } else {
                     LazyVerticalGrid(
@@ -242,7 +242,7 @@ fun KlipyGifStickerPicker(
                                     .fillMaxWidth()
                                     .aspectRatio(1f)
                                     .clip(RoundedCornerShape(8.dp))
-                                    .background(Color(0xFF202C33))
+                                    .background(Color(0xFF18202A))
                                     .clickable { onSelected(item) }
                             ) {
                                 AsyncImage(
