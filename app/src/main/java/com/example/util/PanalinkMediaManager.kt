@@ -89,13 +89,17 @@ object PanalinkMediaManager {
     /**
      * Compresses an image to a specific resolution and quality.
      */
-    suspend fun compressImage(imageFile: File, maxDimension: Int = 1280, quality: Int = 85): File = withContext(Dispatchers.Default) {
+    suspend fun compressImage(imageFile: File, maxDimension: Int = 2560, quality: Int = 92): File = withContext(Dispatchers.Default) {
         try {
             val options = BitmapFactory.Options().apply { inJustDecodeBounds = true }
             BitmapFactory.decodeFile(imageFile.absolutePath, options)
             
             val width = options.outWidth
             val height = options.outHeight
+
+            if (width > 0 && height > 0 && width <= maxDimension && height <= maxDimension) {
+                return@withContext imageFile
+            }
             
             var inSampleSize = 1
             if (width > maxDimension || height > maxDimension) {
@@ -213,9 +217,9 @@ object PanalinkMediaManager {
                             .getString(com.example.feature.settings.model.SettingsKeys.STORAGE_UPLOAD_QUALITY, "auto") ?: "auto"
                     } catch (_: Exception) { "auto" }
                     finalMediaFile = when (qualityPref) {
-                        "high" -> compressImage(mediaFile, maxDimension = 2560, quality = 95)
-                        "data_saver" -> compressImage(mediaFile, maxDimension = 1024, quality = 70)
-                        else -> compressImage(mediaFile)
+                        "high" -> compressImage(mediaFile, maxDimension = 4096, quality = 97)
+                        "data_saver" -> compressImage(mediaFile, maxDimension = 1280, quality = 72)
+                        else -> compressImage(mediaFile, maxDimension = 2560, quality = 92)
                     }
                     
                     val thumbFile = generateImageThumbnail(finalMediaFile)
