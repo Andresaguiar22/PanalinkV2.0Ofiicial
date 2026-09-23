@@ -315,6 +315,29 @@ cd /workspace/project/PanalinkV2.0Ofiicial/.toolchain && nohup python3 serve_ran
 
 
 
+## 🛡️ Auditoría de seguridad PR #42 (merge 2026-09-23, rama `fix/code-review-seguridad-y-limpieza` eliminada)
+
+**Qué cambió** (commit `8761b5e` + merge `c77cd25`):
+* **Firma BETA parametrizada**: `scripts/build_beta.sh` ya NO tiene la contrasena del keystore en el codigo.
+  Resuelve `BETA_KEYSTORE_FILE`/`BETA_KEYSTORE_PASSWORD`/`BETA_KEY_ALIAS`/`BETA_KEY_PASSWORD` desde el entorno
+  o `app/secrets.properties` (git-ignored; `BETA_SECRETS_FILE` para otra ruta). Sin credenciales -> `exit 10` fail-fast.
+* **TLS restaurado**: fuera `systemProp.javax.net.ssl.trustStore` absoluto del sandbox y `sslVerify=false` de
+  `gradle.properties`. Si un entorno necesita trustStore, definirlo FUERA del repo (JAVA_HOME/JAVA_TOOL_OPTIONS), no en este fichero.
+* **APP_URL obligatoria en release**: build release sin `APP_URL` (o `BACKEND_URL` en secrets) falla con
+  `GradleException`. El fallback `http://10.0.2.2:3000` queda SOLO para debug. Nunca publicar un release sin URL real.
+* **R8 activo en release**: `isMinifyEnabled=true` + `isShrinkResources=true` con `app/proguard-rules.pro`
+  (reglas keep para kotlinx.serialization, Moshi, Supabase, enums serializados).
+
+**Hallazgo validado en sesión** (no inferido):
+* `assembleRelease` con estas flags compila y ofusca **correctamente** (BUILD SUCCESSFUL ~12 min, 4 DEX, APK ~70 MB).
+  **Pendiente real**: probar el APK ofuscado EN DISPOSITIVO (login, chat multimedia, GIFs, feed, llamada) antes de
+  cualquier release OTA. Si rompe por minificacion, anadir su regla keep - NUNCA desactivar R8.
+* El keystore beta se borro del arbol pero **sigue en el historial git** (borrarlo no lo purga); la purga
+  (`git filter-repo`/BFG) es accion manual del dueno. Mientras tanto la firma beta se recupero fuera del repo
+  (ver seccion Firma BETA estable): `/workspace/beta-keystore/panalink-beta.keystore` + `app/secrets.properties`.
+* `gradle.properties` sigue SIN trustStore: compila bien con el JDK 17 del toolchain; si un dia falla SSL en Gradle,
+  ese es el primer sospechoso (no re-anadir rutas al fichero versionado).
+
 ### Reglas extras de esta modalidad
 * **NUNCA publicar OTA** una rama en progreso ni una beta como release exceto cuando el equipo confirma que está fino.
 * **NUNCA instalar/toquetear** la app real de los usuarios desde la beta (la beta usa paquete aparte, con sus propios datos,y se desinstala con `adb uninstall com.panalink.app.beta` o desde Ajustes → Apps → "PanaLink Beta".)
