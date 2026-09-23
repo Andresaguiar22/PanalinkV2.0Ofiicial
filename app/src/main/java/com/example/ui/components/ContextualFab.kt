@@ -240,7 +240,7 @@ fun ContextualExpandableFab(
                                     Color(0xFFFF0000), // Red
                                     Color(0xFFFF7F00), // Orange
                                     Color(0xFFFFD700), // Yellow/Gold
-                                    Color(0xFF00FF85), // Neon Green
+                                    Color(0xFF18E7F5), // Neon Green
                                     Color(0xFF00E5FF), // Cyan
                                     Color(0xFF8B00FF), // Violet
                                     Color(0xFFFF0000)  // Red
@@ -259,7 +259,7 @@ fun ContextualExpandableFab(
                                 colors = listOf(
                                     Color(0xFF8B00FF), // Violet / Purple
                                     Color(0xFF00E5FF), // Blue / Cyan
-                                    Color(0xFF00FF85)  // Neon Green / Mint
+                                    Color(0xFF18E7F5)  // Neon Green / Mint
                                 )
                             ),
                             shape = RoundedCornerShape(16.dp)
