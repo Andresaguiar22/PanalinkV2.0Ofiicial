@@ -907,14 +907,14 @@ fun ChatsListScreen(
                                 statesViewModel.loadActiveStates()
                             },
                             selectedChatIds = selectedChatIds,
-                            onToggleChatSelection = { id ->
+                            onToggleChatSelection = { id: String ->
                                 if (selectedChatIds.contains(id)) {
                                     selectedChatIds = selectedChatIds - id
                                 } else {
                                     selectedChatIds = selectedChatIds + id
                                 }
                             },
-                            onStartChatSelection = { id ->
+                            onStartChatSelection = { id: String ->
                                 selectedChatIds = setOf(id)
                             },
                             deletedChatIds = deletedChatIds,

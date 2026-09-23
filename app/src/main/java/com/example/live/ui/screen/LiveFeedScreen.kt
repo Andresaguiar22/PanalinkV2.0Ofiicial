@@ -42,7 +42,6 @@ import androidx.compose.ui.unit.sp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.example.live.ui.components.LiveCard
 import com.example.live.ui.components.LiveSkeletonCard
-import com.example.live.ui.components.Color(0xFF18E7F5)
 import com.example.live.ui.viewmodel.LiveViewModel
 
 @OptIn(ExperimentalMaterial3Api::class)

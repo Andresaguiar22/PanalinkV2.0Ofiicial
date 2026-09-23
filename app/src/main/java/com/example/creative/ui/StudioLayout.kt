@@ -143,7 +143,7 @@ fun StudioLayout(
                     .fillMaxHeight()
                     .padding(8.dp)
                     .clip(RoundedCornerShape(16.dp))
-                    ,,
+                    .background(Color.Black),
                 contentAlignment = Alignment.Center
             ) {
                 previewContent()

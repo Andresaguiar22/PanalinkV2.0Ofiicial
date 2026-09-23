@@ -8,6 +8,8 @@ import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.darkColorScheme
 import androidx.compose.material3.lightColorScheme
 import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.offset
+import androidx.compose.foundation.layout.size
 import androidx.compose.material3.LocalTextStyle
 import androidx.compose.ui.text.font.FontFamily
 import androidx.compose.animation.core.*
@@ -536,18 +538,26 @@ private fun CyberpunkGlobalBackground() {
             }
         }
         androidx.compose.foundation.layout.Box(
-            modifier = androidx.compose.ui.Modifier.size(260.dp).offset(x = (-70).dp, y = (-45).dp)
+            modifier = androidx.compose.ui.Modifier
+                .size(260.dp)
+                .offset(x = (-70).dp, y = (-45).dp)
                 .blur(65.dp)
                 .background(androidx.compose.ui.graphics.Brush.radialGradient(listOf(magenta.copy(alpha = 0.16f), Color.Transparent)))
         )
         androidx.compose.foundation.layout.Box(
-            modifier = androidx.compose.ui.Modifier.size(300.dp).align(androidx.compose.ui.Alignment.CenterEnd)
-                .offset(x = 80.dp, y = (-20).dp).blur(70.dp)
+            modifier = androidx.compose.ui.Modifier
+                .size(300.dp)
+                .align(androidx.compose.ui.Alignment.CenterEnd)
+                .offset(x = 80.dp, y = (-20).dp)
+                .blur(70.dp)
                 .background(androidx.compose.ui.graphics.Brush.radialGradient(listOf(purple.copy(alpha = 0.13f), Color.Transparent)))
         )
         androidx.compose.foundation.layout.Box(
-            modifier = androidx.compose.ui.Modifier.size(260.dp).align(androidx.compose.ui.Alignment.BottomCenter)
-                .offset(y = 100.dp).blur(75.dp)
+            modifier = androidx.compose.ui.Modifier
+                .size(260.dp)
+                .align(androidx.compose.ui.Alignment.BottomCenter)
+                .offset(y = 100.dp)
+                .blur(75.dp)
                 .background(androidx.compose.ui.graphics.Brush.radialGradient(listOf(cyan.copy(alpha = 0.10f), Color.Transparent)))
         )
     }
