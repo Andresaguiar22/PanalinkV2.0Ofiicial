@@ -814,7 +814,7 @@ fun InicioTabContent(
                                 Icon(
                                     Icons.Default.WifiOff,
                                     contentDescription = null,
-                                    tint = Color(0xFF18E7F5),
+                                    tint = PanalinkPalette.accent,
                                     modifier = Modifier.size(18.dp),
                                 )
                                 Spacer(modifier = Modifier.width(8.dp))
@@ -851,7 +851,7 @@ fun InicioTabContent(
                             Icon(
                                 imageVector = Icons.Default.AddBox,
                                 contentDescription = "Publicar",
-                                tint = Color(0xFF18E7F5)
+                                tint = PanalinkPalette.accent
                             )
                         }
                     }
@@ -940,7 +940,7 @@ fun InicioTabContent(
                         label = "Subiendo publicación",
                         percent = pct,
                         onCancel = { feedViewModel.cancelPendingPost(pending.id) },
-                        color = Color(0xFF18E7F5)
+                        color = PanalinkPalette.accent
                     )
                     Spacer(modifier = Modifier.height(4.dp))
                 }
@@ -1049,7 +1049,7 @@ fun InicioTabContent(
                             Surface(
                                 onClick = { showCreatePostSheet = true },
                                 shape = RoundedCornerShape(24.dp),
-                                color = Color(0xFF18E7F5)
+                                color = PanalinkPalette.accent
                             ) {
                                 Row(
                                     modifier = Modifier.padding(horizontal = 20.dp, vertical = 10.dp),
@@ -1076,7 +1076,7 @@ fun InicioTabContent(
             modifier = Modifier
                 .align(Alignment.BottomEnd)
                 .padding(bottom = 24.dp, end = 16.dp),
-            containerColor = Color(0xFF18E7F5),
+            containerColor = PanalinkPalette.accent,
             contentColor = Color.Black
         ) {
             Icon(Icons.Default.Add, contentDescription = "Crear Publicación")
@@ -1143,7 +1143,7 @@ fun InicioTabContent(
                             Row(
                                 modifier = Modifier
                                     .fillMaxWidth()
-                                    .background(Color(0xFF1F2C34).copy(alpha = 0.6f), RoundedCornerShape(12.dp))
+                                    .background(PanalinkPalette.surface.copy(alpha = 0.6f), RoundedCornerShape(12.dp))
                                     .padding(10.dp),
                                 verticalAlignment = Alignment.Top
                             ) {
@@ -1205,7 +1205,7 @@ fun InicioTabContent(
                         colors = OutlinedTextFieldDefaults.colors(
                             focusedContainerColor = Color(0xFF262629),
                             unfocusedContainerColor = Color(0xFF262629),
-                            focusedBorderColor = Color(0xFF18E7F5),
+                            focusedBorderColor = PanalinkPalette.accent,
                             unfocusedBorderColor = Color.Transparent,
                             focusedTextColor = Color.White,
                             unfocusedTextColor = Color.White
@@ -1216,9 +1216,9 @@ fun InicioTabContent(
                     Spacer(modifier = Modifier.width(8.dp))
                     IconButton(
                         onClick = { showGifPicker = true },
-                        modifier = Modifier.size(38.dp).background(Color(0xFF1F2C34), CircleShape)
+                        modifier = Modifier.size(38.dp).background(PanalinkPalette.surface, CircleShape)
                     ) {
-                        Text("GIF", fontSize = 13.sp, fontWeight = FontWeight.Bold, color = Color(0xFF4FC3F7))
+                        Text("GIF", fontSize = 13.sp, fontWeight = FontWeight.Bold, color = PanalinkPalette.accent)
                     }
                     IconButton(
                         onClick = {
@@ -1278,7 +1278,7 @@ fun InicioTabContent(
                     editingPostId?.let { feedViewModel.updatePost(it, editingPostContent) }
                     editingPostId = null
                 }) {
-                    Text("Guardar", color = Color(0xFF18E7F5))
+                    Text("Guardar", color = PanalinkPalette.accent)
                 }
             },
             dismissButton = {
@@ -1286,7 +1286,7 @@ fun InicioTabContent(
                     Text("Cancelar", color = Color.Gray)
                 }
             },
-            containerColor = Color(0xFF1E222B)
+            containerColor = PanalinkPalette.surfaceElevated
         )
     }
 
@@ -1308,7 +1308,7 @@ fun InicioTabContent(
                     Text("Cancelar", color = Color.Gray)
                 }
             },
-            containerColor = Color(0xFF1E222B)
+            containerColor = PanalinkPalette.surfaceElevated
         )
     }
 
@@ -1604,8 +1604,8 @@ fun InicioTabContent(
                 ) {
                     itemsIndexed(audiosList, key = { _, url -> "audio_${url.hashCode()}" }) { index, url ->
                         val isCurrent = index == currentAudioIndex
-                        val itemBgColor = if (isCurrent) Color(0xFF1E293B) else Color(0xFF1E1E24)
-                        val itemBorderColor = if (isCurrent) Color(0xFF18E7F5) else Color.Transparent
+                        val itemBgColor = if (isCurrent) PanalinkPalette.surfaceElevated else Color(0xFF1E1E24)
+                        val itemBorderColor = if (isCurrent) PanalinkPalette.accent else Color.Transparent
                         
                         Card(
                             onClick = {
@@ -1629,7 +1629,7 @@ fun InicioTabContent(
                                     Icon(
                                         imageVector = if (isCurrent && isPlaying) Icons.Default.PauseCircle else Icons.Default.PlayCircle,
                                         contentDescription = null,
-                                        tint = if (isCurrent) Color(0xFF18E7F5) else Color.White,
+                                        tint = if (isCurrent) PanalinkPalette.accent else Color.White,
                                         modifier = Modifier.size(28.dp)
                                     )
                                     Spacer(modifier = Modifier.width(12.dp))
@@ -1670,7 +1670,7 @@ fun InicioTabContent(
                                     Icon(
                                         imageVector = Icons.Default.ArrowDownward,
                                         contentDescription = "Descargar",
-                                        tint = Color(0xFF18E7F5),
+                                        tint = PanalinkPalette.accent,
                                         modifier = Modifier.size(20.dp)
                                     )
                                 }
@@ -1683,7 +1683,7 @@ fun InicioTabContent(
                 
                 Card(
                     shape = RoundedCornerShape(16.dp),
-                    colors = CardDefaults.cardColors(containerColor = Color(0xFF1E293B)),
+                    colors = CardDefaults.cardColors(containerColor = PanalinkPalette.surfaceElevated),
                     modifier = Modifier.fillMaxWidth()
                 ) {
                     Column(
@@ -1694,7 +1694,7 @@ fun InicioTabContent(
                     ) {
                         Text(
                             text = "Reproduciendo: Audio ${currentAudioIndex + 1}",
-                            color = Color(0xFF18E7F5),
+                            color = PanalinkPalette.accent,
                             fontWeight = FontWeight.Bold,
                             fontSize = 14.sp
                         )
@@ -1708,8 +1708,8 @@ fun InicioTabContent(
                                 exoPlayer.seekTo(pos)
                             },
                             colors = SliderDefaults.colors(
-                                thumbColor = Color(0xFF18E7F5),
-                                activeTrackColor = Color(0xFF18E7F5),
+                                thumbColor = PanalinkPalette.accent,
+                                activeTrackColor = PanalinkPalette.accent,
                                 inactiveTrackColor = Color.Gray
                             )
                         )
@@ -1757,7 +1757,7 @@ fun InicioTabContent(
                                 },
                                 modifier = Modifier
                                     .size(56.dp)
-                                    .background(Color(0xFF18E7F5), CircleShape)
+                                    .background(PanalinkPalette.accent, CircleShape)
                             ) {
                                 Icon(
                                     imageVector = if (isPlaying) Icons.Default.Pause else Icons.Default.PlayArrow,
