@@ -45,6 +45,7 @@ import androidx.compose.foundation.pager.rememberPagerState
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.automirrored.outlined.ArrowBack
 import androidx.compose.material.icons.automirrored.rounded.Send
 import androidx.compose.material.icons.filled.Add
 import androidx.compose.material.icons.filled.ArrowBack
@@ -52,10 +53,12 @@ import androidx.compose.material.icons.filled.Check
 import androidx.compose.material.icons.filled.Close
 import androidx.compose.material.icons.filled.Delete
 import androidx.compose.material.icons.filled.Favorite
+import androidx.compose.material.icons.filled.MusicNote
 import androidx.compose.material.icons.filled.Pause
 import androidx.compose.material.icons.filled.PlayArrow
 import androidx.compose.material.icons.filled.Refresh
 import androidx.compose.material.icons.filled.Search
+import androidx.compose.material.icons.outlined.Search
 
 import androidx.compose.material.icons.rounded.Bookmark
 import androidx.compose.material.icons.rounded.BookmarkBorder
@@ -65,6 +68,7 @@ import androidx.compose.material.icons.rounded.FavoriteBorder
 import androidx.compose.material.icons.rounded.MoreHoriz
 import androidx.compose.material.icons.rounded.VolumeOff
 import androidx.compose.material.icons.rounded.VolumeUp
+import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.TextButton
@@ -133,6 +137,9 @@ import com.example.ui.theme.PanalinkPalette
 
 private const val MIN_REEL_SCALE = 1f
 private const val MAX_REEL_SCALE = 4f
+
+// Glassmorphism base del header iOS (negro 40%)
+private val TransparentBlack = Color(0x66000000)
 
 /**
  * TikTok-style Reels feed, rebuilt from scratch.
@@ -480,100 +487,130 @@ fun ReelsFeedScreen(
             }
         }
 
-        // Floating glassmorphism pill: back + "Reels" + the timeline filter tabs
-        // (Explorar / Nuevos / Tendencias / Más vistos). Selecting a tab triggers a
-        // REAL remote query (loadReelsTimeline with the tab's PostgREST order), so
-        // navigation is E2E against the database, not just a local sort.
-        Surface(
+        // Header iOS: botón atrás glass + píldora centrada de tabs + búsqueda glass.
+        Row(
             modifier = Modifier
+                .fillMaxWidth()
                 .align(Alignment.TopCenter)
-                .padding(top = headerTopInset, start = 10.dp, end = 10.dp),
-            shape = RoundedCornerShape(30.dp),
-            color = Color.Transparent,
+                .padding(top = headerTopInset, start =   12.dp, end =   12.dp),
+            verticalAlignment = Alignment.CenterVertically
         ) {
+            // Botón Atrás (círculo glassmorphism)
+            Box(
+                modifier = Modifier
+                    .size(40.dp)
+                    .background(TransparentBlack, CircleShape)
+                    .border(0.5.dp, Color.White.copy(alpha =   0.1f), CircleShape)
+                    .clickable(
+                        interactionSource = remember { MutableInteractionSource() },
+                        indication = null,
+                        onClick = onBack
+                    ),
+                contentAlignment = Alignment.Center
+            ) {
+                Icon(
+                    Icons.AutoMirrored.Outlined.ArrowBack,
+                    contentDescription = "Volver",
+                    tint = Color.White,
+                    modifier = Modifier.size(22.dp)
+                )
+            }
+
+            // Píldora centrada de tabs (glassmorphism negro; E2E contra Supabase)
             Row(
                 modifier = Modifier
-                    .clip(RoundedCornerShape(30.dp))
-                    .background(
-                        Brush.horizontalGradient(
-                            listOf(
-                                PanalinkPalette.background.copy(alpha = 0.90f),
-                                PanalinkPalette.background.copy(alpha = 0.74f)
-                            )
-                        )
-                    )
-                    .border(1.dp, Color.White.copy(alpha = 0.10f), RoundedCornerShape(30.dp))
-                    .height(44.dp)
-                    .padding(horizontal = 2.dp),
-                verticalAlignment = Alignment.CenterVertically
+                    .weight(1f)
+                    .horizontalScroll(rememberScrollState()),
+                verticalAlignment = Alignment.CenterVertically,
+                horizontalArrangement = Arrangement.Center,
             ) {
-                IconButton(onClick = onBack, modifier = Modifier.size(36.dp)) {
-                    Icon(Icons.Default.ArrowBack, "Volver", tint = PanalinkPalette.textPrimary)
-                }
-                IconButton(
-                    onClick = onSearchReels,
-                    modifier = Modifier.size(34.dp)
-                ) {
-                    Icon(Icons.Default.Search, "Buscar", tint = PanalinkPalette.textPrimary)
-                }
-                Text(
-                    "Reels",
-                    color = PanalinkPalette.textPrimary,
-                    fontWeight = FontWeight.Bold,
-                    style = MaterialTheme.typography.titleSmall,
-                    modifier = Modifier.padding(end = 2.dp)
-                )
-                Row(
-                    modifier = Modifier
-                        .weight(1f, fill = false)
-                        .horizontalScroll(rememberScrollState()),
-                    verticalAlignment = Alignment.CenterVertically
-                ) {
-                    ReelFilterV2.values().forEach { option ->
-                        val selected = filter == option
-                        Box(
-                            modifier = Modifier
-                                .clip(RoundedCornerShape(18.dp))
-                                .background(
-                                    if (selected) Color.White.copy(alpha = 0.28f) else Color.Transparent
-                                )
-                                .clickable {
-                                    if (!selected) {
-                                        filter = option
-                                        refreshing = true
-                                        viewModel.loadReelsTimeline(option.orderBy) {
-                                            refreshing = false
-                                            refreshKey += 1
-                                            scope.launch { pagerState.scrollToPage(0) }
-                                        }
+                ReelFilterV2.values().forEach { option ->
+                    val selected = filter == option
+                    val bgColor = if (selected) Color.White.copy(alpha =   0.28f) else Color.Transparent
+                    Box(
+                        modifier = Modifier
+                            .clip(CircleShape)
+                            .background(bgColor)
+                            .clickable {
+                                if (!selected) {
+                                    filter = option
+                                    refreshing = true
+                                    viewModel.loadReelsTimeline(option.orderBy) {
+                                        refreshing = false
+                                        refreshKey += 1
+                                        scope.launch { pagerState.scrollToPage(0) }
                                     }
                                 }
-                                .padding(horizontal = 8.dp, vertical = 8.dp),
-                            contentAlignment = Alignment.Center,
-                        ) {
-                            Text(
-                                option.label,
-                                color = PanalinkPalette.textPrimary,
-                                fontSize = 12.sp,
-                                fontWeight = if (selected) FontWeight.Bold else FontWeight.Medium,
-                                maxLines = 1,
-                            )
-                        }
+                            }
+                            .padding(horizontal =   14.dp, vertical =   6.dp),
+                        contentAlignment = Alignment.Center,
+                    ) {
+                        Text(
+                            option.label,
+                            color = if (selected) Color.White else Color.White.copy(alpha =   0.7f),
+                            fontSize =   14.sp,
+                            fontWeight = FontWeight.Medium,
+                            maxLines =   1,
+                        )
                     }
                 }
-                IconButton(
-                    enabled = !refreshing,
-                    onClick = {
-                        refreshing = true
-                        viewModel.refreshReels {
-                            refreshing = false
-                            refreshKey += 1
-                            scope.launch { pagerState.scrollToPage(0) }
-                        }
-                    },
-                    modifier = Modifier.size(34.dp)
-                ) {
-                    Icon(Icons.Default.Refresh, "Actualizar reels", tint = PanalinkPalette.textPrimary)
+            }
+
+            // Buscar (círculo glassmorphism)
+            Box(
+                modifier = Modifier
+                    .size(40.dp)
+                    .background(TransparentBlack, CircleShape)
+                    .border(0.5.dp, Color.White.copy(alpha =   0.1f), CircleShape)
+                    .clickable(
+                        interactionSource = remember { MutableInteractionSource() },
+                        indication = null,
+                        onClick = onSearchReels
+                    ),
+                contentAlignment = Alignment.Center
+            ) {
+                Icon(
+                    Icons.Outlined.Search,
+                    contentDescription = "Buscar",
+                    tint = Color.White,
+                    modifier = Modifier.size(22.dp)
+                )
+            }
+
+            // Refresh (círculo glassmorphism; recarga el timeline E2E)
+            Box(
+                modifier = Modifier
+                    .size(40.dp)
+                    .background(TransparentBlack, CircleShape)
+                    .border(0.5.dp, Color.White.copy(alpha =   0.1f), CircleShape)
+                    .clickable(
+                        interactionSource = remember { MutableInteractionSource() },
+                        indication = null,
+                        enabled = !refreshing,
+                        onClick = {
+                            refreshing = true
+                            viewModel.refreshReels {
+                                refreshing = false
+                                refreshKey += 1
+                                scope.launch { pagerState.scrollToPage(0) }
+                            }
+                        },
+                    ),
+                contentAlignment = Alignment.Center
+            ) {
+                if (refreshing) {
+                    CircularProgressIndicator(
+                        modifier = Modifier.size(18.dp),
+                        color = Color.White,
+                        strokeWidth = 2.dp,
+                    )
+                } else {
+                    Icon(
+                        Icons.Default.Refresh,
+                        contentDescription = "Actualizar reels",
+                        tint = Color.White,
+                        modifier = Modifier.size(20.dp)
+                    )
                 }
             }
         }
@@ -586,6 +623,18 @@ fun ReelsFeedScreen(
                     .fillMaxWidth(0.86f)
             )
         }
+
+        // Home Indicator iOS: barrita blanca anclada al fondo del feed
+        // (el sistema ya reserva la barra de navegación, así que bottom 4.dp
+        // queda justo encima de ella, como en iPhone).
+        Box(
+            modifier = Modifier
+                .align(Alignment.BottomCenter)
+                .padding(bottom = 4.dp)
+                .width(134.dp)
+                .height(5.dp)
+                .background(Color.White, CircleShape)
+        )
     }
 
     // Comments sheet (custom Box, mirrors the old ReelsCommentsSheet).
@@ -740,7 +789,7 @@ private fun ReelFeedOverlay(
                 .align(Alignment.BottomEnd)
                 .padding(end = 6.dp, bottom = 50.dp),
             horizontalAlignment = Alignment.CenterHorizontally,
-            verticalArrangement = Arrangement.spacedBy(2.dp),
+            verticalArrangement = Arrangement.spacedBy(14.dp),
         ) {
             // TikTok avatar in the rail: circular photo with a follow "+" /
             // following "✓" pill sitting on its bottom edge.
@@ -765,7 +814,7 @@ private fun ReelFeedOverlay(
                             .offset(y = 11.dp)
                             .size(21.dp)
                             .clip(CircleShape)
-                            .background(if (isFollowing) Color(0xFF2B2B2B) else Color(0xFFFF2B54))
+                            .background(if (isFollowing) Color(0xFF2B2B2B) else Color(0xFF10B981))
                             .border(1.5.dp, Color.Black, CircleShape)
                             .clickable {
                                 if (currentUid.isNullOrBlank()) return@clickable
@@ -924,7 +973,7 @@ private fun ReelFeedOverlay(
                     if (cleanCaption.length > 60 || cleanCaption.lines().size > 2) {
                         Text(
                             text = if (expanded) "Ver menos" else "Ver más",
-                            color = Color(0xFF7FB8FF),
+                            color = Color.White,
                             fontSize = 13.sp,
                             fontWeight = FontWeight.SemiBold,
                             modifier = Modifier
@@ -954,7 +1003,7 @@ private fun ReelFeedOverlay(
                         compoundTags.forEachIndexed { i, tag ->
                             if (i > 0) append("  ")
                             pushStringAnnotation(tag = "HASHTAG", annotation = tag)
-                            withStyle(SpanStyle(color = Color(0xFF7FB8FF), fontWeight = FontWeight.Bold)) {
+                            withStyle(SpanStyle(color = Color(0xFF10B981), fontWeight = FontWeight.Bold)) {
                                 append(tag)
                             }
                             pop()
@@ -975,6 +1024,32 @@ private fun ReelFeedOverlay(
                             val first = compoundTags.firstOrNull() ?: return@clickable
                             onHashtag(first.removePrefix("#"))
                         }
+                )
+            }
+
+            // Ticker de música (chip glassmorphism iOS)
+            Row(
+                modifier = Modifier
+                    .clip(CircleShape)
+                    .background(TransparentBlack, CircleShape)
+                    .border(0.5.dp, Color.White.copy(alpha =  0.1f), CircleShape)
+                    .padding(horizontal =  10.dp, vertical =  6.dp),
+                verticalAlignment = Alignment.CenterVertically,
+            ) {
+                Icon(
+                    Icons.Default.MusicNote,
+                    contentDescription = "Música",
+                    tint = Color.White,
+                    modifier = Modifier.size(14.dp),
+                )
+                Spacer(modifier = Modifier.width(6.dp))
+                Text(
+                    text = "Sonido original - ${profile.displayName?.ifBlank { "pana" } ?: "pana"}",
+                    color = Color.White,
+                    fontSize =  13.sp,
+                    fontWeight = FontWeight.Medium,
+                    maxLines =  1,
+                    overflow = TextOverflow.Ellipsis,
                 )
             }
         }
@@ -1042,8 +1117,8 @@ private fun ReelProgressBar(
                 },
             contentAlignment = Alignment.CenterStart,
         ) {
-            Box(Modifier.fillMaxWidth().height(3.dp).clip(CircleShape).background(Color.White.copy(alpha = 0.25f)))
-            Box(Modifier.fillMaxWidth(fraction).height(3.dp).clip(CircleShape).background(Color.White))
+            Box(Modifier.fillMaxWidth().height(2.dp).clip(CircleShape).background(Color.White.copy(alpha = 0.25f)))
+            Box(Modifier.fillMaxWidth(fraction).height(2.dp).clip(CircleShape).background(Color.White))
             Box(Modifier.fillMaxWidth(fraction), contentAlignment = Alignment.CenterEnd) {
                 Box(
                     Modifier
