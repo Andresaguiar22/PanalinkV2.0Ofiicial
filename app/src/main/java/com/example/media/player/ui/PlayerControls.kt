@@ -31,7 +31,7 @@ fun PlayerControls(
 ) {
     Row(
         modifier = modifier.fillMaxWidth(),
-        horizontalArrangement = Arrangement.SpaceEvenly,
+        horizontalArrangement = Arrangement.SpaceBetween,
         verticalAlignment = Alignment.CenterVertically
     ) {
         IconButton(onClick = onToggleShuffle) {
@@ -53,7 +53,7 @@ fun PlayerControls(
 
         FilledIconButton(
             onClick = onTogglePlayPause,
-            modifier = Modifier.size(72.dp),
+            modifier = Modifier.size(74.dp),
             colors = IconButtonDefaults.filledIconButtonColors(
                 containerColor = Color.White,
                 contentColor = Color.Black
@@ -62,7 +62,7 @@ fun PlayerControls(
             Icon(
                 if (isPlaying) Icons.Rounded.Pause else Icons.Rounded.PlayArrow,
                 contentDescription = "Play/Pause",
-                modifier = Modifier.size(40.dp)
+                modifier = Modifier.size(38.dp)
             )
         }
 
