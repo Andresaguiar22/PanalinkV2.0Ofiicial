@@ -141,8 +141,16 @@ fun ChatTopBar(
                 Column(
                     modifier = Modifier
                         .fillMaxWidth()
-                        .background(Color(0xFF000000))
-                        .border(width = 0.5.dp, color = Color(0xFF38383A))
+                        .background(
+                            Brush.verticalGradient(
+                                listOf(
+                                    Color(0xE6000000),
+                                    Color(0xCC1C1C1E),
+                                    Color(0xE6000000)
+                                )
+                            )
+                        )
+                        .border(width = 0.5.dp, color = Color.White.copy(alpha = 0.12f))
                         .clickable(enabled = otherUser != null) { onShowContactDetail() }
                         .padding(horizontal = 8.dp, vertical =   6.dp),
                     horizontalAlignment = Alignment.CenterHorizontally
