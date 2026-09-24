@@ -109,7 +109,8 @@ fun ChatsTabContent(
     deletedChatIds: Set<String> = emptySet(),
     pinnedChatIds: Set<String> = emptySet(),
     mutedChatIds: Set<String> = emptySet(),
-    customUnreadCounts: Map<String, Int> = emptyMap()
+    customUnreadCounts: Map<String, Int> = emptyMap(),
+    onNavigateToSearch: () -> Unit = {}
 ) {
     val context = androidx.compose.ui.platform.LocalContext.current
     var isRefreshing by remember { mutableStateOf(false) }
@@ -138,31 +139,33 @@ fun ChatsTabContent(
             ?: emptyList()
     }
 
-    Box(Modifier.fillMaxSize()) {
-        PanaLinkCyberpunkBackground(Modifier.matchParentSize())
-
-        PanaLinkNeonGlassPanel(
-            modifier = Modifier
-                .fillMaxSize()
-                .padding(horizontal = 14.dp, vertical = 6.dp)
-        ) {
-            PanalinkPullToRefreshBox(
-                isRefreshing = isRefreshing,
-                onRefresh = {
-                    scope.launch {
-                        isRefreshing = true
-                        onRefresh()
-                        kotlinx.coroutines.delay(700)
-                        isRefreshing = false
-                    }
+    Box(Modifier.fillMaxSize().background(Color(0xFF0D0F12))) {
+        PanalinkPullToRefreshBox(
+            isRefreshing = isRefreshing,
+            onRefresh = {
+                scope.launch {
+                    isRefreshing = true
+                    onRefresh()
+                    kotlinx.coroutines.delay(700)
+                    isRefreshing = false
                 }
+            },
+            modifier = Modifier.fillMaxSize()
+        ) {
+            LazyColumn(
+                state = listState,
+                modifier = Modifier.fillMaxSize(),
+                contentPadding = PaddingValues(top = 2.dp, bottom =  12.dp),
+                verticalArrangement = Arrangement.spacedBy(0.dp)
             ) {
-                LazyColumn(
-                    state = listState,
-                    modifier = Modifier.fillMaxSize(),
-                    contentPadding = PaddingValues(start = 10.dp, end = 10.dp, top = 12.dp, bottom = 22.dp),
-                    verticalArrangement = Arrangement.spacedBy(2.dp)
-                ) {
+                item {
+                    PaniOSSearchBar(
+                        onSearchClick = onNavigateToSearch,
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .padding(horizontal =  16.dp, vertical =  8.dp)
+                    )
+                }
                     when (chatsState) {
                         is ChatsUiState.Loading -> {
                             items(6) { ShimmerChatItemRow() }
@@ -209,7 +212,6 @@ fun ChatsTabContent(
             }
         }
     }
-}
 
 @Composable
 fun ChatItemRow(
@@ -234,19 +236,18 @@ fun ChatItemRow(
         ?.rawValue
     val unread = customUnreadCount ?: chatDetails.unreadCount
     val isMine = lastMessage?.senderId == SupabaseClient.currentUser?.id
-    val rowShape = RoundedCornerShape(18.dp)
 
     Row(
         verticalAlignment = Alignment.CenterVertically,
         modifier = Modifier
             .fillMaxWidth()
-            .clip(rowShape)
+            
             .background(
-                if (isSelected) PanaLinkCyberpunkColors.Purple.copy(alpha = 0.13f)
+                if (isSelected) Color(0xFF1C1C1E)
                 else Color.Transparent
             )
             .combinedClickable(onLongClick = onLongClick, onClick = onClick)
-            .padding(horizontal = 12.dp, vertical = 10.dp)
+            .padding(start =    16.dp, top =    10.dp, end =    12.dp, bottom =    10.dp)
     ) {
         ChatAvatar(
             name = otherUser?.displayName ?: "Pana de panalink",
@@ -254,7 +255,7 @@ fun ChatItemRow(
             status = status,
             secondaryStatus = secondaryStatus,
             hasUnread = unread > 0,
-            size = 56.dp,
+            size = 52.dp,
             isSelected = isSelected
         )
 
@@ -272,26 +273,26 @@ fun ChatItemRow(
                 ) {
                     Text(
                         text = otherUser?.displayName ?: "Pana de panalink",
-                        color = PanaLinkCyberpunkColors.Cream,
-                        fontWeight = FontWeight.Bold,
-                        fontSize = 16.sp,
+                        color = Color(0xFFEBEBF5),
+                        fontWeight = FontWeight.SemiBold,
+                        fontSize = 17.sp,
                         maxLines = 1,
                         overflow = TextOverflow.Ellipsis
                     )
                     if (isPinned) {
                         Spacer(Modifier.width(5.dp))
-                        Icon(Icons.Default.PushPin, contentDescription = "Anclado", tint = PanaLinkCyberpunkColors.Gold, modifier = Modifier.size(13.dp))
+                        Icon(Icons.Default.PushPin, contentDescription = "Anclado", tint = Color(0xFF8E8E93), modifier = Modifier.size(12.dp))
                     }
                 }
 
                 Text(
                     text = formattedTime,
-                    color = PanaLinkCyberpunkColors.Message.copy(alpha = 0.72f),
-                    fontSize = 11.sp
+                    color = if (unread > 0) Color(0xFF10B981) else Color(0xFF8E8E93),
+                    fontSize = 15.sp
                 )
             }
 
-            Spacer(Modifier.height(4.dp))
+            Spacer(Modifier.height(3.dp))
 
             Row(
                 Modifier.fillMaxWidth(),
@@ -299,8 +300,8 @@ fun ChatItemRow(
             ) {
                 Text(
                     text = if (isTyping) "escribiendo…" else (lastMessage?.previewText() ?: "Inicia la conversación chamo..."),
-                    color = if (isTyping) PanaLinkCyberpunkColors.Cyan else PanaLinkCyberpunkColors.Message.copy(alpha = 0.78f),
-                    fontSize = 13.sp,
+                    color = if (isTyping) Color(0xFF10B981) else Color(0xFF8E8E93),
+                    fontSize = 15.sp,
                     fontWeight = if (isTyping) FontWeight.SemiBold else FontWeight.Normal,
                     maxLines = 1,
                     overflow = TextOverflow.Ellipsis,
@@ -309,7 +310,7 @@ fun ChatItemRow(
 
                 if (isMuted) {
                     Spacer(Modifier.width(6.dp))
-                    Icon(Icons.Default.NotificationsOff, contentDescription = "Silenciado", tint = Color.Gray, modifier = Modifier.size(14.dp))
+                    Icon(Icons.Default.NotificationsOff, contentDescription = "Silenciado", tint = Color(0xFF8E8E93), modifier = Modifier.size(14.dp))
                 }
 
                 if (isMine && lastMessage != null) {
@@ -317,8 +318,8 @@ fun ChatItemRow(
                     Icon(
                         imageVector = if (lastMessage.seenAt != null) Icons.Default.DoneAll else Icons.Default.Done,
                         contentDescription = if (lastMessage.seenAt != null) "Visto" else "Enviado",
-                        tint = PanaLinkCyberpunkColors.Cyan,
-                        modifier = Modifier.size(18.dp)
+                        tint = Color(0xFF34B7F1),
+                        modifier = Modifier.size(16.dp)
                     )
                 }
 
@@ -328,7 +329,7 @@ fun ChatItemRow(
                         modifier = Modifier
                             .defaultMinSize(minWidth = 20.dp)
                             .height(20.dp)
-                            .background(PanaLinkCyberpunkColors.Cyan.copy(alpha = 0.90f), CircleShape)
+                            .background(Color(0xFF10B981), CircleShape)
                             .padding(horizontal = 5.dp),
                         contentAlignment = Alignment.Center
                     ) {
@@ -342,7 +343,25 @@ color = Color(0xFF071014),
                 }
             }
         }
+        Spacer(Modifier.width(2.dp))
+
+        Icon(
+            imageVector = Icons.Default.ChevronRight,
+            contentDescription = null,
+            tint = Color(0xFF3A3A3C),
+            modifier = Modifier.size(18.dp)
+        )
     }
+
+    // Separador indentado estilo iOS (empieza bajo el avatar y termina
+    // antes del borde derecho; sin espaciado entre filas).
+    Box(
+        modifier = Modifier
+            .fillMaxWidth()
+            .padding(start = 82.dp, end =  16.dp)
+            .height(1.dp)
+            .background(Color(0xFF38383A).copy(alpha =  0.6f))
+    )
 }
 
 @Composable

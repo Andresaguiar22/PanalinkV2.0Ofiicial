@@ -346,7 +346,7 @@ fun ChatsListScreen(
                             colors = RadioButtonDefaults.colors(selectedColor = Color(0xFF00A884))
                         )
                         Spacer(modifier = Modifier.width(8.dp))
-                        Text("✏️ Crear nueva lista...", color = PanalinkPalette.textPrimary, fontSize = 16.sp)
+                        Text("✏ Crear nueva lista...", color = PanalinkPalette.textPrimary, fontSize = 16.sp)
                     }
                     if (isCustomSelected) {
                         OutlinedTextField(
@@ -597,7 +597,7 @@ fun ChatsListScreen(
                             val count = selectedChatIds.size
                             chatsViewModel.deleteChats(selectedChatIds)
                             deletedChatIds = deletedChatIds + selectedChatIds
-                            android.widget.Toast.makeText(context, "Eliminado(s) $count chat(s) con éxito 🗑️", android.widget.Toast.LENGTH_SHORT).show()
+                            android.widget.Toast.makeText(context, "Eliminado(s) $count chat(s) con éxito 🗑", android.widget.Toast.LENGTH_SHORT).show()
                             selectedChatIds = emptySet()
                         },
                         onMuteClicked = {
@@ -638,7 +638,7 @@ fun ChatsListScreen(
                                     chatsViewModel.markChatAsRead(id)
                                 }
                             }
-                            val msg = if (allRead) "Marcado(s) como no leído para $count chat(s) 💬" else "Marcado(s) como leído para $count chat(s) 👁️"
+                            val msg = if (allRead) "Marcado(s) como no leído para $count chat(s) 💬" else "Marcado(s) como leído para $count chat(s) 👁"
                             android.widget.Toast.makeText(context, msg, android.widget.Toast.LENGTH_SHORT).show()
                             selectedChatIds = emptySet()
                         },
@@ -661,7 +661,7 @@ fun ChatsListScreen(
                             val newFavoriteState = !allFavorites
                             val count = selectedChatIds.size
                             chatsViewModel.toggleFavoriteChats(selectedChatIds, newFavoriteState)
-                            val msg = if (newFavoriteState) "Añadido(s) $count chat(s) a Favoritos ⭐️" else "Removido(s) $count chat(s) de Favoritos ⭐"
+                            val msg = if (newFavoriteState) "Añadido(s) $count chat(s) a Favoritos ⭐" else "Removido(s) $count chat(s) de Favoritos ⭐"
                             android.widget.Toast.makeText(context, msg, android.widget.Toast.LENGTH_SHORT).show()
                             selectedChatIds = emptySet()
                         },
@@ -677,11 +677,19 @@ fun ChatsListScreen(
                     )
                 } else if (currentRoute != "clips") {
                     if (currentRoute == "chats") {
-                        PanaLinkCyberpunkTopBar(
-                            onAdd = { showPlusBottomSheet = true },
-                            onSearch = onNavigateToSearch,
-                            onFolder = onNavigateToFavorites,
-                            onProfile = onNavigateToProfile
+                        PaniOSChatsTopBar(
+                            onEdit = {
+                                // "Editar" activa el modo selección (igual qu en iOS entra
+                                // al estado de edición de la lista).
+                                val currentChats = (chatsState as? ChatsUiState.Success)?.chats ?: emptyList()
+                                val visibleChats = currentChats.filterNot { deletedChatIds.contains(it.chat.id) || it.chat.isArchived }
+                                selectedChatIds = visibleChats.map { it.chat.id }.toSet()
+                                showPlusBottomSheet = false
+                            },
+                            onCamera = {
+                                showRealQrScanner = true
+                            },
+                            onCompose = { showPlusBottomSheet = true }
                         )
                     } else {
                     Column(
@@ -901,6 +909,7 @@ fun ChatsListScreen(
                             onNavigateToChat = onNavigateToChat,
                             onNavigateToViewState = onNavigateToViewState,
                             onNavigateToCreateState = onNavigateToCreateState,
+                            onNavigateToSearch = onNavigateToSearch,
                             onRefresh = {
                                 chatsViewModel.loadChats(forceRefresh = true)
                                 chatsViewModel.loadContacts(forceRefresh = true)

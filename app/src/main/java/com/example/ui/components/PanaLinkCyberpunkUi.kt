@@ -5,12 +5,18 @@ import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
+import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.statusBarsPadding
+import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Add
 import androidx.compose.material.icons.filled.Folder
 import androidx.compose.material.icons.filled.Search
+import androidx.compose.material.icons.rounded.PhotoCamera
+import androidx.compose.material.icons.automirrored.filled.Send
+import androidx.compose.material.icons.rounded.Edit
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.Text
@@ -139,11 +145,101 @@ fun PanaLinkNeonGlassPanel(
 }
 
 @Composable
+fun PaniOSChatsTopBar(
+    onEdit: () -> Unit,
+    onCamera: () -> Unit,
+    onCompose: () -> Unit,
+    modifier: Modifier = Modifier
+) {
+    val tint = Color(0xFF10B981)
+
+    Column(
+        modifier = modifier
+            .fillMaxWidth()
+            .background(Color(0xFF0D0F12))
+            .statusBarsPadding()
+            .padding(horizontal = 16.dp, vertical = 8.dp)
+    ) {
+        // Fila de acciones: Editar a la izquierda, camara + lapiz a la derecha.
+
+        Row(
+            modifier = Modifier.fillMaxWidth(),
+            horizontalArrangement = Arrangement.SpaceBetween,
+            verticalAlignment = Alignment.CenterVertically
+        ) {
+            Text(
+                text = "Editar",
+                color = tint,
+                fontSize = 17.sp,
+                fontWeight = FontWeight.Normal,
+                modifier = Modifier
+                    .clip(RoundedCornerShape(8.dp))
+                    .clickable(onClick = onEdit)
+                    .padding(vertical = 6.dp, horizontal = 2.dp)
+            )
+
+            Row(verticalAlignment = Alignment.CenterVertically) {
+
+                Box(
+                    modifier = Modifier
+                        .size(34.dp)
+                        .clip(CircleShape)
+                        .clickable(onClick = onCamera)
+                ) {
+                    Icon(
+                        imageVector = Icons.Rounded.PhotoCamera,
+                        contentDescription = "Escanear QR",
+                        tint = tint,
+                        modifier = Modifier
+                            .align(Alignment.Center)
+                            .size(24.dp)
+                    )
+                }
+                Spacer(modifier = Modifier.width(4.dp))
+                Box(
+                    modifier = Modifier
+                        .size(34.dp)
+                        .clip(CircleShape)
+                        .clickable(onClick = onCompose)
+                ) {
+                    Icon(
+                        imageVector = Icons.Rounded.Edit,
+                        contentDescription = "Nuevo chat",
+                        tint = tint,
+                        modifier = Modifier
+                            .align(Alignment.Center)
+                            .size(24.dp)
+                    )
+                }
+            }
+        }
+
+        Spacer(modifier = Modifier.height(2.dp))
+
+        // Large Title iOS
+        Text(
+            text = "PanaLink",
+            color = Color.White,
+            fontSize = 34.sp,
+            fontWeight = FontWeight.Bold,
+            fontFamily = FontFamily.Serif,
+            letterSpacing = 0.2.sp,
+            maxLines = 1,
+            overflow = TextOverflow.Ellipsis
+        )
+    }
+}
+
+@Composable
 fun PanaLinkCyberpunkTopBar(
     onAdd: () -> Unit,
+
     onSearch: () -> Unit,
+
     onFolder: () -> Unit,
+
     onProfile: () -> Unit,
+
     modifier: Modifier = Modifier
 ) {
     Row(
@@ -239,5 +335,37 @@ fun PanaLinkCyberpunkTopBar(
                 }
             }
         }
+    }
+}
+
+@Composable
+fun PaniOSSearchBar(
+    onSearchClick: () -> Unit,
+    modifier: Modifier = Modifier
+) {
+    Row(
+        modifier = modifier
+            .fillMaxWidth()
+            .height(36.dp)
+            .clip(RoundedCornerShape(10.dp))
+            .background(Color(0xFF1C1C1E))
+            .clickable(onClick = onSearchClick)
+            .padding(horizontal = 10.dp),
+        verticalAlignment = Alignment.CenterVertically
+    ) {
+        Icon(
+            imageVector = Icons.Default.Search,
+            contentDescription = "Buscar",
+            tint = Color(0xFF8E8E93),
+            modifier = Modifier.size(18.dp)
+        )
+        Spacer(modifier = Modifier.width(6.dp))
+        Text(
+            text = "Buscar",
+            color = Color(0xFF8E8E93),
+            fontSize = 17.sp,
+            maxLines = 1,
+            overflow = TextOverflow.Ellipsis
+        )
     }
 }
