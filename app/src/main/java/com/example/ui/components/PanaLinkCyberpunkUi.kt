@@ -32,14 +32,14 @@ import androidx.compose.ui.unit.sp
 import com.example.data.supabase.SupabaseClient
 
 object PanaLinkCyberpunkColors {
-    val Background = Color(0xFF0D0F12)
-    val Glass = Color(0xB8131A22)
-    val Cream = Color(0xFFF5E6C8)
-    val Message = Color(0xFFD9E3EF)
-    val Cyan = Color(0xFF18E7F5)
-    val Magenta = Color(0xFFFF28C8)
-    val Purple = Color(0xFF9B5CFF)
-    val Gold = Color(0xFFF0D9A6)
+    val Background = Color(0xFF17212B)
+    val Glass = Color(0xE6202B36)
+    val Cream = Color(0xFFFFFFFF)
+    val Message = Color(0xFFE6EDF3)
+    val Cyan = Color(0xFF35D07F)
+    val Magenta = Color(0xFF35D07F)
+    val Purple = Color(0xFF2BAE66)
+    val Gold = Color(0xFF35D07F)
 }
 
 private val cyberpunkBorderBrush = Brush.linearGradient(
@@ -146,71 +146,47 @@ fun PanaLinkCyberpunkTopBar(
     onProfile: () -> Unit,
     modifier: Modifier = Modifier
 ) {
-    val pillShape = RoundedCornerShape(26.dp)
     Row(
         modifier = modifier
             .fillMaxWidth()
+            .background(PanaLinkCyberpunkColors.Background)
             .statusBarsPadding()
-            .padding(horizontal = 18.dp, vertical = 8.dp),
+            .padding(horizontal = 18.dp, vertical = 10.dp),
         horizontalArrangement = Arrangement.SpaceBetween,
         verticalAlignment = Alignment.CenterVertically
     ) {
         Text(
             text = "PanaLink",
-            color = PanaLinkCyberpunkColors.Cream,
+            color = Color(0xFF35D07F),
             fontSize = 31.sp,
             fontWeight = FontWeight.Bold,
             fontFamily = FontFamily.Serif,
             style = TextStyle(
                 shadow = androidx.compose.ui.graphics.Shadow(
-                    color = PanaLinkCyberpunkColors.Gold.copy(alpha = 0.28f),
-                    blurRadius = 10f
+                    color = Color(0x5535D07F),
+                    blurRadius = 12f
                 )
             )
         )
 
+        // Barra superior limpia: sin píldora. Las píldoras quedan reservadas
+        // para la navegación inferior, donde funcionan como selector de pestaña.
         Row(
-            modifier = Modifier
-                .clip(pillShape)
-                .background(Color(0xB5161D25))
-                .border(
-                    1.2.dp,
-                    Brush.linearGradient(
-                        listOf(
-                            PanaLinkCyberpunkColors.Cyan.copy(alpha = 0.8f),
-                            PanaLinkCyberpunkColors.Purple.copy(alpha = 0.65f),
-                            PanaLinkCyberpunkColors.Magenta.copy(alpha = 0.55f)
-                        )
-                    ),
-                    pillShape
-                )
-                .padding(horizontal = 4.dp, vertical = 3.dp),
-            verticalAlignment = Alignment.CenterVertically
+            verticalAlignment = Alignment.CenterVertically,
+            horizontalArrangement = Arrangement.spacedBy(2.dp)
         ) {
-            IconButton(onClick = onAdd, modifier = Modifier.size(42.dp)) {
-                Icon(
-                    Icons.Default.Add,
-                    contentDescription = "Crear",
-                    tint = PanaLinkCyberpunkColors.Cream
-                )
+            IconButton(onClick = onAdd, modifier = Modifier.size(44.dp)) {
+                Icon(Icons.Default.Add, contentDescription = "Crear", tint = Color.White)
             }
-            IconButton(onClick = onSearch, modifier = Modifier.size(42.dp)) {
-                Icon(
-                    Icons.Default.Search,
-                    contentDescription = "Buscar",
-                    tint = PanaLinkCyberpunkColors.Cream
-                )
+            IconButton(onClick = onSearch, modifier = Modifier.size(44.dp)) {
+                Icon(Icons.Default.Search, contentDescription = "Buscar", tint = Color.White)
             }
-            IconButton(onClick = onFolder, modifier = Modifier.size(42.dp)) {
-                Icon(
-                    Icons.Default.Folder,
-                    contentDescription = "Favoritos",
-                    tint = PanaLinkCyberpunkColors.Cream
-                )
+            IconButton(onClick = onFolder, modifier = Modifier.size(44.dp)) {
+                Icon(Icons.Default.Folder, contentDescription = "Favoritos", tint = Color.White)
             }
             Box(
                 modifier = Modifier
-                    .padding(horizontal = 3.dp)
+                    .padding(start = 4.dp)
                     .size(42.dp)
                     .clip(CircleShape)
                     .clickable(onClick = onProfile)
@@ -220,7 +196,7 @@ fun PanaLinkCyberpunkTopBar(
                     userId = SupabaseClient.currentUser?.id,
                     size = 42.dp,
                     borderWidth = 1.5.dp,
-                    borderColor = PanaLinkCyberpunkColors.Cyan,
+                    borderColor = Color(0xFF35D07F),
                     placeholderName = SupabaseClient.currentProfile?.displayName ?: "",
                     contentDescription = "Perfil"
                 )

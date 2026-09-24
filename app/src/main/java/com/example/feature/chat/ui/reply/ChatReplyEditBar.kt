@@ -24,6 +24,7 @@ import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.example.data.model.Message
+import com.example.ui.theme.PanalinkPalette
 
 @Composable
 fun ChatReplyEditBar(
@@ -50,13 +51,13 @@ fun ChatReplyEditBar(
                     modifier = Modifier
                         .width(4.dp)
                         .height(36.dp)
-                        .background(Color(0xFF38BDF8))
+                        .background(PanalinkPalette.accent)
                 )
                 Spacer(modifier = Modifier.width(12.dp))
                 Column(modifier = Modifier.weight(1f)) {
                     Text(
                         text = "Respondiendo a $senderName",
-                        color = Color(0xFF38BDF8),
+                        color = PanalinkPalette.accent,
                         fontWeight = FontWeight.Bold,
                         fontSize = 12.sp
                     )
@@ -103,13 +104,13 @@ fun ChatReplyEditBar(
                     modifier = Modifier
                         .width(4.dp)
                         .height(36.dp)
-                        .background(Color(0xFF38BDF8))
+                        .background(PanalinkPalette.accent)
                 )
                 Spacer(modifier = Modifier.width(12.dp))
                 Column(modifier = Modifier.weight(1f)) {
                     Text(
                         text = "Editar mensaje ✏️",
-                        color = Color(0xFF38BDF8),
+                        color = PanalinkPalette.accent,
                         fontWeight = FontWeight.Bold,
                         fontSize = 12.sp
                     )

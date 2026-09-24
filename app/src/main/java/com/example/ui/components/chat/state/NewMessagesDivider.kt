@@ -19,7 +19,7 @@ import com.example.ui.theme.PanalinkPalette
 fun NewMessagesDivider(
     modifier: Modifier = Modifier,
     text: String = "Mensajes nuevos",
-    color: Color = Color(0xFF38BDF8).copy(alpha = 0.9f)
+    color: Color = PanalinkPalette.accent.copy(alpha = 0.9f)
 ) {
     Box(
         modifier = modifier

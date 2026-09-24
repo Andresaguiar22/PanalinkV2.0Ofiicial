@@ -208,7 +208,7 @@ fun LlamadasTabContent(
                 colors = CardDefaults.cardColors(
                     containerColor = colors.secondary
                 ),
-                border = BorderStroke(1.dp, Color(0xFF262629)),
+                border = BorderStroke(1.dp, PanalinkPalette.glassBorder.copy(alpha = 0.35f)),
                 shape = androidx.compose.foundation.shape.RoundedCornerShape(12.dp),
                 elevation = CardDefaults.cardElevation(defaultElevation = 2.dp)
             ) {
@@ -352,7 +352,7 @@ fun LlamadasTabContent(
                                     }
                                     val statusColor = when (log.status) {
                                         com.example.data.model.CallLogStatus.MISSED, com.example.data.model.CallLogStatus.REJECTED -> Color(0xFFEF4444)
-                                        else -> Color(0xFF90A4AE)
+                                        else -> PanalinkPalette.textSecondary
                                     }
                                     val statusText = when (log.status) {
                                         com.example.data.model.CallLogStatus.COMPLETED -> {
@@ -388,14 +388,14 @@ fun LlamadasTabContent(
                                 Icon(
                                     imageVector = Icons.Default.Call,
                                     contentDescription = "Llamar de nuevo",
-                                    tint = Color(0xFF00FF85),
+                                    tint = PanalinkPalette.accent,
                                     modifier = Modifier.size(18.dp)
                                 )
                             }
                             // Per-call-item 3-dot menu
                             Box {
                                 IconButton(onClick = { showCallItemMenu = true }) {
-                                    Icon(Icons.Default.MoreVert, contentDescription = "Opciones", tint = Color(0xFF90A4AE))
+                                    Icon(Icons.Default.MoreVert, contentDescription = "Opciones", tint = PanalinkPalette.textSecondary)
                                 }
                                 DropdownMenu(
                                     expanded = showCallItemMenu,
@@ -429,7 +429,7 @@ fun LlamadasTabContent(
                                 }
                             }
                         }
-                        HorizontalDivider(color = Color(0xFF1E2E36), thickness = 0.5.dp)
+                        HorizontalDivider(color = PanalinkPalette.surface, thickness = 0.5.dp)
                     }
                 }
                 Spacer(modifier = Modifier.height(8.dp))
@@ -532,7 +532,7 @@ fun LlamadasTabContent(
                                         Spacer(modifier = Modifier.height(2.dp))
                                         Text(
                                             text = if (isContactOnline) "En línea" else "Desconectado",
-                                            color = if (isContactOnline) Color(0xFF00FF85) else Color(0xFF90A4AE),
+                                            color = if (isContactOnline) PanalinkPalette.accent else PanalinkPalette.textSecondary,
                                             fontSize = 12.sp
                                         )
                                     }
@@ -572,7 +572,7 @@ fun LlamadasTabContent(
                                             },
                                             modifier = Modifier
                                                 .background(
-                                                    color = Color(0xFF3B82F6).copy(alpha = 0.15f),
+                                                    color = PanalinkPalette.accent.copy(alpha = 0.15f),
                                                     shape = androidx.compose.foundation.shape.CircleShape
                                                 )
                                                 .size(40.dp)
@@ -580,13 +580,13 @@ fun LlamadasTabContent(
                                             Icon(
                                                 imageVector = Icons.Default.Videocam,
                                                 contentDescription = "Videollamada",
-                                                tint = Color(0xFF3B82F6),
+                                                tint = PanalinkPalette.accent,
                                                 modifier = Modifier.size(20.dp)
                                             )
                                         }
                                         Box {
                                             IconButton(onClick = { showCallContactMenu = true }) {
-                                                Icon(Icons.Default.MoreVert, contentDescription = "Opciones", tint = Color(0xFF90A4AE))
+                                                Icon(Icons.Default.MoreVert, contentDescription = "Opciones", tint = PanalinkPalette.textSecondary)
                                             }
                                             DropdownMenu(
                                                 expanded = showCallContactMenu,
@@ -619,7 +619,7 @@ fun LlamadasTabContent(
                                         }
                                     }
                                 }
-                                HorizontalDivider(color = Color(0xFF1E2E36), thickness = 0.5.dp)
+                                HorizontalDivider(color = PanalinkPalette.surface, thickness = 0.5.dp)
                             }
                         }
                     }

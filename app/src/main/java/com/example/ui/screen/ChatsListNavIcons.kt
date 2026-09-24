@@ -148,16 +148,24 @@ fun FunkyBottomNavItem(
             )
             .scale(scale)
     ) {
-        // Cyan-glowing rounded square (squircle) enclosing active icon
+        // Píldora de selección: reservada para la barra inferior.
         Box(
             contentAlignment = Alignment.Center,
             modifier = Modifier
-                .size(46.dp)
+                .height(42.dp)
+                .width(if (selected) 58.dp else 46.dp)
                 .then(
                     if (selected) {
                         Modifier
-                            .background(Color.White.copy(alpha = 0.08f), RoundedCornerShape(14.dp))
-                            .border(1.5.dp, com.example.ui.theme.getPremiumActiveIconGradient(), RoundedCornerShape(14.dp))
+                            .background(
+                                Color(0xFF35D07F).copy(alpha = 0.16f),
+                                RoundedCornerShape(21.dp)
+                            )
+                            .border(
+                                1.5.dp,
+                                Color(0xFF35D07F).copy(alpha = 0.85f),
+                                RoundedCornerShape(21.dp)
+                            )
                     } else {
                         Modifier
                     }
@@ -188,7 +196,7 @@ fun FunkyBottomNavItem(
 
         Text(
             text = label,
-            color = if (selected) colors.primary else Color(0xFF9E9E9E),
+            color = if (selected) Color(0xFF35D07F) else Color(0xFFB6C2CF),
             fontWeight = if (selected) FontWeight.Bold else FontWeight.Normal,
             fontSize = 10.sp,
             style = if (selected) {

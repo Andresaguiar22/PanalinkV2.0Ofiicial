@@ -52,9 +52,9 @@ fun VoiceMessageBubble(
     val isVoiceNote = true // Acción 4: always voice note style
     
     // Acción 1 & 4: Premium Glassmorphism colors
-    val bubbleColor = if (isSender) Color(0xFF1D4ED8) else Color(0xFF1E293B).copy(alpha = 0.9f)
+    val bubbleColor = if (isSender) PanalinkPalette.chatOutgoing else PanalinkPalette.chatIncoming
     val contentColor = if (isSender) Color.White else Color(0xE6FFFFFF)
-    val playedColor = if (isSender) Color(0xFF00E5FF) else Color(0xFF38BDF8)
+    val playedColor = PanalinkPalette.accent
     val unplayedColor = Color(0xFF94A3B8).copy(alpha = 0.3f)
     
     // Waveform configuration

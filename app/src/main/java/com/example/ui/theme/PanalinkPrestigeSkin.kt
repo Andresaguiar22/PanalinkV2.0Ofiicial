@@ -45,30 +45,40 @@ object PanalinkPalette {
         internal set
 
     /** Fondo base: navy del mockup / blanco estilo Instagram. */
-    val background: Color get() = if (isDark) Color(0xFF0D0F12) else Color(0xFFFFFFFF)
+    val background: Color get() = if (isDark) Color(0xFF17212B) else Color(0xFFFFFFFF)
 
     /** Superficie de tarjetas y barras. */
-    val surface: Color get() = if (isDark) Color(0xB8131A22) else Color(0xFFFFFFFF)
+    val surface: Color get() = if (isDark) Color(0xFF202B36) else Color(0xFFFFFFFF)
 
     /** Texto principal: blanco sobre oscuro, casi negro sobre claro. */
-    val textPrimary: Color get() = if (isDark) Color(0xFFF5E6C8) else Color(0xFF0B0F14)
+    val textPrimary: Color get() = if (isDark) Color(0xFFFFFFFF) else Color(0xFF0B0F14)
 
     /** Texto secundario (horas, vista previa, subtitulos). */
-    val textSecondary: Color get() = if (isDark) Color(0xFFD9E3EF) else Color(0xFF5C6675)
+    val textSecondary: Color get() = if (isDark) Color(0xFFB6C2CF) else Color(0xFF5C6675)
 
     /** Titulos de marca: champan sobre oscuro, bronce (legible) sobre claro. */
-    val accent: Color get() = if (isDark) Color(0xFFF5E6C8) else Color(0xFF6F5A2F)
+    val accent: Color get() = if (isDark) Color(0xFF35D07F) else Color(0xFF1DA060)
 
     /** Dorado de acentos e iconos. */
-    val gold: Color get() = if (isDark) Color(0xFFF0D9A6) else Color(0xFF8A6F3E)
+    val gold: Color get() = if (isDark) Color(0xFF35D07F) else Color(0xFF1DA060)
 
     val divider: Color get() = if (isDark) Color(0x3328E8F5) else Color(0x247A6234)
 
-    val glass: Color get() = if (isDark) Color(0xCC131A22) else Color(0xF2FFFFFF)
-    val glassBorder: Color get() = if (isDark) Color(0x5518E7F5) else Color(0x268A6F3E)
+    val glass: Color get() = if (isDark) Color(0xE6202B36) else Color(0xF2FFFFFF)
+    val glassBorder: Color get() = if (isDark) Color(0x6635D07F) else Color(0x268A6F3E)
 
     /** Verde de marca (online, acentos vivos). */
     val online: Color get() = if (isDark) Color(0xFF3FCF8E) else Color(0xFF1DA060)
+    // Design system PanaLink: un solo lenguaje cromático para chats, Momentos,
+    // Clips, Llamadas y Gente.
+    val chatOutgoing: Color get() = if (isDark) Color(0xFF245B45) else Color(0xFFDDF7EA)
+    val chatIncoming: Color get() = if (isDark) Color(0xFF202B36) else Color(0xFFF1F4F6)
+    val chatOutgoingDeep: Color get() = if (isDark) Color(0xFF1B4A39) else Color(0xFFCDEFD8)
+    val accentSoft: Color get() = if (isDark) Color(0x2935D07F) else Color(0x1F1DA060)
+    val surfaceElevated: Color get() = if (isDark) Color(0xFF26333E) else Color(0xFFF7F8FA)
+    val onAccent: Color get() = if (isDark) Color(0xFF07130D) else Color.White
+    val link: Color get() = if (isDark) Color(0xFF69E6A5) else Color(0xFF168A52)
+    val missedCall: Color get() = if (isDark) Color(0xFFFF6B6B) else Color(0xFFD83A3A)
 }
 
 /**
@@ -76,22 +86,22 @@ object PanalinkPalette {
  * Valores muestreados del mockup aprobado por el mantenedor.
  */
 object PanalinkSkin {
-    val NavyBase = Color(0xFF0D0F12)
-    val NavyDeep = Color(0xFF090B0F)
+    val NavyBase = Color(0xFF17212B)
+    val NavyDeep = Color(0xFF0E1621)
 
     // Cristales y textos: dependen del tema para que el modo claro sea legible
     // (tinta oscura sobre superficies claras) sin tocar cada pantalla.
-    val Glass: Color get() = if (PanalinkPalette.isDark) Color(0xB8131A22) else Color(0xF2F1F3F7)
-    val GlassStrong: Color get() = if (PanalinkPalette.isDark) Color(0xE0131A22) else Color(0xF2FFFFFF)
-    val GlassSoft: Color get() = if (PanalinkPalette.isDark) Color(0x66131A22) else Color(0x99FFFFFF)
+    val Glass: Color get() = if (PanalinkPalette.isDark) Color(0xE6202B36) else Color(0xF2F1F3F7)
+    val GlassStrong: Color get() = if (PanalinkPalette.isDark) Color(0xF025303B) else Color(0xF2FFFFFF)
+    val GlassSoft: Color get() = if (PanalinkPalette.isDark) Color(0x66202B36) else Color(0x99FFFFFF)
 
-    val Cream: Color get() = if (PanalinkPalette.isDark) Color(0xFFF5E6C8) else Color(0xFF1B2330)
-    val TitleCream: Color get() = if (PanalinkPalette.isDark) Color(0xFFF5E6C8) else Color(0xFF6F5A2F)
-    val CreamDim: Color get() = if (PanalinkPalette.isDark) Color(0xFFD9E3EF) else Color(0xFF5C6675)
-    val Sub: Color get() = if (PanalinkPalette.isDark) Color(0xFFB8C4D6) else Color(0xFF5C6675)
+    val Cream: Color get() = if (PanalinkPalette.isDark) Color(0xFFFFFFFF) else Color(0xFF1B2330)
+    val TitleCream: Color get() = if (PanalinkPalette.isDark) Color(0xFFFFFFFF) else Color(0xFF6F5A2F)
+    val CreamDim: Color get() = if (PanalinkPalette.isDark) Color(0xFFB6C2CF) else Color(0xFF5C6675)
+    val Sub: Color get() = if (PanalinkPalette.isDark) Color(0xFFB6C2CF) else Color(0xFF5C6675)
 
-    val Gold: Color get() = if (PanalinkPalette.isDark) Color(0xFFF0D9A6) else Color(0xFF8A6F3E)
-    val GoldBright: Color get() = if (PanalinkPalette.isDark) Color(0xFFFF28C8) else Color(0xFF8A6F3E)
+    val Gold: Color get() = if (PanalinkPalette.isDark) Color(0xFF35D07F) else Color(0xFF8A6F3E)
+    val GoldBright: Color get() = if (PanalinkPalette.isDark) Color(0xFF35D07F) else Color(0xFF8A6F3E)
     val GoldDeep = Color(0xFF8A6F3E)
 
     val ReadTick: Color get() = if (PanalinkPalette.isDark) Color(0xFF9DA0A7) else Color(0xFF8A9099)
@@ -102,20 +112,20 @@ object PanalinkSkin {
     /** Borde cálido muy sutil, como el del mockup. */
     val borderGradient: List<Color>
         get() = if (PanalinkPalette.isDark) {
-            listOf(Color(0x4DE7D2A0), Color(0x338A6F3E), Color(0x4DE7D2A0))
+            listOf(Color(0x6635D07F), Color(0x3335D07F), Color(0x6635D07F))
         } else {
             listOf(Color(0x3D8A6F3E), Color(0x1F8A6F3E), Color(0x3D8A6F3E))
         }
 
     /** Gradiente de la barra flotante: verde-teal -> indigo (mockup). */
     val barGradient: List<Color> = listOf(
-        Color(0xFF1D5C4E),
-        Color(0xFF17293F),
-        Color(0xFF241E46)
+        Color(0xFF173D2B),
+        Color(0xFF172A22),
+        Color(0xFF202B36)
     )
 
     /** Borde luminoso menta de la barra flotante. */
-    val barGlow = Color(0xFF18E7F5)
+    val barGlow = Color(0xFF35D07F)
 }
 
 /** Posición de una fila dentro del panel continuo de chats. */

@@ -39,8 +39,8 @@ fun PlaylistChatBubble(
     onSave: () -> Unit,
     modifier: Modifier = Modifier
 ) {
-    val bubbleColor = if (isMe) Color(0xFF005C4B) else Color(0xFF1F2C34)
-    val accent = Color(0xFF38BDF8)
+    val bubbleColor = if (isMe) PanalinkPalette.chatOutgoing else PanalinkPalette.chatIncoming
+    val accent = PanalinkPalette.accent
 
     Surface(
         color = bubbleColor,
@@ -125,7 +125,7 @@ fun PlaylistChatBubble(
                     Icon(
                         Icons.Default.PlayArrow,
                         contentDescription = "Reproducir",
-                        tint = Color(0xFF0B0F19),
+                        tint = PanalinkPalette.onAccent,
                         modifier = Modifier.size(28.dp)
                     )
                 }
@@ -171,7 +171,7 @@ fun PlaylistChatBubble(
                         modifier = Modifier.weight(1f).height(34.dp),
                         colors = ButtonDefaults.buttonColors(
                             containerColor = accent,
-                            contentColor = Color(0xFF0B0F19)
+                            contentColor = PanalinkPalette.onAccent
                         ),
                         contentPadding = PaddingValues(horizontal = 8.dp),
                         shape = RoundedCornerShape(17.dp)
