@@ -28,10 +28,10 @@ object BubbleShapeFactory {
             )
         } else {
             RoundedCornerShape(
-                topStart = 4.dp,
-                topEnd = 24.dp,
-                bottomStart = 24.dp,
-                bottomEnd = 24.dp
+                topStart = 20.dp,
+                topEnd = 20.dp,
+                bottomStart = 4.dp,
+                bottomEnd = 20.dp
             )
         }
     }
