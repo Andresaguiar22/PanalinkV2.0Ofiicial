@@ -165,7 +165,9 @@ val glowAlpha by animateFloatAsState(
                 imageVector = icon,
                 contentDescription = title,
                 tint = color,
-                modifier = Modifier.size(26.dp)
+                modifier = Modifier
+                    .align(Alignment.Center)
+                    .size(26.dp)
             )
             if (badgeCount > 0) {
                 val badgeColor = if (urgent) Color(0xFFFF3B30) else PanalinkTabTint
