@@ -86,9 +86,9 @@ object PanalinkSkin {
     val GlassSoft: Color get() = if (PanalinkPalette.isDark) Color(0x66202B36) else Color(0x99FFFFFF)
 
     val Cream: Color get() = if (PanalinkPalette.isDark) Color(0xFFFFFFFF) else Color(0xFF1B2330)
-    val TitleCream: Color get() = if (PanalinkPalette.isDark) Color(0xFFF5E6C8) else Color(0xFF6F5A2F)
+    val TitleCream: Color get() = if (PanalinkPalette.isDark) Color(0xFFFFFFFF) else Color(0xFF6F5A2F)
     val CreamDim: Color get() = if (PanalinkPalette.isDark) Color(0xFFB6C2CF) else Color(0xFF5C6675)
-    val Sub: Color get() = if (PanalinkPalette.isDark) Color(0xFFB8C4D6) else Color(0xFF5C6675)
+    val Sub: Color get() = if (PanalinkPalette.isDark) Color(0xFFB6C2CF) else Color(0xFF5C6675)
 
     val Gold: Color get() = if (PanalinkPalette.isDark) Color(0xFF35D07F) else Color(0xFF8A6F3E)
     val GoldBright: Color get() = if (PanalinkPalette.isDark) Color(0xFF35D07F) else Color(0xFF8A6F3E)
@@ -109,9 +109,9 @@ object PanalinkSkin {
 
     /** Gradiente de la barra flotante: verde-teal -> indigo (mockup). */
     val barGradient: List<Color> = listOf(
-        Color(0xFF1D5C4E),
-        Color(0xFF17293F),
-        Color(0xFF241E46)
+        Color(0xFF173D2B),
+        Color(0xFF172A22),
+        Color(0xFF202B36)
     )
 
     /** Borde luminoso menta de la barra flotante. */
