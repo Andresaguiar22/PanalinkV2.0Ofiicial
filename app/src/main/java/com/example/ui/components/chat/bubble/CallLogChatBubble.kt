@@ -69,7 +69,7 @@ fun CallLogChatBubble(
     Surface(
         modifier = modifier.padding(vertical = 4.dp),
         shape = RoundedCornerShape(14.dp),
-        color = if (isMe) Color(0xFF005C4B) else Color(0xFF18202A)
+        color = if (isMe) PanalinkPalette.chatOutgoing else PanalinkPalette.chatIncoming
     ) {
         Row(
             modifier = Modifier
