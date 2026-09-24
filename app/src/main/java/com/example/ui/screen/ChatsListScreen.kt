@@ -677,7 +677,7 @@ fun ChatsListScreen(
                     )
                 } else if (currentRoute != "clips") {
                     if (currentRoute == "chats") {
-                        PaniOSChatsTopBar(
+                        PaniOSUnifiedTopBar(
                             onEdit = {
                                 // "Editar" activa el modo selección (igual qu en iOS entra
                                 // al estado de edición de la lista).
@@ -689,130 +689,19 @@ fun ChatsListScreen(
                             onCamera = {
                                 showRealQrScanner = true
                             },
-                            onCompose = { showPlusBottomSheet = true }
+                            onCompose = { showPlusBottomSheet = true },
+                            onProfile = onNavigateToProfile
                         )
                     } else {
-                    Column(
-                        modifier = Modifier
-                            .fillMaxWidth()
-                            .background(Color.Transparent)
-                            .statusBarsPadding()
-                            .padding(horizontal = 16.dp, vertical = 8.dp)
-                    ) {
-                        // Row 1: Panalink title + Icons
-                        Row(
-                            modifier = Modifier.fillMaxWidth(),
-                            horizontalArrangement = Arrangement.SpaceBetween,
-                            verticalAlignment = Alignment.CenterVertically
-                        ) {
-                            Text(
-                                text = "PanaLink",
-                                style = androidx.compose.ui.text.TextStyle(
-                                    color = com.example.ui.theme.PanalinkSkin.Cream,
-                                    fontSize = 25.sp,
-                                    fontWeight = FontWeight.ExtraBold,
-                                    fontFamily = androidx.compose.ui.text.font.FontFamily.Serif,
-                                    letterSpacing = 0.5.sp
-                                )
-                            )
-                            Row(verticalAlignment = Alignment.CenterVertically) {
-                                // Create Button (Plus Icon)
-                                IconButton(
-                                    onClick = { showPlusBottomSheet = true },
-                                    modifier = Modifier.size(40.dp)
-                                ) {
-                                    Icon(
-                                        imageVector = Icons.Default.PersonAdd,
-                                        contentDescription = "Crear",
-                                        tint = com.example.ui.theme.PanalinkSkin.Cream,
-                                        modifier = Modifier.size(24.dp)
-                                    )
-                                }
-                                // Search Icon
-                                IconButton(
-                                    onClick = onNavigateToSearch,
-                                    modifier = Modifier.size(40.dp)
-                                ) {
-                                    Icon(
-                                        imageVector = Icons.Default.Search,
-                                        contentDescription = "Buscar Panas",
-                                        tint = com.example.ui.theme.PanalinkSkin.Cream,
-                                        modifier = Modifier.size(24.dp)
-                                    )
-                                }
-                                // Saved Messages / Favorites Icon
-                                IconButton(
-                                    onClick = onNavigateToFavorites,
-                                    modifier = Modifier.size(40.dp)
-                                ) {
-                                    Icon(
-                                        imageVector = Icons.Default.Bookmark,
-                                        contentDescription = "Mensajes guardados",
-                                        tint = com.example.ui.theme.PanalinkSkin.Cream,
-                                        modifier = Modifier.size(24.dp)
-                                    )
-                                }
-                                                     // Notifications Bell
-                                Box(modifier = Modifier.padding(horizontal = 8.dp)) {
-                                    val unreadCount by notificationsViewModel.unreadCount.collectAsState(0)
-                                    IconButton(
-                                        onClick = onNavigateToNotifications,
-                                        modifier = Modifier.size(40.dp)
-                                    ) {
-                                        Icon(
-                                            imageVector = Icons.Default.Notifications,
-                                            contentDescription = "Notificaciones",
-                                            tint = com.example.ui.theme.PanalinkSkin.Cream,
-                                            modifier = Modifier.size(24.dp)
-                                        )
-                                    }
-                                    // Badge
-                                    if (unreadCount > 0) {
-                                        Box(
-                                            modifier = Modifier
-                                                .align(Alignment.TopEnd)
-                                                .offset(x = (-4).dp, y = 6.dp)
-                                                .size(16.dp)
-                                                .background(Color(0xFFFF1744), CircleShape),
-                                            contentAlignment = Alignment.Center
-                                        ) {
-                                            Text(
-                                                text = if (unreadCount > 9) "9+" else unreadCount.toString(),
-                                                color = PanalinkPalette.textPrimary, 
-                                                fontSize = 9.sp, 
-                                                fontWeight = FontWeight.Bold
-                                            )
-                                        }
-                                    }
-                                }
-                            }
-                            Box(
-                                modifier = Modifier
-                                    .size(38.dp)
-                                    .clip(CircleShape)
-                                    .clickable { onNavigateToProfile() }
-                            ) {
-                                com.example.ui.components.PanaAvatar(
-                                    avatarUrl = SupabaseClient.currentProfile?.avatarUrl,
-                                    userId = SupabaseClient.currentUser?.id,
-                                    size = 38.dp,
-                                    borderWidth = 1.5.dp,
-                                    borderColor = Color(0xFF3FD9A6),
-                                    placeholderName = SupabaseClient.currentProfile?.displayName ?: "",
-                                    contentDescription = "Perfil"
-                                )
-                                val myPresence by com.example.data.repository.PresenceRepository.currentUserStatus.collectAsStateWithLifecycle()
-                                val mySecondaryPresence by com.example.data.repository.PresenceRepository.currentUserSecondaryStatus.collectAsStateWithLifecycle()
-                                com.example.ui.components.chat.list.PresenceIndicator(
-                                    status = myPresence.rawValue,
-                                    secondaryStatus = if (mySecondaryPresence != com.example.data.repository.SecondaryPresenceStatus.NONE) mySecondaryPresence.rawValue else null,
-                                    size = 10.dp,
-                                    modifier = Modifier.align(Alignment.BottomEnd)
-                                )
-                            }
-                        }
+                        PaniOSUnifiedTopBar(
+                            onCompose = { showPlusBottomSheet = true },
+                            onSearch = onNavigateToSearch,
+                            onFolder = onNavigateToFavorites,
+                            onNotifications = onNavigateToNotifications,
+                            unreadNotificationCount = notificationsViewModel.unreadCount.collectAsState(0).value,
+                            onProfile =onNavigateToProfile
+                        )
                     }
-                }
                     }
             },
             bottomBar = {

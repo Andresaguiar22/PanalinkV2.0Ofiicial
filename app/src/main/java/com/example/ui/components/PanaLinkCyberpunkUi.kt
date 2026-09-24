@@ -13,6 +13,7 @@ import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Add
 import androidx.compose.material.icons.filled.Folder
+import androidx.compose.material.icons.filled.Notifications
 import androidx.compose.material.icons.filled.Search
 import androidx.compose.material.icons.rounded.PhotoCamera
 import androidx.compose.material.icons.automirrored.filled.Send
@@ -364,6 +365,159 @@ fun PaniOSSearchBar(
             text = "Buscar",
             color = Color(0xFF8E8E93),
             fontSize = 17.sp,
+            maxLines = 1,
+            overflow = TextOverflow.Ellipsis
+        )
+    }
+}
+@Composable
+fun PaniOSUnifiedTopBar(
+    onEdit: (() -> Unit)? = null,
+    onCamera: () -> Unit = {},
+    onCompose: () -> Unit = {},
+    onSearch: () -> Unit = {},
+    onFolder: () -> Unit = {},
+    onNotifications: (() -> Unit)? = null,
+    unreadNotificationCount: Int = 0,
+    onProfile: () -> Unit = {},
+    modifier: Modifier = Modifier
+) {
+    val tint = Color(0xFF10B981)
+
+    Column(
+        modifier = modifier
+            .fillMaxWidth()
+            .background(Color(0xFF0D0F12))
+            .statusBarsPadding()
+            .padding(horizontal =  16.dp, vertical =  8.dp)
+    ) {
+
+        Row(
+            modifier = Modifier.fillMaxWidth(),
+            horizontalArrangement = Arrangement.SpaceBetween,
+            verticalAlignment = Alignment.CenterVertically
+        ) {
+            if (onEdit != null) {
+                Text(
+                    text = "Editar",
+                    color = tint,
+                    fontSize =  17.sp,
+                    fontWeight = FontWeight.Normal,
+                    modifier = Modifier
+                        .clip(RoundedCornerShape(8.dp))
+                        .clickable(onClick = onEdit)
+                        .padding(vertical =  6.dp, horizontal =  2.dp)
+                )
+            } else {
+                Spacer(Modifier.width(1.dp))
+            }
+
+            Row(verticalAlignment = Alignment.CenterVertically) {
+
+                Box(
+                    modifier = Modifier
+                        .clip(RoundedCornerShape(22.dp))
+                        .background(
+                            Brush.horizontalGradient(
+                                listOf(
+                                    Color(0x33FFFFFF),
+                                    Color(0x1AFFFFFF),
+                                    Color(0x33FFFFFF)
+                                )
+                            )
+                        )
+                        .border(1.dp, Color(0x4DFFFFFF), RoundedCornerShape(22.dp))
+                        .padding(horizontal =  4.dp, vertical =  3.dp)
+                ) {
+                    Row(
+                        verticalAlignment = Alignment.CenterVertically,
+                        horizontalArrangement = Arrangement.spacedBy(1.dp)
+                    ) {
+                        if (onCamera != {}) {
+                            IconButton(onClick = onCamera, modifier = Modifier.size(40.dp)) {
+                                Icon(Icons.Rounded.PhotoCamera, contentDescription = "Escanear QR", tint = tint, modifier = Modifier.size(22.dp))
+                            }
+                        }
+                        if (onCompose != {}) {
+                            IconButton(onClick = onCompose, modifier = Modifier.size(40.dp)) {
+                                Icon(Icons.Rounded.Edit, contentDescription = "Nuevo", tint = tint, modifier = Modifier.size(22.dp))
+                            }
+                        }
+                        if (onSearch != {}) {
+                            IconButton(onClick = onSearch, modifier = Modifier.size(40.dp)) {
+                                Icon(Icons.Filled.Search, contentDescription = "Buscar", tint = tint, modifier = Modifier.size(22.dp))
+                            }
+                        }
+                        if (onFolder != {}) {
+                            IconButton(onClick = onFolder, modifier = Modifier.size(40.dp)) {
+                                Icon(Icons.Filled.Folder, contentDescription = "Favoritos", tint = tint, modifier = Modifier.size(22.dp))
+                            }
+                        }
+                        if (onNotifications != null) {
+                            Box {
+                                IconButton(onClick = onNotifications, modifier = Modifier.size(40.dp)) {
+                                    Icon(Icons.Filled.Notifications, contentDescription = "Notificaciones", tint = tint, modifier = Modifier.size(22.dp))
+                                }
+                                if (unreadNotificationCount > 0) {
+                                    Box(
+                                        modifier = Modifier
+                                            .align(Alignment.TopEnd)
+                                            .offset(x =  2.dp, y =  2.dp)
+                                            .size(15.dp)
+                                            .background(Color(0xFFFF1744), CircleShape),
+                                        contentAlignment = Alignment.Center
+                                    ) {
+                                        Text(
+                                            text = if (unreadNotificationCount >  9) "9+" else unreadNotificationCount.toString(),
+                                            color = Color.White,
+                                            fontSize =  9.sp,
+                                            fontWeight = FontWeight.Bold
+                                        )
+                                    }
+                                }
+                            }
+                        }
+                    }
+                }
+
+                Spacer(Modifier.width(10.dp))
+
+                Box(
+                    modifier = Modifier
+                        .size(40.dp)
+                        .clip(CircleShape)
+                        .clickable(onClick = onProfile)
+                ) {
+                    com.example.ui.components.PanaAvatar(
+                        avatarUrl = SupabaseClient.currentProfile?.avatarUrl,
+                        userId = SupabaseClient.currentUser?.id,
+                        size = 40.dp,
+                        borderWidth =  1.5.dp,
+                        borderColor = Color(0xFF10B981),
+                        placeholderName = SupabaseClient.currentProfile?.displayName ?: "",
+                        contentDescription = "Perfil"
+                    )
+                    val myPresence by com.example.data.repository.PresenceRepository.currentUserStatus.collectAsStateWithLifecycle()
+                    val mySecondaryPresence by com.example.data.repository.PresenceRepository.currentUserSecondaryStatus.collectAsStateWithLifecycle()
+                    com.example.ui.components.chat.list.PresenceIndicator(
+                        status = myPresence.rawValue,
+                        secondaryStatus = if (mySecondaryPresence != com.example.data.repository.SecondaryPresenceStatus.NONE) mySecondaryPresence.rawValue else null,
+                        size =  10.dp,
+                        modifier = Modifier.align(Alignment.BottomEnd)
+                    )
+                }
+            }
+        }
+
+        Spacer(Modifier.height(2.dp))
+
+        Text(
+            text = "PanaLink",
+            color = Color.White,
+            fontSize =  34.sp,
+            fontWeight = FontWeight.Bold,
+            fontFamily = FontFamily.Serif,
+            letterSpacing =  0.2.sp,
             maxLines = 1,
             overflow = TextOverflow.Ellipsis
         )

@@ -274,16 +274,27 @@ fun ContactsTabContent(
                             }
                         }
                     }
-                    item {
+item {
                         Text(
-                            text = if (isSelectingContactOnly) "Seleccionar Contacto" else "Tus Panas Agregados (${contacts.size})",
-                            color = PanalinkPalette.textPrimary,
-                            fontSize = 12.sp,
-                            fontWeight = FontWeight.Bold,
-                            modifier = Modifier.padding(start = 16.dp, top = if (isSelectingContactOnly) 4.dp else 16.dp, bottom = 8.dp)
+                            text = if (isSelectingContactOnly) "Seleccionar Contacto" else "TUS PANAS AGREGADOS (${contacts.size})",
+                            color = if (isSelectingContactOnly) PanalinkPalette.textPrimary else Color(0xFF8E8E93),
+                            fontSize =  13.sp,
+                            fontWeight = FontWeight.SemiBold,
+                            letterSpacing =  1.sp,
+                            modifier = Modifier.padding(start =  32.dp, top = if (isSelectingContactOnly) 4.dp else  16.dp, bottom =  8.dp)
                         )
                     }
-                    items(contacts) { contact ->
+                    item {
+                        Column(
+                            modifier = Modifier
+                                .fillMaxWidth()
+                                .padding(horizontal =  16.dp)
+                                .background(Color(0xFF1C1C1E), RoundedCornerShape(20.dp))
+                                .border(1.dp, Color.White.copy(alpha =  0.05f), RoundedCornerShape(20.dp))
+                                .clip(RoundedCornerShape(20.dp))
+                        ) {
+
+                        contacts.forEachIndexed { index, contact ->
                         var showContactMenu by remember { mutableStateOf(false) }
                         Row(
                             verticalAlignment = Alignment.CenterVertically,
@@ -413,11 +424,15 @@ fun ContactsTabContent(
                                 }
                             }
                         }
-                        HorizontalDivider(color = PanalinkPalette.surface, thickness = 0.5.dp)
+                        if (index < contacts.size - 1) {
+                            HorizontalDivider(color = Color(0xFF38383A), thickness =  0.5.dp, modifier = Modifier.padding(start =  76.dp))
+                        }
+                    }
                     }
                 }
             }
         }
+                    }
         is ContactsUiState.Error -> {
             Box(
                 modifier = Modifier
@@ -447,174 +462,185 @@ private fun AddPanaHeroCard(
     onAddByPinManually: () -> Unit
 ) {
     val context = LocalContext.current
-    // El PIN/QR propio arranca oculto; el usuario lo despliega bajo demanda. Asi no
-    // se expone el identificador en screenshots o miradas de otros.
     var isRevealed by remember { mutableStateOf(false) }
-    Card(
+    Column(
         modifier = Modifier
             .fillMaxWidth()
-            .padding(horizontal = 16.dp, vertical = 10.dp),
-        shape = RoundedCornerShape(24.dp),
-        colors = CardDefaults.cardColors(containerColor = PanalinkPalette.background),
-        border = BorderStroke(1.dp, PanalinkPalette.accent.copy(alpha = 0.35f))
+            .padding(16.dp)
+            .background(Color(0xFF1C1C1E), RoundedCornerShape(24.dp))
+            .border(1.dp, Color.White.copy(alpha =  0.05f), RoundedCornerShape(24.dp))
+            .padding(20.dp),
+        horizontalAlignment = Alignment.CenterHorizontally
     ) {
-        Column(
+        Row(verticalAlignment = Alignment.CenterVertically, modifier = Modifier.padding(bottom =  8.dp)) {
+
+            Text(
+                text = "Agregar un Pana",
+                color = Color.White,
+                fontSize =  20.sp,
+                fontWeight = FontWeight.Bold
+            )
+            Spacer(Modifier.width(6.dp))
+            Text("🤝", fontSize =  20.sp)
+        }
+
+        Text(
+            text = "Comparte tu PIN o QR, o agrega a quien quieras",
+            color = Color(0xFF8E8E93),
+            fontSize =  15.sp,
+            textAlign = TextAlign.Center,
+            modifier = Modifier.padding(horizontal =  8.dp)
+        )
+
+        Spacer(Modifier.height(24.dp))
+
+        Row(verticalAlignment = Alignment.CenterVertically, modifier = Modifier.clickable { isRevealed = !isRevealed }) {
+
+            Text(
+                text = if (isRevealed) "Ocultar tu PIN/QR" else "Mostrar tu PIN/QR",
+                color = Color(0xFF10B981),
+                fontSize =  15.sp,
+                fontWeight = FontWeight.Medium
+            )
+            Icon(
+                imageVector = if (isRevealed) Icons.Default.KeyboardArrowUp else Icons.Default.KeyboardArrowDown,
+                contentDescription = "Ocultar",
+                tint = Color(0xFF10B981),
+                modifier = Modifier.size(20.dp)
+            )
+        }
+
+        Spacer(Modifier.height(24.dp))
+
+        Row(
             modifier = Modifier
                 .fillMaxWidth()
-                .padding(18.dp),
-            horizontalAlignment = Alignment.CenterHorizontally
+                .background(Color(0xFF000000), RoundedCornerShape(16.dp))
+                .border(1.dp, Color.White.copy(alpha =  0.1f), RoundedCornerShape(16.dp))
+                .padding(16.dp),
+            verticalAlignment = Alignment.CenterVertically
         ) {
-            Text(
-                text = "Agregar un Pana 🤝",
-                color = PanalinkPalette.textPrimary,
-                fontWeight = FontWeight.Bold,
-                fontSize = 17.sp
-            )
-            Text(
-                text = "Comparte tu PIN o QR, o agrega a quien quieras",
-                color = PanalinkPalette.textSecondary,
-                fontSize = 12.sp,
-                textAlign = TextAlign.Center
-            )
 
-            Spacer(Modifier.height(14.dp))
+            if (isRevealed) {
+            if (myPin.isNotEmpty()) {
+
+
+
+                Box(
+                    modifier = Modifier
+                        .size(70.dp)
+                        .background(Color.White, RoundedCornerShape(12.dp))
+                        .padding(8.dp)
+                ) {
+
+                    com.example.ui.components.QrCodeView(
+                        pin = myPin,
+                        modifier = Modifier.fillMaxSize()
+                    )
+                }
+                Spacer(Modifier.width(16.dp))
+            }
+
+            Column(
+                modifier = Modifier.weight(1f),
+                horizontalAlignment = Alignment.CenterHorizontally
+            ) {
+
+
+
+                Text(
+                    text = "TU PIN",
+                    color = Color(0xFF10B981),
+                    fontSize =  11.sp,
+                    fontWeight = FontWeight.Bold,
+                    letterSpacing =  2.sp
+                )
+                Spacer(Modifier.height(4.dp))
+                if (myPin.isNotEmpty()) {
+
+
+
+                    Row(verticalAlignment = Alignment.CenterVertically) {
+
+
+
+                        Text(
+                            text = myPin.chunked(3).joinToString(" "),
+                            color = Color.White,
+                            fontSize =  28.sp,
+                            fontWeight = FontWeight.Bold,
+                            fontFamily = androidx.compose.ui.text.font.FontFamily.Monospace,
+                            letterSpacing =  2.sp
+                        )
+                        Spacer(Modifier.width(8.dp))
+                        Icon(
+                            imageVector = Icons.Default.Share,
+                            contentDescription = "Compartir",
+                            tint = Color(0xFF10B981),
+                            modifier = Modifier
+                                .size(20.dp)
+                                .clickable {
+
+
+
+                                    val cm = context.getSystemService(android.content.Context.CLIPBOARD_SERVICE) as android.content.ClipboardManager
+                                    cm.setPrimaryClip(android.content.ClipData.newPlainText("PIN de Pana", myPin))
+                                    android.widget.Toast.makeText(context, "¡PIN copiado! 📋", android.widget.Toast.LENGTH_SHORT).show()
+                                }
+                        )
+                    }
+                } else {
+                    CircularProgressIndicator(
+                        color = Color(0xFF10B981),
+                        modifier = Modifier.size(22.dp),
+                        strokeWidth =  2.dp
+                    )
+                }
+            }
+            }
+        }
+
+        Spacer(Modifier.height(24.dp))
+
+        Row(
+            modifier = Modifier.fillMaxWidth(),
+            horizontalArrangement = Arrangement.spacedBy(12.dp)
+        ) {
+
+
 
             Row(
                 modifier = Modifier
-                    .fillMaxWidth()
-                    .clickable { isRevealed = !isRevealed },
-                verticalAlignment = Alignment.CenterVertically,
-                horizontalArrangement = Arrangement.Center
+                    .weight(1f)
+                    .background(Color(0xFF10B981), RoundedCornerShape(14.dp))
+                    .padding(vertical =  14.dp)
+                    .clickable { onScanQr() },
+                horizontalArrangement = Arrangement.Center,
+                verticalAlignment = Alignment.CenterVertically
             ) {
-                Text(
-                    text = if (isRevealed) "Ocultar tu PIN/QR" else "Mostrar tu PIN/QR",
-                    color = PanalinkPalette.accent,
-                    fontSize = 13.sp,
-                    fontWeight = FontWeight.SemiBold
-                )
-                Spacer(Modifier.width(6.dp))
-                Icon(
-                    imageVector = if (isRevealed) Icons.Default.KeyboardArrowUp else Icons.Default.KeyboardArrowDown,
-                    contentDescription = null,
-                    tint = PanalinkPalette.accent,
-                    modifier = Modifier.size(18.dp)
-                )
-            }
 
-            AnimatedVisibility(
-                visible = isRevealed,
-                enter = expandVertically() + fadeIn(),
-                exit = shrinkVertically() + fadeOut()
-            ) {
-                Row(
-                    verticalAlignment = Alignment.CenterVertically,
-                    horizontalArrangement = Arrangement.Center,
-                    modifier = Modifier.fillMaxWidth().padding(top = 14.dp)
-                ) {
-                    if (myPin.isNotEmpty()) {
-                        Box(
-                            modifier = Modifier
-                                .size(96.dp)
-                                .clip(RoundedCornerShape(14.dp))
-                                .background(Color.White)
-                                .padding(8.dp)
-                        ) {
-                            com.example.ui.components.QrCodeView(
-                                pin = myPin,
-                                modifier = Modifier.fillMaxSize()
-                            )
-                        }
-                        Spacer(Modifier.width(16.dp))
-                    }
-                    Column(horizontalAlignment = Alignment.CenterHorizontally) {
-                        Text(
-                            text = "TU PIN",
-                            color = PanalinkPalette.accent,
-                            fontSize = 11.sp,
-                            fontWeight = FontWeight.Bold,
-                            letterSpacing = 2.sp
-                        )
-                        Spacer(Modifier.height(2.dp))
-                        if (myPin.isNotEmpty()) {
-                            Row(verticalAlignment = Alignment.CenterVertically) {
-                                Text(
-                                    text = myPin.chunked(3).joinToString(" "),
-                                    color = PanalinkPalette.textPrimary,
-                                    fontSize = 26.sp,
-                                    fontWeight = FontWeight.Bold,
-                                    letterSpacing = 2.sp
-                                )
-                                IconButton(
-                                    onClick = {
-                                        val cm = context.getSystemService(android.content.Context.CLIPBOARD_SERVICE) as android.content.ClipboardManager
-                                        cm.setPrimaryClip(android.content.ClipData.newPlainText("PIN de Pana", myPin))
-                                        android.widget.Toast.makeText(context, "¡PIN copiado! 📋", android.widget.Toast.LENGTH_SHORT).show()
-                                    },
-                                    modifier = Modifier.size(32.dp)
-                                ) {
-                                    Icon(
-                                        imageVector = Icons.Default.Share,
-                                        contentDescription = "Copiar PIN",
-                                        tint = PanalinkPalette.accent,
-                                        modifier = Modifier.size(18.dp)
-                                    )
-                                }
-                            }
-                        } else {
-                            CircularProgressIndicator(
-                                color = PanalinkPalette.accent,
-                                modifier = Modifier.size(22.dp),
-                                strokeWidth = 2.dp
-                            )
-                        }
-                    }
-                }
-            }
 
-            Spacer(Modifier.height(16.dp))
+
+                Icon(Icons.Default.CheckCircle, contentDescription = "Scan", tint = Color(0xFF000000), modifier = Modifier.size(20.dp))
+                Spacer(Modifier.width(8.dp))
+                Text("Escanear QR", color = Color(0xFF000000), fontSize =  16.sp, fontWeight = FontWeight.SemiBold)
+            }
 
             Row(
-                modifier = Modifier.fillMaxWidth(),
-                horizontalArrangement = Arrangement.spacedBy(10.dp)
+                modifier = Modifier
+                    .weight(1f)
+                    .background(Color(0xFF2C2C2E), RoundedCornerShape(14.dp))
+                    .padding(vertical =  14.dp)
+                    .clickable { onAddByPinManually() },
+                horizontalArrangement = Arrangement.Center,
+                verticalAlignment = Alignment.CenterVertically
             ) {
-                Button(
-                    onClick = onScanQr,
-                    modifier = Modifier
-                        .weight(1f)
-                        .height(46.dp)
-                        .bounceClick(),
-                    shape = RoundedCornerShape(14.dp),
-                    colors = ButtonDefaults.buttonColors(containerColor = PanalinkPalette.accent)
-                ) {
-                    Icon(
-                        imageVector = Icons.Default.QrCodeScanner,
-                        contentDescription = null,
-                        tint = Color.Black,
-                        modifier = Modifier.size(20.dp)
-                    )
-                    Spacer(Modifier.width(6.dp))
-                    Text("Escanear QR", color = Color.Black, fontWeight = FontWeight.Bold, fontSize = 14.sp)
-                }
-                OutlinedButton(
-                    onClick = onAddByPinManually,
-                    modifier = Modifier
-                        .weight(1f)
-                        .height(46.dp),
-                    shape = RoundedCornerShape(14.dp),
-                    border = BorderStroke(1.dp, PanalinkPalette.accent.copy(alpha = 0.6f))
-                ) {
-                    Icon(
-                        imageVector = Icons.Default.PersonAdd,
-                        contentDescription = null,
-                        tint = PanalinkPalette.accent,
-                        modifier = Modifier.size(18.dp)
-                    )
-                    Spacer(Modifier.width(6.dp))
-                    Text("Ingresar PIN", color = PanalinkPalette.textPrimary, fontWeight = FontWeight.Bold, fontSize = 14.sp)
-                }
+
+
+                Icon(Icons.Default.Person, contentDescription = "PIN", tint = Color(0xFF10B981), modifier = Modifier.size(20.dp))
+                Spacer(Modifier.width(8.dp))
+                Text("Ingresar PIN", color = Color.White, fontSize =  16.sp, fontWeight = FontWeight.SemiBold)
             }
         }
     }
 }
-
-
