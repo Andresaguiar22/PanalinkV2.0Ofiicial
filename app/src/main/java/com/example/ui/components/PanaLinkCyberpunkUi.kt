@@ -374,10 +374,10 @@ fun PaniOSSearchBar(
 @Composable
 fun PaniOSUnifiedTopBar(
     onEdit: (() -> Unit)? = null,
-    onCamera: () -> Unit = {},
+    onCamera: (() -> Unit)? = null,
     onCompose: () -> Unit = {},
-    onSearch: () -> Unit = {},
-    onFolder: () -> Unit = {},
+    onSearch: (() -> Unit)? = null,
+    onFolder: (() -> Unit)? = null,
     onNotifications: (() -> Unit)? = null,
     unreadNotificationCount: Int = 0,
     onProfile: () -> Unit = {},
@@ -400,14 +400,16 @@ fun PaniOSUnifiedTopBar(
         ) {
             // Logo giratorio del inicio (esquina superior izquierda, reemplaza al "PanaLink")
             com.example.ui.screen.AnimatedPanaWelcomeLogo(
-                logoSize =  20.dp,
-                modifier = Modifier.size(32.dp)
+                logoSize =  34.dp,
+                modifier = Modifier
+                    .size(40.dp)
+                    .align(Alignment.CenterStart)
             )
 
             Row(
                 modifier = Modifier
-                    .weight(1f)
-                    .clip(RoundedCornerShape(22.dp))
+                    .wrapContentWidth()
+                    .clip(RoundedCornerShape(24.dp))
                     .background(
                         Brush.horizontalGradient(
                             listOf(
@@ -418,7 +420,7 @@ fun PaniOSUnifiedTopBar(
                         )
                     )
                     .border(1.dp, Color(0x4DFFFFFF), RoundedCornerShape(22.dp))
-                    .padding(horizontal =  4.dp, vertical =  3.dp),
+                    .padding(horizontal =  5.dp, vertical =  3.dp),
                 verticalAlignment = Alignment.CenterVertically,
                 horizontalArrangement = Arrangement.Center
             ) {
@@ -431,22 +433,22 @@ fun PaniOSUnifiedTopBar(
                             Icon(Icons.Rounded.Edit, contentDescription = "Editar", tint = tint, modifier = Modifier.size(22.dp))
                         }
                     }
-                        if (onCamera != {}) {
+                        if (onCamera != null) {
                             IconButton(onClick = onCamera, modifier = Modifier.size(40.dp)) {
                                 Icon(Icons.Rounded.PhotoCamera, contentDescription = "Escanear QR", tint = tint, modifier = Modifier.size(22.dp))
                             }
                         }
                         if (onCompose != {}) {
                             IconButton(onClick = onCompose, modifier = Modifier.size(40.dp)) {
-                                Icon(Icons.Rounded.Edit, contentDescription = "Nuevo", tint = tint, modifier = Modifier.size(22.dp))
+                                Icon(Icons.Rounded.Add, contentDescription = "Crear", tint = tint, modifier = Modifier.size(22.dp))
                             }
                         }
-                        if (onSearch != {}) {
+                        if (onSearch != null) {
                             IconButton(onClick = onSearch, modifier = Modifier.size(40.dp)) {
                                 Icon(Icons.Filled.Search, contentDescription = "Buscar", tint = tint, modifier = Modifier.size(22.dp))
                             }
                         }
-                        if (onFolder != {}) {
+                        if (onFolder != null) {
                             IconButton(onClick = onFolder, modifier = Modifier.size(40.dp)) {
                                 Icon(Icons.Filled.Folder, contentDescription = "Favoritos", tint = tint, modifier = Modifier.size(22.dp))
                             }
@@ -478,12 +480,12 @@ fun PaniOSUnifiedTopBar(
                     }
                 }
 
-                Spacer(Modifier.width(10.dp))
-
-                // Avatar + estado: punto en el borde del anillo + última conexión al lado
+                // Avatar + estado: espejo visual del logo, ambos parten de un círculo de 40.dp.
                 Column(
                     horizontalAlignment = Alignment.End,
-                    modifier = Modifier.width(96.dp)
+                    modifier = Modifier
+                        .width(96.dp)
+                        .align(Alignment.CenterEnd)
                 ) {
                     Box(
                         modifier = Modifier
