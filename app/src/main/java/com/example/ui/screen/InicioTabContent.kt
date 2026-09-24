@@ -540,7 +540,7 @@ fun InicioTabContent(
         }
     }
 
-    Box(modifier = Modifier.fillMaxSize()) {
+    Box(modifier = Modifier.fillMaxSize().background(com.example.ui.screen.IosWallBlack)) {
         PanalinkPullToRefreshBox(
             isRefreshing = isRefreshing,
             onRefresh = {
@@ -583,66 +583,11 @@ fun InicioTabContent(
                         ) {
                             // "Mi Historia" card
                             item {
-                                Card(
-                                    modifier = Modifier
-                                        .width(100.dp)
-                                        .height(150.dp)
-                                        .clickable { onNavigateToCreateState() },
-                                    shape = RoundedCornerShape(12.dp),
-                                    colors = CardDefaults.cardColors(containerColor = Color(0xFF161618))
-                                ) {
-                                    Box(modifier = Modifier.fillMaxSize()) {
-                                        val resolvedAvatar = remember(SupabaseClient.currentProfile?.avatarUrl) {
-                                            com.example.data.repository.CdnManager.resolveAvatarUrl(SupabaseClient.currentProfile?.avatarUrl)
-                                        }
-                                        if (resolvedAvatar != null) {
-                                            AsyncImage(
-                                                model = resolvedAvatar,
-                                                contentDescription = "Mi Avatar",
-                                                modifier = Modifier
-                                                    .fillMaxWidth()
-                                                    .fillMaxHeight(0.7f),
-                                                contentScale = ContentScale.Crop
-                                            )
-                                        } else {
-                                            Box(
-                                                modifier = Modifier
-                                                    .fillMaxWidth()
-                                                    .fillMaxHeight(0.7f)
-                                                    .background(Color(0xFF161618))
-                                            )
-                                        }
-                                        // Bottom portion
-                                        Box(
-                                            modifier = Modifier
-                                                .fillMaxWidth()
-                                                .fillMaxHeight(0.3f)
-                                                .align(Alignment.BottomCenter)
-                                                .background(Color(0xFF161618))
-                                        ) {
-                                            Text(
-                                                "Tu historia",
-                                                color = PanalinkPalette.textPrimary,
-                                                fontSize = 11.sp,
-                                                fontWeight = FontWeight.Bold,
-                                                modifier = Modifier.align(Alignment.BottomCenter).padding(bottom = 8.dp)
-                                            )
-                                        }
-                                        
-                                        // Add icon overlapping the middle
-                                        Box(
-                                            modifier = Modifier
-                                                .align(Alignment.BottomCenter)
-                                                .offset(y = (-20).dp)
-                                                .size(28.dp)
-                                                .background(Color(0xFFD500F9), CircleShape)
-                                                .border(2.dp, Color(0xFF161618), CircleShape),
-                                            contentAlignment = Alignment.Center
-                                        ) {
-                                            Icon(Icons.Default.Add, contentDescription = null, tint = PanalinkPalette.textPrimary, modifier = Modifier.size(18.dp))
-                                        }
-                                    }
-                                }
+                                FacebookMyStoryCard(
+                                    avatarUrl = SupabaseClient.currentProfile?.avatarUrl,
+                                    placeholderName = SupabaseClient.currentProfile?.displayName,
+                                    onClick = { onNavigateToCreateState() }
+                                )
                             }
 
                             // Contacts' stories
@@ -662,136 +607,53 @@ fun InicioTabContent(
                                     val safeDisplayName = identityState?.displayName ?: profile.displayName
                                     val safeUserId = identityState?.userId ?: profile.id
 
-                                    Card(
-                                        modifier = Modifier
-                                            .width(100.dp)
-                                            .height(150.dp)
-                                            .clickable { onNavigateToViewState(state.id) },
-                                        shape = RoundedCornerShape(12.dp)
-                                    ) {
-                                        Box(modifier = Modifier.fillMaxSize()) {
-                                            // Background — cache-first: prefer the local copy of the story
-                                            // media (already synced to disk) and fall back to the remote
-                                            // URL. This makes the carousel render instantly on app re-entry.
-                                            val resolvedStoryResource = com.example.media.social.StoryMediaResolver.rememberResolvedStoryMediaResource(state)
-                                            // For VCDN video stories the resolved remote URL is an HLS
-                                            // manifest (.m3u8) which Coil cannot render as an image, so
-                                            // the carousel showed a black card. Resolve the VCDN poster
-                                            // (a real JPG) for the thumbnail instead.
-                                            var vcdnPoster by androidx.compose.runtime.remember(state.id, state.mediaUrl, state.vcdnPosterUrl) {
-                                                androidx.compose.runtime.mutableStateOf<String?>(state.vcdnPosterUrl ?: state.thumbnailUrl)
-                                            }
-                                            androidx.compose.runtime.LaunchedEffect(state.id, state.mediaUrl, state.vcdnPosterUrl) {
-                                                val raw = state.mediaUrl ?: ""
-                                                if (state.vcdnPosterUrl.isNullOrBlank()) {
-                                                    if (raw.startsWith("vcdn://") && state.localVideoPath.isNullOrBlank()) {
-                                                        vcdnPoster = com.example.data.repository.VcdnUrlResolver.resolvePoster(raw)
-                                                    }
-                                                } else {
-                                                    vcdnPoster = state.vcdnPosterUrl
-                                                }
-                                            }
-                                            val thumbnailModel = when {
-                                                vcdnPoster != null -> vcdnPoster
-                                                resolvedStoryResource is com.example.media.model.MediaResource.Local -> java.io.File(resolvedStoryResource.path)
-                                                resolvedStoryResource is com.example.media.model.MediaResource.Remote -> {
-                                                    val u = resolvedStoryResource.url
-                                                    // HLS manifests (.m3u8) or raw VCDN pointers (vcdn://) are not images;
-                                                    // use the explicit thumbnail when available, else fall back to avatar
-                                                    // until the poster is resolved or ready..
-                                                    if (u.contains(".m3u8", ignoreCase = true) || u.startsWith("vcdn://")) {
-                                                        state.thumbnailUrl?.takeIf { it.isNotBlank() } ?: safeAvatarUrl ?: ""
-                                                    } else u
-                                                }
-                                                else -> {
-                                                    val u = state.mediaUrl ?: ""
-                                                    if (u.startsWith("vcdn://")) {
-                                                        state.thumbnailUrl?.takeIf { it.isNotBlank() } ?: safeAvatarUrl ?: ""
-                                                    } else u.ifBlank { state.thumbnailUrl ?: safeAvatarUrl ?: "https://images.unsplash.com/photo-1535713875002-d1d0cf377fde?auto=format&fit=crop&w=150&q=80" }
-                                                }
-                                            }
-                                            AsyncImage(
-                                                model = thumbnailModel,
-                                                contentDescription = safeDisplayName,
-                                                modifier = Modifier.fillMaxSize(),
-                                                contentScale = ContentScale.Crop
-                                            )
-                                            
-                                            // Gradient overlay for text readability
-                                            Box(
-                                                modifier = Modifier
-                                                    .fillMaxSize()
-                                                    .background(
-                                                        brush = Brush.verticalGradient(
-                                                            colors = listOf(Color.Transparent, Color.Black.copy(alpha = 0.7f)),
-                                                            startY = 100f
-                                                        )
-                                                    )
-                                            )
-
-                                            // Profile picture top left
-                                            com.example.ui.components.PanaAvatar(
-                                                avatarUrl = safeAvatarUrl,
-                                                userId = safeUserId,
-                                                size = 32.dp,
-                                                borderWidth = 2.dp,
-                                                borderColor = if (hasUnread) Color(0xFFB026FF) else Color.Gray.copy(alpha = 0.5f),
-                                                placeholderName = safeDisplayName,
-                                                modifier = Modifier
-                                                    .padding(8.dp)
-                                            )
-
-                                            // Username bottom
-                                            Text(
-                                                text = safeDisplayName?.take(15) ?: "",
-                                                color = PanalinkPalette.textPrimary,
-                                                fontSize = 11.sp,
-                                                fontWeight = FontWeight.Bold,
-                                                maxLines = 1,
-                                                overflow = TextOverflow.Ellipsis,
-                                                modifier = Modifier.align(Alignment.BottomStart).padding(8.dp)
-                                            )
-                                        }
-                                    }
+                                FacebookFriendStoryCard(
+                                        state = state,
+                                        hasUnread = hasUnread,
+                                        safeAvatarUrl = safeAvatarUrl,
+                                        safeDisplayName = safeDisplayName,
+                                        safeUserId = safeUserId,
+                                        onClick = { onNavigateToViewState(state.id) }
+                                    )
                                 }
                             } else if (statesState is StatesUiState.Loading) {
                                 if (!com.example.util.NetworkMonitor.isOnline.value) {
                                     // Sin conexión total y sin caché: evita el shimmer infinito (que
                                     // parecía una app congelada) mostrando el estado offline real.
                                     items(1, key = { "stories_offline" }) {
-                                        Box(
-                                            modifier = Modifier
-                                                .width(200.dp)
-                                                .height(150.dp)
-                                                .clip(RoundedCornerShape(12.dp))
-                                                .background(Color(0xFF161618)),
-                                            contentAlignment = Alignment.Center
-                                        ) {
-                                            Text(
-                                                "Sin conexión",
-                                                color = Color.Gray,
-                                                fontSize = 12.sp,
-                                                fontWeight = FontWeight.SemiBold,
-                                                textAlign = TextAlign.Center
-                                            )
-                                        }
+                                    Box(
+                                        modifier = Modifier
+                                            .width(115.dp)
+                                            .height(195.dp)
+                                            .clip(RoundedCornerShape(16.dp))
+                                            .background(Color(0xFF161618)),
+                                        contentAlignment = Alignment.Center
+                                    ) {
+                                        Text(
+                                            "Sin conexión",
+                                            color = Color.Gray,
+                                            fontSize = 12.sp,
+                                            fontWeight = FontWeight.SemiBold,
+                                            textAlign = TextAlign.Center
+                                        )
                                     }
-                                } else {
+                                }
+                            } else {
                                     items(4, key = { "loading_story_$it" }) {
                                         Box(
                                             modifier = Modifier
-                                                .width(100.dp)
-                                                .height(150.dp)
-                                                .clip(RoundedCornerShape(12.dp))
+                                                .width(115.dp)
+                                                .height(195.dp)
+                                                .clip(RoundedCornerShape(16.dp))
                                                 .shimmerEffect()
                                         )
                                     }
                                 }
                             }
                         }
-                    }
                     HorizontalDivider(color = Color(0xFF121214), thickness = 1.dp)
-                }
+                    }
+                    }
 
 
 
@@ -1929,5 +1791,196 @@ internal fun FeedFullscreenVideoPlayer(
                 Text(text = fmt(duration), color = PanalinkPalette.textPrimary, fontSize = 12.sp)
             }
         }
+    }
+}
+
+/* iOS-Facebook Muro palette (inside content only: stories + post cards) */
+internal val IosWallBlack = Color(0xFF000000)
+internal val IosCardBackground = Color(0xFF1C1C1E)
+internal val IosDividerGray = Color(0xFF38383A)
+internal val IosTextGray = Color(0xFF8E8E93)
+internal val IosPanaLinkGreen = Color(0xFF10B981)
+internal val IosStoryDarkBg = Color(0xFF242526)
+internal val IosActionButtonBg = Color(0x1AFFFFFF)
+internal val IosAvatarButtonBg = Color(0xFF2C2C2E)
+
+@Composable
+private fun FacebookMyStoryCard(
+    avatarUrl: String?,
+    placeholderName: String?,
+    onClick: () -> Unit,
+) {
+    Box(
+        modifier = Modifier
+            .width(115.dp)
+            .height(195.dp)
+            .clip(RoundedCornerShape(16.dp))
+            .border(1.dp, Color.White.copy(alpha =  0.05f), RoundedCornerShape(16.dp))
+            .clickable(onClick = onClick)
+    ) {
+        Column(modifier = Modifier.fillMaxSize()) {
+            // Mitad Superior (Imagen/Gradiente)
+            Box(
+                modifier = Modifier
+                    .weight(0.65f)
+                    .fillMaxWidth()
+                    .background(Brush.verticalGradient(listOf(Color(0xFF4B5563), Color(0xFF111827)))),
+                contentAlignment = Alignment.Center
+            ) {
+                val resolvedAvatar = remember(avatarUrl) {
+                    com.example.data.repository.CdnManager.resolveAvatarUrl(avatarUrl)
+                }
+                if (resolvedAvatar != null) {
+                    AsyncImage(
+                        model = resolvedAvatar,
+                        contentDescription = "Mi Avatar",
+                        modifier = Modifier.fillMaxSize(),
+                        contentScale = ContentScale.Crop
+                    )
+                } else {
+                    Text(
+                        placeholderName?.firstOrNull()?.toString() ?: "U",
+                        color = Color.White.copy(alpha =  0.4f),
+                        fontSize =  36.sp,
+                        fontWeight = FontWeight.Bold
+                    )
+                }
+            }
+            // Mitad Inferior (Fondo oscuro)
+            Box(
+                modifier = Modifier
+                    .weight(0.35f)
+                    .fillMaxWidth()
+                    .background(IosStoryDarkBg)
+            )
+        }
+
+        // Nombre Abajo
+        Text(
+            text = placeholderName?.take(14) ?: "Crear historia",
+            color = Color.White,
+            fontSize =  13.sp,
+            fontWeight = FontWeight.SemiBold,
+            maxLines = 1,
+            overflow = TextOverflow.Ellipsis,
+            modifier = Modifier.padding(horizontal =  8.dp, vertical =  12.dp)
+        )
+
+        // Botón Flotante "+"
+        Box(
+            modifier = Modifier
+                .align(Alignment.Center)
+                .offset(y =  20.dp)
+                .size(36.dp)
+                .background(IosPanaLinkGreen, CircleShape)
+                .border(4.dp, IosStoryDarkBg, CircleShape),
+            contentAlignment = Alignment.Center
+        ) {
+            Icon(Icons.Default.Add, contentDescription = "Add", tint = Color.Black, modifier = Modifier.size(20.dp))
+        }
+    }
+}
+
+@Composable
+private fun FacebookFriendStoryCard(
+    state: com.example.data.model.UserState,
+    hasUnread: Boolean,
+    safeAvatarUrl: String?,
+    safeDisplayName: String?,
+    safeUserId: String?,
+    onClick: () -> Unit,
+) {
+    Box(
+        modifier = Modifier
+            .width(115.dp)
+            .height(195.dp)
+            .clip(RoundedCornerShape(16.dp))
+            .background(Brush.verticalGradient(listOf(Color(0xFF2563EB), Color(0xFF60A5FA))))
+            .border(1.dp, Color.White.copy(alpha =  0.05f), RoundedCornerShape(16.dp))
+            .clickable(onClick = onClick)
+    ) {
+        // Imagen/Thumbnail full card
+        val resolvedStoryResource = com.example.media.social.StoryMediaResolver.rememberResolvedStoryMediaResource(state)
+        var vcdnPoster by androidx.compose.runtime.remember(state.id, state.mediaUrl, state.vcdnPosterUrl) {
+            androidx.compose.runtime.mutableStateOf<String?>(state.vcdnPosterUrl ?: state.thumbnailUrl)
+        }
+        androidx.compose.runtime.LaunchedEffect(state.id, state.mediaUrl, state.vcdnPosterUrl) {
+            val raw = state.mediaUrl ?: ""
+            if (state.vcdnPosterUrl.isNullOrBlank()) {
+                if (raw.startsWith("vcdn://") && state.localVideoPath.isNullOrBlank()) {
+                    vcdnPoster = com.example.data.repository.VcdnUrlResolver.resolvePoster(raw)
+                }
+            } else {
+                vcdnPoster = state.vcdnPosterUrl
+            }
+        }
+        val thumbnailModel = when {
+            vcdnPoster != null -> vcdnPoster
+            resolvedStoryResource is com.example.media.model.MediaResource.Local -> java.io.File(resolvedStoryResource.path)
+            resolvedStoryResource is com.example.media.model.MediaResource.Remote -> {
+                val u = resolvedStoryResource.url
+                if (u.contains(".m3u8", ignoreCase = true) || u.startsWith("vcdn://")) {
+                    state.thumbnailUrl?.takeIf { it.isNotBlank() } ?: safeAvatarUrl ?: ""
+                } else u
+            }
+            else -> {
+                val u = state.mediaUrl ?: ""
+                if (u.startsWith("vcdn://")) {
+                    state.thumbnailUrl?.takeIf { it.isNotBlank() } ?: safeAvatarUrl ?: ""
+                } else u.ifBlank { state.thumbnailUrl ?: safeAvatarUrl ?: "https://images.unsplash.com/photo-1535713875002-d1d0cf377fde?auto=format&fit=crop&w=150&q=80" }
+            }
+        }
+        AsyncImage(
+            model = thumbnailModel,
+            contentDescription = safeDisplayName,
+            modifier = Modifier.fillMaxSize(),
+            contentScale = ContentScale.Crop
+        )
+
+        // Gradiente inferior para el texto
+        Box(
+            modifier = Modifier
+                .fillMaxSize()
+                .background(
+                    brush = Brush.verticalGradient(
+                        colors = listOf(Color.Transparent, Color.Black.copy(alpha =  0.7f)),
+                        startY =  100f
+                    )
+                )
+        )
+
+        // Avatar Arriba Izquierda con anillo
+        Box(
+            modifier = Modifier
+                .padding(12.dp)
+                .size(36.dp)
+                .background(
+                    if (hasUnread) IosPanaLinkGreen else Color.White.copy(alpha =  0.6f),
+                    CircleShape
+                )
+                .padding(2.dp)
+                .background(IosCardBackground, CircleShape),
+            contentAlignment = Alignment.Center
+        ) {
+            com.example.ui.components.PanaAvatar(
+                avatarUrl = safeAvatarUrl,
+                userId = safeUserId,
+                size =  32.dp,
+                borderWidth =  0.dp,
+                placeholderName = safeDisplayName,
+            )
+        }
+
+        // Nombre Abajo
+        Text(
+            text = safeDisplayName?.take(15) ?: "",
+            color = Color.White,
+            fontSize =  13.sp,
+            fontWeight = FontWeight.SemiBold,
+            maxLines =  1,
+            overflow = TextOverflow.Ellipsis,
+            modifier = Modifier
+                .padding(12.dp)
+        )
     }
 }
