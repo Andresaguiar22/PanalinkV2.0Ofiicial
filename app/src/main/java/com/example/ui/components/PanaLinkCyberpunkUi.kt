@@ -393,10 +393,9 @@ fun PaniOSUnifiedTopBar(
             .padding(horizontal =  16.dp, vertical =  8.dp)
     ) {
 
-        Row(
+        Box(
             modifier = Modifier.fillMaxWidth(),
-            horizontalArrangement = Arrangement.SpaceBetween,
-            verticalAlignment = Alignment.CenterVertically
+            contentAlignment = Alignment.Center
         ) {
             // Logo giratorio del inicio (esquina superior izquierda, reemplaza al "PanaLink")
             com.example.ui.screen.AnimatedPanaWelcomeLogo(
