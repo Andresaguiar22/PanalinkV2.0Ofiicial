@@ -146,14 +146,12 @@ fun PanaLinkCyberpunkTopBar(
     onProfile: () -> Unit,
     modifier: Modifier = Modifier
 ) {
-    val pillShape = RoundedCornerShape(28.dp)
-
     Row(
         modifier = modifier
             .fillMaxWidth()
             .background(PanaLinkCyberpunkColors.Background)
             .statusBarsPadding()
-            .padding(horizontal = 16.dp, vertical = 8.dp),
+            .padding(horizontal = 18.dp, vertical = 10.dp),
         horizontalArrangement = Arrangement.SpaceBetween,
         verticalAlignment = Alignment.CenterVertically
     ) {
@@ -171,94 +169,45 @@ fun PanaLinkCyberpunkTopBar(
             )
         )
 
-        // Selector tipo Telegram, con un halo verde suave alrededor.
-        Box(
-            contentAlignment = Alignment.Center,
-            modifier = Modifier
-                .padding(start = 8.dp)
-                .height(52.dp)
+        // Barra superior limpia: sin píldora. Las píldoras quedan reservadas
+        // para la navegación inferior, donde funcionan como selector de pestaña.
+        Row(
+            verticalAlignment = Alignment.CenterVertically,
+            horizontalArrangement = Arrangement.spacedBy(2.dp)
         ) {
+            IconButton(onClick = onAdd, modifier = Modifier.size(44.dp)) {
+                Icon(Icons.Default.Add, contentDescription = "Crear", tint = Color.White)
+            }
+            IconButton(onClick = onSearch, modifier = Modifier.size(44.dp)) {
+                Icon(Icons.Default.Search, contentDescription = "Buscar", tint = Color.White)
+            }
+            IconButton(onClick = onFolder, modifier = Modifier.size(44.dp)) {
+                Icon(Icons.Default.Folder, contentDescription = "Favoritos", tint = Color.White)
+            }
             Box(
                 modifier = Modifier
-                    .matchParentSize()
-                    .padding(horizontal = 8.dp)
-                    .blur(15.dp)
-                    .background(
-                        Brush.radialGradient(
-                            listOf(
-                                Color(0x5535D07F),
-                                Color(0x1535D07F),
-                                Color.Transparent
-                            )
-                        ),
-                        pillShape
-                    )
-            )
-
-            Row(
-                modifier = Modifier
-                    .clip(pillShape)
-                    .background(Color(0xFF202B36))
-                    .border(
-                        1.dp,
-                        Brush.linearGradient(
-                            listOf(
-                                Color(0x8835D07F),
-                                Color(0x5535D07F),
-                                Color(0x8835D07F)
-                            )
-                        ),
-                        pillShape
-                    )
-                    .padding(horizontal = 4.dp, vertical = 3.dp),
-                verticalAlignment = Alignment.CenterVertically
+                    .padding(start = 4.dp)
+                    .size(42.dp)
+                    .clip(CircleShape)
+                    .clickable(onClick = onProfile)
             ) {
-                IconButton(onClick = onAdd, modifier = Modifier.size(42.dp)) {
-                    Icon(
-                        Icons.Default.Add,
-                        contentDescription = "Crear",
-                        tint = Color.White
-                    )
-                }
-                IconButton(onClick = onSearch, modifier = Modifier.size(42.dp)) {
-                    Icon(
-                        Icons.Default.Search,
-                        contentDescription = "Buscar",
-                        tint = Color.White
-                    )
-                }
-                IconButton(onClick = onFolder, modifier = Modifier.size(42.dp)) {
-                    Icon(
-                        Icons.Default.Folder,
-                        contentDescription = "Favoritos",
-                        tint = Color.White
-                    )
-                }
-                Box(
-                    modifier = Modifier
-                        .padding(horizontal = 3.dp)
-                        .size(42.dp)
-                        .clip(CircleShape)
-                        .clickable(onClick = onProfile)
-                ) {
-                    com.example.ui.components.PanaAvatar(
-                        avatarUrl = SupabaseClient.currentProfile?.avatarUrl,
-                        userId = SupabaseClient.currentUser?.id,
-                        size = 42.dp,
-                        borderWidth = 1.5.dp,
-                        borderColor = Color(0xFF35D07F),
-                        placeholderName = SupabaseClient.currentProfile?.displayName ?: "",
-                        contentDescription = "Perfil"
-                    )
-                    val myPresence by com.example.data.repository.PresenceRepository.currentUserStatus.collectAsStateWithLifecycle()
-                    val mySecondaryPresence by com.example.data.repository.PresenceRepository.currentUserSecondaryStatus.collectAsStateWithLifecycle()
-                    com.example.ui.components.chat.list.PresenceIndicator(
-                        status = myPresence.rawValue,
-                        secondaryStatus = if (mySecondaryPresence != com.example.data.repository.SecondaryPresenceStatus.NONE) mySecondaryPresence.rawValue else null,
-                        size = 9.dp,
-                        modifier = Modifier.align(Alignment.BottomEnd)
-                    )
-                }
+                com.example.ui.components.PanaAvatar(
+                    avatarUrl = SupabaseClient.currentProfile?.avatarUrl,
+                    userId = SupabaseClient.currentUser?.id,
+                    size = 42.dp,
+                    borderWidth = 1.5.dp,
+                    borderColor = Color(0xFF35D07F),
+                    placeholderName = SupabaseClient.currentProfile?.displayName ?: "",
+                    contentDescription = "Perfil"
+                )
+                val myPresence by com.example.data.repository.PresenceRepository.currentUserStatus.collectAsStateWithLifecycle()
+                val mySecondaryPresence by com.example.data.repository.PresenceRepository.currentUserSecondaryStatus.collectAsStateWithLifecycle()
+                com.example.ui.components.chat.list.PresenceIndicator(
+                    status = myPresence.rawValue,
+                    secondaryStatus = if (mySecondaryPresence != com.example.data.repository.SecondaryPresenceStatus.NONE) mySecondaryPresence.rawValue else null,
+                    size = 9.dp,
+                    modifier = Modifier.align(Alignment.BottomEnd)
+                )
             }
         }
     }
