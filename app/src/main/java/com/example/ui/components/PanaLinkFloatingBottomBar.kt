@@ -62,7 +62,16 @@ fun PanaLinkFloatingBottomBar(
         modifier = Modifier
             .fillMaxWidth()
             .navigationBarsPadding()
-            .background(IosTabBarBg)
+            .background(
+                Brush.verticalGradient(
+                    listOf(
+                        Color(0xD9121212),
+                        Color(0xB81C1C1E),
+                        Color(0xD9121212)
+                    )
+                )
+            )
+            .border(1.dp, Color(0x26FFFFFF))
     ) {
         // Línea superior del Tab Bar (iOS)
         HorizontalDivider(color = IosTabDivider, thickness = 0.5.dp)
