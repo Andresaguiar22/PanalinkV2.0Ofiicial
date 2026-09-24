@@ -1,6 +1,7 @@
 package com.example.media.ui
 
 import androidx.compose.foundation.background
+import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
@@ -99,7 +100,7 @@ fun MusicHomeScreen(
                 TopAppBar(
                     title = {
                         Row(verticalAlignment = Alignment.CenterVertically) {
-                            Icon(Icons.Default.GraphicEq, contentDescription = null, tint = Color(0xFF38BDF8))
+                            Icon(Icons.Default.GraphicEq, contentDescription = null, tint = Color(0xFF0A84FF))
                             Spacer(modifier = Modifier.width(8.dp))
                             Text("PanaLink Music", color = PanalinkPalette.textPrimary, fontWeight = FontWeight.Bold)
                         }
@@ -128,7 +129,7 @@ fun MusicHomeScreen(
                             Icon(Icons.Default.AddCircleOutline, contentDescription = "Nueva Playlist", tint = Color(0xFF38BDF8))
                         }
                     },
-                    colors = TopAppBarDefaults.topAppBarColors(containerColor = Color(0xFF0F172A))
+                    colors = TopAppBarDefaults.topAppBarColors(containerColor = Color.Black.copy(alpha = 0.92f))
                 )
                 
                 // Professional Search Bar
@@ -140,9 +141,9 @@ fun MusicHomeScreen(
                         .padding(horizontal = 16.dp, vertical = 8.dp),
                     placeholder = { Text("Buscar canciones, artistas...", color = Color.Gray) },
                     leadingIcon = { Icon(Icons.Default.Search, contentDescription = null, tint = Color.Gray) },
-                    shape = RoundedCornerShape(24.dp),
+                    shape = RoundedCornerShape(14.dp),
                     colors = OutlinedTextFieldDefaults.colors(
-                        focusedContainerColor = Color(0xFF1E293B),
+                        focusedContainerColor = Color(0xFF1C1C1E),
                         unfocusedContainerColor = Color(0xFF1E293B),
                         focusedBorderColor = Color(0xFF38BDF8),
                         unfocusedBorderColor = Color.Transparent,
@@ -433,7 +434,7 @@ fun SectionHeader(title: String, onSeeAll: (() -> Unit)? = null) {
 fun CreatePlaylistCard(onClick: () -> Unit) {
     Card(
         colors = CardDefaults.cardColors(containerColor = Color(0xFF1E293B)),
-        shape = RoundedCornerShape(12.dp),
+        shape = RoundedCornerShape(20.dp),
         modifier = Modifier.size(140.dp).clickable(onClick = onClick)
     ) {
         Column(
@@ -457,7 +458,7 @@ fun PlaylistCard(playlist: PlaylistEntity, onClick: () -> Unit) {
     ) {
         Column(modifier = Modifier.padding(10.dp)) {
             Box(
-                modifier = Modifier.size(120.dp).clip(RoundedCornerShape(8.dp)).background(Color(0xFF334155))
+                modifier = Modifier.size(120.dp).clip(RoundedCornerShape(8.dp)).background(Color(0xFF2C2C2E))
             ) {
                 if (!playlist.coverPath.isNullOrEmpty()) {
                     AsyncImage(model = playlist.coverPath, contentDescription = null, contentScale = ContentScale.Crop, modifier = Modifier.fillMaxSize())
