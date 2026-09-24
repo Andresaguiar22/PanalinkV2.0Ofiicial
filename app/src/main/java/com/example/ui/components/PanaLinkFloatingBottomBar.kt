@@ -83,12 +83,12 @@ fun PanaLinkFloatingBottomBar(
             Color(0xC7181A27)
         )
     )
-    val barRim = PanaLinkCyberpunkColors.Purple
+    val barRim = PanalinkPalette.accent
 
     val gradientColors = listOf(
         PanaLinkCyberpunkColors.Cyan,
-        PanaLinkCyberpunkColors.Purple,
-        PanaLinkCyberpunkColors.Magenta,
+        PanalinkPalette.accent,
+        PanalinkPalette.accent,
         PanaLinkCyberpunkColors.Cyan
     )
 
@@ -214,19 +214,19 @@ fun PanaLinkFloatingBottomBar(
                     )
                     
                     val animatedBgColor by animateColorAsState(
-                        targetValue = if (selected) PanaLinkCyberpunkColors.Purple.copy(alpha = 0.22f) else Color.Transparent,
+                        targetValue = if (selected) PanalinkPalette.accent.copy(alpha = 0.18f) else Color.Transparent,
                         animationSpec = tween(durationMillis = 350),
                         label = "tab_bg"
                     )
                     
                     val animatedBorderColor by animateColorAsState(
-                        targetValue = if (selected) PanaLinkCyberpunkColors.Purple.copy(alpha = 0.90f) else Color.Transparent,
+                        targetValue = if (selected) PanalinkPalette.accent.copy(alpha = 0.85f) else Color.Transparent,
                         animationSpec = tween(durationMillis = 350),
                         label = "tab_border"
                     )
                     
                     val animatedContentColor by animateColorAsState(
-                        targetValue = if (selected) PanaLinkCyberpunkColors.Cream else PanaLinkCyberpunkColors.Gold,
+                        targetValue = if (selected) PanalinkPalette.textPrimary else PanalinkPalette.textSecondary,
                         animationSpec = tween(durationMillis = 350),
                         label = "tab_content"
                     )
@@ -273,7 +273,7 @@ fun PanaLinkFloatingBottomBar(
                                     val badgeColor = if (urgentBadgeTabs.contains(index)) {
                                         Color(0xFFFF3B30) // rojo: llamadas perdidas
                                     } else {
-                                        Color(0xFF25D366) // verde WhatsApp: contenido nuevo
+                                        PanalinkPalette.accent // verde WhatsApp: contenido nuevo
                                     }
                                     Box(
                                         modifier = Modifier
