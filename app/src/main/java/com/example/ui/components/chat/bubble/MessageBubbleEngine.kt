@@ -88,6 +88,7 @@ import com.example.data.repository.CdnManager
 import com.example.data.model.formatIsoDateTime
 import com.example.util.AudioPlayer
 import com.example.ui.theme.LocalAppColors
+import com.example.ui.theme.PanalinkPalette
 import kotlinx.serialization.json.Json
 import kotlinx.serialization.serializer
 import kotlinx.coroutines.Dispatchers
@@ -274,23 +275,23 @@ fun MessageBubbleEngine(
     val paletteColors = if (outgoingBubbleColors != null && outgoingBubbleColors.size >= 2) {
         outgoingBubbleColors
     } else {
-        listOf(Color(0xFF53C8DD), Color(0xFF27548F))
+        listOf(PanalinkPalette.chatOutgoing.copy(alpha = 0.98f), PanalinkPalette.chatOutgoingDeep.copy(alpha = 0.98f))
     }
     val outgoingGradient = Brush.linearGradient(
         colors = paletteColors,
         start = Offset.Zero,
         end = Offset.Infinite
     )
-    val incomingColor = Color(0xFF39435A).copy(alpha = 0.90f)
+    val incomingColor = PanalinkPalette.chatIncoming
     
     val bubbleColor = if (isSticker || isBigEmoji) Color.Transparent 
                       else if (isMe) paletteColors.last()
                       else incomingColor
     val bubbleBrush = if (isMe && !isSticker && !isBigEmoji) outgoingGradient else null
-    val contentTextColor = Color.White
+    val contentTextColor = PanalinkPalette.textPrimary
     // Hora y estado legibles: sobre el gradiente saliente (cian arriba) el gris se
     // perdia; se usa blanco translucido. En entrantes, gris claro sobre el pizarra.
-    val statusTextColor = if (isMe) Color.White.copy(alpha = 0.92f) else Color(0xFFCBD5E1)
+    val statusTextColor = if (isMe) PanalinkPalette.textPrimary.copy(alpha = 0.92f) else PanalinkPalette.textSecondary
     val elevation = if (isSticker || isBigEmoji) 0f else 1f
 
     var showMenu by remember { mutableStateOf(false) }
@@ -389,7 +390,7 @@ fun MessageBubbleEngine(
         allMessages.find { it.id == message.replyToMessageId }
     }
 
-    val highlightColor = if (isSelected) Color(0xFF38BDF8).copy(alpha = 0.15f) else if (isHighlighted) Color(0xFF38BDF8).copy(alpha = 0.3f) else Color.Transparent
+    val highlightColor = if (isSelected) PanalinkPalette.accent.copy(alpha = 0.15f) else if (isHighlighted) PanalinkPalette.accent.copy(alpha = 0.30f) else Color.Transparent
 
     // WhatsApp-style spacing: tight inside a consecutive group, wider between groups
     val groupTopSpacing = if (groupPosition == MessageGroupPosition.FIRST || groupPosition == MessageGroupPosition.SINGLE) 6.dp else 1.dp
@@ -458,8 +459,8 @@ fun MessageBubbleEngine(
                     if (repliedMsg != null) {
                         val repliedByMe = repliedMsg.senderId == (SupabaseClient.currentUser?.id ?: "")
                         val replySenderName = if (repliedByMe) "Tú" else (otherUserName?.takeIf { it.isNotBlank() } ?: "Contacto")
-                        val quoteAccent = if (repliedByMe) Color(0xFF38BDF8) else Color(0xFFA78BFA)
-                        val quoteBg = if (isMe) Color(0xFF1E293B).copy(alpha = 0.45f) else Color(0xFF1E293B).copy(alpha = 0.3f)
+                        val quoteAccent = if (repliedByMe) PanalinkPalette.accent else PanalinkPalette.accent
+                        val quoteBg = if (isMe) PanalinkPalette.surfaceElevated.copy(alpha = 0.65f) else PanalinkPalette.surfaceElevated.copy(alpha = 0.45f)
                         val repliedType = repliedMsg.messageType?.lowercase() ?: ""
                         val repliedThumbUrl = repliedMsg.mediaUrl.takeIf {
                             repliedType == "image" || repliedType == "video" ||
