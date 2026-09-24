@@ -75,10 +75,13 @@ fun SecurityCenterScreen(
                         Icon(Icons.AutoMirrored.Filled.ArrowBack, contentDescription = "Regresar", tint = PanalinkPalette.textPrimary)
                     }
                 },
-                colors = TopAppBarDefaults.topAppBarColors(containerColor = Color(0xFF121B22))
+                colors = TopAppBarDefaults.topAppBarColors(
+                    containerColor = Color(0xFF000000).copy(alpha = 0.94f),
+                    scrolledContainerColor = Color(0xFF000000).copy(alpha = 0.98f)
+                )
             )
         },
-        containerColor = Color(0xFF121B22)
+        containerColor = Color(0xFF000000)
     ) { padding ->
         if (uiState.isLoading) {
             Box(
@@ -87,14 +90,14 @@ fun SecurityCenterScreen(
                     .padding(padding),
                 contentAlignment = Alignment.Center
             ) {
-                CircularProgressIndicator(color = Color(0xFF25D366))
+                CircularProgressIndicator(color = Color(0xFF34C759))
             }
         } else {
             LazyColumn(
                 modifier = Modifier
                     .fillMaxSize()
                     .padding(padding),
-                contentPadding = PaddingValues(16.dp),
+                contentPadding = PaddingValues(start = 16.dp, top = 20.dp, end = 16.dp, bottom = 28.dp),
                 verticalArrangement = Arrangement.spacedBy(16.dp)
             ) {
                 // Header Shield Card
@@ -102,8 +105,9 @@ fun SecurityCenterScreen(
                     val isProtected = uiState.hasPin || uiState.hasPattern
                     Card(
                         modifier = Modifier.fillMaxWidth(),
-                        colors = CardDefaults.cardColors(containerColor = Color(0xFF1E2B33)),
-                        shape = RoundedCornerShape(16.dp)
+                        colors = CardDefaults.cardColors(containerColor = Color(0xFF1C1C1E)),
+                        shape = RoundedCornerShape(20.dp),
+                        border = androidx.compose.foundation.BorderStroke(1.dp, Color.White.copy(alpha = 0.08f))
                     ) {
                         Row(
                             modifier = Modifier
@@ -116,13 +120,13 @@ fun SecurityCenterScreen(
                                 modifier = Modifier
                                     .size(48.dp)
                                     .clip(CircleShape)
-                                    .background(if (isProtected) Color(0xFF25D366).copy(alpha = 0.2f) else Color(0xFFFFB300).copy(alpha = 0.2f)),
+                                    .background(if (isProtected) Color(0xFF34C759).copy(alpha = 0.2f) else Color(0xFFFF9F0A).copy(alpha = 0.2f)),
                                 contentAlignment = Alignment.Center
                             ) {
                                 Icon(
                                     imageVector = if (isProtected) Icons.Default.Shield else Icons.Default.Security,
                                     contentDescription = null,
-                                    tint = if (isProtected) Color(0xFF25D366) else Color(0xFFFFB300),
+                                    tint = if (isProtected) Color(0xFF34C759) else Color(0xFFFF9F0A),
                                     modifier = Modifier.size(28.dp)
                                 )
                             }
@@ -135,7 +139,7 @@ fun SecurityCenterScreen(
                                 )
                                 Text(
                                     text = if (isProtected) "PanaLink se bloqueará y pedirá tu PIN o patrón al abrirse." else "Configura un PIN o patrón para que la app se bloquee de verdad al abrirla.",
-                                    color = Color(0xFF90A4AE),
+                                    color = Color(0xFF8E8E93),
                                     fontSize = 12.sp
                                 )
                             }
@@ -147,8 +151,9 @@ fun SecurityCenterScreen(
                 item {
                     Card(
                         modifier = Modifier.fillMaxWidth(),
-                        colors = CardDefaults.cardColors(containerColor = Color(0xFF1E2B33)),
-                        shape = RoundedCornerShape(16.dp)
+                        colors = CardDefaults.cardColors(containerColor = Color(0xFF1C1C1E)),
+                        shape = RoundedCornerShape(20.dp),
+                        border = androidx.compose.foundation.BorderStroke(1.dp, Color.White.copy(alpha = 0.08f))
                     ) {
                         Column(
                             modifier = Modifier
@@ -165,7 +170,7 @@ fun SecurityCenterScreen(
                                     Icon(
                                         imageVector = Icons.Default.Lock,
                                         contentDescription = null,
-                                        tint = Color(0xFF25D366),
+                                        tint = Color(0xFF34C759),
                                         modifier = Modifier.size(20.dp)
                                     )
                                     Spacer(modifier = Modifier.width(8.dp))
@@ -178,12 +183,12 @@ fun SecurityCenterScreen(
                                 }
 
                                 Surface(
-                                    color = if (uiState.hasPin) Color(0xFF25D366).copy(alpha = 0.2f) else Color.White.copy(alpha = 0.1f),
-                                    shape = RoundedCornerShape(8.dp)
+                                    color = if (uiState.hasPin) Color(0xFF34C759).copy(alpha = 0.2f) else Color.White.copy(alpha = 0.1f),
+                                    shape = RoundedCornerShape(12.dp)
                                 ) {
                                     Text(
                                         text = if (uiState.hasPin) "Configurado ✅" else "Sin Configurar",
-                                        color = if (uiState.hasPin) Color(0xFF25D366) else Color.White.copy(alpha = 0.6f),
+                                        color = if (uiState.hasPin) Color(0xFF34C759) else Color.White.copy(alpha = 0.6f),
                                         fontSize = 11.sp,
                                         fontWeight = FontWeight.Bold,
                                         modifier = Modifier.padding(horizontal = 8.dp, vertical = 4.dp)
@@ -193,7 +198,7 @@ fun SecurityCenterScreen(
 
                             Text(
                                 text = "Un PIN de acceso te permite proteger la aplicación frente a accesos no autorizados en tu dispositivo.",
-                                color = Color(0xFF90A4AE),
+                                color = Color(0xFF8E8E93),
                                 fontSize = 11.sp
                             )
 
@@ -203,13 +208,13 @@ fun SecurityCenterScreen(
                             ) {
                                 Button(
                                     onClick = { viewModel.dispatch(SecurityAction.ShowPinDialog(true)) },
-                                    colors = ButtonDefaults.buttonColors(containerColor = Color(0xFF25D366)),
-                                    shape = RoundedCornerShape(10.dp),
+                                    colors = ButtonDefaults.buttonColors(containerColor = Color(0xFF34C759)),
+                                    shape = RoundedCornerShape(12.dp),
                                     modifier = Modifier.weight(1f)
                                 ) {
                                     Text(
                                         text = if (uiState.hasPin) "Cambiar PIN" else "Configurar PIN",
-                                        color = Color(0xFF121B22),
+                                        color = Color(0xFF000000),
                                         fontWeight = FontWeight.Bold,
                                         fontSize = 12.sp
                                     )
@@ -220,7 +225,7 @@ fun SecurityCenterScreen(
                                         onClick = { viewModel.dispatch(SecurityAction.RemovePin) },
                                         colors = ButtonDefaults.outlinedButtonColors(contentColor = Color.Red),
                                         border = androidx.compose.foundation.BorderStroke(1.dp, Color.Red.copy(alpha = 0.5f)),
-                                        shape = RoundedCornerShape(10.dp)
+                                        shape = RoundedCornerShape(12.dp)
                                     ) {
                                         Text("Eliminar PIN", fontSize = 12.sp)
                                     }
@@ -234,8 +239,9 @@ fun SecurityCenterScreen(
                 item {
                     Card(
                         modifier = Modifier.fillMaxWidth(),
-                        colors = CardDefaults.cardColors(containerColor = Color(0xFF1E2B33)),
-                        shape = RoundedCornerShape(16.dp)
+                        colors = CardDefaults.cardColors(containerColor = Color(0xFF1C1C1E)),
+                        shape = RoundedCornerShape(20.dp),
+                        border = androidx.compose.foundation.BorderStroke(1.dp, Color.White.copy(alpha = 0.08f))
                     ) {
                         Column(
                             modifier = Modifier
@@ -252,7 +258,7 @@ fun SecurityCenterScreen(
                                     Icon(
                                         imageVector = Icons.Default.Pattern,
                                         contentDescription = null,
-                                        tint = Color(0xFF00E5FF),
+                                        tint = Color(0xFF0A84FF),
                                         modifier = Modifier.size(20.dp)
                                     )
                                     Spacer(modifier = Modifier.width(8.dp))
@@ -264,12 +270,12 @@ fun SecurityCenterScreen(
                                     )
                                 }
                                 Surface(
-                                    color = if (uiState.hasPattern) Color(0xFF25D366).copy(alpha = 0.2f) else Color.White.copy(alpha = 0.1f),
-                                    shape = RoundedCornerShape(8.dp)
+                                    color = if (uiState.hasPattern) Color(0xFF34C759).copy(alpha = 0.2f) else Color.White.copy(alpha = 0.1f),
+                                    shape = RoundedCornerShape(12.dp)
                                 ) {
                                     Text(
                                         text = if (uiState.hasPattern) "Activo ✅" else "Inactivo",
-                                        color = if (uiState.hasPattern) Color(0xFF25D366) else Color.White.copy(alpha = 0.6f),
+                                        color = if (uiState.hasPattern) Color(0xFF34C759) else Color.White.copy(alpha = 0.6f),
                                         fontSize = 11.sp,
                                         fontWeight = FontWeight.Bold,
                                         modifier = Modifier.padding(horizontal = 8.dp, vertical = 4.dp)
@@ -279,7 +285,7 @@ fun SecurityCenterScreen(
 
                             Text(
                                 text = "Desbloquea PanaLink dibujando un patrón en una cuadrícula de 3×3. Si ambos están activos, el patrón tiene prioridad.",
-                                color = Color(0xFF90A4AE),
+                                color = Color(0xFF8E8E93),
                                 fontSize = 11.sp
                             )
 
@@ -289,13 +295,13 @@ fun SecurityCenterScreen(
                             ) {
                                 Button(
                                     onClick = { viewModel.dispatch(SecurityAction.ShowPatternDialog(true)) },
-                                    colors = ButtonDefaults.buttonColors(containerColor = Color(0xFF00E5FF)),
-                                    shape = RoundedCornerShape(10.dp),
+                                    colors = ButtonDefaults.buttonColors(containerColor = Color(0xFF0A84FF)),
+                                    shape = RoundedCornerShape(12.dp),
                                     modifier = Modifier.weight(1f)
                                 ) {
                                     Text(
                                         text = if (uiState.hasPattern) "Cambiar Patrón" else "Configurar Patrón",
-                                        color = Color(0xFF121B22),
+                                        color = Color(0xFF000000),
                                         fontWeight = FontWeight.Bold,
                                         fontSize = 12.sp
                                     )
@@ -305,7 +311,7 @@ fun SecurityCenterScreen(
                                         onClick = { viewModel.dispatch(SecurityAction.RemovePattern) },
                                         colors = ButtonDefaults.outlinedButtonColors(contentColor = Color.Red),
                                         border = androidx.compose.foundation.BorderStroke(1.dp, Color.Red.copy(alpha = 0.5f)),
-                                        shape = RoundedCornerShape(10.dp)
+                                        shape = RoundedCornerShape(12.dp)
                                     ) {
                                         Text("Eliminar", fontSize = 12.sp)
                                     }
@@ -319,8 +325,9 @@ fun SecurityCenterScreen(
                 item {
                     Card(
                         modifier = Modifier.fillMaxWidth(),
-                        colors = CardDefaults.cardColors(containerColor = Color(0xFF1E2B33)),
-                        shape = RoundedCornerShape(16.dp)
+                        colors = CardDefaults.cardColors(containerColor = Color(0xFF1C1C1E)),
+                        shape = RoundedCornerShape(20.dp),
+                        border = androidx.compose.foundation.BorderStroke(1.dp, Color.White.copy(alpha = 0.08f))
                     ) {
                         Column(
                             modifier = Modifier
@@ -332,7 +339,7 @@ fun SecurityCenterScreen(
                                 Icon(
                                     imageVector = Icons.Default.Timer,
                                     contentDescription = null,
-                                    tint = Color(0xFFFFB300),
+                                    tint = Color(0xFFFF9F0A),
                                     modifier = Modifier.size(20.dp)
                                 )
                                 Spacer(modifier = Modifier.width(8.dp))
@@ -345,7 +352,7 @@ fun SecurityCenterScreen(
                             }
                             Text(
                                 text = "Tiempo que puede pasar en segundo plano antes de volver a pedir tu código.",
-                                color = Color(0xFF90A4AE),
+                                color = Color(0xFF8E8E93),
                                 fontSize = 11.sp
                             )
                             Row(
@@ -360,8 +367,8 @@ fun SecurityCenterScreen(
                                 ).forEach { (delayMs, label) ->
                                     val selected = uiState.autoLockMs == delayMs
                                     Surface(
-                                        color = if (selected) Color(0xFF25D366).copy(alpha = 0.25f) else Color.White.copy(alpha = 0.06f),
-                                        shape = RoundedCornerShape(10.dp),
+                                        color = if (selected) Color(0xFF34C759).copy(alpha = 0.25f) else Color.White.copy(alpha = 0.06f),
+                                        shape = RoundedCornerShape(12.dp),
                                         modifier = Modifier
                                             .weight(1f)
                                             .clickable(enabled = uiState.hasPin || uiState.hasPattern) {
@@ -371,7 +378,7 @@ fun SecurityCenterScreen(
                                         Text(
                                             text = label,
                                             color = when {
-                                                selected -> Color(0xFF25D366)
+                                                selected -> Color(0xFF34C759)
                                                 uiState.hasPin || uiState.hasPattern -> Color.White
                                                 else -> Color.White.copy(alpha = 0.35f)
                                             },
@@ -386,7 +393,7 @@ fun SecurityCenterScreen(
                             if (!uiState.hasPin && !uiState.hasPattern) {
                                 Text(
                                     text = "Configura primero un PIN o patrón para activar el bloqueo automático.",
-                                    color = Color(0xFFFFB300),
+                                    color = Color(0xFFFF9F0A),
                                     fontSize = 10.sp
                                 )
                             }
@@ -398,8 +405,9 @@ fun SecurityCenterScreen(
                 item {
                     Card(
                         modifier = Modifier.fillMaxWidth(),
-                        colors = CardDefaults.cardColors(containerColor = Color(0xFF1E2B33)),
-                        shape = RoundedCornerShape(16.dp)
+                        colors = CardDefaults.cardColors(containerColor = Color(0xFF1C1C1E)),
+                        shape = RoundedCornerShape(20.dp),
+                        border = androidx.compose.foundation.BorderStroke(1.dp, Color.White.copy(alpha = 0.08f))
                     ) {
                         Column(
                             modifier = Modifier
@@ -411,7 +419,7 @@ fun SecurityCenterScreen(
                                 Icon(
                                     imageVector = Icons.Default.QrCode,
                                     contentDescription = null,
-                                    tint = Color(0xFF00E5FF),
+                                    tint = Color(0xFF0A84FF),
                                     modifier = Modifier.size(20.dp)
                                 )
                                 Spacer(modifier = Modifier.width(8.dp))
@@ -425,7 +433,7 @@ fun SecurityCenterScreen(
 
                             Text(
                                 text = "Tu PIN único de usuario y Código QR te identifican de forma segura en PanaLink.",
-                                color = Color(0xFF90A4AE),
+                                color = Color(0xFF8E8E93),
                                 fontSize = 11.sp
                             )
 
@@ -433,16 +441,16 @@ fun SecurityCenterScreen(
                             Row(
                                 modifier = Modifier
                                     .fillMaxWidth()
-                                    .background(Color(0xFF101D24), RoundedCornerShape(12.dp))
+                                    .background(Color(0x66000000), RoundedCornerShape(12.dp))
                                     .padding(horizontal = 16.dp, vertical = 12.dp),
                                 horizontalArrangement = Arrangement.SpaceBetween,
                                 verticalAlignment = Alignment.CenterVertically
                             ) {
                                 Column {
-                                    Text(text = "Tu PIN de Identidad", color = Color(0xFF90A4AE), fontSize = 10.sp)
+                                    Text(text = "Tu PIN de Identidad", color = Color(0xFF8E8E93), fontSize = 10.sp)
                                     Text(
-                                        text = uiState.userPinCode.ifEmpty { "PANA-78901" },
-                                        color = Color(0xFF00E5FF),
+                                        text = uiState.userPinCode.ifEmpty { "—" },
+                                        color = Color(0xFF0A84FF),
                                         fontWeight = FontWeight.ExtraBold,
                                         fontSize = 18.sp,
                                         letterSpacing = 2.sp
@@ -469,9 +477,9 @@ fun SecurityCenterScreen(
                             ) {
                                 OutlinedButton(
                                     onClick = { viewModel.dispatch(SecurityAction.ShowQrDialog(true)) },
-                                    colors = ButtonDefaults.outlinedButtonColors(contentColor = Color(0xFF00E5FF)),
-                                    border = androidx.compose.foundation.BorderStroke(1.dp, Color(0xFF00E5FF).copy(alpha = 0.5f)),
-                                    shape = RoundedCornerShape(10.dp),
+                                    colors = ButtonDefaults.outlinedButtonColors(contentColor = Color(0xFF0A84FF)),
+                                    border = androidx.compose.foundation.BorderStroke(1.dp, Color(0xFF0A84FF).copy(alpha = 0.5f)),
+                                    shape = RoundedCornerShape(12.dp),
                                     modifier = Modifier.weight(1f)
                                 ) {
                                     Icon(Icons.Default.QrCode, contentDescription = null, modifier = Modifier.size(16.dp))
@@ -481,9 +489,9 @@ fun SecurityCenterScreen(
 
                                 OutlinedButton(
                                     onClick = { viewModel.dispatch(SecurityAction.ShowScanner(true)) },
-                                    colors = ButtonDefaults.outlinedButtonColors(contentColor = Color(0xFF25D366)),
-                                    border = androidx.compose.foundation.BorderStroke(1.dp, Color(0xFF25D366).copy(alpha = 0.5f)),
-                                    shape = RoundedCornerShape(10.dp),
+                                    colors = ButtonDefaults.outlinedButtonColors(contentColor = Color(0xFF34C759)),
+                                    border = androidx.compose.foundation.BorderStroke(1.dp, Color(0xFF34C759).copy(alpha = 0.5f)),
+                                    shape = RoundedCornerShape(12.dp),
                                     modifier = Modifier.weight(1f)
                                 ) {
                                     Icon(Icons.Default.QrCodeScanner, contentDescription = null, modifier = Modifier.size(16.dp))
@@ -499,8 +507,9 @@ fun SecurityCenterScreen(
                 item {
                     Card(
                         modifier = Modifier.fillMaxWidth(),
-                        colors = CardDefaults.cardColors(containerColor = Color(0xFF1E2B33)),
-                        shape = RoundedCornerShape(16.dp)
+                        colors = CardDefaults.cardColors(containerColor = Color(0xFF1C1C1E)),
+                        shape = RoundedCornerShape(20.dp),
+                        border = androidx.compose.foundation.BorderStroke(1.dp, Color.White.copy(alpha = 0.08f))
                     ) {
                         Column(
                             modifier = Modifier
@@ -524,16 +533,16 @@ fun SecurityCenterScreen(
                                     Spacer(modifier = Modifier.height(2.dp))
                                     Text(
                                         text = "Bloquea PanaLink al instante. Tendrás que desbloquear para seguir usándola.",
-                                        color = Color(0xFF90A4AE),
+                                        color = Color(0xFF8E8E93),
                                         fontSize = 11.sp
                                     )
                                 }
                                 OutlinedButton(
                                     onClick = { com.example.security.AppLockManager.lockNow(context) },
                                     enabled = uiState.hasPin || uiState.hasPattern,
-                                    colors = ButtonDefaults.outlinedButtonColors(contentColor = Color(0xFFFFB300)),
-                                    border = androidx.compose.foundation.BorderStroke(1.dp, Color(0xFFFFB300).copy(alpha = 0.5f)),
-                                    shape = RoundedCornerShape(10.dp)
+                                    colors = ButtonDefaults.outlinedButtonColors(contentColor = Color(0xFFFF9F0A)),
+                                    border = androidx.compose.foundation.BorderStroke(1.dp, Color(0xFFFF9F0A).copy(alpha = 0.5f)),
+                                    shape = RoundedCornerShape(12.dp)
                                 ) {
                                     Icon(Icons.Default.Lock, contentDescription = null, modifier = Modifier.size(16.dp))
                                     Spacer(modifier = Modifier.width(6.dp))
@@ -554,7 +563,7 @@ fun SecurityCenterScreen(
                                         Icon(
                                             imageVector = Icons.Default.Fingerprint,
                                             contentDescription = null,
-                                            tint = Color(0xFF25D366),
+                                            tint = Color(0xFF34C759),
                                             modifier = Modifier.size(18.dp)
                                         )
                                         Spacer(modifier = Modifier.width(6.dp))
@@ -571,11 +580,12 @@ fun SecurityCenterScreen(
                                             "Utiliza tu huella dactilar o reconocimiento facial para desbloquear PanaLink."
                                         else
                                             "No disponible: este dispositivo no tiene biometría configurada.",
-                                        color = if (uiState.biometricsAvailable) Color(0xFF90A4AE) else Color(0xFFFFB300),
+                                        color = if (uiState.biometricsAvailable) Color(0xFF8E8E93) else Color(0xFFFF9F0A),
                                         fontSize = 11.sp
                                     )
                                 }
                                 Switch(
+                                    modifier = Modifier.width(51.dp).height(31.dp),
                                     checked = uiState.isBiometricsEnabled,
                                     enabled = uiState.biometricsAvailable,
                                     onCheckedChange = { enabled ->
@@ -583,9 +593,11 @@ fun SecurityCenterScreen(
                                     },
                                     colors = SwitchDefaults.colors(
                                         checkedThumbColor = Color.White,
-                                        checkedTrackColor = Color(0xFF25D366),
-                                        uncheckedThumbColor = Color(0xFF90A4AE),
-                                        uncheckedTrackColor = Color(0xFF37474F)
+                                        checkedTrackColor = Color(0xFF34C759),
+                                        uncheckedThumbColor = Color.White,
+                                        uncheckedTrackColor = Color(0xFF39393D),
+                                        disabledThumbColor = Color.White.copy(alpha = 0.65f),
+                                        disabledUncheckedTrackColor = Color(0xFF39393D).copy(alpha = 0.7f)
                                     )
                                 )
                             }
@@ -600,7 +612,7 @@ fun SecurityCenterScreen(
     if (uiState.isPinDialogVisible) {
         AlertDialog(
             onDismissRequest = { viewModel.dispatch(SecurityAction.ShowPinDialog(false)) },
-            containerColor = Color(0xFF1E2D35),
+            containerColor = Color(0xFF1C1C1E),
             title = {
                 Text(
                     text = if (uiState.hasPin) "Cambiar PIN de Seguridad" else "Configurar PIN de Seguridad",
@@ -619,13 +631,13 @@ fun SecurityCenterScreen(
                     OutlinedTextField(
                         value = newPinInput,
                         onValueChange = { if (it.length <= 6 && it.all { char -> char.isDigit() }) newPinInput = it },
-                        label = { Text("PIN de Seguridad", color = Color(0xFF90A4AE)) },
+                        label = { Text("PIN de Seguridad", color = Color(0xFF8E8E93)) },
                         visualTransformation = PasswordVisualTransformation(),
                         keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.NumberPassword),
                         singleLine = true,
                         colors = OutlinedTextFieldDefaults.colors(
-                            focusedBorderColor = Color(0xFF25D366),
-                            unfocusedBorderColor = Color(0xFF90A4AE),
+                            focusedBorderColor = Color(0xFF34C759),
+                            unfocusedBorderColor = Color(0xFF8E8E93),
                             focusedTextColor = Color.White,
                             unfocusedTextColor = Color.White
                         ),
@@ -640,7 +652,7 @@ fun SecurityCenterScreen(
                         newPinInput = ""
                     }
                 ) {
-                    Text("Guardar", color = Color(0xFF25D366), fontWeight = FontWeight.Bold)
+                    Text("Guardar", color = Color(0xFF34C759), fontWeight = FontWeight.Bold)
                 }
             },
             dismissButton = {
@@ -655,7 +667,7 @@ fun SecurityCenterScreen(
     if (uiState.isQrDialogVisible) {
         AlertDialog(
             onDismissRequest = { viewModel.dispatch(SecurityAction.ShowQrDialog(false)) },
-            containerColor = Color(0xFF1E2D35),
+            containerColor = Color(0xFF1C1C1E),
             title = {
                 Text(
                     text = "Tu Código QR de Identidad",
@@ -673,7 +685,7 @@ fun SecurityCenterScreen(
                     Box(
                         modifier = Modifier
                             .size(200.dp)
-                            .clip(RoundedCornerShape(16.dp))
+                            .clip(RoundedCornerShape(20.dp))
                             .background(Color.White)
                             .padding(12.dp),
                         contentAlignment = Alignment.Center
@@ -687,7 +699,7 @@ fun SecurityCenterScreen(
 
                     Text(
                         text = "PIN: ${uiState.userPinCode}",
-                        color = Color(0xFF00E5FF),
+                        color = Color(0xFF0A84FF),
                         fontWeight = FontWeight.Bold,
                         fontSize = 16.sp
                     )
@@ -702,7 +714,7 @@ fun SecurityCenterScreen(
             },
             confirmButton = {
                 TextButton(onClick = { viewModel.dispatch(SecurityAction.ShowQrDialog(false)) }) {
-                    Text("Cerrar", color = Color(0xFF25D366), fontWeight = FontWeight.Bold)
+                    Text("Cerrar", color = Color(0xFF34C759), fontWeight = FontWeight.Bold)
                 }
             }
         )
@@ -715,7 +727,7 @@ fun SecurityCenterScreen(
 
         AlertDialog(
             onDismissRequest = { viewModel.dispatch(SecurityAction.ShowPatternDialog(false)) },
-            containerColor = Color(0xFF1E2D35),
+            containerColor = Color(0xFF1C1C1E),
             title = {
                 Text(
                     text = if (firstPattern == null) "Dibuja tu nuevo patrón" else "Confirma tu patrón",
@@ -780,7 +792,7 @@ fun SecurityCenterScreen(
     if (uiState.isScannerVisible) {
         AlertDialog(
             onDismissRequest = { viewModel.dispatch(SecurityAction.ShowScanner(false)) },
-            containerColor = Color(0xFF1E2D35),
+            containerColor = Color(0xFF1C1C1E),
             title = {
                 Text(
                     text = "Escanear QR de Pana",
@@ -802,12 +814,12 @@ fun SecurityCenterScreen(
                     OutlinedTextField(
                         value = scanInputText,
                         onValueChange = { scanInputText = it },
-                        label = { Text("Payload de QR", color = Color(0xFF90A4AE)) },
+                        label = { Text("Payload de QR", color = Color(0xFF8E8E93)) },
                         placeholder = { Text("panalink:pin:123456", color = Color.Gray) },
                         singleLine = true,
                         colors = OutlinedTextFieldDefaults.colors(
-                            focusedBorderColor = Color(0xFF25D366),
-                            unfocusedBorderColor = Color(0xFF90A4AE),
+                            focusedBorderColor = Color(0xFF34C759),
+                            unfocusedBorderColor = Color(0xFF8E8E93),
                             focusedTextColor = Color.White,
                             unfocusedTextColor = Color.White
                         ),
@@ -822,7 +834,7 @@ fun SecurityCenterScreen(
                         scanInputText = ""
                     }
                 ) {
-                    Text("Validar QR", color = Color(0xFF25D366), fontWeight = FontWeight.Bold)
+                    Text("Validar QR", color = Color(0xFF34C759), fontWeight = FontWeight.Bold)
                 }
             },
             dismissButton = {
