@@ -40,7 +40,7 @@ fun MediaMessageBubble(
     thumbnailUrl: String? = null,
     durationLabel: String? = null,
     captionText: String? = null,
-    bubbleColor: Color = Color(0xFF1F2C34),
+    bubbleColor: Color = PanalinkPalette.chatIncoming,
     isDownloading: Boolean = false,
     isUploading: Boolean = false,
     progress: Float? = null,
@@ -82,7 +82,7 @@ fun MediaMessageBubble(
                 ) {
                     Text(
                         text = captionText!!,
-                        color = Color(0xFF111B21),
+                        color = PanalinkPalette.textPrimary,
                         fontSize = 15.sp,
                         lineHeight = 20.sp
                     )
