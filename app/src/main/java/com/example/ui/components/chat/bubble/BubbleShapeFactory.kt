@@ -21,10 +21,10 @@ object BubbleShapeFactory {
     fun createShape(groupPosition: MessageGroupPosition, isMe: Boolean): Shape {
         return if (isMe) {
             RoundedCornerShape(
-                topStart = 24.dp,
-                topEnd = 4.dp,
-                bottomStart = 24.dp,
-                bottomEnd = 24.dp
+                topStart = 20.dp,
+                topEnd = 20.dp,
+                bottomStart = 20.dp,
+                bottomEnd = 4.dp
             )
         } else {
             RoundedCornerShape(
