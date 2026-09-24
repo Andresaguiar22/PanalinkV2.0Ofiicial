@@ -46,7 +46,7 @@ private val IosBlue = Color(0xFF0A84FF)
 private val IosGreen = Color(0xFF10B981)
 private val IosPink = Color(0xFFFF2D55)
 private val IosGold = Color(0xFFFFD700)
-private val IosTextGray = Color(0xFF8E8E93)
+private val IosGray = Color(0xFF8E8E93)
 private val IosBorder = Color.White.copy(alpha = 0.15f)
 
 @OptIn(ExperimentalMaterial3Api::class)
@@ -246,7 +246,7 @@ fun ProfileScreen(
 
                     Text(
                         text = SupabaseClient.currentUser?.email ?: "sin_correo@panalink.com",
-                        color = IosTextGray,
+                        color = IosGray,
                         fontSize = 13.sp,
                         modifier = Modifier.padding(top = 2.dp)
                     )
@@ -361,7 +361,7 @@ private fun IosCircleButton(
 private fun IosStatItem(count: String, label: String) {
     Column(horizontalAlignment = Alignment.CenterHorizontally) {
         Text(count, color = Color.White, fontSize = 16.sp, fontWeight = FontWeight.Bold)
-        Text(label, color = IosTextGray, fontSize = 12.sp, fontWeight = FontWeight.Medium)
+        Text(label, color = IosGray, fontSize = 12.sp, fontWeight = FontWeight.Medium)
     }
 }
 
@@ -426,13 +426,13 @@ private fun IosTabButton(
         Icon(
             icon,
             contentDescription = title,
-            tint = if (isActive) Color.White else IosTextGray,
+            tint = if (isActive) Color.White else IosGray,
             modifier = Modifier.size(19.dp)
         )
         Spacer(modifier = Modifier.height(4.dp))
         Text(
             title,
-            color = if (isActive) Color.White else IosTextGray,
+            color = if (isActive) Color.White else IosGray,
             fontSize = 13.sp,
             fontWeight = if (isActive) FontWeight.Bold else FontWeight.Medium
         )
