@@ -66,7 +66,7 @@ fun MusicPlayerScreen(
     val context = LocalContext.current
 
     // Dominant color extracted from the album art — drives the whole theme
-    var dominantColor by remember(track?.id) { mutableStateOf(Color(0xFF1E293B)) }
+    var dominantColor by remember(track?.id) { mutableStateOf(Color(0xFF1C1C1E)) }
     LaunchedEffect(track?.coverUri) {
         val cover = track?.coverUri ?: return@LaunchedEffect
         val color = withContext(Dispatchers.IO) {
@@ -90,7 +90,7 @@ fun MusicPlayerScreen(
         label = "topColor"
     )
     val gradientBrush = Brush.verticalGradient(
-        colors = listOf(animatedTop, Color(0xFF0B0F19))
+        colors = listOf(animatedTop, Color.Black)
     )
 
     Scaffold(
@@ -119,7 +119,7 @@ fun MusicPlayerScreen(
                         Icon(
                             Icons.Rounded.Bedtime,
                             contentDescription = "Temporizador",
-                            tint = if (sleepTimerMs != null) Color(0xFF38BDF8) else Color.White
+                            tint = if (sleepTimerMs != null) Color(0xFF0A84FF) else Color.White
                         )
                     }
                 },
@@ -185,11 +185,11 @@ fun MusicPlayerScreen(
                 ) {
                     Box(
                         modifier = Modifier
-                            .fillMaxWidth(0.78f)
+                            .fillMaxWidth(0.88f)
                             .aspectRatio(1f)
                             .scale(artScale)
-                            .shadow(32.dp, RoundedCornerShape(24.dp))
-                            .clip(RoundedCornerShape(24.dp))
+                            .shadow(28.dp, RoundedCornerShape(22.dp))
+                            .clip(RoundedCornerShape(22.dp))
                             .background(Color(0xFF1E293B))
                     ) {
                         if (track?.coverUri != null) {
@@ -261,11 +261,11 @@ fun MusicPlayerScreen(
                 sleepTimerMs?.let { remaining ->
                     Text(
                         "⏱ Apagado en ${remaining / 60000}:${"%02d".format((remaining / 1000) % 60)}",
-                        color = Color(0xFF38BDF8),
+                        color = Color(0xFF0A84FF),
                         fontSize = 12.sp,
                         modifier = Modifier
                             .clip(RoundedCornerShape(12.dp))
-                            .background(Color(0xFF38BDF8).copy(alpha = 0.12f))
+                            .background(Color(0xFF0A84FF).copy(alpha = 0.12f))
                             .clickable { showSleepSheet = true }
                             .padding(horizontal = 12.dp, vertical = 4.dp)
                     )
@@ -295,7 +295,7 @@ fun MusicPlayerScreen(
                         Icon(
                             if (track?.isFavorite == true) Icons.Default.Favorite else Icons.Default.FavoriteBorder,
                             contentDescription = "Favorito",
-                            tint = if (track?.isFavorite == true) Color(0xFFF43F5E) else Color.White.copy(alpha = 0.8f)
+                            tint = if (track?.isFavorite == true) Color(0xFFFF375F) else Color.White.copy(alpha = 0.8f)
                         )
                     }
 
@@ -331,8 +331,8 @@ fun MusicPlayerScreen(
     if (showQueue) {
         ModalBottomSheet(
             onDismissRequest = { showQueue = false },
-            containerColor = Color(0xFF111827),
-            dragHandle = { BottomSheetDefaults.DragHandle(color = Color.Gray) }
+            containerColor = Color(0xFF1C1C1E),
+            dragHandle = { BottomSheetDefaults.DragHandle(color = Color.White.copy(alpha = 0.35f)) }
         ) {
             PlayerQueueSheet(
                 queue = state.queue,
