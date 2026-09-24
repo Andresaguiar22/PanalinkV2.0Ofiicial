@@ -5,6 +5,7 @@ import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.PickVisualMediaRequest
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.foundation.BorderStroke
+import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
@@ -20,6 +21,7 @@ import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.font.FontWeight
@@ -201,16 +203,16 @@ fun ProfileEditScreen(
                         Icon(Icons.AutoMirrored.Filled.ArrowBack, contentDescription = "Regresar", tint = PanalinkPalette.textPrimary)
                     }
                 },
-                colors = TopAppBarDefaults.topAppBarColors(containerColor = Color(0xFF121B22))
+                colors = TopAppBarDefaults.topAppBarColors(containerColor = Color.Black)
             )
         },
-        containerColor = Color(0xFF121B22)
+        containerColor = Color.Black
     ) { padding ->
         LazyColumn(
             modifier = Modifier
                 .fillMaxSize()
                 .padding(padding)
-                .padding(horizontal = 16.dp, vertical = 8.dp),
+                .padding(horizontal = 16.dp, vertical = 12.dp),
             verticalArrangement = Arrangement.spacedBy(16.dp)
         ) {
             item {
@@ -222,7 +224,7 @@ fun ProfileEditScreen(
                                 .height(180.dp),
                             contentAlignment = Alignment.Center
                         ) {
-                            CircularProgressIndicator(color = Color(0xFF25D366))
+                            CircularProgressIndicator(color = Color(0xFF0A84FF))
                         }
                     }
                     is ProfileUiState.Error -> {
@@ -328,7 +330,7 @@ fun ProfileEditScreen(
                                 Column(modifier = Modifier.weight(0.9f)) {
                                     Text(
                                         text = "Género 👤",
-                                        color = Color(0xFF90A4AE),
+                                        color = Color(0xFF8E8E93),
                                         fontSize = 10.sp,
                                         fontWeight = FontWeight.Medium
                                     )
@@ -345,8 +347,8 @@ fun ProfileEditScreen(
                                                     .weight(1f)
                                                     .height(38.dp)
                                                     .clip(RoundedCornerShape(8.dp))
-                                                    .background(if (isSelected) Color(0xFF25D366) else Color(0xFF101D24))
-                                                    .border(1.dp, if (isSelected) Color.Transparent else Color(0xFF37474F), RoundedCornerShape(8.dp))
+                                                    .background(if (isSelected) Color(0xFF34C759) else Color(0xFF1C1C1E))
+                                                    .border(1.dp, if (isSelected) Color.Transparent else Color(0x1FFFFFFF), RoundedCornerShape(8.dp))
                                                     .clickable { sex = gCode },
                                                 contentAlignment = Alignment.Center
                                             ) {
