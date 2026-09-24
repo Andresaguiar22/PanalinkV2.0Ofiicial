@@ -42,7 +42,7 @@ fun PlayerProgressBar(
             Text(
                 text = formatDuration(currentPositionMs),
                 color = PanalinkPalette.textPrimary.copy(alpha = 0.7f),
-                fontSize = 12.sp
+                fontSize = 11.sp
             )
             Text(
                 text = formatDuration(durationMs),
