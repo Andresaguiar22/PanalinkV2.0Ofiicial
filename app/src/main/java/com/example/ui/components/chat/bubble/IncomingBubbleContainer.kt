@@ -28,7 +28,7 @@ fun IncomingBubbleContainer(
     avatarUserId: String? = null,
     modifier: Modifier = Modifier,
     shape: Shape = BubbleShapeFactory.createShape(groupPosition, isMe = false),
-    containerColor: Color = Color(0xFF39435A).copy(alpha = 0.92f),
+    containerColor: Color = Color(0xFF262628),
     containerBrush: Brush? = null,
     borderColor: Color = Color(0xFF38BDF8).copy(alpha = 0.35f),
     borderWidth: Dp = 1.dp,
