@@ -275,7 +275,7 @@ fun MessageBubbleEngine(
     val paletteColors = if (outgoingBubbleColors != null && outgoingBubbleColors.size >= 2) {
         outgoingBubbleColors
     } else {
-        listOf(PanalinkPalette.chatOutgoing.copy(alpha = 0.98f), PanalinkPalette.chatOutgoingDeep.copy(alpha = 0.98f))
+        listOf(Color(0xFF007AFF), Color(0xFF0066CC))
     }
     val outgoingGradient = Brush.linearGradient(
         colors = paletteColors,
