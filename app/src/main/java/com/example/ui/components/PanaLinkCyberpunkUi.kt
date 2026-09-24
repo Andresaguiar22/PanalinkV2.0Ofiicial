@@ -23,6 +23,7 @@ import androidx.compose.material3.IconButton
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.remember
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -397,42 +398,39 @@ fun PaniOSUnifiedTopBar(
             horizontalArrangement = Arrangement.SpaceBetween,
             verticalAlignment = Alignment.CenterVertically
         ) {
-            if (onEdit != null) {
-                Text(
-                    text = "Editar",
-                    color = tint,
-                    fontSize =  17.sp,
-                    fontWeight = FontWeight.Normal,
-                    modifier = Modifier
-                        .clip(RoundedCornerShape(8.dp))
-                        .clickable(onClick = onEdit)
-                        .padding(vertical =  6.dp, horizontal =  2.dp)
-                )
-            } else {
-                Spacer(Modifier.width(1.dp))
-            }
+            // Logo giratorio del inicio (esquina superior izquierda, reemplaza al "PanaLink")
+            com.example.ui.screen.AnimatedPanaWelcomeLogo(
+                logoSize =  20.dp,
+                modifier = Modifier.size(32.dp)
+            )
 
-            Row(verticalAlignment = Alignment.CenterVertically) {
-
-                Box(
-                    modifier = Modifier
-                        .clip(RoundedCornerShape(22.dp))
-                        .background(
-                            Brush.horizontalGradient(
-                                listOf(
-                                    Color(0x33FFFFFF),
-                                    Color(0x1AFFFFFF),
-                                    Color(0x33FFFFFF)
-                                )
+            Row(
+                modifier = Modifier
+                    .weight(1f)
+                    .clip(RoundedCornerShape(22.dp))
+                    .background(
+                        Brush.horizontalGradient(
+                            listOf(
+                                Color(0x33FFFFFF),
+                                Color(0x1AFFFFFF),
+                                Color(0x33FFFFFF)
                             )
                         )
-                        .border(1.dp, Color(0x4DFFFFFF), RoundedCornerShape(22.dp))
-                        .padding(horizontal =  4.dp, vertical =  3.dp)
+                    )
+                    .border(1.dp, Color(0x4DFFFFFF), RoundedCornerShape(22.dp))
+                    .padding(horizontal =  4.dp, vertical =  3.dp),
+                verticalAlignment = Alignment.CenterVertically,
+                horizontalArrangement = Arrangement.Center
+            ) {
+                Row(
+                    verticalAlignment = Alignment.CenterVertically,
+                    horizontalArrangement = Arrangement.spacedBy(1.dp)
                 ) {
-                    Row(
-                        verticalAlignment = Alignment.CenterVertically,
-                        horizontalArrangement = Arrangement.spacedBy(1.dp)
-                    ) {
+                    if (onEdit != null) {
+                        IconButton(onClick = onEdit, modifier = Modifier.size(40.dp)) {
+                            Icon(Icons.Rounded.Edit, contentDescription = "Editar", tint = tint, modifier = Modifier.size(22.dp))
+                        }
+                    }
                         if (onCamera != {}) {
                             IconButton(onClick = onCamera, modifier = Modifier.size(40.dp)) {
                                 Icon(Icons.Rounded.PhotoCamera, contentDescription = "Escanear QR", tint = tint, modifier = Modifier.size(22.dp))
@@ -482,44 +480,76 @@ fun PaniOSUnifiedTopBar(
 
                 Spacer(Modifier.width(10.dp))
 
-                Box(
-                    modifier = Modifier
-                        .size(40.dp)
-                        .clip(CircleShape)
-                        .clickable(onClick = onProfile)
+                // Avatar + estado: punto en el borde del anillo + última conexión al lado
+                Column(
+                    horizontalAlignment = Alignment.End,
+                    modifier = Modifier.width(96.dp)
                 ) {
-                    com.example.ui.components.PanaAvatar(
-                        avatarUrl = SupabaseClient.currentProfile?.avatarUrl,
-                        userId = SupabaseClient.currentUser?.id,
-                        size = 40.dp,
-                        borderWidth =  1.5.dp,
-                        borderColor = Color(0xFF10B981),
-                        placeholderName = SupabaseClient.currentProfile?.displayName ?: "",
-                        contentDescription = "Perfil"
-                    )
-                    val myPresence by com.example.data.repository.PresenceRepository.currentUserStatus.collectAsStateWithLifecycle()
-                    val mySecondaryPresence by com.example.data.repository.PresenceRepository.currentUserSecondaryStatus.collectAsStateWithLifecycle()
-                    com.example.ui.components.chat.list.PresenceIndicator(
-                        status = myPresence.rawValue,
-                        secondaryStatus = if (mySecondaryPresence != com.example.data.repository.SecondaryPresenceStatus.NONE) mySecondaryPresence.rawValue else null,
-                        size =  10.dp,
-                        modifier = Modifier.align(Alignment.BottomEnd)
-                    )
+                    Box(
+                        modifier = Modifier
+                            .size(40.dp)
+                            .clip(CircleShape)
+                            .clickable(onClick = onProfile)
+                    ) {
+                        com.example.ui.components.PanaAvatar(
+                            avatarUrl = SupabaseClient.currentProfile?.avatarUrl,
+                            userId = SupabaseClient.currentUser?.id,
+                            size = 40.dp,
+                            borderWidth =  1.5.dp,
+                            borderColor = Color(0xFF10B981),
+                            placeholderName = SupabaseClient.currentProfile?.displayName ?: "",
+                            contentDescription = "Perfil"
+                        )
+                        val myPresence by com.example.data.repository.PresenceRepository.currentUserStatus.collectAsStateWithLifecycle()
+                        val mySecondaryPresence by com.example.data.repository.PresenceRepository.currentUserSecondaryStatus.collectAsStateWithLifecycle()
+                        com.example.ui.components.chat.list.PresenceIndicator(
+                            status = myPresence.rawValue,
+                            secondaryStatus = if (mySecondaryPresence != com.example.data.repository.SecondaryPresenceStatus.NONE) mySecondaryPresence.rawValue else null,
+                            size =  12.dp,
+                            borderColor = Color.White,
+                            modifier = Modifier
+                                .align(Alignment.BottomEnd)
+                                .offset(x =  2.dp, y =  2.dp)
+                        )
+                    }
+                    PaniOSStatusLabel()
                 }
             }
         }
-
-        Spacer(Modifier.height(2.dp))
-
-        Text(
-            text = "PanaLink",
-            color = Color.White,
-            fontSize =  34.sp,
-            fontWeight = FontWeight.Bold,
-            fontFamily = FontFamily.Serif,
-            letterSpacing =  0.2.sp,
-            maxLines = 1,
-            overflow = TextOverflow.Ellipsis
-        )
     }
+
+@Composable
+private fun PaniOSStatusLabel() {
+    val myPresence by com.example.data.repository.PresenceRepository.currentUserStatus.collectAsStateWithLifecycle()
+    val uid = SupabaseClient.currentUser?.id
+    val label = remember(myPresence, uid) {
+        if (myPresence == com.example.data.repository.UserPresenceStatus.ONLINE) {
+            "En línea"
+        } else {
+            val lastOffline = uid?.let { uid ->
+                com.example.util.PresenceHistoryTracker.getHistoryForUser(uid)
+                    .lastOrNull { it.status == com.example.data.repository.UserPresenceStatus.OFFLINE }
+            }
+            when {
+                lastOffline == null ->"Desconectado"
+                else ->{
+                    val mins = ((System.currentTimeMillis() - lastOffline.timestamp) / 60000L).coerceAtLeast(0L).toInt()
+                    when {
+                        mins < 1 ->"hace 1 min"
+                        mins < 60 ->"hace $mins min"
+                        else ->"hace ${mins / 60} h"
+                    }
+                }
+            }
+        }
+    }
+    Text(
+        text = label,
+        color = if (myPresence == com.example.data.repository.UserPresenceStatus.ONLINE) Color(0xFF25D366) else Color(0xFF8E8E93),
+        fontSize =  10.sp,
+        fontWeight = FontWeight.Medium,
+        maxLines =  1,
+        overflow = TextOverflow.Ellipsis,
+        modifier = Modifier.padding(top =  2.dp)
+    )
 }

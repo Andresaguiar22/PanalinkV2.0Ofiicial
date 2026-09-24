@@ -16,6 +16,7 @@ import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.layout.defaultMinSize
 import androidx.compose.foundation.layout.offset
 import androidx.compose.foundation.shape.CircleShape
+import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.outlined.Call
 import androidx.compose.material.icons.outlined.ChatBubble
@@ -26,10 +27,15 @@ import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Icon
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.animation.core.animateFloatAsState
+import androidx.compose.animation.core.tween
+import androidx.compose.runtime.getValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.Brush
+import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextOverflow
@@ -125,6 +131,11 @@ private fun IosBottomNavItem(
     urgent: Boolean = false
 ) {
     val color = if (isActive) PanalinkTabTint else IosTabTextGray
+val glowAlpha by animateFloatAsState(
+        targetValue = if (isActive) 1f else 0f,
+        animationSpec = tween(durationMillis = 420),
+        label = "TabGlow"
+    )
 
     Column(
         modifier = Modifier
@@ -133,6 +144,23 @@ private fun IosBottomNavItem(
         horizontalAlignment = Alignment.CenterHorizontally
     ) {
         Box {
+// Iluminación suave desde abajo hacia arriba (solo el icono seleccionado)
+            Box(
+                modifier = Modifier
+                    .align(Alignment.BottomCenter)
+                    .width(34.dp)
+                    .height(26.dp)
+                    .clip(RoundedCornerShape(10.dp))
+                    .background(
+                        Brush.verticalGradient(
+                            listOf(
+                                Color.Transparent,
+                                PanalinkTabTint.copy(alpha = 0.16f)
+                            )
+                        )
+                    )
+                    .graphicsLayer { alpha = glowAlpha }
+            )
             Icon(
                 imageVector = icon,
                 contentDescription = title,
