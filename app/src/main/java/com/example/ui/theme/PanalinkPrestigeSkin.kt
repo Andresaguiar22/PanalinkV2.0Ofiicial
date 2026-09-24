@@ -69,6 +69,16 @@ object PanalinkPalette {
 
     /** Verde de marca (online, acentos vivos). */
     val online: Color get() = if (isDark) Color(0xFF3FCF8E) else Color(0xFF1DA060)
+    // Design system PanaLink: un solo lenguaje cromático para chats, Momentos,
+    // Clips, Llamadas y Gente.
+    val chatOutgoing: Color get() = if (isDark) Color(0xFF245B45) else Color(0xFFDDF7EA)
+    val chatIncoming: Color get() = if (isDark) Color(0xFF202B36) else Color(0xFFF1F4F6)
+    val chatOutgoingDeep: Color get() = if (isDark) Color(0xFF1B4A39) else Color(0xFFCDEFD8)
+    val accentSoft: Color get() = if (isDark) Color(0x2935D07F) else Color(0x1F1DA060)
+    val surfaceElevated: Color get() = if (isDark) Color(0xFF26333E) else Color(0xFFF7F8FA)
+    val onAccent: Color get() = if (isDark) Color(0xFF07130D) else Color.White
+    val link: Color get() = if (isDark) Color(0xFF69E6A5) else Color(0xFF168A52)
+    val missedCall: Color get() = if (isDark) Color(0xFFFF6B6B) else Color(0xFFD83A3A)
 }
 
 /**
