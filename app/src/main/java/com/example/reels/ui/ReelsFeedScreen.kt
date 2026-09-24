@@ -497,8 +497,8 @@ fun ReelsFeedScreen(
                     .background(
                         Brush.horizontalGradient(
                             listOf(
-                                Color(0xFF0B1620).copy(alpha = 0.90f),
-                                Color(0xFF0B1620).copy(alpha = 0.74f)
+                                PanalinkPalette.background.copy(alpha = 0.90f),
+                                PanalinkPalette.background.copy(alpha = 0.74f)
                             )
                         )
                     )
@@ -1295,7 +1295,7 @@ private fun ReelsCommentsSheetV2(
                                         if (comment.deletedAt == null) {
                                             Text(
                                                 text = "вҖў Responder",
-                                                color = Color(0xFF25D366),
+                                                color = PanalinkPalette.accent,
                                                 fontSize = 11.sp,
                                                 fontWeight = FontWeight.SemiBold,
                                                 modifier = Modifier
@@ -1343,14 +1343,14 @@ private fun ReelsCommentsSheetV2(
                         Row(
                             modifier = Modifier
                                 .fillMaxWidth()
-                                .background(Color(0xFF1E2D35))
+                                .background(PanalinkPalette.surface)
                                 .padding(horizontal = 16.dp, vertical = 8.dp),
                             verticalAlignment = Alignment.CenterVertically,
                             horizontalArrangement = Arrangement.SpaceBetween
                         ) {
                             Text(
                                 text = "Respondiendo a @${PublicProfileResolver.formatForUi(currentReplyingTo.authorName, "Pana")}",
-                                color = Color(0xFF25D366),
+                                color = PanalinkPalette.accent,
                                 fontSize = 12.sp,
                                 fontWeight = FontWeight.SemiBold
                             )
@@ -1391,9 +1391,9 @@ private fun ReelsCommentsSheetV2(
                             colors = OutlinedTextFieldDefaults.colors(
                                 focusedTextColor = Color.White,
                                 unfocusedTextColor = Color.White,
-                                focusedContainerColor = Color(0xFF1E2D35),
-                                unfocusedContainerColor = Color(0xFF1E2D35),
-                                focusedBorderColor = Color(0xFF25D366),
+                                focusedContainerColor = PanalinkPalette.surface,
+                                unfocusedContainerColor = PanalinkPalette.surface,
+                                focusedBorderColor = PanalinkPalette.accent,
                                 unfocusedBorderColor = Color.Transparent
                             ),
                             shape = RoundedCornerShape(24.dp)
@@ -1403,9 +1403,9 @@ IconButton(
                                 modifier = Modifier
                                     .size(40.dp)
                                     .clip(CircleShape)
-                                    .background(Color(0xFF1E2D35))
+                                    .background(PanalinkPalette.surface)
                             ) {
-                                Text("GIF", fontSize = 13.sp, fontWeight = FontWeight.Bold, color = Color(0xFF4FC3F7))
+                                Text("GIF", fontSize = 13.sp, fontWeight = FontWeight.Bold, color = PanalinkPalette.accent)
                             }
                         IconButton(
                             onClick = {
@@ -1416,7 +1416,7 @@ IconButton(
                                 }
                             },
                             modifier = Modifier
-                                .background(Color(0xFF25D366), CircleShape)
+                                .background(PanalinkPalette.accent, CircleShape)
                                 .size(40.dp)
                         ) {
                             Icon(
