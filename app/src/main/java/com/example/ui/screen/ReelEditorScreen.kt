@@ -50,6 +50,7 @@ import com.example.ui.viewmodel.StatesViewModel
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
 import com.example.ui.components.CameraCaptureView
+import com.example.ui.components.PaniOSReelsStudioPicker
 import com.example.ui.components.SimpleVideoPreviewPlayer
 import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.foundation.gestures.detectDragGestures
@@ -402,136 +403,26 @@ fun ReelEditorScreen(
                     }
                 )
             } else if (currentStep == "picker") {
-                    // Initial Studio Onboarding Selector
-                    Column(
-                        modifier = Modifier
-                            .fillMaxSize()
-                            .padding(24.dp),
-                        verticalArrangement = Arrangement.Center,
-                        horizontalAlignment = Alignment.CenterHorizontally
-                    ) {
-                        Text(
-                            text = "Estudio de Reels 🎬🇻🇪",
-                            color = PanalinkPalette.textPrimary,
-                            fontSize = 28.sp,
-                            fontWeight = FontWeight.ExtraBold,
-                            textAlign = TextAlign.Center
-                        )
-                        Spacer(modifier = Modifier.height(8.dp))
-                        Text(
-                            text = "Produce videos impactantes para toda la comunidad de Panalink",
-                            color = Color.Gray,
-                            fontSize = 14.sp,
-                            textAlign = TextAlign.Center
-                        )
-
-                        Spacer(modifier = Modifier.height(48.dp))
-
-                        // Large camera recorder or gallery selection cards
-                        Card(
-                            modifier = Modifier
-                                .fillMaxWidth()
-                                .height(140.dp)
-                                .testTag("reel_studio_camera_button")
-                                .clickable {
-                                    cameraCaptureMode = "video"
-                                    cameraPermissionState.requestPermissions()
-                                },
-                            shape = RoundedCornerShape(20.dp),
-                            colors = CardDefaults.cardColors(containerColor = Color(0xFF0D0F12)),
-                            border = BorderStroke(1.dp, Color(0xFF131A22))
-                        ) {
-                            Column(
-                                modifier = Modifier.fillMaxSize(),
-                                verticalArrangement = Arrangement.Center,
-                                horizontalAlignment = Alignment.CenterHorizontally
-                            ) {
-                                Icon(
-                                    imageVector = Icons.Default.Videocam,
-                                    contentDescription = null,
-                                    tint = Color(0xFF18E7F5),
-                                    modifier = Modifier.size(48.dp)
-                                )
-                                Spacer(modifier = Modifier.height(12.dp))
-                                Text("Grabar en Estudio 🎙️", color = PanalinkPalette.textPrimary, fontWeight = FontWeight.Bold, fontSize = 16.sp)
-                                Text("Abre la cámara de producción con conteo de tiempo", color = Color.Gray, fontSize = 11.sp)
-                            }
-                        }
-
-                        Spacer(modifier = Modifier.height(16.dp))
-
-                        Card(
-                            modifier = Modifier
-                                .fillMaxWidth()
-                                .height(140.dp)
-                                .testTag("reel_studio_gallery_button")
-                                .clickable {
-                                    galleryLauncher.launch(
-                                        PickVisualMediaRequest(ActivityResultContracts.PickVisualMedia.ImageAndVideo)
-                                    )
-                                },
-                            shape = RoundedCornerShape(20.dp),
-                            colors = CardDefaults.cardColors(containerColor = Color(0xFF0D0F12)),
-                            border = BorderStroke(1.dp, Color(0xFF131A22))
-                        ) {
-                            Column(
-                                modifier = Modifier.fillMaxSize(),
-                                verticalArrangement = Arrangement.Center,
-                                horizontalAlignment = Alignment.CenterHorizontally
-                            ) {
-                                Icon(
-                                    imageVector = Icons.Default.Collections,
-                                    contentDescription = null,
-                                    tint = Color(0xFFFF28C8),
-                                    modifier = Modifier.size(48.dp)
-                                )
-                                Spacer(modifier = Modifier.height(12.dp))
-                                Text("Subir Video o Imagen 🎞️", color = PanalinkPalette.textPrimary, fontWeight = FontWeight.Bold, fontSize = 16.sp)
-                                Text("Las imágenes se animan automáticamente con efecto Ken Burns", color = Color.Gray, fontSize =  11.sp)
-                            }
-                        }
-
-                        Spacer(modifier = Modifier.height(16.dp))
-
-                        Card(
-                            modifier = Modifier
-                                .fillMaxWidth()
-                                .height(140.dp)
-                                .testTag("reel_studio_import_url_button")
-                                .clickable {
-                                    importUrlError = null
-                                    importUrlInput = ""
-                                    showImportUrlDialog = true
-                                },
-                            shape = RoundedCornerShape(20.dp),
-                            colors = CardDefaults.cardColors(containerColor = Color(0xFF0D0F12)),
-                            border = BorderStroke(1.dp, Color(0xFF131A22))
-                        ) {
-                            Column(
-                                modifier = Modifier.fillMaxSize(),
-                                verticalArrangement = Arrangement.Center,
-                                horizontalAlignment = Alignment.CenterHorizontally
-                            ) {
-                                Icon(
-                                    imageVector = Icons.Default.Public,
-                                    contentDescription = null,
-                                    tint = Color(0xFF9B5CFF),
-                                    modifier = Modifier.size(48.dp)
-                                )
-                                Spacer(modifier = Modifier.height(12.dp))
-                                Text("Pegar URL de Video 🌐", color = PanalinkPalette.textPrimary, fontWeight = FontWeight.Bold, fontSize =  16.sp)
-                                Text("Importa TikTok, Instagram, YouTube y más sin marca de agua", color = Color.Gray, fontSize =  11.sp)
-                            }
-                        }
-
-                        Spacer(modifier = Modifier.height(48.dp))
-
-                        TextButton(onClick = onBack) {
-                            Icon(Icons.AutoMirrored.Default.ArrowBack, contentDescription = null, tint = Color.Gray)
-                            Spacer(modifier = Modifier.width(8.dp))
-                            Text("Regresar al Feed", color = Color.Gray)
-                        }
-                    }
+                    // Estudio de Reels estilo iOS: picker con tarjetas glass y neón
+                    PaniOSReelsStudioPicker(
+                        onRecordVideo = {
+                            cameraCaptureMode = "video"
+                            cameraPermissionState.requestPermissions()
+                        },
+                        onPickMedia = {
+                            galleryLauncher.launch(
+                                PickVisualMediaRequest(ActivityResultContracts.PickVisualMedia.ImageAndVideo)
+                            )
+                        },
+                        onImportUrl = {
+                            importUrlError = null
+                            importUrlInput = ""
+                            showImportUrlDialog = true
+                        },
+                        onBack = onBack
+                    )
+                    // El diálogo de importar URL se muestra globalmente al final del Scaffold.
+                
                 } else if (currentStep == "studio") {
                     // --- NEW CREATIVE STUDIO UI ---
                     var showTextEditor by remember { mutableStateOf(false) }
