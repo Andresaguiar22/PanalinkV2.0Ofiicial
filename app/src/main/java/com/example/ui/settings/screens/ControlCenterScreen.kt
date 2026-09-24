@@ -132,7 +132,11 @@ fun ControlCenterScreen(
                                     modifier = Modifier
                                         .size(80.dp)
                                         .clip(CircleShape)
-                                        .background(Color(0xFF2C2C2E)),
+                                        .background(
+                                            brush = Brush.linearGradient(listOf(Color(0xFF34C759), Color(0xFF0A84FF))),
+                                            shape = CircleShape
+                                        )
+                                        .padding(2.dp),
                                     contentAlignment = Alignment.Center
                                 ) {
                                     if (uiState.avatarUrl.isNotBlank()) {
@@ -241,7 +245,7 @@ fun ControlCenterScreen(
 
                                 Button(
                                     onClick = onNavigateToProfile,
-                                    colors = ButtonDefaults.buttonColors(containerColor = Color(0xFF25D366)),
+                                    colors = ButtonDefaults.buttonColors(containerColor = Color(0xFF0A84FF)),
                                     shape = RoundedCornerShape(14.dp),
                                     modifier = Modifier.fillMaxWidth(0.7f)
                                 ) {
