@@ -143,13 +143,16 @@ val glowAlpha by animateFloatAsState(
             .padding(horizontal = 8.dp),
         horizontalAlignment = Alignment.CenterHorizontally
     ) {
-        Box {
+        Box(
+            modifier = Modifier.size(width = 46.dp, height = 38.dp),
+            contentAlignment = Alignment.Center
+        ) {
 // Iluminación suave desde abajo hacia arriba (solo el icono seleccionado)
             Box(
                 modifier = Modifier
-                    .align(Alignment.BottomCenter)
-                    .width(34.dp)
-                    .height(26.dp)
+                    .align(Alignment.Center)
+                    .width(42.dp)
+                    .height(34.dp)
                     .clip(RoundedCornerShape(10.dp))
                     .background(
                         Brush.verticalGradient(
