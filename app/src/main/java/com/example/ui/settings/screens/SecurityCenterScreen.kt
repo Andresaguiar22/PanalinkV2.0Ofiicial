@@ -596,7 +596,7 @@ fun SecurityCenterScreen(
                                         checkedTrackColor = Color(0xFF34C759),
                                         uncheckedThumbColor = Color.White,
                                         uncheckedTrackColor = Color(0xFF39393D),
-                                        disabledThumbColor = Color.White.copy(alpha = 0.65f),
+                                        disabledCheckedThumbColor = Color.White.copy(alpha = 0.65f),
                                         disabledUncheckedTrackColor = Color(0xFF39393D).copy(alpha = 0.7f)
                                     )
                                 )
