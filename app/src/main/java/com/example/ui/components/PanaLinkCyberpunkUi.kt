@@ -158,7 +158,16 @@ fun PaniOSChatsTopBar(
     Column(
         modifier = modifier
             .fillMaxWidth()
-            .background(Color(0xFF0D0F12))
+            .background(
+                Brush.verticalGradient(
+                    listOf(
+                        Color(0xD90D0F12),
+                        Color(0xB81C2024),
+                        Color(0xD90D0F12)
+                    )
+                )
+            )
+            .border(1.dp, Color(0x26FFFFFF), RoundedCornerShape(0.dp))
             .statusBarsPadding()
             .padding(horizontal = 16.dp, vertical = 8.dp)
     ) {
@@ -401,7 +410,7 @@ fun PaniOSUnifiedTopBar(
             com.example.ui.screen.AnimatedPanaWelcomeLogo(
                 logoSize =  34.dp,
                 modifier = Modifier
-                    .size(40.dp)
+                    .size(66.dp)
                     .align(Alignment.CenterStart)
             )
 
@@ -485,6 +494,7 @@ fun PaniOSUnifiedTopBar(
                     modifier = Modifier
                         .width(96.dp)
                         .align(Alignment.CenterEnd)
+                        .offset(y = 2.dp)
                 ) {
                     Box(
                         modifier = Modifier
