@@ -20,7 +20,7 @@ import com.example.ui.theme.PanalinkPalette
 fun ChatUnreadBadge(
     count: Int,
     modifier: Modifier = Modifier,
-    backgroundColor: Color = Color(0xFF38BDF8) // Premium Cyan accent
+    backgroundColor: Color = PanalinkPalette.accent // Premium Cyan accent
 ) {
     if (count <= 0) return
 
