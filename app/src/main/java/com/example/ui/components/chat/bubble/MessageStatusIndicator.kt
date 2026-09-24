@@ -140,7 +140,7 @@ fun MessageStatusIndicator(
                         androidx.compose.material3.Icon(
                             imageVector = Icons.Filled.DoneAll,
                             contentDescription = "Leído",
-                            tint = Color(0xFF38BDF8),
+                            tint = Color(0xFF0A84FF),
                             modifier = Modifier.size(15.dp)
                         )
                     }
