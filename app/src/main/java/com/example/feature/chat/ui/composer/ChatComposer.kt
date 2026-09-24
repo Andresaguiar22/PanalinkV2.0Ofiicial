@@ -133,7 +133,21 @@ fun ChatComposer(
     }
 
     BoxWithConstraints(
-        modifier = Modifier.fillMaxWidth()
+        modifier = Modifier
+            .fillMaxWidth()
+            .background(
+                Brush.verticalGradient(
+                    listOf(
+                        androidx.compose.ui.graphics.Color(0xE6000000),
+                        androidx.compose.ui.graphics.Color(0xD91C1C1E),
+                        androidx.compose.ui.graphics.Color(0xE6000000)
+                    )
+                )
+            )
+            .border(
+                width = 0.5.dp,
+                color = androidx.compose.ui.graphics.Color.White.copy(alpha = 0.10f)
+            )
     ) {
         // Acción 7: Slide-to-delete DENTRO de la píldora. Al deslizar el mic
         // horizontalmente hacia la izquierda aparece la píldora de borrado con el
