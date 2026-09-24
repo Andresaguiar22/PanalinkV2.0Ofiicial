@@ -21,7 +21,7 @@ fun OutgoingBubbleContainer(
     groupPosition: MessageGroupPosition,
     modifier: Modifier = Modifier,
     shape: Shape = BubbleShapeFactory.createShape(groupPosition, isMe = true),
-    containerColor: Color = Color(0xFF27548F),
+    containerColor: Color = Color(0xFF0066CC),
     containerBrush: Brush? = null,
     borderColor: Color = Color(0xFF7DD3FC).copy(alpha = 0.45f),
     borderWidth: Dp = 1.dp,
