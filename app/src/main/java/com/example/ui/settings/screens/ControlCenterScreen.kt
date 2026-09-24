@@ -19,6 +19,7 @@ import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.input.nestedscroll.nestedScroll
@@ -83,13 +84,13 @@ fun ControlCenterScreen(
                     }
                 },
                 colors = TopAppBarDefaults.largeTopAppBarColors(
-                    containerColor = Color(0xFF121B22),
-                    scrolledContainerColor = Color(0xFF1E2B33)
+                    containerColor = Color.Black,
+                    scrolledContainerColor = Color(0xFF1C1C1E)
                 ),
                 scrollBehavior = scrollBehavior
             )
         },
-        containerColor = Color(0xFF121B22)
+        containerColor = Color.Black
     ) { padding ->
         if (uiState.isLoading) {
             Box(
@@ -98,7 +99,7 @@ fun ControlCenterScreen(
                     .padding(padding),
                 contentAlignment = Alignment.Center
             ) {
-                CircularProgressIndicator(color = Color(0xFF25D366))
+                CircularProgressIndicator(color = Color(0xFF0A84FF))
             }
         } else {
             AnimatedVisibility(
@@ -109,7 +110,7 @@ fun ControlCenterScreen(
                     modifier = Modifier
                         .fillMaxSize()
                         .padding(padding),
-                    contentPadding = PaddingValues(bottom = 32.dp, start = 16.dp, end = 16.dp),
+                    contentPadding = PaddingValues(bottom = 36.dp, start = 16.dp, end = 16.dp),
                     verticalArrangement = Arrangement.spacedBy(16.dp)
                 ) {
                     // 1. Hero Card Superior Dinámico
@@ -117,8 +118,9 @@ fun ControlCenterScreen(
                         Card(
                             modifier = Modifier.fillMaxWidth(),
                             shape = RoundedCornerShape(24.dp),
-                            colors = CardDefaults.cardColors(containerColor = Color(0xFF1E2B33)),
-                            elevation = CardDefaults.cardElevation(4.dp)
+                            colors = CardDefaults.cardColors(containerColor = Color(0xFF1C1C1E)),
+                            border = androidx.compose.foundation.BorderStroke(1.dp, Color.White.copy(alpha = 0.10f)),
+                            elevation = CardDefaults.cardElevation(0.dp)
                         ) {
                             Column(
                                 modifier = Modifier
@@ -130,7 +132,7 @@ fun ControlCenterScreen(
                                     modifier = Modifier
                                         .size(80.dp)
                                         .clip(CircleShape)
-                                        .background(Color(0xFF2A3942)),
+                                        .background(Color(0xFF2C2C2E)),
                                     contentAlignment = Alignment.Center
                                 ) {
                                     if (uiState.avatarUrl.isNotBlank()) {
@@ -163,7 +165,7 @@ fun ControlCenterScreen(
 
                                 Text(
                                     text = uiState.userHandle,
-                                    color = Color(0xFF90A4AE),
+                                    color = Color(0xFF8E8E93),
                                     fontSize = 13.sp
                                 )
 
@@ -175,9 +177,9 @@ fun ControlCenterScreen(
                                     verticalAlignment = Alignment.CenterVertically
                                 ) {
                                     val (badgeBg, badgeText, badgeColor) = when (uiState.presenceStatus) {
-                                        "busy" -> Triple(Color(0xFFFF3D00).copy(alpha = 0.2f), "🔴 Ocupado", Color(0xFFFF3D00))
-                                        "invisible" -> Triple(Color(0xFF00E5FF).copy(alpha = 0.2f), "⚪ Invisible", Color(0xFF00E5FF))
-                                        else -> Triple(Color(0xFF25D366).copy(alpha = 0.2f), "🟢 Disponible", Color(0xFF25D366))
+                                        "busy" -> Triple(Color(0xFFFF453A).copy(alpha = 0.2f), "🔴 Ocupado", Color(0xFFFF3D00))
+                                        "invisible" -> Triple(Color(0xFF64D2FF).copy(alpha = 0.2f), "⚪ Invisible", Color(0xFF00E5FF))
+                                        else -> Triple(Color(0xFF34C759).copy(alpha = 0.2f), "🟢 Disponible", Color(0xFF25D366))
                                     }
 
                                     Surface(
@@ -196,11 +198,11 @@ fun ControlCenterScreen(
                                     val isProtected = uiState.hasPin || uiState.is2FaEnabled
                                     Surface(
                                         shape = RoundedCornerShape(20.dp),
-                                        color = if (isProtected) Color(0xFF4CAF50).copy(alpha = 0.2f) else Color(0xFFFFC107).copy(alpha = 0.2f)
+                                        color = if (isProtected) Color(0xFF34C759).copy(alpha = 0.2f) else Color(0xFFFF9F0A).copy(alpha = 0.2f)
                                     ) {
                                         Text(
                                             text = if (isProtected) "🛡️ Protegida" else "🔒 Básica",
-                                            color = if (isProtected) Color(0xFF4CAF50) else Color(0xFFFFC107),
+                                            color = if (isProtected) Color(0xFF4CAF50) else Color(0xFFFF9F0A),
                                             fontSize = 11.sp,
                                             fontWeight = FontWeight.SemiBold,
                                             modifier = Modifier.padding(horizontal = 10.dp, vertical = 4.dp)
@@ -221,7 +223,7 @@ fun ControlCenterScreen(
                                         label = "${uiState.activeDevicesCount} Dispositivo(s)",
                                         value = uiState.connectionStatus
                                     )
-                                    Box(modifier = Modifier.height(24.dp).width(1.dp).background(Color(0xFF37474F)))
+                                    Box(modifier = Modifier.height(24.dp).width(1.dp).background(Color(0x1FFFFFFF)))
                                     QuickInfoItem(
                                         icon = Icons.Default.Storage,
                                         label = "Almacenamiento",
@@ -240,12 +242,12 @@ fun ControlCenterScreen(
                                 Button(
                                     onClick = onNavigateToProfile,
                                     colors = ButtonDefaults.buttonColors(containerColor = Color(0xFF25D366)),
-                                    shape = RoundedCornerShape(12.dp),
+                                    shape = RoundedCornerShape(14.dp),
                                     modifier = Modifier.fillMaxWidth(0.7f)
                                 ) {
-                                    Icon(Icons.Default.Edit, contentDescription = null, tint = Color(0xFF121B22), modifier = Modifier.size(16.dp))
+                                    Icon(Icons.Default.Edit, contentDescription = null, tint = Color.White, modifier = Modifier.size(16.dp))
                                     Spacer(modifier = Modifier.width(6.dp))
-                                    Text("Editar Perfil", color = Color(0xFF121B22), fontWeight = FontWeight.Bold, fontSize = 13.sp)
+                                    Text("Editar Perfil", color = Color.White, fontWeight = FontWeight.Bold, fontSize = 13.sp)
                                 }
                             }
                         }
@@ -254,11 +256,11 @@ fun ControlCenterScreen(
                     // 2. Tarjetas Inteligentes (Smart Cards)
                     item {
                         Text(
-                            text = "Módulos Inteligentes",
-                            color = PanalinkPalette.textPrimary,
-                            fontSize = 16.sp,
-                            fontWeight = FontWeight.Bold,
-                            modifier = Modifier.padding(vertical = 4.dp)
+                            text = "Módulos Inteligentes".uppercase(),
+                            color = Color(0xFF8E8E93),
+                            fontSize = 13.sp,
+                            fontWeight = FontWeight.SemiBold,
+                            modifier = Modifier.padding(start = 16.dp, top = 2.dp, bottom = 2.dp)
                         )
                     }
 
@@ -267,9 +269,9 @@ fun ControlCenterScreen(
                             title = "Seguridad & Acceso",
                             subtitle = uiState.securitySummary,
                             statusBadge = if (uiState.hasPin && uiState.is2FaEnabled) "🛡️ Protección Máxima" else if (uiState.hasPin) "🔐 PIN Activo" else "⚠️ Sin PIN",
-                            badgeColor = if (uiState.hasPin) Color(0xFF4CAF50) else Color(0xFFFF9800),
+                            badgeColor = if (uiState.hasPin) Color(0xFF4CAF50) else Color(0xFFFF9F0A),
                             icon = Icons.Default.Security,
-                            iconColor = Color(0xFFF44336),
+                            iconColor = Color(0xFFFF453A),
                             onClick = onNavigateToSecurity
                         )
                     }
@@ -279,9 +281,9 @@ fun ControlCenterScreen(
                             title = "Centro de Actividad & Sistema",
                             subtitle = uiState.activitySummary,
                             statusBadge = "📊 ${uiState.messagesCount} Mensajes",
-                            badgeColor = Color(0xFF03A9F4),
+                            badgeColor = Color(0xFF0A84FF),
                             icon = Icons.Default.Restore,
-                            iconColor = Color(0xFF00BCD4),
+                            iconColor = Color(0xFF0A84FF),
                             onClick = onNavigateToActivity
                         )
                     }
@@ -301,28 +303,28 @@ fun ControlCenterScreen(
                     // 3. Menú Completo de Configuración (tarjetas individuales premium)
                     item {
                         Text(
-                            text = "Ajustes Generales",
-                            color = PanalinkPalette.textPrimary,
-                            fontSize = 16.sp,
-                            fontWeight = FontWeight.Bold,
-                            modifier = Modifier.padding(top = 8.dp, bottom = 4.dp)
+                            text = "Ajustes Generales".uppercase(),
+                            color = Color(0xFF8E8E93),
+                            fontSize = 13.sp,
+                            fontWeight = FontWeight.SemiBold,
+                            modifier = Modifier.padding(start = 16.dp, top = 8.dp, bottom = 2.dp)
                         )
                     }
 
-                    item { IndividualSettingCard("Perfil", uiState.profileSummary, Icons.Default.Person, Color(0xFF2196F3), onNavigateToProfile) }
+                    item { IndividualSettingCard("Perfil", uiState.profileSummary, Icons.Default.Person, Color(0xFF0A84FF), onNavigateToProfile) }
                     item { IndividualSettingCard("Presencia", uiState.presenceSummary, Icons.Default.AccountCircle, Color(0xFF4CAF50), onNavigateToPresence) }
-                    item { IndividualSettingCard("Privacidad", uiState.privacySummary, Icons.Default.Lock, Color(0xFF9C27B0), onNavigateToPrivacy) }
+                    item { IndividualSettingCard("Privacidad", uiState.privacySummary, Icons.Default.Lock, Color(0xFFBF5AF2), onNavigateToPrivacy) }
                     item { IndividualSettingCard("Seguridad", uiState.securitySummary, Icons.Default.Security, Color(0xFFF44336), onNavigateToSecurity) }
                     item { IndividualSettingCard("Chats", uiState.chatsSummary, Icons.Default.Chat, Color(0xFF03A9F4), onNavigateToChats) }
                     item { IndividualSettingCard("Notificaciones", uiState.notificationsSummary, Icons.Default.Notifications, Color(0xFFFFC107), onNavigateToNotifications) }
-                    item { IndividualSettingCard("Personalización", uiState.customizationSummary, Icons.Default.ColorLens, Color(0xFFE91E63), onNavigateToCustomization) }
+                    item { IndividualSettingCard("Personalización", uiState.customizationSummary, Icons.Default.ColorLens, Color(0xFFFF375F), onNavigateToCustomization) }
                     item { IndividualSettingCard("Almacenamiento", uiState.storageSummary, Icons.Default.Storage, Color(0xFFFF9800), onNavigateToStorage) }
                     item { IndividualSettingCard("Centro de Actividad", uiState.activitySummary, Icons.Default.Restore, Color(0xFF00BCD4), onNavigateToActivity) }
-                    item { IndividualSettingCard("Información", "Versión ${uiState.appVersion} • Ayuda y Soporte", Icons.Default.Info, Color(0xFF9E9E9E), onNavigateToAbout) }
+                    item { IndividualSettingCard("Información", "Versión ${uiState.appVersion} • Ayuda y Soporte", Icons.Default.Info, Color(0xFF8E8E93), onNavigateToAbout) }
 
                     item { Spacer(modifier = Modifier.height(8.dp)) }
-                    item { IndividualSettingCard("Cerrar sesión", "Desconectarse de la cuenta actual", Icons.Default.ExitToApp, Color(0xFFFF5722)) { showLogoutDialog = true } }
-                    item { IndividualSettingCard("Eliminar cuenta", "Borrar permanentemente todos tus datos", Icons.Default.DeleteForever, Color(0xFFE53935)) { showDeleteAccountDialog = true } }
+                    item { IndividualSettingCard("Cerrar sesión", "Desconectarse de la cuenta actual", Icons.Default.ExitToApp, Color(0xFFFF9F0A)) { showLogoutDialog = true } }
+                    item { IndividualSettingCard("Eliminar cuenta", "Borrar permanentemente todos tus datos", Icons.Default.DeleteForever, Color(0xFFFF453A)) { showDeleteAccountDialog = true } }
                 }
             }
         }
@@ -429,7 +431,7 @@ fun IndividualSettingCard(
             Icon(
                 imageVector = Icons.AutoMirrored.Filled.KeyboardArrowRight,
                 contentDescription = null,
-                tint = Color(0xFF546E7A),
+                tint = Color(0xFF8E8E93),
                 modifier = Modifier.size(20.dp)
             )
         }
