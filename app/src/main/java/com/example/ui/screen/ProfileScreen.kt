@@ -10,12 +10,13 @@ import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
-import androidx.compose.material.icons.filled.AddAPhoto
 import androidx.compose.material.icons.filled.CheckCircle
 import androidx.compose.material.icons.filled.Edit
+import androidx.compose.material.icons.filled.PlayArrow
 import androidx.compose.material.icons.filled.Settings
+import androidx.compose.material.icons.outlined.BookmarkBorder
+import androidx.compose.material.icons.outlined.GridView
 import androidx.compose.material3.*
-import androidx.compose.material3.TabRowDefaults.tabIndicatorOffset
 import androidx.compose.runtime.*
 import androidx.compose.runtime.mutableIntStateOf
 import androidx.compose.ui.Alignment
@@ -31,7 +32,6 @@ import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import coil.compose.AsyncImage
 import com.example.data.supabase.SupabaseClient
 import com.example.ui.components.PanaAvatar
-import com.example.ui.components.PanaTopBarTitle
 import com.example.ui.profile.components.ReelsGrid
 import com.example.ui.profile.components.SavedGrid
 import com.example.ui.settings.navigation.SettingsNavGraph
@@ -39,7 +39,15 @@ import com.example.ui.settings.screens.ProfileEditScreen
 import com.example.ui.viewmodel.AuthViewModel
 import com.example.ui.viewmodel.ProfileUiState
 import com.example.ui.viewmodel.ProfileViewModel
-import com.example.ui.theme.PanalinkPalette
+
+private val IosBlack = Color(0xFF000000)
+private val IosSurface = Color(0xFF121212)
+private val IosBlue = Color(0xFF0A84FF)
+private val IosGreen = Color(0xFF10B981)
+private val IosPink = Color(0xFFFF2D55)
+private val IosGold = Color(0xFFFFD700)
+private val IosTextGray = Color(0xFF8E8E93)
+private val IosBorder = Color.White.copy(alpha = 0.15f)
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -73,6 +81,9 @@ fun ProfileScreen(
     val profileState by viewModel.profileState.collectAsStateWithLifecycle()
     val currentUid = SupabaseClient.currentUser?.id ?: ""
     val contactIdentifier by viewModel.contactIdentifierState.collectAsStateWithLifecycle()
+    val followersCount by viewModel.followersCount.collectAsStateWithLifecycle()
+    val followingCount by viewModel.followingCount.collectAsStateWithLifecycle()
+    val likesCount by viewModel.totalLikesCount.collectAsStateWithLifecycle()
 
     var displayName by remember { mutableStateOf("") }
     var selectedAvatarUrl by remember { mutableStateOf("") }
@@ -80,13 +91,11 @@ fun ProfileScreen(
     var userPin by remember { mutableStateOf("") }
     var selectedTabIndex by remember { mutableIntStateOf(0) }
 
-    // Trigger load
     LaunchedEffect(Unit) {
         viewModel.loadProfile()
         viewModel.loadReels(currentUid)
     }
 
-    // Populate local variables on Success
     LaunchedEffect(profileState, contactIdentifier) {
         if (profileState is ProfileUiState.Success) {
             val prof = (profileState as ProfileUiState.Success).profile
@@ -94,23 +103,6 @@ fun ProfileScreen(
             selectedAvatarUrl = prof.avatarUrl ?: ""
             selectedCoverUrl = prof.coverUrl ?: ""
             userPin = contactIdentifier?.pin ?: prof.pin ?: ""
-        }
-    }
-
-    val customPState by com.example.ui.theme.ThemeManager.customPrimary.collectAsState()
-    val customSState by com.example.ui.theme.ThemeManager.customSecondary.collectAsState()
-    val themeKey by com.example.ui.theme.ThemeManager.themeKey.collectAsState()
-
-    val themeGradient = remember(themeKey, customPState, customSState) {
-        when (themeKey) {
-            "royal_purple" -> Brush.linearGradient(listOf(Color(0xFF4A148C), Color(0xFF1E033A)))
-            "neon_orange" -> Brush.linearGradient(listOf(Color(0xFFFF5722), Color(0xFF1A0E05)))
-            "nordic_ice" -> Brush.linearGradient(listOf(Color(0xFF37474F), Color(0xFF10171C)))
-            "cyberpunk" -> Brush.linearGradient(listOf(Color(0xFFBC00DD), Color(0xFF00F0FF)))
-            "neon" -> Brush.linearGradient(listOf(Color(0xFFFF007F), Color(0xFF39FF14)))
-            "minimal_white" -> Brush.linearGradient(listOf(Color(0xFFF0F0F0), Color(0xFFCCCCCC)))
-            "custom" -> Brush.linearGradient(listOf(customPState, customSState))
-            else -> Brush.linearGradient(listOf(Color(0xFF131A22), Color(0xFF18202A)))
         }
     }
 
@@ -123,264 +115,337 @@ fun ProfileScreen(
         }
     }
 
-    Scaffold(
-        topBar = {
-            TopAppBar(
-                title = { PanaTopBarTitle(sectionName = "Mi Perfil", primaryColor = Color(0xFF18E7F5)) },
-                navigationIcon = {
-                    IconButton(onClick = onBack) {
-                        Icon(Icons.AutoMirrored.Filled.ArrowBack, contentDescription = "Atrás", tint = PanalinkPalette.textPrimary)
-                    }
-                },
-                actions = {
-                    if (onOpenPremium != null) {
-                        androidx.compose.foundation.layout.Row(
-                            verticalAlignment = androidx.compose.ui.Alignment.CenterVertically
-                        ) {
-                            com.example.premium.ui.CoinChip(onClick = onOpenPremium)
-                            IconButton(onClick = onOpenPremium) {
-                                Text("💎", fontSize = 18.sp)
-                            }
-                        }
-                    }
-                    IconButton(onClick = { showControlCenter = true }) {
-                        Icon(Icons.Default.Settings, contentDescription = "Centro de Control", tint = PanalinkPalette.textPrimary)
-                    }
-                },
-                colors = TopAppBarDefaults.topAppBarColors(containerColor = Color(0xFF131A22))
-            )
-        },
-        containerColor = Color(0xFF0D0F12)
-    ) { innerPadding ->
-        Column(
-            modifier = Modifier
-                .fillMaxSize()
-                .padding(innerPadding)
-                .verticalScroll(rememberScrollState())
-                .padding(16.dp),
-            verticalArrangement = Arrangement.spacedBy(16.dp)
-        ) {
-            // Live Profile Card
-            Card(
-                modifier = Modifier.fillMaxWidth(),
-                elevation = CardDefaults.cardElevation(defaultElevation = 8.dp),
-                shape = RoundedCornerShape(24.dp)
+    Box(
+        modifier = Modifier
+            .fillMaxSize()
+            .background(IosBlack)
+    ) {
+        Column(modifier = Modifier.fillMaxSize()) {
+            // Native iPhone-inspired top bar.
+            Row(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .background(IosBlack.copy(alpha = 0.96f))
+                    .padding(top = 10.dp, bottom = 10.dp, start = 14.dp, end = 14.dp),
+                horizontalArrangement = Arrangement.SpaceBetween,
+                verticalAlignment = Alignment.CenterVertically
             ) {
+                IosCircleButton(Icons.AutoMirrored.Filled.ArrowBack, "Atrás", onBack)
+
+                Text(
+                    text = "Mi Perfil",
+                    color = Color.White,
+                    fontSize = 17.sp,
+                    fontWeight = FontWeight.Bold
+                )
+
+                Row(
+                    horizontalArrangement = Arrangement.spacedBy(7.dp),
+                    verticalAlignment = Alignment.CenterVertically
+                ) {
+                    if (onOpenPremium != null) {
+                        com.example.premium.ui.CoinChip(onClick = onOpenPremium)
+                    }
+                    IosCircleButton(
+                        Icons.Default.Settings,
+                        "Ajustes",
+                        onClick = { showControlCenter = true }
+                    )
+                }
+            }
+
+            Column(
+                modifier = Modifier
+                    .fillMaxSize()
+                    .weight(1f)
+                    .verticalScroll(rememberScrollState())
+            ) {
+                // Cover / hero header.
                 Box(
                     modifier = Modifier
                         .fillMaxWidth()
-                        .background(themeGradient)
+                        .height(150.dp)
+                        .clickable { isEditingProfile = true }
                 ) {
-                    Column {
-                        // Cover Section
+                    if (selectedCoverUrl.isNotEmpty()) {
+                        AsyncImage(
+                            model = selectedCoverUrl,
+                            contentDescription = "Portada",
+                            modifier = Modifier.fillMaxSize(),
+                            contentScale = ContentScale.Crop
+                        )
+                    } else {
                         Box(
-                            modifier = Modifier
-                                .fillMaxWidth()
-                                .height(140.dp)
-                                .clickable { isEditingProfile = true }
-                        ) {
-                            if (selectedCoverUrl.isNotEmpty()) {
-                                AsyncImage(
-                                    model = selectedCoverUrl,
-                                    contentDescription = "Portada",
-                                    modifier = Modifier.fillMaxSize(),
-                                    contentScale = ContentScale.Crop
+                            Modifier
+                                .fillMaxSize()
+                                .background(
+                                    Brush.linearGradient(
+                                        listOf(Color(0xFF151515), Color(0xFF202020), Color(0xFF0A0A0A))
+                                    )
                                 )
-                            } else {
-                                Box(
-                                    Modifier
-                                        .fillMaxSize()
-                                        .background(Color.Black.copy(alpha = 0.2f)),
-                                    contentAlignment = Alignment.Center
-                                ) {
-                                    Icon(Icons.Default.AddAPhoto, null, tint = PanalinkPalette.textPrimary.copy(alpha = 0.5f))
-                                }
-                            }
-                        }
-
-                        // Avatar & Info
-                        Box(modifier = Modifier.padding(horizontal = 16.dp)) {
-                            Row(
-                                modifier = Modifier
-                                    .fillMaxWidth()
-                                    .padding(bottom = 16.dp),
-                                verticalAlignment = Alignment.Bottom
-                            ) {
-                                Box(
-                                    modifier = Modifier
-                                        .size(86.dp)
-                                        .offset(y = (-30).dp)
-                                        .clickable { isEditingProfile = true }
-                                ) {
-                                    PanaAvatar(
-                                        avatarUrl = selectedAvatarUrl.ifEmpty { null },
-                                        size = 86.dp,
-                                        borderWidth = 3.dp,
-                                        borderColor = Color(0xFF0D0F12),
-                                        contentDescription = "Avatar de Perfil",
-                                        placeholderName = displayName
-                                    )
-                                    Box(
-                                        modifier = Modifier
-                                            .size(22.dp)
-                                            .align(Alignment.BottomEnd)
-                                            .offset(x = (-4).dp, y = (-4).dp)
-                                            .clip(CircleShape)
-                                            .background(Color(0xFFFF28C8))
-                                            .border(2.5.dp, Color(0xFF0D0F12), CircleShape)
-                                    )
-                                }
-
-                                Spacer(modifier = Modifier.width(16.dp))
-
-                                Column(modifier = Modifier.padding(bottom = 8.dp)) {
-                                    Row(verticalAlignment = Alignment.CenterVertically) {
-                                        Text(
-                                            text = displayName.ifEmpty { "Pana de Panalink" },
-                                            color = PanalinkPalette.textPrimary,
-                                            fontWeight = FontWeight.Bold,
-                                            fontSize = 20.sp
-                                        )
-                                        Spacer(modifier = Modifier.width(6.dp))
-                                        if (reputationState == "Verificado") {
-                                            Icon(
-                                                imageVector = Icons.Default.CheckCircle,
-                                                contentDescription = "Cuenta Verificada",
-                                                tint = Color(0xFF18E7F5),
-                                                modifier = Modifier.size(18.dp)
-                                            )
-                                        }
-                                    }
-                                    Text(
-                                        text = SupabaseClient.currentUser?.email ?: "sin_correo@panalink.com",
-                                        color = PanalinkPalette.textPrimary.copy(alpha = 0.7f),
-                                        fontSize = 12.sp
-                                    )
-                                }
-                            }
-                        }
-
-                        // Stats & Action Buttons Row
-                        Column(modifier = Modifier.padding(start = 16.dp, end = 16.dp, bottom = 16.dp)) {
-                            Row(
-                                modifier = Modifier.fillMaxWidth(),
-                                horizontalArrangement = Arrangement.spacedBy(20.dp)
-                            ) {
-                                val followersCount by viewModel.followersCount.collectAsStateWithLifecycle()
-                                val followingCount by viewModel.followingCount.collectAsStateWithLifecycle()
-                                val likesCount by viewModel.totalLikesCount.collectAsStateWithLifecycle()
-
-                                val stats = listOf(
-                                    followersCount to "Seguidores",
-                                    followingCount to "Siguiendo",
-                                    likesCount to "Me gusta"
-                                )
-                                stats.forEach { (count, label) ->
-                                    Column {
-                                        Text(text = "$count", color = PanalinkPalette.textPrimary, fontWeight = FontWeight.Bold, fontSize = 16.sp)
-                                        Text(text = label, color = PanalinkPalette.textPrimary.copy(alpha = 0.6f), fontSize = 11.sp)
-                                    }
-                                }
-                            }
-
-                            Spacer(modifier = Modifier.height(12.dp))
-
-                            Row(
-                                modifier = Modifier.fillMaxWidth(),
-                                horizontalArrangement = Arrangement.SpaceBetween,
-                                verticalAlignment = Alignment.CenterVertically
-                            ) {
-                                Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
-                                    BadgeSurface(reputationState, when (reputationState) {
-                                        "Verificado" -> Color(0xFF18E7F5)
-                                        "Confiable" -> Color(0xFF64B5F6)
-                                        else -> Color(0xFFFFD54F)
-                                    })
-                                    BadgeSurface("Fundador 🌟", Color(0xFFFFD700))
-                                }
-
-                                Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
-                                    OutlinedButton(
-                                        onClick = { isEditingProfile = true },
-                                        colors = ButtonDefaults.outlinedButtonColors(contentColor = Color.White),
-                                        border = androidx.compose.foundation.BorderStroke(1.dp, Color.White.copy(alpha = 0.5f)),
-                                        shape = RoundedCornerShape(12.dp),
-                                        contentPadding = PaddingValues(horizontal = 12.dp, vertical = 6.dp)
-                                    ) {
-                                        Icon(Icons.Default.Edit, contentDescription = null, modifier = Modifier.size(14.dp))
-                                        Spacer(modifier = Modifier.width(4.dp))
-                                        Text("Editar", fontSize = 12.sp)
-                                    }
-
-                                    Button(
-                                        onClick = { showControlCenter = true },
-                                        colors = ButtonDefaults.buttonColors(containerColor = Color(0xFFFF28C8)),
-                                        shape = RoundedCornerShape(12.dp),
-                                        contentPadding = PaddingValues(horizontal = 12.dp, vertical = 6.dp)
-                                    ) {
-                                        Icon(Icons.Default.Settings, contentDescription = null, tint = Color(0xFF131A22), modifier = Modifier.size(14.dp))
-                                        Spacer(modifier = Modifier.width(4.dp))
-                                        Text("Ajustes", color = Color(0xFF131A22), fontWeight = FontWeight.Bold, fontSize = 12.sp)
-                                    }
-                                }
-                            }
-                        }
-                    }
-                }
-            }
-
-            // Tabs for Reels & Guardados
-            TabRow(
-                selectedTabIndex = selectedTabIndex,
-                containerColor = Color.Transparent,
-                contentColor = Color(0xFFFF28C8),
-                divider = {},
-                indicator = { tabPositions ->
-                    if (selectedTabIndex < tabPositions.size) {
-                        TabRowDefaults.SecondaryIndicator(
-                            modifier = Modifier.tabIndicatorOffset(tabPositions[selectedTabIndex]),
-                            color = Color(0xFFFF28C8)
                         )
                     }
+                    Box(
+                        Modifier
+                            .fillMaxSize()
+                            .background(
+                                Brush.verticalGradient(
+                                    listOf(Color.Transparent, IosBlack.copy(alpha = 0.96f))
+                                )
+                            )
+                    )
                 }
-            ) {
-                Tab(
-                    selected = selectedTabIndex == 0,
-                    onClick = { selectedTabIndex = 0 },
-                    text = { Text("Reels 🎬", color = if (selectedTabIndex == 0) Color(0xFFFF28C8) else Color.White.copy(alpha = 0.6f)) }
-                )
-                Tab(
-                    selected = selectedTabIndex == 1,
-                    onClick = {
-                        selectedTabIndex = 1
-                        viewModel.loadSavedContent()
-                    },
-                    text = { Text("Guardados 🔖", color = if (selectedTabIndex == 1) Color(0xFFFF28C8) else Color.White.copy(alpha = 0.6f)) }
-                )
-            }
 
-            if (selectedTabIndex == 0) {
-                ReelsGrid(viewModel = viewModel, onNavigateToReel = onNavigateToReel)
-            } else {
-                SavedGrid(viewModel = viewModel, onNavigateToReel = onNavigateToReel)
+                Column(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .padding(horizontal = 16.dp)
+                ) {
+                    // Avatar with subtle premium aura.
+                    Box(
+                        modifier = Modifier
+                            .offset(y = (-42).dp)
+                            .size(96.dp)
+                            .background(
+                                Brush.linearGradient(listOf(IosGreen, IosBlue, IosPink)),
+                                CircleShape
+                            )
+                            .padding(3.dp)
+                            .clickable { isEditingProfile = true }
+                    ) {
+                        PanaAvatar(
+                            avatarUrl = selectedAvatarUrl.ifEmpty { null },
+                            size = 90.dp,
+                            borderWidth = 0.dp,
+                            borderColor = Color.Transparent,
+                            contentDescription = "Avatar de Perfil",
+                            placeholderName = displayName
+                        )
+                    }
+
+                    Spacer(modifier = Modifier.height((-25).dp))
+
+                    Row(verticalAlignment = Alignment.CenterVertically) {
+                        Text(
+                            text = displayName.ifEmpty { "Pana de Panalink" },
+                            color = Color.White,
+                            fontSize = 24.sp,
+                            fontWeight = FontWeight.Bold,
+                            letterSpacing = (-0.5).sp
+                        )
+                        if (reputationState == "Verificado") {
+                            Spacer(modifier = Modifier.width(6.dp))
+                            Icon(
+                                Icons.Default.CheckCircle,
+                                contentDescription = "Verificado",
+                                tint = IosBlue,
+                                modifier = Modifier.size(20.dp)
+                            )
+                        }
+                    }
+
+                    Text(
+                        text = SupabaseClient.currentUser?.email ?: "sin_correo@panalink.com",
+                        color = IosTextGray,
+                        fontSize = 13.sp,
+                        modifier = Modifier.padding(top = 2.dp)
+                    )
+
+                    Spacer(modifier = Modifier.height(16.dp))
+
+                    // iOS translucent statistics capsule.
+                    Row(
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .background(Color.White.copy(alpha = 0.05f), RoundedCornerShape(16.dp))
+                            .border(1.dp, IosBorder, RoundedCornerShape(16.dp))
+                            .padding(vertical = 12.dp, horizontal = 10.dp),
+                        horizontalArrangement = Arrangement.SpaceAround,
+                        verticalAlignment = Alignment.CenterVertically
+                    ) {
+                        IosStatItem("$followersCount", "Seguidores")
+                        VerticalDivider(color = IosBorder, modifier = Modifier.height(25.dp))
+                        IosStatItem("$followingCount", "Siguiendo")
+                        VerticalDivider(color = IosBorder, modifier = Modifier.height(25.dp))
+                        IosStatItem("$likesCount", "Me gusta")
+                    }
+
+                    Spacer(modifier = Modifier.height(14.dp))
+
+                    Row(
+                        modifier = Modifier.fillMaxWidth(),
+                        horizontalArrangement = Arrangement.spacedBy(7.dp)
+                    ) {
+                        IosBadge("${if (reputationState == "Verificado") "✓ " else ""}$reputationState", if (reputationState == "Verificado") IosBlue else Color(0xFF64B5F6), Modifier.weight(1f))
+                        IosBadge("Fundador 👑", IosGold, Modifier.weight(1f))
+                        IosActionButton(Icons.Default.Edit, "Editar", false, Modifier.weight(1.05f)) { isEditingProfile = true }
+                        IosActionButton(Icons.Default.Settings, "Ajustes", true, Modifier.weight(1.15f)) { showControlCenter = true }
+                    }
+                }
+
+                Spacer(modifier = Modifier.height(24.dp))
+
+                // Clean iOS-style tabs.
+                Row(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .background(IosBlack)
+                        .border(0.5.dp, IosBorder),
+                    horizontalArrangement = Arrangement.SpaceEvenly
+                ) {
+                    IosTabButton(
+                        title = "Reels",
+                        icon = Icons.Outlined.GridView,
+                        isActive = selectedTabIndex == 0,
+                        onClick = { selectedTabIndex = 0 },
+                        modifier = Modifier.weight(1f)
+                    )
+                    IosTabButton(
+                        title = "Guardados",
+                        icon = Icons.Outlined.BookmarkBorder,
+                        isActive = selectedTabIndex == 1,
+                        onClick = {
+                            selectedTabIndex = 1
+                            viewModel.loadSavedContent()
+                        },
+                        modifier = Modifier.weight(1f)
+                    )
+                }
+
+                Spacer(modifier = Modifier.height(2.dp))
+
+                // Keep the real grids/data/navigation; only the surrounding presentation changes.
+                if (selectedTabIndex == 0) {
+                    ReelsGrid(viewModel = viewModel, onNavigateToReel = onNavigateToReel)
+                } else {
+                    SavedGrid(viewModel = viewModel, onNavigateToReel = onNavigateToReel)
+                }
+
+                Spacer(modifier = Modifier.height(30.dp))
             }
         }
+
+        // iPhone home indicator.
+        Box(
+            modifier = Modifier
+                .align(Alignment.BottomCenter)
+                .padding(bottom = 6.dp)
+                .width(134.dp)
+                .height(5.dp)
+                .clip(CircleShape)
+                .background(Color.White.copy(alpha = 0.72f))
+        )
     }
 }
 
 @Composable
-fun BadgeSurface(label: String, color: Color) {
-    Surface(
-        color = color.copy(alpha = 0.15f),
-        shape = RoundedCornerShape(8.dp),
-        border = androidx.compose.foundation.BorderStroke(1.dp, color.copy(alpha = 0.4f))
+private fun IosCircleButton(
+    icon: androidx.compose.ui.graphics.vector.ImageVector,
+    contentDescription: String,
+    onClick: () -> Unit
+) {
+    Box(
+        modifier = Modifier
+            .size(40.dp)
+            .clip(CircleShape)
+            .background(Color.White.copy(alpha = 0.09f))
+            .border(1.dp, IosBorder, CircleShape)
+            .clickable(onClick = onClick),
+        contentAlignment = Alignment.Center
     ) {
+        Icon(icon, contentDescription, tint = Color.White, modifier = Modifier.size(21.dp))
+    }
+}
+
+@Composable
+private fun IosStatItem(count: String, label: String) {
+    Column(horizontalAlignment = Alignment.CenterHorizontally) {
+        Text(count, color = Color.White, fontSize = 16.sp, fontWeight = FontWeight.Bold)
+        Text(label, color = IosTextGray, fontSize = 12.sp, fontWeight = FontWeight.Medium)
+    }
+}
+
+@Composable
+private fun IosBadge(label: String, color: Color, modifier: Modifier = Modifier) {
+    Box(
+        modifier = modifier
+            .clip(RoundedCornerShape(12.dp))
+            .background(IosSurface)
+            .border(1.dp, IosBorder, RoundedCornerShape(12.dp))
+            .padding(vertical = 10.dp, horizontal = 7.dp),
+        contentAlignment = Alignment.Center
+    ) {
+        Text(label, color = color, fontSize = 11.sp, fontWeight = FontWeight.Bold, maxLines = 1)
+    }
+}
+
+@Composable
+private fun IosActionButton(
+    icon: androidx.compose.ui.graphics.vector.ImageVector,
+    label: String,
+    isPrimary: Boolean,
+    modifier: Modifier = Modifier,
+    onClick: () -> Unit
+) {
+    val background = if (isPrimary) {
+        Brush.linearGradient(listOf(Color(0xFFDB2777), IosPink))
+    } else {
+        Brush.linearGradient(listOf(IosSurface, IosSurface))
+    }
+
+    Row(
+        modifier = modifier
+            .clip(RoundedCornerShape(12.dp))
+            .background(background)
+            .border(1.dp, if (isPrimary) Color.Transparent else IosBorder, RoundedCornerShape(12.dp))
+            .clickable(onClick = onClick)
+            .padding(vertical = 10.dp, horizontal = 7.dp),
+        horizontalArrangement = Arrangement.Center,
+        verticalAlignment = Alignment.CenterVertically
+    ) {
+        Icon(icon, contentDescription = label, tint = Color.White, modifier = Modifier.size(15.dp))
+        Spacer(modifier = Modifier.width(4.dp))
+        Text(label, color = Color.White, fontSize = 12.sp, fontWeight = FontWeight.Bold, maxLines = 1)
+    }
+}
+
+@Composable
+private fun IosTabButton(
+    title: String,
+    icon: androidx.compose.ui.graphics.vector.ImageVector,
+    isActive: Boolean,
+    onClick: () -> Unit,
+    modifier: Modifier = Modifier
+) {
+    Column(
+        modifier = modifier
+            .clickable(onClick = onClick)
+            .padding(vertical = 12.dp),
+        horizontalAlignment = Alignment.CenterHorizontally
+    ) {
+        Icon(
+            icon,
+            contentDescription = title,
+            tint = if (isActive) Color.White else IosTextGray,
+            modifier = Modifier.size(19.dp)
+        )
+        Spacer(modifier = Modifier.height(4.dp))
         Text(
-            text = label,
-            color = color,
-            fontSize = 10.sp,
-            fontWeight = FontWeight.ExtraBold,
-            modifier = Modifier.padding(horizontal = 8.dp, vertical = 4.dp)
+            title,
+            color = if (isActive) Color.White else IosTextGray,
+            fontSize = 13.sp,
+            fontWeight = if (isActive) FontWeight.Bold else FontWeight.Medium
+        )
+        Spacer(modifier = Modifier.height(4.dp))
+        Box(
+            modifier = Modifier
+                .width(if (isActive) 40.dp else 0.dp)
+                .height(3.dp)
+                .clip(RoundedCornerShape(3.dp))
+                .background(
+                    if (isActive) Brush.horizontalGradient(listOf(Color(0xFFDB2777), IosPink))
+                    else Brush.horizontalGradient(listOf(Color.Transparent, Color.Transparent))
+                )
         )
     }
 }
