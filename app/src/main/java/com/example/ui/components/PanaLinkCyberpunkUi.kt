@@ -397,7 +397,16 @@ fun PaniOSUnifiedTopBar(
     Column(
         modifier = modifier
             .fillMaxWidth()
-            .background(Color(0xFF0D0F12))
+            .background(
+                Brush.verticalGradient(
+                    listOf(
+                        Color(0xD90D0F12),
+                        Color(0xB81C2024),
+                        Color(0xD90D0F12)
+                    )
+                )
+            )
+            .border(1.dp, Color(0x26FFFFFF), RoundedCornerShape(0.dp))
             .statusBarsPadding()
             .padding(horizontal =  16.dp, vertical =  8.dp)
     ) {
