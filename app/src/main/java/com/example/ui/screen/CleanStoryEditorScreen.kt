@@ -6,10 +6,14 @@ import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.PickVisualMediaRequest
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.animation.AnimatedVisibility
+import androidx.compose.animation.animateColorAsState
+import androidx.compose.animation.core.animateDpAsState
+import androidx.compose.animation.core.tween
 import androidx.compose.animation.fadeIn
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
+import androidx.compose.foundation.interaction.MutableInteractionSource
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyRow
 import androidx.compose.foundation.lazy.items
@@ -18,25 +22,30 @@ import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.automirrored.filled.ArrowBack
-import androidx.compose.material.icons.automirrored.filled.Send
+import androidx.compose.material.icons.automirrored.filled.ArrowBackIos
 import androidx.compose.material.icons.filled.Audiotrack
-import androidx.compose.material.icons.filled.Image
 import androidx.compose.material.icons.filled.LibraryMusic
 import androidx.compose.material.icons.filled.Stop
-import androidx.compose.material.icons.filled.TextFields
-import androidx.compose.material.icons.filled.Videocam
+import androidx.compose.material.icons.outlined.FileUpload
+import androidx.compose.material.icons.outlined.Image
+import androidx.compose.material.icons.outlined.TextFields
+import androidx.compose.material.icons.outlined.Videocam
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.draw.shadow
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.text.SpanStyle
+import androidx.compose.ui.text.buildAnnotatedString
+import androidx.compose.ui.text.font.FontFamily
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
+import androidx.compose.ui.text.withStyle
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import coil.compose.AsyncImage
@@ -64,6 +73,16 @@ private val FREE_MUSIC = listOf(
     FreeMusicOption("Gaita Pop", "https://assets.mixkit.co/music/preview/mixkit-pop-05-1522.mp3"),
     FreeMusicOption("Atardecer", "https://assets.mixkit.co/music/preview/mixkit-dreaming-big-31.mp3"),
 )
+
+// Paleta de Colores estilo iOS (dark premium)
+private val IosBlackStory = Color(0xFF000000)
+private val BrandGreenStory = Color(0xFF00FF7F) // Verde Esmeralda/Neón de la marca
+private val SegmentedBgStory = Color(0xFF1C1C1E)
+private val SegmentedActiveStory = Color(0xFF3A3A3C)
+private val PlaceholderBgStory = Color(0xFF161618)
+private val IconBoxBgStory = Color(0xFF2C2C2E)
+private val TextGrayStory = Color(0xFF8E8E93)
+private val BorderWhiteAlphaStory = Color(0x0DFFFFFF) // Blanco al 5%
 
 @OptIn(androidx.compose.material3.ExperimentalMaterial3Api::class)
 @Composable
@@ -313,297 +332,414 @@ fun CleanStoryEditorScreen(
         performPublish()
     }
 
-    Column(
+Box(
         Modifier
             .fillMaxSize()
-            .background(Color(0xFF0B0D10))
-            .statusBarsPadding()
+            .background(IosBlackStory)
     ) {
-        // Header
-        Row(
-            Modifier
-                .fillMaxWidth()
-                .padding(horizontal = 12.dp, vertical = 10.dp),
-            verticalAlignment = Alignment.CenterVertically
-        ) {
-            IconButton(onClick = onBack) {
-                Icon(Icons.AutoMirrored.Filled.ArrowBack, "Regresar", tint = PanalinkPalette.textPrimary)
-            }
-            Spacer(Modifier.width(4.dp))
-            Text("Nueva historia", color = PanalinkPalette.textPrimary, fontWeight = FontWeight.Bold, fontSize = 18.sp)
-            Spacer(Modifier.weight(1f))
-            AnimatedVisibility(visible = publishing, enter = fadeIn(), modifier = Modifier.widthIn(min = 24.dp)) {
-                CircularProgressIndicator(color = Color(0xFF00FF85), modifier = Modifier.size(18.dp), strokeWidth = 2.dp)
-            }
-            IconButton(onClick = { uploadStory() }, enabled = !publishing && canPublish()) {
-                Icon(Icons.AutoMirrored.Filled.Send, "Publicar", tint = Color(0xFF00FF85))
-            }
-        }
-
-        // Contenido a pantalla completa: el preview llena el espacio disponible y
-        // nada queda fuera. El scroll queda solo como respaldo en pantallas muy bajas.
         Column(
             Modifier
                 .fillMaxSize()
-                .navigationBarsPadding()
-                .padding(horizontal = 12.dp)
+                .padding(bottom = 30.dp) // Espacio para el Home Indicator
         ) {
-            // Selector de modo: imagen, vídeo o texto (opciones separadas)
+            // Top Navigation Bar (Estilo iOS)
             Row(
-                Modifier.fillMaxWidth(),
-                horizontalArrangement = Arrangement.spacedBy(8.dp)
-            ) {
-                ModeChip("Imagen", Icons.Filled.Image, mode == StoryMode.IMAGE, Modifier.weight(1f)) {
-                    mode = StoryMode.IMAGE; mediaUri = null
-                }
-                ModeChip("Vídeo", Icons.Filled.Videocam, mode == StoryMode.VIDEO, Modifier.weight(1f)) {
-                    mode = StoryMode.VIDEO; mediaUri = null
-                }
-                ModeChip("Texto", Icons.Filled.TextFields, mode == StoryMode.TEXT, Modifier.weight(1f)) {
-                    mode = StoryMode.TEXT
-                }
-            }
-
-            Spacer(Modifier.height(12.dp))
-
-            if (mode == StoryMode.TEXT) {
-                // Vista previa de historia de texto: ocupa todo el alto libre
-                Box(
-                    Modifier
-                        .fillMaxWidth()
-                        .weight(1f)
-                        .clip(RoundedCornerShape(24.dp))
-                        .border(1.dp, Color.White.copy(alpha = .15f), RoundedCornerShape(24.dp))
-                        .background(Brush.verticalGradient(listOf(palette.top, palette.bottom))),
-                    contentAlignment = Alignment.Center
-                ) {
-                    Text(
-                        textContent.ifBlank { "Tu texto aparecerá aquí" },
-                        color = if (textContent.isBlank()) Color.White.copy(alpha = .5f) else Color.White,
-                        fontSize = 20.sp,
-                        fontWeight = FontWeight.SemiBold,
-                        textAlign = TextAlign.Center,
-                        modifier = Modifier.padding(24.dp)
-                    )
-                }
-
-                Spacer(Modifier.height(10.dp))
-                Text("Tema de fondo", color = Color.Gray, fontSize = 11.sp)
-                LazyRow(
-                    Modifier.padding(vertical = 6.dp),
-                    horizontalArrangement = Arrangement.spacedBy(8.dp)
-                ) {
-                    items(PALETTES) { p ->
-                        Box(
-                            Modifier
-                                .size(26.dp)
-                                .clip(CircleShape)
-                                .border(if (palette == p) 2.dp else 0.5.dp, Color.White, CircleShape)
-                                .background(Brush.linearGradient(listOf(p.top, p.bottom)))
-                                .clickable { palette = p }
-                        )
-                    }
-                }
-
-                OutlinedTextField(
-                    value = textContent,
-                    onValueChange = { if (it.length <= 240) textContent = it },
-                    placeholder = { Text("Escribe tu historia…", color = Color.Gray) },
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .heightIn(min = 70.dp, max = 110.dp),
-                    colors = OutlinedTextFieldDefaults.colors(
-                        focusedTextColor = Color.White,
-                        unfocusedTextColor = Color.White,
-                        focusedBorderColor = Color(0xFF00FF85),
-                        unfocusedBorderColor = Color.Gray
-                    ),
-                    maxLines = 4
-                )
-            } else {
-                // Vista previa de imagen/vídeo: ocupa todo el alto libre
-                Box(
-                    Modifier
-                        .fillMaxWidth()
-                        .weight(1f)
-                        .clip(RoundedCornerShape(24.dp))
-                        .border(1.dp, Color.White.copy(alpha = .15f), RoundedCornerShape(24.dp))
-                        .background(Color(0xFF14171C))
-                        .clickable { launchMediaPicker() },
-                    contentAlignment = Alignment.Center
-                ) {
-                    if (mediaUri != null) {
-                        AsyncImage(
-                            model = mediaUri,
-                            contentDescription = null,
-                            contentScale = ContentScale.Crop,
-                            modifier = Modifier.fillMaxSize()
-                        )
-                        if (mode == StoryMode.VIDEO) {
-                            Icon(
-                                Icons.Filled.Videocam, null,
-                                tint = PanalinkPalette.textPrimary,
-                                modifier = Modifier
-                                    .align(Alignment.TopEnd)
-                                    .padding(10.dp)
-                                    .size(22.dp)
-                            )
-                        }
-                        if (overlayTextEnabled && textContent.isNotBlank()) {
-                            Text(
-                                textContent,
-                                color = PanalinkPalette.textPrimary,
-                                fontSize = 18.sp,
-                                fontWeight = FontWeight.SemiBold,
-                                textAlign = TextAlign.Center,
-                                modifier = Modifier
-                                    .align(Alignment.BottomCenter)
-                                    .background(Color.Black.copy(alpha = .45f))
-                                    .fillMaxWidth()
-                                    .padding(12.dp)
-                            )
-                        }
-                    } else {
-                        Column(horizontalAlignment = Alignment.CenterHorizontally) {
-                            Icon(
-                                if (mode == StoryMode.VIDEO) Icons.Filled.Videocam else Icons.Filled.Image,
-                                null,
-                                tint = Color.Gray,
-                                modifier = Modifier.size(40.dp)
-                            )
-                            Spacer(Modifier.height(6.dp))
-                            Text(
-                                if (mode == StoryMode.VIDEO) "Toca para elegir un vídeo" else "Toca para elegir una imagen",
-                                color = Color.Gray,
-                                fontSize = 13.sp
-                            )
-                        }
-                    }
-                }
-            }
-
-            Spacer(Modifier.height(10.dp))
-
-            // Opciones + acción: columna compacta que se desplaza solo si falta alto,
-            // garantizando que el botón Publicar nunca quede fuera de la pantalla.
-            Column(
                 Modifier
                     .fillMaxWidth()
-                    .verticalScroll(rememberScrollState())
+                    .statusBarsPadding()
+                    .padding(horizontal = 8.dp, vertical = 8.dp),
+                horizontalArrangement = Arrangement.SpaceBetween,
+                verticalAlignment = Alignment.CenterVertically
             ) {
-            if (mode != StoryMode.TEXT) {
-                // Texto sobre la imagen/vídeo: opción separada y opcional
+                // Botón Atrás
                 Row(
-                    Modifier.fillMaxWidth(),
-                    verticalAlignment = Alignment.CenterVertically,
-                    horizontalArrangement = Arrangement.SpaceBetween
+                    Modifier
+                        .clickable(
+                            interactionSource = remember { MutableInteractionSource() },
+                            indication = null
+                        ) { onBack() }
+                        .padding(8.dp),
+                    verticalAlignment = Alignment.CenterVertically
                 ) {
-                    Text("Texto sobre el medio (opcional)", color = PanalinkPalette.textPrimary, fontSize = 13.sp)
-                    Switch(
-                        checked = overlayTextEnabled,
-                        onCheckedChange = { overlayTextEnabled = it },
-                        colors = SwitchDefaults.colors(checkedTrackColor = Color(0xFF00FF85))
+                    Icon(
+                        Icons.AutoMirrored.Filled.ArrowBackIos,
+                        "Atrás",
+                        tint = Color.White,
+                        modifier = Modifier.size(28.dp)
                     )
                 }
-                if (overlayTextEnabled) {
+
+                // Título Centrado
+                Text(
+                    "Nueva historia",
+                    color = Color.White,
+                    fontSize = 17.sp,
+                    fontWeight = FontWeight.SemiBold,
+                    letterSpacing = 0.5.sp,
+                    modifier = Modifier.weight(1f),
+                    textAlign = TextAlign.Center
+                )
+
+                // Botón Acción Primaria
+                Row(
+                    Modifier
+                        .clickable(
+                            interactionSource = remember { MutableInteractionSource() },
+                            indication = null,
+                            enabled = !publishing
+                        ) { uploadStory() }
+                        .padding(8.dp),
+                    verticalAlignment = Alignment.CenterVertically
+                ) {
+                    AnimatedVisibility(visible = publishing, enter = fadeIn()) {
+                        CircularProgressIndicator(
+                            color = BrandGreenStory,
+                            modifier = Modifier.size(16.dp),
+                            strokeWidth = 2.dp
+                        )
+                    }
+                    Spacer(Modifier.width(4.dp))
+                    Text(
+                        "Publicar",
+                        color = BrandGreenStory,
+                        fontSize =  17.sp,
+                        fontWeight = FontWeight.SemiBold
+                    )
+                }
+            }
+
+            // Área Scrolleable
+            Column(
+                Modifier
+                    .fillMaxSize()
+                    .verticalScroll(rememberScrollState())
+                    .padding(horizontal = 16.dp)
+            ) {
+
+                // iOS Segmented Control
+                Row(
+                    Modifier
+                        .fillMaxWidth()
+                        .padding(vertical = 12.dp)
+                        .background(SegmentedBgStory, RoundedCornerShape(12.dp))
+                        .padding(4.dp),
+                    horizontalArrangement = Arrangement.SpaceBetween
+                ) {
+                    SegmentedButtonStory(
+                        "Imagen",
+                        Icons.Outlined.Image,
+                        mode == StoryMode.IMAGE,
+                        Modifier.weight(1f)
+                    ) { mode = StoryMode.IMAGE; mediaUri = null }
+                    SegmentedButtonStory(
+                        "Vídeo",
+                        Icons.Outlined.Videocam,
+                        mode == StoryMode.VIDEO,
+                        Modifier.weight(1f)
+                    ) { mode = StoryMode.VIDEO; mediaUri = null }
+                    SegmentedButtonStory(
+                        "Texto",
+                        Icons.Outlined.TextFields,
+                        mode == StoryMode.TEXT,
+                        Modifier.weight(1f)
+                    ) { mode = StoryMode.TEXT }
+                }
+
+                Spacer(Modifier.height(4.dp))
+
+                if (mode == StoryMode.TEXT) {
+
+                    // Vista previa de historia de texto: ocupa el alto libre, estilo iOS
+                    Box(
+                        Modifier
+                            .fillMaxWidth()
+                            .aspectRatio(3f / 4f)
+                            .clip(RoundedCornerShape(24.dp))
+                            .border(1.dp, BorderWhiteAlphaStory, RoundedCornerShape(24.dp))
+                            .background(Brush.verticalGradient(listOf(palette.top, palette.bottom))),
+                        contentAlignment = Alignment.Center
+                    ) {
+                        Text(
+                            textContent.ifBlank { "Tu texto aparecerá aquí" },
+                            color = if (textContent.isBlank()) Color.White.copy(alpha = .5f) else Color.White,
+                            fontSize = 20.sp,
+                            fontWeight = FontWeight.SemiBold,
+                            textAlign = TextAlign.Center,
+                            modifier = Modifier.padding(24.dp)
+                        )
+                    }
+
+                    Spacer(Modifier.height(12.dp))
+                    Text("Tema de fondo", color = TextGrayStory, fontSize = 11.sp)
+                    LazyRow(
+                        Modifier.padding(vertical = 6.dp),
+                        horizontalArrangement = Arrangement.spacedBy(8.dp)
+                    ) {
+                        items(PALETTES) { p ->
+                            Box(
+                                Modifier
+                                    .size(28.dp)
+                                    .clip(CircleShape)
+                                    .border(if (palette == p) 2.dp else  0.5.dp, Color.White, CircleShape)
+                                    .background(Brush.linearGradient(listOf(p.top, p.bottom)))
+                                    .clickable { palette = p }
+                            )
+                        }
+                    }
+
                     OutlinedTextField(
                         value = textContent,
-                        onValueChange = { if (it.length <= 120) textContent = it },
-                        placeholder = { Text("Texto que irá sobre el medio…", color = Color.Gray) },
-                        modifier = Modifier.fillMaxWidth(),
+                        onValueChange = { if (it.length <= 240) textContent = it },
+                        placeholder = { Text("Escribe tu historia…", color = TextGrayStory) },
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .heightIn(min = 70.dp, max = 110.dp),
                         colors = OutlinedTextFieldDefaults.colors(
                             focusedTextColor = Color.White,
                             unfocusedTextColor = Color.White,
-                            focusedBorderColor = Color(0xFF00FF85),
-                            unfocusedBorderColor = Color.Gray
+                            focusedBorderColor = BrandGreenStory,
+                            unfocusedBorderColor = TextGrayStory.copy(alpha = .4f)
                         ),
-                        maxLines = 2
+                        maxLines = 4
                     )
-                }
-            }
+                } else {
 
-            Spacer(Modifier.height(10.dp))
-            // Audio de fondo: opción separada y opcional
-            Row(
-                Modifier.fillMaxWidth(),
-                verticalAlignment = Alignment.CenterVertically,
-                horizontalArrangement = Arrangement.SpaceBetween
-            ) {
-                Text("Audio de fondo (opcional)", color = PanalinkPalette.textPrimary, fontSize = 13.sp)
-                Switch(
-                    checked = audioEnabled,
-                    onCheckedChange = { audioEnabled = it },
-                    colors = SwitchDefaults.colors(checkedTrackColor = Color(0xFF00FF85))
-                )
-            }
-            if (audioEnabled) {
-                LazyRow(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
-                    items(FREE_MUSIC) { item ->
-                        ElevatedButton(onClick = {
-                            audioUri = null
-                            audioName = item.name
-                            audioUrl = item.url
-                        }) {
-                            Icon(Icons.Filled.LibraryMusic, null, Modifier.size(14.dp))
-                            Spacer(Modifier.width(4.dp))
-                            Text(item.name, fontSize = 12.sp)
-                        }
-                    }
-                }
-                Spacer(Modifier.height(6.dp))
-                Row(
-                    Modifier.fillMaxWidth(),
-                    verticalAlignment = Alignment.CenterVertically,
-                    horizontalArrangement = Arrangement.SpaceBetween
-                ) {
-                    Text(
-                        audioName ?: "Ningún audio seleccionado",
-                        color = if (audioName == null) Color.Gray else Color.White,
-                        fontSize = 13.sp,
-                        modifier = Modifier.weight(1f),
-                        maxLines = 1,
-                        overflow = androidx.compose.ui.text.style.TextOverflow.Ellipsis
-                    )
-                    Row(horizontalArrangement = Arrangement.spacedBy(6.dp)) {
-                        if (audioName != null) {
-                            IconButton(onClick = { togglePreviewAudio() }) {
+                    // Placeholder Multimedia estilo iOS
+                    Box(
+                        Modifier
+                            .fillMaxWidth()
+                            .aspectRatio(3f / 4f)
+                            .clip(RoundedCornerShape(24.dp))
+                            .background(PlaceholderBgStory)
+                            .border(1.dp, BorderWhiteAlphaStory, RoundedCornerShape(24.dp))
+                            .clickable { launchMediaPicker() },
+                        contentAlignment = Alignment.Center
+                    ) {
+                        if (mediaUri != null) {
+                            AsyncImage(
+                                model = mediaUri,
+                                contentDescription = null,
+                                contentScale = ContentScale.Crop,
+                                modifier = Modifier.fillMaxSize()
+                            )
+                            if (mode == StoryMode.VIDEO) {
                                 Icon(
-                                    if (audioPlaying) Icons.Filled.Stop else Icons.Filled.Audiotrack,
-                                    contentDescription = if (audioPlaying) "Parar" else "Reproducir",
-                                    tint = if (audioPlaying) Color(0xFF00FF85) else Color.White
+                                    Icons.Outlined.Videocam, null,
+                                    tint = Color.White,
+                                    modifier = Modifier
+                                        .align(Alignment.TopEnd)
+                                        .padding(10.dp)
+                                        .size(22.dp)
+                                )
+                            }
+                            if (overlayTextEnabled && textContent.isNotBlank()) {
+                                Text(
+                                    textContent,
+                                    color = Color.White,
+                                    fontSize = 18.sp,
+                                    fontWeight = FontWeight.SemiBold,
+                                    textAlign = TextAlign.Center,
+                                    modifier = Modifier
+                                        .align(Alignment.BottomCenter)
+                                        .background(Color.Black.copy(alpha = .45f))
+                                        .fillMaxWidth()
+                                        .padding(12.dp)
+                                )
+                            }
+                        } else {
+                            Column(horizontalAlignment = Alignment.CenterHorizontally) {
+                                Box(
+                                    Modifier
+                                        .size(64.dp)
+                                        .background(IconBoxBgStory, RoundedCornerShape(16.dp)),
+                                    contentAlignment = Alignment.Center
+                                ) {
+                                    val activeIcon = when (mode) {
+                                        StoryMode.IMAGE -> Icons.Outlined.Image
+                                        StoryMode.VIDEO -> Icons.Outlined.Videocam
+                                        else -> Icons.Outlined.TextFields
+                                    }
+                                    Icon(
+                                        activeIcon,
+                                        null,
+                                        tint = TextGrayStory,
+                                        modifier = Modifier.size(32.dp)
+                                    )
+                                }
+                                Spacer(Modifier.height(16.dp))
+                                val activeText = when (mode) {
+                                    StoryMode.IMAGE ->"una imagen"
+                                    StoryMode.VIDEO ->"un vídeo"
+                                    else ->"un fondo"
+                                }
+                                Text(
+                                    "Toca para elegir $activeText",
+                                    color = TextGrayStory,
+                                    fontSize = 15.sp,
+                                    fontWeight = FontWeight.Medium,
+                                    fontFamily = FontFamily.Serif
                                 )
                             }
                         }
-                        OutlinedButton(
-                            onClick = { pickAudio.launch("audio/*") },
-                            modifier = Modifier.height(34.dp)
-                        ) {
-                            if (isUploadingAudio) {
-                                CircularProgressIndicator(color = Color(0xFF00FF85), modifier = Modifier.size(14.dp), strokeWidth = 2.dp)
+                    }
+                }
+
+                Spacer(Modifier.height(20.dp))
+
+                // Texto sobre el medio (solo imagen/vídeo)
+                if (mode != StoryMode.TEXT) {
+
+                    SettingRowWithSwitchStory(
+                        "Texto sobre el medio",
+                        "(opcional)",
+                        overlayTextEnabled,
+                        { overlayTextEnabled = it }
+                    )
+
+                    if (overlayTextEnabled) {
+                        Spacer(Modifier.height(10.dp))
+                        OutlinedTextField(
+                            value = textContent,
+                            onValueChange = { if (it.length <= 120) textContent = it },
+                            placeholder = { Text("Texto que irá sobre el medio…", color = TextGrayStory) },
+                            modifier = Modifier.fillMaxWidth(),
+                            colors = OutlinedTextFieldDefaults.colors(
+                                focusedTextColor = Color.White,
+                                unfocusedTextColor = Color.White,
+                                focusedBorderColor = BrandGreenStory,
+                                unfocusedBorderColor = TextGrayStory.copy(alpha = .4f)
+                            ),
+                            maxLines = 2
+                        )
+                    }
+
+                    Spacer(Modifier.height(18.dp))
+                }
+
+                // Audio de fondo (opcional)
+                SettingRowWithSwitchStory(
+                    "Audio de fondo",
+                    "(opcional)",
+                    audioEnabled,
+                    { audioEnabled = it }
+                )
+
+                if (audioEnabled) {
+                    Spacer(Modifier.height(10.dp))
+                    LazyRow(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+
+                        items(FREE_MUSIC) { item ->
+                            Row(
+                                Modifier
+                                    .clip(RoundedCornerShape(12.dp))
+                                    .background(IconBoxBgStory)
+                                    .clickable {
+                                        audioUri = null; audioName = item.name; audioUrl = item.url
+                                    }
+                                    .padding(horizontal = 10.dp, vertical = 8.dp),
+                                verticalAlignment = Alignment.CenterVertically
+                            ) {
+                                Icon(Icons.Filled.LibraryMusic, null, Modifier.size(14.dp), tint = Color.White
+                                )
+                                Spacer(Modifier.width(4.dp))
+                                Text(item.name, color = Color.White, fontSize = 12.sp)
                             }
-                            Spacer(Modifier.width(4.dp))
-                            Text(if (audioName == null) "Elegir archivo" else "Cambiar", fontSize = 12.sp)
+                        }
+                    }
+                    Spacer(Modifier.height(6.dp))
+                    Row(
+                        Modifier.fillMaxWidth(),
+                        verticalAlignment = Alignment.CenterVertically,
+                        horizontalArrangement = Arrangement.SpaceBetween
+                    ) {
+                        Text(
+                            audioName ?: "Ningún audio seleccionado",
+                            color = if (audioName == null) TextGrayStory else Color.White,
+                            fontSize = 13.sp,
+                            modifier = Modifier.weight(1f),
+                            maxLines = 1,
+                            overflow = androidx.compose.ui.text.style.TextOverflow.Ellipsis
+                        )
+                        Row(horizontalArrangement = Arrangement.spacedBy(6.dp)) {
+
+                            if (audioName != null) {
+                                IconButton(onClick = { togglePreviewAudio() }) {
+                                    Icon(
+                                        if (audioPlaying) Icons.Filled.Stop else Icons.Filled.Audiotrack,
+                                        contentDescription = if (audioPlaying) "Parar" else "Reproducir",
+                                        tint = if (audioPlaying) BrandGreenStory else Color.White
+                                    )
+                                }
+                            }
+                            Button(
+                                onClick = { pickAudio.launch("audio/*") },
+                                modifier = Modifier.height(34.dp),
+                                shape = RoundedCornerShape(12.dp),
+                                colors = ButtonDefaults.buttonColors(containerColor = IconBoxBgStory, contentColor = Color.White)
+                            ) {
+
+                                if (isUploadingAudio) {
+                                    CircularProgressIndicator(
+                                        color = BrandGreenStory,
+                                        modifier = Modifier.size(14.dp),
+                                        strokeWidth = 2.dp
+                                    )
+                                }
+                                Spacer(Modifier.width(4.dp))
+                                Text(if (audioName == null) "Elegir archivo" else "Cambiar", fontSize =  12.sp)
+                            }
                         }
                     }
                 }
-            }
 
-            Spacer(Modifier.height(16.dp))
-            Button(
-                onClick = { uploadStory() },
-                enabled = !publishing && canPublish(),
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .height(48.dp),
-                colors = ButtonDefaults.buttonColors(containerColor = Color(0xFF00FF85))
-            ) {
-                Icon(Icons.AutoMirrored.Filled.Send, null, tint = Color.Black, modifier = Modifier.size(16.dp))
-                Spacer(Modifier.width(8.dp))
-                Text("Publicar historia", color = Color.Black, fontWeight = FontWeight.Bold)
-            }
-            Spacer(Modifier.height(24.dp))
+                Spacer(Modifier.height(20.dp))
+
+
+                // Botón inferior de Publicar
+                Row(
+                    Modifier
+                        .fillMaxWidth()
+                        .clip(RoundedCornerShape(16.dp))
+                        .background(SegmentedBgStory)
+                        .border(1.dp, BorderWhiteAlphaStory, RoundedCornerShape(16.dp))
+                        .clickable(
+                            interactionSource = remember { MutableInteractionSource() },
+                            indication = null,
+                            enabled = !publishing && canPublish()
+                        ) { uploadStory() }
+                        .padding(vertical = 16.dp),
+                    horizontalArrangement = Arrangement.Center,
+                    verticalAlignment = Alignment.CenterVertically
+                ) {
+                    Icon(
+                        Icons.Outlined.FileUpload,
+                        "Publicar",
+                        tint = TextGrayStory,
+                        modifier = Modifier.size(20.dp)
+                    )
+                    Spacer(Modifier.width(8.dp))
+                    Text(
+                        "Publicar historia",
+                        color = Color.White,
+                        fontSize = 16.sp,
+                        fontWeight = FontWeight.SemiBold
+                    )
+                }
+
+                Spacer(Modifier.height(24.dp))
             }
         }
+
+
+        // Mock Home Indicator iOS
+        Box(
+            Modifier
+                .align(Alignment.BottomCenter)
+                .padding(bottom = 8.dp)
+                .width(134.dp)
+                .height(5.dp)
+                .background(Color.White, CircleShape)
+        )
     }
 
     if (showOverlongClipDialog) {
@@ -633,24 +769,94 @@ fun CleanStoryEditorScreen(
 }
 
 @Composable
-private fun ModeChip(
+private fun SegmentedButtonStory(
     label: String,
     icon: androidx.compose.ui.graphics.vector.ImageVector,
     selected: Boolean,
     modifier: Modifier = Modifier,
     onClick: () -> Unit
 ) {
+    val bgColor by animateColorAsState(
+        targetValue = if (selected) SegmentedActiveStory else Color.Transparent,
+        animationSpec = tween(durationMillis = 200)
+    )
+    val contentColor = if (selected) Color.White else TextGrayStory
     Row(
-        verticalAlignment = Alignment.CenterVertically,
-        horizontalArrangement = Arrangement.Center,
         modifier = modifier
-            .clip(RoundedCornerShape(12.dp))
-            .clickable(onClick = onClick)
-            .background(if (selected) Color(0xFF00FF85) else Color(0xFF1C1E24))
-            .padding(horizontal = 10.dp, vertical = 10.dp)
+            .clip(RoundedCornerShape(8.dp))
+            .background(bgColor)
+            .clickable(
+                interactionSource = remember { MutableInteractionSource() },
+                indication = null,
+                onClick = onClick
+            )
+            .padding(vertical = 8.dp),
+        horizontalArrangement = Arrangement.Center,
+        verticalAlignment = Alignment.CenterVertically
     ) {
-        Icon(icon, null, tint = if (selected) Color.Black else Color.White, modifier = Modifier.size(14.dp))
-        Spacer(Modifier.width(4.dp))
-        Text(label, color = if (selected) Color.Black else Color.White, fontSize = 12.sp)
+        Icon(icon, contentDescription = label, tint = contentColor, modifier = Modifier.size(16.dp))
+        Spacer(Modifier.width(6.dp))
+        Text(label, color = contentColor, fontSize = 14.sp, fontWeight = FontWeight.Medium)
+    }
+}
+
+@Composable
+private fun SettingRowWithSwitchStory(
+    title: String,
+    subtitle: String,
+    checked: Boolean,
+    onCheckedChange: (Boolean) -> Unit
+) {
+    Row(
+        modifier = Modifier.fillMaxWidth(),
+        horizontalArrangement = Arrangement.SpaceBetween,
+        verticalAlignment = Alignment.CenterVertically
+    ) {
+        Text(
+            text = buildAnnotatedString {
+                withStyle(style = SpanStyle(color = Color.White, fontSize = 16.sp)) {
+                    append("$title ")
+                }
+                withStyle(style = SpanStyle(color = TextGrayStory, fontSize = 14.sp)) {
+                    append(subtitle)
+                }
+            }
+        )
+        IosCustomSwitchStory(checked = checked, onCheckedChange = onCheckedChange)
+    }
+}
+
+@Composable
+private fun IosCustomSwitchStory(checked: Boolean, onCheckedChange:(Boolean) -> Unit) {
+    val thumbOffset by animateDpAsState(
+        targetValue = if (checked) 20.dp else 0.dp,
+        animationSpec = tween(durationMillis = 300)
+    )
+    val bgColor by animateColorAsState(
+        targetValue = if (checked) BrandGreenStory else Color(0xFF39393D),
+        animationSpec = tween(durationMillis = 300)
+    )
+    Box(
+        modifier = Modifier
+            .width(51.dp)
+            .height(31.dp)
+            .clip(CircleShape)
+            .background(bgColor)
+            .clickable(
+                interactionSource = remember { MutableInteractionSource() },
+                indication = null,
+                onClick = { onCheckedChange(!checked) }
+            )
+            .padding(2.dp),
+        contentAlignment = Alignment.CenterStart
+    ) {
+        Box(
+            modifier = Modifier
+                .offset(x = thumbOffset)
+                .size(27.dp)
+                .shadow(elevation = 2.dp, shape = CircleShape)
+                .clip(CircleShape)
+                .background(Color.White)
+        )
     }
 }
