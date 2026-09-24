@@ -29,6 +29,7 @@ import com.example.identity.model.toIdentityUiState
 import com.example.ui.theme.ChatCardPosition
 import com.example.ui.theme.GoldGlassCard
 import com.example.ui.theme.PanalinkSkin
+import com.example.ui.theme.PanalinkPalette
 import com.example.ui.theme.chatCardShape
 
 @OptIn(ExperimentalFoundationApi::class)
@@ -62,7 +63,7 @@ fun ChatPreviewCard(
     val secondaryStatus = if (presenceInfo?.secondaryStatus != com.example.data.repository.SecondaryPresenceStatus.NONE) presenceInfo?.secondaryStatus?.rawValue else null
     val isOnline = userStatus != "offline"
 
-    val selectedContainer = Color(0xFF2A3446)
+    val selectedContainer = Color(0xFF243744)
     val containerColor by animateColorAsState(
         targetValue = if (isSelected) selectedContainer else PanalinkSkin.GlassStrong,
         label = "container_color"
@@ -99,7 +100,7 @@ fun ChatPreviewCard(
                         placeholderName = safeDisplayName,
                         size = 54.dp,
                         borderWidth = 1.5.dp,
-                        borderColor = PanalinkSkin.Gold
+                        borderColor = PanalinkPalette.online
                     )
 
                     PresenceIndicator(
@@ -132,7 +133,7 @@ fun ChatPreviewCard(
 
                         Text(
                             text = formattedTime,
-                            color = if (chatDetails.unreadCount > 0) PanalinkSkin.GoldBright else PanalinkSkin.Sub,
+                            color = if (chatDetails.unreadCount > 0) PanalinkPalette.online else PanalinkSkin.Sub,
                             fontSize = 12.sp,
                             fontWeight = if (chatDetails.unreadCount > 0) FontWeight.Bold else FontWeight.Normal
                         )
