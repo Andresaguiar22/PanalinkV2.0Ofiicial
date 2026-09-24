@@ -439,7 +439,7 @@ fun PaniOSUnifiedTopBar(
                         }
                         if (onCompose != {}) {
                             IconButton(onClick = onCompose, modifier = Modifier.size(40.dp)) {
-                                Icon(Icons.Rounded.Add, contentDescription = "Crear", tint = tint, modifier = Modifier.size(22.dp))
+                                Icon(Icons.Filled.Add, contentDescription = "Crear", tint = tint, modifier = Modifier.size(22.dp))
                             }
                         }
                         if (onSearch != null) {
