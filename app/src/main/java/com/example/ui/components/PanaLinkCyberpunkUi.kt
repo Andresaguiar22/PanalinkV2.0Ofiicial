@@ -169,45 +169,74 @@ fun PanaLinkCyberpunkTopBar(
             )
         )
 
-        // Barra superior limpia: sin píldora. Las píldoras quedan reservadas
-        // para la navegación inferior, donde funcionan como selector de pestaña.
-        Row(
-            verticalAlignment = Alignment.CenterVertically,
-            horizontalArrangement = Arrangement.spacedBy(2.dp)
+        // Píldora superior: agrupa las acciones y el perfil en una sola pieza
+        // visual, con un halo verde suave para dar jerarquía sin recargar la barra.
+        Box(
+            modifier = Modifier
+                .clip(RoundedCornerShape(28.dp))
+                .background(
+                    Brush.horizontalGradient(
+                        listOf(
+                            Color(0xE6202B36),
+                            Color(0xF025303B),
+                            Color(0xE6202B36)
+                        )
+                    )
+                )
+                .border(
+                    1.dp,
+                    Color(0x6635D07F),
+                    RoundedCornerShape(28.dp)
+                )
+                .padding(horizontal = 5.dp, vertical = 4.dp)
         ) {
-            IconButton(onClick = onAdd, modifier = Modifier.size(44.dp)) {
-                Icon(Icons.Default.Add, contentDescription = "Crear", tint = Color.White)
-            }
-            IconButton(onClick = onSearch, modifier = Modifier.size(44.dp)) {
-                Icon(Icons.Default.Search, contentDescription = "Buscar", tint = Color.White)
-            }
-            IconButton(onClick = onFolder, modifier = Modifier.size(44.dp)) {
-                Icon(Icons.Default.Folder, contentDescription = "Favoritos", tint = Color.White)
-            }
             Box(
                 modifier = Modifier
-                    .padding(start = 4.dp)
-                    .size(42.dp)
-                    .clip(CircleShape)
-                    .clickable(onClick = onProfile)
+                    .matchParentSize()
+                    .blur(16.dp, BlurredEdgeTreatment.Unbounded)
+                    .background(
+                        Color(0x3335D07F),
+                        RoundedCornerShape(28.dp)
+                    )
+            )
+            Row(
+                verticalAlignment = Alignment.CenterVertically,
+                horizontalArrangement = Arrangement.spacedBy(1.dp)
             ) {
-                com.example.ui.components.PanaAvatar(
-                    avatarUrl = SupabaseClient.currentProfile?.avatarUrl,
-                    userId = SupabaseClient.currentUser?.id,
-                    size = 42.dp,
-                    borderWidth = 1.5.dp,
-                    borderColor = Color(0xFF35D07F),
-                    placeholderName = SupabaseClient.currentProfile?.displayName ?: "",
-                    contentDescription = "Perfil"
-                )
-                val myPresence by com.example.data.repository.PresenceRepository.currentUserStatus.collectAsStateWithLifecycle()
-                val mySecondaryPresence by com.example.data.repository.PresenceRepository.currentUserSecondaryStatus.collectAsStateWithLifecycle()
-                com.example.ui.components.chat.list.PresenceIndicator(
-                    status = myPresence.rawValue,
-                    secondaryStatus = if (mySecondaryPresence != com.example.data.repository.SecondaryPresenceStatus.NONE) mySecondaryPresence.rawValue else null,
-                    size = 9.dp,
-                    modifier = Modifier.align(Alignment.BottomEnd)
-                )
+                IconButton(onClick = onAdd, modifier = Modifier.size(42.dp)) {
+                    Icon(Icons.Default.Add, contentDescription = "Crear", tint = Color.White)
+                }
+                IconButton(onClick = onSearch, modifier = Modifier.size(42.dp)) {
+                    Icon(Icons.Default.Search, contentDescription = "Buscar", tint = Color.White)
+                }
+                IconButton(onClick = onFolder, modifier = Modifier.size(42.dp)) {
+                    Icon(Icons.Default.Folder, contentDescription = "Favoritos", tint = Color.White)
+                }
+                Box(
+                    modifier = Modifier
+                        .padding(start = 3.dp)
+                        .size(40.dp)
+                        .clip(CircleShape)
+                        .clickable(onClick = onProfile)
+                ) {
+                    com.example.ui.components.PanaAvatar(
+                        avatarUrl = SupabaseClient.currentProfile?.avatarUrl,
+                        userId = SupabaseClient.currentUser?.id,
+                        size = 40.dp,
+                        borderWidth = 1.5.dp,
+                        borderColor = Color(0xFF35D07F),
+                        placeholderName = SupabaseClient.currentProfile?.displayName ?: "",
+                        contentDescription = "Perfil"
+                    )
+                    val myPresence by com.example.data.repository.PresenceRepository.currentUserStatus.collectAsStateWithLifecycle()
+                    val mySecondaryPresence by com.example.data.repository.PresenceRepository.currentUserSecondaryStatus.collectAsStateWithLifecycle()
+                    com.example.ui.components.chat.list.PresenceIndicator(
+                        status = myPresence.rawValue,
+                        secondaryStatus = if (mySecondaryPresence != com.example.data.repository.SecondaryPresenceStatus.NONE) mySecondaryPresence.rawValue else null,
+                        size = 9.dp,
+                        modifier = Modifier.align(Alignment.BottomEnd)
+                    )
+                }
             }
         }
     }
