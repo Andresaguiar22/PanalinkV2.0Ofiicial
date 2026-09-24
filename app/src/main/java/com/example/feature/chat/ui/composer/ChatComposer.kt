@@ -95,7 +95,7 @@ fun ChatComposer(
     var micDragOffsetY by remember { androidx.compose.runtime.mutableFloatStateOf(0f) }
     val isInputEmpty = inputMessage.trim().isEmpty()
     val primaryColor = PanalinkPalette.accent
-    val bubbleColor = PanalinkPalette.chatIncoming.copy(alpha = 0.92f)
+    val bubbleColor = androidx.compose.ui.graphics.Color(0xFF1C1C1E)
     // Distancia en PX que debe recorrer el dedo (con el micrófono) para que el
     // candado atrape el mic. Geometría real: el candado vive en el top-end del
     // composer con offset(y=-96.dp) y alto 88dp (su centro queda ~52dp por encima
@@ -252,7 +252,7 @@ fun ChatComposer(
                         .weight(1f)
                         .heightIn(min = 52.dp)
                         .background(bubbleColor, CircleShape)
-                        .border(1.dp, primaryColor.copy(alpha = 0.7f), CircleShape)
+                        .border(1.dp, androidx.compose.ui.graphics.Color(0xFF38383A), CircleShape)
                         .padding(start = 4.dp, end = 4.dp),
                     verticalAlignment = Alignment.CenterVertically
                 ) {
@@ -307,8 +307,8 @@ fun ChatComposer(
                                 ) {
                                     if (inputMessage.isEmpty()) {
                                         Text(
-                                            text = "Escribe tu mensaje...",
-                                            color = androidx.compose.ui.graphics.Color(0xFF94A3B8),
+                                            text = "Mensaje de iMessage",
+                                            color = androidx.compose.ui.graphics.Color(0xFF8E8E93),
                                             fontSize = 16.sp
                                         )
                                     }

@@ -53,17 +53,18 @@ sealed class ChatWallpaperSpec {
             Solid("graphite", "Grafito", 0xFF14181D),
             Solid("charcoal_matte", "Carbón Mate", 0xFF191E24),
             Solid("deep_teal", "Verde Botella", 0xFF0B2E2E),
-            Solid("dark_slate", "Pizarra Oscura", 0xFF1A222B)
+            Solid("dark_slate", "Pizarra Oscura", 0xFF1A222B),
+            Solid("ios_black", "iOS Black",  0xFF000000),
         )
 
-        val DEFAULT_ACTIVE = "dark_slate"
+        val DEFAULT_ACTIVE = "ios_black"
 
         fun fromId(id: String?, customUri: String? = null): ChatWallpaperSpec {
-            if (id.isNullOrBlank()) return Solid(DEFAULT_ACTIVE, "Defecto", 0xFF1A222B)
+            if (id.isNullOrBlank()) return Solid(DEFAULT_ACTIVE, "Defecto", 0xFF000000)
             PRESETS.firstOrNull { it.id == id }?.let { return it }
             if (id.startsWith("http")) return Remote(id, "Imagen remota", id)
             if (id == "custom" && !customUri.isNullOrBlank()) return Custom("custom", "Galería", customUri)
-            return Solid(DEFAULT_ACTIVE, "Defecto", 0xFF1A222B)
+            return Solid(DEFAULT_ACTIVE, "Defecto", 0xFF000000)
         }
     }
 }

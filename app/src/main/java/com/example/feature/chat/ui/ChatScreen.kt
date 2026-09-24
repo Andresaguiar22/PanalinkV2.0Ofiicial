@@ -673,7 +673,7 @@ fun ChatScreen(
 
     Scaffold(
         contentWindowInsets = WindowInsets(0, 0, 0, 0),
-        containerColor = Color(0xFF0D0F12)
+        containerColor = Color(0xFF000000)
     ) { innerPadding ->
         Column(
             modifier = Modifier
@@ -681,14 +681,7 @@ fun ChatScreen(
                 .padding(top = innerPadding.calculateTopPadding())
                 .navigationBarsPadding()
                 .imePadding()
-                .background(
-                    Brush.verticalGradient(
-                        colors = listOf(
-                            Color(0xFF131A22),
-                            Color(0xFF0D0F12)
-                        )
-                    )
-                )
+                .background(Color(0xFF000000))
         ) {
             // Topbar DENTRO del content: así el fondo de chat corre TAMBIÉN debajo
             // de la barra del perfil (referencia).
@@ -936,7 +929,14 @@ fun ChatScreen(
                                         otherAvatarUrl = state.otherUser?.avatarUrl,
                                         otherUserName = state.otherUser?.displayName,
                                         textSizeSp = chatTextSize,
-                                        outgoingBubbleColors = bubblePaletteState.colors,
+                                        outgoingBubbleColors = if (bubblePaletteState.id == "panalink_blue") {
+                                            listOf(
+                                                Color(0xFF007AFF),
+                                                Color(0xFF0066CC)
+                                            )
+                                        } else {
+                                            bubblePaletteState.colors
+                                        },
                                         allMessages = state.messages,
                                         onReply = onReplyCallback,
                                         onDeleteForMe = onDeleteForMeCallback,

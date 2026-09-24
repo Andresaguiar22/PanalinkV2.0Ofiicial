@@ -78,12 +78,12 @@ fun ChatTopBar(
 
     val isTyping = typingUsers.contains(otherUser?.id ?: "other_user_id_demo")
 
-    // Paleta de cristal de la barra superior
-    val glassTop = Color(0xFF41506A).copy(alpha = 0.90f)
-    val glassBottom = Color(0xFF2A3546).copy(alpha = 0.90f)
-    val glassBorder = Color.White.copy(alpha = 0.12f)
-    val iconTint = Color(0xFFCBD5E1)
-    val accentCyan = Color(0xFF38BDF8)
+    // Paleta iOS para la barra superior (negro puro + azul iOS)
+    val glassTop = Color(0xFF000000)
+    val glassBottom = Color(0xFF000000)
+    val glassBorder = Color(0xFF38383A).copy(alpha =   0.5f)
+    val iconTint = Color(0xFF0A84FF)
+    val accentCyan = Color(0xFF0A84FF)
 
     Box(modifier = Modifier.fillMaxWidth()) {
         if (isLocalSearching) {
@@ -132,21 +132,19 @@ fun ChatTopBar(
                 )
             }
         } else {
-            // Tarjeta flotante de cristal, separada de los bordes y aislada del resto
+            // iOS inline Top Bar (iMessage): franja negra pura, sin burbuja glass
             Box(
                 modifier = Modifier
                     .fillMaxWidth()
                     .windowInsetsPadding(WindowInsets.statusBars)
-                    .padding(start = 12.dp, end = 12.dp, top = 4.dp, bottom = 5.dp)
             ) {
                 Column(
                     modifier = Modifier
                         .fillMaxWidth()
-                        .clip(RoundedCornerShape(28.dp))
-                        .background(Brush.verticalGradient(listOf(glassTop, glassBottom)))
-                        .border(1.dp, glassBorder, RoundedCornerShape(28.dp))
+                        .background(Color(0xFF000000))
+                        .border(width = 0.5.dp, color = Color(0xFF38383A))
                         .clickable(enabled = otherUser != null) { onShowContactDetail() }
-                        .padding(horizontal = 10.dp, vertical = 5.dp),
+                        .padding(horizontal = 8.dp, vertical =   6.dp),
                     horizontalAlignment = Alignment.CenterHorizontally
                 ) {
                     Row(
