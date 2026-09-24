@@ -1,322 +1,174 @@
 package com.example.ui.components
 
-import androidx.compose.animation.AnimatedVisibility
-import androidx.compose.animation.animateColorAsState
-import androidx.compose.animation.core.FastOutSlowInEasing
-import androidx.compose.animation.core.RepeatMode
-import androidx.compose.animation.core.Spring
-import androidx.compose.animation.core.animateFloat
-import androidx.compose.animation.core.animateFloatAsState
-import androidx.compose.animation.core.infiniteRepeatable
-import androidx.compose.animation.core.rememberInfiniteTransition
-import androidx.compose.animation.core.spring
-import androidx.compose.animation.core.tween
-import androidx.compose.animation.expandHorizontally
-import androidx.compose.animation.fadeIn
-import androidx.compose.animation.fadeOut
-import androidx.compose.animation.shrinkHorizontally
 import androidx.compose.foundation.background
-import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
-import androidx.compose.foundation.interaction.MutableInteractionSource
-import androidx.compose.foundation.layout.*
+import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.navigationBarsPadding
+import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.layout.width
+import androidx.compose.foundation.layout.defaultMinSize
+import androidx.compose.foundation.layout.offset
 import androidx.compose.foundation.shape.CircleShape
-import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.Call
-import androidx.compose.material.icons.filled.Chat
-import androidx.compose.material.icons.filled.Person
-import androidx.compose.material.icons.filled.PlayArrow
-import androidx.compose.material.icons.filled.Star
+import androidx.compose.material.icons.outlined.Call
+import androidx.compose.material.icons.outlined.ChatBubble
+import androidx.compose.material.icons.outlined.DonutLarge
+import androidx.compose.material.icons.outlined.People
+import androidx.compose.material.icons.outlined.PlayArrow
+import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Icon
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.collectAsState
-import androidx.compose.runtime.getValue
-import androidx.compose.runtime.mutableFloatStateOf
-import androidx.compose.runtime.remember
-import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
-import androidx.compose.ui.draw.drawBehind
-import androidx.compose.ui.draw.shadow
-import androidx.compose.ui.geometry.Offset
-import com.example.ui.theme.PanalinkPalette
-import com.example.ui.theme.PanalinkSkin
-import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.graphics.drawscope.rotate
-import androidx.compose.ui.layout.onGloballyPositioned
-import androidx.compose.ui.layout.positionInParent
+import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.compose.ui.zIndex
 
+// Colores iOS del mockup
+private val IosTabBlack = Color(0xFF000000)
+private val IosTabBarBg = Color(0xE6121212)
+private val IosTabDivider = Color(0xFF38383A)
+private val IosTabTextGray = Color(0xFF8E8E93)
+private val PanalinkTabTint = Color(0xFF10B981)
+
 @Composable
 fun PanaLinkFloatingBottomBar(
     currentPage: Int,
     onPageSelected: (Int) -> Unit,
     totalUnreadCount: Int = 0,
-    // Señalización por tab: índice -> cantidad. Los tabs urgentes (llamadas
-    // perdidas) se pintan en rojo; el resto en verde estilo WhatsApp.
     badgeCounts: Map<Int, Int> = emptyMap(),
     urgentBadgeTabs: Set<Int> = emptySet()
 ) {
-    // Customization center presets (real, reactive): color palette + bar shape.
-    val colorPreset by com.example.ui.theme.ThemeManager.bottomBarColorPreset.collectAsState()
-    val shapePreset by com.example.ui.theme.ThemeManager.bottomBarShapePreset.collectAsState()
-    // Minimalist mode (real): icon-only bar, no text labels.
-    val isMinimalist by com.example.ui.theme.ThemeManager.isMinimalistMode.collectAsState()
-    val barShape = com.example.ui.theme.ThemeManager.getBottomBarShape(shapePreset)
-    val presetPalette = com.example.ui.theme.ThemeManager.getBottomBarColors(colorPreset)
-
-    // Lenguaje visual del mockup: pildora de cristal con gradiente teal -> indigo,
-    // rim menta luminoso e iconos dorados. En claro, cristal blanco con rim dorado.
-    val barDark = PanalinkPalette.isDark
-    val barInner: Brush = Brush.horizontalGradient(
-        listOf(
-            PanaLinkCyberpunkColors.Glass.copy(alpha = 0.96f),
-            Color(0xD10E151D),
-            Color(0xC7181A27)
-        )
-    )
-    val barRim = PanalinkPalette.accent
-
-    val gradientColors = listOf(
-        PanaLinkCyberpunkColors.Cyan,
-        PanalinkPalette.accent,
-        PanalinkPalette.accent,
-        PanaLinkCyberpunkColors.Cyan
-    )
-
-    val infiniteTransition = rememberInfiniteTransition(label = "halo_transition")
-    
-    // Easing for rotation
-    val angle by infiniteTransition.animateFloat(
-        initialValue = 0f,
-        targetValue = 360f,
-        animationSpec = infiniteRepeatable(
-            animation = tween(4000, easing = FastOutSlowInEasing),
-            repeatMode = RepeatMode.Restart
-        ),
-        label = "halo_angle"
-    )
-    
-    // Pulsating opacity for border
-    val pulseAlpha by infiniteTransition.animateFloat(
-        initialValue = 0.6f,
-        targetValue = 1.0f,
-        animationSpec = infiniteRepeatable(
-            animation = tween(2000, easing = FastOutSlowInEasing),
-            repeatMode = RepeatMode.Reverse
-        ),
-        label = "halo_alpha"
-    )
-
-    // Remember the X position of the selected tab for the underground glow
-    var selectedTabX by remember { mutableFloatStateOf(0f) }
-    val animatedGlowX by animateFloatAsState(
-        targetValue = selectedTabX,
-        animationSpec = spring(
-            dampingRatio = Spring.DampingRatioMediumBouncy,
-            stiffness = Spring.StiffnessLow
-        ),
-        label = "glow_x"
-    )
-
-    Box(
+    Column(
         modifier = Modifier
             .fillMaxWidth()
             .navigationBarsPadding()
-            .padding(horizontal = 16.dp, vertical = 12.dp)
-            .shadow(elevation = 20.dp, shape = barShape, spotColor = presetPalette.first().copy(alpha = 0.3f))
-            .background(Color.Transparent),
-        contentAlignment = Alignment.Center
+            .background(IosTabBarBg)
     ) {
-        // Main container
-        Box(
+        // Línea superior del Tab Bar (iOS)
+        HorizontalDivider(color = IosTabDivider, thickness = 0.5.dp)
+
+
+
+        Row(
             modifier = Modifier
                 .fillMaxWidth()
-                .height(68.dp)
-                .clip(barShape)
-                .background(barInner)
+                .padding(top = 8.dp)
+                .padding(bottom =8.dp)
+                .navigationBarsPadding(),
+            horizontalArrangement = Arrangement.SpaceEvenly
         ) {
-            
-            // Underground Glow (Radial gradient)
-            Box(
-                modifier = Modifier
-                    .fillMaxSize()
-                    .drawBehind {
-                        drawCircle(
-                            brush = Brush.radialGradient(
-                                colors = listOf(presetPalette.first().copy(alpha = 0.4f), Color.Transparent),
-                                center = Offset(animatedGlowX, size.height / 2),
-                                radius = size.height * 1.5f
-                            ),
-                            center = Offset(animatedGlowX, size.height / 2),
-                            radius = size.height * 1.5f
-                        )
-                    }
+            IosBottomNavItem(
+                title = "Chats",
+                icon = Icons.Outlined.ChatBubble,
+                isActive = currentPage == 0,
+                badgeCount = if (currentPage == 0) totalUnreadCount else badgeCounts[0] ?: 0,
+                urgent = urgentBadgeTabs.contains(0),
+                onClick = { onPageSelected(0) }
             )
-
-            // Animated Gradient Border
-            Box(
-                modifier = Modifier
-                    .fillMaxSize()
-                    .drawBehind {
-                        rotate(angle) {
-                            // Draw a rect that sweeps around the edges
-                            // We need it larger than the bounds to cover corners during rotation
-                            val radius = size.width
-                            drawRect(
-                                brush = Brush.sweepGradient(gradientColors, center = Offset(size.width/2, size.height/2)),
-                                topLeft = Offset(size.width/2 - radius, size.height/2 - radius),
-                                size = androidx.compose.ui.geometry.Size(radius * 2, radius * 2),
-                                alpha = pulseAlpha
-                            )
-                        }
-                    }
+            IosBottomNavItem(
+                title = "Momentos",
+                icon = Icons.Outlined.DonutLarge,
+                isActive = currentPage == 1,
+                badgeCount = badgeCounts[1] ?: 0,
+                urgent = urgentBadgeTabs.contains(1),
+                onClick = { onPageSelected(1) }
             )
+            IosBottomNavItem(
+                title = "Clips",
+                icon = Icons.Outlined.PlayArrow,
+                isActive = currentPage == 2,
+                badgeCount = badgeCounts[2] ?: 0,
+                urgent = urgentBadgeTabs.contains(2),
+                onClick = { onPageSelected(2) }
+            )
+            IosBottomNavItem(
+                title = "Llamadas",
+                icon = Icons.Outlined.Call,
+                isActive = currentPage == 3,
+                badgeCount = badgeCounts[3] ?: 0,
+                urgent = urgentBadgeTabs.contains(3),
+                onClick = { onPageSelected(3) }
+            )
+            IosBottomNavItem(
+                title = "Gente",
+                icon = Icons.Outlined.People,
+                isActive = currentPage == 4,
+                badgeCount = badgeCounts[4] ?: 0,
+                urgent = urgentBadgeTabs.contains(4),
+                onClick = { onPageSelected(4) }
+            )
+        }
+    }
+}
 
-            // Inner Background (slightly smaller to reveal the animated border)
-            Row(
-                modifier = Modifier
-                    .fillMaxSize()
-                    .padding(2.5.dp) // Border thickness
-                    .clip(barShape)
-                    .background(barInner) // Relleno interior de cristal
-                    .border(1.2.dp, barRim.copy(alpha = 0.35f), barShape)
-                    .padding(horizontal = 8.dp),
-                horizontalArrangement = Arrangement.SpaceBetween,
-                verticalAlignment = Alignment.CenterVertically
-            ) {
-                val sections = listOf(
-                    Triple(0, "Chats", com.example.ui.theme.PanalinkIcons.Chats),
-                    Triple(1, "Momentos", com.example.ui.theme.PanalinkIcons.Momentos),
-                    Triple(2, "Clips", com.example.ui.theme.PanalinkIcons.Clips),
-                    Triple(3, "Llamadas", com.example.ui.theme.PanalinkIcons.Llamadas),
-                    Triple(4, "Gente", com.example.ui.theme.PanalinkIcons.Gente)
-                )
+@Composable
+private fun IosBottomNavItem(
+    title: String,
+    icon: ImageVector,
+    isActive: Boolean,
+    onClick: () -> Unit,
+    badgeCount: Int = 0,
+    urgent: Boolean = false
+) {
+    val color = if (isActive) PanalinkTabTint else IosTabTextGray
 
-                sections.forEach { (index, label, icon) ->
-                    val selected = currentPage == index
-                    
-                    val animatedWeight by animateFloatAsState(
-                        targetValue = 1f,
-                        animationSpec = spring(
-                            dampingRatio = Spring.DampingRatioMediumBouncy,
-                            stiffness = Spring.StiffnessLow
-                        ),
-                        label = "tab_weight"
+    Column(
+        modifier = Modifier
+            .clickable(onClick = onClick)
+            .padding(horizontal = 8.dp),
+        horizontalAlignment = Alignment.CenterHorizontally
+    ) {
+        Box {
+            Icon(
+                imageVector = icon,
+                contentDescription = title,
+                tint = color,
+                modifier = Modifier.size(26.dp)
+            )
+            if (badgeCount > 0) {
+                val badgeColor = if (urgent) Color(0xFFFF3B30) else PanalinkTabTint
+                Box(
+                    modifier = Modifier
+                        .align(Alignment.TopEnd)
+                        .offset(x = 7.dp, y = (-4).dp)
+                        .defaultMinSize(minWidth = 16.dp)
+                        .height(16.dp)
+                        .clip(CircleShape)
+                        .background(badgeColor)
+                        .padding(horizontal = 3.dp),
+                    contentAlignment = Alignment.Center
+                ) {
+                    Text(
+                        text = if (badgeCount > 99) "99+" else badgeCount.toString(),
+                        color = Color.White,
+                        fontSize = 8.sp,
+                        fontWeight = FontWeight.Bold
                     )
-                    
-                    val animatedBgColor by animateColorAsState(
-                        targetValue = if (selected) PanalinkPalette.accent.copy(alpha = 0.18f) else Color.Transparent,
-                        animationSpec = tween(durationMillis = 350),
-                        label = "tab_bg"
-                    )
-                    
-                    val animatedBorderColor by animateColorAsState(
-                        targetValue = if (selected) PanalinkPalette.accent.copy(alpha = 0.85f) else Color.Transparent,
-                        animationSpec = tween(durationMillis = 350),
-                        label = "tab_border"
-                    )
-                    
-                    val animatedContentColor by animateColorAsState(
-                        targetValue = if (selected) PanalinkPalette.textPrimary else PanalinkPalette.textSecondary,
-                        animationSpec = tween(durationMillis = 350),
-                        label = "tab_content"
-                    )
-
-                    Box(
-                        modifier = Modifier
-                            .weight(animatedWeight)
-                            .height(48.dp)
-                            .clip(RoundedCornerShape(24.dp))
-                            .background(animatedBgColor)
-                            .border(1.dp, animatedBorderColor, RoundedCornerShape(24.dp))
-                            .clickable(
-                                onClick = { onPageSelected(index) },
-                                indication = null,
-                                interactionSource = remember { MutableInteractionSource() }
-                            )
-                            .onGloballyPositioned { coordinates ->
-                                if (selected) {
-                                    selectedTabX = coordinates.positionInParent().x + (coordinates.size.width / 2f)
-                                }
-                            },
-                        contentAlignment = Alignment.Center
-                    ) {
-                        Row(
-                            verticalAlignment = Alignment.CenterVertically,
-                            horizontalArrangement = Arrangement.Center,
-                            modifier = Modifier.padding(horizontal = 4.dp)
-                        ) {
-                            Box {
-                                Icon(
-                                    imageVector = icon,
-                                    contentDescription = label,
-                                    tint = animatedContentColor,
-                                    modifier = Modifier.size(22.dp).zIndex(2f)
-                                )
-                                
-                                // Badge (chats usa totalUnreadCount legacy; el resto badgeCounts)
-                                val tabBadgeCount = if (index == 0) {
-                                    maxOf(totalUnreadCount, badgeCounts[0] ?: 0)
-                                } else {
-                                    badgeCounts[index] ?: 0
-                                }
-                                if (tabBadgeCount > 0) {
-                                    val badgeColor = if (urgentBadgeTabs.contains(index)) {
-                                        Color(0xFFFF3B30) // rojo: llamadas perdidas
-                                    } else {
-                                        PanalinkPalette.accent // verde WhatsApp: contenido nuevo
-                                    }
-                                    Box(
-                                        modifier = Modifier
-                                            .align(Alignment.TopEnd)
-                                            .offset(x = 6.dp, y = (-4).dp)
-                                            .defaultMinSize(minWidth = 16.dp)
-                                            .height(16.dp)
-                                            .background(badgeColor, CircleShape)
-                                            .padding(horizontal = 3.dp)
-                                            .zIndex(3f),
-                                        contentAlignment = Alignment.Center
-                                    ) {
-                                        Text(
-                                            text = if (tabBadgeCount > 99) "99+" else tabBadgeCount.toString(),
-                                            color = PanalinkPalette.textPrimary,
-                                            fontSize = 8.sp,
-                                            fontWeight = FontWeight.Bold
-                                        )
-                                    }
-                                }
-                            }
-                            
-                            AnimatedVisibility(
-                                visible = false,
-                                enter = fadeIn(animationSpec = tween(200, delayMillis = 100)) + expandHorizontally(animationSpec = spring(stiffness = Spring.StiffnessMediumLow)),
-                                exit = fadeOut(animationSpec = tween(150)) + shrinkHorizontally(animationSpec = spring(stiffness = Spring.StiffnessMediumLow))
-                            ) {
-                                Row(verticalAlignment = Alignment.CenterVertically) {
-                                    Spacer(modifier = Modifier.width(6.dp))
-                                    Text(
-                                        text = label,
-                                        color = PanalinkPalette.textPrimary,
-                                        fontWeight = FontWeight.Bold,
-                                        fontSize = 12.sp,
-                                        maxLines = 1,
-                                        overflow = TextOverflow.Ellipsis
-                                    )
-                                }
-                            }
-                        }
-                    }
                 }
             }
         }
+        Spacer(modifier = Modifier.height(2.dp))
+        Text(
+            text = title,
+            color = color,
+            fontSize = 10.sp,
+            fontWeight = FontWeight.Medium,
+            maxLines = 1,
+            overflow = TextOverflow.Ellipsis
+        )
     }
 }
