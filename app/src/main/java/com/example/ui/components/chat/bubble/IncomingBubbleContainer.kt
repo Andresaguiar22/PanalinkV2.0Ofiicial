@@ -31,7 +31,7 @@ fun IncomingBubbleContainer(
     containerColor: Color = Color(0xFF262628),
     containerBrush: Brush? = null,
     borderColor: Color = Color(0xFFFFFFFF).copy(alpha = 0.055f),
-    borderWidth: Dp = 1.dp,
+    borderWidth: Dp = 0.dp,
     tonalElevation: Float = 1f,
     content: @Composable () -> Unit
 ) {

@@ -932,7 +932,7 @@ fun ChatScreen(
                                         outgoingBubbleColors = if (bubblePaletteState.id == "panalink_blue") {
                                             listOf(
                                                 Color(0xFF007AFF),
-                                                Color(0xFF0066CC)
+                                                Color(0xFF007AFF)
                                             )
                                         } else {
                                             bubblePaletteState.colors
