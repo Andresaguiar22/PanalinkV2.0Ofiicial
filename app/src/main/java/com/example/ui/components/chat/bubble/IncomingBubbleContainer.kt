@@ -30,7 +30,7 @@ fun IncomingBubbleContainer(
     shape: Shape = BubbleShapeFactory.createShape(groupPosition, isMe = false),
     containerColor: Color = Color(0xFF262628),
     containerBrush: Brush? = null,
-    borderColor: Color.White.copy(alpha = 0.055f),
+    borderColor: Color(0xFFFFFFFF).copy(alpha = 0.055f),
     borderWidth: Dp = 1.dp,
     tonalElevation: Float = 1f,
     content: @Composable () -> Unit
