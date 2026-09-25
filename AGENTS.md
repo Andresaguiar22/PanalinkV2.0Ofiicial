@@ -1077,3 +1077,31 @@ factor `0.55 + pow(1.7)*(3.8-0.55)`, halo `1.7x` alpha `0x08` (casi invisible), 
 * `supabase/manual/APPLY_SINGLE_SESSION_MIGRATION.md`: handoff con comandos y verificación.
 
 **Lección de la sesión**: al compilar, un `}` faltante en `SessionManager.refreshSession` (bloque `else`) rompió el parseo del objeto entero y dio errores "Unresolved reference" en cascada; añadir el `}` lo resolvió todo.
+
+---
+
+## 💾 Plan Free de Supabase: mantener la BD flaca (sesión 2026-09-25, rama `kilo/clean-ui-ios`)
+
+**Contexto**: el mantenedor no puede pagar Pro (no hay tarjeta de crédito disponible en Venezuela). El proyecto debe vivir en el plan Free.
+
+### Diagnóstico real del proyecto (`tivqjfgjdxgzicrridaz`)
+* BD ~54/500 MB, pero **los datos reales son unos pocos MB**: ~808 mensajes, 181 comentarios live, 70 streams, 11 perfiles. El resto de los 54 MB es Postgres base + extensiones + índices (constante).
+* El media **NO** está en Supabase Storage (0.01/1 GB): va por CDN de PanaLink + B2. Egress 0.07/5 GB. Los dos límites peligrosos del chat ya están resueltos fuera de Supabase.
+* El límite que crece sin control son las **tablas de telemetría/eventos** (presence, signaling, notifications, live_comments, gifts, audit) — nadie las purgaba.
+
+### Solución gratis: retención automática
+* Migración `supabase/migrations/20260925100000_retention_purge.sql`:
+  - `public.purge_old_rows(tabla, columna_ts, retención, lote)`: borrado genérico por lotes (`ctid ... limit`), valida tabla/columna contra el catálogo (`pg_class`/`information_schema`) — nada de SQL dinámico a ciegas.
+  - `public.retention_purge()`: ventanas por tabla → presence 2d, signaling 7d, notifications 14d, entrance_events 7d, live_comments 30d, live_gift_events/premium_audit_log 180d.
+  - cron `retention_purge_daily` `0 4 * * *` (bloque defensivo: si `pg_cron` no está, la migración no falla).
+  - índices `idx_<tabla>_created_at` solo si la tabla existe.
+  - Permisos: `authenticated` recibe **permission denied**; solo `service_role` ejecuta.
+* **NO purga** `wallet_transactions` (ledger real de dinero) ni `thread_messages` (mensajes de chat): la retención es solo telemetría.
+* `pg_cron` **sí** está disponible en el proyecto de prod (verificado: `live_auto_end_stale` responde 204).
+* **Aplicar** (requiere PAT válido): `bash scripts/apply_migration.sh supabase/migrations/20260925100000_retention_purge.sql` con `SUPABASE_ACCESS_TOKEN`/`SUPABASE_PROJECT_ID`. Handoff: `supabase/manual/APPLY_RETENTION_MIGRATION.md`.
+* **Validado en PostgreSQL 15 local** (Docker `postgres:15`): purga/conservación, batching multi-iteración, permisos y cron agendado. Nota: la imagen vanilla no trae `pg_cron`; se probó con un stub de `cron.schedule/unschedule`.
+
+### Reglas
+* El script de aplicación se generalizó a `scripts/apply_migration.sh` (recibe la ruta de la migración como argumento; antes `apply_single_session_migration.sh`).
+* El PAT del sandbox está inválido (401): la migración la aplica el dueño o un agente con acceso al proyecto Supabase.
+* `SUPABASE_SERVICE_ROLE_KEY` sirve para PostgREST (datos) pero **no** puede hacer DDL.
