@@ -305,12 +305,6 @@ fun MessageBubbleEngine(
         label = "bubbleSelectionScale"
     )
 
-    val selectionElevation by animateFloatAsState(
-        targetValue = if (isSelected || showMenu) 6f else elevation,
-        animationSpec = spring(),
-        label = "bubbleSelectionElevation"
-    )
-
     var isVisible by remember { mutableStateOf(false) }
     LaunchedEffect(Unit) {
         isVisible = true
@@ -973,7 +967,6 @@ fun MessageBubbleEngine(
                 shape = bubbleShape,
                 containerColor = bubbleColor,
                 containerBrush = bubbleBrush,
-                tonalElevation = selectionElevation,
                 modifier = swipeModifier
             ) {
                 bubbleRowContent()
@@ -986,7 +979,6 @@ fun MessageBubbleEngine(
                 shape = bubbleShape,
                 containerColor = bubbleColor,
                 containerBrush = bubbleBrush,
-                tonalElevation = selectionElevation,
                 modifier = swipeModifier
             ) {
                 bubbleRowContent()
