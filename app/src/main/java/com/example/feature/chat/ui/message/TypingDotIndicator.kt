@@ -11,6 +11,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.unit.dp
+import com.example.ui.settings.ios.IosSettingsColors
 
 @Composable
 internal fun TypingDotIndicator() {
@@ -72,7 +73,7 @@ internal fun TypingDotIndicator() {
         horizontalArrangement = Arrangement.spacedBy(4.dp),
         verticalAlignment = Alignment.CenterVertically
     ) {
-        val colors = listOf(Color(0xFF25D366), Color(0xFF00E676), Color(0xFF05C657))
+        val colors = listOf(IosSettingsColors.green, Color(0xFF00E676), Color(0xFF05C657))
         Box(
             modifier = Modifier
                 .size(6.dp)

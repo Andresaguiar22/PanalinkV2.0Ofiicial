@@ -141,7 +141,7 @@ fun DisabledPlusOptionBadge(
     Box(
         modifier = modifier
             .height(36.dp)
-            .background(Color(0xFF161618), RoundedCornerShape(10.dp))
+            .background(IosSettingsColors.cell, RoundedCornerShape(10.dp))
             .border(1.dp, Color(0xFF262629), RoundedCornerShape(10.dp)),
         contentAlignment = Alignment.Center
     ) {

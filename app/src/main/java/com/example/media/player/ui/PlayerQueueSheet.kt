@@ -41,7 +41,7 @@ fun PlayerQueueSheet(
     Column(
         modifier = modifier
             .fillMaxHeight(0.75f)
-            .background(Color(0xFF111827))
+            .background(IosSettingsColors.groupBackground)
     ) {
         Row(
             modifier = Modifier
@@ -57,7 +57,7 @@ fun PlayerQueueSheet(
                 fontWeight = FontWeight.Bold
             )
             TextButton(onClick = onClearQueue) {
-                Text("Limpiar", color = Color(0xFF38BDF8))
+                Text("Limpiar", color = IosSettingsColors.blue)
             }
         }
 
@@ -107,7 +107,7 @@ fun QueueItem(
             }
             if (isCurrent) {
                 Box(modifier = Modifier.fillMaxSize().background(Color.Black.copy(alpha = 0.4f)), contentAlignment = Alignment.Center) {
-                    Icon(Icons.Default.PlayArrow, contentDescription = null, tint = Color(0xFF38BDF8), modifier = Modifier.size(20.dp))
+                    Icon(Icons.Default.PlayArrow, contentDescription = null, tint = IosSettingsColors.blue, modifier = Modifier.size(20.dp))
                 }
             }
         }
@@ -117,7 +117,7 @@ fun QueueItem(
         Column(modifier = Modifier.weight(1f)) {
             Text(
                 track.title,
-                color = if (isCurrent) Color(0xFF38BDF8) else Color.White,
+                color = if (isCurrent) IosSettingsColors.blue else Color.White,
                 fontSize = 15.sp,
                 fontWeight = if (isCurrent) FontWeight.Bold else FontWeight.Normal,
                 maxLines = 1,

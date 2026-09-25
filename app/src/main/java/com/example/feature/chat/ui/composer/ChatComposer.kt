@@ -359,7 +359,7 @@ fun ChatComposer(
                             .background(
                                 Brush.linearGradient(
                                     colors = listOf(
-                                        androidx.compose.ui.graphics.Color(0xFF38BDF8),
+                                        IosSettingsColors.blue,
                                         androidx.compose.ui.graphics.Color(0xFF2563EB)
                                     )
                                 )
@@ -535,7 +535,7 @@ fun ChatComposer(
                             .background(
                                 Brush.linearGradient(
                                     colors = listOf(
-                                        androidx.compose.ui.graphics.Color(0xFF38BDF8),
+                                        IosSettingsColors.blue,
                                         androidx.compose.ui.graphics.Color(0xFF2563EB)
                                     )
                                 )
@@ -795,7 +795,7 @@ fun ChatComposer(
                     .padding(end = 10.dp)
                     .height(88.dp)
                     .width(44.dp)
-                    .background(androidx.compose.ui.graphics.Color(0xFF1E293B).copy(alpha = 0.92f), RoundedCornerShape(22.dp)),
+                    .background(IosSettingsColors.cell.copy(alpha = 0.92f), RoundedCornerShape(22.dp)),
                 contentAlignment = Alignment.Center
             ) {
                 Column(

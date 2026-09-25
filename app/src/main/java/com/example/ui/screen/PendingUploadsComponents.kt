@@ -211,7 +211,7 @@ fun PendingPostCard(post: com.example.data.database.PendingPostEntity) {
             Spacer(modifier = Modifier.height(10.dp))
             LinearProgressIndicator(
                 modifier = Modifier.fillMaxWidth().height(4.dp).clip(RoundedCornerShape(2.dp)),
-                color = Color(0xFF00FF85),
+                color = IosSettingsColors.green,
                 trackColor = Color(0xFF2C2C2E)
             )
         }

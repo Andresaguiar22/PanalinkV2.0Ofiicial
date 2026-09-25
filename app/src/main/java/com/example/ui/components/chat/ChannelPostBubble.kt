@@ -148,7 +148,7 @@ fun ChannelPostBubble(
                             .fillMaxWidth()
                             .height(180.dp)
                             .clip(RoundedCornerShape(12.dp))
-                            .background(Color(0xFF0F172A))
+                            .background(IosSettingsColors.groupBackground)
                             .clickable(enabled = onImageClick != null) { onImageClick?.invoke(imageUrl) }
                     ) {
                         AsyncImage(

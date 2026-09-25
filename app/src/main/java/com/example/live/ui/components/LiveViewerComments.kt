@@ -256,7 +256,7 @@ private fun CommentRow(
         DropdownMenu(
             expanded = menuExpanded,
             onDismissRequest = onDismissMenu,
-            containerColor = Color(0xFF1F2C34)
+            containerColor = IosSettingsColors.cell
         ) {
             DropdownMenuItem(
                 text = { Text("Eliminar comentario", color = IosSettingsColors.label, fontSize = 14.sp) },

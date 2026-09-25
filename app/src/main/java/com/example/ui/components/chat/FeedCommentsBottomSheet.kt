@@ -60,7 +60,7 @@ fun FeedCommentsBottomSheet(
                     Icon(imageVector = Icons.Default.Close, contentDescription = "Cerrar", tint = IosSettingsColors.label)
                 }
             }
-            HorizontalDivider(color = Color(0xFF1F2C34))
+            HorizontalDivider(color = IosSettingsColors.cell)
             
             LazyColumn(
                 modifier = Modifier
@@ -72,7 +72,7 @@ fun FeedCommentsBottomSheet(
                 }
             }
 
-            HorizontalDivider(color = Color(0xFF1F2C34))
+            HorizontalDivider(color = IosSettingsColors.cell)
             
             Row(
                 modifier = Modifier
@@ -86,8 +86,8 @@ fun FeedCommentsBottomSheet(
                     modifier = Modifier.weight(1f),
                     placeholder = { Text("Añadir un comentario...", color = Color.Gray) },
                     colors = TextFieldDefaults.colors(
-                        focusedContainerColor = Color(0xFF1F2C34),
-                        unfocusedContainerColor = Color(0xFF1F2C34),
+                        focusedContainerColor = IosSettingsColors.cell,
+                        unfocusedContainerColor = IosSettingsColors.cell,
                         focusedIndicatorColor = Color.Transparent,
                         unfocusedIndicatorColor = Color.Transparent,
                         focusedTextColor = Color.White,

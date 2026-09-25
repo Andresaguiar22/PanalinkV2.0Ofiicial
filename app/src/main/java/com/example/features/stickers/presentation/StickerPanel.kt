@@ -92,7 +92,7 @@ fun StickerPanel(
         modifier = modifier
             .fillMaxWidth()
             .height(280.dp)
-            .background(Color(0xFF18202A))
+            .background(IosSettingsColors.cellElevated)
     ) {
         if (isLoading) {
             Box(

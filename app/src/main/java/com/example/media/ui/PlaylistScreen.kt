@@ -52,7 +52,7 @@ fun PlaylistScreen(
     var selectedTrack by androidx.compose.runtime.remember { androidx.compose.runtime.mutableStateOf<AudioTrackEntity?>(null) }
 
     Scaffold(
-        containerColor = Color(0xFF0F172A),
+        containerColor = IosSettingsColors.groupBackground,
         topBar = {
             TopAppBar(
                 title = { },
@@ -72,7 +72,7 @@ fun PlaylistScreen(
                     }
                     if (userRole.canShare()) {
                         IconButton(onClick = onSharePlaylistClick) {
-                            Icon(Icons.Default.Share, contentDescription = "Compartir", tint = Color(0xFF38BDF8))
+                            Icon(Icons.Default.Share, contentDescription = "Compartir", tint = IosSettingsColors.blue)
                         }
                     }
                 },
@@ -99,7 +99,7 @@ fun PlaylistScreen(
                         modifier = Modifier
                             .size(240.dp)
                             .clip(RoundedCornerShape(24.dp))
-                            .background(Color(0xFF1E293B))
+                            .background(IosSettingsColors.cell)
                             .clickable(enabled = userRole.canEditMetadata()) { onGenerateCoverClick() },
                         contentAlignment = Alignment.Center
                     ) {
@@ -111,7 +111,7 @@ fun PlaylistScreen(
                                 modifier = Modifier.fillMaxSize()
                             )
                         } else {
-                            Icon(Icons.Default.MusicNote, contentDescription = null, tint = Color(0xFF38BDF8), modifier = Modifier.size(80.dp))
+                            Icon(Icons.Default.MusicNote, contentDescription = null, tint = IosSettingsColors.blue, modifier = Modifier.size(80.dp))
                         }
                     }
 
@@ -175,7 +175,7 @@ fun PlaylistScreen(
                             }
                             FloatingActionButton(
                                 onClick = onPlayAllClick,
-                                containerColor = Color(0xFF38BDF8),
+                                containerColor = IosSettingsColors.blue,
                                 contentColor = Color.Black,
                                 shape = androidx.compose.foundation.shape.CircleShape,
                                 modifier = Modifier.size(56.dp)
@@ -205,7 +205,7 @@ fun PlaylistScreen(
         ModalBottomSheet(
             onDismissRequest = { showOptionsSheet = false },
             sheetState = sheetState,
-            containerColor = Color(0xFF1E293B)
+            containerColor = IosSettingsColors.cell
         ) {
             TrackOptionsBottomSheet(
                 track = selectedTrack!!,

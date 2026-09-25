@@ -251,7 +251,7 @@ fun LiveBroadcastScreen(
                 Box(
                     modifier = Modifier
                         .fillMaxSize()
-                        .background(Color(0xFF161618)),
+                        .background(IosSettingsColors.cell),
                     contentAlignment = Alignment.Center
                 ) {
                     Column(horizontalAlignment = Alignment.CenterHorizontally) {
@@ -625,7 +625,7 @@ fun LiveBroadcastScreen(
                     Text("Cancelar", color = IosSettingsColors.label)
                 }
             },
-            containerColor = Color(0xFF161618),
+            containerColor = IosSettingsColors.cell,
             titleContentColor = Color.White,
             textContentColor = Color.Gray
         )

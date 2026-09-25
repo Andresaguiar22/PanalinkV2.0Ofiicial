@@ -40,6 +40,7 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.example.data.supabase.SupabaseClient
+import com.example.ui.settings.ios.IosSettingsColors
 
 object PanaLinkCyberpunkColors {
     val Background = Color(0xFF17212B)
@@ -650,7 +651,7 @@ private fun PaniOSStatusLabel() {
     }
     Text(
         text = label,
-        color = if (myPresence == com.example.data.repository.UserPresenceStatus.ONLINE) Color(0xFF25D366) else Color(0xFF8E8E93),
+        color = if (myPresence == com.example.data.repository.UserPresenceStatus.ONLINE) IosSettingsColors.green else Color(0xFF8E8E93),
         fontSize =  10.sp,
         fontWeight = FontWeight.Medium,
         maxLines =  1,

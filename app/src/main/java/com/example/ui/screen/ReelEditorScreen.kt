@@ -499,7 +499,7 @@ fun ReelEditorScreen(
                                             "B&W" -> Color.Black.copy(alpha=0.5f) // fake for video without shaders
                                             "Retro" -> Color(0xFFF0D9A6).copy(alpha = 0.2f)
                                             "Vibe" -> Color(0xFFFF28C8).copy(alpha = 0.2f)
-                                            "Cinematic" -> Color(0xFF18202A).copy(alpha = 0.2f)
+                                            "Cinematic" -> IosSettingsColors.cellElevated.copy(alpha = 0.2f)
                                             else -> Color.Transparent
                                         }
                                     ))
@@ -931,7 +931,7 @@ fun ReelEditorScreen(
                                 LazyRow(contentPadding = PaddingValues(horizontal = 16.dp), horizontalArrangement = Arrangement.spacedBy(12.dp)) {
                                     items(transitions) { t ->
                                         Box(
-                                            modifier = Modifier.clip(RoundedCornerShape(8.dp)).background(if (selectedTransition == t) IosSettingsColors.blue else Color(0xFF131A22)).clickable { selectedTransition = t }.padding(horizontal = 16.dp, vertical = 8.dp)
+                                            modifier = Modifier.clip(RoundedCornerShape(8.dp)).background(if (selectedTransition == t) IosSettingsColors.blue else IosSettingsColors.groupBackground).clickable { selectedTransition = t }.padding(horizontal = 16.dp, vertical = 8.dp)
                                         ) { Text(t, color = if(selectedTransition==t) Color.Black else Color.White) }
                                     }
                                 }
@@ -952,7 +952,7 @@ fun ReelEditorScreen(
                                     Spacer(modifier = Modifier.height(16.dp))
                                     Text("Waveform Musical", color = Color.Gray, fontSize = 12.sp)
                                     // Interactive Audio Waveform Canvas
-                                    Box(modifier = Modifier.fillMaxWidth().height(60.dp).background(Color(0xFF131A22), RoundedCornerShape(8.dp)).padding(vertical = 8.dp)) {
+                                    Box(modifier = Modifier.fillMaxWidth().height(60.dp).background(IosSettingsColors.groupBackground, RoundedCornerShape(8.dp)).padding(vertical = 8.dp)) {
                                         Canvas(modifier = Modifier.fillMaxSize()) {
                                             val barWidth = 6f
                                             val gap = 4f
@@ -1217,7 +1217,7 @@ fun ReelEditorScreen(
                         Card(
                             modifier = Modifier.fillMaxWidth(),
                             shape = RoundedCornerShape(12.dp),
-                            colors = CardDefaults.cardColors(containerColor = Color(0xFF131A22)),
+                            colors = CardDefaults.cardColors(containerColor = IosSettingsColors.groupBackground),
                             border = BorderStroke(1.dp, Color.White.copy(alpha = 0.1f))
                         ) {
                             Row(
@@ -1289,7 +1289,7 @@ fun ReelEditorScreen(
                             .width(300.dp)
                             .padding(16.dp),
                         shape = RoundedCornerShape(20.dp),
-                        colors = CardDefaults.cardColors(containerColor = Color(0xFF131A22))
+                        colors = CardDefaults.cardColors(containerColor = IosSettingsColors.groupBackground)
                     ) {
                         Column(
                             modifier = Modifier.padding(20.dp),
@@ -1434,7 +1434,7 @@ fun ReelEditorScreen(
                             .width(280.dp)
                             .padding(20.dp),
                         shape = RoundedCornerShape(20.dp),
-                        colors = CardDefaults.cardColors(containerColor = Color(0xFF131A22))
+                        colors = CardDefaults.cardColors(containerColor = IosSettingsColors.groupBackground)
                     ) {
                         Column(
                             modifier = Modifier.padding(24.dp),

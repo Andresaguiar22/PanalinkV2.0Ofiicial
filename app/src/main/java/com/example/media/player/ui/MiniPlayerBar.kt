@@ -176,7 +176,7 @@ fun MiniPlayerBar(
             modifier = Modifier
                 .fillMaxWidth()
                 .height(2.dp),
-            color = Color(0xFF38BDF8),
+            color = IosSettingsColors.blue,
             trackColor = Color.White.copy(alpha = 0.1f)
         )
     }

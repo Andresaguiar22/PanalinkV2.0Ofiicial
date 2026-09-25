@@ -130,7 +130,7 @@ fun LiveGuestControls(
                                     .clickable {
                                         query = selectedUser?.displayName ?: ""
                                     }
-                                    .background(Color(0xFF1E2B33).copy(alpha = 0.7f))
+                                    .background(IosSettingsColors.groupBackground.copy(alpha = 0.7f))
                                     .padding(8.dp)
                             ) {
                                 PanaAvatar(avatarUrl = selectedUser?.avatarUrl, userId = selectedUser?.id, size =  32.dp)
@@ -260,7 +260,7 @@ fun LiveGuestControls(
                         Text("Cerrar")
                     }
                 },
-                containerColor = Color(0xFF161618),
+                containerColor = IosSettingsColors.cell,
                 titleContentColor = Color.White,
                 textContentColor = Color.White
             )

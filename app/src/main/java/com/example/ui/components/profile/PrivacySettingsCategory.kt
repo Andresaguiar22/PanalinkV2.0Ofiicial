@@ -12,6 +12,7 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.example.ui.components.PrivacySettingSwitch
 import com.example.ui.viewmodel.ProfileViewModel
+import com.example.ui.settings.ios.IosSettingsColors
 
 @Composable
 fun PrivacySettingsCategory(viewModel: ProfileViewModel) {
@@ -35,7 +36,7 @@ fun PrivacySettingsCategory(viewModel: ProfileViewModel) {
     ) {
         Text(
             text = "Funciones Premium de Privacidad",
-            color = Color(0xFF25D366),
+            color = IosSettingsColors.green,
             fontWeight = FontWeight.Bold,
             fontSize = 12.sp
         )

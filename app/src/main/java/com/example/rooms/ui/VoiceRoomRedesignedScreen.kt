@@ -178,7 +178,7 @@ fun VoiceRoomRedesignedScreen(
             .fillMaxSize()
             .background(
                 brush = Brush.verticalGradient(
-                    colors = listOf(Color(0xFF0F172A), Color(0xFF020617))
+                    colors = listOf(IosSettingsColors.groupBackground, Color(0xFF020617))
                 )
             )
     ) {
@@ -1196,7 +1196,7 @@ fun VoiceRoomRedesignedBottomBar(
             modifier = Modifier
                 .weight(1f)
                 .defaultMinSize(minHeight = 40.dp)
-                .background(Color(0xFF1E293B), shape = CircleShape)
+                .background(IosSettingsColors.cell, shape = CircleShape)
                 .focusRequester(focusRequester),
             singleLine = true,
             placeholder = {
@@ -1216,8 +1216,8 @@ fun VoiceRoomRedesignedBottomBar(
                 unfocusedTextColor = VoiceRoomPalette.TextPrimary,
                 focusedBorderColor = Color.Transparent,
                 unfocusedBorderColor = Color.Transparent,
-                focusedContainerColor = Color(0xFF1E293B),
-                unfocusedContainerColor = Color(0xFF1E293B)
+                focusedContainerColor = IosSettingsColors.cell,
+                unfocusedContainerColor = IosSettingsColors.cell
             ),
             shape = CircleShape,
             maxLines = 1

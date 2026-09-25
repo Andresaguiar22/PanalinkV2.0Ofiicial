@@ -531,7 +531,7 @@ fun MessageBubbleEngine(
                                 .fillMaxWidth()
                                 .padding(bottom = 6.dp)
                                 .clip(RoundedCornerShape(8.dp))
-                                .background(if (isMe) Color(0xFF1E293B).copy(alpha = 0.45f) else Color(0xFF1E293B).copy(alpha = 0.3f))
+                                .background(if (isMe) IosSettingsColors.cell.copy(alpha = 0.45f) else IosSettingsColors.cell.copy(alpha = 0.3f))
                                 .height(IntrinsicSize.Min)
                         ) {
                             Box(
@@ -743,7 +743,7 @@ fun MessageBubbleEngine(
                             reactionCounts.forEach { (emoji, count) ->
                                 Surface(
                                     modifier = Modifier.clip(RoundedCornerShape(10.dp)),
-                                    color = Color(0xFF1E293B).copy(alpha = 0.5f),
+                                    color = IosSettingsColors.cell.copy(alpha = 0.5f),
                                     tonalElevation = 1.dp
                                 ) {
                                     Row(
@@ -1005,14 +1005,14 @@ private fun GhostMessageContent(
                 imageVector = Icons.Default.Visibility,
                 contentDescription = null,
                 modifier = Modifier.size(16.dp),
-                tint = Color(0xFF38BDF8)
+                tint = IosSettingsColors.blue
             )
             Spacer(modifier = Modifier.width(8.dp))
             Text(
                 text = "Mensaje de ver una vez",
                 style = MaterialTheme.typography.bodyMedium,
                 fontWeight = FontWeight.SemiBold,
-                color = Color(0xFF111B21)
+                color = IosSettingsColors.cellElevated
             )
         }
         Spacer(modifier = Modifier.height(4.dp))

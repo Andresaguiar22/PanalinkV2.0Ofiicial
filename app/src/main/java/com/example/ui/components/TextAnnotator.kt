@@ -10,6 +10,7 @@ import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.text.buildAnnotatedString
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.withStyle
+import com.example.ui.settings.ios.IosSettingsColors
 
 object TextAnnotator {
     @Composable
@@ -17,7 +18,7 @@ object TextAnnotator {
         text: String,
         modifier: Modifier = Modifier,
         style: TextStyle = TextStyle.Default,
-        hashtagColor: Color = Color(0xFF00FF85),
+        hashtagColor: Color = IosSettingsColors.green,
         mentionColor: Color = Color(0xFFE040FB),
         onHashtagClick: (String) -> Unit,
         onMentionClick: (String) -> Unit

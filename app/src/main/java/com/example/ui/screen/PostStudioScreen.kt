@@ -160,14 +160,14 @@ fun PostStudioScreen(
                                 onError = {}
                             )
                         },
-                        colors = ButtonDefaults.buttonColors(containerColor = Color(0xFF38BDF8)),
+                        colors = ButtonDefaults.buttonColors(containerColor = IosSettingsColors.blue),
                         shape = RoundedCornerShape(12.dp),
                         modifier = Modifier.padding(end = 8.dp)
                     ) {
                         Text("Publicar", color = Color.Black, fontWeight = FontWeight.Bold)
                     }
                 },
-                colors = TopAppBarDefaults.topAppBarColors(containerColor = Color(0xFF0F172A))
+                colors = TopAppBarDefaults.topAppBarColors(containerColor = IosSettingsColors.groupBackground)
             )
         },
         bottomBar = {
@@ -221,7 +221,7 @@ fun PostStudioScreen(
                     .fillMaxWidth(0.92f)
                     .aspectRatio(canvasAspectRatio)
                     .clip(RoundedCornerShape(16.dp))
-                    .background(Color(0xFF111827))
+                    .background(IosSettingsColors.groupBackground)
                     .border(1.dp, Color(0xFF1F2937), RoundedCornerShape(16.dp))
             ) {
                 val mainMediaLayer = currentPage.getMainMediaLayer()
@@ -266,7 +266,7 @@ fun PostStudioScreen(
                             Box(
                                 modifier = Modifier
                                     .fillMaxSize()
-                                    .background(Color(0xFF1E293B)),
+                                    .background(IosSettingsColors.cell),
                                 contentAlignment = Alignment.Center
                             ) {
                                 Text(
@@ -320,7 +320,7 @@ fun PostStudioScreen(
     if (showRatioSheet) {
         ModalBottomSheet(
             onDismissRequest = { showRatioSheet = false },
-            containerColor = Color(0xFF0F172A)
+            containerColor = IosSettingsColors.groupBackground
         ) {
             Column(
                 modifier = Modifier
@@ -345,7 +345,7 @@ fun PostStudioScreen(
                                 showRatioSheet = false
                             },
                             colors = ButtonDefaults.buttonColors(
-                                containerColor = if (currentPage.aspectRatio == ratio) Color(0xFF38BDF8) else Color(0xFF1E293B)
+                                containerColor = if (currentPage.aspectRatio == ratio) IosSettingsColors.blue else IosSettingsColors.cell
                             )
                         ) {
                             Text(
@@ -364,7 +364,7 @@ fun PostStudioScreen(
     if (showFilterSheet) {
         ModalBottomSheet(
             onDismissRequest = { showFilterSheet = false },
-            containerColor = Color(0xFF0F172A)
+            containerColor = IosSettingsColors.groupBackground
         ) {
             Column(
                 modifier = Modifier
@@ -388,7 +388,7 @@ fun PostStudioScreen(
                                 viewModel.applyFilterToCurrentPage(fName)
                                 showFilterSheet = false
                             },
-                            colors = ButtonDefaults.buttonColors(containerColor = Color(0xFF1E293B))
+                            colors = ButtonDefaults.buttonColors(containerColor = IosSettingsColors.cell)
                         ) {
                             Text(fName, color = IosSettingsColors.label)
                         }
@@ -402,7 +402,7 @@ fun PostStudioScreen(
     if (showStickerSheet) {
         ModalBottomSheet(
             onDismissRequest = { showStickerSheet = false },
-            containerColor = Color(0xFF0F172A)
+            containerColor = IosSettingsColors.groupBackground
         ) {
             Column(
                 modifier = Modifier
@@ -425,7 +425,7 @@ fun PostStudioScreen(
                             modifier = Modifier
                                 .size(54.dp)
                                 .clip(CircleShape)
-                                .background(Color(0xFF1E293B))
+                                .background(IosSettingsColors.cell)
                                 .clickable {
                                     viewModel.addStickerLayer(sticker)
                                     showStickerSheet = false
@@ -444,7 +444,7 @@ fun PostStudioScreen(
     if (showCaptionSheet) {
         ModalBottomSheet(
             onDismissRequest = { showCaptionSheet = false },
-            containerColor = Color(0xFF0F172A)
+            containerColor = IosSettingsColors.groupBackground
         ) {
             var captionText by remember { mutableStateOf(uiState.project.caption) }
             var hashtagInput by remember { mutableStateOf(uiState.project.hashtags.joinToString(" ")) }
@@ -469,7 +469,7 @@ fun PostStudioScreen(
                         .fillMaxWidth()
                         .height(120.dp),
                     colors = OutlinedTextFieldDefaults.colors(
-                        focusedBorderColor = Color(0xFF38BDF8),
+                        focusedBorderColor = IosSettingsColors.blue,
                         unfocusedBorderColor = Color(0xFF334155),
                         focusedTextColor = Color.White
                     )
@@ -481,7 +481,7 @@ fun PostStudioScreen(
                     label = { Text("Hashtags (separados por espacio)") },
                     modifier = Modifier.fillMaxWidth(),
                     colors = OutlinedTextFieldDefaults.colors(
-                        focusedBorderColor = Color(0xFF38BDF8),
+                        focusedBorderColor = IosSettingsColors.blue,
                         unfocusedBorderColor = Color(0xFF334155),
                         focusedTextColor = Color.White
                     )
@@ -495,7 +495,7 @@ fun PostStudioScreen(
                         showCaptionSheet = false
                     },
                     modifier = Modifier.fillMaxWidth(),
-                    colors = ButtonDefaults.buttonColors(containerColor = Color(0xFF38BDF8))
+                    colors = ButtonDefaults.buttonColors(containerColor = IosSettingsColors.blue)
                 ) {
                     Text("Guardar Texto", color = Color.Black, fontWeight = FontWeight.Bold)
                 }

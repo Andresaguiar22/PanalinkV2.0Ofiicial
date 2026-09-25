@@ -66,7 +66,7 @@ fun LiveFeedScreen(
                 Brush.radialGradient(
                     colors = listOf(
                         Color(0xFF7B3FF2),
-                        Color(0xFF131A22),
+                        IosSettingsColors.groupBackground,
                         Color(0xFF0D0F12)
                     ),
                     center = Offset.Unspecified,

@@ -3,13 +3,14 @@ package com.example.ui.components.chat.bubble
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
+import com.example.ui.settings.ios.IosSettingsColors
 
 @Composable
 fun VideoBubbleContent(
     videoUrl: String,
     thumbUrl: String,
     durationLabel: String? = null,
-    bubbleColor: Color = Color(0xFF1F2C34),
+    bubbleColor: Color = IosSettingsColors.cell,
     onVideoClick: (String) -> Unit = {},
     modifier: Modifier = Modifier
 ) {

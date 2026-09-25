@@ -34,9 +34,9 @@ fun FeedPostSkeleton() {
     }
 
     val shimmerColors = listOf(
-        Color(0xFF1F2C34),
+        IosSettingsColors.cell,
         Color(0xFF2A3A42),
-        Color(0xFF1F2C34)
+        IosSettingsColors.cell
     )
 
     val brush = Brush.horizontalGradient(
@@ -49,7 +49,7 @@ fun FeedPostSkeleton() {
         modifier = Modifier
             .fillMaxWidth()
             .shadow(0.dp, RoundedCornerShape(0.dp)),
-        colors = CardDefaults.cardColors(containerColor = Color(0xFF161618)),
+        colors = CardDefaults.cardColors(containerColor = IosSettingsColors.cell),
         shape = RoundedCornerShape(0.dp)
     ) {
         Column(modifier = Modifier.fillMaxWidth()) {

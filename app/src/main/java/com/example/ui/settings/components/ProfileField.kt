@@ -11,6 +11,7 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.unit.dp
+import com.example.ui.settings.ios.IosSettingsColors
 
 @Composable
 fun ProfileField(
@@ -31,9 +32,9 @@ fun ProfileField(
         label = { Text(label, color = Color(0xFF90A4AE)) },
         placeholder = if (placeholder != null) { { Text(placeholder, color = Color.Gray) } } else null,
         colors = OutlinedTextFieldDefaults.colors(
-            focusedBorderColor = Color(0xFF25D366),
+            focusedBorderColor = IosSettingsColors.green,
             unfocusedBorderColor = Color(0xFF37474F),
-            focusedLabelColor = Color(0xFF25D366),
+            focusedLabelColor = IosSettingsColors.green,
             focusedTextColor = Color.White,
             unfocusedTextColor = Color.White,
             focusedPlaceholderColor = Color.Gray,

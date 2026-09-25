@@ -117,16 +117,16 @@ fun MusicHomeScreen(
                             enabled = !isImporting
                         ) {
                             if (isImporting) {
-                                CircularProgressIndicator(modifier = Modifier.size(20.dp), color = Color(0xFF38BDF8), strokeWidth = 2.dp)
+                                CircularProgressIndicator(modifier = Modifier.size(20.dp), color = IosSettingsColors.blue, strokeWidth = 2.dp)
                             } else {
-                                Icon(Icons.Default.FileUpload, contentDescription = "Subir canciones", tint = Color(0xFF38BDF8))
+                                Icon(Icons.Default.FileUpload, contentDescription = "Subir canciones", tint = IosSettingsColors.blue)
                             }
                         }
                         IconButton(onClick = onInvitationsClick) {
                             Icon(Icons.Default.Notifications, contentDescription = "Invitaciones", tint = IosSettingsColors.label)
                         }
                         IconButton(onClick = { showCreateDialog = true }) {
-                            Icon(Icons.Default.AddCircleOutline, contentDescription = "Nueva Playlist", tint = Color(0xFF38BDF8))
+                            Icon(Icons.Default.AddCircleOutline, contentDescription = "Nueva Playlist", tint = IosSettingsColors.blue)
                         }
                     },
                     colors = TopAppBarDefaults.topAppBarColors(containerColor = Color.Black.copy(alpha = 0.92f))
@@ -144,8 +144,8 @@ fun MusicHomeScreen(
                     shape = RoundedCornerShape(14.dp),
                     colors = OutlinedTextFieldDefaults.colors(
                         focusedContainerColor = Color(0xFF1C1C1E),
-                        unfocusedContainerColor = Color(0xFF1E293B),
-                        focusedBorderColor = Color(0xFF38BDF8),
+                        unfocusedContainerColor = IosSettingsColors.cell,
+                        focusedBorderColor = IosSettingsColors.blue,
                         unfocusedBorderColor = Color.Transparent,
                         focusedTextColor = Color.White,
                         unfocusedTextColor = Color.White
@@ -155,8 +155,8 @@ fun MusicHomeScreen(
 
                 ScrollableTabRow(
                     selectedTabIndex = selectedTab,
-                    containerColor = Color(0xFF0F172A),
-                    contentColor = Color(0xFF38BDF8),
+                    containerColor = IosSettingsColors.groupBackground,
+                    contentColor = IosSettingsColors.blue,
                     edgePadding = 16.dp,
                     divider = {}
                 ) {
@@ -178,7 +178,7 @@ fun MusicHomeScreen(
                 }
             }
         },
-        containerColor = Color(0xFF0F172A),
+        containerColor = IosSettingsColors.groupBackground,
         modifier = modifier
     ) { padding ->
         Column(modifier = Modifier.fillMaxSize().padding(padding)) {
@@ -226,7 +226,7 @@ fun MusicHomeScreen(
     if (showTrackOptions && selectedTrack != null) {
         ModalBottomSheet(
             onDismissRequest = { showTrackOptions = false },
-            containerColor = Color(0xFF1E293B)
+            containerColor = IosSettingsColors.cell
         ) {
             TrackOptionsBottomSheet(
                 track = selectedTrack!!,
@@ -348,7 +348,7 @@ fun AllSongsSection(
                 Button(
                     onClick = onImportClick,
                     enabled = !isImporting,
-                    colors = ButtonDefaults.buttonColors(containerColor = Color(0xFF38BDF8)),
+                    colors = ButtonDefaults.buttonColors(containerColor = IosSettingsColors.blue),
                     shape = RoundedCornerShape(20.dp)
                 ) {
                     if (isImporting) {
@@ -386,9 +386,9 @@ fun AllSongsSection(
                     )
                     Spacer(modifier = Modifier.height(20.dp))
                     OutlinedButton(onClick = onImportClick) {
-                        Icon(Icons.Default.FileUpload, contentDescription = null, tint = Color(0xFF38BDF8))
+                        Icon(Icons.Default.FileUpload, contentDescription = null, tint = IosSettingsColors.blue)
                         Spacer(modifier = Modifier.width(8.dp))
-                        Text("Elegir archivos de audio", color = Color(0xFF38BDF8))
+                        Text("Elegir archivos de audio", color = IosSettingsColors.blue)
                     }
                 }
             }
@@ -424,7 +424,7 @@ fun SectionHeader(title: String, onSeeAll: (() -> Unit)? = null) {
         Text(title, color = IosSettingsColors.label, fontSize = 18.sp, fontWeight = FontWeight.Bold)
         if (onSeeAll != null) {
             TextButton(onClick = onSeeAll) {
-                Text("Ver todas", color = Color(0xFF38BDF8))
+                Text("Ver todas", color = IosSettingsColors.blue)
             }
         }
     }
@@ -433,7 +433,7 @@ fun SectionHeader(title: String, onSeeAll: (() -> Unit)? = null) {
 @Composable
 fun CreatePlaylistCard(onClick: () -> Unit) {
     Card(
-        colors = CardDefaults.cardColors(containerColor = Color(0xFF1E293B)),
+        colors = CardDefaults.cardColors(containerColor = IosSettingsColors.cell),
         shape = RoundedCornerShape(20.dp),
         modifier = Modifier.size(140.dp).clickable(onClick = onClick)
     ) {
@@ -452,7 +452,7 @@ fun CreatePlaylistCard(onClick: () -> Unit) {
 @Composable
 fun PlaylistCard(playlist: PlaylistEntity, onClick: () -> Unit) {
     Card(
-        colors = CardDefaults.cardColors(containerColor = Color(0xFF1E293B)),
+        colors = CardDefaults.cardColors(containerColor = IosSettingsColors.cell),
         shape = RoundedCornerShape(12.dp),
         modifier = Modifier.width(140.dp).clickable(onClick = onClick)
     ) {
@@ -463,7 +463,7 @@ fun PlaylistCard(playlist: PlaylistEntity, onClick: () -> Unit) {
                 if (!playlist.coverPath.isNullOrEmpty()) {
                     AsyncImage(model = playlist.coverPath, contentDescription = null, contentScale = ContentScale.Crop, modifier = Modifier.fillMaxSize())
                 } else {
-                    Icon(Icons.Default.GraphicEq, contentDescription = null, modifier = Modifier.size(48.dp).align(Alignment.Center), tint = Color(0xFF38BDF8))
+                    Icon(Icons.Default.GraphicEq, contentDescription = null, modifier = Modifier.size(48.dp).align(Alignment.Center), tint = IosSettingsColors.blue)
                 }
             }
             Spacer(modifier = Modifier.height(8.dp))
@@ -495,11 +495,11 @@ fun AlbumGrid(albums: List<String>) {
     LazyColumn(modifier = Modifier.fillMaxSize().padding(16.dp)) {
         items(albums) { album ->
             Card(
-                colors = CardDefaults.cardColors(containerColor = Color(0xFF1E293B)),
+                colors = CardDefaults.cardColors(containerColor = IosSettingsColors.cell),
                 modifier = Modifier.fillMaxWidth().padding(vertical = 4.dp)
             ) {
                 Row(modifier = Modifier.padding(16.dp), verticalAlignment = Alignment.CenterVertically) {
-                    Icon(Icons.Default.Album, contentDescription = null, tint = Color(0xFF38BDF8))
+                    Icon(Icons.Default.Album, contentDescription = null, tint = IosSettingsColors.blue)
                     Spacer(modifier = Modifier.width(16.dp))
                     Text(album, color = IosSettingsColors.label, fontWeight = FontWeight.Bold)
                 }
@@ -513,11 +513,11 @@ fun ArtistGrid(artists: List<String>) {
     LazyColumn(modifier = Modifier.fillMaxSize().padding(16.dp)) {
         items(artists) { artist ->
             Card(
-                colors = CardDefaults.cardColors(containerColor = Color(0xFF1E293B)),
+                colors = CardDefaults.cardColors(containerColor = IosSettingsColors.cell),
                 modifier = Modifier.fillMaxWidth().padding(vertical = 4.dp)
             ) {
                 Row(modifier = Modifier.padding(16.dp), verticalAlignment = Alignment.CenterVertically) {
-                    Icon(Icons.Default.Person, contentDescription = null, tint = Color(0xFF38BDF8))
+                    Icon(Icons.Default.Person, contentDescription = null, tint = IosSettingsColors.blue)
                     Spacer(modifier = Modifier.width(16.dp))
                     Text(artist, color = IosSettingsColors.label, fontWeight = FontWeight.Bold)
                 }

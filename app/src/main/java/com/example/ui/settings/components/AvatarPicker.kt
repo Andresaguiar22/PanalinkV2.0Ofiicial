@@ -26,7 +26,7 @@ fun AvatarPicker(
     Column(modifier = modifier.fillMaxWidth()) {
         Button(
             onClick = onPickImage,
-            colors = ButtonDefaults.buttonColors(containerColor = Color(0xFF1E2D35)),
+            colors = ButtonDefaults.buttonColors(containerColor = IosSettingsColors.cellElevated),
             modifier = Modifier.fillMaxWidth(),
             shape = RoundedCornerShape(12.dp),
             border = BorderStroke(1.dp, Color(0xFF37474F))
@@ -38,7 +38,7 @@ fun AvatarPicker(
                 Icon(
                     imageVector = Icons.Default.Edit,
                     contentDescription = null,
-                    tint = Color(0xFF25D366)
+                    tint = IosSettingsColors.green
                 )
                 Spacer(modifier = Modifier.width(8.dp))
                 Text("Elegir de mi Galería 🖼️", color = IosSettingsColors.label, fontSize = 13.sp)
@@ -49,7 +49,7 @@ fun AvatarPicker(
             Spacer(modifier = Modifier.height(8.dp))
             Text(
                 text = statusMessage,
-                color = if (isUploading) Color(0xFF25D366) else Color.White,
+                color = if (isUploading) IosSettingsColors.green else Color.White,
                 fontSize = 12.sp,
                 fontWeight = FontWeight.Medium,
                 modifier = Modifier.fillMaxWidth(),

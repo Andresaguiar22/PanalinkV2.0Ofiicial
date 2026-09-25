@@ -896,7 +896,7 @@ fun ChatScreen(
                                             contentAlignment = Alignment.Center
                                         ) {
                                             Card(
-                                                colors = CardDefaults.cardColors(containerColor = Color(0xFF18202A).copy(alpha = 0.7f)),
+                                                colors = CardDefaults.cardColors(containerColor = IosSettingsColors.cellElevated.copy(alpha = 0.7f)),
                                                 shape = RoundedCornerShape(10.dp),
                                                 elevation = CardDefaults.cardElevation(defaultElevation = 1.dp)
                                             ) {
@@ -979,7 +979,7 @@ fun ChatScreen(
                                             Row(
                                             modifier = Modifier
                                                 .padding(horizontal = 16.dp, vertical = 4.dp)
-                                                .background(Color(0xFF18202A).copy(alpha = 0.7f), RoundedCornerShape(16.dp, 16.dp, 16.dp, 4.dp))
+                                                .background(IosSettingsColors.cellElevated.copy(alpha = 0.7f), RoundedCornerShape(16.dp, 16.dp, 16.dp, 4.dp))
                                                 .padding(horizontal = 14.dp, vertical = 10.dp),
                                             verticalAlignment = Alignment.CenterVertically,
                                             horizontalArrangement = Arrangement.spacedBy(8.dp)
@@ -1391,7 +1391,7 @@ fun PlaylistPickerDialog(
                                 modifier = Modifier
                                     .size(40.dp)
                                     .clip(RoundedCornerShape(4.dp))
-                                    .background(Color(0xFF18202A)),
+                                    .background(IosSettingsColors.cellElevated),
                                 contentAlignment = Alignment.Center
                             ) {
                                 if (playlist.coverPath != null) {

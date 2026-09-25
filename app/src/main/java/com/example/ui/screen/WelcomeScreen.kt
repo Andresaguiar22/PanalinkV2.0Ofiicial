@@ -107,7 +107,7 @@ fun AnimatedPanaWelcomeLogo(
             val gapLength = 8.dp.toPx()
 
             drawCircle(
-                color = Color(0xFF00FF85).copy(alpha = lightBlink * 0.85f),
+                color = IosSettingsColors.green.copy(alpha = lightBlink * 0.85f),
                 radius = outerRadius,
                 style = Stroke(
                     width = strokeWidth,

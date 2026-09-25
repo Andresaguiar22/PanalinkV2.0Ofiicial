@@ -62,7 +62,7 @@ fun UpdateDialog(
     ) {
         Card(
             shape = RoundedCornerShape(28.dp),
-            colors = CardDefaults.cardColors(containerColor = Color(0xFF131A22)),
+            colors = CardDefaults.cardColors(containerColor = IosSettingsColors.groupBackground),
             modifier = Modifier
                 .fillMaxWidth(0.92f)
                 .padding(8.dp)
@@ -152,7 +152,7 @@ fun UpdateDialog(
                                 LinearProgressIndicator(
                                     progress = { state.progress },
                                     color = IosSettingsColors.blue,
-                                    trackColor = Color(0xFF18202A),
+                                    trackColor = IosSettingsColors.cellElevated,
                                     modifier = Modifier
                                         .fillMaxWidth()
                                         .height(6.dp)
@@ -177,7 +177,7 @@ fun UpdateDialog(
                             } else {
                                 LinearProgressIndicator(
                                     color = IosSettingsColors.blue,
-                                    trackColor = Color(0xFF18202A),
+                                    trackColor = IosSettingsColors.cellElevated,
                                     modifier = Modifier
                                         .fillMaxWidth()
                                         .height(6.dp)

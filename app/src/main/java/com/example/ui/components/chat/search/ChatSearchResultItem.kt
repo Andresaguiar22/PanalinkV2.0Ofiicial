@@ -53,7 +53,7 @@ fun ChatSearchResultItem(
             modifier = Modifier
                 .size(40.dp)
                 .clip(CircleShape)
-                .background(Color(0xFF38BDF8).copy(alpha = 0.1f)),
+                .background(IosSettingsColors.blue.copy(alpha = 0.1f)),
             contentAlignment = Alignment.Center
         ) {
             val icon = when (message.messageType?.lowercase() ?: "text") {
@@ -66,7 +66,7 @@ fun ChatSearchResultItem(
             Icon(
                 imageVector = icon,
                 contentDescription = null,
-                tint = Color(0xFF38BDF8),
+                tint = IosSettingsColors.blue,
                 modifier = Modifier.size(24.dp)
             )
         }

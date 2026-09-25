@@ -26,6 +26,7 @@ import androidx.compose.ui.hapticfeedback.HapticFeedbackType
 import androidx.compose.ui.platform.LocalHapticFeedback
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import com.example.ui.settings.ios.IosSettingsColors
 
 /**
  * ReactionPill
@@ -48,7 +49,7 @@ fun ReactionPill(
         Surface(
             modifier = modifier,
             shape = CircleShape,
-            color = Color(0xFF1F2C34),
+            color = IosSettingsColors.cell,
             tonalElevation = 6.dp,
             shadowElevation = 8.dp
         ) {

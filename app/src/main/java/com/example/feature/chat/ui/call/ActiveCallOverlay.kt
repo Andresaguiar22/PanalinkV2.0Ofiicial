@@ -74,7 +74,7 @@ fun ActiveCallOverlay(
         .size(140.dp)
         .scale(pulseScale)
         .background(
-        if (activeCallState == "active") Color(0xFF25D366).copy(alpha = 0.15f)
+        if (activeCallState == "active") IosSettingsColors.green.copy(alpha = 0.15f)
         else Color(0xFF007AFF).copy(alpha = 0.15f),
         CircleShape
         )
@@ -84,7 +84,7 @@ fun ActiveCallOverlay(
         avatarUrl = otherUser?.avatarUrl,
         userId = otherUser?.id,
         size = 100.dp,
-        borderColor = if (activeCallState == "active") Color(0xFF25D366) else Color(0xFF007AFF),
+        borderColor = if (activeCallState == "active") IosSettingsColors.green else Color(0xFF007AFF),
         borderWidth = 3.dp,
         placeholderName = otherName
         )
@@ -137,7 +137,7 @@ fun ActiveCallOverlay(
         modifier = Modifier
         .size(64.dp)
         .bounceClick()
-        .background(Color(0xFF25D366), CircleShape)
+        .background(IosSettingsColors.green, CircleShape)
         ) {
         Icon(Icons.Default.Call, contentDescription = "Contestar", tint = IosSettingsColors.label, modifier = Modifier.size(32.dp))
         }
@@ -234,7 +234,7 @@ fun AudioVisualizer(
     val y = (maxBarHeight - barHeight) / 2
     
     drawRoundRect(
-    color = if (isPlaying) Color(0xFF25D366) else Color(0xFF8596A0).copy(alpha = 0.6f),
+    color = if (isPlaying) IosSettingsColors.green else Color(0xFF8596A0).copy(alpha = 0.6f),
     topLeft = androidx.compose.ui.geometry.Offset(x, y),
     size = androidx.compose.ui.geometry.Size(barWidth, barHeight),
     cornerRadius = androidx.compose.ui.geometry.CornerRadius(barWidth / 2, barWidth / 2)

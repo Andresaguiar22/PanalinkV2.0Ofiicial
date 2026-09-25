@@ -60,10 +60,10 @@ fun PremiumShopScreen(
                         Icon(Icons.AutoMirrored.Filled.ArrowBack, contentDescription = "Atrás", tint = IosSettingsColors.label)
                     }
                 },
-                colors = TopAppBarDefaults.centerAlignedTopAppBarColors(containerColor = Color(0xFF121A24))
+                colors = TopAppBarDefaults.centerAlignedTopAppBarColors(containerColor = IosSettingsColors.groupBackground)
             )
         },
-        containerColor = Color(0xFF121A24)
+        containerColor = IosSettingsColors.groupBackground
     ) { innerPadding ->
         Column(
             modifier = Modifier

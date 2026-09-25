@@ -44,9 +44,9 @@ fun PostCarouselNavigator(
         modifier = modifier
             .fillMaxWidth()
             .padding(horizontal = 12.dp, vertical = 6.dp),
-        colors = CardDefaults.cardColors(containerColor = Color(0xFF0F172A)),
+        colors = CardDefaults.cardColors(containerColor = IosSettingsColors.groupBackground),
         shape = RoundedCornerShape(16.dp),
-        border = BorderStroke(1.dp, Color(0xFF1E293B))
+        border = BorderStroke(1.dp, IosSettingsColors.cell)
     ) {
         Column(modifier = Modifier.padding(8.dp)) {
             Row(
@@ -72,7 +72,7 @@ fun PostCarouselNavigator(
                         Icon(
                             imageVector = Icons.Default.ContentCopy,
                             contentDescription = "Duplicar Página",
-                            tint = Color(0xFF38BDF8),
+                            tint = IosSettingsColors.blue,
                             modifier = Modifier.size(18.dp)
                         )
                     }
@@ -108,10 +108,10 @@ fun PostCarouselNavigator(
                         modifier = Modifier
                             .size(64.dp, 80.dp)
                             .clip(RoundedCornerShape(10.dp))
-                            .background(Color(0xFF1E293B))
+                            .background(IosSettingsColors.cell)
                             .border(
                                 width = if (isSelected) 2.dp else 1.dp,
-                                color = if (isSelected) Color(0xFF38BDF8) else Color(0xFF334155),
+                                color = if (isSelected) IosSettingsColors.blue else Color(0xFF334155),
                                 shape = RoundedCornerShape(10.dp)
                             )
                             .clickable { onSelectPage(index) }
@@ -158,7 +158,7 @@ fun PostCarouselNavigator(
                                 .padding(4.dp)
                                 .size(18.dp)
                                 .clip(CircleShape)
-                                .background(if (isSelected) Color(0xFF38BDF8) else Color(0xFF0F172A)),
+                                .background(if (isSelected) IosSettingsColors.blue else IosSettingsColors.groupBackground),
                             contentAlignment = Alignment.Center
                         ) {
                             Text(
@@ -176,8 +176,8 @@ fun PostCarouselNavigator(
                         modifier = Modifier
                             .size(64.dp, 80.dp)
                             .clip(RoundedCornerShape(10.dp))
-                            .background(Color(0xFF1E293B))
-                            .border(1.dp, Color(0xFF38BDF8), RoundedCornerShape(10.dp))
+                            .background(IosSettingsColors.cell)
+                            .border(1.dp, IosSettingsColors.blue, RoundedCornerShape(10.dp))
                             .clickable { onAddPage() },
                         contentAlignment = Alignment.Center
                     ) {
@@ -188,12 +188,12 @@ fun PostCarouselNavigator(
                             Icon(
                                 imageVector = Icons.Default.Add,
                                 contentDescription = "Agregar Página",
-                                tint = Color(0xFF38BDF8),
+                                tint = IosSettingsColors.blue,
                                 modifier = Modifier.size(24.dp)
                             )
                             Text(
                                 text = "Añadir",
-                                color = Color(0xFF38BDF8),
+                                color = IosSettingsColors.blue,
                                 fontSize = 10.sp,
                                 fontWeight = FontWeight.SemiBold
                             )

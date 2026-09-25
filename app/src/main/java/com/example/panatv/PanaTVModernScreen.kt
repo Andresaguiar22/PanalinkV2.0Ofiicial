@@ -67,7 +67,7 @@ import kotlinx.coroutines.delay
 import com.example.ui.settings.ios.IosSettingsColors
 
 private val PanaTvBackground = Color(0xFF0D0F12)
-private val PanaTvSurface = Color(0xFF131A22)
+private val PanaTvSurface = IosSettingsColors.groupBackground
 private val PanaTvText = Color(0xFFF5E6C8)
 private val PanaTvMuted = Color(0xFFB8C4D6)
 private val PanaTvAccent = IosSettingsColors.blue

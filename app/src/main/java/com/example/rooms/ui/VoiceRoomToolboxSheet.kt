@@ -74,7 +74,7 @@ fun VoiceRoomToolboxSheet(
     ModalBottomSheet(
         onDismissRequest = onDismiss,
         sheetState = sheetState,
-        containerColor = Color(0xFF0F172A)
+        containerColor = IosSettingsColors.groupBackground
     ) {
         Column(
             modifier = Modifier
@@ -112,7 +112,7 @@ fun VoiceRoomToolboxSheet(
                     .fillMaxWidth()
                     .padding(horizontal = 16.dp)
                     .clip(RoundedCornerShape(24.dp))
-                    .background(Color(0xFF1E293B))
+                    .background(IosSettingsColors.cell)
                     .padding(4.dp),
                 horizontalArrangement = Arrangement.SpaceBetween
             ) {
@@ -156,7 +156,7 @@ fun VoiceRoomToolboxSheet(
                                 .clip(RoundedCornerShape(16.dp))
                                 .background(
                                     if (selected) Color(0xFF3B4758)
-                                    else Color(0xFF1E293B),
+                                    else IosSettingsColors.cell,
                                     RoundedCornerShape(16.dp)
                                 )
                                 .border(
@@ -221,7 +221,7 @@ fun VoiceRoomToolboxSheet(
                                 .clip(RoundedCornerShape(16.dp))
                                 .background(
                                     if (selected) Color(0xFF3B4758)
-                                    else Color(0xFF1E293B),
+                                    else IosSettingsColors.cell,
                                     RoundedCornerShape(16.dp)
                                 )
                                 .border(
@@ -263,7 +263,7 @@ fun VoiceRoomToolboxSheet(
                                             .clip(CircleShape)
                                             .background(
                                                 Brush.linearGradient(
-                                                    listOf(Color(0xFF475569), Color(0xFF0F172A))
+                                                    listOf(Color(0xFF475569), IosSettingsColors.groupBackground)
                                                 ),
                                                 CircleShape
                                             )
@@ -323,7 +323,7 @@ fun VoiceRoomMyPendantSheet(
     ModalBottomSheet(
         onDismissRequest = onDismiss,
         sheetState = sheetState,
-        containerColor = Color(0xFF0F172A)
+        containerColor = IosSettingsColors.groupBackground
     ) {
         Column(
             modifier = Modifier
@@ -377,7 +377,7 @@ fun VoiceRoomMyPendantSheet(
                             .clip(RoundedCornerShape(16.dp))
                             .background(
                                 if (selected) Color(0xFF3B4758)
-                                else Color(0xFF1E293B),
+                                else IosSettingsColors.cell,
                                 RoundedCornerShape(16.dp)
                             )
                             .border(
@@ -417,7 +417,7 @@ fun VoiceRoomMyPendantSheet(
                                         .clip(CircleShape)
                                         .background(
                                             Brush.linearGradient(
-                                                listOf(Color(0xFF475569), Color(0xFF0F172A))
+                                                listOf(Color(0xFF475569), IosSettingsColors.groupBackground)
                                             ),
                                             CircleShape
                                         )

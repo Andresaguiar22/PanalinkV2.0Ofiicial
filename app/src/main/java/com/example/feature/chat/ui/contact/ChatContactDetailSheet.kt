@@ -116,7 +116,7 @@ fun ChatContactDetailSheet(
     Row(
     modifier = Modifier
     .fillMaxWidth()
-    .background(Color(0xFF18202A), RoundedCornerShape(12.dp))
+    .background(IosSettingsColors.cellElevated, RoundedCornerShape(12.dp))
     .padding(16.dp),
     verticalAlignment = Alignment.CenterVertically
     ) {
@@ -170,7 +170,7 @@ fun ChatContactDetailSheet(
     Button(
     onClick = onDismiss,
     colors = ButtonDefaults.buttonColors(
-    containerColor = Color(0xFF18202A),
+    containerColor = IosSettingsColors.cellElevated,
     contentColor = Color.White
     ),
     modifier = Modifier

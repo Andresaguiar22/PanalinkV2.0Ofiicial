@@ -79,10 +79,10 @@ fun PremiumCosmeticsScreen(
                         Icon(Icons.AutoMirrored.Filled.ArrowBack, contentDescription = "Atrás", tint = IosSettingsColors.label)
                     }
                 },
-                colors = TopAppBarDefaults.centerAlignedTopAppBarColors(containerColor = Color(0xFF121A24))
+                colors = TopAppBarDefaults.centerAlignedTopAppBarColors(containerColor = IosSettingsColors.groupBackground)
             )
         },
-        containerColor = Color(0xFF121A24)
+        containerColor = IosSettingsColors.groupBackground
     ) { innerPadding ->
         LazyVerticalGrid(
             columns = GridCells.Fixed(3),
@@ -169,7 +169,7 @@ private fun CosmeticTile(
                     .size(if (spec != null) 34.dp else 44.dp)
                     .background(
                         androidx.compose.ui.graphics.Brush.linearGradient(
-                            listOf(Color(0xFF475569), Color(0xFF0F172A))
+                            listOf(Color(0xFF475569), IosSettingsColors.groupBackground)
                         ),
                         CircleShape
                     ),

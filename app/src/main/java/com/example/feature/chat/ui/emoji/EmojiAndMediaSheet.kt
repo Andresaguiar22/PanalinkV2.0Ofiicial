@@ -104,7 +104,7 @@ fun EmojiAndMediaSheet(
                     modifier = Modifier
                         .width(260.dp)
                         .clip(RoundedCornerShape(24.dp))
-                        .background(Color(0xFF18202A))
+                        .background(IosSettingsColors.cellElevated)
                         .padding(20.dp)
                 ) {
                     AsyncImage(
@@ -173,7 +173,7 @@ fun EmojiAndMediaSheet(
                     onValueChange = { onSearchQueryChange(it) },
                     modifier = Modifier
                         .weight(1f)
-                        .background(Color(0xFF18202A), RoundedCornerShape(24.dp))
+                        .background(IosSettingsColors.cellElevated, RoundedCornerShape(24.dp))
                         .padding(horizontal = 16.dp, vertical = 8.dp),
                     textStyle = androidx.compose.ui.text.TextStyle(color = IosSettingsColors.label, fontSize = 15.sp),
                     cursorBrush = androidx.compose.ui.graphics.SolidColor(IosSettingsColors.blue),
@@ -218,7 +218,7 @@ fun EmojiAndMediaSheet(
                 // Center: Unified selector of 3 tabs (Emoji, GIF, Sticker)
                 Surface(
                     shape = RoundedCornerShape(24.dp),
-                    color = Color(0xFF18202A),
+                    color = IosSettingsColors.cellElevated,
                     modifier = Modifier
                         .width(220.dp)
                         .height(38.dp)
@@ -329,7 +329,7 @@ fun EmojiAndMediaSheet(
                             Row(
                                 modifier = Modifier
                                     .fillMaxWidth()
-                                    .background(Color(0xFF18202A))
+                                    .background(IosSettingsColors.cellElevated)
                                     .padding(vertical = 4.dp),
                                 horizontalArrangement = Arrangement.SpaceAround,
                                 verticalAlignment = Alignment.CenterVertically
@@ -378,7 +378,7 @@ fun EmojiAndMediaSheet(
                                         .fillMaxWidth()
                                         .height(100.dp)
                                         .clip(RoundedCornerShape(8.dp))
-                                        .background(Color(0xFF18202A))
+                                        .background(IosSettingsColors.cellElevated)
                                         .clickable {
                                             onStickerSelected(gif)
                                         }

@@ -427,7 +427,7 @@ private fun PresenceLabel(
             Text(
                 text = "escribiendo...",
                 fontSize = 12.sp,
-                color = Color(0xFF38BDF8),
+                color = IosSettingsColors.blue,
                 maxLines = 1,
                 overflow = TextOverflow.Ellipsis,
                 fontStyle = FontStyle.Italic

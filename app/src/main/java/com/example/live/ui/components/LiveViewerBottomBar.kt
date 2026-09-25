@@ -112,7 +112,7 @@ fun LiveViewerBottomBar(
                 modifier = Modifier
                     .size(32.dp)
                     .clip(RoundedCornerShape(8.dp))
-                    .background(Color(0xFF1F2C34))
+                    .background(IosSettingsColors.cell)
                     .clickable(
                         interactionSource = remember { MutableInteractionSource() },
                         indication = null

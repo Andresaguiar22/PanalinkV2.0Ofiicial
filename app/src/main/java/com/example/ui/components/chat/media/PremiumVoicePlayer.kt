@@ -48,7 +48,7 @@ fun PremiumVoicePlayer(
     uploadBytesWritten: Long = 0L,
     uploadTotalBytes: Long = 0L,
     modifier: Modifier = Modifier,
-    backgroundColor: Color = Color(0xFF1E293B)
+    backgroundColor: Color = IosSettingsColors.cell
 ) {
     var playbackSpeed by remember { mutableFloatStateOf(1f) }
 
@@ -93,7 +93,7 @@ fun PremiumVoicePlayer(
     val bubbleBgColor = backgroundColor
     val contentTextColor = if (isSender) Color.White else Color(0xE6FFFFFF) // 90% white
     val playedColor = if (isVoiceNote || isSender) {
-        if (isSender) IosSettingsColors.blue else Color(0xFF38BDF8)
+        if (isSender) IosSettingsColors.blue else IosSettingsColors.blue
     } else {
         Color(0xFFA78BFA)
     }

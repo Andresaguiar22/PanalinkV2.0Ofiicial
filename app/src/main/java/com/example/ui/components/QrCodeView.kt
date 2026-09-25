@@ -13,6 +13,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.asImageBitmap
 import com.example.core.logger.AppLogger
+import com.example.ui.settings.ios.IosSettingsColors
 
 @Composable
 fun QrCodeView(pin: String, modifier: Modifier = Modifier, payload: String? = null) {
@@ -66,7 +67,7 @@ fun QrCodeView(pin: String, modifier: Modifier = Modifier, payload: String? = nu
             modifier = modifier.background(Color.White),
             contentAlignment = Alignment.Center
         ) {
-            CircularProgressIndicator(color = Color(0xFF25D366))
+            CircularProgressIndicator(color = IosSettingsColors.green)
         }
     }
 }

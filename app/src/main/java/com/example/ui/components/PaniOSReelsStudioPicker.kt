@@ -40,7 +40,7 @@ import com.example.ui.settings.ios.IosSettingsColors
 
 // Colores del tema Premium Dark (estilo iOS)
 internal val PaniOSIosBlack = Color(0xFF000000)
-internal val PaniOSCardBackground = Color(0xFF161618)
+internal val PaniOSCardBackground = IosSettingsColors.cell
 internal val PaniOSCardBorder = Color(0x0DFFFFFF) // Blanco al 5%
 internal val PaniOSTextGray = Color(0xFF8E8E93)
 

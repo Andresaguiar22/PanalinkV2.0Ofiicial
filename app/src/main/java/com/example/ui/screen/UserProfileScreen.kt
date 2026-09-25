@@ -121,7 +121,7 @@ fun UserProfileScreen(
         com.example.data.repository.PresenceRepository.getPresenceForUser(userId)
     }
     val isUserOnline = presenceInfo.status == com.example.data.repository.UserPresenceStatus.ONLINE
-    val onlineStatusColor = if (isUserOnline) Color(0xFF25D366) else Color(0xFF2A3A44)
+    val onlineStatusColor = if (isUserOnline) IosSettingsColors.green else Color(0xFF2A3A44)
     val presenceStatusLabel = when (presenceInfo.status) {
         com.example.data.repository.UserPresenceStatus.ONLINE -> "Estado: En línea 🟢"
         com.example.data.repository.UserPresenceStatus.AWAY -> "Estado: Ausente 🟡"

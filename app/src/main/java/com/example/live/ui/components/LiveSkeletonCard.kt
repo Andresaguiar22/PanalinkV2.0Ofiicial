@@ -18,13 +18,14 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.unit.dp
 import kotlinx.coroutines.delay
 import kotlin.math.abs
+import com.example.ui.settings.ios.IosSettingsColors
 
 @Composable
 fun LiveSkeletonCard() {
     val shimmerColors = listOf(
-        Color(0xFF1F2C34),
+        IosSettingsColors.cell,
         Color(0xFF2A3A42),
-        Color(0xFF1F2C34)
+        IosSettingsColors.cell
     )
 
     var targetOffset by remember { mutableStateOf(0f) }

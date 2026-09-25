@@ -57,7 +57,7 @@ fun CreateChannelDialog(
         content = {
             Surface(
                 shape = RoundedCornerShape(28.dp),
-                color = Color(0xFF111B21),
+                color = IosSettingsColors.cellElevated,
                 tonalElevation = 6.dp,
                 modifier = Modifier.fillMaxWidth()
             ) {
@@ -252,7 +252,7 @@ fun CreateChannelDialog(
                                     .fillMaxWidth()
                                     .height(120.dp)
                                     .clip(RoundedCornerShape(12.dp))
-                                    .background(Color(0xFF202C33))
+                                    .background(IosSettingsColors.cellElevated)
                                     .border(1.dp, Color.Gray.copy(alpha = 0.3f), RoundedCornerShape(12.dp))
                                     .clickable { coverPicker.launch(androidx.activity.result.PickVisualMediaRequest(ActivityResultContracts.PickVisualMedia.ImageOnly)) },
                                 contentAlignment = Alignment.Center
@@ -285,7 +285,7 @@ fun CreateChannelDialog(
                                     modifier = Modifier
                                         .size(72.dp)
                                         .clip(CircleShape)
-                                        .background(Color(0xFF202C33))
+                                        .background(IosSettingsColors.cellElevated)
                                         .border(2.dp, Color(0xFFD500F9), CircleShape)
                                         .clickable { avatarPicker.launch(androidx.activity.result.PickVisualMediaRequest(ActivityResultContracts.PickVisualMedia.ImageOnly)) },
                                     contentAlignment = Alignment.Center
@@ -321,7 +321,7 @@ fun CreateChannelDialog(
                                 modifier = Modifier
                                     .fillMaxWidth()
                                     .clip(RoundedCornerShape(12.dp))
-                                    .background(Color(0xFF202C33))
+                                    .background(IosSettingsColors.cellElevated)
                                     .padding(12.dp),
                                 horizontalArrangement = Arrangement.SpaceBetween,
                                 verticalAlignment = Alignment.CenterVertically
@@ -351,7 +351,7 @@ fun CreateChannelDialog(
                                 modifier = Modifier
                                     .fillMaxWidth()
                                     .clip(RoundedCornerShape(12.dp))
-                                    .background(Color(0xFF202C33))
+                                    .background(IosSettingsColors.cellElevated)
                                     .padding(12.dp),
                                 horizontalArrangement = Arrangement.SpaceBetween,
                                 verticalAlignment = Alignment.CenterVertically

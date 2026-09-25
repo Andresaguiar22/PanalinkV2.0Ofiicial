@@ -71,8 +71,8 @@ import com.example.ui.settings.ios.IosSettingsColors
 
 // ── Xuper TV style palette ──────────────────────────────────────────────
 private val TvBg = Color(0xFF0D0F12)
-private val TvCard = Color(0xFF131A22)
-private val TvCardAlt = Color(0xFF18202A)
+private val TvCard = IosSettingsColors.groupBackground
+private val TvCardAlt = IosSettingsColors.cellElevated
 private val TvAccent = IosSettingsColors.blue
 private val TvAccentSoft = Color(0x3318E7F5)
 private val TvTextSecondary = Color(0xFFB8C4D6)
@@ -1381,9 +1381,9 @@ private fun ChannelCardSkeleton() {
     }
 
     val shimmerColors = listOf(
-        Color(0xFF131A22),
-        Color(0xFF18202A),
-        Color(0xFF131A22)
+        IosSettingsColors.groupBackground,
+        IosSettingsColors.cellElevated,
+        IosSettingsColors.groupBackground
     )
 
     val brush = Brush.horizontalGradient(
@@ -1396,7 +1396,7 @@ private fun ChannelCardSkeleton() {
         modifier = Modifier
             .fillMaxWidth()
             .clip(RoundedCornerShape(10.dp))
-            .background(Color(0xFF131A22))
+            .background(IosSettingsColors.groupBackground)
             .padding(bottom = 6.dp)
     ) {
         Box(

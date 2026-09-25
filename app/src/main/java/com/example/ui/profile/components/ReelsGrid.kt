@@ -168,7 +168,7 @@ fun ReelsGrid(viewModel: ProfileViewModel, onNavigateToReel: (String) -> Unit) {
             onDismissRequest = { reelToDelete = null },
             title = { Text("¿Borrar Reel?", color = IosSettingsColors.label) },
             text = { Text("Esta acción no se puede deshacer.", color = IosSettingsColors.secondaryLabel) },
-            containerColor = Color(0xFF1E2D35),
+            containerColor = IosSettingsColors.cellElevated,
             confirmButton = {
                 TextButton(onClick = {
                     viewModel.deleteReel(reelToDelete!!.id, currentUid)

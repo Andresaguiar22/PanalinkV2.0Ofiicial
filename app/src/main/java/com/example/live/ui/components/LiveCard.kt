@@ -91,7 +91,7 @@ fun LiveCard(
                         .fillMaxSize()
                         .background(
                             Brush.linearGradient(
-                                colors = listOf(Color(0xFF131A22), Color(0xFF0D0F12))
+                                colors = listOf(IosSettingsColors.groupBackground, Color(0xFF0D0F12))
                             )
                         )
                         .blur(28.dp)

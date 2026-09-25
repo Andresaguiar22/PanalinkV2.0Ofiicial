@@ -527,14 +527,14 @@ fun MainNavHost(
                 )
             } ?: run {
                 Box(modifier = Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
-                    androidx.compose.material3.CircularProgressIndicator(color = Color(0xFF38BDF8))
+                    androidx.compose.material3.CircularProgressIndicator(color = IosSettingsColors.blue)
                 }
             }
 
             if (showShareSheet) {
                 androidx.compose.material3.ModalBottomSheet(
                     onDismissRequest = { if (!isPreparingShare) showShareSheet = false },
-                    containerColor = Color(0xFF0F172A),
+                    containerColor = IosSettingsColors.groupBackground,
                     dragHandle = { androidx.compose.material3.BottomSheetDefaults.DragHandle(color = Color.Gray) }
                 ) {
                     if (isPreparingShare) {
@@ -542,7 +542,7 @@ fun MainNavHost(
                             modifier = Modifier.fillMaxWidth().padding(40.dp),
                             horizontalAlignment = Alignment.CenterHorizontally
                         ) {
-                            androidx.compose.material3.CircularProgressIndicator(color = Color(0xFF38BDF8))
+                            androidx.compose.material3.CircularProgressIndicator(color = IosSettingsColors.blue)
                             Spacer(modifier = Modifier.height(16.dp))
                             Text("Preparando tu playlist...", color = IosSettingsColors.label, fontSize = 14.sp)
                         }

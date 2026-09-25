@@ -129,7 +129,7 @@ fun CameraCaptureView(
                 Spacer(modifier = Modifier.height(32.dp))
                 Button(
                     onClick = { launcher.launch(requiredPermissions.toTypedArray()) },
-                    colors = ButtonDefaults.buttonColors(containerColor = Color(0xFF00FF85))
+                    colors = ButtonDefaults.buttonColors(containerColor = IosSettingsColors.green)
                 ) {
                     Text("Conceder Permisos 📸", color = Color.Black, fontWeight = FontWeight.Bold)
                 }
@@ -347,7 +347,7 @@ fun CameraPreviewAndControls(
                         onClick = { showMusicMenu = !showMusicMenu },
                         modifier = Modifier.background(Color.Black.copy(alpha = 0.5f), CircleShape)
                     ) {
-                        Icon(Icons.Default.MusicNote, contentDescription = "Música", tint = if (selectedMusic != null && selectedMusic != "Sin Música") Color(0xFF00FF85) else Color.White)
+                        Icon(Icons.Default.MusicNote, contentDescription = "Música", tint = if (selectedMusic != null && selectedMusic != "Sin Música") IosSettingsColors.green else Color.White)
                     }
                     Text("Música", color = IosSettingsColors.label, fontSize = 10.sp, fontWeight = FontWeight.Bold)
                 }
@@ -418,7 +418,7 @@ fun CameraPreviewAndControls(
                             Box(
                                 modifier = Modifier
                                     .clip(CircleShape)
-                                    .background(if (active) Color(0xFF00FF85) else Color.White.copy(alpha = 0.2f))
+                                    .background(if (active) IosSettingsColors.green else Color.White.copy(alpha = 0.2f))
                                     .clickable { selectedMusic = track }
                                     .padding(horizontal = 16.dp, vertical = 8.dp)
                             ) {
@@ -520,7 +520,7 @@ fun CameraPreviewAndControls(
                     modifier = Modifier
                         .fillMaxSize()
                         .clip(CircleShape)
-                        .background(if (isRecording) Color.Red else Color(0xFF00FF85))
+                        .background(if (isRecording) Color.Red else IosSettingsColors.green)
                         .clickable {
                             if (mode == "photo") {
                                 // Take Photo

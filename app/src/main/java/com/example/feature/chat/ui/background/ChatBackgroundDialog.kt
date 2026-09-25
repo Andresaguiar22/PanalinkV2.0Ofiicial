@@ -61,7 +61,7 @@ fun ChatBackgroundDialog(
 
     Dialog(onDismissRequest = onDismiss) {
         Card(
-            colors = CardDefaults.cardColors(containerColor = Color(0xFF1F2C34)),
+            colors = CardDefaults.cardColors(containerColor = IosSettingsColors.cell),
             shape = RoundedCornerShape(16.dp),
             modifier = Modifier.fillMaxWidth().padding(16.dp)
         ) {
@@ -101,7 +101,7 @@ fun ChatBackgroundDialog(
                     onClick = onDismiss,
                     modifier = Modifier.align(Alignment.End).padding(top = 8.dp)
                 ) {
-                    Text("Cerrar", color = Color(0xFF25D366))
+                    Text("Cerrar", color = IosSettingsColors.green)
                 }
             }
         }
@@ -121,7 +121,7 @@ private fun WallpaperCard(
             .clickable(onClick = onClick)
             .border(
                 width = if (selected) 2.dp else 0.dp,
-                color = if (selected) Color(0xFF25D366) else Color.Transparent,
+                color = if (selected) IosSettingsColors.green else Color.Transparent,
                 shape = RoundedCornerShape(8.dp)
             )
     ) {
@@ -172,7 +172,7 @@ private fun WallpaperCard(
                             .fillMaxSize()
                             .background(
                                 Brush.verticalGradient(
-                                    listOf(Color(0xFF8B5CF6), Color(0xFF0F172A))
+                                    listOf(Color(0xFF8B5CF6), IosSettingsColors.groupBackground)
                                 )
                             ),
                         contentAlignment = Alignment.Center

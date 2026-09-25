@@ -257,7 +257,7 @@ fun TikTokVideoFeedScreen(
             contentAlignment = Alignment.Center
         ) {
             Column(horizontalAlignment = Alignment.CenterHorizontally) {
-                CircularProgressIndicator(color = Color(0xFF00FF85))
+                CircularProgressIndicator(color = IosSettingsColors.green)
                 Spacer(modifier = Modifier.height(16.dp))
                 Text("Cargando vídeos venezolanos... 🇻🇪", color = IosSettingsColors.label)
             }
@@ -288,7 +288,7 @@ fun TikTokVideoFeedScreen(
                             label = { Text(filter) },
                             colors = FilterChipDefaults.filterChipColors(
                                 containerColor = Color.White.copy(alpha = 0.05f),
-                                selectedContainerColor = Color(0xFF00FF85),
+                                selectedContainerColor = IosSettingsColors.green,
                                 labelColor = Color.White,
                                 selectedLabelColor = Color.Black
                             ),
@@ -591,7 +591,7 @@ fun TikTokVideoFeedScreen(
                             colors = OutlinedTextFieldDefaults.colors(
                                 focusedTextColor = Color.White,
                                 unfocusedTextColor = Color.White,
-                                focusedBorderColor = Color(0xFF00FF85),
+                                focusedBorderColor = IosSettingsColors.green,
                                 unfocusedBorderColor = Color.White.copy(alpha = 0.2f),
                                 focusedContainerColor = Color.Black.copy(alpha = 0.6f),
                                 unfocusedContainerColor = Color.Black.copy(alpha =  0.4f)
@@ -693,7 +693,7 @@ fun TikTokVideoFeedScreen(
                     Spacer(modifier = Modifier.width(6.dp))
                     Text(
                         text = "$uploadProgressVal%",
-                        color = Color(0xFF00FF85),
+                        color = IosSettingsColors.green,
                         fontSize = 10.sp,
                         fontWeight = FontWeight.Bold
                     )
@@ -705,7 +705,7 @@ fun TikTokVideoFeedScreen(
                         .width(96.dp)
                         .height(2.dp)
                         .clip(RoundedCornerShape(1.dp)),
-                    color = Color(0xFF00FF85),
+                    color = IosSettingsColors.green,
                     trackColor = Color.White.copy(alpha = 0.15f)
                 )
             }
@@ -1727,7 +1727,7 @@ fun TikTokPageItem(
                         contentAlignment = Alignment.Center
                     ) {
                         Column(horizontalAlignment = Alignment.CenterHorizontally) {
-                            CircularProgressIndicator(color = Color(0xFF00FF85), strokeWidth = 3.dp)
+                            CircularProgressIndicator(color = IosSettingsColors.green, strokeWidth = 3.dp)
                         }
                     }
                 } else if (isActivePage && (hasError || resolveFailed) && !isRecovering) {
@@ -2473,7 +2473,7 @@ fun TikTokPageItem(
                                         if (comment.deletedAt == null) {
                                             Text(
                                                 text = "• Responder",
-                                                color = Color(0xFF25D366),
+                                                color = IosSettingsColors.green,
                                                 fontSize = 11.sp,
                                                 fontWeight = FontWeight.SemiBold,
                                                 modifier = Modifier
@@ -2514,14 +2514,14 @@ fun TikTokPageItem(
                         Row(
                             modifier = Modifier
                                 .fillMaxWidth()
-                                .background(Color(0xFF1E2D35))
+                                .background(IosSettingsColors.cellElevated)
                                 .padding(horizontal = 16.dp, vertical = 8.dp),
                             verticalAlignment = Alignment.CenterVertically,
                             horizontalArrangement = Arrangement.SpaceBetween
                         ) {
                             Text(
                                 text = "Respondiendo a @${com.example.data.repository.PublicProfileResolver.formatForUi(currentReplyingTo.authorName, "Pana")}",
-                                color = Color(0xFF25D366),
+                                color = IosSettingsColors.green,
                                 fontSize = 12.sp,
                                 fontWeight = FontWeight.SemiBold
                             )
@@ -2562,9 +2562,9 @@ fun TikTokPageItem(
                             colors = OutlinedTextFieldDefaults.colors(
                                 focusedTextColor = Color.White,
                                 unfocusedTextColor = Color.White,
-                                focusedContainerColor = Color(0xFF1E2D35),
-                                unfocusedContainerColor = Color(0xFF1E2D35),
-                                focusedBorderColor = Color(0xFF25D366),
+                                focusedContainerColor = IosSettingsColors.cellElevated,
+                                unfocusedContainerColor = IosSettingsColors.cellElevated,
+                                focusedBorderColor = IosSettingsColors.green,
                                 unfocusedBorderColor = Color.Transparent
                             ),
                             shape = RoundedCornerShape(24.dp)
@@ -2573,7 +2573,7 @@ Box(
                     modifier = Modifier
                         .size(32.dp)
                         .clip(androidx.compose.foundation.shape.RoundedCornerShape(8.dp))
-                        .background(Color(0xFF1F2C34))
+                        .background(IosSettingsColors.cell)
                         .clickable(
                             interactionSource = remember { androidx.compose.foundation.interaction.MutableInteractionSource() },
                             indication = null
@@ -2600,7 +2600,7 @@ Box(
                                 }
                             },
                             modifier = Modifier
-                                .background(Color(0xFF25D366), CircleShape)
+                                .background(IosSettingsColors.green, CircleShape)
                                 .size(40.dp)
                         ) {
                             Icon(
@@ -2687,7 +2687,7 @@ fun FloatingHeart(
         Icon(
             imageVector = Icons.Rounded.Favorite,
             contentDescription = null,
-            tint = Color(0xFF00FF85),
+            tint = IosSettingsColors.green,
             modifier = Modifier
                 .fillMaxSize()
                 .graphicsLayer(
@@ -2803,7 +2803,7 @@ fun ReelsSkeletonLoader(avatarUrl: String?, displayName: String) {
 
         // Center spinner
         CircularProgressIndicator(
-            color = Color(0xFF00FF85),
+            color = IosSettingsColors.green,
             strokeWidth = 3.dp,
             modifier = Modifier.align(Alignment.Center)
         )
@@ -2872,7 +2872,7 @@ fun ReelsErrorView(
             Button(
                 onClick = onRetry,
                 colors = ButtonDefaults.buttonColors(
-                    containerColor = Color(0xFF00FF85),
+                    containerColor = IosSettingsColors.green,
                     contentColor = Color.Black
                 ),
                 shape = RoundedCornerShape(24.dp),

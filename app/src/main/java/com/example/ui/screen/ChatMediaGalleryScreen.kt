@@ -55,18 +55,18 @@ fun ChatMediaGalleryScreen(
                     }
                 },
                 colors = TopAppBarDefaults.topAppBarColors(
-                    containerColor = Color(0xFF18202A),
+                    containerColor = IosSettingsColors.cellElevated,
                     titleContentColor = Color.White,
                     navigationIconContentColor = Color.White
                 )
             )
         },
-        containerColor = Color(0xFF121B22)
+        containerColor = IosSettingsColors.groupBackground
     ) { padding ->
         Column(modifier = Modifier.padding(padding)) {
             TabRow(
                 selectedTabIndex = selectedTab,
-                containerColor = Color(0xFF18202A),
+                containerColor = IosSettingsColors.cellElevated,
                 contentColor = IosSettingsColors.blue,
                 indicator = { tabPositions ->
                     TabRowDefaults.SecondaryIndicator(

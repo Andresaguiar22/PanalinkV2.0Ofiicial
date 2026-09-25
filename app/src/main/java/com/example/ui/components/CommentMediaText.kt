@@ -39,7 +39,7 @@ fun CommentMediaText(
             modifier = modifier
                 .size(gifSize)
                 .padding(top = 2.dp)
-                .background(Color(0xFF111B21), RoundedCornerShape(8.dp))
+                .background(IosSettingsColors.cellElevated, RoundedCornerShape(8.dp))
                 .clip(RoundedCornerShape(8.dp)),
             contentAlignment = Alignment.Center
         ) {

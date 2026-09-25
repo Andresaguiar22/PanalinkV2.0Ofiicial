@@ -264,13 +264,13 @@ fun VoiceMessageBubble(
                              Icon(
                                 imageVector = Icons.Filled.Check,
                                 contentDescription = "Leído",
-                                tint = Color(0xFF38BDF8),
+                                tint = IosSettingsColors.blue,
                                 modifier = Modifier.size(11.dp)
                             )
                             Icon(
                                 imageVector = Icons.Filled.Check,
                                 contentDescription = "Leído",
-                                tint = Color(0xFF38BDF8),
+                                tint = IosSettingsColors.blue,
                                 modifier = Modifier.size(11.dp)
                             )
                         }

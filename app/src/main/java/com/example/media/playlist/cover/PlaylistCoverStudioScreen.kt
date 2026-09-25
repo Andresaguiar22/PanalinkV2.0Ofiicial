@@ -42,11 +42,11 @@ fun PlaylistCoverStudioScreen(
                         CircularProgressIndicator(modifier = Modifier.size(24.dp), strokeWidth = 2.dp)
                     } else {
                         IconButton(onClick = { viewModel.exportAndApply(onFinish) }) {
-                            Icon(Icons.Default.Check, contentDescription = "Listo", tint = Color(0xFF38BDF8))
+                            Icon(Icons.Default.Check, contentDescription = "Listo", tint = IosSettingsColors.blue)
                         }
                     }
                 },
-                colors = TopAppBarDefaults.topAppBarColors(containerColor = Color(0xFF111827))
+                colors = TopAppBarDefaults.topAppBarColors(containerColor = IosSettingsColors.groupBackground)
             )
         },
         bottomBar = {

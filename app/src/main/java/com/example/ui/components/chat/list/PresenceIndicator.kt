@@ -51,7 +51,7 @@ fun PresenceIndicator(
 ) {
     val activeStatus = (secondaryStatus ?: status).lowercase()
     val indicatorColor = when (activeStatus) {
-        "online" -> Color(0xFF25D366)
+        "online" -> IosSettingsColors.green
         "away" -> Color(0xFFFFB300)
         "busy", "in_call", "on_call", "voice_call", "video_call" -> Color(0xFFFF3B30)
         "typing", "recording_audio", "recording", "uploading_file", "uploading" -> Color(0xFF3498DB)

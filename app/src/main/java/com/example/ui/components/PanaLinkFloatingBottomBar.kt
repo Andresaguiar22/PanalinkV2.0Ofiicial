@@ -44,7 +44,7 @@ import androidx.compose.ui.zIndex
 
 // Colores iOS del mockup
 private val IosTabTextGray = Color(0xFF8E8E93)
-private val PanalinkTabTint = Color(0xFF10B981)
+private val PanalinkTabTint = Color(0xFF0A84FF)
 
 @Composable
 fun PanaLinkFloatingBottomBar(

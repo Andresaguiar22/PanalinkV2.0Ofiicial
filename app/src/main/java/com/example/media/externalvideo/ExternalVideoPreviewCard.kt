@@ -32,7 +32,7 @@ fun ExternalVideoPreviewCard(
     modifier: Modifier = Modifier
 ) {
     Card(
-        colors = CardDefaults.cardColors(containerColor = Color(0xFF1E293B)),
+        colors = CardDefaults.cardColors(containerColor = IosSettingsColors.cell),
         shape = RoundedCornerShape(12.dp),
         modifier = modifier
             .fillMaxWidth()

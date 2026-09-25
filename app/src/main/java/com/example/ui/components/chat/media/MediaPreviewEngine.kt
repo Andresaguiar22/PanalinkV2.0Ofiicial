@@ -15,6 +15,7 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.unit.dp
 import com.example.data.model.Message
 import com.example.ui.components.chat.bubble.MediaMessageBubble
+import com.example.ui.settings.ios.IosSettingsColors
 
 @Composable
 fun MediaPreviewEngine(
@@ -102,7 +103,7 @@ fun MediaPreviewEngine(
                     .padding(top = 4.dp, bottom = 4.dp, end = 4.dp)
                     .clip(RoundedCornerShape(18.dp))
                     .background(Color(0xFF2E3A4D).copy(alpha = 0.92f))
-                    .border(1.dp, Color(0xFF38BDF8).copy(alpha = 0.55f), RoundedCornerShape(18.dp))
+                    .border(1.dp, IosSettingsColors.blue.copy(alpha = 0.55f), RoundedCornerShape(18.dp))
             )
         }
         isDocument -> {

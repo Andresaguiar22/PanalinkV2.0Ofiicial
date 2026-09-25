@@ -154,7 +154,7 @@ fun KlipyGifStickerPicker(
                         Box(
                             modifier = Modifier
                                 .clip(RoundedCornerShape(16.dp))
-                                .background(if (isSelected) IosSettingsColors.blue else Color(0xFF18202A))
+                                .background(if (isSelected) IosSettingsColors.blue else IosSettingsColors.cellElevated)
                                 .clickable { selectCategory(cat) }
                                 .padding(horizontal =   12.dp, vertical = 6.dp),
                             contentAlignment = Alignment.Center
@@ -175,7 +175,7 @@ fun KlipyGifStickerPicker(
                 modifier = Modifier
                     .fillMaxWidth()
                     .padding(vertical =   6.dp)
-                    .background(Color(0xFF18202A), RoundedCornerShape(20.dp))
+                    .background(IosSettingsColors.cellElevated, RoundedCornerShape(20.dp))
                     .padding(horizontal =   12.dp),
                 verticalAlignment = Alignment.CenterVertically
             ) {
@@ -242,7 +242,7 @@ fun KlipyGifStickerPicker(
                                     .fillMaxWidth()
                                     .aspectRatio(1f)
                                     .clip(RoundedCornerShape(8.dp))
-                                    .background(Color(0xFF18202A))
+                                    .background(IosSettingsColors.cellElevated)
                                     .clickable { onSelected(item) }
                             ) {
                                 AsyncImage(

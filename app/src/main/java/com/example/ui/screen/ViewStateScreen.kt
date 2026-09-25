@@ -986,7 +986,7 @@ var showGifPicker by remember { mutableStateOf(false) }
                         if (resolveRetry > 0) {
                             Button(
                                 onClick = { resolveRetry++ },
-                                colors = ButtonDefaults.buttonColors(containerColor = Color(0xFF00FF85)),
+                                colors = ButtonDefaults.buttonColors(containerColor = IosSettingsColors.green),
                                 modifier = Modifier.align(Alignment.BottomCenter).padding(bottom = 24.dp)
                             ) {
                                 Text("Reintentar", color = Color.Black)
@@ -1175,7 +1175,7 @@ var showGifPicker by remember { mutableStateOf(false) }
                     ) {
                         Text(
                             text = "REC 🔴  PLAY ▶\n00:${String.format("%02d", (elapsedMs / 1000 % 60).toInt())}",
-                            color = Color(0xFF00FF85),
+                            color = IosSettingsColors.green,
                             fontSize = 11.sp,
                             fontWeight = FontWeight.Bold,
                             modifier = Modifier.align(Alignment.TopStart)
@@ -1201,7 +1201,7 @@ var showGifPicker by remember { mutableStateOf(false) }
                         modifier = Modifier
                             .size(if (idx == innerCarouselIndex) 8.dp else 6.dp)
                             .clip(CircleShape)
-                            .background(if (idx == innerCarouselIndex) Color(0xFF00FF85) else Color.White.copy(alpha = 0.5f))
+                            .background(if (idx == innerCarouselIndex) IosSettingsColors.green else Color.White.copy(alpha = 0.5f))
                     )
                 }
             }
@@ -1260,7 +1260,7 @@ var showGifPicker by remember { mutableStateOf(false) }
                             modifier = Modifier
                                 .size(42.dp)
                                 .clip(CircleShape)
-                                .border(1.5.dp, Color(0xFF00FF85), CircleShape)
+                                .border(1.5.dp, IosSettingsColors.green, CircleShape)
                                 .padding(2.dp)
                         ) {
                             PanaAvatar(
@@ -1501,8 +1501,8 @@ var showGifPicker by remember { mutableStateOf(false) }
                     Row(
                         modifier = Modifier
                             .align(Alignment.CenterEnd)
-                            .background(Color(0xFF00FF85).copy(alpha = 0.12f), RoundedCornerShape(12.dp))
-                            .border(1.dp, Color(0xFF00FF85).copy(alpha = 0.35f), RoundedCornerShape(12.dp))
+                            .background(IosSettingsColors.green.copy(alpha = 0.12f), RoundedCornerShape(12.dp))
+                            .border(1.dp, IosSettingsColors.green.copy(alpha = 0.35f), RoundedCornerShape(12.dp))
                             .padding(horizontal = 8.dp, vertical = 4.dp),
                         verticalAlignment = Alignment.CenterVertically,
                         horizontalArrangement = Arrangement.spacedBy(4.dp)
@@ -1510,7 +1510,7 @@ var showGifPicker by remember { mutableStateOf(false) }
                         Text("🎵", fontSize = 10.sp)
                         Text(
                             text = metadata.musicName,
-                            color = Color(0xFF00FF85),
+                            color = IosSettingsColors.green,
                             fontSize = 9.sp,
                             fontWeight = FontWeight.Bold,
                             maxLines = 1,
@@ -1579,7 +1579,7 @@ var showGifPicker by remember { mutableStateOf(false) }
                     BadgedBox(
                         badge = {
                             if (commentsList.isNotEmpty()) {
-                                Badge(containerColor = Color(0xFF00FF85)) {
+                                Badge(containerColor = IosSettingsColors.green) {
                                     Text("${commentsList.size}", color = Color.Black, fontSize = 9.sp)
                                 }
                             }
@@ -1604,7 +1604,7 @@ var showGifPicker by remember { mutableStateOf(false) }
                             .onFocusChanged { isInputFocused = it.isFocused },
                         textStyle = TextStyle(color = IosSettingsColors.label, fontSize = 14.sp),
                         singleLine = true,
-                        cursorBrush = SolidColor(Color(0xFF00FF85)),
+                        cursorBrush = SolidColor(IosSettingsColors.green),
                         keyboardOptions = KeyboardOptions(imeAction = ImeAction.Send),
                         keyboardActions = KeyboardActions(onSend = {
                             if (replyText.isNotBlank()) {
@@ -1668,7 +1668,7 @@ var showGifPicker by remember { mutableStateOf(false) }
                         Icon(
                             imageVector = Icons.Default.Send,
                             contentDescription = "Enviar",
-                            tint = Color(0xFF00FF85),
+                            tint = IosSettingsColors.green,
                             modifier = Modifier.size(20.dp)
                         )
                     }
@@ -1741,7 +1741,7 @@ var showGifPicker by remember { mutableStateOf(false) }
             ) {
                 Box(
                     modifier = Modifier
-                        .background(Color(0xFF00FF85), RoundedCornerShape(20.dp))
+                        .background(IosSettingsColors.green, RoundedCornerShape(20.dp))
                         .padding(horizontal = 18.dp, vertical = 10.dp)
                 ) {
                     Text(msg, color = Color.Black, fontWeight = FontWeight.Bold, fontSize = 13.sp)
@@ -1894,7 +1894,7 @@ var showGifPicker by remember { mutableStateOf(false) }
                                         if (comment.deletedAt == null) {
                                             Text(
                                                 text = "Responder",
-                                                color = Color(0xFF00FF85),
+                                                color = IosSettingsColors.green,
                                                 fontSize = 11.sp,
                                                 fontWeight = FontWeight.Bold,
                                                 modifier = Modifier
@@ -1941,7 +1941,7 @@ Box(
                         modifier = Modifier
                             .size(32.dp)
                             .clip(androidx.compose.foundation.shape.RoundedCornerShape(8.dp))
-                            .background(Color(0xFF1F2C34))
+                            .background(IosSettingsColors.cell)
                             .clickable(
                                 interactionSource = remember { androidx.compose.foundation.interaction.MutableInteractionSource() },
                                 indication = null
@@ -1960,7 +1960,7 @@ Box(
                             colors = OutlinedTextFieldDefaults.colors(
                                 focusedContainerColor = Color(0xFF1E222B),
                                 unfocusedContainerColor = Color(0xFF1E222B),
-                                focusedBorderColor = Color(0xFF00FF85),
+                                focusedBorderColor = IosSettingsColors.green,
                                 unfocusedBorderColor = Color.White.copy(alpha = 0.15f)
                             ),
                             singleLine = true,
@@ -1979,7 +1979,7 @@ Box(
                                         Icon(
                                             imageVector = Icons.Filled.Send,
                                             contentDescription = "Enviar",
-                                            tint = Color(0xFF00FF85),
+                                            tint = IosSettingsColors.green,
                                             modifier = Modifier.size(20.dp)
                                         )
                                     }
@@ -2447,7 +2447,7 @@ fun VideoPlayer(
                         onUnavailable?.invoke()
                         Toast.makeText(ctx, "No hay conexión a Internet", Toast.LENGTH_SHORT).show()
                     }
-                }, colors = ButtonDefaults.buttonColors(containerColor = Color(0xFF00FF85))) {
+                }, colors = ButtonDefaults.buttonColors(containerColor = IosSettingsColors.green)) {
                     Text("Reintentar", color = Color.Black)
                 }
             }

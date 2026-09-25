@@ -1824,7 +1824,7 @@ private fun FacebookMyStoryCard(
                 modifier = Modifier
                     .weight(0.65f)
                     .fillMaxWidth()
-                    .background(Brush.verticalGradient(listOf(Color(0xFF4B5563), Color(0xFF111827)))),
+                    .background(Brush.verticalGradient(listOf(Color(0xFF4B5563), IosSettingsColors.groupBackground))),
                 contentAlignment = Alignment.Center
             ) {
                 val resolvedAvatar = remember(avatarUrl) {

@@ -25,7 +25,7 @@ data class PostToolItem(
     val id: String,
     val name: String,
     val icon: ImageVector,
-    val tint: Color = Color(0xFF38BDF8)
+    val tint: Color = IosSettingsColors.blue
 )
 
 /**
@@ -38,7 +38,7 @@ fun PostStudioToolbar(
     modifier: Modifier = Modifier
 ) {
     val tools = listOf(
-        PostToolItem("media", "Multimedia", Icons.Default.PhotoLibrary, Color(0xFF38BDF8)),
+        PostToolItem("media", "Multimedia", Icons.Default.PhotoLibrary, IosSettingsColors.blue),
         PostToolItem("ai", "Asistente AI", Icons.Default.AutoAwesome, Color(0xFFFF007A)),
         PostToolItem("text", "Texto", Icons.Default.TextFields, Color(0xFFA855F7)),
         PostToolItem("sticker", "Stickers", Icons.Default.EmojiEmotions, Color(0xFFF59E0B)),

@@ -66,10 +66,10 @@ fun PremiumHomeScreen(
                         Icon(Icons.AutoMirrored.Filled.ArrowBack, contentDescription = "Atrás", tint = IosSettingsColors.label)
                     }
                 },
-                colors = TopAppBarDefaults.centerAlignedTopAppBarColors(containerColor = Color(0xFF121A24))
+                colors = TopAppBarDefaults.centerAlignedTopAppBarColors(containerColor = IosSettingsColors.groupBackground)
             )
         },
-        containerColor = Color(0xFF121A24)
+        containerColor = IosSettingsColors.groupBackground
     ) { innerPadding ->
         Column(
             modifier = Modifier
@@ -399,7 +399,7 @@ private fun PremiumNotifRow(
         modifier = Modifier
             .fillMaxWidth()
             .background(
-                if (notification.isRead) Color(0xFF121A24) else Color(0xFF1B2432),
+                if (notification.isRead) IosSettingsColors.groupBackground else Color(0xFF1B2432),
                 RoundedCornerShape(12.dp)
             )
             .clickable(enabled = !notification.isRead, onClick = onRead)

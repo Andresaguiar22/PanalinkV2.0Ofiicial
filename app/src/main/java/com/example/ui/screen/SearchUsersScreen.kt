@@ -95,7 +95,7 @@ fun SearchUsersScreen(
                     }
                 },
                 colors = TopAppBarDefaults.topAppBarColors(
-                    containerColor = Color(0xFF131A22)
+                    containerColor = IosSettingsColors.groupBackground
                 )
             )
         },
@@ -115,7 +115,7 @@ fun SearchUsersScreen(
                         horizontalAlignment = Alignment.CenterHorizontally,
                         verticalArrangement = Arrangement.Center
                     ) {
-                        Icon(Icons.Default.Person, contentDescription = null, tint = Color(0xFF18202A), modifier = Modifier.size(80.dp))
+                        Icon(Icons.Default.Person, contentDescription = null, tint = IosSettingsColors.cellElevated, modifier = Modifier.size(80.dp))
                         Spacer(modifier = Modifier.height(16.dp))
                         Text(
                             text = "Escribe un nombre para buscar",

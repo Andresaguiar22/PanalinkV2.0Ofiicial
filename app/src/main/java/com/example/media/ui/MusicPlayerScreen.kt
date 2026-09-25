@@ -50,13 +50,13 @@ fun MusicPlayerScreen(
                 },
                 actions = {
                     IconButton(onClick = onShareTrackClick) {
-                        Icon(Icons.Default.Share, contentDescription = "Compartir en PanaLink", tint = Color(0xFF38BDF8))
+                        Icon(Icons.Default.Share, contentDescription = "Compartir en PanaLink", tint = IosSettingsColors.blue)
                     }
                 },
-                colors = TopAppBarDefaults.topAppBarColors(containerColor = Color(0xFF0F172A))
+                colors = TopAppBarDefaults.topAppBarColors(containerColor = IosSettingsColors.groupBackground)
             )
         },
-        containerColor = Color(0xFF0F172A),
+        containerColor = IosSettingsColors.groupBackground,
         modifier = modifier
     ) { padding ->
         if (track == null) {
@@ -82,7 +82,7 @@ fun MusicPlayerScreen(
                     modifier = Modifier
                         .size(280.dp)
                         .clip(RoundedCornerShape(20.dp))
-                        .background(Color(0xFF1E293B)),
+                        .background(IosSettingsColors.cell),
                     contentAlignment = Alignment.Center
                 ) {
                     if (!track.coverPath.isNullOrEmpty()) {
@@ -96,7 +96,7 @@ fun MusicPlayerScreen(
                         Icon(
                             imageVector = Icons.Default.GraphicEq,
                             contentDescription = null,
-                            tint = Color(0xFF38BDF8),
+                            tint = IosSettingsColors.blue,
                             modifier = Modifier.size(100.dp)
                         )
                     }
@@ -129,8 +129,8 @@ fun MusicPlayerScreen(
                         onValueChange = { playerManager.seekTo(it.toLong()) },
                         valueRange = 0f..(playerState.durationMs.coerceAtLeast(1L).toFloat()),
                         colors = SliderDefaults.colors(
-                            thumbColor = Color(0xFF38BDF8),
-                            activeTrackColor = Color(0xFF38BDF8),
+                            thumbColor = IosSettingsColors.blue,
+                            activeTrackColor = IosSettingsColors.blue,
                             inactiveTrackColor = Color(0xFF334155)
                         )
                     )
@@ -153,7 +153,7 @@ fun MusicPlayerScreen(
                         Icon(
                             imageVector = Icons.Default.Shuffle,
                             contentDescription = "Aleatorio",
-                            tint = if (playerState.isShuffle) Color(0xFF38BDF8) else Color.Gray
+                            tint = if (playerState.isShuffle) IosSettingsColors.blue else Color.Gray
                         )
                     }
 
@@ -169,7 +169,7 @@ fun MusicPlayerScreen(
                     // Play/Pause Fab Button
                     FloatingActionButton(
                         onClick = { playerManager.togglePlayPause() },
-                        containerColor = Color(0xFF38BDF8),
+                        containerColor = IosSettingsColors.blue,
                         contentColor = Color.Black,
                         shape = CircleShape,
                         modifier = Modifier.size(64.dp)
@@ -197,7 +197,7 @@ fun MusicPlayerScreen(
                                 else -> Icons.Default.Repeat
                             },
                             contentDescription = "Repetir",
-                            tint = if (playerState.repeatMode != RepeatMode.NONE) Color(0xFF38BDF8) else Color.Gray
+                            tint = if (playerState.repeatMode != RepeatMode.NONE) IosSettingsColors.blue else Color.Gray
                         )
                     }
                 }

@@ -79,7 +79,7 @@ private val IosBlackStory = Color(0xFF000000)
 private val BrandGreenStory = Color(0xFF00FF7F) // Verde Esmeralda/Neón de la marca
 private val SegmentedBgStory = Color(0xFF1C1C1E)
 private val SegmentedActiveStory = Color(0xFF3A3A3C)
-private val PlaceholderBgStory = Color(0xFF161618)
+private val PlaceholderBgStory = IosSettingsColors.cell
 private val IconBoxBgStory = Color(0xFF2C2C2E)
 private val TextGrayStory = Color(0xFF8E8E93)
 private val BorderWhiteAlphaStory = Color(0x0DFFFFFF) // Blanco al 5%
@@ -755,7 +755,7 @@ Box(
             },
             confirmButton = {
                 TextButton(onClick = { confirmOverlongPublish() }) {
-                    Text("Recortar y publicar", color = Color(0xFF00FF85))
+                    Text("Recortar y publicar", color = IosSettingsColors.green)
                 }
             },
             dismissButton = {
@@ -763,7 +763,7 @@ Box(
                     Text("Cancelar", color = IosSettingsColors.secondaryLabel)
                 }
             },
-            containerColor = Color(0xFF1E2D35)
+            containerColor = IosSettingsColors.cellElevated
         )
     }
 }

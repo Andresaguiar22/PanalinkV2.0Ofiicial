@@ -86,12 +86,12 @@ fun LiveGuestScreen(
                     }
                 },
                 colors = TopAppBarDefaults.topAppBarColors(
-                    containerColor = Color(0xFF161618),
+                    containerColor = IosSettingsColors.cell,
                     titleContentColor = Color.White
                 )
             )
         },
-        containerColor = Color(0xFF161618)
+        containerColor = IosSettingsColors.cell
     ) { paddingValues ->
         Box(
             modifier = Modifier

@@ -44,7 +44,7 @@ fun TrackItem(
             modifier = Modifier
                 .size(48.dp)
                 .clip(RoundedCornerShape(8.dp))
-                .background(Color(0xFF1E293B)),
+                .background(IosSettingsColors.cell),
             contentAlignment = Alignment.Center
         ) {
             if (!track.coverPath.isNullOrEmpty()) {

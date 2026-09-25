@@ -1052,7 +1052,7 @@ fun ChatsListScreen(
                         Box(
                             modifier = Modifier
                                 .size(40.dp)
-                                .background(Color(0xFF38BDF8), RoundedCornerShape(10.dp)),
+                                .background(IosSettingsColors.blue, RoundedCornerShape(10.dp)),
                             contentAlignment = Alignment.Center
                         ) {
                             Icon(Icons.Default.MusicNote, contentDescription = null, tint = IosSettingsColors.label, modifier = Modifier.size(20.dp))
@@ -1475,7 +1475,7 @@ fun ChatsListScreen(
                     QuickProfileMenuItem(
                         icon = if (isMinimal) Icons.Default.Check else Icons.Default.Close,
                         label = "Modo minimalista",
-                        tint = Color(0xFF00FF85)
+                        tint = IosSettingsColors.green
                     ) {
                         val newVal = !isMinimal
                         com.example.ui.theme.ThemeManager.isMinimalistMode.value = newVal

@@ -64,7 +64,7 @@ fun ChatAttachmentSheet(
         exit = shrinkVertically()
     ) {
         Card(
-            colors = CardDefaults.cardColors(containerColor = Color(0xFF202C33)),
+            colors = CardDefaults.cardColors(containerColor = IosSettingsColors.cellElevated),
             shape = RoundedCornerShape(16.dp, 16.dp, 0.dp,  0.dp),
             modifier = Modifier.fillMaxWidth()
         ) {
@@ -97,7 +97,7 @@ fun ChatAttachmentSheet(
                     AttachmentItem(icon = Icons.Default.MusicNote, label = "Audio", color = Color(0xFFFF9500)) {
                         onAudio()
                     }
-                    AttachmentItem(icon = Icons.Default.QueueMusic, label = "Playlist", color = Color(0xFF38BDF8)) {
+                    AttachmentItem(icon = Icons.Default.QueueMusic, label = "Playlist", color = IosSettingsColors.blue) {
                         onPlaylist()
                     }
                     AttachmentItem(icon = Icons.Default.Gif, label = "GIF", color = Color(0xFFFF9E00)) {

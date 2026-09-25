@@ -32,7 +32,7 @@ fun PlayerProgressBar(
             valueRange = 0f..duration.toFloat(),
             colors = SliderDefaults.colors(
                 thumbColor = Color.White,
-                activeTrackColor = Color(0xFF38BDF8)
+                activeTrackColor = IosSettingsColors.blue
             )
         )
         Row(

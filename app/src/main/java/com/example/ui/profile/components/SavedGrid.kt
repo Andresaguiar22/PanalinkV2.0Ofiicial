@@ -113,7 +113,7 @@ fun SavedGrid(viewModel: ProfileViewModel, onNavigateToReel: (String) -> Unit) {
                                                 .fillMaxSize()
                                                 .background(
                                                     Brush.linearGradient(
-                                                        listOf(Color(0xFF1E2D35), Color(0xFF0F1A1E))
+                                                        listOf(IosSettingsColors.cellElevated, Color(0xFF0F1A1E))
                                                     )
                                                 ),
                                             contentAlignment = Alignment.Center
@@ -202,7 +202,7 @@ fun SavedGrid(viewModel: ProfileViewModel, onNavigateToReel: (String) -> Unit) {
                 .padding(16.dp),
             contentAlignment = Alignment.Center
         ) {
-            CircularProgressIndicator(color = Color(0xFF25D366))
+            CircularProgressIndicator(color = IosSettingsColors.green)
         }
     }
 }

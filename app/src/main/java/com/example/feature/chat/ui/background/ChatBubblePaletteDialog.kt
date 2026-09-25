@@ -32,7 +32,7 @@ fun ChatBubblePaletteDialog(
 
     Dialog(onDismissRequest = onDismiss) {
         Card(
-            colors = CardDefaults.cardColors(containerColor = Color(0xFF1F2C34)),
+            colors = CardDefaults.cardColors(containerColor = IosSettingsColors.cell),
             shape = RoundedCornerShape(16.dp),
             modifier = Modifier.fillMaxWidth().padding(16.dp)
         ) {
@@ -55,7 +55,7 @@ fun ChatBubblePaletteDialog(
                             .background(if (selected) Color.White.copy(alpha = 0.10f) else Color.Transparent)
                             .border(
                                 width = if (selected) 2.dp else 0.dp,
-                                color = if (selected) Color(0xFF25D366) else Color.Transparent,
+                                color = if (selected) IosSettingsColors.green else Color.Transparent,
                                 shape = RoundedCornerShape(12.dp)
                             )
                             .padding(12.dp),
@@ -77,7 +77,7 @@ fun ChatBubblePaletteDialog(
                             modifier = Modifier.weight(1f)
                         )
                         if (selected) {
-                            Text("●", color = Color(0xFF25D366), fontSize = 18.sp)
+                            Text("●", color = IosSettingsColors.green, fontSize = 18.sp)
                         }
                     }
                     Spacer(Modifier.height(8.dp))
@@ -87,7 +87,7 @@ fun ChatBubblePaletteDialog(
                     onClick = onDismiss,
                     modifier = Modifier.align(Alignment.End).padding(top = 8.dp)
                 ) {
-                    Text("Cerrar", color = Color(0xFF25D366))
+                    Text("Cerrar", color = IosSettingsColors.green)
                 }
             }
         }

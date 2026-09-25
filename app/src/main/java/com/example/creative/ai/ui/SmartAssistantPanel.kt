@@ -52,7 +52,7 @@ fun SmartAssistantPanel(
 
     ModalBottomSheet(
         onDismissRequest = onDismiss,
-        containerColor = Color(0xFF0F172A)
+        containerColor = IosSettingsColors.groupBackground
     ) {
         Column(
             modifier = Modifier
@@ -82,7 +82,7 @@ fun SmartAssistantPanel(
                         )
                         Text(
                             text = "Score Viral: ${brainResult.viralReport.totalScore}/100 • Calidad: ${brainResult.qualityReport.overallScorePercent}%",
-                            color = Color(0xFF38BDF8),
+                            color = IosSettingsColors.blue,
                             fontSize = 11.sp
                         )
                     }
@@ -98,8 +98,8 @@ fun SmartAssistantPanel(
             // Navigation Tabs
             ScrollableTabRow(
                 selectedTabIndex = selectedTab,
-                containerColor = Color(0xFF1E293B),
-                contentColor = Color(0xFF38BDF8),
+                containerColor = IosSettingsColors.cell,
+                contentColor = IosSettingsColors.blue,
                 edgePadding = 0.dp
             ) {
                 Tab(
@@ -136,7 +136,7 @@ fun SmartAssistantPanel(
                     LazyColumn(verticalArrangement = Arrangement.spacedBy(10.dp)) {
                         item {
                             Card(
-                                colors = CardDefaults.cardColors(containerColor = Color(0xFF1E293B)),
+                                colors = CardDefaults.cardColors(containerColor = IosSettingsColors.cell),
                                 shape = RoundedCornerShape(12.dp),
                                 modifier = Modifier.fillMaxWidth()
                             ) {
@@ -164,7 +164,7 @@ fun SmartAssistantPanel(
                                             onApplyTemplate(brainResult.recommendedTemplate, emptyMap())
                                             onDismiss()
                                         },
-                                        colors = ButtonDefaults.buttonColors(containerColor = Color(0xFF38BDF8)),
+                                        colors = ButtonDefaults.buttonColors(containerColor = IosSettingsColors.blue),
                                         modifier = Modifier.fillMaxWidth()
                                     ) {
                                         Text("Aplicar Estilo Completo", color = Color.Black, fontWeight = FontWeight.Bold)
@@ -179,7 +179,7 @@ fun SmartAssistantPanel(
 
                         items(brainResult.layoutSuggestions) { suggestion ->
                             Card(
-                                colors = CardDefaults.cardColors(containerColor = Color(0xFF1E293B)),
+                                colors = CardDefaults.cardColors(containerColor = IosSettingsColors.cell),
                                 shape = RoundedCornerShape(10.dp),
                                 modifier = Modifier.fillMaxWidth()
                             ) {
@@ -213,7 +213,7 @@ fun SmartAssistantPanel(
                     LazyColumn(verticalArrangement = Arrangement.spacedBy(8.dp)) {
                         items(PostTemplateEngine.availableTemplates) { template ->
                             Card(
-                                colors = CardDefaults.cardColors(containerColor = Color(0xFF1E293B)),
+                                colors = CardDefaults.cardColors(containerColor = IosSettingsColors.cell),
                                 shape = RoundedCornerShape(12.dp),
                                 modifier = Modifier
                                     .fillMaxWidth()
@@ -225,7 +225,7 @@ fun SmartAssistantPanel(
                                 Column(modifier = Modifier.padding(12.dp)) {
                                     Text(
                                         text = template.name,
-                                        color = Color(0xFF38BDF8),
+                                        color = IosSettingsColors.blue,
                                         fontWeight = FontWeight.Bold,
                                         fontSize = 15.sp
                                     )
@@ -248,7 +248,7 @@ fun SmartAssistantPanel(
 
                         items(brainResult.suggestedCaptions) { genCaption ->
                             Card(
-                                colors = CardDefaults.cardColors(containerColor = Color(0xFF1E293B)),
+                                colors = CardDefaults.cardColors(containerColor = IosSettingsColors.cell),
                                 shape = RoundedCornerShape(10.dp),
                                 modifier = Modifier.fillMaxWidth()
                             ) {
@@ -265,7 +265,7 @@ fun SmartAssistantPanel(
                                         )
                                         Text(
                                             text = "Usar Caption",
-                                            color = Color(0xFF38BDF8),
+                                            color = IosSettingsColors.blue,
                                             fontSize = 11.sp,
                                             fontWeight = FontWeight.Bold,
                                             modifier = Modifier.clickable {
@@ -288,7 +288,7 @@ fun SmartAssistantPanel(
                             LazyRow(horizontalArrangement = Arrangement.spacedBy(10.dp)) {
                                 items(CaptionDesignerEngine.captionPresets) { preset ->
                                     Card(
-                                        colors = CardDefaults.cardColors(containerColor = Color(0xFF1E293B)),
+                                        colors = CardDefaults.cardColors(containerColor = IosSettingsColors.cell),
                                         shape = RoundedCornerShape(10.dp),
                                         modifier = Modifier
                                             .width(130.dp)
@@ -325,7 +325,7 @@ fun SmartAssistantPanel(
                     LazyColumn(verticalArrangement = Arrangement.spacedBy(8.dp)) {
                         items(PostAnimationType.entries) { animType ->
                             Card(
-                                colors = CardDefaults.cardColors(containerColor = Color(0xFF1E293B)),
+                                colors = CardDefaults.cardColors(containerColor = IosSettingsColors.cell),
                                 shape = RoundedCornerShape(10.dp),
                                 modifier = Modifier
                                     .fillMaxWidth()
@@ -345,7 +345,7 @@ fun SmartAssistantPanel(
                                         Text(text = animType.name.replace("_", " "), color = IosSettingsColors.label, fontWeight = FontWeight.Bold, fontSize = 14.sp)
                                         Text(text = "Efecto de movimiento dinámico para esta página", color = Color.Gray, fontSize = 11.sp)
                                     }
-                                    Icon(Icons.Default.PlayArrow, contentDescription = null, tint = Color(0xFF38BDF8))
+                                    Icon(Icons.Default.PlayArrow, contentDescription = null, tint = IosSettingsColors.blue)
                                 }
                             }
                         }
@@ -356,7 +356,7 @@ fun SmartAssistantPanel(
                     LazyColumn(verticalArrangement = Arrangement.spacedBy(10.dp)) {
                         item {
                             Card(
-                                colors = CardDefaults.cardColors(containerColor = Color(0xFF1E293B)),
+                                colors = CardDefaults.cardColors(containerColor = IosSettingsColors.cell),
                                 shape = RoundedCornerShape(12.dp),
                                 modifier = Modifier.fillMaxWidth()
                             ) {

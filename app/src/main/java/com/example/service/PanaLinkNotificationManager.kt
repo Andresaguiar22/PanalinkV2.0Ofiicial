@@ -36,7 +36,7 @@ object PanaLinkNotificationManager {
             .setContentText("¡Hola! 🚀 Tu video se ha publicado correctamente y ya está disponible para que todos lo vean.")
             .setPriority(NotificationCompat.PRIORITY_HIGH)
             .setAutoCancel(true)
-            .setColor(0xFF00FF85.toInt())
+            .setColor(0xFF0A84FF.toInt())
 
         notificationManager.notify(1001, builder.build())
     }
@@ -139,7 +139,7 @@ object PanaLinkNotificationManager {
                 .setContentIntent(pendingIntent)
                 .addAction(replyAction)
                 .setAutoCancel(true)
-                .setColor(0xFF00FF85.toInt())
+                .setColor(0xFF0A84FF.toInt())
 
             notificationManager.notify(chatId.hashCode(), builder.build())
         }

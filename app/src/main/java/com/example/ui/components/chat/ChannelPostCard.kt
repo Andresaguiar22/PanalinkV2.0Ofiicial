@@ -102,7 +102,7 @@ fun ChannelPostCard(
             modifier = Modifier
                 .weight(1f)
                 .clip(RoundedCornerShape(16.dp)),
-            color = Color(0xFF1F2C34), // Telegram / WhatsApp dark channel card color
+            color = IosSettingsColors.cell, // Telegram / WhatsApp dark channel card color
             shape = RoundedCornerShape(16.dp),
             tonalElevation = 2.dp
         ) {
@@ -319,7 +319,7 @@ fun ChannelPostCard(
         // 7. Share / Forward Floating Action Button next to Card
         Surface(
             onClick = { onForward(message) },
-            color = Color(0xFF1F2C34).copy(alpha = 0.85f),
+            color = IosSettingsColors.cellElevated.copy(alpha = 0.85f),
             shape = CircleShape,
             modifier = Modifier
                 .size(36.dp)

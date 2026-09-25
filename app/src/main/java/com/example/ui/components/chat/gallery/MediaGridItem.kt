@@ -46,7 +46,7 @@ fun MediaGridItem(
         modifier = modifier
             .aspectRatio(1f)
             .clip(RoundedCornerShape(8.dp))
-            .background(Color(0xFF1F2C34))
+            .background(IosSettingsColors.cell)
             .clickable { onClick() }
     ) {
         when (item.type) {
@@ -91,7 +91,7 @@ fun MediaGridItem(
                     Icon(
                         imageVector = Icons.Default.Description,
                         contentDescription = null,
-                        tint = Color(0xFF38BDF8),
+                        tint = IosSettingsColors.blue,
                         modifier = Modifier.size(40.dp)
                     )
                     Spacer(modifier = Modifier.height(4.dp))

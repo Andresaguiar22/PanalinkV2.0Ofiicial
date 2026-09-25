@@ -14,6 +14,7 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
+import com.example.ui.settings.ios.IosSettingsColors
 
 @Composable
 fun ProfileSaveButton(
@@ -23,7 +24,7 @@ fun ProfileSaveButton(
 ) {
     Button(
         onClick = onSave,
-        colors = ButtonDefaults.buttonColors(containerColor = Color(0xFF25D366)),
+        colors = ButtonDefaults.buttonColors(containerColor = IosSettingsColors.green),
         modifier = modifier
             .fillMaxWidth()
             .height(50.dp)

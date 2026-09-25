@@ -97,7 +97,7 @@ fun AuroraBackground(
                 // 1. Draw Boreal Neon Green-Teal Aurora wave
                 val brushGreen = Brush.radialGradient(
                     colors = listOf(
-                        Color(0xFF00FF85).copy(alpha = 0.22f), // Glowing Neon Green
+                        IosSettingsColors.green.copy(alpha = 0.22f), // Glowing Neon Green
                         IosSettingsColors.blue.copy(alpha = 0.10f), // Glowing Cyan
                         Color.Transparent
                     ),
@@ -444,7 +444,7 @@ fun PulsatingPanaLinkLogo(modifier: Modifier = Modifier, size: Dp = 24.dp) {
 }
 
 @Composable
-fun PanaTopBarTitle(sectionName: String, primaryColor: Color = Color(0xFF00FF85)) {
+fun PanaTopBarTitle(sectionName: String, primaryColor: Color = IosSettingsColors.green) {
     Row(
         verticalAlignment = Alignment.CenterVertically,
         horizontalArrangement = Arrangement.spacedBy(10.dp)

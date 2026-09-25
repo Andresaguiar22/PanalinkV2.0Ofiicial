@@ -23,12 +23,12 @@ fun CoverPhotoPicker(
     OutlinedButton(
         onClick = onPickImage,
         colors = ButtonDefaults.outlinedButtonColors(contentColor = Color.White),
-        border = BorderStroke(1.dp, Color(0xFF25D366)),
+        border = BorderStroke(1.dp, IosSettingsColors.green),
         shape = RoundedCornerShape(10.dp),
         modifier = modifier
     ) {
         Row(verticalAlignment = Alignment.CenterVertically) {
-            Icon(Icons.Default.Image, contentDescription = null, tint = Color(0xFF25D366), modifier = Modifier.size(16.dp))
+            Icon(Icons.Default.Image, contentDescription = null, tint = IosSettingsColors.green, modifier = Modifier.size(16.dp))
             Spacer(modifier = Modifier.width(6.dp))
             Text(if (isUploading) "Subiendo..." else "Cambiar Portada", color = IosSettingsColors.label, fontSize = 11.sp)
         }

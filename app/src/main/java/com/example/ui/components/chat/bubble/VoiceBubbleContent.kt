@@ -7,6 +7,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.unit.dp
 import com.example.ui.components.VoiceMessageBubble
+import com.example.ui.settings.ios.IosSettingsColors
 
 @Composable
 fun VoiceBubbleContent(
@@ -42,13 +43,13 @@ fun VoiceBubbleContent(
                 if (isSender) {
                     androidx.compose.ui.graphics.Brush.linearGradient(
                         listOf(
-                            androidx.compose.ui.graphics.Color(0xFF38BDF8),
+                            IosSettingsColors.blue,
                             androidx.compose.ui.graphics.Color(0xFF1D4ED8)
                         )
                     )
                 } else {
                     androidx.compose.ui.graphics.SolidColor(
-                        androidx.compose.ui.graphics.Color(0xFF1E293B).copy(alpha = 0.9f)
+                        IosSettingsColors.cell.copy(alpha = 0.9f)
                     )
                 }
             )

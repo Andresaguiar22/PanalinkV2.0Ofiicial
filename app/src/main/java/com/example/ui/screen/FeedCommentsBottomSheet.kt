@@ -233,7 +233,7 @@ fun FeedCommentsBottomSheet(
                             modifier = Modifier
                                 .size(32.dp)
                                 .clip(RoundedCornerShape(8.dp))
-                                .background(Color(0xFF1F2C34))
+                                .background(IosSettingsColors.cell)
                         ) {
                             Text("GIF", fontSize = 13.sp, fontWeight = FontWeight.Bold, color = Color(0xFF4FC3F7))
                         }

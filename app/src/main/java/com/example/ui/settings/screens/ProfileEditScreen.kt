@@ -38,7 +38,7 @@ import kotlinx.coroutines.launch
 import java.io.File
 import com.example.ui.settings.ios.IosListPadding
 import com.example.ui.settings.ios.IosSettingsScaffold
-import com.example.ui.theme.PanalinkPalette
+import com.example.ui.settings.ios.IosSettingsColors
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -376,14 +376,14 @@ fun ProfileEditScreen(
                                                 .weight(1f)
                                                 .height(34.dp)
                                                 .clip(RoundedCornerShape(8.dp))
-                                                .background(if (isSelected) Color(0xFF25D366).copy(alpha = 0.2f) else Color(0xFF101D24))
-                                                .border(1.dp, if (isSelected) Color(0xFF25D366) else Color(0xFF37474F), RoundedCornerShape(8.dp))
+                                                .background(if (isSelected) IosSettingsColors.green.copy(alpha = 0.2f) else Color(0xFF101D24))
+                                                .border(1.dp, if (isSelected) IosSettingsColors.green else Color(0xFF37474F), RoundedCornerShape(8.dp))
                                                 .clickable {
                                                     interests = if (isSelected) interests - interest else interests + interest
                                                 },
                                             contentAlignment = Alignment.Center
                                         ) {
-                                            Text(interest, fontSize = 9.sp, color = if (isSelected) Color(0xFF25D366) else Color.White)
+                                            Text(interest, fontSize = 9.sp, color = if (isSelected) IosSettingsColors.green else Color.White)
                                         }
                                     }
                                 }
@@ -399,14 +399,14 @@ fun ProfileEditScreen(
                                                 .weight(1f)
                                                 .height(34.dp)
                                                 .clip(RoundedCornerShape(8.dp))
-                                                .background(if (isSelected) Color(0xFF25D366).copy(alpha = 0.2f) else Color(0xFF101D24))
-                                                .border(1.dp, if (isSelected) Color(0xFF25D366) else Color(0xFF37474F), RoundedCornerShape(8.dp))
+                                                .background(if (isSelected) IosSettingsColors.green.copy(alpha = 0.2f) else Color(0xFF101D24))
+                                                .border(1.dp, if (isSelected) IosSettingsColors.green else Color(0xFF37474F), RoundedCornerShape(8.dp))
                                                 .clickable {
                                                     interests = if (isSelected) interests - interest else interests + interest
                                                 },
                                             contentAlignment = Alignment.Center
                                         ) {
-                                            Text(interest, fontSize = 9.sp, color = if (isSelected) Color(0xFF25D366) else Color.White)
+                                            Text(interest, fontSize = 9.sp, color = if (isSelected) IosSettingsColors.green else Color.White)
                                         }
                                     }
                                 }
@@ -425,14 +425,14 @@ fun ProfileEditScreen(
                             // Save Success Message Feedback
                             if (saveState is SaveProfileUiState.Success) {
                                 Surface(
-                                    color = Color(0xFF25D366).copy(alpha = 0.15f),
+                                    color = IosSettingsColors.green.copy(alpha = 0.15f),
                                     shape = RoundedCornerShape(8.dp),
-                                    border = BorderStroke(1.dp, Color(0xFF25D366).copy(alpha = 0.4f)),
+                                    border = BorderStroke(1.dp, IosSettingsColors.green.copy(alpha = 0.4f)),
                                     modifier = Modifier.fillMaxWidth()
                                 ) {
                                     Text(
                                         text = "¡Perfil actualizado con éxito! 🎉",
-                                        color = Color(0xFF25D366),
+                                        color = IosSettingsColors.green,
                                         fontWeight = FontWeight.Bold,
                                         fontSize = 12.sp,
                                         modifier = Modifier.padding(10.dp)

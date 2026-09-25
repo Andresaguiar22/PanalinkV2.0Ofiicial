@@ -104,7 +104,7 @@ fun CreatePostBottomSheet(
                 Row(verticalAlignment = Alignment.CenterVertically) {
                     Button(
                         onClick = { showPostStudio = true },
-                        colors = ButtonDefaults.buttonColors(containerColor = Color(0xFF38BDF8)),
+                        colors = ButtonDefaults.buttonColors(containerColor = IosSettingsColors.blue),
                         shape = RoundedCornerShape(16.dp),
                         contentPadding = PaddingValues(horizontal = 10.dp, vertical = 0.dp),
                         modifier = Modifier
@@ -340,7 +340,7 @@ fun CreatePostBottomSheet(
                         Icon(Icons.Default.PhotoLibrary, contentDescription = "Galería Fotos", tint = IosSettingsColors.blue)
                     }
                     IconButton(onClick = { mediaPicker.launch("video/*") }) {
-                        Icon(Icons.Default.Videocam, contentDescription = "Videos", tint = Color(0xFF00FF85))
+                        Icon(Icons.Default.Videocam, contentDescription = "Videos", tint = IosSettingsColors.green)
                     }
                     IconButton(onClick = { audioPicker.launch("audio/*") }) {
                         Icon(Icons.Default.Mic, contentDescription = "Audio", tint = Color(0xFFD500F9))

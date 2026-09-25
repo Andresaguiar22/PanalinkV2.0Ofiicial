@@ -38,7 +38,7 @@ fun PlayerControls(
             Icon(
                 Icons.Rounded.Shuffle,
                 contentDescription = "Shuffle",
-                tint = if (isShuffle) Color(0xFF38BDF8) else Color.White
+                tint = if (isShuffle) IosSettingsColors.blue else Color.White
             )
         }
 
@@ -84,7 +84,7 @@ fun PlayerControls(
             Icon(
                 icon,
                 contentDescription = "Repeat",
-                tint = if (repeatMode != RepeatMode.NONE) Color(0xFF38BDF8) else Color.White
+                tint = if (repeatMode != RepeatMode.NONE) IosSettingsColors.blue else Color.White
             )
         }
     }

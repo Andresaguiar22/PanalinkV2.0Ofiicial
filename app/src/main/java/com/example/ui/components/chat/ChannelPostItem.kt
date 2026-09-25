@@ -35,7 +35,7 @@ fun ChannelPostItem(
         modifier = Modifier
             .fillMaxWidth()
             .padding(vertical = 4.dp, horizontal = 8.dp),
-        colors = CardDefaults.cardColors(containerColor = Color(0xFF1F2C34)),
+        colors = CardDefaults.cardColors(containerColor = IosSettingsColors.cell),
         shape = RoundedCornerShape(12.dp)
     ) {
         Column(

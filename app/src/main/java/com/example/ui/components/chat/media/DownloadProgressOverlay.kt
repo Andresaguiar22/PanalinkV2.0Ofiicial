@@ -60,7 +60,7 @@ fun DownloadProgressOverlay(
                     modifier = Modifier
                         .size(54.dp)
                         .clip(CircleShape)
-                        .background(Color(0xFF1F2C34).copy(alpha = 0.85f))
+                        .background(IosSettingsColors.cellElevated.copy(alpha = 0.85f))
                         .clickable { onCancelOrRetryClick() },
                     contentAlignment = Alignment.Center
                 ) {
@@ -69,14 +69,14 @@ fun DownloadProgressOverlay(
                             CircularProgressIndicator(
                                 progress = { progress.coerceIn(0f, 1f) },
                                 modifier = Modifier.size(50.dp),
-                                color = Color(0xFF38BDF8),
+                                color = IosSettingsColors.blue,
                                 trackColor = Color.White.copy(alpha = 0.2f),
                                 strokeWidth = 3.dp
                             )
                         } else {
                             CircularProgressIndicator(
                                 modifier = Modifier.size(50.dp),
-                                color = Color(0xFF38BDF8),
+                                color = IosSettingsColors.blue,
                                 trackColor = Color.White.copy(alpha = 0.2f),
                                 strokeWidth = 3.dp
                             )

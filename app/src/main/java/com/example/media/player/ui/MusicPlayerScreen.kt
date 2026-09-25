@@ -190,7 +190,7 @@ fun MusicPlayerScreen(
                             .scale(artScale)
                             .shadow(28.dp, RoundedCornerShape(22.dp))
                             .clip(RoundedCornerShape(22.dp))
-                            .background(Color(0xFF1E293B))
+                            .background(IosSettingsColors.cell)
                     ) {
                         if (track?.coverUri != null) {
                             AsyncImage(
@@ -205,7 +205,7 @@ fun MusicPlayerScreen(
                                     .fillMaxSize()
                                     .background(
                                         Brush.linearGradient(
-                                            listOf(Color(0xFF334155), Color(0xFF1E293B))
+                                            listOf(Color(0xFF334155), IosSettingsColors.cell)
                                         )
                                     ),
                                 contentAlignment = Alignment.Center
@@ -213,7 +213,7 @@ fun MusicPlayerScreen(
                                 Icon(
                                     Icons.Rounded.MusicNote,
                                     contentDescription = null,
-                                    tint = Color(0xFF38BDF8),
+                                    tint = IosSettingsColors.blue,
                                     modifier = Modifier.size(96.dp)
                                 )
                             }
@@ -303,7 +303,7 @@ fun MusicPlayerScreen(
                         Icon(
                             Icons.Rounded.Equalizer,
                             contentDescription = "Ecualizador",
-                            tint = if (eqPreset != "Normal") Color(0xFF38BDF8) else Color.White.copy(alpha = 0.8f)
+                            tint = if (eqPreset != "Normal") IosSettingsColors.blue else Color.White.copy(alpha = 0.8f)
                         )
                     }
 
@@ -313,7 +313,7 @@ fun MusicPlayerScreen(
                     }) {
                         Text(
                             "${state.playbackSpeed}x",
-                            color = if (state.playbackSpeed != 1f) Color(0xFF38BDF8) else Color.White.copy(alpha = 0.8f),
+                            color = if (state.playbackSpeed != 1f) IosSettingsColors.blue else Color.White.copy(alpha = 0.8f),
                             fontWeight = FontWeight.Bold
                         )
                     }
@@ -351,7 +351,7 @@ fun MusicPlayerScreen(
     if (showEqSheet) {
         ModalBottomSheet(
             onDismissRequest = { showEqSheet = false },
-            containerColor = Color(0xFF111827),
+            containerColor = IosSettingsColors.groupBackground,
             dragHandle = { BottomSheetDefaults.DragHandle(color = Color.Gray) }
         ) {
             EqPresetSheet(
@@ -367,7 +367,7 @@ fun MusicPlayerScreen(
     if (showSleepSheet) {
         ModalBottomSheet(
             onDismissRequest = { showSleepSheet = false },
-            containerColor = Color(0xFF111827),
+            containerColor = IosSettingsColors.groupBackground,
             dragHandle = { BottomSheetDefaults.DragHandle(color = Color.Gray) }
         ) {
             SleepTimerSheet(
@@ -395,7 +395,7 @@ private fun EqPresetSheet(currentPreset: String, onSelect: (String) -> Unit) {
                         modifier = Modifier
                             .weight(1f)
                             .clip(RoundedCornerShape(12.dp))
-                            .background(if (selected) Color(0xFF38BDF8) else Color(0xFF1E293B))
+                            .background(if (selected) IosSettingsColors.blue else IosSettingsColors.cell)
                             .clickable { onSelect(preset) }
                             .padding(vertical = 12.dp),
                         contentAlignment = Alignment.Center
@@ -431,7 +431,7 @@ private fun SleepTimerSheet(isActive: Boolean, onSelect: (Int?) -> Unit) {
                         modifier = Modifier
                             .weight(1f)
                             .clip(RoundedCornerShape(12.dp))
-                            .background(Color(0xFF1E293B))
+                            .background(IosSettingsColors.cell)
                             .clickable { onSelect(minutes) }
                             .padding(vertical = 14.dp),
                         contentAlignment = Alignment.Center

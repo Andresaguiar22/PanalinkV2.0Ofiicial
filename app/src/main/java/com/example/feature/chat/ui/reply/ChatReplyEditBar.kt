@@ -43,7 +43,7 @@ fun ChatReplyEditBar(
             Row(
                 modifier = Modifier
                     .fillMaxWidth()
-                .background(Color(0xFF1E293B))
+                .background(IosSettingsColors.cell)
                      .padding(horizontal = 16.dp, vertical = 8.dp),
                 verticalAlignment = Alignment.CenterVertically
             ) {
@@ -96,7 +96,7 @@ fun ChatReplyEditBar(
             Row(
                 modifier = Modifier
                     .fillMaxWidth()
-                     .background(Color(0xFF1E293B))
+                     .background(IosSettingsColors.cell)
                      .padding(horizontal = 16.dp, vertical = 8.dp),
                 verticalAlignment = Alignment.CenterVertically
             ) {

@@ -49,7 +49,7 @@ fun SharePlaylistSheet(
 
     Column(modifier = Modifier.fillMaxWidth().padding(horizontal = 20.dp)) {
         Row(verticalAlignment = Alignment.CenterVertically) {
-            Icon(Icons.Default.MusicNote, contentDescription = null, tint = Color(0xFF38BDF8))
+            Icon(Icons.Default.MusicNote, contentDescription = null, tint = IosSettingsColors.blue)
             Spacer(modifier = Modifier.width(10.dp))
             Column {
                 Text("Compartir playlist", color = IosSettingsColors.label, fontSize = 18.sp, fontWeight = FontWeight.Bold)
@@ -73,9 +73,9 @@ fun SharePlaylistSheet(
             leadingIcon = { Icon(Icons.Default.Search, contentDescription = null, tint = Color.Gray) },
             shape = RoundedCornerShape(24.dp),
             colors = OutlinedTextFieldDefaults.colors(
-                focusedContainerColor = Color(0xFF1E293B),
-                unfocusedContainerColor = Color(0xFF1E293B),
-                focusedBorderColor = Color(0xFF38BDF8),
+                focusedContainerColor = IosSettingsColors.cell,
+                unfocusedContainerColor = IosSettingsColors.cell,
+                focusedBorderColor = IosSettingsColors.blue,
                 unfocusedBorderColor = Color.Transparent,
                 focusedTextColor = Color.White,
                 unfocusedTextColor = Color.White
@@ -88,7 +88,7 @@ fun SharePlaylistSheet(
         when {
             isLoading -> {
                 Box(modifier = Modifier.fillMaxWidth().height(200.dp), contentAlignment = Alignment.Center) {
-                    CircularProgressIndicator(color = Color(0xFF38BDF8))
+                    CircularProgressIndicator(color = IosSettingsColors.blue)
                 }
             }
             filtered.isEmpty() -> {
@@ -139,7 +139,7 @@ fun SharePlaylistSheet(
                                     Icon(
                                         if (isGroup) Icons.Default.Group else Icons.Default.Person,
                                         contentDescription = null,
-                                        tint = Color(0xFF38BDF8)
+                                        tint = IosSettingsColors.blue
                                     )
                                 }
                             }

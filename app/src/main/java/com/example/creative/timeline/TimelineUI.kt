@@ -137,7 +137,7 @@ fun MultiTrackTimelineUI(
                                     when (track) {
                                         is CreativeTrack.VideoTrack -> IosSettingsColors.blue.copy(alpha = 0.8f)
                                         is CreativeTrack.AudioTrack -> Color(0xFFE040FB).copy(alpha = 0.8f)
-                                        is CreativeTrack.VoiceTrack -> Color(0xFF00FF85).copy(alpha = 0.8f)
+                                        is CreativeTrack.VoiceTrack -> IosSettingsColors.green.copy(alpha = 0.8f)
                                         else -> Color(0xFFFFD54F).copy(alpha = 0.8f)
                                     },
                                     RoundedCornerShape(4.dp)

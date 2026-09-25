@@ -115,7 +115,7 @@ fun ChatsCenterScreen(
                                         color = when (wpKey) {
                                             "classic_teal" -> Color(0xFF0F2027)
                                             "midnight_blue" -> Color(0xFF0A0E17)
-                                            else -> Color(0xFF0B141A)
+                                            else -> IosSettingsColors.groupBackground
                                         },
                                         shape = RoundedCornerShape(10.dp)
                                     )
@@ -168,7 +168,7 @@ private fun ChatPreview(wallpaper: String, textSize: Float) {
                 color = when (wallpaper) {
                     "classic_teal" -> Color(0xFF0F2027)
                     "midnight_blue" -> Color(0xFF0A0E17)
-                    else -> Color(0xFF0B141A)
+                    else -> IosSettingsColors.groupBackground
                 },
                 shape = RoundedCornerShape(12.dp)
             )
@@ -185,7 +185,7 @@ private fun ChatPreview(wallpaper: String, textSize: Float) {
             )
             Box(
                 modifier = Modifier
-                    .background(Color(0xFF202C33), RoundedCornerShape(12.dp, 12.dp, 12.dp, 0.dp))
+                    .background(IosSettingsColors.cellElevated, RoundedCornerShape(12.dp, 12.dp, 12.dp, 0.dp))
                     .padding(10.dp)
                     .align(Alignment.Start)
                     .widthIn(max = 220.dp)
