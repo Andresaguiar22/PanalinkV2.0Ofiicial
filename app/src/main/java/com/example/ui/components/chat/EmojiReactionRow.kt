@@ -33,6 +33,7 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import com.example.ui.settings.ios.IosSettingsColors
 
 /**
  * Data item representing an emoji reaction and its count.
@@ -95,7 +96,7 @@ private fun ReactionPillButton(
 ) {
     val activeBg = Color(0xFF2B5278) // Telegram Active Pill Blue-Gray
     val inactiveBg = Color(0xFF1E2C3A) // Telegram Inactive Pill Surface
-    val activeBorder = Color(0xFF2AABEE)
+    val activeBorder = IosSettingsColors.blue
     val inactiveBorder = Color(0xFF2B3A4A)
 
     val bgColor by animateColorAsState(

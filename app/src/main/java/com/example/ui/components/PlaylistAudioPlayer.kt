@@ -124,7 +124,7 @@ fun PlaylistAudioPlayer(audioUrls: List<String>) {
                     .clip(RoundedCornerShape(12.dp))
                     .background(
                         Brush.linearGradient(
-                            colors = listOf(Color(0xFFD500F9), Color(0xFF7C4DFF))
+                            colors = listOf(IosSettingsColors.blue, Color(0xFF7C4DFF))
                         )
                     ),
                 contentAlignment = Alignment.Center

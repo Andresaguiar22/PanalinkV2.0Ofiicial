@@ -69,7 +69,7 @@ fun PrivacySettingsCategory(viewModel: ProfileViewModel) {
             onCheckedChange = { viewModel.togglePrivacySetting("freeze_last_seen", it) }
         )
 
-        Divider(color = Color(0xFF2A3942))
+        Divider(color = IosSettingsColors.cellElevated)
 
         // --- Typing / Recording ---
         PrivacySettingSwitch(
@@ -90,7 +90,7 @@ fun PrivacySettingsCategory(viewModel: ProfileViewModel) {
             onCheckedChange = { viewModel.togglePrivacySetting("hide_recording", it) }
         )
 
-        Divider(color = Color(0xFF2A3942))
+        Divider(color = IosSettingsColors.cellElevated)
 
         // --- Receipts ---
         PrivacySettingSwitch(
@@ -138,7 +138,7 @@ fun PrivacySettingsCategory(viewModel: ProfileViewModel) {
             onCheckedChange = { viewModel.togglePrivacySetting("show_send_blue_tick_button", it) }
         )
 
-        Divider(color = Color(0xFF2A3942))
+        Divider(color = IosSettingsColors.cellElevated)
 
         // --- Anti Delete ---
         PrivacySettingSwitch(
@@ -168,7 +168,7 @@ fun PrivacySettingsCategory(viewModel: ProfileViewModel) {
             onCheckedChange = { viewModel.togglePrivacySetting("anti_temp_message_disappearance", it) }
         )
 
-        Divider(color = Color(0xFF2A3942))
+        Divider(color = IosSettingsColors.cellElevated)
 
         // --- View Once & Status ---
         PrivacySettingSwitch(
@@ -198,7 +198,7 @@ fun PrivacySettingsCategory(viewModel: ProfileViewModel) {
             onCheckedChange = { viewModel.togglePrivacySetting("view_once_unlimited", it) }
         )
         
-        Divider(color = Color(0xFF2A3942))
+        Divider(color = IosSettingsColors.cellElevated)
 
         PrivacySettingSwitch(
             title = "Bloquear llamadas 📞",

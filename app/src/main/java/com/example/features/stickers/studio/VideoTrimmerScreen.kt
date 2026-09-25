@@ -38,7 +38,7 @@ import com.example.core.media.ExoPlayerManager
 import kotlinx.coroutines.delay
 import com.example.ui.settings.ios.IosSettingsColors
 
-private val PANA_GREEN = Color(0xFF00A884)
+private val PANA_GREEN: Color get() = IosSettingsColors.green
 
 @OptIn(ExperimentalMaterial3Api::class, UnstableApi::class)
 @Composable
@@ -92,7 +92,7 @@ fun VideoTrimmerScreen(
     Column(
         modifier = Modifier
             .fillMaxSize()
-            .background(Color(0xFF0B141A))
+            .background(IosSettingsColors.groupBackground)
     ) {
         // Header
         Row(
@@ -202,7 +202,7 @@ private fun TrimTimeline(
 ) {
     Box(
         modifier = modifier
-            .background(Color(0xFF1F2C34), RoundedCornerShape(8.dp))
+            .background(IosSettingsColors.cell, RoundedCornerShape(8.dp))
             .padding(vertical = 8.dp)
     ) {
         Canvas(modifier = Modifier

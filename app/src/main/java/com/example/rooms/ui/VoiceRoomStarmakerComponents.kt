@@ -71,7 +71,7 @@ internal object VoiceRoomPalette {
     val DarkSurface    = Color(0xFF003E5E)
     val BgTop          = Color(0xFF000E1A)
     val BgBottom       = Color(0xFF000509)
-    val ActiveCyan     = Color(0xFF4FE7EA)
+    val ActiveCyan     = IosSettingsColors.blue
     val ActiveCyanSoft = Color(0x4D4FE7EA)
     val Pink           = Color(0xFFFF5C7A)
     val RedLive        = Color(0xFFEF2D55)

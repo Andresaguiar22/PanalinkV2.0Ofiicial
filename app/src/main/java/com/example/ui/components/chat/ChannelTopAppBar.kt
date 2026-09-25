@@ -33,6 +33,7 @@ import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import coil.compose.AsyncImage
+import com.example.ui.settings.ios.IosSettingsColors
 
 /**
  * Telegram-style Top App Bar for Channel view (`ChannelTopAppBar`).
@@ -56,7 +57,7 @@ fun ChannelTopAppBar(
     val backgroundColor = Color(0xFF17212B) // Telegram Dark TopBar
     val contentColor = Color.White
     val secondaryTextColor = Color(0xFF8E959B)
-    val verifiedBadgeColor = Color(0xFF2AABEE) // Telegram Cyan
+    val verifiedBadgeColor = IosSettingsColors.blue // Telegram Cyan
 
     Row(
         modifier = modifier

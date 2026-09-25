@@ -235,7 +235,7 @@ fun FeedCommentsBottomSheet(
                                 .clip(RoundedCornerShape(8.dp))
                                 .background(IosSettingsColors.cell)
                         ) {
-                            Text("GIF", fontSize = 13.sp, fontWeight = FontWeight.Bold, color = Color(0xFF4FC3F7))
+                            Text("GIF", fontSize = 13.sp, fontWeight = FontWeight.Bold, color = IosSettingsColors.blue)
                         }
                         IconButton(
                             onClick = {

@@ -270,7 +270,7 @@ fun EmojiAndMediaSheet(
                     Icon(
                         imageVector = if (isGhostMode) Icons.Default.VisibilityOff else Icons.Default.Visibility,
                         contentDescription = "Mensaje de una vista",
-                        tint = if (isGhostMode) Color(0xFFBB86FC) else Color(0xFF9AA8B5),
+                        tint = if (isGhostMode) IosSettingsColors.blue else Color(0xFF9AA8B5),
                         modifier = Modifier.size(22.dp)
                     )
                 }

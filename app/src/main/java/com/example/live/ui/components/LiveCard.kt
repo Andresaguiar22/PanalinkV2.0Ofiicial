@@ -49,7 +49,7 @@ import com.example.ui.components.rememberAsyncMediaUrl
 import com.example.ui.settings.ios.IosSettingsColors
 
 private val LiveCardShape = RoundedCornerShape(20.dp)
-private val LiveRed = Color(0xFFFF28C8)
+private val LiveRed = IosSettingsColors.pink
 
 /**
  * Tarjeta de transmisión con estética glassmorphism: sin bloque de color, borde

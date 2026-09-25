@@ -56,10 +56,10 @@ private enum class StudioMode { IMAGE, TEXT, VIDEO }
 
 private data class StudioColor(val name: String, val color: Color)
 
-private val PANA_GREEN = Color(0xFF00A884)
-private val DARK_BG = Color(0xFF0B141A)
-private val PANEL_BG = Color(0xFF111B21)
-private val CARD_BG = Color(0xFF1F2C34)
+private val PANA_GREEN: Color get() = IosSettingsColors.green
+private val DARK_BG: Color get() = IosSettingsColors.groupBackground
+private val PANEL_BG: Color get() = IosSettingsColors.cell
+private val CARD_BG: Color get() = IosSettingsColors.cellElevated
 
 private val TEXT_COLORS = listOf(
     StudioColor("Blanco", Color.White),
@@ -431,7 +431,7 @@ fun StickerStudioScreen(
                                     }
                                     Button(
                                         onClick = { cameraPermissionState.requestPermissions() },
-                                        colors = ButtonDefaults.buttonColors(containerColor = Color(0xFF2A3942))
+                                        colors = ButtonDefaults.buttonColors(containerColor = IosSettingsColors.cellElevated)
                                     ) {
                                         Icon(Icons.Filled.CameraAlt, null, tint = IosSettingsColors.label)
                                         Spacer(Modifier.width(6.dp))
@@ -550,7 +550,7 @@ fun StickerStudioScreen(
                                 Box(
                                     Modifier
                                         .clip(RoundedCornerShape(10.dp))
-                                        .background(if (selected) PANA_GREEN else Color(0xFF2A3942))
+                                        .background(if (selected) PANA_GREEN else IosSettingsColors.cellElevated)
                                         .clickable { fontIndex = i }
                                         .padding(horizontal = 12.dp, vertical = 8.dp)
                                 ) {
@@ -610,7 +610,7 @@ private fun studioTextFieldColors() = OutlinedTextFieldDefaults.colors(
     focusedTextColor = Color.White,
     unfocusedTextColor = Color.White,
     focusedBorderColor = PANA_GREEN,
-    unfocusedBorderColor = Color(0xFF2A3942)
+    unfocusedBorderColor = IosSettingsColors.cellElevated
 )
 
 @Composable
@@ -628,7 +628,7 @@ private fun ColorRow(colors: List<StudioColor>, selected: Int, onSelect: (Int) -
                 Modifier
                     .size(30.dp)
                     .clip(CircleShape)
-                    .background(if (c.color == Color.Transparent) Color(0xFF2A3942) else c.color)
+                    .background(if (c.color == Color.Transparent) IosSettingsColors.cellElevated else c.color)
                     .border(
                         width = if (selected == i) 3.dp else 1.dp,
                         color = if (selected == i) PANA_GREEN else Color(0xFF8596A0),

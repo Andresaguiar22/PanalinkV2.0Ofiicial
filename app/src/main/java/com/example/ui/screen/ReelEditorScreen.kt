@@ -476,7 +476,7 @@ fun ReelEditorScreen(
                                     colorFilter = when(activeFilter) {
                                         "B&W" -> androidx.compose.ui.graphics.ColorFilter.colorMatrix(androidx.compose.ui.graphics.ColorMatrix().apply { setToSaturation(0f) })
                                         "Retro" -> androidx.compose.ui.graphics.ColorFilter.tint(Color(0xFFF0D9A6).copy(alpha = 0.3f), androidx.compose.ui.graphics.BlendMode.ColorBurn)
-                                        "Vibe" -> androidx.compose.ui.graphics.ColorFilter.tint(Color(0xFFFF28C8).copy(alpha = 0.2f), androidx.compose.ui.graphics.BlendMode.Overlay)
+                                        "Vibe" -> androidx.compose.ui.graphics.ColorFilter.tint(IosSettingsColors.pink.copy(alpha = 0.2f), androidx.compose.ui.graphics.BlendMode.Overlay)
                                         "Pop" -> androidx.compose.ui.graphics.ColorFilter.colorMatrix(androidx.compose.ui.graphics.ColorMatrix().apply { setToSaturation(2f) })
                                         "Cinematic" -> androidx.compose.ui.graphics.ColorFilter.colorMatrix(androidx.compose.ui.graphics.ColorMatrix(floatArrayOf(
                                             0.8f, 0.1f, 0.1f, 0f, 0f,
@@ -498,7 +498,7 @@ fun ReelEditorScreen(
                                         when(activeFilter) {
                                             "B&W" -> Color.Black.copy(alpha=0.5f) // fake for video without shaders
                                             "Retro" -> Color(0xFFF0D9A6).copy(alpha = 0.2f)
-                                            "Vibe" -> Color(0xFFFF28C8).copy(alpha = 0.2f)
+                                            "Vibe" -> IosSettingsColors.pink.copy(alpha = 0.2f)
                                             "Cinematic" -> IosSettingsColors.cellElevated.copy(alpha = 0.2f)
                                             else -> Color.Transparent
                                         }
@@ -769,7 +769,7 @@ fun ReelEditorScreen(
                                         }
                                     }
                                     LazyRow(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
-                                        val colors = listOf(Color.White, Color.Black, Color.Red, IosSettingsColors.blue, Color(0xFFFF28C8), Color.Yellow)
+                                        val colors = listOf(Color.White, Color.Black, Color.Red, IosSettingsColors.blue, IosSettingsColors.pink, Color.Yellow)
                                         items(colors) { c ->
                                             Box(modifier = Modifier
                                                 .size(36.dp)
@@ -960,7 +960,7 @@ fun ReelEditorScreen(
                                             for (i in 0 until count) {
                                                 val h = ((i * 17) % 30 + 10).toFloat()
                                                 val x = i * (barWidth + gap)
-                                                val color = if (x >= size.width * (trimStartPercent/100f) && x <= size.width * (trimEndPercent/100f)) Color(0xFFFF28C8) else Color.DarkGray
+                                                val color = if (x >= size.width * (trimStartPercent/100f) && x <= size.width * (trimEndPercent/100f)) IosSettingsColors.pink else Color.DarkGray
                                                 drawRoundRect(color = color, topLeft = Offset(x, size.height/2 - h/2), size = androidx.compose.ui.geometry.Size(barWidth, h), cornerRadius = androidx.compose.ui.geometry.CornerRadius(2f))
                                             }
                                         }
@@ -1158,9 +1158,9 @@ fun ReelEditorScreen(
                             placeholder = { Text("ej. #Chamo #Panalink #Venezuela") },
                             modifier = Modifier.fillMaxWidth().testTag("reel_hashtags_input"),
                             colors = OutlinedTextFieldDefaults.colors(
-                                focusedTextColor = Color(0xFFFF28C8),
+                                focusedTextColor = IosSettingsColors.pink,
                                 unfocusedTextColor = Color.White,
-                                focusedBorderColor = Color(0xFFFF28C8),
+                                focusedBorderColor = IosSettingsColors.pink,
                                 unfocusedBorderColor = Color.Gray
                             )
                         )
@@ -1347,7 +1347,7 @@ fun ReelEditorScreen(
                             Box(
                                 modifier = Modifier
                                     .size(56.dp)
-                                    .background(Color(0xFF9B5CFF), CircleShape),
+                                    .background(IosSettingsColors.blue, CircleShape),
                                 contentAlignment = Alignment.Center
                             ) {
                                 Icon(Icons.Default.Public, contentDescription = null, tint = Color.Black, modifier = Modifier.size(28.dp))
@@ -1377,7 +1377,7 @@ fun ReelEditorScreen(
                                 colors = androidx.compose.material3.OutlinedTextFieldDefaults.colors(
                                     focusedTextColor = Color.White,
                                     unfocusedTextColor = Color.White,
-                                    focusedBorderColor = Color(0xFF9B5CFF),
+                                    focusedBorderColor = IosSettingsColors.blue,
                                     unfocusedBorderColor = Color.Gray,
                                     focusedPlaceholderColor = Color.Gray
                                 )
@@ -1394,7 +1394,7 @@ fun ReelEditorScreen(
 
                             if (isImportingUrl) {
                                 CircularProgressIndicator(
-                                    color = Color(0xFF9B5CFF),
+                                    color = IosSettingsColors.blue,
                                     modifier = Modifier.size(28.dp)
                                 )
                                 Text("Descargando vídeo limpio desde la plataforma...", color = Color.Gray, fontSize =  12.sp, textAlign = TextAlign.Center)
@@ -1411,7 +1411,7 @@ fun ReelEditorScreen(
                                 Button(
                                     onClick = { importFromUrl() },
                                     enabled = !isImportingUrl,
-                                    colors = ButtonDefaults.buttonColors(containerColor = Color(0xFF9B5CFF))
+                                    colors = ButtonDefaults.buttonColors(containerColor = IosSettingsColors.blue)
                                 ) {
                                     Text("Importar", color = Color.Black, fontWeight = FontWeight.Bold)
                                 }
@@ -1444,7 +1444,7 @@ fun ReelEditorScreen(
                             Box(
                                 modifier = Modifier
                                     .size(64.dp)
-                                    .background(Color(0xFFFF28C8), CircleShape),
+                                    .background(IosSettingsColors.pink, CircleShape),
                                 contentAlignment = Alignment.Center
                             ) {
                                 Icon(Icons.Default.Drafts, contentDescription = null, tint = Color.Black, modifier = Modifier.size(32.dp))
@@ -1456,7 +1456,7 @@ fun ReelEditorScreen(
                                     showDraftSuccessDialog = false
                                     onBack()
                                 },
-                                colors = ButtonDefaults.buttonColors(containerColor = Color(0xFFFF28C8))
+                                colors = ButtonDefaults.buttonColors(containerColor = IosSettingsColors.pink)
                             ) {
                                 Text("Entendido", color = Color.Black, fontWeight = FontWeight.Bold)
                             }

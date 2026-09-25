@@ -411,7 +411,7 @@ private fun ReelSearchGrid(
                                 Icon(
                                     Icons.Filled.Favorite,
                                     contentDescription = null,
-                                    tint = Color(0xFFFF2B54),
+                                    tint = IosSettingsColors.red,
                                     modifier = Modifier.size(11.dp)
                                 )
                                 Spacer(Modifier.width(2.dp))

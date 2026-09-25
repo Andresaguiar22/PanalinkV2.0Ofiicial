@@ -66,7 +66,7 @@ fun PrivacySettingSwitch(
             enabled = hasEntitlement || !isPremium,
             colors = SwitchDefaults.colors(
                 checkedThumbColor = Color.White,
-                checkedTrackColor = Color(0xFF7B3FF2),
+                checkedTrackColor = IosSettingsColors.blue,
                 uncheckedThumbColor = Color(0xFF9AA8B5),
                 uncheckedTrackColor = IosSettingsColors.cellElevated
             )

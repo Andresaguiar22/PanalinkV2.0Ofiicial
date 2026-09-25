@@ -161,7 +161,7 @@ fun VoiceRoomToolboxSheet(
                                 )
                                 .border(
                                     width = if (selected) 2.dp else 1.dp,
-                                    color = if (selected) Color(0xFF4FE7EA) else Color(0x22FFFFFF),
+                                    color = if (selected) IosSettingsColors.blue else Color(0x22FFFFFF),
                                     shape = RoundedCornerShape(16.dp)
                                 )
                                 .clickable { onSelectEntrance(spec.code) }
@@ -196,7 +196,7 @@ fun VoiceRoomToolboxSheet(
                                 Icon(
                                     imageVector = Icons.Default.Check,
                                     contentDescription = "Seleccionada",
-                                    tint = Color(0xFF4FE7EA),
+                                    tint = IosSettingsColors.blue,
                                     modifier = Modifier.size(16.dp)
                                 )
                             }
@@ -226,7 +226,7 @@ fun VoiceRoomToolboxSheet(
                                 )
                                 .border(
                                     width = if (selected) 2.dp else 1.dp,
-                                    color = if (selected) Color(0xFF4FE7EA) else Color(0x22FFFFFF),
+                                    color = if (selected) IosSettingsColors.blue else Color(0x22FFFFFF),
                                     shape = RoundedCornerShape(16.dp)
                                 )
                                 .clickable { onSelectPendant(spec.code) }
@@ -295,7 +295,7 @@ fun VoiceRoomToolboxSheet(
                                 Icon(
                                     imageVector = Icons.Default.Check,
                                     contentDescription = "Seleccionado",
-                                    tint = Color(0xFF4FE7EA),
+                                    tint = IosSettingsColors.blue,
                                     modifier = Modifier.size(16.dp)
                                 )
                             }
@@ -382,7 +382,7 @@ fun VoiceRoomMyPendantSheet(
                             )
                             .border(
                                 width = if (selected) 2.dp else 1.dp,
-                                color = if (selected) Color(0xFF4FE7EA) else Color(0x22FFFFFF),
+                                color = if (selected) IosSettingsColors.blue else Color(0x22FFFFFF),
                                 shape = RoundedCornerShape(16.dp)
                             )
                             .clickable { onSelect(spec.code) }
@@ -449,7 +449,7 @@ fun VoiceRoomMyPendantSheet(
                             Icon(
                                 imageVector = Icons.Default.Check,
                                 contentDescription = "Seleccionado",
-                                tint = Color(0xFF4FE7EA),
+                                tint = IosSettingsColors.blue,
                                 modifier = Modifier.size(16.dp)
                             )
                         }

@@ -270,7 +270,7 @@ fun KlipyGifStickerPicker(
                         modifier = Modifier
                             .weight(1f)
                             .clip(RoundedCornerShape(10.dp))
-                            .background(if (isSelected) Color(0xFF2A3942) else Color.Transparent)
+                            .background(if (isSelected) IosSettingsColors.cellElevated else Color.Transparent)
                             .clickable {
 
                                 tab = idx

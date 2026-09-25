@@ -3,6 +3,7 @@ package com.example.live.ui
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.unit.dp
+import com.example.ui.settings.ios.IosSettingsColors
 
 /**
  * Tokens visuales compartidos por el módulo Live (transmitir + listado).
@@ -23,7 +24,7 @@ val LiveNightBase = Color(0xFF000000)
 
 /** Rojo del indicador de directo y su halo. */
 val LiveLiveRed = Color(0xFFFF3B4E)
-val LiveLiveGlow = Color(0xFFFF28C8)
+val LiveLiveGlow = IosSettingsColors.pink
 
 /** Relleno y borde translúcidos de las superficies "glass". */
 val LiveGlassFill = Color(0xFF131A22).copy(alpha = 0.82f)
@@ -44,10 +45,10 @@ val LiveBadgeFill = Color(0xFF131A22).copy(alpha = 0.78f)
 val LiveHudFill = Color(0xFF131A22).copy(alpha = 0.78f)
 
 /** Borde fino y claro del HUD: separa la superficie flotante del video de fondo. */
-val LiveHudBorder = Color(0xFF9B5CFF).copy(alpha = 0.55f)
+val LiveHudBorder = IosSettingsColors.blue.copy(alpha = 0.55f)
 
 /** Rojo corporativo de alerta: botón "FINALIZAR" y su halo exterior. */
-val LiveEndRed = Color(0xFFFF28C8)
+val LiveEndRed = IosSettingsColors.pink
 
 /** Esquinas de las tarjetas del listado y del panel de configuración. */
 val LiveCardShape = RoundedCornerShape(24.dp)

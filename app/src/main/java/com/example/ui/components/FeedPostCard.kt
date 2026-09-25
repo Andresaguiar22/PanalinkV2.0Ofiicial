@@ -261,12 +261,12 @@ fun FeedPostCard(
                                     }
                                 },
                                 shape = RoundedCornerShape(20.dp),
-                                border = if (!isFollowingAuthor) BorderStroke(1.dp, Color(0xFF45B6FF)) else null,
-                                color = if (isFollowingAuthor) Color.Transparent else Color(0xFF45B6FF).copy(alpha = 0.1f)
+                                border = if (!isFollowingAuthor) BorderStroke(1.dp, IosSettingsColors.blue) else null,
+                                color = if (isFollowingAuthor) Color.Transparent else IosSettingsColors.blue.copy(alpha = 0.1f)
                             ) {
                                 Text(
                                     text = if (isFollowingAuthor) "Siguiendo" else "Seguir",
-                                    color = Color(0xFF45B6FF),
+                                    color = IosSettingsColors.blue,
                                     fontSize = 12.sp,
                                     fontWeight = FontWeight.Bold,
                                     modifier = Modifier.padding(horizontal = 12.dp, vertical = 4.dp)
@@ -377,14 +377,14 @@ fun FeedPostCard(
                         ) {
                             Text(
                                 text = "Ver más",
-                                color = Color(0xFF45B6FF),
+                                color = IosSettingsColors.blue,
                                 fontSize = 14.sp,
                                 fontWeight = FontWeight.Bold
                             )
                             Icon(
                                 imageVector = Icons.Default.KeyboardArrowDown,
                                 contentDescription = null,
-                                tint = Color(0xFF45B6FF),
+                                tint = IosSettingsColors.blue,
                                 modifier = Modifier.size(16.dp)
                             )
                         }
@@ -485,7 +485,7 @@ fun FeedPostCard(
                                         Icon(
                                             imageVector = Icons.Default.Favorite,
                                             contentDescription = null,
-                                            tint = Color(0xFFFF2B54),
+                                            tint = IosSettingsColors.red,
                                             modifier = Modifier.size(80.dp)
                                         )
                                     }
@@ -643,7 +643,7 @@ fun FeedPostCard(
                         Icon(
                             imageVector = Icons.Default.ThumbUp,
                             contentDescription = null,
-                            tint = Color(0xFF45B6FF),
+                            tint = IosSettingsColors.blue,
                             modifier = Modifier.size(14.dp)
                         )
                         Spacer(modifier = Modifier.width(4.dp))
@@ -679,7 +679,7 @@ fun FeedPostCard(
                 ) {
                     Icon(
                         imageVector = if (postIsLiked) Icons.Default.ThumbUp else Icons.Outlined.ThumbUp,
-                        tint = if (postIsLiked) Color(0xFF45B6FF) else Color.Gray,
+                        tint = if (postIsLiked) IosSettingsColors.blue else Color.Gray,
                         contentDescription = "Me gusta",
                         modifier = Modifier
                             .size(20.dp)
@@ -688,7 +688,7 @@ fun FeedPostCard(
                     Spacer(modifier = Modifier.width(6.dp))
                     Text(
                         text = "Me gusta",
-                        color = if (postIsLiked) Color(0xFF45B6FF) else Color.Gray,
+                        color = if (postIsLiked) IosSettingsColors.blue else Color.Gray,
                         fontSize = 13.sp,
                         fontWeight = FontWeight.SemiBold
                     )

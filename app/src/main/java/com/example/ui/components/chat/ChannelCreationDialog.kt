@@ -89,7 +89,7 @@ fun CreateChannelDialog(
                                 modifier = Modifier
                                     .size(if (step == currentStep) 12.dp else 8.dp)
                                     .clip(CircleShape)
-                                    .background(if (step == currentStep) Color(0xFFD500F9) else Color.Gray.copy(alpha = 0.3f))
+                                    .background(if (step == currentStep) IosSettingsColors.blue else Color.Gray.copy(alpha = 0.3f))
                             )
                             if (index < 2) {
                                 Spacer(modifier = Modifier.width(8.dp))
@@ -114,7 +114,7 @@ fun CreateChannelDialog(
                                 colors = OutlinedTextFieldDefaults.colors(
                                     focusedTextColor = Color.White,
                                     unfocusedTextColor = Color.White,
-                                    focusedBorderColor = Color(0xFFD500F9),
+                                    focusedBorderColor = IosSettingsColors.blue,
                                     unfocusedBorderColor = Color.Gray.copy(alpha = 0.5f)
                                 ),
                                 singleLine = true
@@ -129,7 +129,7 @@ fun CreateChannelDialog(
                                 colors = OutlinedTextFieldDefaults.colors(
                                     focusedTextColor = Color.White,
                                     unfocusedTextColor = Color.White,
-                                    focusedBorderColor = Color(0xFFD500F9),
+                                    focusedBorderColor = IosSettingsColors.blue,
                                     unfocusedBorderColor = Color.Gray.copy(alpha = 0.5f)
                                 ),
                                 maxLines = 3
@@ -267,7 +267,7 @@ fun CreateChannelDialog(
                                     Box(modifier = Modifier.fillMaxSize().background(Color.Black.copy(alpha = 0.3f)))
                                     Icon(Icons.Default.Edit, contentDescription = null, tint = IosSettingsColors.label, modifier = Modifier.align(Alignment.TopEnd).padding(8.dp))
                                 } else if (isUploadingCover) {
-                                    CircularProgressIndicator(color = Color(0xFFD500F9))
+                                    CircularProgressIndicator(color = IosSettingsColors.blue)
                                 } else {
                                     Column(horizontalAlignment = Alignment.CenterHorizontally) {
                                         Icon(Icons.Default.Image, contentDescription = null, tint = Color.Gray)
@@ -286,7 +286,7 @@ fun CreateChannelDialog(
                                         .size(72.dp)
                                         .clip(CircleShape)
                                         .background(IosSettingsColors.cellElevated)
-                                        .border(2.dp, Color(0xFFD500F9), CircleShape)
+                                        .border(2.dp, IosSettingsColors.blue, CircleShape)
                                         .clickable { avatarPicker.launch(androidx.activity.result.PickVisualMediaRequest(ActivityResultContracts.PickVisualMedia.ImageOnly)) },
                                     contentAlignment = Alignment.Center
                                 ) {
@@ -299,7 +299,7 @@ fun CreateChannelDialog(
                                         )
                                         Box(modifier = Modifier.fillMaxSize().background(Color.Black.copy(alpha = 0.3f)))
                                     } else if (isUploadingAvatar) {
-                                        CircularProgressIndicator(color = Color(0xFFD500F9), modifier = Modifier.size(24.dp))
+                                        CircularProgressIndicator(color = IosSettingsColors.blue, modifier = Modifier.size(24.dp))
                                     } else {
                                         Icon(Icons.Default.AddAPhoto, contentDescription = null, tint = Color.Gray)
                                     }
@@ -338,8 +338,8 @@ fun CreateChannelDialog(
                                     checked = visibility == "public",
                                     onCheckedChange = { visibility = if (it) "public" else "private" },
                                     colors = SwitchDefaults.colors(
-                                        checkedThumbColor = Color(0xFFD500F9),
-                                        checkedTrackColor = Color(0xFFD500F9).copy(alpha = 0.5f)
+                                        checkedThumbColor = IosSettingsColors.blue,
+                                        checkedTrackColor = IosSettingsColors.blue.copy(alpha = 0.5f)
                                     )
                                 )
                             }
@@ -368,8 +368,8 @@ fun CreateChannelDialog(
                                     checked = isReadonly,
                                     onCheckedChange = { isReadonly = it },
                                     colors = SwitchDefaults.colors(
-                                        checkedThumbColor = Color(0xFFD500F9),
-                                        checkedTrackColor = Color(0xFFD500F9).copy(alpha = 0.5f)
+                                        checkedThumbColor = IosSettingsColors.blue,
+                                        checkedTrackColor = IosSettingsColors.blue.copy(alpha = 0.5f)
                                     )
                                 )
                             }
@@ -396,7 +396,7 @@ fun CreateChannelDialog(
                             Button(
                                 onClick = { if (name.isNotEmpty()) step++ },
                                 shape = RoundedCornerShape(12.dp),
-                                colors = ButtonDefaults.buttonColors(containerColor = Color(0xFFD500F9))
+                                colors = ButtonDefaults.buttonColors(containerColor = IosSettingsColors.blue)
                             ) {
                                 Text("Siguiente")
                             }
@@ -408,7 +408,7 @@ fun CreateChannelDialog(
                                     }
                                 },
                                 shape = RoundedCornerShape(12.dp),
-                                colors = ButtonDefaults.buttonColors(containerColor = Color(0xFFD500F9))
+                                colors = ButtonDefaults.buttonColors(containerColor = IosSettingsColors.blue)
                             ) {
                                 Text("Crear Canal 🚀")
                             }

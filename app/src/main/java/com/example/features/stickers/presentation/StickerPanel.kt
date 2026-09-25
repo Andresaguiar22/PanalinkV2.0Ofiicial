@@ -122,7 +122,7 @@ fun StickerPanel(
                     Box(
                         modifier = Modifier
                             .clip(RoundedCornerShape(8.dp))
-                            .background(Color(0xFF2A3942))
+                            .background(IosSettingsColors.cellElevated)
                             .clickable { showEditor = true }
                             .padding(horizontal = 10.dp, vertical = 6.dp),
                         contentAlignment = Alignment.Center
@@ -135,7 +135,7 @@ fun StickerPanel(
                     Box(
                         modifier = Modifier
                             .clip(RoundedCornerShape(8.dp))
-                            .background(if (isSelected) Color(0xFF2A3942) else Color.Transparent)
+                            .background(if (isSelected) IosSettingsColors.cellElevated else Color.Transparent)
                             .clickable { selectedPackId = pack.id }
                             .padding(horizontal = 10.dp, vertical = 6.dp),
                         contentAlignment = Alignment.Center

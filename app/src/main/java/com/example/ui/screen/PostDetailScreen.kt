@@ -218,7 +218,7 @@ fun PostDetailScreen(
             contentAlignment = Alignment.Center
         ) {
             if (isLoading) {
-                CircularProgressIndicator(color = Color(0xFF2AABEE))
+                CircularProgressIndicator(color = IosSettingsColors.blue)
             } else if (postState == null) {
                 Column(
                     horizontalAlignment = Alignment.CenterHorizontally,
@@ -234,7 +234,7 @@ fun PostDetailScreen(
                     Spacer(modifier = Modifier.height(16.dp))
                     Button(
                         onClick = onBackClick,
-                        colors = ButtonDefaults.buttonColors(containerColor = Color(0xFF2AABEE))
+                        colors = ButtonDefaults.buttonColors(containerColor = IosSettingsColors.blue)
                     ) {
                         Text("Regresar", color = IosSettingsColors.label)
                     }

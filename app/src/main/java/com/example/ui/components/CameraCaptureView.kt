@@ -336,7 +336,7 @@ fun CameraPreviewAndControls(
                         onClick = { showEffectsMenu = !showEffectsMenu },
                         modifier = Modifier.background(Color.Black.copy(alpha = 0.5f), CircleShape)
                     ) {
-                        Icon(Icons.Default.FaceRetouchingNatural, contentDescription = "Efectos", tint = if (selectedEffect != "Ninguno") Color(0xFFE040FB) else Color.White)
+                        Icon(Icons.Default.FaceRetouchingNatural, contentDescription = "Efectos", tint = if (selectedEffect != "Ninguno") IosSettingsColors.blue else Color.White)
                     }
                     Text("Efectos", color = IosSettingsColors.label, fontSize = 10.sp, fontWeight = FontWeight.Bold)
                 }
@@ -387,7 +387,7 @@ fun CameraPreviewAndControls(
                             Box(
                                 modifier = Modifier
                                     .clip(CircleShape)
-                                    .background(if (active) Color(0xFFE040FB) else Color.White.copy(alpha = 0.2f))
+                                    .background(if (active) IosSettingsColors.blue else Color.White.copy(alpha = 0.2f))
                                     .clickable { selectedEffect = effect }
                                     .padding(horizontal = 16.dp, vertical = 8.dp)
                             ) {

@@ -87,7 +87,7 @@ fun LockScreen() {
 
             errorMessage?.let {
                 Spacer(modifier = Modifier.height(12.dp))
-                Text(it, color = Color(0xFFFF28C8), fontSize = 13.sp, fontWeight = FontWeight.SemiBold)
+                Text(it, color = IosSettingsColors.pink, fontSize = 13.sp, fontWeight = FontWeight.SemiBold)
             }
 
             if (biometricAvailable) {

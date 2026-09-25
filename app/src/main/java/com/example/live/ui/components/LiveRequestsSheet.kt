@@ -127,7 +127,7 @@ fun LiveRequestsSheet(
 
                             else -> Button(
                                 onClick = { onRequestToJoin() },
-                                colors = ButtonDefaults.buttonColors(containerColor = Color(0xFFA73BFA)),
+                                colors = ButtonDefaults.buttonColors(containerColor = IosSettingsColors.blue),
                                 shape = RoundedCornerShape(50),
                                 modifier = Modifier.fillMaxWidth()
                             ) { Text("Solicitar ser co-host", color = IosSettingsColors.label, fontWeight = FontWeight.Bold) }

@@ -43,6 +43,7 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import com.example.ui.settings.ios.IosSettingsColors
 
 /**
  * Bottom Input / Subscription Wall component (`CommentInputBar`).
@@ -60,7 +61,7 @@ fun CommentInputBar(
 ) {
     val barBg = Color(0xFF17212B) // Telegram Dark Bar Surface
     val inputBg = Color(0xFF242F3D)
-    val accentBlue = Color(0xFF2AABEE)
+    val accentBlue = IosSettingsColors.blue
     val primaryText = Color.White
     val secondaryText = Color(0xFF8E959B)
 

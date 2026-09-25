@@ -60,7 +60,7 @@ fun GhostViewerDialog(
                     Column {
                         Text(
                             text = "PanaLink Ghost",
-                            color = Color(0xFFBB86FC),
+                            color = IosSettingsColors.blue,
                             fontWeight = FontWeight.Bold,
                             fontSize = 18.sp
                         )
@@ -120,7 +120,7 @@ fun GhostViewerDialog(
                                 Icon(
                                     imageVector = androidx.compose.material.icons.Icons.Default.Warning,
                                     contentDescription = null,
-                                    tint = Color(0xFFBB86FC),
+                                    tint = IosSettingsColors.blue,
                                     modifier = Modifier.size(48.dp)
                                 )
                                 Spacer(modifier = Modifier.height(16.dp))
@@ -150,7 +150,7 @@ fun GhostViewerDialog(
                     modifier = Modifier
                         .fillMaxWidth()
                         .padding(top = 24.dp),
-                    colors = ButtonDefaults.buttonColors(containerColor = Color(0xFFBB86FC))
+                    colors = ButtonDefaults.buttonColors(containerColor = IosSettingsColors.blue)
                 ) {
                     Text("Entendido, destruir secreto")
                 }

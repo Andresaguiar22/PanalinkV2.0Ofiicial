@@ -19,7 +19,7 @@ object TextAnnotator {
         modifier: Modifier = Modifier,
         style: TextStyle = TextStyle.Default,
         hashtagColor: Color = IosSettingsColors.green,
-        mentionColor: Color = Color(0xFFE040FB),
+        mentionColor: Color = IosSettingsColors.blue,
         onHashtagClick: (String) -> Unit,
         onMentionClick: (String) -> Unit
     ) {

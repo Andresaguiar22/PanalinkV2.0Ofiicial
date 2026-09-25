@@ -109,7 +109,7 @@ fun ChatAttachmentSheet(
                     AttachmentItem(
                         icon = if (isGhostMode) Icons.Default.VisibilityOff else Icons.Default.Visibility,
                         label = "Ghost",
-                        color = if (isGhostMode) Color(0xFFBB86FC) else Color(0xFF8596A0)
+                        color = if (isGhostMode) IosSettingsColors.blue else Color(0xFF8596A0)
                     ) {
                         onToggleGhostMode()
                     }

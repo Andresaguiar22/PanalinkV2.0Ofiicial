@@ -182,7 +182,7 @@ fun ChannelPostCard(
                         val isMyReaction = mySelectedEmoji == emoji
 
                         val bgColor by animateColorAsState(
-                            targetValue = if (isMyReaction) Color(0xFF0088CC).copy(alpha = 0.35f) else Color(0xFF2A3942),
+                            targetValue = if (isMyReaction) IosSettingsColors.blue.copy(alpha = 0.35f) else IosSettingsColors.cellElevated,
                             label = "pillBg"
                         )
                         val borderColor by animateColorAsState(
@@ -216,7 +216,7 @@ fun ChannelPostCard(
                     // Add Reaction Button
                     Surface(
                         onClick = { showReactionPicker = !showReactionPicker },
-                        color = Color(0xFF2A3942),
+                        color = IosSettingsColors.cellElevated,
                         shape = CircleShape,
                         modifier = Modifier.size(28.dp)
                     ) {
@@ -366,7 +366,7 @@ fun ApkFileAttachmentCard(
                 modifier = Modifier
                     .size(44.dp)
                     .clip(CircleShape)
-                    .background(Color(0xFF0088CC))
+                    .background(IosSettingsColors.blue)
             ) {
                 Icon(
                     imageVector = if (isDownloaded) Icons.Default.Check else Icons.Default.ArrowDownward,

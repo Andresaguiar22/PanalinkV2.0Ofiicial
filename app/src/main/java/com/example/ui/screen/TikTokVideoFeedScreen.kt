@@ -2044,7 +2044,7 @@ fun TikTokPageItem(
                             .size(20.dp)
                             .align(Alignment.BottomCenter)
                             .offset(y = 8.dp)
-                            .background(Color(0xFFFF2B54), CircleShape)
+                            .background(IosSettingsColors.red, CircleShape)
                             .clickable {
                                 performHaptic(context)
                                 scope.launch {
@@ -2076,7 +2076,7 @@ fun TikTokPageItem(
             ReelRailAction(
                 icon = if (localIsLiked) Icons.Rounded.Favorite else Icons.Rounded.FavoriteBorder,
                 count = formatCountCompact(localLikesCount),
-                tint = if (localIsLiked) Color(0xFFFF2B54) else Color.White,
+                tint = if (localIsLiked) IosSettingsColors.red else Color.White,
                 contentDescription = "Me Gusta",
                 iconModifier = Modifier.graphicsLayer {
                     scaleX = likeScale
@@ -2230,7 +2230,7 @@ fun TikTokPageItem(
                             .clip(RoundedCornerShape(6.dp))
                             .background(
                                 if (isFollowing) Color.White.copy(alpha = 0.12f)
-                                else Color(0xFFFF2B54)
+                                else IosSettingsColors.red
                             )
                             .clickable {
                                 scope.launch {
@@ -2268,7 +2268,7 @@ fun TikTokPageItem(
                     text = caption,
                     style = TextStyle(color = IosSettingsColors.label, fontSize = 14.sp),
                     hashtagColor = Color(0xFF69F0AE),
-                    mentionColor = Color(0xFFE040FB),
+                    mentionColor = IosSettingsColors.blue,
                     onHashtagClick = { tag ->
                         onHashtagClick?.invoke(tag)
                     },
@@ -2580,7 +2580,7 @@ Box(
                         ) { showGifPicker = true },
                     contentAlignment = Alignment.Center
                 ) {
-                    Text("GIF", color = Color(0xFF4FC3F7), fontSize =   11.sp, fontWeight = FontWeight.Bold)
+                    Text("GIF", color = IosSettingsColors.blue, fontSize =   11.sp, fontWeight = FontWeight.Bold)
                 }
                 Spacer(modifier = Modifier.width(4.dp))
 

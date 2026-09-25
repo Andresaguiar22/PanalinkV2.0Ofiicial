@@ -247,7 +247,7 @@ fun CreatePostBottomSheet(
                                         .background(Color(0xFF262629)),
                                     contentAlignment = Alignment.Center
                                 ) {
-                                    Icon(Icons.Default.Mic, contentDescription = "Audio", tint = Color(0xFFD500F9), modifier = Modifier.size(32.dp))
+                                    Icon(Icons.Default.Mic, contentDescription = "Audio", tint = IosSettingsColors.blue, modifier = Modifier.size(32.dp))
                                 }
                             } else {
                                 AsyncImage(
@@ -343,7 +343,7 @@ fun CreatePostBottomSheet(
                         Icon(Icons.Default.Videocam, contentDescription = "Videos", tint = IosSettingsColors.green)
                     }
                     IconButton(onClick = { audioPicker.launch("audio/*") }) {
-                        Icon(Icons.Default.Mic, contentDescription = "Audio", tint = Color(0xFFD500F9))
+                        Icon(Icons.Default.Mic, contentDescription = "Audio", tint = IosSettingsColors.blue)
                     }
                     IconButton(onClick = { showYoutubeInput = !showYoutubeInput }) {
                         Icon(Icons.Default.PlayCircle, contentDescription = "YouTube", tint = Color(0xFFFF0000))

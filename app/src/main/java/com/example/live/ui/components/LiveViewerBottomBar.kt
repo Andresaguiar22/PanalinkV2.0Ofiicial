@@ -36,7 +36,7 @@ import androidx.compose.ui.unit.sp
 import com.example.ui.settings.ios.IosSettingsColors
 
 private val SendGradient = Brush.linearGradient(
-    colors = listOf(Color(0xFFFF2E77), Color(0xFFA73BFA), Color(0xFF2EA8FF))
+    colors = listOf(Color(0xFFFF2E77), IosSettingsColors.blue, Color(0xFF2EA8FF))
 )
 
 @Composable
@@ -119,7 +119,7 @@ fun LiveViewerBottomBar(
                     ) { showGifPicker = true },
                 contentAlignment = Alignment.Center
             ) {
-                Text("GIF", color = Color(0xFF4FC3F7), fontSize =  11.sp, fontWeight = FontWeight.Bold)
+                Text("GIF", color = IosSettingsColors.blue, fontSize =  11.sp, fontWeight = FontWeight.Bold)
             }
             Spacer(modifier = Modifier.width(4.dp))
 

@@ -56,7 +56,7 @@ fun VoiceRoomBrowserScreen(onBack:()->Unit,onEnterRoom:(String)->Unit,viewModel:
 private fun RoomCard(room:VoiceRoom,members:Int,onClick:()->Unit){
     Card(shape=RoundedCornerShape(16.dp),colors=CardDefaults.cardColors(containerColor=Color(0xB8131A22)),modifier=Modifier.fillMaxWidth().clickable(onClick=onClick)){
         Column {
-            Box(Modifier.fillMaxWidth().height(88.dp).clip(RoundedCornerShape(topStart=16.dp,topEnd=16.dp)).background(Brush.horizontalGradient(listOf(Color(0xFF7B3FF2),IosSettingsColors.cellElevated)))){
+            Box(Modifier.fillMaxWidth().height(88.dp).clip(RoundedCornerShape(topStart=16.dp,topEnd=16.dp)).background(Brush.horizontalGradient(listOf(IosSettingsColors.blue,IosSettingsColors.cellElevated)))){
                 if(!room.coverUrl.isNullOrBlank()) AsyncImage(model=room.coverUrl,contentDescription=room.name,contentScale=ContentScale.Crop,modifier=Modifier.fillMaxSize())
                 if(room.isPrivate) Surface(color=Color(0xCC1A120E),shape=RoundedCornerShape(bottomEnd=10.dp)){Row(Modifier.padding(horizontal=8.dp,vertical=5.dp),verticalAlignment=Alignment.CenterVertically){Icon(Icons.Default.Lock,null,tint=Color.White,modifier=Modifier.size(12.dp));Spacer(Modifier.width(4.dp));Text("Privada",color=Color.White,fontSize=10.sp)}}
             }

@@ -841,7 +841,7 @@ private fun ReelFeedOverlay(
                 icon = if (liked) Icons.Filled.Favorite else Icons.Rounded.FavoriteBorder,
                 count = compactCountV2(localLikes),
                 selected = liked,
-                selectedColor = Color(0xFFFF2B54),
+                selectedColor = IosSettingsColors.red,
                 popOnSelect = true,
             ) {
                 val next = !liked
@@ -930,7 +930,7 @@ private fun ReelFeedOverlay(
                         style = MaterialTheme.typography.labelMedium,
                         modifier = Modifier
                             .clip(RoundedCornerShape(6.dp))
-                            .background(if (isFollowing) Color.White.copy(alpha = 0.16f) else Color(0xFFFF2B54))
+                            .background(if (isFollowing) Color.White.copy(alpha = 0.16f) else IosSettingsColors.red)
                             .clickable {
                                 if (currentUid.isNullOrBlank()) return@clickable
                                 overlayScope.launch {

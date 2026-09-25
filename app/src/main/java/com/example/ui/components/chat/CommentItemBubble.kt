@@ -32,6 +32,7 @@ import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import coil.compose.AsyncImage
+import com.example.ui.settings.ios.IosSettingsColors
 
 /**
  * Data model representing a comment in a channel post thread.
@@ -63,7 +64,7 @@ fun CommentItemBubble(
 ) {
     val bubbleBg = Color(0xFF1E2C3A) // Telegram Dark Bubble
     val replyBoxBg = Color(0xFF17212B) // Inner Reply Preview Box
-    val accentBlue = Color(0xFF2AABEE)
+    val accentBlue = IosSettingsColors.blue
     val replyBorderColor = Color(0xFF64B5F6)
     val secondaryText = Color(0xFF8E959B)
     val primaryText = Color.White

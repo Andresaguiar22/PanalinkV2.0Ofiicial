@@ -45,7 +45,7 @@ fun OnboardingCongratsScreen(
     val presets = remember {
         listOf(
             PresetAvatar("🔥", Brush.linearGradient(listOf(Color(0xFFFF5722), Color(0xFFFF9800)))),
-            PresetAvatar("⚡", Brush.linearGradient(listOf(IosSettingsColors.blue, Color(0xFF00B0FF)))),
+            PresetAvatar("⚡", Brush.linearGradient(listOf(IosSettingsColors.blue, IosSettingsColors.blue))),
             PresetAvatar("👾", Brush.linearGradient(listOf(Color(0xFF9C27B0), Color(0xFFE91E63)))),
             PresetAvatar("🚀", Brush.linearGradient(listOf(IosSettingsColors.green, IosSettingsColors.green)))
         )

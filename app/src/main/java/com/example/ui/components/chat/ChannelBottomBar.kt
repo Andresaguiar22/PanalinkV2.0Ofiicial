@@ -33,6 +33,7 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import com.example.ui.settings.ios.IosSettingsColors
 
 /**
  * Bottom action bar for Telegram-style Channels (`ChannelBottomBar`).
@@ -53,7 +54,7 @@ fun ChannelBottomBar(
     val buttonBg = Color(0xFF242F3D) // Telegram Button Surface
     val primaryText = Color.White
     val secondaryText = Color(0xFF8E959B)
-    val accentBlue = Color(0xFF2AABEE)
+    val accentBlue = IosSettingsColors.blue
 
     Row(
         modifier = modifier

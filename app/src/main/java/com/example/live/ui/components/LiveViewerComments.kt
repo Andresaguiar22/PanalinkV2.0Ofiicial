@@ -214,7 +214,7 @@ private fun CommentRow(
                     )
                     if (isHost) {
                         Spacer(modifier = Modifier.width(5.dp))
-                        RoleBadge(text = "Anfitrión", color = Color(0xFFFF2B54))
+                        RoleBadge(text = "Anfitrión", color = IosSettingsColors.red)
                     }
                     if (isMine) {
                         Spacer(modifier = Modifier.width(5.dp))

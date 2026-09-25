@@ -1948,7 +1948,7 @@ Box(
                             ) { showGifPicker = true },
                         contentAlignment = Alignment.Center
                     ) {
-                    Text("GIF", color = Color(0xFF4FC3F7), fontSize =   11.sp, fontWeight = FontWeight.Bold)
+                    Text("GIF", color = IosSettingsColors.blue, fontSize =   11.sp, fontWeight = FontWeight.Bold)
                 }
                         OutlinedTextField(
                             value = replyText,

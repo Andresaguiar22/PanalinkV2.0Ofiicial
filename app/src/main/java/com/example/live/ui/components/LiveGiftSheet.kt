@@ -119,7 +119,7 @@ fun LiveGiftSheet(
                     val isSelected = quantity == q
                     Surface(
                         shape = RoundedCornerShape(50),
-                        color = if (isSelected) Color(0xFFA73BFA) else Color(0xFF26262E),
+                        color = if (isSelected) IosSettingsColors.blue else Color(0xFF26262E),
                         modifier = Modifier
                             .padding(end = 8.dp)
                             .clickable { quantity = q }
@@ -145,7 +145,7 @@ fun LiveGiftSheet(
                     .height(48.dp),
                 shape = RoundedCornerShape(50),
                 colors = ButtonDefaults.buttonColors(
-                    containerColor = Color(0xFFA73BFA),
+                    containerColor = IosSettingsColors.blue,
                     disabledContainerColor = IosSettingsColors.cellElevated
                 )
             ) {

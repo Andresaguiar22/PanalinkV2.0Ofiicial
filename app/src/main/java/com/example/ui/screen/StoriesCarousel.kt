@@ -113,7 +113,7 @@ fun StoriesCarousel(
                                 .align(Alignment.BottomCenter)
                                 .offset(y = (-20).dp)
                                 .size(28.dp)
-                                .background(Color(0xFFD500F9), CircleShape)
+                                .background(IosSettingsColors.blue, CircleShape)
                                 .border(2.dp, IosSettingsColors.groupBackground, CircleShape),
                             contentAlignment = Alignment.Center
                         ) {
