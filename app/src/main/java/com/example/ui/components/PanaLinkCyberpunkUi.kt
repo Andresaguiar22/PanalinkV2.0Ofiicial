@@ -584,24 +584,31 @@ fun PaniOSUnifiedTopBar(
                     }
                 }
 
-                // Caja de herramientas: acción preparada para el contenido que se incorporará después.
+                Row(
+                verticalAlignment = Alignment.CenterVertically,
+                horizontalArrangement = Arrangement.spacedBy(6.dp),
+                modifier = Modifier.align(Alignment.CenterEnd)
+            ) {
+                // Caja de herramientas: fuera de la burbuja, entre esta y el avatar.
+
                 Box(
                     modifier = Modifier
-                        .padding(end = 6.dp)
-                        .size(40.dp)
+                        .size(48.dp)
                         .clip(CircleShape)
+                        .background(Color(0xFF1C1C1E))
+                        .border(1.dp, Color(0xFF10B981).copy(alpha = 0.35f), CircleShape)
                         .clickable(onClick = onToolbox),
                     contentAlignment = Alignment.Center
                 ) {
-                    PaniOSToolboxIcon(modifier = Modifier.size(27.dp))
+                    PaniOSToolboxIcon(modifier = Modifier.size(34.dp))
                 }
+            }
 
-                // Avatar + estado: espejo visual del logo, ambos parten de un círculo de 40.dp.
+            // Avatar + estado: espejo visual del logo, ambos parten de un círculo de 40.dp.
                 Column(
                     horizontalAlignment = Alignment.End,
                     modifier = Modifier
                         .width(96.dp)
-                        .align(Alignment.CenterEnd)
                         .offset(y = 2.dp)
                 ) {
                     Box(
