@@ -39,7 +39,7 @@ fun CallLogChatBubble(
     val isVideo = callLog.type == CallLogType.VIDEO
     val isSuccess = callLog.status == CallLogStatus.COMPLETED
 
-    val iconColor = if (isSuccess) Color(0xFF4CAF50) else Color(0xFFF44336)
+    val iconColor = if (isSuccess) IosSettingsColors.green else Color(0xFFF44336)
     val iconBgColor = iconColor.copy(alpha = 0.15f)
 
     val titleText = when {

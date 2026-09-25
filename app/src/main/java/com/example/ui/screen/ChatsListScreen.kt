@@ -1220,10 +1220,10 @@ fun ChatsListScreen(
                         }
                         Box(
                             modifier = Modifier
-                                .background(Color(0xFF4CAF50).copy(alpha = 0.15f), RoundedCornerShape(4.dp))
+                                .background(IosSettingsColors.green.copy(alpha = 0.15f), RoundedCornerShape(4.dp))
                                 .padding(horizontal = 6.dp, vertical = 2.dp)
                         ) {
-                            Text("Beta", color = Color(0xFF4CAF50), fontSize = 10.sp, fontWeight = FontWeight.Bold)
+                            Text("Beta", color = IosSettingsColors.green, fontSize = 10.sp, fontWeight = FontWeight.Bold)
                         }
                     }
 

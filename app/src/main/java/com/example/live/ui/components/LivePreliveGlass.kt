@@ -42,7 +42,7 @@ import androidx.compose.ui.unit.sp
 import com.example.ui.settings.ios.IosSettingsColors
 
 /** Verde neon de la marca Panalink. */
-val PanalinkNeonGreen = Color(0xFF00E676)
+val PanalinkNeonGreen: Color get() = IosSettingsColors.green
 
 /** Menta usada para los bordes ultra finos del vidrio. */
 val PanalinkMint = Color(0xFF7CFFCB)

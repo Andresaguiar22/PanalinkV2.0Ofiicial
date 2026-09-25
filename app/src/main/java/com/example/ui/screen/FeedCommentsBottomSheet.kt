@@ -57,7 +57,7 @@ fun FeedCommentsBottomSheet(
 
     ModalBottomSheet(
         onDismissRequest = onDismiss,
-        containerColor = Color(0xFF12141A),
+        containerColor = IosSettingsColors.groupBackground,
         dragHandle = null,
         shape = RoundedCornerShape(topStart = 20.dp, topEnd = 20.dp)
     ) {

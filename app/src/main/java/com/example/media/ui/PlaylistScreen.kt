@@ -68,7 +68,7 @@ fun PlaylistScreen(
                         }
                     }
                     IconButton(onClick = onCollaboratorsClick) {
-                        Icon(Icons.Default.Group, contentDescription = "Colaboradores", tint = Color(0xFF10B981))
+                        Icon(Icons.Default.Group, contentDescription = "Colaboradores", tint = IosSettingsColors.green)
                     }
                     if (userRole.canShare()) {
                         IconButton(onClick = onSharePlaylistClick) {

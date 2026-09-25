@@ -74,7 +74,7 @@ fun FavoritesScreen(
                 )
             )
         },
-        containerColor = Color(0xFF0D0F12)
+        containerColor = IosSettingsColors.groupBackground
     ) { padding ->
         if (favoritedMessages.isEmpty()) {
             Box(
@@ -103,7 +103,7 @@ fun FavoritesScreen(
                 modifier = Modifier
                     .fillMaxSize()
                     .padding(padding)
-                    .background(Color(0xFF0D0F12)),
+                    .background(IosSettingsColors.groupBackground),
                 contentPadding = PaddingValues(bottom = 16.dp)
             ) {
                 itemsIndexed(favoritedMessages, key = { index, message -> "${message.id}_$index" }) { _, message ->

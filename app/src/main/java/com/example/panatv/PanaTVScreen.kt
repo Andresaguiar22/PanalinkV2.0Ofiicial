@@ -71,9 +71,9 @@ import com.example.ui.settings.ios.IosSettingsColors
 
 // ── Xuper TV style palette ──────────────────────────────────────────────
 private val TvBg = Color(0xFF0D0F12)
-private val TvCard = IosSettingsColors.groupBackground
-private val TvCardAlt = IosSettingsColors.cellElevated
-private val TvAccent = IosSettingsColors.blue
+private val TvCard: Color get() = IosSettingsColors.groupBackground
+private val TvCardAlt: Color get() = IosSettingsColors.cellElevated
+private val TvAccent: Color get() = IosSettingsColors.blue
 private val TvAccentSoft = Color(0x3318E7F5)
 private val TvTextSecondary = Color(0xFFB8C4D6)
 

@@ -1301,7 +1301,7 @@ fun ChatScreen(
                     Text("Cancelar", color = IosSettingsColors.blue)
                 }
             },
-            containerColor = Color(0xB8131A22)
+            containerColor = IosSettingsColors.cell.copy(alpha = 0.72f)
         )
     }
 
@@ -1421,7 +1421,7 @@ fun PlaylistPickerDialog(
                 Text("Cancelar", color = IosSettingsColors.blue)
             }
         },
-        containerColor = Color(0xB8131A22),
+        containerColor = IosSettingsColors.cell.copy(alpha = 0.72f),
         shape = RoundedCornerShape(28.dp)
     )
 }

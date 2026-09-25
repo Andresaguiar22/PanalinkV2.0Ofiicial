@@ -104,7 +104,7 @@ fun KlipyGifStickerPicker(
     ModalBottomSheet(
         onDismissRequest = onDismiss,
         sheetState = sheetState,
-        containerColor = Color(0xFF0D0F12),
+        containerColor = IosSettingsColors.groupBackground,
         dragHandle = {
             Box(
                 modifier = Modifier

@@ -34,7 +34,7 @@ fun LiveStudioSheet(
 ) {
     ModalBottomSheet(
         onDismissRequest = onDismiss,
-        containerColor = Color(0xFF1B1B1F),
+        containerColor = IosSettingsColors.cell,
         contentColor = Color.White
     ) {
         Column(modifier = Modifier.padding(horizontal = 16.dp)) {

@@ -184,7 +184,7 @@ fun PendingPostCard(post: com.example.data.database.PendingPostEntity) {
             .fillMaxWidth()
             .padding(vertical = 4.dp),
         shape = RoundedCornerShape(12.dp),
-        colors = CardDefaults.cardColors(containerColor = Color(0xFF1E1E24)),
+        colors = CardDefaults.cardColors(containerColor = IosSettingsColors.cell),
         border = BorderStroke(1.dp, Color.White.copy(alpha = 0.12f))
     ) {
         Column(modifier = Modifier.padding(12.dp)) {

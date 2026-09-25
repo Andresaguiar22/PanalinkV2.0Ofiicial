@@ -814,7 +814,7 @@ private fun ReelFeedOverlay(
                             .offset(y = 11.dp)
                             .size(21.dp)
                             .clip(CircleShape)
-                            .background(if (isFollowing) Color(0xFF2B2B2B) else Color(0xFF10B981))
+                            .background(if (isFollowing) Color(0xFF2B2B2B) else IosSettingsColors.green)
                             .border(1.5.dp, Color.Black, CircleShape)
                             .clickable {
                                 if (currentUid.isNullOrBlank()) return@clickable
@@ -1003,7 +1003,7 @@ private fun ReelFeedOverlay(
                         compoundTags.forEachIndexed { i, tag ->
                             if (i > 0) append("  ")
                             pushStringAnnotation(tag = "HASHTAG", annotation = tag)
-                            withStyle(SpanStyle(color = Color(0xFF10B981), fontWeight = FontWeight.Bold)) {
+                            withStyle(SpanStyle(color = IosSettingsColors.green, fontWeight = FontWeight.Bold)) {
                                 append(tag)
                             }
                             pop()

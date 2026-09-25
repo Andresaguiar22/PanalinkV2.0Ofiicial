@@ -104,7 +104,7 @@ fun ActiveCallOverlay(
         if (activeCallState == "ringing") {
         Text(
         text = "Llamando de pana... 🔔",
-        color = Color(0xFF00E676),
+        color = IosSettingsColors.green,
         fontSize = 16.sp,
         fontWeight = FontWeight.Medium
         )

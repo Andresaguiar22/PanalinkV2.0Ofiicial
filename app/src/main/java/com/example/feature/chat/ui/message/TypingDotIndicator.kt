@@ -73,7 +73,7 @@ internal fun TypingDotIndicator() {
         horizontalArrangement = Arrangement.spacedBy(4.dp),
         verticalAlignment = Alignment.CenterVertically
     ) {
-        val colors = listOf(IosSettingsColors.green, Color(0xFF00E676), Color(0xFF05C657))
+        val colors = listOf(IosSettingsColors.green, IosSettingsColors.green, Color(0xFF05C657))
         Box(
             modifier = Modifier
                 .size(6.dp)

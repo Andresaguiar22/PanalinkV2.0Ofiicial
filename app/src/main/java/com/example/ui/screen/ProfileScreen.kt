@@ -39,15 +39,16 @@ import com.example.ui.settings.screens.ProfileEditScreen
 import com.example.ui.viewmodel.AuthViewModel
 import com.example.ui.viewmodel.ProfileUiState
 import com.example.ui.viewmodel.ProfileViewModel
+import com.example.ui.settings.ios.IosSettingsColors
 
 private val IosBlack = Color(0xFF000000)
-private val IosSurface = Color(0xFF121212)
-private val IosBlue = Color(0xFF0A84FF)
-private val IosGreen = Color(0xFF10B981)
-private val IosPink = Color(0xFFFF2D55)
-private val IosGold = Color(0xFFFFD700)
-private val IosGray = Color(0xFF8E8E93)
-private val IosBorder = Color.White.copy(alpha = 0.15f)
+private val IosSurface: Color get() = IosSettingsColors.cell
+private val IosBlue: Color get() = IosSettingsColors.blue
+private val IosGreen: Color get() = IosSettingsColors.green
+private val IosPink: Color get() = IosSettingsColors.pink
+private val IosGold: Color get() = IosSettingsColors.yellow
+private val IosGray: Color get() = IosSettingsColors.gray
+private val IosBorder: Color get() = IosSettingsColors.separator
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -180,7 +181,7 @@ fun ProfileScreen(
                                 .fillMaxSize()
                                 .background(
                                     Brush.linearGradient(
-                                        listOf(Color(0xFF151515), Color(0xFF202020), Color(0xFF0A0A0A))
+                                        listOf(IosSettingsColors.cell, IosSettingsColors.cellElevated, IosSettingsColors.groupBackground)
                                     )
                                 )
                         )
@@ -276,7 +277,7 @@ fun ProfileScreen(
                         modifier = Modifier.fillMaxWidth(),
                         horizontalArrangement = Arrangement.spacedBy(7.dp)
                     ) {
-                        IosBadge("${if (reputationState == "Verificado") "✓ " else ""}$reputationState", if (reputationState == "Verificado") IosBlue else Color(0xFF64B5F6), Modifier.weight(1f))
+                        IosBadge("${if (reputationState == "Verificado") "✓ " else ""}$reputationState", if (reputationState == "Verificado") IosBlue else IosSettingsColors.blue, Modifier.weight(1f))
                         IosBadge("Fundador 👑", IosGold, Modifier.weight(1f))
                         IosActionButton(Icons.Default.Edit, "Editar", false, Modifier.weight(1.05f)) { isEditingProfile = true }
                         IosActionButton(Icons.Default.Settings, "Ajustes", true, Modifier.weight(1.15f)) { showControlCenter = true }
@@ -388,7 +389,7 @@ private fun IosActionButton(
     onClick: () -> Unit
 ) {
     val background = if (isPrimary) {
-        Brush.linearGradient(listOf(Color(0xFFDB2777), IosPink))
+        Brush.linearGradient(listOf(IosSettingsColors.pink, IosPink))
     } else {
         Brush.linearGradient(listOf(IosSurface, IosSurface))
     }
@@ -443,7 +444,7 @@ private fun IosTabButton(
                 .height(3.dp)
                 .clip(RoundedCornerShape(3.dp))
                 .background(
-                    if (isActive) Brush.horizontalGradient(listOf(Color(0xFFDB2777), IosPink))
+                    if (isActive) Brush.horizontalGradient(listOf(IosSettingsColors.pink, IosPink))
                     else Brush.horizontalGradient(listOf(Color.Transparent, Color.Transparent))
                 )
         )

@@ -35,7 +35,7 @@ fun MediaDebugScreen(
                         Icon(Icons.Default.ArrowBack, contentDescription = "Regresar", tint = IosSettingsColors.label)
                     }
                 },
-                colors = TopAppBarDefaults.topAppBarColors(containerColor = Color(0xFF121214))
+                colors = TopAppBarDefaults.topAppBarColors(containerColor = IosSettingsColors.groupBackground)
             )
         },
         containerColor = Color(0xFF0D0D0F)
@@ -99,7 +99,7 @@ fun MediaDebugScreen(
             item {
                 Card(
                     modifier = Modifier.fillMaxWidth(),
-                    colors = CardDefaults.cardColors(containerColor = Color(0xFF1C1C22)),
+                    colors = CardDefaults.cardColors(containerColor = IosSettingsColors.cell),
                     shape = RoundedCornerShape(12.dp)
                 ) {
                     Column(modifier = Modifier.padding(16.dp)) {
@@ -154,7 +154,7 @@ private fun MetricCard(
 ) {
     Card(
         modifier = modifier,
-        colors = CardDefaults.cardColors(containerColor = Color(0xFF1C1C22)),
+        colors = CardDefaults.cardColors(containerColor = IosSettingsColors.cell),
         shape = RoundedCornerShape(12.dp)
     ) {
         Column(

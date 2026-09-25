@@ -41,7 +41,7 @@ fun LiveRequestsSheet(
 
     ModalBottomSheet(
         onDismissRequest = onDismiss,
-        containerColor = Color(0xFF1B1B1F),
+        containerColor = IosSettingsColors.cell,
         contentColor = Color.White
     ) {
         Column(modifier = Modifier.padding(horizontal = 16.dp)) {
@@ -113,7 +113,7 @@ fun LiveRequestsSheet(
                         when (myRequest?.status) {
                             GuestStatus.PENDING -> Button(
                                 onClick = { onLeaveAsGuest() },
-                                colors = ButtonDefaults.buttonColors(containerColor = Color(0xFF3A3A44)),
+                                colors = ButtonDefaults.buttonColors(containerColor = IosSettingsColors.cellElevated),
                                 shape = RoundedCornerShape(50),
                                 modifier = Modifier.fillMaxWidth()
                             ) { Text("Cancelar solicitud", color = IosSettingsColors.label) }

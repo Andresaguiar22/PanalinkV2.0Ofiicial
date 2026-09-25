@@ -498,14 +498,14 @@ private fun AddPanaHeroCard(
 
             Text(
                 text = if (isRevealed) "Ocultar tu PIN/QR" else "Mostrar tu PIN/QR",
-                color = Color(0xFF10B981),
+                color = IosSettingsColors.green,
                 fontSize =  15.sp,
                 fontWeight = FontWeight.Medium
             )
             Icon(
                 imageVector = if (isRevealed) Icons.Default.KeyboardArrowUp else Icons.Default.KeyboardArrowDown,
                 contentDescription = "Ocultar",
-                tint = Color(0xFF10B981),
+                tint = IosSettingsColors.green,
                 modifier = Modifier.size(20.dp)
             )
         }
@@ -550,7 +550,7 @@ private fun AddPanaHeroCard(
 
                 Text(
                     text = "TU PIN",
-                    color = Color(0xFF10B981),
+                    color = IosSettingsColors.green,
                     fontSize =  11.sp,
                     fontWeight = FontWeight.Bold,
                     letterSpacing =  2.sp
@@ -576,7 +576,7 @@ private fun AddPanaHeroCard(
                         Icon(
                             imageVector = Icons.Default.Share,
                             contentDescription = "Compartir",
-                            tint = Color(0xFF10B981),
+                            tint = IosSettingsColors.green,
                             modifier = Modifier
                                 .size(20.dp)
                                 .clickable {
@@ -591,7 +591,7 @@ private fun AddPanaHeroCard(
                     }
                 } else {
                     CircularProgressIndicator(
-                        color = Color(0xFF10B981),
+                        color = IosSettingsColors.green,
                         modifier = Modifier.size(22.dp),
                         strokeWidth =  2.dp
                     )
@@ -612,7 +612,7 @@ private fun AddPanaHeroCard(
             Row(
                 modifier = Modifier
                     .weight(1f)
-                    .background(Color(0xFF10B981), RoundedCornerShape(14.dp))
+                    .background(IosSettingsColors.green, RoundedCornerShape(14.dp))
                     .padding(vertical =  14.dp)
                     .clickable { onScanQr() },
                 horizontalArrangement = Arrangement.Center,
@@ -637,7 +637,7 @@ private fun AddPanaHeroCard(
             ) {
 
 
-                Icon(Icons.Default.Person, contentDescription = "PIN", tint = Color(0xFF10B981), modifier = Modifier.size(20.dp))
+                Icon(Icons.Default.Person, contentDescription = "PIN", tint = IosSettingsColors.green, modifier = Modifier.size(20.dp))
                 Spacer(Modifier.width(8.dp))
                 Text("Ingresar PIN", color = Color.White, fontSize =  16.sp, fontWeight = FontWeight.SemiBold)
             }

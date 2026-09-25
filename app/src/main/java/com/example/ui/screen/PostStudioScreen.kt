@@ -114,7 +114,7 @@ fun PostStudioScreen(
                                 modifier = Modifier
                                     .size(8.dp)
                                     .clip(CircleShape)
-                                    .background(if (uiState.isExporting) Color(0xFFF59E0B) else Color(0xFF10B981))
+                                    .background(if (uiState.isExporting) IosSettingsColors.orange else IosSettingsColors.green)
                             )
                             Spacer(modifier = Modifier.width(4.dp))
                             Text(

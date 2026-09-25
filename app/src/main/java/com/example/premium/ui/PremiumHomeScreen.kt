@@ -367,7 +367,7 @@ fun MissionRow(m: com.example.premium.domain.model.Mission) {
             LinearProgressIndicator(
                 progress = { (m.progress.toFloat() / m.target).coerceIn(0f, 1f) },
                 modifier = Modifier.fillMaxWidth(0.8f).padding(top = 4.dp).height(4.dp),
-                color = if (done) Color(0xFF4CAF50) else PanalinkSkin.Gold,
+                color = if (done) IosSettingsColors.green else PanalinkSkin.Gold,
                 trackColor = Color.White.copy(alpha = 0.1f)
             )
         }

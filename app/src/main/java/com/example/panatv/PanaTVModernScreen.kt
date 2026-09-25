@@ -67,10 +67,10 @@ import kotlinx.coroutines.delay
 import com.example.ui.settings.ios.IosSettingsColors
 
 private val PanaTvBackground = Color(0xFF0D0F12)
-private val PanaTvSurface = IosSettingsColors.groupBackground
+private val PanaTvSurface: Color get() = IosSettingsColors.groupBackground
 private val PanaTvText = Color(0xFFF5E6C8)
 private val PanaTvMuted = Color(0xFFB8C4D6)
-private val PanaTvAccent = IosSettingsColors.blue
+private val PanaTvAccent: Color get() = IosSettingsColors.blue
 private val PanaTvBlue = Color(0xFF7B3FF2)
 
 // Automatic source retries per channel: a live server that drops the connection

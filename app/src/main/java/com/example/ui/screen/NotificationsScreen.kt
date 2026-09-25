@@ -432,7 +432,7 @@ fun getNotificationIcon(type: NotificationType): Pair<ImageVector, Color> {
         NotificationType.CALL -> Pair(Icons.Default.Call, Color(0xFFD50000))
         NotificationType.FAVORITE -> Pair(Icons.Default.Star, Color(0xFFFFD600))
         NotificationType.SHARE -> Pair(Icons.Default.Share, Color(0xFF00B0FF))
-        NotificationType.VIEW -> Pair(Icons.Default.Visibility, Color(0xFF00E676))
+        NotificationType.VIEW -> Pair(Icons.Default.Visibility, IosSettingsColors.green)
         NotificationType.TRENDING -> Pair(Icons.Default.TrendingUp, Color(0xFFFF3D00))
         else -> Pair(Icons.Default.Notifications, Color.Gray)
     }

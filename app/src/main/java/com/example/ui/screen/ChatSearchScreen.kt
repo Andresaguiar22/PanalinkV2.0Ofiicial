@@ -72,7 +72,7 @@ fun ChatSearchScreen(
                     }
                 },
                 colors = TopAppBarDefaults.topAppBarColors(
-                    containerColor = Color(0xB8131A22)
+                    containerColor = IosSettingsColors.cell.copy(alpha = 0.72f)
                 )
             )
         },

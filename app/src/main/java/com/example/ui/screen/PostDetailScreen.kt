@@ -96,7 +96,7 @@ fun PostDetailScreen(
                     }
                 },
                 colors = TopAppBarDefaults.topAppBarColors(
-                    containerColor = Color(0xFF17212B)
+                    containerColor = IosSettingsColors.groupBackground
                 )
             )
         },
@@ -107,7 +107,7 @@ fun PostDetailScreen(
                         .fillMaxWidth()
                         .navigationBarsPadding()
                         .imePadding(),
-                    color = Color(0xFF17212B)
+                    color = IosSettingsColors.groupBackground
                 ) {
                     Column {
                         // Quick Emoji Selector Bar

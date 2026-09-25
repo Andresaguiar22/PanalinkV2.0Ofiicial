@@ -1,5 +1,6 @@
 package com.example.rooms.ui
 
+import com.example.ui.settings.ios.IosSettingsColors
 import android.Manifest
 import android.content.pm.PackageManager
 import androidx.activity.compose.rememberLauncherForActivityResult
@@ -354,10 +355,10 @@ fun ModerationDialog(
                         Text(if (targetMuted) "Desmutear" else "Mutear", color = VoiceRoomPalette.ActiveCyan)
                     }
                     TextButton(onClick = onKick) {
-                        Text("Expulsar", color = Color(0xFFFF8A80))
+                        Text("Expulsar", color = IosSettingsColors.red)
                     }
                     TextButton(onClick = onBan) {
-                        Text("Bloquear", color = Color(0xFFFF8A80))
+                        Text("Bloquear", color = IosSettingsColors.red)
                     }
                 }
                 if (isHost && !targetIsAdmin) {
@@ -415,7 +416,7 @@ fun SeatRequestsDialog(
                                 Icon(Icons.Default.Check, contentDescription = "Aprobar", tint = VoiceRoomPalette.ActiveCyan)
                             }
                             IconButton(onClick = { onDeny(r.id) }) {
-                                Icon(Icons.Default.Close, contentDescription = "Denegar", tint = Color(0xFFFF8A80))
+                                Icon(Icons.Default.Close, contentDescription = "Denegar", tint = IosSettingsColors.red)
                             }
                         }
                     }

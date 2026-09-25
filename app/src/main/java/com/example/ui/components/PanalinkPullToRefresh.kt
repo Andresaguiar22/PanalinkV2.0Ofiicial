@@ -29,6 +29,7 @@ import androidx.compose.ui.graphics.toArgb
 import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.unit.dp
 import kotlin.math.roundToInt
+import com.example.ui.settings.ios.IosSettingsColors
 
 /**
  * Reusable Pull-to-Refresh container that wraps any scrollable list content (like LazyColumn)
@@ -173,7 +174,7 @@ fun PanalinkRefreshIndicator(
                     // 4. Draw active Neon Green arc loader matching current drag/rotation state
                     val sweepAngle = if (isRefreshing) 270f else (progress * 300f).coerceAtMost(360f)
                     drawArc(
-                        color = Color(0xFF00E676),
+                        color = IosSettingsColors.green,
                         startAngle = currentAngle - 90f,
                         sweepAngle = sweepAngle,
                         useCenter = false,
@@ -188,7 +189,7 @@ fun PanalinkRefreshIndicator(
             Box(
                 modifier = Modifier
                     .size(6.dp)
-                    .background(Color(0xFF00E676), CircleShape)
+                    .background(IosSettingsColors.green, CircleShape)
             )
         }
     }

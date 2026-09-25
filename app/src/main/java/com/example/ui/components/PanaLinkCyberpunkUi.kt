@@ -156,7 +156,7 @@ fun PaniOSChatsTopBar(
     onCompose: () -> Unit,
     modifier: Modifier = Modifier
 ) {
-    val tint = Color(0xFF10B981)
+    val tint = IosSettingsColors.green
 
     Column(
         modifier = modifier
@@ -479,7 +479,7 @@ fun PaniOSUnifiedTopBar(
     onProfile: () -> Unit = {},
     modifier: Modifier = Modifier
 ) {
-    val tint = Color(0xFF10B981)
+    val tint = IosSettingsColors.green
 
     Column(
         modifier = modifier
@@ -602,7 +602,7 @@ fun PaniOSUnifiedTopBar(
                             userId = SupabaseClient.currentUser?.id,
                             size = 40.dp,
                             borderWidth =  1.5.dp,
-                            borderColor = Color(0xFF10B981),
+                            borderColor = IosSettingsColors.green,
                             placeholderName = SupabaseClient.currentProfile?.displayName ?: "",
                             contentDescription = "Perfil"
                         )

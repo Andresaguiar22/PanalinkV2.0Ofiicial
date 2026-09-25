@@ -50,7 +50,7 @@ fun PropertyInspector(
         modifier = modifier
             .fillMaxWidth()
             .padding(12.dp),
-        colors = CardDefaults.cardColors(containerColor = Color(0xFF16161E)),
+        colors = CardDefaults.cardColors(containerColor = IosSettingsColors.cell),
         shape = RoundedCornerShape(20.dp),
         border = BorderStroke(1.dp, IosSettingsColors.blue)
     ) {

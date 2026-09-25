@@ -44,7 +44,7 @@ fun MultiTrackTimelineUI(
             .fillMaxWidth()
             .height(260.dp)
             .padding(8.dp),
-        colors = CardDefaults.cardColors(containerColor = Color(0xFF121218)),
+        colors = CardDefaults.cardColors(containerColor = IosSettingsColors.groupBackground),
         shape = RoundedCornerShape(16.dp),
         border = androidx.compose.foundation.BorderStroke(1.dp, IosSettingsColors.blue)
     ) {

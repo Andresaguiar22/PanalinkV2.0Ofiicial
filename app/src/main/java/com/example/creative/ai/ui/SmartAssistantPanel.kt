@@ -199,7 +199,7 @@ fun SmartAssistantPanel(
                                             val updated = suggestion.applyAction(currentPage)
                                             onApplyPageUpdate(updated)
                                         },
-                                        colors = ButtonDefaults.buttonColors(containerColor = Color(0xFF10B981))
+                                        colors = ButtonDefaults.buttonColors(containerColor = IosSettingsColors.green)
                                     ) {
                                         Text("Optimizar", color = IosSettingsColors.label, fontSize = 11.sp)
                                     }
@@ -363,7 +363,7 @@ fun SmartAssistantPanel(
                                 Column(modifier = Modifier.padding(14.dp)) {
                                     Text(
                                         text = "Impacto Viral Estimado: ${brainResult.viralReport.totalScore} / 100",
-                                        color = Color(0xFF10B981),
+                                        color = IosSettingsColors.green,
                                         fontSize = 16.sp,
                                         fontWeight = FontWeight.Bold
                                     )
@@ -381,7 +381,7 @@ fun SmartAssistantPanel(
 
                         items(brainResult.viralReport.recommendations) { rec ->
                             Row(verticalAlignment = Alignment.CenterVertically) {
-                                Icon(Icons.Default.AutoAwesome, contentDescription = null, tint = Color(0xFFF59E0B), modifier = Modifier.size(16.dp))
+                                Icon(Icons.Default.AutoAwesome, contentDescription = null, tint = IosSettingsColors.orange, modifier = Modifier.size(16.dp))
                                 Spacer(modifier = Modifier.width(8.dp))
                                 Text(text = rec, color = IosSettingsColors.label, fontSize = 12.sp)
                             }
