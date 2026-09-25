@@ -3,7 +3,7 @@
 #
 # Uso:
 #   SUPABASE_ACCESS_TOKEN=sbp_xxx SUPABASE_PROJECT_ID=abcdefgh \
-#       bash scripts/apply_single_session_migration.sh
+#       bash scripts/apply_migration.sh
 #
 # El token debe ser un Personal Access Token con permiso de Management API
 # (dashboard -> Account -> Access Tokens). Si el token es inválido, la API

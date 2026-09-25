@@ -1073,7 +1073,7 @@ factor `0.55 + pow(1.7)*(3.8-0.55)`, halo `1.7x` alpha `0x08` (casi invisible), 
 * `AuthManager.notifyDeviceRegistration(...)`: best-effort tras login exitoso (404 silencioso si falta el RPC; no rompe el login).
 * `AuthViewModel`/`LoginScreen`: parámetro device + diálogo "tu cuenta ya está activa en otro dispositivo".
 * `MainActivity`: diálogo "tu sesión se cerró porque iniciaste en otro dispositivo" al recibir `SESSION_REVOKED`.
-* `scripts/apply_single_session_migration.sh`: aplica la migración en 1 comando (requiere PAT válido + project-ref).
+* `scripts/apply_migration.sh`: aplica la migración en 1 comando (requiere PAT válido + project-ref).
 * `supabase/manual/APPLY_SINGLE_SESSION_MIGRATION.md`: handoff con comandos y verificación.
 
 **Lección de la sesión**: al compilar, un `}` faltante en `SessionManager.refreshSession` (bloque `else`) rompió el parseo del objeto entero y dio errores "Unresolved reference" en cascada; añadir el `}` lo resolvió todo.

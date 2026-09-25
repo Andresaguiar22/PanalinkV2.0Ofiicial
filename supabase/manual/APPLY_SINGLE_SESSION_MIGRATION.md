@@ -42,7 +42,7 @@ curl -s -o /dev/null -w "HTTP %{http_code}\n" \
 ```bash
 cd /workspace/project/PanalinkV2.0Ofiicial
 SUPABASE_ACCESS_TOKEN=sbp_... SUPABASE_PROJECT_ID=<ref> \
-  bash scripts/apply_single_session_migration.sh
+  bash scripts/apply_migration.sh
 ```
 
 Salida esperada: `>>> OK (HTTP 200)`. Si da 401, el token no sirve.
