@@ -132,7 +132,7 @@ fun LiveEndPill(
             .clip(CircleShape)
             .background(
                 Brush.horizontalGradient(
-                    listOf(Color(0xFFFF3B30), Color(0xFFD32F2F))
+                    listOf(IosSettingsColors.red, Color(0xFFD32F2F))
                 )
             )
             .border(1.dp, Color.White.copy(alpha = 0.18f), CircleShape)

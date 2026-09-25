@@ -30,6 +30,7 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import com.example.ui.settings.ios.IosSettingsColors
 
 private data class ToolboxCategory(val id: String, val title: String, val subtitle: String, val icon: androidx.compose.ui.graphics.vector.ImageVector)
 private data class ToolboxItem(val id: String, val title: String, val description: String, val category: String, val icon: androidx.compose.ui.graphics.vector.ImageVector, val accent: Color = Color(0xFF0A84FF))
@@ -101,7 +102,7 @@ fun ToolboxScreen(onBack: () -> Unit) {
                 Row(verticalAlignment = Alignment.CenterVertically) {
                     Text("0", color = Color.White, fontSize = 14.sp, fontWeight = FontWeight.Bold)
                     Spacer(Modifier.width(5.dp))
-                    Text("●", color = Color(0xFFFFCC00), fontSize = 12.sp)
+                    Text("●", color = IosSettingsColors.yellow, fontSize = 12.sp)
                 }
             }
         }
@@ -116,7 +117,7 @@ fun ToolboxScreen(onBack: () -> Unit) {
                         Spacer(Modifier.width(14.dp))
                         Column(Modifier.weight(1f)) {
                             Text("Tu arsenal personal", color = Color.White, fontSize = 18.sp, fontWeight = FontWeight.SemiBold)
-                            Text("Activa herramientas temporales y personaliza cómo vives PanaLink.", color = Color(0xFFAEAEB2), fontSize = 13.sp, lineHeight = 18.sp)
+                            Text("Activa herramientas temporales y personaliza cómo vives PanaLink.", color = IosSettingsColors.secondaryLabel, fontSize = 13.sp, lineHeight = 18.sp)
                         }
                     }
                 }
@@ -128,9 +129,9 @@ fun ToolboxScreen(onBack: () -> Unit) {
                         val selected = selectedCategory == category.id
                         Box(Modifier.weight(1f).clip(RoundedCornerShape(14.dp)).background(if (selected) Color(0xFF0A84FF) else Color(0xFF1C1C1E)).border(1.dp, if (selected) Color(0xFF0A84FF) else Color(0x22FFFFFF), RoundedCornerShape(14.dp)).clickable { selectedCategory = category.id }.padding(vertical = 10.dp), contentAlignment = Alignment.Center) {
                             Column(horizontalAlignment = Alignment.CenterHorizontally) {
-                                Icon(category.icon, null, tint = if (selected) Color.White else Color(0xFFAEAEB2), modifier = Modifier.size(17.dp))
+                                Icon(category.icon, null, tint = if (selected) Color.White else IosSettingsColors.secondaryLabel, modifier = Modifier.size(17.dp))
                                 Spacer(Modifier.height(3.dp))
-                                Text(category.title, color = if (selected) Color.White else Color(0xFFAEAEB2), fontSize = 9.sp, fontWeight = FontWeight.SemiBold)
+                                Text(category.title, color = if (selected) Color.White else IosSettingsColors.secondaryLabel, fontSize = 9.sp, fontWeight = FontWeight.SemiBold)
                             }
                         }
                     }
@@ -152,7 +153,7 @@ fun ToolboxScreen(onBack: () -> Unit) {
                 val scale by animateFloatAsState(if (selected) 1f else .985f, tween(180, easing = FastOutSlowInEasing), label = "toolboxScale")
                 Row(Modifier.fillMaxWidth().scale(scale).clip(RoundedCornerShape(20.dp)).background(if (selected) Color(0xFF1C1C1E) else Color(0xFF111113)).border(1.dp, if (selected) item.accent.copy(alpha = .38f) else Color(0x1FFFFFFF), RoundedCornerShape(20.dp)).clickable { selectedItem = item }.padding(16.dp), verticalAlignment = Alignment.CenterVertically) {
                     Box(Modifier.size(46.dp).background(item.accent.copy(alpha = if (selected) .14f else .08f), CircleShape), contentAlignment = Alignment.Center) {
-                        Icon(item.icon, null, tint = if (selected) item.accent else Color(0xFFAEAEB2), modifier = Modifier.size(22.dp))
+                        Icon(item.icon, null, tint = if (selected) item.accent else IosSettingsColors.secondaryLabel, modifier = Modifier.size(22.dp))
                     }
                     Spacer(Modifier.width(14.dp))
                     Column(Modifier.weight(1f)) {
@@ -187,7 +188,7 @@ fun ToolboxScreen(onBack: () -> Unit) {
                                 val selected = selectedDuration == duration
                                 Box(Modifier.weight(1f).clip(RoundedCornerShape(11.dp)).background(if (selected) selectedItem.accent else Color.Transparent).clickable { selectedDuration = duration }.padding(vertical = 10.dp), contentAlignment = Alignment.Center) {
                                     Column(horizontalAlignment = Alignment.CenterHorizontally) {
-                                        Text("${duration.first} días", color = if (selected) Color.White else Color(0xFFAEAEB2), fontSize = 13.sp, fontWeight = FontWeight.SemiBold)
+                                        Text("${duration.first} días", color = if (selected) Color.White else IosSettingsColors.secondaryLabel, fontSize = 13.sp, fontWeight = FontWeight.SemiBold)
                                         Text("${duration.second} monedas", color = if (selected) Color.White else Color(0xFF8E8E93), fontSize = 10.sp)
                                     }
                                 }
@@ -197,7 +198,7 @@ fun ToolboxScreen(onBack: () -> Unit) {
                         Row(verticalAlignment = Alignment.CenterVertically) {
                             Column(Modifier.weight(1f)) {
                                 Text("Precio seleccionado", color = Color(0xFF8E8E93), fontSize = 11.sp)
-                                Text("${selectedDuration.second} monedas", color = Color(0xFFFFCC00), fontSize = 21.sp, fontWeight = FontWeight.Bold)
+                                Text("${selectedDuration.second} monedas", color = IosSettingsColors.yellow, fontSize = 21.sp, fontWeight = FontWeight.Bold)
                             }
                             Box(Modifier.clip(RoundedCornerShape(14.dp)).background(Color(0xFF0A84FF)).padding(horizontal = 17.dp, vertical = 11.dp)) {
                                 Text("Vista previa", color = Color.White, fontSize = 13.sp, fontWeight = FontWeight.SemiBold)

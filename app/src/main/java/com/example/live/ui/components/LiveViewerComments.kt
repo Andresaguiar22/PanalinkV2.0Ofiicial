@@ -206,7 +206,7 @@ private fun CommentRow(
                 Row(verticalAlignment = Alignment.CenterVertically) {
                     Text(
                         text = displayName,
-                        color = if (isMine) Color(0xFFFFD54F) else Color.White.copy(alpha = 0.92f),
+                        color = if (isMine) IosSettingsColors.yellow else Color.White.copy(alpha = 0.92f),
                         fontSize = 13.sp,
                         fontWeight = FontWeight.Bold,
                         style = shadow,

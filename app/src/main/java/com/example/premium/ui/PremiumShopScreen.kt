@@ -152,7 +152,7 @@ private fun ProductCard(
     Column(
         modifier = Modifier
             .fillMaxWidth()
-            .background(Color(0xFF16202C), RoundedCornerShape(16.dp))
+            .background(IosSettingsColors.cell, RoundedCornerShape(16.dp))
             .border(1.dp, PanalinkSkin.Gold.copy(alpha = 0.2f), RoundedCornerShape(16.dp))
             .padding(14.dp)
     ) {

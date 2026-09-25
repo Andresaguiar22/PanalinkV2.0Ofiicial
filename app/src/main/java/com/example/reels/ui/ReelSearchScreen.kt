@@ -114,7 +114,7 @@ fun ReelSearchScreen(
     }
 
     Scaffold(
-        containerColor = Color(0xFF0F0F10)
+        containerColor = IosSettingsColors.groupBackground
     ) { padding ->
         Column(
             modifier = Modifier
@@ -364,7 +364,7 @@ private fun ReelSearchGrid(
                 modifier = Modifier
                     .aspectRatio(9f / 16f)
                     .clip(RoundedCornerShape(10.dp))
-                    .background(Color(0xFF1E1E1E))
+                    .background(IosSettingsColors.cell)
                     .clickable { onVideoClick(reel.state.id) }
             ) {
                 Box(modifier = Modifier.fillMaxSize()) {

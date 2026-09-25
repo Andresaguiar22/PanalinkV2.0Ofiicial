@@ -81,7 +81,7 @@ fun ChannelPostBubble(
     onImageClick: ((String) -> Unit)? = null,
     modifier: Modifier = Modifier
 ) {
-    val bubbleBg = Color(0xFF1E2C3A) // Telegram Post Surface Dark
+    val bubbleBg = IosSettingsColors.cell // Telegram Post Surface Dark
     val fileCardBg = IosSettingsColors.groupBackground // Inner Card Surface
     val accentBlue = IosSettingsColors.blue
     val forwardedTextColor = Color(0xFFB388FF) // Telegram Purple Header
@@ -359,7 +359,7 @@ fun QuickShareButton(
         modifier = modifier
             .size(36.dp)
             .clip(CircleShape)
-            .background(Color(0xFF242F3D))
+            .background(IosSettingsColors.cell)
             .clickable { onClick() },
         contentAlignment = Alignment.Center
     ) {

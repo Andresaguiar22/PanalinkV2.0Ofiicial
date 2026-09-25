@@ -121,7 +121,7 @@ fun AnimatedPanaWelcomeLogo(
 
             // Draw a secondary subtle, out-of-phase gold inner rotating border
             drawCircle(
-                color = Color(0xFFFFD700).copy(alpha = (1.2f - lightBlink).coerceIn(0.1f, 0.9f) * 0.6f),
+                color = IosSettingsColors.yellow.copy(alpha = (1.2f - lightBlink).coerceIn(0.1f, 0.9f) * 0.6f),
                 radius = outerRadius - 4.dp.toPx(),
                 style = Stroke(
                     width = 1.5.dp.toPx(),

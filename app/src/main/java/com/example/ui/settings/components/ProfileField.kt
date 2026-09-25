@@ -29,7 +29,7 @@ fun ProfileField(
     OutlinedTextField(
         value = value,
         onValueChange = onValueChange,
-        label = { Text(label, color = Color(0xFF90A4AE)) },
+        label = { Text(label, color = IosSettingsColors.secondaryLabel) },
         placeholder = if (placeholder != null) { { Text(placeholder, color = Color.Gray) } } else null,
         colors = OutlinedTextFieldDefaults.colors(
             focusedBorderColor = IosSettingsColors.green,
@@ -42,7 +42,7 @@ fun ProfileField(
         ),
         singleLine = singleLine,
         leadingIcon = if (leadingIcon != null) {
-            { Icon(leadingIcon, contentDescription = null, tint = Color(0xFF90A4AE)) }
+            { Icon(leadingIcon, contentDescription = null, tint = IosSettingsColors.secondaryLabel) }
         } else null,
         modifier = fieldModifier,
         shape = RoundedCornerShape(12.dp)

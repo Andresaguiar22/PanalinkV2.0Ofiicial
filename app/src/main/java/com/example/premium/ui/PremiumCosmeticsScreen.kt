@@ -121,7 +121,7 @@ private fun CollectionBanner(level: Int, nextLevel: Int?) {
     Column(
         modifier = Modifier
             .fillMaxWidth()
-            .background(Color(0xFF1B2530), RoundedCornerShape(16.dp))
+            .background(IosSettingsColors.cell, RoundedCornerShape(16.dp))
             .padding(16.dp)
     ) {
         Text("⭐ Tu nivel: $level", color = Color.White, fontWeight = FontWeight.Bold, fontSize = 16.sp)
@@ -153,7 +153,7 @@ private fun CosmeticTile(
     Column(
         modifier = Modifier
             .aspectRatio(1.1f)
-            .background(if (owned) Color(0xFF1B2530) else Color(0xFF131C26), RoundedCornerShape(14.dp))
+            .background(if (owned) IosSettingsColors.cell else Color(0xFF131C26), RoundedCornerShape(14.dp))
             .border(1.dp, borderColor, RoundedCornerShape(14.dp))
             .clickable(enabled = owned && !equipping) { onEquip() }
             .padding(8.dp),

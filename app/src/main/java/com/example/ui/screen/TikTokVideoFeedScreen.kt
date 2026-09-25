@@ -1689,7 +1689,7 @@ fun TikTokPageItem(
                 val hasLocalCopy = !state.localVideoPath.isNullOrBlank() && java.io.File(state.localVideoPath!!).exists()
                 if (!com.example.util.NetworkMonitor.isOnline.value && (isActivePage || isPreload) && !hasError && !resolveFailed && !isRecovering && !codecIrrecoverable && !hasLocalCopy) {
                     Box(
-                        modifier = Modifier.fillMaxSize().background(Color(0xFF0F0F10)),
+                        modifier = Modifier.fillMaxSize().background(IosSettingsColors.groupBackground),
                         contentAlignment = Alignment.Center,
                     ) {
                         Text(
@@ -1723,7 +1723,7 @@ fun TikTokPageItem(
                     Box(
                         modifier = Modifier
                             .fillMaxSize()
-                            .background(Color(0xFF0F0F10)),
+                            .background(IosSettingsColors.groupBackground),
                         contentAlignment = Alignment.Center
                     ) {
                         Column(horizontalAlignment = Alignment.CenterHorizontally) {
@@ -2153,7 +2153,7 @@ fun TikTokPageItem(
                 DropdownMenu(
                     expanded = showActionMoreMenu,
                     onDismissRequest = { showActionMoreMenu = false },
-                    modifier = Modifier.background(Color(0xFF0F0F10))
+                    modifier = Modifier.background(IosSettingsColors.groupBackground)
                 ) {
                     DropdownMenuItem(
                         text = { Text("Descargar vídeo", color = IosSettingsColors.label, fontSize = 14.sp) },
@@ -2606,7 +2606,7 @@ Box(
                             Icon(
                                 imageVector = Icons.AutoMirrored.Rounded.Send,
                                 contentDescription = "Enviar",
-                                tint = Color(0xFF101D24),
+                                tint = IosSettingsColors.groupBackground,
                                 modifier = Modifier.size(18.dp)
                             )
                         }
@@ -2819,7 +2819,7 @@ fun ReelsErrorView(
     Box(
         modifier = Modifier
             .fillMaxSize()
-            .background(Color(0xFF0F0F10)),
+            .background(IosSettingsColors.groupBackground),
         contentAlignment = Alignment.Center
     ) {
         // Blurred backdrop simulation

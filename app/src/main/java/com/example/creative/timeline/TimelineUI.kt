@@ -206,7 +206,7 @@ fun MultiTrackTimelineUI(
                                 modifier = Modifier
                                     .fillMaxHeight()
                                     .fillMaxWidth(durPct)
-                                    .background(Color(0xFFFF4081), RoundedCornerShape(4.dp))
+                                    .background(IosSettingsColors.pink, RoundedCornerShape(4.dp))
                             )
                         }
                     }

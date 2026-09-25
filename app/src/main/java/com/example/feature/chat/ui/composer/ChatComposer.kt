@@ -336,7 +336,7 @@ fun ChatComposer(
                             Icon(
                                 imageVector = if (isAttachmentMenuOpen) Icons.Default.Close else Icons.Default.AttachFile,
                                 contentDescription = "Menú Adjuntos",
-                                tint = if (isAttachmentMenuOpen) androidx.compose.ui.graphics.Color(0xFFFF2D55) else IosSettingsColors.secondaryLabel,
+                                tint = if (isAttachmentMenuOpen) IosSettingsColors.pink else IosSettingsColors.secondaryLabel,
                                 modifier = Modifier.size(24.dp)
                             )
                         }

@@ -82,7 +82,7 @@ fun ChatAttachmentSheet(
                         .horizontalScroll(rememberScrollState()),
                     horizontalArrangement = Arrangement.spacedBy(4.dp)
                 ) {
-                    AttachmentItem(icon = Icons.Default.PhotoCamera, label = "Cámara", color = Color(0xFFFF2D55)) {
+                    AttachmentItem(icon = Icons.Default.PhotoCamera, label = "Cámara", color = IosSettingsColors.pink) {
                         onCamera()
                     }
                     AttachmentItem(icon = Icons.Default.Image, label = "Imagen", color = Color(0xFF007AFF)) {
@@ -103,7 +103,7 @@ fun ChatAttachmentSheet(
                     AttachmentItem(icon = Icons.Default.Gif, label = "GIF", color = Color(0xFFFF9E00)) {
                         onGif()
                     }
-                    AttachmentItem(icon = Icons.Default.StickyNote2, label = "Stickers", color = Color(0xFFFF2D55)) {
+                    AttachmentItem(icon = Icons.Default.StickyNote2, label = "Stickers", color = IosSettingsColors.pink) {
                         onSticker()
                     }
                     AttachmentItem(

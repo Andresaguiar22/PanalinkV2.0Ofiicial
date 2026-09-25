@@ -327,8 +327,8 @@ fun FeedPostCard(
                                 }
                             )
                             DropdownMenuItem(
-                                text = { Text("Eliminar", color = Color(0xFFFF4D4D)) },
-                                leadingIcon = { Icon(Icons.Default.Delete, contentDescription = null, tint = Color(0xFFFF4D4D)) },
+                                text = { Text("Eliminar", color = IosSettingsColors.red) },
+                                leadingIcon = { Icon(Icons.Default.Delete, contentDescription = null, tint = IosSettingsColors.red) },
                                 onClick = {
                                     showMenu = false
                                     onDeleteClick()

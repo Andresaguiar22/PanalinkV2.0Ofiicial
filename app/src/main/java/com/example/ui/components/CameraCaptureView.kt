@@ -361,7 +361,7 @@ fun CameraPreviewAndControls(
                         },
                         modifier = Modifier.background(Color.Black.copy(alpha = 0.5f), CircleShape)
                     ) {
-                        Text("${selectedSpeed}x", color = if (selectedSpeed != 1.0f) Color(0xFFFFD700) else Color.White, fontSize = 12.sp, fontWeight = FontWeight.Bold)
+                        Text("${selectedSpeed}x", color = if (selectedSpeed != 1.0f) IosSettingsColors.yellow else Color.White, fontSize = 12.sp, fontWeight = FontWeight.Bold)
                     }
                     Text("Velocidad", color = IosSettingsColors.label, fontSize = 10.sp, fontWeight = FontWeight.Bold)
                 }

@@ -38,7 +38,7 @@ fun PrivacySettingSwitch(
                     Spacer(modifier = Modifier.width(6.dp))
                     Text(
                         text = "★",
-                        color = Color(0xFFFFD700),
+                        color = IosSettingsColors.yellow,
                         fontSize = 14.sp
                     )
                 }

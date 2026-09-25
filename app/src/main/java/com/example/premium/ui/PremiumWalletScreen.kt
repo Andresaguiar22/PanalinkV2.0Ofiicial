@@ -150,7 +150,7 @@ private fun LevelProgressCard(levelInfo: com.example.premium.domain.model.LevelI
     Column(
         modifier = Modifier
             .fillMaxWidth()
-            .background(Color(0xFF1B2530), RoundedCornerShape(16.dp))
+            .background(IosSettingsColors.cell, RoundedCornerShape(16.dp))
             .border(1.dp, PanalinkSkin.Gold.copy(alpha = 0.2f), RoundedCornerShape(16.dp))
             .padding(14.dp)
     ) {
@@ -215,7 +215,7 @@ private fun ActionChip(
     Box(
         modifier = modifier
             .background(
-                if (enabled) Color(0xFF1B2432) else Color(0xFF16202C),
+                if (enabled) Color(0xFF1B2432) else IosSettingsColors.cell,
                 RoundedCornerShape(14.dp)
             )
             .clickable(enabled = enabled, onClick = onClick)
@@ -243,7 +243,7 @@ private fun TransactionRow(tx: WalletTransaction) {
     Row(
         modifier = Modifier
             .fillMaxWidth()
-            .background(Color(0xFF16202C), RoundedCornerShape(12.dp))
+            .background(IosSettingsColors.cell, RoundedCornerShape(12.dp))
             .padding(12.dp),
         verticalAlignment = Alignment.CenterVertically
     ) {

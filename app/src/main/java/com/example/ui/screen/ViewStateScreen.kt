@@ -1136,7 +1136,7 @@ var showGifPicker by remember { mutableStateOf(false) }
                             .fillMaxSize()
                             .background(
                                 Brush.verticalGradient(
-                                    colors = listOf(IosSettingsColors.orange.copy(alpha = 0.40f), Color(0xFFFFC107).copy(alpha = 0.25f))
+                                    colors = listOf(IosSettingsColors.orange.copy(alpha = 0.40f), IosSettingsColors.yellow.copy(alpha = 0.25f))
                                 )
                             )
                     )
@@ -1323,8 +1323,8 @@ var showGifPicker by remember { mutableStateOf(false) }
                         ) {
                             if (isOwner) {
                                 DropdownMenuItem(
-                                    text = { Text("Eliminar estado para todos", color = Color(0xFFFF4D4D)) },
-                                    leadingIcon = { Icon(Icons.Default.Close, contentDescription = null, tint = Color(0xFFFF4D4D)) },
+                                    text = { Text("Eliminar estado para todos", color = IosSettingsColors.red) },
+                                    leadingIcon = { Icon(Icons.Default.Close, contentDescription = null, tint = IosSettingsColors.red) },
                                     onClick = {
                                         showOwnerMenu = false
                                         viewModel.deleteState(state.id) {
@@ -1342,8 +1342,8 @@ var showGifPicker by remember { mutableStateOf(false) }
                                 )
                             } else {
                                 DropdownMenuItem(
-                                    text = { Text("Borrar historia para mí", color = Color(0xFFFF4D4D)) },
-                                    leadingIcon = { Icon(Icons.Outlined.Delete, contentDescription = null, tint = Color(0xFFFF4D4D)) },
+                                    text = { Text("Borrar historia para mí", color = IosSettingsColors.red) },
+                                    leadingIcon = { Icon(Icons.Outlined.Delete, contentDescription = null, tint = IosSettingsColors.red) },
                                     onClick = {
                                         showOwnerMenu = false
                                         viewModel.deleteStateForMe(state.id) {
@@ -1406,7 +1406,7 @@ var showGifPicker by remember { mutableStateOf(false) }
             Icon(
                 imageVector = Icons.Filled.Favorite,
                 contentDescription = null,
-                tint = Color(0xFFFF2D55),
+                tint = IosSettingsColors.pink,
                 modifier = Modifier.size(110.dp)
             )
         }
@@ -1689,7 +1689,7 @@ var showGifPicker by remember { mutableStateOf(false) }
                     Icon(
                         imageVector = if (state.likedByMe == true) Icons.Rounded.Favorite else Icons.Rounded.FavoriteBorder,
                         contentDescription = "Like",
-                        tint = if (state.likedByMe == true) Color(0xFFFF2D55) else Color.White,
+                        tint = if (state.likedByMe == true) IosSettingsColors.pink else Color.White,
                         modifier = Modifier.size(22.dp)
                     )
                 }
@@ -1705,7 +1705,7 @@ var showGifPicker by remember { mutableStateOf(false) }
                     Icon(
                         imageVector = if (state.favoritedByMe == true) Icons.Rounded.Star else Icons.Rounded.StarBorder,
                         contentDescription = "Favorito",
-                        tint = if (state.favoritedByMe == true) Color(0xFFFFCC00) else Color.White,
+                        tint = if (state.favoritedByMe == true) IosSettingsColors.yellow else Color.White,
                         modifier = Modifier.size(22.dp)
                     )
                 }

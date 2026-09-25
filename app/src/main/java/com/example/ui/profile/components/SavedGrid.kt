@@ -48,7 +48,7 @@ fun SavedGrid(viewModel: ProfileViewModel, onNavigateToReel: (String) -> Unit) {
                     Icon(
                         imageVector = Icons.Default.Star,
                         contentDescription = null,
-                        tint = Color(0xFFFFCC00).copy(alpha = 0.7f),
+                        tint = IosSettingsColors.yellow.copy(alpha = 0.7f),
                         modifier = Modifier.size(48.dp)
                     )
                     Text(
@@ -146,7 +146,7 @@ fun SavedGrid(viewModel: ProfileViewModel, onNavigateToReel: (String) -> Unit) {
                                     Icon(
                                         imageVector = Icons.Default.Star,
                                         contentDescription = "Guardado",
-                                        tint = Color(0xFFFFCC00),
+                                        tint = IosSettingsColors.yellow,
                                         modifier = Modifier
                                             .align(Alignment.TopEnd)
                                             .padding(6.dp)

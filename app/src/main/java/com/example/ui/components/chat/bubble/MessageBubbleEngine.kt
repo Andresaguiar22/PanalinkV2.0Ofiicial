@@ -538,7 +538,7 @@ fun MessageBubbleEngine(
                                 modifier = Modifier
                                     .width(4.dp)
                                     .fillMaxHeight()
-                                    .background(Color(0xFFFF2D55))
+                                    .background(IosSettingsColors.pink)
                             )
                             Column(
                                 modifier = Modifier
@@ -548,7 +548,7 @@ fun MessageBubbleEngine(
                                 val replyAuthorName = if (isMe) "Tú" else (otherUserName?.takeIf { it.isNotBlank() } ?: "Contacto")
                                 Text(
                                     text = "Historia de $replyAuthorName",
-                                    color = Color(0xFFFF2D55),
+                                    color = IosSettingsColors.pink,
                                     fontWeight = FontWeight.Bold,
                                     fontSize = 12.5.sp
                                 )

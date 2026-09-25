@@ -58,7 +58,7 @@ fun ChatContactDetailSheet(
     contentAlignment = Alignment.BottomCenter
     ) {
     Card(
-    colors = CardDefaults.cardColors(containerColor = Color(0xFF101D24)),
+    colors = CardDefaults.cardColors(containerColor = IosSettingsColors.groupBackground),
     shape = RoundedCornerShape(24.dp, 24.dp, 0.dp, 0.dp),
     modifier = Modifier
     .fillMaxWidth()

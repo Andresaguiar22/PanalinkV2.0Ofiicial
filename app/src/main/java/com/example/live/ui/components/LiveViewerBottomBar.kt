@@ -160,7 +160,7 @@ fun LiveViewerBottomBar(
         BarAction(
             icon = Icons.Default.PersonAdd,
             label = "Pedidos",
-            iconTint = if (requestPending) Color(0xFFFFC107) else Color.White,
+            iconTint = if (requestPending) IosSettingsColors.yellow else Color.White,
             onClick = onOpenRequests
         )
         BarAction(
@@ -223,7 +223,7 @@ private fun BarAction(
                         .align(Alignment.TopEnd)
                         .offset(x = 6.dp, y = (-4).dp)
                         .clip(CircleShape)
-                        .background(Color(0xFFFF3B30))
+                        .background(IosSettingsColors.red)
                         .padding(horizontal = 4.dp, vertical = 1.dp)
                 ) {
                     Text(

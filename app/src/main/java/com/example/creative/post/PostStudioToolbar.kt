@@ -39,7 +39,7 @@ fun PostStudioToolbar(
 ) {
     val tools = listOf(
         PostToolItem("media", "Multimedia", Icons.Default.PhotoLibrary, IosSettingsColors.blue),
-        PostToolItem("ai", "Asistente AI", Icons.Default.AutoAwesome, Color(0xFFFF007A)),
+        PostToolItem("ai", "Asistente AI", Icons.Default.AutoAwesome, IosSettingsColors.pink),
         PostToolItem("text", "Texto", Icons.Default.TextFields, Color(0xFFA855F7)),
         PostToolItem("sticker", "Stickers", Icons.Default.EmojiEmotions, IosSettingsColors.orange),
         PostToolItem("filter", "Filtros", Icons.Default.ColorLens, IosSettingsColors.green),

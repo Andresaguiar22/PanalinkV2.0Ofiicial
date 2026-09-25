@@ -46,7 +46,7 @@ fun OnboardingCongratsScreen(
         listOf(
             PresetAvatar("🔥", Brush.linearGradient(listOf(IosSettingsColors.orange, Color(0xFFFF9800)))),
             PresetAvatar("⚡", Brush.linearGradient(listOf(IosSettingsColors.blue, IosSettingsColors.blue))),
-            PresetAvatar("👾", Brush.linearGradient(listOf(Color(0xFF9C27B0), Color(0xFFE91E63)))),
+            PresetAvatar("👾", Brush.linearGradient(listOf(Color(0xFF9C27B0), IosSettingsColors.pink))),
             PresetAvatar("🚀", Brush.linearGradient(listOf(IosSettingsColors.green, IosSettingsColors.green)))
         )
     }

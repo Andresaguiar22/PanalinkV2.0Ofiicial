@@ -199,12 +199,12 @@ fun DocumentMessageBubble(
 private fun getDocumentFileInfo(extension: String): Pair<ImageVector, Color> {
     return when (extension) {
         "pdf" -> Icons.Default.PictureAsPdf to Color(0xFFF44336)
-        "doc", "docx" -> Icons.Default.Description to Color(0xFF2196F3)
+        "doc", "docx" -> Icons.Default.Description to IosSettingsColors.blue
         "xls", "xlsx" -> Icons.Default.TableChart to IosSettingsColors.green
         "ppt", "pptx" -> Icons.Default.PresentToAll to IosSettingsColors.orange
-        "zip", "rar", "7z" -> Icons.Default.FolderZip to Color(0xFFFFC107)
+        "zip", "rar", "7z" -> Icons.Default.FolderZip to IosSettingsColors.yellow
         "apk" -> Icons.Default.Android to Color(0xFF3DDC84)
-        "txt" -> Icons.Default.Article to Color(0xFF9E9E9E)
+        "txt" -> Icons.Default.Article to IosSettingsColors.secondaryLabel
         else -> Icons.Default.InsertDriveFile to Color(0xFF607D8B)
     }
 }

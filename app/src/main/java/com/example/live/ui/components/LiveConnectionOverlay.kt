@@ -83,7 +83,7 @@ fun LiveConnectionOverlay(
                     }
                     val color = when (connectionState) {
                         is LiveConnectionState.Error -> IosSettingsColors.red
-                        is LiveConnectionState.Reconnecting -> Color(0xFFFFC107)
+                        is LiveConnectionState.Reconnecting -> IosSettingsColors.yellow
                         else -> Color.White
                     }
 

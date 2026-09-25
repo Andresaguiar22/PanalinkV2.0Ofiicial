@@ -64,7 +64,7 @@ private val CARD_BG: Color get() = IosSettingsColors.cellElevated
 private val TEXT_COLORS = listOf(
     StudioColor("Blanco", Color.White),
     StudioColor("Pana", Color(0xFF00A884)),
-    StudioColor("Sol", Color(0xFFFFD54F)),
+    StudioColor("Sol", IosSettingsColors.yellow),
     StudioColor("Coral", IosSettingsColors.red),
     StudioColor("Cielo", IosSettingsColors.blue),
     StudioColor("Uva", Color(0xFFCE93D8)),

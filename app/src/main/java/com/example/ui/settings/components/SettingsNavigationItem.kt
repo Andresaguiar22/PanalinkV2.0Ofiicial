@@ -43,7 +43,7 @@ fun SettingsNavigationItem(
         supportingContent = {
             Text(
                 text = description,
-                color = Color(0xFF90A4AE),
+                color = IosSettingsColors.secondaryLabel,
                 fontSize = 13.sp
             )
         },

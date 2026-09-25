@@ -351,7 +351,7 @@ fun ProfileEditScreen(
                             // Predefined Interests Section
                             Text(
                                 text = "Tus Intereses / Gustos 🚀:",
-                                color = Color(0xFF90A4AE),
+                                color = IosSettingsColors.secondaryLabel,
                                 fontSize = 13.sp,
                                 fontWeight = FontWeight.Medium
                             )
@@ -376,7 +376,7 @@ fun ProfileEditScreen(
                                                 .weight(1f)
                                                 .height(34.dp)
                                                 .clip(RoundedCornerShape(8.dp))
-                                                .background(if (isSelected) IosSettingsColors.green.copy(alpha = 0.2f) else Color(0xFF101D24))
+                                                .background(if (isSelected) IosSettingsColors.green.copy(alpha = 0.2f) else IosSettingsColors.groupBackground)
                                                 .border(1.dp, if (isSelected) IosSettingsColors.green else Color(0xFF37474F), RoundedCornerShape(8.dp))
                                                 .clickable {
                                                     interests = if (isSelected) interests - interest else interests + interest
@@ -399,7 +399,7 @@ fun ProfileEditScreen(
                                                 .weight(1f)
                                                 .height(34.dp)
                                                 .clip(RoundedCornerShape(8.dp))
-                                                .background(if (isSelected) IosSettingsColors.green.copy(alpha = 0.2f) else Color(0xFF101D24))
+                                                .background(if (isSelected) IosSettingsColors.green.copy(alpha = 0.2f) else IosSettingsColors.groupBackground)
                                                 .border(1.dp, if (isSelected) IosSettingsColors.green else Color(0xFF37474F), RoundedCornerShape(8.dp))
                                                 .clickable {
                                                     interests = if (isSelected) interests - interest else interests + interest

@@ -110,7 +110,7 @@ fun CameraXQrScannerDialog(
                     Spacer(modifier = Modifier.height(12.dp))
                     Text(
                         text = "panalink necesita acceso a la cámara real para escanear el código QR de tu pana en tiempo real.",
-                        color = Color(0xFF90A4AE),
+                        color = IosSettingsColors.secondaryLabel,
                         fontSize = 14.sp,
                         modifier = Modifier.padding(horizontal = 16.dp)
                     )

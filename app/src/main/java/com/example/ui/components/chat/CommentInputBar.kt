@@ -60,7 +60,7 @@ fun CommentInputBar(
     modifier: Modifier = Modifier
 ) {
     val barBg = IosSettingsColors.groupBackground // Telegram Dark Bar Surface
-    val inputBg = Color(0xFF242F3D)
+    val inputBg = IosSettingsColors.cell
     val accentBlue = IosSettingsColors.blue
     val primaryText = Color.White
     val secondaryText = IosSettingsColors.secondaryLabel
@@ -84,7 +84,7 @@ fun CommentInputBar(
                         Row(
                             modifier = Modifier
                                 .fillMaxWidth()
-                                .background(Color(0xFF1E2C3A))
+                                .background(IosSettingsColors.cell)
                                 .padding(horizontal = 12.dp, vertical = 6.dp),
                             verticalAlignment = Alignment.CenterVertically
                         ) {

@@ -69,7 +69,7 @@ fun SmartAssistantPanel(
                     Icon(
                         imageVector = Icons.Default.AutoAwesome,
                         contentDescription = "Asistente Pana AI",
-                        tint = Color(0xFFFF007A),
+                        tint = IosSettingsColors.pink,
                         modifier = Modifier.size(26.dp)
                     )
                     Spacer(modifier = Modifier.width(8.dp))
@@ -143,7 +143,7 @@ fun SmartAssistantPanel(
                                 Column(modifier = Modifier.padding(14.dp)) {
                                     Text(
                                         text = "Plantilla Recomendada",
-                                        color = Color(0xFFFF007A),
+                                        color = IosSettingsColors.pink,
                                         fontSize = 12.sp,
                                         fontWeight = FontWeight.Bold
                                     )
@@ -259,7 +259,7 @@ fun SmartAssistantPanel(
                                     ) {
                                         Text(
                                             text = genCaption.tone.displayName,
-                                            color = Color(0xFFFF007A),
+                                            color = IosSettingsColors.pink,
                                             fontSize = 11.sp,
                                             fontWeight = FontWeight.Bold
                                         )

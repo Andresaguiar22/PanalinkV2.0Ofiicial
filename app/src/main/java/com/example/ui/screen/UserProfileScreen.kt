@@ -289,7 +289,7 @@ fun UserProfileScreen(
                                             .align(Alignment.BottomEnd)
                                             .clip(CircleShape)
                                             .background(onlineStatusColor)
-                                            .border(2.dp, Color(0xFF101D24), CircleShape)
+                                            .border(2.dp, IosSettingsColors.groupBackground, CircleShape)
                                     )
                                 }
                                 
@@ -340,19 +340,19 @@ fun UserProfileScreen(
                                             )
                                         }
                                         Surface(
-                                            color = Color(0xFFFFD700).copy(alpha = 0.2f),
+                                            color = IosSettingsColors.yellow.copy(alpha = 0.2f),
                                             shape = RoundedCornerShape(6.dp),
-                                            border = BorderStroke(1.dp, Color(0xFFFFD700).copy(alpha = 0.5f))
+                                            border = BorderStroke(1.dp, IosSettingsColors.yellow.copy(alpha = 0.5f))
                                         ) {
                                             Row(
                                                 modifier = Modifier.padding(horizontal = 6.dp, vertical = 2.dp),
                                                 verticalAlignment = Alignment.CenterVertically
                                             ) {
-                                                Icon(Icons.Default.Star, contentDescription = null, tint = Color(0xFFFFD700), modifier = Modifier.size(10.dp))
+                                                Icon(Icons.Default.Star, contentDescription = null, tint = IosSettingsColors.yellow, modifier = Modifier.size(10.dp))
                                                 Spacer(modifier = Modifier.width(2.dp))
                                                 Text(
                                                     text = "Fundador",
-                                                    color = Color(0xFFFFD700),
+                                                    color = IosSettingsColors.yellow,
                                                     fontSize = 9.sp,
                                                     fontWeight = FontWeight.Bold
                                                 )

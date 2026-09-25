@@ -237,13 +237,13 @@ fun ContextualExpandableFab(
                             width = 2.5.dp,
                             brush = Brush.sweepGradient(
                                 colors = listOf(
-                                    Color(0xFFFF0000), // Red
+                                    IosSettingsColors.red, // Red
                                     Color(0xFFFF7F00), // Orange
-                                    Color(0xFFFFD700), // Yellow/Gold
+                                    IosSettingsColors.yellow, // Yellow/Gold
                                     IosSettingsColors.blue, // Neon Green
                                     IosSettingsColors.blue, // Cyan
                                     Color(0xFF8B00FF), // Violet
-                                    Color(0xFFFF0000)  // Red
+                                    IosSettingsColors.red  // Red
                                 )
                             ),
                             shape = RoundedCornerShape(16.dp)

@@ -85,7 +85,7 @@ fun VideoTimeline(
                         .fillMaxHeight()
                         .padding(2.dp)
                         .background(
-                            if (index % 2 == 0) IosSettingsColors.blue.copy(alpha = 0.3f) else Color(0xFFFF4081).copy(alpha = 0.3f),
+                            if (index % 2 == 0) IosSettingsColors.blue.copy(alpha = 0.3f) else IosSettingsColors.pink.copy(alpha = 0.3f),
                             RoundedCornerShape(4.dp)
                         ),
                     contentAlignment = Alignment.Center

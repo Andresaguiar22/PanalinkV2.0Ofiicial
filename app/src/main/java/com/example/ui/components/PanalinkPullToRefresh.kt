@@ -160,7 +160,7 @@ fun PanalinkRefreshIndicator(
 
                     // 2. Draw outer Gold border (#FFD700)
                     drawCircle(
-                        color = Color(0xFFFFD700),
+                        color = IosSettingsColors.yellow,
                         radius = radius + 3.dp.toPx(),
                         style = Stroke(width = 2.dp.toPx())
                     )

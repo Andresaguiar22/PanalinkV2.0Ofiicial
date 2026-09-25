@@ -283,13 +283,13 @@ fun CreatePostBottomSheet(
                             viewModel.fetchLinkPreview(it)
                         }
                     },
-                    label = { Text("Enlace de Video de YouTube", color = Color(0xFFFF0000)) },
+                    label = { Text("Enlace de Video de YouTube", color = IosSettingsColors.red) },
                     placeholder = { Text("https://www.youtube.com/watch?v=...", color = Color.Gray) },
                     singleLine = true,
                     colors = OutlinedTextFieldDefaults.colors(
-                        focusedBorderColor = Color(0xFFFF0000),
+                        focusedBorderColor = IosSettingsColors.red,
                         unfocusedBorderColor = Color.White.copy(alpha = 0.2f),
-                        focusedLabelColor = Color(0xFFFF0000),
+                        focusedLabelColor = IosSettingsColors.red,
                         unfocusedLabelColor = Color.Gray,
                         focusedTextColor = Color.White,
                         unfocusedTextColor = Color.White
@@ -346,7 +346,7 @@ fun CreatePostBottomSheet(
                         Icon(Icons.Default.Mic, contentDescription = "Audio", tint = IosSettingsColors.blue)
                     }
                     IconButton(onClick = { showYoutubeInput = !showYoutubeInput }) {
-                        Icon(Icons.Default.PlayCircle, contentDescription = "YouTube", tint = Color(0xFFFF0000))
+                        Icon(Icons.Default.PlayCircle, contentDescription = "YouTube", tint = IosSettingsColors.red)
                     }
                 }
                 

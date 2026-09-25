@@ -51,7 +51,7 @@ fun ChannelBottomBar(
     modifier: Modifier = Modifier
 ) {
     val barBg = IosSettingsColors.groupBackground // Telegram Bottom Bar Surface
-    val buttonBg = Color(0xFF242F3D) // Telegram Button Surface
+    val buttonBg = IosSettingsColors.cell // Telegram Button Surface
     val primaryText = Color.White
     val secondaryText = IosSettingsColors.secondaryLabel
     val accentBlue = IosSettingsColors.blue

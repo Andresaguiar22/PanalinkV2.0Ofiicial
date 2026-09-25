@@ -113,7 +113,7 @@ fun ChatsCenterScreen(
                                     .weight(1f)
                                     .background(
                                         color = when (wpKey) {
-                                            "classic_teal" -> Color(0xFF0F2027)
+                                            "classic_teal" -> IosSettingsColors.groupBackground
                                             "midnight_blue" -> Color(0xFF0A0E17)
                                             else -> IosSettingsColors.groupBackground
                                         },
@@ -166,7 +166,7 @@ private fun ChatPreview(wallpaper: String, textSize: Float) {
             .fillMaxWidth()
             .background(
                 color = when (wallpaper) {
-                    "classic_teal" -> Color(0xFF0F2027)
+                    "classic_teal" -> IosSettingsColors.groupBackground
                     "midnight_blue" -> Color(0xFF0A0E17)
                     else -> IosSettingsColors.groupBackground
                 },

@@ -477,7 +477,7 @@ fun ReelsFeedScreen(
                 Icon(
                     Icons.Filled.Favorite,
                     "Me gusta",
-                    tint = Color(0xFFFF2D55),
+                    tint = IosSettingsColors.pink,
                     modifier = Modifier.size(150.dp)
                 )
             }
@@ -1497,7 +1497,7 @@ IconButton(
                             Icon(
                                 imageVector = Icons.AutoMirrored.Rounded.Send,
                                 contentDescription = "Enviar",
-                                tint = Color(0xFF101D24),
+                                tint = IosSettingsColors.groupBackground,
                                 modifier = Modifier.size(18.dp)
                             )
                         }

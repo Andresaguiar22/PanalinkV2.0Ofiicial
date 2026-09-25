@@ -73,7 +73,7 @@ fun EmojiReactionRow(
                     modifier = Modifier
                         .size(28.dp)
                         .clip(CircleShape)
-                        .background(Color(0xFF242F3D))
+                        .background(IosSettingsColors.cell)
                         .clickable { onAddReactionClick() },
                     contentAlignment = Alignment.Center
                 ) {
@@ -95,7 +95,7 @@ private fun ReactionPillButton(
     onClick: () -> Unit
 ) {
     val activeBg = Color(0xFF2B5278) // Telegram Active Pill Blue-Gray
-    val inactiveBg = Color(0xFF1E2C3A) // Telegram Inactive Pill Surface
+    val inactiveBg = IosSettingsColors.cell // Telegram Inactive Pill Surface
     val activeBorder = IosSettingsColors.blue
     val inactiveBorder = Color(0xFF2B3A4A)
 

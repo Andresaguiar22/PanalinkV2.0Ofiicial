@@ -393,7 +393,7 @@ fun TikTokCommentRow(
                 Icon(
                     imageVector = if (isLiked) Icons.Default.Favorite else Icons.Default.FavoriteBorder,
                     contentDescription = "Me gusta",
-                    tint = if (isLiked) Color(0xFFFF2D55) else Color.Gray,
+                    tint = if (isLiked) IosSettingsColors.pink else Color.Gray,
                     modifier = Modifier.size(18.dp)
                 )
             }

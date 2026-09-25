@@ -62,7 +62,7 @@ fun CommentItemBubble(
     onMoreClick: (ChannelCommentItem) -> Unit = {},
     modifier: Modifier = Modifier
 ) {
-    val bubbleBg = Color(0xFF1E2C3A) // Telegram Dark Bubble
+    val bubbleBg = IosSettingsColors.cell // Telegram Dark Bubble
     val replyBoxBg = IosSettingsColors.groupBackground // Inner Reply Preview Box
     val accentBlue = IosSettingsColors.blue
     val replyBorderColor = IosSettingsColors.blue

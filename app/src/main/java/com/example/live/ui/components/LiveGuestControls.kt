@@ -224,7 +224,7 @@ fun LiveGuestControls(
                                             fontSize =  13.sp,
                                             color = when (guest.status) {
                                                 GuestStatus.ACTIVE -> IosSettingsColors.blue
-                                                GuestStatus.PENDING -> Color(0xFFFFC107)
+                                                GuestStatus.PENDING -> IosSettingsColors.yellow
                                                 else -> Color.White
                                             }
                                         )

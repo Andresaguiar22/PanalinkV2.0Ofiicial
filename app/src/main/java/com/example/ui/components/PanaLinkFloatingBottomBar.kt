@@ -41,6 +41,7 @@ import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.compose.ui.zIndex
+import com.example.ui.settings.ios.IosSettingsColors
 
 // Colores iOS del mockup
 private val IosTabTextGray = Color(0xFF8E8E93)
@@ -163,7 +164,7 @@ val glowAlpha by animateFloatAsState(
                     .size(26.dp)
             )
             if (badgeCount > 0) {
-                val badgeColor = if (urgent) Color(0xFFFF3B30) else PanalinkTabTint
+                val badgeColor = if (urgent) IosSettingsColors.red else PanalinkTabTint
                 Box(
                     modifier = Modifier
                         .align(Alignment.TopEnd)

@@ -61,7 +61,7 @@ private val PALETTES = listOf(
     StoryPalette("Venezuela", Color(0xFF001A33), Color(0xFF003366)),
     StoryPalette("Atardecer", Color(0xFF2B0A3D), Color(0xFF4A1A6B)),
     StoryPalette("Caribe", Color(0xFF002D2D), Color(0xFF005D67)),
-    StoryPalette("Noticias", Color(0xFF1E1E1E), Color(0xFF3D3D3D)),
+    StoryPalette("Noticias", IosSettingsColors.cell, Color(0xFF3D3D3D)),
     StoryPalette("Rojo Pana", Color(0xFF330A0A), Color(0xFF5D1B1B)),
 )
 

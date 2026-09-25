@@ -33,12 +33,12 @@ fun ProfileSaveButton(
         enabled = !isLoading
     ) {
         if (isLoading) {
-            CircularProgressIndicator(color = Color(0xFF0F2027), modifier = Modifier.size(24.dp))
+            CircularProgressIndicator(color = IosSettingsColors.groupBackground, modifier = Modifier.size(24.dp))
         } else {
             Text(
                 text = "Guardar Cambios de Perfil",
                 fontWeight = FontWeight.Bold,
-                color = Color(0xFF0F2027)
+                color = IosSettingsColors.groupBackground
             )
         }
     }

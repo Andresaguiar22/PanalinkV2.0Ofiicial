@@ -64,7 +64,7 @@ fun PlaylistScreen(
                 actions = {
                     if (userRole.canGenerateAI()) {
                         IconButton(onClick = onGenerateCoverClick) {
-                            Icon(Icons.Default.AutoAwesome, contentDescription = "IA Cover", tint = Color(0xFFFF007A))
+                            Icon(Icons.Default.AutoAwesome, contentDescription = "IA Cover", tint = IosSettingsColors.pink)
                         }
                     }
                     IconButton(onClick = onCollaboratorsClick) {

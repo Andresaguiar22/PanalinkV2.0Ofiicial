@@ -87,7 +87,7 @@ fun LiveRequestsSheet(
                         when (myRequest?.status) {
                             GuestStatus.PENDING -> Text(
                                 text = "⏳ Tu solicitud está pendiente de aprobación.",
-                                color = Color(0xFFFFC107),
+                                color = IosSettingsColors.yellow,
                                 fontSize = 13.sp
                             )
                             GuestStatus.ACCEPTED, GuestStatus.ACTIVE, GuestStatus.CONNECTED -> Text(

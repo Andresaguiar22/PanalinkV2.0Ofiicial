@@ -1082,7 +1082,7 @@ fun ChatsListScreen(
                         Box(
                             modifier = Modifier
                                 .size(40.dp)
-                                .background(Color(0xFFE91E63), RoundedCornerShape(10.dp)),
+                                .background(IosSettingsColors.pink, RoundedCornerShape(10.dp)),
                             contentAlignment = Alignment.Center
                         ) {
                             Icon(Icons.Default.Tv, contentDescription = null, tint = IosSettingsColors.label, modifier = Modifier.size(20.dp))
@@ -1187,10 +1187,10 @@ fun ChatsListScreen(
                         }
                         Box(
                             modifier = Modifier
-                                .background(Color(0xFFFFB300).copy(alpha = 0.15f), RoundedCornerShape(4.dp))
+                                .background(IosSettingsColors.orange.copy(alpha = 0.15f), RoundedCornerShape(4.dp))
                                 .padding(horizontal = 6.dp, vertical = 2.dp)
                         ) {
-                            Text("Próximamente", color = Color(0xFFFFB300), fontSize = 10.sp, fontWeight = FontWeight.Bold)
+                            Text("Próximamente", color = IosSettingsColors.orange, fontSize = 10.sp, fontWeight = FontWeight.Bold)
                         }
                     }
 
@@ -1635,7 +1635,7 @@ fun ChatsListScreen(
                     enabled = pinValue.length == 6 && addContactState !is AddContactUiState.Loading,
                     modifier = Modifier.testTag("add_contact_confirm_button")
                 ) {
-                    Text("Agregar", color = Color(0xFF0F2027), fontWeight = FontWeight.Bold)
+                    Text("Agregar", color = IosSettingsColors.groupBackground, fontWeight = FontWeight.Bold)
                 }
             },
             dismissButton = {
@@ -1709,7 +1709,7 @@ fun ChatsListScreen(
                      }
                      Column {
                          Text("Cerebro Spotlight ⚡", fontWeight = FontWeight.Bold, fontSize = 18.sp, color = IosSettingsColors.label)
-                         Text("Buscador Universal y Comandos Rápidos", fontSize = 11.sp, color = Color(0xFF9E9E9E))
+                         Text("Buscador Universal y Comandos Rápidos", fontSize = 11.sp, color = IosSettingsColors.secondaryLabel)
                      }
                  }
              },
@@ -1747,7 +1747,7 @@ fun ChatsListScreen(
                             }
                         },
                         label = { Text("¿Qué deseas buscar o ejecutar?", color = IosSettingsColors.label, fontSize = 12.sp) },
-                        placeholder = { Text("Escribe / para ver comandos, o busca panas...", color = Color(0xFF9E9E9E)) },
+                        placeholder = { Text("Escribe / para ver comandos, o busca panas...", color = IosSettingsColors.secondaryLabel) },
                         modifier = Modifier
                             .fillMaxWidth()
                             .focusRequester(focusRequester),
@@ -1814,7 +1814,7 @@ fun ChatsListScreen(
                                     Icon(cmd.icon, contentDescription = null, tint = IosSettingsColors.label, modifier = Modifier.size(16.dp))
                                     Column(modifier = Modifier.weight(1f)) {
                                         Text(cmd.name, color = IosSettingsColors.label, fontWeight = FontWeight.Bold, fontSize = 12.sp)
-                                        Text(cmd.description, color = Color(0xFF9E9E9E), fontSize = 10.sp)
+                                        Text(cmd.description, color = IosSettingsColors.secondaryLabel, fontSize = 10.sp)
                                     }
                                     Box(
                                         modifier = Modifier

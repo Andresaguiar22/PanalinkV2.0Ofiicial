@@ -124,7 +124,7 @@ fun FloatingPlayerBubble(
                         spotColor = Color.Red
                     )
                     .background(
-                        color = if (isNearCloseZone) Color(0xFFFF2D55) else Color.Black.copy(alpha = 0.75f),
+                        color = if (isNearCloseZone) IosSettingsColors.pink else Color.Black.copy(alpha = 0.75f),
                         shape = CircleShape
                     )
                     .pointerInput(Unit) {} // Consume touch

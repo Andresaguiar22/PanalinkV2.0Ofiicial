@@ -217,7 +217,7 @@ fun EntitlementRow(e: com.example.premium.domain.model.Entitlement) {
     Row(
         modifier = Modifier
             .fillMaxWidth()
-            .background(Color(0xFF1B2530), RoundedCornerShape(14.dp))
+            .background(IosSettingsColors.cell, RoundedCornerShape(14.dp))
             .padding(horizontal = 14.dp, vertical = 12.dp),
         verticalAlignment = Alignment.CenterVertically
     ) {
@@ -242,7 +242,7 @@ private fun EmptyEntitlementsCard(onOpenShop: () -> Unit) {
     Column(
         modifier = Modifier
             .fillMaxWidth()
-            .background(Color(0xFF1B2530), RoundedCornerShape(14.dp))
+            .background(IosSettingsColors.cell, RoundedCornerShape(14.dp))
             .padding(16.dp),
         horizontalAlignment = Alignment.CenterHorizontally
     ) {
@@ -316,7 +316,7 @@ fun DailyRewardCard(
     Row(
         modifier = Modifier
             .fillMaxWidth()
-            .background(Color(0xFF16202C), RoundedCornerShape(14.dp))
+            .background(IosSettingsColors.cell, RoundedCornerShape(14.dp))
             .padding(14.dp),
         verticalAlignment = Alignment.CenterVertically
     ) {
