@@ -15,22 +15,9 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.widthIn
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.shape.RoundedCornerShape
-import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.automirrored.filled.ArrowBack
-import androidx.compose.material3.Card
-import androidx.compose.material3.CardDefaults
-import androidx.compose.material3.ExperimentalMaterial3Api
-import androidx.compose.material3.HorizontalDivider
-import androidx.compose.material3.Icon
-import androidx.compose.material3.IconButton
-import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Slider
 import androidx.compose.material3.SliderDefaults
-import androidx.compose.material3.Switch
-import androidx.compose.material3.SwitchDefaults
 import androidx.compose.material3.Text
-import androidx.compose.material3.TopAppBar
-import androidx.compose.material3.TopAppBarDefaults
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.ui.Alignment
@@ -42,10 +29,17 @@ import androidx.compose.ui.unit.sp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.lifecycle.viewmodel.compose.viewModel
 import com.example.feature.settings.model.ChatsSettingsAction
+import com.example.ui.settings.ios.IosBottomSpacer
+import com.example.ui.settings.ios.IosFont
+import com.example.ui.settings.ios.IosGroup
+import com.example.ui.settings.ios.IosListPadding
+import com.example.ui.settings.ios.IosSectionFooter
+import com.example.ui.settings.ios.IosSectionHeader
+import com.example.ui.settings.ios.IosSettingsColors
+import com.example.ui.settings.ios.IosSettingsScaffold
+import com.example.ui.settings.ios.IosToggleRow
 import com.example.ui.settings.viewmodel.ChatsSettingsViewModel
-import com.example.ui.theme.PanalinkPalette
 
-@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun ChatsCenterScreen(
     onBack: () -> Unit,
@@ -53,215 +47,171 @@ fun ChatsCenterScreen(
 ) {
     val uiState by viewModel.uiState.collectAsStateWithLifecycle()
 
-    Scaffold(
-        topBar = {
-            TopAppBar(
-                title = { Text("Chats y Apariencia", color = PanalinkPalette.textPrimary) },
-                navigationIcon = {
-                    IconButton(onClick = onBack) {
-                        Icon(Icons.AutoMirrored.Filled.ArrowBack, contentDescription = "Regresar", tint = PanalinkPalette.textPrimary)
-                    }
-                },
-                colors = TopAppBarDefaults.topAppBarColors(containerColor = Color(0xFF121B22))
-            )
-        },
-        containerColor = Color(0xFF121B22)
-    ) { padding ->
+    IosSettingsScaffold(title = "Chats y apariencia", onBack = onBack) { padding ->
         LazyColumn(
             modifier = Modifier
                 .fillMaxSize()
                 .padding(padding),
-            contentPadding = androidx.compose.foundation.layout.PaddingValues(16.dp),
-            verticalArrangement = Arrangement.spacedBy(16.dp)
+            contentPadding = IosListPadding
         ) {
+            item { IosSectionHeader("Tamaño del texto") }
             item {
-                Card(
-                    modifier = Modifier.fillMaxWidth(),
-                    colors = CardDefaults.cardColors(containerColor = Color(0xFF1E2B33)),
-                    shape = RoundedCornerShape(16.dp)
-                ) {
+                IosGroup {
                     Column(
                         modifier = Modifier
                             .fillMaxWidth()
-                            .padding(16.dp),
-                        verticalArrangement = Arrangement.spacedBy(16.dp)
+                            .padding(16.dp)
                     ) {
-                        // 1. Interactive Font Size Slider
-                        Column {
-                            Row(
-                                modifier = Modifier.fillMaxWidth(),
-                                horizontalArrangement = Arrangement.SpaceBetween
-                            ) {
-                                Text(
-                                    text = "Tamaño del texto en los Chats",
-                                    color = PanalinkPalette.textPrimary,
-                                    fontWeight = FontWeight.SemiBold,
-                                    fontSize = 14.sp
-                                )
-                                Text(
-                                    text = "${uiState.textSize.toInt()} sp",
-                                    color = Color(0xFF25D366),
-                                    fontWeight = FontWeight.Bold,
-                                    fontSize = 14.sp
-                                )
-                            }
-                            Spacer(modifier = Modifier.height(4.dp))
-                            Slider(
-                                value = uiState.textSize,
-                                onValueChange = { viewModel.dispatch(ChatsSettingsAction.UpdateTextSize(it)) },
-                                valueRange = 12f..24f,
-                                steps = 5,
-                                colors = SliderDefaults.colors(
-                                    thumbColor = Color(0xFF25D366),
-                                    activeTrackColor = Color(0xFF25D366),
-                                    inactiveTrackColor = Color(0xFF37474F)
-                                )
-                            )
-
-                            Spacer(modifier = Modifier.height(6.dp))
-
-                            // High fidelity live visual chat bubble preview!
-                            Box(
-                                modifier = Modifier
-                                    .fillMaxWidth()
-                                    .background(
-                                        color = if (uiState.wallpaper == "classic_teal") Color(0xFF0F2027) else if (uiState.wallpaper == "midnight_blue") Color(0xFF0A0E17) else Color(0xFF0B141A),
-                                        shape = RoundedCornerShape(12.dp)
-                                    )
-                                    .padding(12.dp)
-                            ) {
-                                Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
-                                    Text(
-                                        text = "VISTA PREVIA EN VIVO",
-                                        fontSize = 10.sp,
-                                        fontWeight = FontWeight.Bold,
-                                        color = Color(0xFF8596A0),
-                                        modifier = Modifier.align(Alignment.CenterHorizontally)
-                                    )
-                                    
-                                    // Received
-                                    Box(
-                                        modifier = Modifier
-                                            .background(Color(0xFF202C33), RoundedCornerShape(12.dp, 12.dp, 12.dp, 0.dp))
-                                            .padding(10.dp)
-                                            .align(Alignment.Start)
-                                            .widthIn(max = 220.dp)
-                                    ) {
-                                        Text(
-                                            text = "¿Qué pasó chamo? ¿Cómo vas?",
-                                            color = PanalinkPalette.textPrimary,
-                                            fontSize = uiState.textSize.sp,
-                                            lineHeight = (uiState.textSize + 5).sp
-                                        )
-                                    }
-                                    
-                                    // Sent
-                                    Box(
-                                        modifier = Modifier
-                                            .background(Color(0xFF005C4B), RoundedCornerShape(12.dp, 12.dp, 0.dp, 12.dp))
-                                            .padding(10.dp)
-                                            .align(Alignment.End)
-                                            .widthIn(max = 220.dp)
-                                    ) {
-                                        Text(
-                                            text = "¡Todo fino de pana! Mira el tamaño de letra.",
-                                            color = PanalinkPalette.textPrimary,
-                                            fontSize = uiState.textSize.sp,
-                                            lineHeight = (uiState.textSize + 5).sp
-                                        )
-                                    }
-                                }
-                            }
-                        }
-
-                        HorizontalDivider(color = Color(0xFF2A3942))
-                        
-                        // 2. Wallpaper selector
-                        Column {
-                            Text(
-                                text = "Fondo de Pantalla de Chats",
-                                color = PanalinkPalette.textPrimary,
-                                fontWeight = FontWeight.SemiBold,
-                                fontSize = 14.sp
-                            )
-                            Spacer(modifier = Modifier.height(8.dp))
-                            Row(
-                                horizontalArrangement = Arrangement.spacedBy(8.dp),
-                                modifier = Modifier.fillMaxWidth()
-                            ) {
-                                val wallpapers = listOf(
-                                    "dark_slate" to "Gris Oscuro",
-                                    "classic_teal" to "Azul Verdoso",
-                                    "midnight_blue" to "Azul Medianoche"
-                                )
-                                wallpapers.forEach { (wpKey, wpLabel) ->
-                                    val isSelected = uiState.wallpaper == wpKey
-                                    Box(
-                                        modifier = Modifier
-                                            .weight(1f)
-                                            .background(
-                                                color = when (wpKey) {
-                                                    "classic_teal" -> Color(0xFF0F2027)
-                                                    "midnight_blue" -> Color(0xFF0A0E17)
-                                                    else -> Color(0xFF0B141A)
-                                                },
-                                                shape = RoundedCornerShape(8.dp)
-                                            )
-                                            .border(
-                                                width = if (isSelected) 2.dp else 1.dp,
-                                                color = if (isSelected) Color(0xFF25D366) else Color(0xFF37474F),
-                                                shape = RoundedCornerShape(8.dp)
-                                            )
-                                            .clickable { viewModel.dispatch(ChatsSettingsAction.SetWallpaper(wpKey)) }
-                                            .padding(vertical = 12.dp),
-                                        contentAlignment = Alignment.Center
-                                    ) {
-                                        Text(
-                                            text = wpLabel,
-                                            color = if (isSelected) Color(0xFF25D366) else Color.White,
-                                            fontSize = 11.sp,
-                                            fontWeight = if (isSelected) FontWeight.Bold else FontWeight.Normal
-                                        )
-                                    }
-                                }
-                            }
-                        }
-
-                        HorizontalDivider(color = Color(0xFF2A3942))
-                        
-                        // 3. Enter Sends Switch
                         Row(
                             modifier = Modifier.fillMaxWidth(),
                             horizontalArrangement = Arrangement.SpaceBetween,
                             verticalAlignment = Alignment.CenterVertically
                         ) {
-                            Column(modifier = Modifier.weight(1f)) {
+                            Text("Tamaño del texto", color = IosSettingsColors.label, fontFamily = IosFont, fontSize = 16.sp)
+                            Text(
+                                text = "${uiState.textSize.toInt()} sp",
+                                color = IosSettingsColors.secondaryLabel,
+                                fontFamily = IosFont,
+                                fontSize = 16.sp
+                            )
+                        }
+                        Spacer(Modifier.height(4.dp))
+                        Slider(
+                            value = uiState.textSize,
+                            onValueChange = { viewModel.dispatch(ChatsSettingsAction.UpdateTextSize(it)) },
+                            valueRange = 12f..24f,
+                            steps = 5,
+                            colors = SliderDefaults.colors(
+                                thumbColor = Color.White,
+                                activeTrackColor = IosSettingsColors.green,
+                                inactiveTrackColor = IosSettingsColors.cellElevated
+                            )
+                        )
+                        Spacer(Modifier.height(12.dp))
+                        ChatPreview(uiState.wallpaper, uiState.textSize)
+                    }
+                }
+            }
+
+            item { IosSectionHeader("Fondo de pantalla") }
+            item {
+                IosGroup {
+                    Row(
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .padding(16.dp),
+                        horizontalArrangement = Arrangement.spacedBy(10.dp)
+                    ) {
+                        listOf(
+                            "dark_slate" to "Gris oscuro",
+                            "classic_teal" to "Azul verdoso",
+                            "midnight_blue" to "Azul medianoche"
+                        ).forEach { (wpKey, wpLabel) ->
+                            val isSelected = uiState.wallpaper == wpKey
+                            Box(
+                                modifier = Modifier
+                                    .weight(1f)
+                                    .background(
+                                        color = when (wpKey) {
+                                            "classic_teal" -> Color(0xFF0F2027)
+                                            "midnight_blue" -> Color(0xFF0A0E17)
+                                            else -> Color(0xFF0B141A)
+                                        },
+                                        shape = RoundedCornerShape(10.dp)
+                                    )
+                                    .border(
+                                        width = if (isSelected) 2.dp else 1.dp,
+                                        color = if (isSelected) IosSettingsColors.green else IosSettingsColors.separator,
+                                        shape = RoundedCornerShape(10.dp)
+                                    )
+                                    .clickable { viewModel.dispatch(ChatsSettingsAction.SetWallpaper(wpKey)) }
+                                    .padding(vertical = 14.dp),
+                                contentAlignment = Alignment.Center
+                            ) {
                                 Text(
-                                    text = "Enter para enviar mensaje",
-                                    color = PanalinkPalette.textPrimary,
-                                    fontWeight = FontWeight.SemiBold,
-                                    fontSize = 14.sp
-                                )
-                                Spacer(modifier = Modifier.height(4.dp))
-                                Text(
-                                    text = "La tecla Enter enviará tus mensajes de chat directamente.",
-                                    color = Color(0xFF90A4AE),
-                                    fontSize = 11.sp
+                                    text = wpLabel,
+                                    color = if (isSelected) IosSettingsColors.green else Color.White,
+                                    fontFamily = IosFont,
+                                    fontSize = 11.sp,
+                                    fontWeight = if (isSelected) FontWeight.Bold else FontWeight.Normal
                                 )
                             }
-                            Switch(
-                                checked = uiState.enterSends,
-                                onCheckedChange = { viewModel.dispatch(ChatsSettingsAction.SetEnterSends(it)) },
-                                colors = SwitchDefaults.colors(
-                                    checkedThumbColor = Color.White,
-                                    checkedTrackColor = Color(0xFF25D366),
-                                    uncheckedThumbColor = Color(0xFF90A4AE),
-                                    uncheckedTrackColor = Color(0xFF37474F)
-                                )
-                            )
                         }
                     }
                 }
+            }
+
+            item { IosSectionHeader("Comportamiento") }
+            item {
+                IosGroup {
+                    IosToggleRow(
+                        title = "Enter para enviar",
+                        subtitle = "La tecla Enter envía el mensaje directamente.",
+                        checked = uiState.enterSends,
+                        onCheckedChange = { viewModel.dispatch(ChatsSettingsAction.SetEnterSends(it)) }
+                    )
+                }
+            }
+
+            item { IosBottomSpacer() }
+        }
+    }
+}
+
+/** Vista previa real de burbujas con el tamaño de letra y fondo elegidos. */
+@Composable
+private fun ChatPreview(wallpaper: String, textSize: Float) {
+    Box(
+        modifier = Modifier
+            .fillMaxWidth()
+            .background(
+                color = when (wallpaper) {
+                    "classic_teal" -> Color(0xFF0F2027)
+                    "midnight_blue" -> Color(0xFF0A0E17)
+                    else -> Color(0xFF0B141A)
+                },
+                shape = RoundedCornerShape(12.dp)
+            )
+            .padding(12.dp)
+    ) {
+        Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
+            Text(
+                text = "VISTA PREVIA",
+                fontSize = 10.sp,
+                fontWeight = FontWeight.Bold,
+                fontFamily = IosFont,
+                color = Color(0xFF8596A0),
+                modifier = Modifier.align(Alignment.CenterHorizontally)
+            )
+            Box(
+                modifier = Modifier
+                    .background(Color(0xFF202C33), RoundedCornerShape(12.dp, 12.dp, 12.dp, 0.dp))
+                    .padding(10.dp)
+                    .align(Alignment.Start)
+                    .widthIn(max = 220.dp)
+            ) {
+                Text(
+                    text = "¿Qué pasó chamo? ¿Cómo vas?",
+                    color = Color.White,
+                    fontFamily = IosFont,
+                    fontSize = textSize.sp,
+                    lineHeight = (textSize + 5).sp
+                )
+            }
+            Box(
+                modifier = Modifier
+                    .background(Color(0xFF005C4B), RoundedCornerShape(12.dp, 12.dp, 0.dp, 12.dp))
+                    .padding(10.dp)
+                    .align(Alignment.End)
+                    .widthIn(max = 220.dp)
+            ) {
+                Text(
+                    text = "¡Todo fino de pana! Mira el tamaño de letra.",
+                    color = Color.White,
+                    fontFamily = IosFont,
+                    fontSize = textSize.sp,
+                    lineHeight = (textSize + 5).sp
+                )
             }
         }
     }

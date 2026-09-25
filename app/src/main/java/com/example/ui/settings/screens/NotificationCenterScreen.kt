@@ -1,14 +1,13 @@
 package com.example.ui.settings.screens
 
+import android.Manifest
+import android.content.pm.PackageManager
+import android.os.Build
+import android.widget.Toast
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.contract.ActivityResultContracts
-import androidx.compose.foundation.BorderStroke
-import androidx.compose.foundation.background
-import androidx.compose.foundation.border
-import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
@@ -18,42 +17,41 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.LazyColumn
-import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.automirrored.filled.ArrowBack
+import androidx.compose.material.icons.automirrored.filled.Send
+import androidx.compose.material.icons.automirrored.filled.Chat
+import androidx.compose.material.icons.filled.MusicNote
+import androidx.compose.material.icons.filled.Notifications
+import androidx.compose.material.icons.filled.Vibration
 import androidx.compose.material.icons.filled.Warning
-import androidx.compose.material3.Button
-import androidx.compose.material3.ButtonDefaults
-import androidx.compose.material3.Card
-import androidx.compose.material3.CardDefaults
-import androidx.compose.material3.ExperimentalMaterial3Api
-import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Icon
-import androidx.compose.material3.IconButton
-import androidx.compose.material3.RadioButton
-import androidx.compose.material3.RadioButtonDefaults
-import androidx.compose.material3.Scaffold
-import androidx.compose.material3.Switch
-import androidx.compose.material3.SwitchDefaults
 import androidx.compose.material3.Text
-import androidx.compose.material3.TopAppBar
-import androidx.compose.material3.TopAppBarDefaults
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import androidx.core.content.ContextCompat
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.lifecycle.viewmodel.compose.viewModel
 import com.example.feature.settings.model.NotificationAction
+import com.example.ui.settings.ios.IosActionRow
+import com.example.ui.settings.ios.IosBottomSpacer
+import com.example.ui.settings.ios.IosDivider
+import com.example.ui.settings.ios.IosFont
+import com.example.ui.settings.ios.IosGroup
+import com.example.ui.settings.ios.IosListPadding
+import com.example.ui.settings.ios.IosRadioRow
+import com.example.ui.settings.ios.IosSectionFooter
+import com.example.ui.settings.ios.IosSectionHeader
+import com.example.ui.settings.ios.IosSettingsColors
+import com.example.ui.settings.ios.IosSettingsScaffold
+import com.example.ui.settings.ios.IosToggleRow
 import com.example.ui.settings.viewmodel.NotificationSettingsViewModel
-import com.example.ui.theme.PanalinkPalette
 
-@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun NotificationCenterScreen(
     onBack: () -> Unit,
@@ -66,510 +64,209 @@ fun NotificationCenterScreen(
         contract = ActivityResultContracts.RequestPermission()
     ) { isGranted ->
         if (isGranted) {
-            android.widget.Toast.makeText(context, "¡Permiso de notificaciones concedido! 🔔", android.widget.Toast.LENGTH_SHORT).show()
+            Toast.makeText(context, "Permiso de notificaciones concedido", Toast.LENGTH_SHORT).show()
         } else {
-            android.widget.Toast.makeText(context, "El permiso de notificaciones es necesario para recibir alertas de nuevos mensajes.", android.widget.Toast.LENGTH_LONG).show()
+            Toast.makeText(context, "El permiso es necesario para recibir alertas de nuevos mensajes.", Toast.LENGTH_LONG).show()
         }
     }
 
-    val hasPostNotificationPermission = if (android.os.Build.VERSION.SDK_INT >= android.os.Build.VERSION_CODES.TIRAMISU) {
-        androidx.core.content.ContextCompat.checkSelfPermission(
-            context,
-            android.Manifest.permission.POST_NOTIFICATIONS
-        ) == android.content.pm.PackageManager.PERMISSION_GRANTED
+    val hasPostNotificationPermission = if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
+        ContextCompat.checkSelfPermission(context, Manifest.permission.POST_NOTIFICATIONS) == PackageManager.PERMISSION_GRANTED
     } else {
         true
     }
+    val needsPermission = Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU && !hasPostNotificationPermission
 
-    Scaffold(
-        topBar = {
-            TopAppBar(
-                title = { Text("Notificaciones de Pana", color = PanalinkPalette.textPrimary) },
-                navigationIcon = {
-                    IconButton(onClick = onBack) {
-                        Icon(Icons.AutoMirrored.Filled.ArrowBack, contentDescription = "Regresar", tint = PanalinkPalette.textPrimary)
-                    }
-                },
-                colors = TopAppBarDefaults.topAppBarColors(containerColor = Color(0xFF121B22))
-            )
-        },
-        containerColor = Color(0xFF121B22)
-    ) { padding ->
+    IosSettingsScaffold(title = "Notificaciones", onBack = onBack) { padding ->
         LazyColumn(
             modifier = Modifier
                 .fillMaxSize()
                 .padding(padding),
-            contentPadding = PaddingValues(16.dp),
-            verticalArrangement = Arrangement.spacedBy(16.dp)
+            contentPadding = IosListPadding
         ) {
-            item {
-                Card(
-                    modifier = Modifier.fillMaxWidth(),
-                    colors = CardDefaults.cardColors(containerColor = Color(0xFF1E2B33)),
-                    shape = RoundedCornerShape(16.dp)
-                ) {
-                    Column(
-                        modifier = Modifier
-                            .fillMaxWidth()
-                            .padding(16.dp),
-                        verticalArrangement = Arrangement.spacedBy(16.dp)
-                    ) {
-                        // 1. POST_NOTIFICATIONS Permission Banner (Android 13+)
-                        if (android.os.Build.VERSION.SDK_INT >= android.os.Build.VERSION_CODES.TIRAMISU && !hasPostNotificationPermission) {
-                            Card(
-                                modifier = Modifier.fillMaxWidth(),
-                                colors = CardDefaults.cardColors(containerColor = Color(0xFFE57373).copy(alpha = 0.15f)),
-                                border = BorderStroke(1.dp, Color(0xFFE57373)),
-                                shape = RoundedCornerShape(8.dp)
-                            ) {
-                                Column(
-                                    modifier = Modifier
-                                        .fillMaxWidth()
-                                        .padding(12.dp)
-                                ) {
-                                    Row(
-                                        verticalAlignment = Alignment.CenterVertically
-                                    ) {
-                                        Icon(
-                                            imageVector = Icons.Default.Warning,
-                                            contentDescription = "Alerta",
-                                            tint = Color(0xFFE57373),
-                                            modifier = Modifier.size(20.dp)
-                                        )
-                                        Spacer(modifier = Modifier.width(8.dp))
-                                        Text(
-                                            text = "Notificaciones Desactivadas",
-                                            color = Color(0xFFE57373),
-                                            fontWeight = FontWeight.Bold,
-                                            fontSize = 13.sp
-                                        )
-                                    }
-                                    Spacer(modifier = Modifier.height(6.dp))
-                                    Text(
-                                        text = "El sistema Android requiere tu permiso expreso para poder mostrarte alertas sonoras y visuales cuando recibes nuevos mensajes de Pana.",
-                                        color = PanalinkPalette.textPrimary.copy(alpha = 0.8f),
-                                        fontSize = 11.sp
-                                    )
-                                    Spacer(modifier = Modifier.height(10.dp))
-                                    Button(
-                                        onClick = {
-                                            postNotificationLauncher.launch(android.Manifest.permission.POST_NOTIFICATIONS)
-                                        },
-                                        colors = ButtonDefaults.buttonColors(containerColor = Color(0xFFE57373)),
-                                        modifier = Modifier.fillMaxWidth(),
-                                        shape = RoundedCornerShape(6.dp),
-                                        contentPadding = PaddingValues(vertical = 8.dp)
-                                    ) {
-                                        Text("Activar Notificaciones 🔔", color = PanalinkPalette.textPrimary, fontWeight = FontWeight.Bold, fontSize = 12.sp)
-                                    }
-                                }
-                            }
-                            HorizontalDivider(color = Color(0xFF2A3942))
-                        }
-
-                        // 2. Global Notifications Toggle
+            if (needsPermission) {
+                item {
+                    IosGroup {
                         Row(
-                            modifier = Modifier.fillMaxWidth(),
-                            horizontalArrangement = Arrangement.SpaceBetween,
+                            modifier = Modifier
+                                .fillMaxWidth()
+                                .padding(16.dp),
                             verticalAlignment = Alignment.CenterVertically
                         ) {
+                            Icon(
+                                imageVector = Icons.Default.Warning,
+                                contentDescription = null,
+                                tint = IosSettingsColors.orange,
+                                modifier = Modifier.size(24.dp)
+                            )
+                            Spacer(Modifier.width(12.dp))
                             Column(modifier = Modifier.weight(1f)) {
                                 Text(
-                                    text = "Notificaciones Generales",
-                                    color = PanalinkPalette.textPrimary,
+                                    text = "Notificaciones desactivadas",
+                                    color = IosSettingsColors.label,
+                                    fontFamily = IosFont,
                                     fontWeight = FontWeight.SemiBold,
-                                    fontSize = 14.sp
+                                    fontSize = 15.sp
                                 )
-                                Spacer(modifier = Modifier.height(2.dp))
+                                Spacer(Modifier.height(2.dp))
                                 Text(
-                                    text = "Activa o desactiva todas las notificaciones de la app.",
-                                    color = Color(0xFF90A4AE),
-                                    fontSize = 11.sp
+                                    text = "Android necesita tu permiso para mostrarte alertas de nuevos mensajes.",
+                                    color = IosSettingsColors.secondaryLabel,
+                                    fontFamily = IosFont,
+                                    fontSize = 13.sp
                                 )
                             }
-                            Switch(
-                                checked = uiState.globalEnabled,
-                                onCheckedChange = {
-                                    viewModel.dispatch(NotificationAction.SetGlobalEnabled(it))
-                                },
-                                colors = SwitchDefaults.colors(
-                                    checkedThumbColor = Color.White,
-                                    checkedTrackColor = Color(0xFF25D366),
-                                    uncheckedThumbColor = Color(0xFF90A4AE),
-                                    uncheckedTrackColor = Color(0xFF37474F)
-                                )
-                            )
                         }
+                        IosDivider(startIndent = 16.dp)
+                        IosActionRow(
+                            title = "Activar notificaciones",
+                            onClick = { postNotificationLauncher.launch(Manifest.permission.POST_NOTIFICATIONS) },
+                            color = IosSettingsColors.blue,
+                            fontWeight = FontWeight.SemiBold
+                        )
                     }
+                }
+            }
+
+            item {
+                IosGroup {
+                    IosToggleRow(
+                        title = "Notificaciones generales",
+                        subtitle = "Activa o desactiva todas las alertas de la app.",
+                        checked = uiState.globalEnabled,
+                        onCheckedChange = { viewModel.dispatch(NotificationAction.SetGlobalEnabled(it)) },
+                        icon = Icons.Default.Notifications,
+                        iconTint = IosSettingsColors.red
+                    )
                 }
             }
 
             if (uiState.globalEnabled) {
+                item { IosSectionHeader("Alertas") }
                 item {
-                    Card(
-                        modifier = Modifier.fillMaxWidth(),
-                        colors = CardDefaults.cardColors(containerColor = Color(0xFF1E2B33)),
-                        shape = RoundedCornerShape(16.dp)
-                    ) {
-                        Column(
-                            modifier = Modifier
-                                .fillMaxWidth()
-                                .padding(16.dp),
-                            verticalArrangement = Arrangement.spacedBy(16.dp)
-                        ) {
-                            // 3. Sound Settings
-                            Row(
-                                modifier = Modifier.fillMaxWidth(),
-                                horizontalArrangement = Arrangement.SpaceBetween,
-                                verticalAlignment = Alignment.CenterVertically
-                            ) {
-                                Column(modifier = Modifier.weight(1f)) {
-                                    Text(
-                                        text = "Sonido de Notificación",
-                                        color = PanalinkPalette.textPrimary,
-                                        fontWeight = FontWeight.SemiBold,
-                                        fontSize = 14.sp
-                                    )
-                                    Spacer(modifier = Modifier.height(2.dp))
-                                    Text(
-                                        text = "Reproducir alertas sonoras al recibir mensajes.",
-                                        color = Color(0xFF90A4AE),
-                                        fontSize = 11.sp
-                                    )
-                                }
-                                Switch(
-                                    checked = uiState.soundEnabled,
-                                    onCheckedChange = {
-                                        viewModel.dispatch(NotificationAction.SetSoundEnabled(it))
-                                    },
-                                    colors = SwitchDefaults.colors(
-                                        checkedThumbColor = Color.White,
-                                        checkedTrackColor = Color(0xFF25D366),
-                                        uncheckedThumbColor = Color(0xFF90A4AE),
-                                        uncheckedTrackColor = Color(0xFF37474F)
-                                    )
-                                )
-                            }
+                    IosGroup {
+                        IosToggleRow(
+                            title = "Sonido",
+                            subtitle = "Reproducir alertas sonoras al recibir mensajes.",
+                            checked = uiState.soundEnabled,
+                            onCheckedChange = { viewModel.dispatch(NotificationAction.SetSoundEnabled(it)) },
+                            icon = Icons.Default.MusicNote,
+                            iconTint = IosSettingsColors.pink
+                        )
+                        IosDivider()
+                        IosToggleRow(
+                            title = "Vibración",
+                            subtitle = "Hacer vibrar el dispositivo al recibir mensajes.",
+                            checked = uiState.vibrationEnabled,
+                            onCheckedChange = { viewModel.dispatch(NotificationAction.SetVibrationEnabled(it)) },
+                            icon = Icons.Default.Vibration,
+                            iconTint = IosSettingsColors.purple
+                        )
+                    }
+                }
 
-                            // Sound tone selection
-                            if (uiState.soundEnabled) {
-                                Spacer(modifier = Modifier.height(4.dp))
-                                Text(
-                                    text = "Seleccionar Tono de Alerta",
-                                    color = Color(0xFF25D366),
-                                    fontWeight = FontWeight.SemiBold,
-                                    fontSize = 12.sp
-                                )
-                                Spacer(modifier = Modifier.height(6.dp))
-
-                                val tones = listOf(
-                                    "default" to "Tono del Sistema (Predeterminado)",
-                                    "pana_beep" to "Pana Bip (Sintetizador)",
-                                    "pana_double" to "Pana Doble Bip",
-                                    "pana_pip" to "Pana Pip Rápido",
-                                    "pana_high" to "Pana Alerta Aguda",
-                                    "silent" to "Silencio"
-                                )
-                                Column(
-                                    verticalArrangement = Arrangement.spacedBy(6.dp)
-                                ) {
-                                    tones.forEach { (toneKey, toneLabel) ->
-                                        val isSelected = uiState.soundTone == toneKey
-                                        Row(
-                                            modifier = Modifier
-                                                .fillMaxWidth()
-                                                .background(
-                                                    color = if (isSelected) Color(0xFF25D366).copy(alpha = 0.15f) else Color(0xFF2A3942).copy(alpha = 0.4f),
-                                                    shape = RoundedCornerShape(6.dp)
-                                                )
-                                                .border(
-                                                    width = 1.dp,
-                                                    color = if (isSelected) Color(0xFF25D366) else Color.Transparent,
-                                                    shape = RoundedCornerShape(6.dp)
-                                                )
-                                                .clickable {
-                                                    viewModel.dispatch(NotificationAction.SetSoundTone(toneKey))
-                                                    com.example.service.NotificationHelper.playNotificationSound(context)
-                                                }
-                                                .padding(horizontal = 12.dp, vertical = 10.dp),
-                                            verticalAlignment = Alignment.CenterVertically
-                                        ) {
-                                            RadioButton(
-                                                selected = isSelected,
-                                                onClick = {
-                                                    viewModel.dispatch(NotificationAction.SetSoundTone(toneKey))
-                                                    com.example.service.NotificationHelper.playNotificationSound(context)
-                                                },
-                                                colors = RadioButtonDefaults.colors(
-                                                    selectedColor = Color(0xFF25D366),
-                                                    unselectedColor = Color(0xFF90A4AE)
-                                                )
-                                            )
-                                            Spacer(modifier = Modifier.width(6.dp))
-                                            Text(
-                                                text = toneLabel,
-                                                color = if (isSelected) Color(0xFF25D366) else Color.White,
-                                                fontSize = 12.sp,
-                                                fontWeight = if (isSelected) FontWeight.SemiBold else FontWeight.Normal
-                                            )
-                                        }
+                if (uiState.soundEnabled) {
+                    item { IosSectionHeader("Tono de alerta") }
+                    item {
+                        IosGroup {
+                            listOf(
+                                "default" to "Tono del sistema",
+                                "pana_beep" to "Pana bip",
+                                "pana_double" to "Pana doble bip",
+                                "pana_pip" to "Pana pip rápido",
+                                "pana_high" to "Pana alerta aguda",
+                                "silent" to "Silencio"
+                            ).forEachIndexed { index, (toneKey, toneLabel) ->
+                                if (index > 0) IosDivider(startIndent = 16.dp)
+                                IosRadioRow(
+                                    title = toneLabel,
+                                    selected = uiState.soundTone == toneKey,
+                                    onClick = {
+                                        viewModel.dispatch(NotificationAction.SetSoundTone(toneKey))
+                                        com.example.service.NotificationHelper.playNotificationSound(context)
                                     }
-                                }
-                            }
-
-                            HorizontalDivider(color = Color(0xFF2A3942))
-
-                            // 4. Vibration Settings
-                            Row(
-                                modifier = Modifier.fillMaxWidth(),
-                                horizontalArrangement = Arrangement.SpaceBetween,
-                                verticalAlignment = Alignment.CenterVertically
-                            ) {
-                                Column(modifier = Modifier.weight(1f)) {
-                                    Text(
-                                        text = "Vibración de Alerta",
-                                        color = PanalinkPalette.textPrimary,
-                                        fontWeight = FontWeight.SemiBold,
-                                        fontSize = 14.sp
-                                    )
-                                    Spacer(modifier = Modifier.height(2.dp))
-                                    Text(
-                                        text = "Hacer vibrar el dispositivo al recibir mensajes.",
-                                        color = Color(0xFF90A4AE),
-                                        fontSize = 11.sp
-                                    )
-                                }
-                                Switch(
-                                    checked = uiState.vibrationEnabled,
-                                    onCheckedChange = {
-                                        viewModel.dispatch(NotificationAction.SetVibrationEnabled(it))
-                                    },
-                                    colors = SwitchDefaults.colors(
-                                        checkedThumbColor = Color.White,
-                                        checkedTrackColor = Color(0xFF25D366),
-                                        uncheckedThumbColor = Color(0xFF90A4AE),
-                                        uncheckedTrackColor = Color(0xFF37474F)
-                                    )
                                 )
                             }
+                        }
+                        IosSectionFooter("Toca un tono para escucharlo.")
+                    }
+                }
 
-                            // Vibration pattern selection
-                            if (uiState.vibrationEnabled) {
-                                Spacer(modifier = Modifier.height(4.dp))
-                                Text(
-                                    text = "Seleccionar Patrón de Vibración",
-                                    color = Color(0xFF25D366),
-                                    fontWeight = FontWeight.SemiBold,
-                                    fontSize = 12.sp
-                                )
-                                Spacer(modifier = Modifier.height(6.dp))
-
-                                val patterns = listOf(
-                                    "default" to "Predeterminado (Medio)",
-                                    "short" to "Corto",
-                                    "long" to "Largo",
-                                    "double" to "Doble",
-                                    "triple" to "Triple"
-                                )
-                                Column(
-                                    verticalArrangement = Arrangement.spacedBy(6.dp)
-                                ) {
-                                    patterns.forEach { (patternKey, patternLabel) ->
-                                        val isSelected = uiState.vibrationPattern == patternKey
-                                        Row(
-                                            modifier = Modifier
-                                                .fillMaxWidth()
-                                                .background(
-                                                    color = if (isSelected) Color(0xFF25D366).copy(alpha = 0.15f) else Color(0xFF2A3942).copy(alpha = 0.4f),
-                                                    shape = RoundedCornerShape(6.dp)
-                                                )
-                                                .border(
-                                                    width = 1.dp,
-                                                    color = if (isSelected) Color(0xFF25D366) else Color.Transparent,
-                                                    shape = RoundedCornerShape(6.dp)
-                                                )
-                                                .clickable {
-                                                    viewModel.dispatch(NotificationAction.SetVibrationPattern(patternKey))
-                                                    com.example.service.NotificationHelper.triggerVibration(context)
-                                                }
-                                                .padding(horizontal = 12.dp, vertical = 10.dp),
-                                            verticalAlignment = Alignment.CenterVertically
-                                        ) {
-                                            RadioButton(
-                                                selected = isSelected,
-                                                onClick = {
-                                                    viewModel.dispatch(NotificationAction.SetVibrationPattern(patternKey))
-                                                    com.example.service.NotificationHelper.triggerVibration(context)
-                                                },
-                                                colors = RadioButtonDefaults.colors(
-                                                    selectedColor = Color(0xFF25D366),
-                                                    unselectedColor = Color(0xFF90A4AE)
-                                                )
-                                            )
-                                            Spacer(modifier = Modifier.width(6.dp))
-                                            Text(
-                                                text = patternLabel,
-                                                color = if (isSelected) Color(0xFF25D366) else Color.White,
-                                                fontSize = 12.sp,
-                                                fontWeight = if (isSelected) FontWeight.SemiBold else FontWeight.Normal
-                                            )
-                                        }
+                if (uiState.vibrationEnabled) {
+                    item { IosSectionHeader("Patrón de vibración") }
+                    item {
+                        IosGroup {
+                            listOf(
+                                "default" to "Predeterminado",
+                                "short" to "Corto",
+                                "long" to "Largo",
+                                "double" to "Doble",
+                                "triple" to "Triple"
+                            ).forEachIndexed { index, (patternKey, patternLabel) ->
+                                if (index > 0) IosDivider(startIndent = 16.dp)
+                                IosRadioRow(
+                                    title = patternLabel,
+                                    selected = uiState.vibrationPattern == patternKey,
+                                    onClick = {
+                                        viewModel.dispatch(NotificationAction.SetVibrationPattern(patternKey))
+                                        com.example.service.NotificationHelper.triggerVibration(context)
                                     }
-                                }
+                                )
                             }
                         }
                     }
                 }
 
+                item { IosSectionHeader("Dentro del chat") }
                 item {
-                    Card(
-                        modifier = Modifier.fillMaxWidth(),
-                        colors = CardDefaults.cardColors(containerColor = Color(0xFF1E2B33)),
-                        shape = RoundedCornerShape(16.dp)
-                    ) {
-                        Column(
-                            modifier = Modifier
-                                .fillMaxWidth()
-                                .padding(16.dp),
-                            verticalArrangement = Arrangement.spacedBy(16.dp)
-                        ) {
-                            // 5. In-Chat Sound Settings
-                            Row(
-                                modifier = Modifier.fillMaxWidth(),
-                                horizontalArrangement = Arrangement.SpaceBetween,
-                                verticalAlignment = Alignment.CenterVertically
-                            ) {
-                                Column(modifier = Modifier.weight(1f)) {
-                                    Text(
-                                        text = "Sonidos en el Chat",
-                                        color = PanalinkPalette.textPrimary,
-                                        fontWeight = FontWeight.SemiBold,
-                                        fontSize = 14.sp
-                                    )
-                                    Spacer(modifier = Modifier.height(2.dp))
-                                    Text(
-                                        text = "Reproducir sonidos suaves tipo gota para nuevos mensajes mientras estás dentro de un chat activo.",
-                                        color = Color(0xFF90A4AE),
-                                        fontSize = 11.sp
-                                    )
-                                }
-                                Switch(
-                                    checked = uiState.chatSoundEnabled,
-                                    onCheckedChange = {
-                                        viewModel.dispatch(NotificationAction.SetChatSoundEnabled(it))
-                                    },
-                                    colors = SwitchDefaults.colors(
-                                        checkedThumbColor = Color.White,
-                                        checkedTrackColor = Color(0xFF25D366),
-                                        uncheckedThumbColor = Color(0xFF90A4AE),
-                                        uncheckedTrackColor = Color(0xFF37474F)
-                                    )
-                                )
-                            }
+                    IosGroup {
+                        IosToggleRow(
+                            title = "Sonidos en el chat",
+                            subtitle = "Sonidos suaves tipo gota para mensajes nuevos mientras estás en un chat.",
+                            checked = uiState.chatSoundEnabled,
+                            onCheckedChange = { viewModel.dispatch(NotificationAction.SetChatSoundEnabled(it)) },
+                            icon = Icons.AutoMirrored.Filled.Chat,
+                            iconTint = IosSettingsColors.green
+                        )
+                        IosDivider()
+                        IosToggleRow(
+                            title = "Sonido de envío",
+                            subtitle = "Un 'swoosh' suave al enviar tus propios mensajes.",
+                            checked = uiState.outgoingSoundEnabled,
+                            onCheckedChange = {
+                                viewModel.dispatch(NotificationAction.SetOutgoingSoundEnabled(it))
+                                if (it) com.example.service.NotificationHelper.playOutgoingSound(context)
+                            },
+                            icon = Icons.AutoMirrored.Filled.Send,
+                            iconTint = IosSettingsColors.teal
+                        )
+                    }
+                }
 
-                            if (uiState.chatSoundEnabled) {
-                                Spacer(modifier = Modifier.height(4.dp))
-                                Text(
-                                    text = "Seleccionar Tono de Chat Activo",
-                                    color = Color(0xFF25D366),
-                                    fontWeight = FontWeight.SemiBold,
-                                    fontSize = 12.sp
-                                )
-                                Spacer(modifier = Modifier.height(6.dp))
-
-                                val chatTones = listOf(
-                                    "water_drop" to "Gota de Agua (Suave y Sutil)",
-                                    "soft_pop" to "Pop Suave"
-                                )
-                                Column(
-                                    verticalArrangement = Arrangement.spacedBy(6.dp)
-                                ) {
-                                    chatTones.forEach { (toneKey, toneLabel) ->
-                                        val isSelected = uiState.chatSoundTone == toneKey
-                                        Row(
-                                            modifier = Modifier
-                                                .fillMaxWidth()
-                                                .background(
-                                                    color = if (isSelected) Color(0xFF25D366).copy(alpha = 0.15f) else Color(0xFF2A3942).copy(alpha = 0.4f),
-                                                    shape = RoundedCornerShape(6.dp)
-                                                )
-                                                .border(
-                                                    width = 1.dp,
-                                                    color = if (isSelected) Color(0xFF25D366) else Color.Transparent,
-                                                    shape = RoundedCornerShape(6.dp)
-                                                )
-                                                .clickable {
-                                                    viewModel.dispatch(NotificationAction.SetChatSoundTone(toneKey))
-                                                    com.example.service.NotificationHelper.playActiveChatSound(context)
-                                                }
-                                                .padding(horizontal = 12.dp, vertical = 10.dp),
-                                            verticalAlignment = Alignment.CenterVertically
-                                        ) {
-                                            RadioButton(
-                                                selected = isSelected,
-                                                onClick = {
-                                                    viewModel.dispatch(NotificationAction.SetChatSoundTone(toneKey))
-                                                    com.example.service.NotificationHelper.playActiveChatSound(context)
-                                                },
-                                                colors = RadioButtonDefaults.colors(
-                                                    selectedColor = Color(0xFF25D366),
-                                                    unselectedColor = Color(0xFF90A4AE)
-                                                )
-                                            )
-                                            Spacer(modifier = Modifier.width(6.dp))
-                                            Text(
-                                                text = toneLabel,
-                                                color = if (isSelected) Color(0xFF25D366) else Color.White,
-                                                fontSize = 12.sp,
-                                                fontWeight = if (isSelected) FontWeight.SemiBold else FontWeight.Normal
-                                            )
-                                        }
+                if (uiState.chatSoundEnabled) {
+                    item { IosSectionHeader("Tono de chat activo") }
+                    item {
+                        IosGroup {
+                            listOf(
+                                "water_drop" to "Gota de agua",
+                                "soft_pop" to "Pop suave"
+                            ).forEachIndexed { index, (toneKey, toneLabel) ->
+                                if (index > 0) IosDivider(startIndent = 16.dp)
+                                IosRadioRow(
+                                    title = toneLabel,
+                                    selected = uiState.chatSoundTone == toneKey,
+                                    onClick = {
+                                        viewModel.dispatch(NotificationAction.SetChatSoundTone(toneKey))
+                                        com.example.service.NotificationHelper.playActiveChatSound(context)
                                     }
-                                }
-                            }
-
-                            HorizontalDivider(color = Color(0xFF2A3942))
-
-                            // 6. Outgoing Sounds
-                            Row(
-                                modifier = Modifier.fillMaxWidth(),
-                                horizontalArrangement = Arrangement.SpaceBetween,
-                                verticalAlignment = Alignment.CenterVertically
-                            ) {
-                                Column(modifier = Modifier.weight(1f)) {
-                                    Text(
-                                        text = "Sonido de Envío",
-                                        color = PanalinkPalette.textPrimary,
-                                        fontWeight = FontWeight.SemiBold,
-                                        fontSize = 14.sp
-                                    )
-                                    Spacer(modifier = Modifier.height(2.dp))
-                                    Text(
-                                        text = "Reproducir un sonido suave tipo 'swoosh' al enviar tus propios mensajes.",
-                                        color = Color(0xFF90A4AE),
-                                        fontSize = 11.sp
-                                    )
-                                }
-                                Switch(
-                                    checked = uiState.outgoingSoundEnabled,
-                                    onCheckedChange = {
-                                        viewModel.dispatch(NotificationAction.SetOutgoingSoundEnabled(it))
-                                        if (it) {
-                                            com.example.service.NotificationHelper.playOutgoingSound(context)
-                                        }
-                                    },
-                                    colors = SwitchDefaults.colors(
-                                        checkedThumbColor = Color.White,
-                                        checkedTrackColor = Color(0xFF25D366),
-                                        uncheckedThumbColor = Color(0xFF90A4AE),
-                                        uncheckedTrackColor = Color(0xFF37474F)
-                                    )
                                 )
                             }
                         }
                     }
                 }
             }
+
+            item { IosBottomSpacer() }
         }
     }
 }

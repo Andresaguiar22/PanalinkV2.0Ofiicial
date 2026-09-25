@@ -1105,3 +1105,35 @@ factor `0.55 + pow(1.7)*(3.8-0.55)`, halo `1.7x` alpha `0x08` (casi invisible), 
 * El script de aplicación se generalizó a `scripts/apply_migration.sh` (recibe la ruta de la migración como argumento; antes `apply_single_session_migration.sh`).
 * El PAT del sandbox está inválido (401): la migración la aplica el dueño o un agente con acceso al proyecto Supabase.
 * `SUPABASE_SERVICE_ROLE_KEY` sirve para PostgREST (datos) pero **no** puede hacer DDL.
+
+---
+
+## 🍎 Rediseño iOS de toda la sección de Ajustes / Centro de Control (sesión 2026-09-25, rama `kilo/clean-ui-ios`)
+
+**Pedido**: retoques estilo iOS (Apple) en TODAS las pantallas de ajustes/centro de control — iconos de gama alta, bonito, ordenado, coherente y bien encajado.
+
+### Diagnóstico (medido, no inferido)
+Cada pantalla traía su propio lenguaje visual, así que el conjunto se veía como pantallas distintas pegadas:
+* **Fondos dispares**: `#121B22` (la mayoría), `#161618` (Storage), `#1E2B33` (tarjetas), `#000000` (Control/Security), `Color.Transparent` (Customization).
+* **Acentos dispares**: verde `#25D366` vs `#34C759`, cian `#00E5FF`, azul `#0A84FF`, `#4CAF50`.
+* **Barras**: `TopAppBar` plana en casi todas, `LargeTopAppBar` en Control, `CenterAlignedTopAppBar` en Customization, y ninguna con título grande colapsable.
+* Conteo de colores hardcodeados: `#25D366` ×77, `#90A4AE` ×56, `#1E2B33` ×29, `#34C759` ×24, `#37474F` ×19, `#8E8E93` ×18...
+
+### Solución: kit compartido `com.example.ui.settings.ios` (archivo NUEVO)
+`app/src/main/java/com/example/ui/settings/ios/IosSettingsKit.kt` concentra tokens + componentes:
+* **`IosSettingsColors`** (getters dependientes de `PanalinkPalette.isDark` → funciona en claro y oscuro): `groupBackground` (`#000000`/`#F2F2F7`), `cell` (`#1C1C1E`/`#FFFFFF`), `cellElevated` (`#2C2C2E`), `separator` (`#38383A`), `label`, `secondaryLabel` (`#8E8E93`), `chevron`; acentos de sistema iOS: `blue #0A84FF`, `green #30D158`, `red #FF453A`, `orange #FF9F0A`, `yellow`, `purple #BF5AF2`, `pink`, `teal #64D2FF`, `indigo #5E5CE6`.
+* **`IosSettingsScaffold(title, onBack, actions)`**: fondo agrupado + `LargeTopAppBar` con título grande que colapsa (`exitUntilCollapsedScrollBehavior`). Reemplaza los 5 estilos de barra distintos.
+* **Componentes**: `IosSectionHeader` (mayúsculas grises), `IosSectionFooter`, `IosGroup` (tarjeta 12 dp), `IosDivider(startIndent=57.dp)`, `IosIconBadge` (cuadro redondeado con glifo blanco — el icono de Ajustes de iOS), `IosRow` (icono+título+subtítulo+valor+chevron), `IosToggleRow` (Switch verde iOS), `IosRadioRow` (**check a la derecha**, patrón iOS), `IosActionRow` (acción centrada en color), `IosValueRow`, `IosBadge`, `IosEmptyState`.
+* **`IosFont = FontFamily.SansSerif`**: el serif de marca no encaja con el lenguaje iOS; se aplica explícitamente en cada Text del kit.
+
+### Pantallas reescritas (12 + 1 componente)
+Hub `ControlCenterScreen` (cabecera de perfil con anillo + badges + grupos), `StorageCenterScreen`, `PrivacyCenterScreen`, `SecurityCenterScreen`, `NotificationCenterScreen`, `ChatsCenterScreen`, `PresenceCenterScreen`, `ActivityCenterScreen`, `DiagnosticsScreen`, `AboutScreen`, `ProfileEditScreen` (quirúrgico: solo scaffold) y `ProfileHeaderEditor.kt` (colores alineados).
+
+### Reglas aprendidas (aplicar en próximas sesiones)
+* **Iconos deprecados**: `Icons.Default.Chat`, `Icons.Default.Send` y `Icons.Default.ArrowBack` generan warning de compilación. Usar siempre `Icons.AutoMirrored.Filled.*`. (Este repo tiene `material-icons-extended`, así que salen gratis.)
+* **Componentes con firma pública**: antes de renombrar/reescribir, verificar con `grep -rn` si se usan fuera del archivo (aquí `ActivityStatCard`/`SystemStatusRow`/`DeviceRow` no se usaban; `ProfileHeaderEditor` solo en ProfileEdit).
+* **Preservar lógica real**: en las reescrituras se conservaron intactos los dispatch al ViewModel, el permiso POST_NOTIFICATIONS, los tonos/vibración, el PIN/patrón/QR, el slider de texto, el preview de burbujas, el editor de perfil y la lógica de actualización.
+* **Customization** se tocó de forma quirúrgica: solo scaffold + paleta (`rememberPalette` ahora lee tokens iOS) y colores del chip; sus componentes ricos (ModeSelector, ThemeIdentityGrid, BottomBarLivePreview) se conservan.
+* **`compileDebugUnitTestKotlin` está roto en `main`/HEAD** (`app/src/test/.../media/sync/FakeSupabaseApi.kt` no implementa miembros abstractos) — **es preexistente**, verificado con `git stash`. No confundirlo con una regresión propia; el gate útil es `:app:compileDebugKotlin`.
+* Verificación: `:app:compileDebugKotlin` → **BUILD SUCCESSFUL, 0 errores, 0 warnings**; `scripts/sanitize_invisible.sh` → limpio; firmas de `SettingsNavGraph` intactas.
+

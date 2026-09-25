@@ -1,33 +1,39 @@
 package com.example.ui.settings.screens
 
 import android.widget.Toast
-import androidx.compose.foundation.background
-import androidx.compose.foundation.border
-import androidx.compose.foundation.clickable
-import androidx.compose.foundation.layout.*
+import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.lazy.LazyColumn
-import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material.icons.filled.Lock
 import androidx.compose.material.icons.filled.Visibility
 import androidx.compose.material.icons.filled.VisibilityOff
-import androidx.compose.material3.*
-import androidx.compose.runtime.*
+import androidx.compose.material.icons.filled.Bolt
+import androidx.compose.material.icons.filled.Person
+import androidx.compose.material3.CircularProgressIndicator
+import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.getValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalContext
-import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
-import androidx.compose.ui.unit.sp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.lifecycle.viewmodel.compose.viewModel
 import com.example.feature.settings.model.PrivacyAction
+import com.example.ui.settings.ios.IosBottomSpacer
+import com.example.ui.settings.ios.IosDivider
+import com.example.ui.settings.ios.IosGroup
+import com.example.ui.settings.ios.IosListPadding
+import com.example.ui.settings.ios.IosRadioRow
+import com.example.ui.settings.ios.IosSectionFooter
+import com.example.ui.settings.ios.IosSectionHeader
+import com.example.ui.settings.ios.IosSettingsColors
+import com.example.ui.settings.ios.IosSettingsScaffold
+import com.example.ui.settings.ios.IosToggleRow
 import com.example.ui.settings.viewmodel.PrivacyViewModel
-import com.example.ui.theme.PanalinkPalette
 
-@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun PrivacyCenterScreen(
     onBack: () -> Unit,
@@ -43,20 +49,7 @@ fun PrivacyCenterScreen(
         }
     }
 
-    Scaffold(
-        topBar = {
-            TopAppBar(
-                title = { Text("Privacidad de Pana", color = PanalinkPalette.textPrimary) },
-                navigationIcon = {
-                    IconButton(onClick = onBack) {
-                        Icon(Icons.AutoMirrored.Filled.ArrowBack, contentDescription = "Regresar", tint = PanalinkPalette.textPrimary)
-                    }
-                },
-                colors = TopAppBarDefaults.topAppBarColors(containerColor = Color(0xFF121B22))
-            )
-        },
-        containerColor = Color(0xFF121B22)
-    ) { padding ->
+    IosSettingsScaffold(title = "Privacidad", onBack = onBack) { padding ->
         if (uiState.isLoading) {
             Box(
                 modifier = Modifier
@@ -64,342 +57,89 @@ fun PrivacyCenterScreen(
                     .padding(padding),
                 contentAlignment = Alignment.Center
             ) {
-                CircularProgressIndicator(color = Color(0xFF25D366))
+                CircularProgressIndicator(color = IosSettingsColors.blue)
             }
         } else {
             LazyColumn(
                 modifier = Modifier
                     .fillMaxSize()
                     .padding(padding),
-                contentPadding = PaddingValues(16.dp),
-                verticalArrangement = Arrangement.spacedBy(16.dp)
+                contentPadding = IosListPadding
             ) {
-                // Header Banner
+                item { IosSectionHeader("Última vez y en línea") }
                 item {
-                    Card(
-                        modifier = Modifier.fillMaxWidth(),
-                        colors = CardDefaults.cardColors(containerColor = Color(0xFF1E2B33)),
-                        shape = RoundedCornerShape(16.dp)
-                    ) {
-                        Row(
-                            modifier = Modifier
-                                .fillMaxWidth()
-                                .padding(16.dp),
-                            verticalAlignment = Alignment.CenterVertically,
-                            horizontalArrangement = Arrangement.spacedBy(12.dp)
-                        ) {
-                            Icon(
-                                imageVector = Icons.Default.Lock,
-                                contentDescription = null,
-                                tint = Color(0xFF25D366),
-                                modifier = Modifier.size(28.dp)
+                    IosGroup {
+                        listOf("Todos", "Mis Contactos", "Nadie").forEachIndexed { index, option ->
+                            if (index > 0) IosDivider(startIndent = 16.dp)
+                            IosRadioRow(
+                                title = option,
+                                selected = uiState.lastSeenVisibility.equals(option, ignoreCase = true),
+                                onClick = { viewModel.dispatch(PrivacyAction.UpdateLastSeen(option)) }
                             )
-                            Column {
-                                Text(
-                                    text = "Control Total de tu Privacidad",
-                                    color = PanalinkPalette.textPrimary,
-                                    fontWeight = FontWeight.Bold,
-                                    fontSize = 15.sp
-                                )
-                                Text(
-                                    text = "Tus preferencias se guardan de forma segura en tu dispositivo.",
-                                    color = Color(0xFF90A4AE),
-                                    fontSize = 12.sp
-                                )
-                            }
                         }
+                    }
+                    IosSectionFooter("Elige quién puede ver cuándo estuviste en línea por última vez.")
+                }
+
+                item { IosSectionHeader("Mensajes") }
+                item {
+                    IosGroup {
+                        IosToggleRow(
+                            title = "Confirmaciones de lectura",
+                            subtitle = "Al desactivarlo no verás ni enviarás el doble tilde azul.",
+                            checked = uiState.readReceiptsEnabled,
+                            onCheckedChange = { viewModel.dispatch(PrivacyAction.ToggleReadReceipts(it)) },
+                            icon = Icons.Default.Visibility,
+                            iconTint = IosSettingsColors.blue
+                        )
+                        IosDivider()
+                        IosToggleRow(
+                            title = "Lectura inteligente",
+                            subtitle = "Envía la confirmación al abrir la conversación.",
+                            checked = uiState.smartReadReceiptsEnabled,
+                            onCheckedChange = { viewModel.dispatch(PrivacyAction.ToggleSmartReadReceipts(it)) },
+                            icon = Icons.Default.Bolt,
+                            iconTint = IosSettingsColors.orange
+                        )
                     }
                 }
 
-                // 1. Last Seen
+                item { IosSectionHeader("Presencia") }
                 item {
-                    Card(
-                        modifier = Modifier.fillMaxWidth(),
-                        colors = CardDefaults.cardColors(containerColor = Color(0xFF1E2B33)),
-                        shape = RoundedCornerShape(16.dp)
-                    ) {
-                        Column(
-                            modifier = Modifier
-                                .fillMaxWidth()
-                                .padding(16.dp),
-                            verticalArrangement = Arrangement.spacedBy(12.dp)
-                        ) {
-                            Text(
-                                text = "Última vez y En línea",
-                                color = PanalinkPalette.textPrimary,
-                                fontWeight = FontWeight.SemiBold,
-                                fontSize = 14.sp
-                            )
-                            Text(
-                                text = "¿Quién puede ver cuándo estuviste en línea por última vez?",
-                                color = Color(0xFF90A4AE),
-                                fontSize = 11.sp
-                            )
-
-                            val options = listOf("Todos", "Mis Contactos", "Nadie")
-                            options.forEach { option ->
-                                val isSelected = uiState.lastSeenVisibility.equals(option, ignoreCase = true)
-                                Row(
-                                    modifier = Modifier
-                                        .fillMaxWidth()
-                                        .background(
-                                            color = if (isSelected) Color(0xFF25D366).copy(alpha = 0.15f) else Color(0xFF2A3942).copy(alpha = 0.4f),
-                                            shape = RoundedCornerShape(8.dp)
-                                        )
-                                        .border(
-                                            width = 1.dp,
-                                            color = if (isSelected) Color(0xFF25D366) else Color.Transparent,
-                                            shape = RoundedCornerShape(8.dp)
-                                        )
-                                        .clickable { viewModel.dispatch(PrivacyAction.UpdateLastSeen(option)) }
-                                        .padding(horizontal = 12.dp, vertical = 10.dp),
-                                    verticalAlignment = Alignment.CenterVertically
-                                ) {
-                                    RadioButton(
-                                        selected = isSelected,
-                                        onClick = { viewModel.dispatch(PrivacyAction.UpdateLastSeen(option)) },
-                                        colors = RadioButtonDefaults.colors(
-                                            selectedColor = Color(0xFF25D366),
-                                            unselectedColor = Color(0xFF90A4AE)
-                                        )
-                                    )
-                                    Spacer(modifier = Modifier.width(8.dp))
-                                    Text(
-                                        text = option,
-                                        color = if (isSelected) Color(0xFF25D366) else Color.White,
-                                        fontSize = 13.sp,
-                                        fontWeight = if (isSelected) FontWeight.SemiBold else FontWeight.Normal
-                                    )
-                                }
-                            }
-                        }
+                    IosGroup {
+                        IosToggleRow(
+                            title = "Modo invisible",
+                            subtitle = "Navega y lee sin mostrar 'En línea'.",
+                            checked = uiState.invisibleModeEnabled,
+                            onCheckedChange = { viewModel.dispatch(PrivacyAction.ToggleInvisibleMode(it)) },
+                            icon = if (uiState.invisibleModeEnabled) Icons.Default.VisibilityOff else Icons.Default.Visibility,
+                            iconTint = IosSettingsColors.indigo
+                        )
                     }
+                    IosSectionFooter("El modo invisible oculta tu estado pero sigues viendo el de los demás.")
                 }
 
-                // 2. Read Receipts
+                item { IosSectionHeader("Estado de presencia predeterminado") }
                 item {
-                    Card(
-                        modifier = Modifier.fillMaxWidth(),
-                        colors = CardDefaults.cardColors(containerColor = Color(0xFF1E2B33)),
-                        shape = RoundedCornerShape(16.dp)
-                    ) {
-                        Column(
-                            modifier = Modifier
-                                .fillMaxWidth()
-                                .padding(16.dp),
-                            verticalArrangement = Arrangement.spacedBy(12.dp)
-                        ) {
-                            Row(
-                                modifier = Modifier.fillMaxWidth(),
-                                horizontalArrangement = Arrangement.SpaceBetween,
-                                verticalAlignment = Alignment.CenterVertically
-                            ) {
-                                Column(modifier = Modifier.weight(1f)) {
-                                    Text(
-                                        text = "Confirmaciones de Lectura",
-                                        color = PanalinkPalette.textPrimary,
-                                        fontWeight = FontWeight.SemiBold,
-                                        fontSize = 14.sp
-                                    )
-                                    Spacer(modifier = Modifier.height(2.dp))
-                                    Text(
-                                        text = "Si desactivas esta opción, no podrás enviar ni recibir confirmaciones de lectura (doble tilde azul).",
-                                        color = Color(0xFF90A4AE),
-                                        fontSize = 11.sp
-                                    )
-                                }
-                                Switch(
-                                    checked = uiState.readReceiptsEnabled,
-                                    onCheckedChange = { enabled ->
-                                        viewModel.dispatch(PrivacyAction.ToggleReadReceipts(enabled))
-                                    },
-                                    colors = SwitchDefaults.colors(
-                                        checkedThumbColor = Color.White,
-                                        checkedTrackColor = Color(0xFF25D366),
-                                        uncheckedThumbColor = Color(0xFF90A4AE),
-                                        uncheckedTrackColor = Color(0xFF37474F)
-                                    )
-                                )
-                            }
-                        }
-                    }
-                }
-
-                // 3. Invisible / Ghost Mode
-                item {
-                    Card(
-                        modifier = Modifier.fillMaxWidth(),
-                        colors = CardDefaults.cardColors(containerColor = Color(0xFF1E2B33)),
-                        shape = RoundedCornerShape(16.dp)
-                    ) {
-                        Column(
-                            modifier = Modifier
-                                .fillMaxWidth()
-                                .padding(16.dp),
-                            verticalArrangement = Arrangement.spacedBy(12.dp)
-                        ) {
-                            Row(
-                                modifier = Modifier.fillMaxWidth(),
-                                horizontalArrangement = Arrangement.SpaceBetween,
-                                verticalAlignment = Alignment.CenterVertically
-                            ) {
-                                Column(modifier = Modifier.weight(1f)) {
-                                    Row(verticalAlignment = Alignment.CenterVertically) {
-                                        Icon(
-                                            imageVector = if (uiState.invisibleModeEnabled) Icons.Default.VisibilityOff else Icons.Default.Visibility,
-                                            contentDescription = null,
-                                            tint = if (uiState.invisibleModeEnabled) Color(0xFF00E5FF) else Color.White,
-                                            modifier = Modifier.size(18.dp)
-                                        )
-                                        Spacer(modifier = Modifier.width(6.dp))
-                                        Text(
-                                            text = "Modo Invisible (Ghost)",
-                                            color = PanalinkPalette.textPrimary,
-                                            fontWeight = FontWeight.SemiBold,
-                                            fontSize = 14.sp
-                                        )
-                                    }
-                                    Spacer(modifier = Modifier.height(2.dp))
-                                    Text(
-                                        text = "Navega y lee mensajes sin mostrar el estado 'En línea' ni actualizar tu última conexión.",
-                                        color = Color(0xFF90A4AE),
-                                        fontSize = 11.sp
-                                    )
-                                }
-                                Switch(
-                                    checked = uiState.invisibleModeEnabled,
-                                    onCheckedChange = { enabled ->
-                                        viewModel.dispatch(PrivacyAction.ToggleInvisibleMode(enabled))
-                                    },
-                                    colors = SwitchDefaults.colors(
-                                        checkedThumbColor = Color.White,
-                                        checkedTrackColor = Color(0xFF00E5FF),
-                                        uncheckedThumbColor = Color(0xFF90A4AE),
-                                        uncheckedTrackColor = Color(0xFF37474F)
-                                    )
-                                )
-                            }
-                        }
-                    }
-                }
-
-                // 4. Smart Read Receipts
-                item {
-                    Card(
-                        modifier = Modifier.fillMaxWidth(),
-                        colors = CardDefaults.cardColors(containerColor = Color(0xFF1E2B33)),
-                        shape = RoundedCornerShape(16.dp)
-                    ) {
-                        Column(
-                            modifier = Modifier
-                                .fillMaxWidth()
-                                .padding(16.dp),
-                            verticalArrangement = Arrangement.spacedBy(12.dp)
-                        ) {
-                            Row(
-                                modifier = Modifier.fillMaxWidth(),
-                                horizontalArrangement = Arrangement.SpaceBetween,
-                                verticalAlignment = Alignment.CenterVertically
-                            ) {
-                                Column(modifier = Modifier.weight(1f)) {
-                                    Text(
-                                        text = "Lectura Inteligente",
-                                        color = PanalinkPalette.textPrimary,
-                                        fontWeight = FontWeight.SemiBold,
-                                        fontSize = 14.sp
-                                    )
-                                    Spacer(modifier = Modifier.height(2.dp))
-                                    Text(
-                                        text = "Envía la confirmación de lectura de manera inmediata al abrir la conversación.",
-                                        color = Color(0xFF90A4AE),
-                                        fontSize = 11.sp
-                                    )
-                                }
-                                Switch(
-                                    checked = uiState.smartReadReceiptsEnabled,
-                                    onCheckedChange = { enabled ->
-                                        viewModel.dispatch(PrivacyAction.ToggleSmartReadReceipts(enabled))
-                                    },
-                                    colors = SwitchDefaults.colors(
-                                        checkedThumbColor = Color.White,
-                                        checkedTrackColor = Color(0xFF25D366),
-                                        uncheckedThumbColor = Color(0xFF90A4AE),
-                                        uncheckedTrackColor = Color(0xFF37474F)
-                                    )
-                                )
-                            }
-                        }
-                    }
-                }
-
-                // 5. Default Presence
-                item {
-                    Card(
-                        modifier = Modifier.fillMaxWidth(),
-                        colors = CardDefaults.cardColors(containerColor = Color(0xFF1E2B33)),
-                        shape = RoundedCornerShape(16.dp)
-                    ) {
-                        Column(
-                            modifier = Modifier
-                                .fillMaxWidth()
-                                .padding(16.dp),
-                            verticalArrangement = Arrangement.spacedBy(12.dp)
-                        ) {
-                            Text(
-                                text = "Estado de Presencia Predeterminado",
-                                color = PanalinkPalette.textPrimary,
-                                fontWeight = FontWeight.SemiBold,
-                                fontSize = 14.sp
+                    IosGroup {
+                        listOf(
+                            "online" to "En línea",
+                            "busy" to "Ocupado",
+                            "invisible" to "Invisible"
+                        ).forEachIndexed { index, (statusKey, label) ->
+                            if (index > 0) IosDivider(startIndent = 16.dp)
+                            IosRadioRow(
+                                title = label,
+                                selected = uiState.profilePresence.equals(statusKey, ignoreCase = true),
+                                onClick = { viewModel.dispatch(PrivacyAction.UpdatePresence(statusKey)) },
+                                subtitle = null
                             )
-                            Text(
-                                text = "Define cómo te verán tus contactos por defecto al ingresar a la app.",
-                                color = Color(0xFF90A4AE),
-                                fontSize = 11.sp
-                            )
-
-                            val presenceOptions = listOf(
-                                "online" to "En línea 🟢",
-                                "busy" to "Ocupado 🔴",
-                                "invisible" to "Invisible ⚪"
-                            )
-                            presenceOptions.forEach { (statusKey, label) ->
-                                val isSelected = uiState.profilePresence.equals(statusKey, ignoreCase = true)
-                                Row(
-                                    modifier = Modifier
-                                        .fillMaxWidth()
-                                        .background(
-                                            color = if (isSelected) Color(0xFF25D366).copy(alpha = 0.15f) else Color(0xFF2A3942).copy(alpha = 0.4f),
-                                            shape = RoundedCornerShape(8.dp)
-                                        )
-                                        .border(
-                                            width = 1.dp,
-                                            color = if (isSelected) Color(0xFF25D366) else Color.Transparent,
-                                            shape = RoundedCornerShape(8.dp)
-                                        )
-                                        .clickable { viewModel.dispatch(PrivacyAction.UpdatePresence(statusKey)) }
-                                        .padding(horizontal = 12.dp, vertical = 10.dp),
-                                    verticalAlignment = Alignment.CenterVertically
-                                ) {
-                                    RadioButton(
-                                        selected = isSelected,
-                                        onClick = { viewModel.dispatch(PrivacyAction.UpdatePresence(statusKey)) },
-                                        colors = RadioButtonDefaults.colors(
-                                            selectedColor = Color(0xFF25D366),
-                                            unselectedColor = Color(0xFF90A4AE)
-                                        )
-                                    )
-                                    Spacer(modifier = Modifier.width(8.dp))
-                                    Text(
-                                        text = label,
-                                        color = if (isSelected) Color(0xFF25D366) else Color.White,
-                                        fontSize = 13.sp,
-                                        fontWeight = if (isSelected) FontWeight.SemiBold else FontWeight.Normal
-                                    )
-                                }
-                            }
                         }
                     }
+                    IosSectionFooter("Define cómo te verán tus contactos por defecto al entrar a la app.")
                 }
+
+                item { IosBottomSpacer() }
             }
         }
     }

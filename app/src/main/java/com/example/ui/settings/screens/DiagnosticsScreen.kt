@@ -1,18 +1,46 @@
 package com.example.ui.settings.screens
 
 import android.content.Intent
-import androidx.compose.foundation.background
 import androidx.compose.foundation.horizontalScroll
-import androidx.compose.foundation.layout.*
+import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.PaddingValues
+import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.automirrored.filled.ArrowBack
-import androidx.compose.material.icons.filled.*
-import androidx.compose.material3.*
-import androidx.compose.runtime.*
+import androidx.compose.material.icons.filled.CheckCircle
+import androidx.compose.material.icons.filled.DeleteSweep
+import androidx.compose.material.icons.filled.Error
+import androidx.compose.material.icons.filled.Info
+import androidx.compose.material.icons.filled.MonitorHeart
+import androidx.compose.material.icons.filled.RadioButtonChecked
+import androidx.compose.material.icons.filled.Share
+import androidx.compose.material.icons.filled.Timeline
+import androidx.compose.material.icons.filled.Warning
+import androidx.compose.material3.Button
+import androidx.compose.material3.ButtonDefaults
+import androidx.compose.material3.FilterChip
+import androidx.compose.material3.FilterChipDefaults
+import androidx.compose.material3.Icon
+import androidx.compose.material3.OutlinedButton
+import androidx.compose.material3.Switch
+import androidx.compose.material3.SwitchDefaults
+import androidx.compose.material3.Text
+import androidx.compose.runtime.Composable
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
@@ -27,15 +55,15 @@ import com.example.feature.diagnostics.model.DiagnosticCategory
 import com.example.feature.diagnostics.model.DiagnosticEvent
 import com.example.feature.diagnostics.model.DiagnosticSeverity
 import com.example.feature.diagnostics.model.matches
+import com.example.ui.settings.ios.IosBottomSpacer
+import com.example.ui.settings.ios.IosFont
+import com.example.ui.settings.ios.IosGroup
+import com.example.ui.settings.ios.IosListPadding
+import com.example.ui.settings.ios.IosSectionHeader
+import com.example.ui.settings.ios.IosSettingsColors
+import com.example.ui.settings.ios.IosSettingsScaffold
 import com.example.ui.settings.viewmodel.DiagnosticsViewModel
-import com.example.ui.theme.PanalinkPalette
 
-private val DiagnosticBackground = Color(0xFF121B22)
-private val DiagnosticCard = Color(0xFF1E2B33)
-private val DiagnosticMuted = Color(0xFF90A4AE)
-private val DiagnosticGreen = Color(0xFF25D366)
-
-@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun DiagnosticsScreen(
     onBack: () -> Unit,
@@ -52,124 +80,139 @@ fun DiagnosticsScreen(
 
     fun shareDiagnostics() {
         val text = viewModel.exportText()
-        context.startActivity(Intent.createChooser(Intent(Intent.ACTION_SEND).apply {
-            type = "text/plain"
-            putExtra(Intent.EXTRA_SUBJECT, "Panalink - Diagnóstico del sistema")
-            putExtra(Intent.EXTRA_TEXT, text)
-        }, "Compartir diagnóstico"))
+        context.startActivity(
+            Intent.createChooser(
+                Intent(Intent.ACTION_SEND).apply {
+                    type = "text/plain"
+                    putExtra(Intent.EXTRA_SUBJECT, "Panalink - Diagnóstico del sistema")
+                    putExtra(Intent.EXTRA_TEXT, text)
+                },
+                "Compartir diagnóstico"
+            )
+        )
     }
 
-    Scaffold(
-        topBar = {
-            TopAppBar(
-                title = { Text("Diagnóstico del sistema", color = PanalinkPalette.textPrimary) },
-                navigationIcon = {
-                    IconButton(onClick = onBack) {
-                        Icon(Icons.AutoMirrored.Filled.ArrowBack, contentDescription = "Regresar", tint = PanalinkPalette.textPrimary)
-                    }
-                },
-                colors = TopAppBarDefaults.topAppBarColors(containerColor = DiagnosticBackground)
-            )
-        },
-        containerColor = DiagnosticBackground
-    ) { padding ->
+    IosSettingsScaffold(title = "Diagnóstico", onBack = onBack) { padding ->
         LazyColumn(
             modifier = Modifier.fillMaxSize().padding(padding),
-            contentPadding = PaddingValues(16.dp),
-            verticalArrangement = Arrangement.spacedBy(12.dp)
+            contentPadding = IosListPadding
         ) {
+            item { IosSectionHeader("Monitor de procesos") }
             item {
-                Card(
-                    colors = CardDefaults.cardColors(containerColor = DiagnosticCard),
-                    shape = RoundedCornerShape(16.dp),
-                    modifier = Modifier.fillMaxWidth()
-                ) {
-                    Column(modifier = Modifier.padding(16.dp)) {
-                        Row(verticalAlignment = Alignment.CenterVertically) {
-                            Icon(
-                                if (captureState == DiagnosticCaptureState.CAPTURING) Icons.Default.RadioButtonChecked else Icons.Default.MonitorHeart,
-                                contentDescription = null,
-                                tint = if (captureState == DiagnosticCaptureState.CAPTURING) DiagnosticGreen else DiagnosticMuted,
-                                modifier = Modifier.size(28.dp)
-                            )
-                            Spacer(Modifier.width(12.dp))
-                            Column(modifier = Modifier.weight(1f)) {
-                                Text("Monitor de procesos", color = PanalinkPalette.textPrimary, fontSize = 16.sp, fontWeight = FontWeight.Bold)
-                                Text(
-                                    if (captureState == DiagnosticCaptureState.CAPTURING) "Capturando eventos en tiempo real"
-                                    else "Captura detenida; los errores siguen registrándose",
-                                    color = DiagnosticMuted,
-                                    fontSize = 12.sp
-                                )
-                            }
-                            Switch(
-                                checked = captureState == DiagnosticCaptureState.CAPTURING,
-                                onCheckedChange = viewModel::setCapture,
-                                colors = SwitchDefaults.colors(checkedThumbColor = Color.White, checkedTrackColor = DiagnosticGreen)
+                IosGroup {
+                    Row(
+                        modifier = Modifier.fillMaxWidth().padding(16.dp),
+                        verticalAlignment = Alignment.CenterVertically
+                    ) {
+                        Icon(
+                            imageVector = if (captureState == DiagnosticCaptureState.CAPTURING) Icons.Default.RadioButtonChecked else Icons.Default.MonitorHeart,
+                            contentDescription = null,
+                            tint = if (captureState == DiagnosticCaptureState.CAPTURING) IosSettingsColors.green else IosSettingsColors.secondaryLabel,
+                            modifier = Modifier.size(26.dp)
+                        )
+                        Spacer(Modifier.width(12.dp))
+                        Column(modifier = Modifier.weight(1f)) {
+                            Text("Capturar eventos", color = IosSettingsColors.label, fontFamily = IosFont, fontSize = 16.sp)
+                            Spacer(Modifier.height(2.dp))
+                            Text(
+                                text = if (captureState == DiagnosticCaptureState.CAPTURING)
+                                    "Capturando en tiempo real"
+                                else
+                                    "Detenida; los errores siguen registrándose",
+                                color = IosSettingsColors.secondaryLabel,
+                                fontFamily = IosFont,
+                                fontSize = 13.sp
                             )
                         }
-                        Spacer(Modifier.height(12.dp))
-                        Text(
-                            "Usa la captura para reproducir un problema y obtener una línea de tiempo de VCDN, ExoPlayer, caché y red. No sustituye Logcat.",
-                            color = DiagnosticMuted,
-                            fontSize = 12.sp
+                        Switch(
+                            checked = captureState == DiagnosticCaptureState.CAPTURING,
+                            onCheckedChange = viewModel::setCapture,
+                            colors = SwitchDefaults.colors(
+                                checkedThumbColor = Color.White,
+                                checkedTrackColor = IosSettingsColors.green,
+                                uncheckedThumbColor = IosSettingsColors.secondaryLabel,
+                                uncheckedTrackColor = IosSettingsColors.cellElevated
+                            )
                         )
                     }
                 }
             }
 
             item {
-                Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+                Row(
+                    modifier = Modifier.fillMaxWidth().padding(horizontal = 16.dp, vertical = 8.dp),
+                    horizontalArrangement = Arrangement.spacedBy(10.dp)
+                ) {
                     OutlinedButton(onClick = viewModel::clear, modifier = Modifier.weight(1f)) {
-                        Icon(Icons.Default.DeleteSweep, contentDescription = null)
+                        Icon(Icons.Default.DeleteSweep, contentDescription = null, modifier = Modifier.size(18.dp))
                         Spacer(Modifier.width(6.dp))
-                        Text("Limpiar")
+                        Text("Limpiar", fontFamily = IosFont)
                     }
-                    Button(onClick = ::shareDiagnostics, modifier = Modifier.weight(1f)) {
-                        Icon(Icons.Default.Share, contentDescription = null)
+                    Button(
+                        onClick = ::shareDiagnostics,
+                        modifier = Modifier.weight(1f),
+                        colors = ButtonDefaults.buttonColors(
+                            containerColor = IosSettingsColors.blue,
+                            contentColor = Color.White
+                        )
+                    ) {
+                        Icon(Icons.Default.Share, contentDescription = null, modifier = Modifier.size(18.dp))
                         Spacer(Modifier.width(6.dp))
-                        Text("Exportar")
+                        Text("Exportar", fontFamily = IosFont)
                     }
                 }
             }
 
+            item { IosSectionHeader("Filtros") }
             item {
-                Text("Filtros", color = PanalinkPalette.textPrimary, fontSize = 16.sp, fontWeight = FontWeight.Bold)
-                Spacer(Modifier.height(8.dp))
                 Row(
-                    modifier = Modifier.fillMaxWidth().horizontalScroll(rememberScrollState()),
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .horizontalScroll(rememberScrollState())
+                        .padding(horizontal = 16.dp),
                     horizontalArrangement = Arrangement.spacedBy(8.dp)
                 ) {
                     DiagnosticCategory.entries.forEach { category ->
                         FilterChip(
                             selected = selectedCategory == category,
                             onClick = { selectedCategory = category },
-                            label = { Text(category.label) }
+                            label = { Text(category.label, fontFamily = IosFont) },
+                            colors = FilterChipDefaults.filterChipColors(
+                                selectedContainerColor = IosSettingsColors.blue,
+                                selectedLabelColor = Color.White,
+                                containerColor = IosSettingsColors.cell,
+                                labelColor = IosSettingsColors.label
+                            ),
+                            border = FilterChipDefaults.filterChipBorder(
+                                enabled = true,
+                                selected = selectedCategory == category,
+                                borderColor = IosSettingsColors.separator,
+                                selectedBorderColor = IosSettingsColors.blue
+                            )
                         )
                     }
                 }
             }
 
-            item {
-                Text(
-                    "Línea de tiempo · ${visibleEvents.size} eventos",
-                    color = PanalinkPalette.textPrimary,
-                    fontSize = 16.sp,
-                    fontWeight = FontWeight.Bold
-                )
-            }
+            item { IosSectionHeader("Línea de tiempo · ${visibleEvents.size} eventos") }
 
             if (visibleEvents.isEmpty()) {
                 item {
-                    Card(colors = CardDefaults.cardColors(containerColor = DiagnosticCard), shape = RoundedCornerShape(16.dp)) {
+                    IosGroup {
                         Column(
                             modifier = Modifier.fillMaxWidth().padding(24.dp),
                             horizontalAlignment = Alignment.CenterHorizontally
                         ) {
-                            Icon(Icons.Default.Timeline, contentDescription = null, tint = DiagnosticMuted, modifier = Modifier.size(36.dp))
+                            Icon(Icons.Default.Timeline, contentDescription = null, tint = IosSettingsColors.secondaryLabel, modifier = Modifier.size(36.dp))
                             Spacer(Modifier.height(8.dp))
-                            Text("Sin eventos todavía", color = PanalinkPalette.textPrimary, fontWeight = FontWeight.Medium)
-                            Text("Activa la captura y reproduce el problema que quieres investigar.", color = DiagnosticMuted, fontSize = 12.sp)
+                            Text("Sin eventos todavía", color = IosSettingsColors.label, fontFamily = IosFont, fontWeight = FontWeight.Medium, fontSize = 16.sp)
+                            Spacer(Modifier.height(4.dp))
+                            Text(
+                                "Activa la captura y reproduce el problema que quieres investigar.",
+                                color = IosSettingsColors.secondaryLabel,
+                                fontFamily = IosFont,
+                                fontSize = 13.sp
+                            )
                         }
                     }
                 }
@@ -178,6 +221,8 @@ fun DiagnosticsScreen(
                     DiagnosticEventCard(event)
                 }
             }
+
+            item { IosBottomSpacer() }
         }
     }
 }
@@ -191,32 +236,32 @@ private fun DiagnosticEventCard(event: DiagnosticEvent) {
         DiagnosticSeverity.INFO -> Icons.Default.Info
     }
     val severityTint = when (event.severity) {
-        DiagnosticSeverity.SUCCESS -> Color(0xFF4CAF50)
-        DiagnosticSeverity.WARNING -> Color(0xFFFFB300)
-        DiagnosticSeverity.ERROR -> Color(0xFFFF5252)
-        DiagnosticSeverity.INFO -> Color(0xFF03A9F4)
+        DiagnosticSeverity.SUCCESS -> IosSettingsColors.green
+        DiagnosticSeverity.WARNING -> IosSettingsColors.orange
+        DiagnosticSeverity.ERROR -> IosSettingsColors.red
+        DiagnosticSeverity.INFO -> IosSettingsColors.blue
     }
 
-    Card(colors = CardDefaults.cardColors(containerColor = DiagnosticCard), shape = RoundedCornerShape(14.dp)) {
+    IosGroup(modifier = Modifier.padding(vertical = 4.dp)) {
         Row(modifier = Modifier.fillMaxWidth().padding(14.dp), verticalAlignment = Alignment.Top) {
             Icon(severityIcon, contentDescription = null, tint = severityTint, modifier = Modifier.size(22.dp))
             Spacer(Modifier.width(10.dp))
             Column(modifier = Modifier.weight(1f)) {
                 Row(verticalAlignment = Alignment.CenterVertically) {
-                    Text(event.displayTime(), color = DiagnosticMuted, fontSize = 11.sp)
+                    Text(event.displayTime(), color = IosSettingsColors.secondaryLabel, fontFamily = IosFont, fontSize = 11.sp)
                     Spacer(Modifier.width(8.dp))
-                    Text(event.category.label, color = PanalinkPalette.textPrimary, fontSize = 11.sp, fontWeight = FontWeight.Bold)
+                    Text(event.category.label, color = IosSettingsColors.label, fontFamily = IosFont, fontSize = 11.sp, fontWeight = FontWeight.Bold)
                 }
                 Spacer(Modifier.height(4.dp))
-                Text(event.event, color = PanalinkPalette.textPrimary, fontSize = 14.sp, fontWeight = FontWeight.Medium)
+                Text(event.event, color = IosSettingsColors.label, fontFamily = IosFont, fontSize = 14.sp, fontWeight = FontWeight.Medium)
                 event.durationMs?.let {
-                    Text("Duración: ${it} ms", color = DiagnosticMuted, fontSize = 12.sp)
+                    Text("Duración: ${it} ms", color = IosSettingsColors.secondaryLabel, fontFamily = IosFont, fontSize = 12.sp)
                 }
                 event.correlationId?.let {
-                    Text("ID: $it", color = DiagnosticMuted, fontSize = 11.sp)
+                    Text("ID: $it", color = IosSettingsColors.secondaryLabel, fontFamily = IosFont, fontSize = 11.sp)
                 }
                 event.details?.let {
-                    Text(it, color = DiagnosticMuted, fontSize = 11.sp)
+                    Text(it, color = IosSettingsColors.secondaryLabel, fontFamily = IosFont, fontSize = 11.sp)
                 }
             }
         }

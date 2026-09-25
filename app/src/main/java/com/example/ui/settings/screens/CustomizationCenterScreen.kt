@@ -46,6 +46,9 @@ import androidx.compose.ui.unit.sp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.lifecycle.viewmodel.compose.viewModel
 import com.example.feature.settings.model.CustomizationAction
+import com.example.ui.settings.ios.IosListPadding
+import com.example.ui.settings.ios.IosSettingsColors
+import com.example.ui.settings.ios.IosSettingsScaffold
 import com.example.ui.settings.viewmodel.CustomizationViewModel
 import com.example.ui.theme.ThemeManager
 import kotlin.math.pow
@@ -61,26 +64,12 @@ fun CustomizationCenterScreen(
 val uiState by viewModel.uiState.collectAsStateWithLifecycle()
     val pal = rememberPalette()
 
-    Scaffold(
-        containerColor = Color.Transparent,
-        topBar = {
-            CenterAlignedTopAppBar(
-                title = { Text("Personalización", color = pal.on, fontWeight = FontWeight.Bold, fontSize = 17.sp) },
-                navigationIcon = {
-                    IconButton(onClick = onBack) {
-                        Icon(Icons.AutoMirrored.Filled.ArrowBack, contentDescription = "Regresar", tint = pal.on)
-                    }
-                },
-                colors = TopAppBarDefaults.topAppBarColors(containerColor = Color.Transparent, scrolledContainerColor = Color.Transparent)
-            )
-        }
-    ) { padding ->
+    IosSettingsScaffold(title = "Personalización", onBack = onBack) { padding ->
         LazyColumn(
             modifier = Modifier
                 .fillMaxSize()
-                .background(Brush.verticalGradient(listOf(pal.bg, pal.bg)))
-                .padding(padding)
-                .padding(horizontal = 18.dp),
+                .padding(padding),
+            contentPadding = IosListPadding,
             verticalArrangement = Arrangement.spacedBy(20.dp)
         ) {
 
@@ -177,7 +166,7 @@ ScaleChip(
                     modifier = Modifier
                         .fillMaxWidth()
                         .clip(RoundedCornerShape(22.dp))
-                        .background(if (pal.isDark) Color(0xFF0C131F) else Color(0xFFF5F9F7))
+                        .background(IosSettingsColors.cellElevated)
                         .border(1.dp, pal.border, RoundedCornerShape(22.dp))
                         .clickable { haptic.performHapticFeedback(HapticFeedbackType.LongPress); viewModel.dispatch(CustomizationAction.SetMinimalistMode(!uiState.isMinimalistMode)) }
                         .padding(16.dp),
@@ -239,18 +228,25 @@ private class PaletteState(
     val on: Color,
     val onSub: Color,
     val inputBg: Color,
-    val accent: Color = Color(0xFF5CF8B0)
+    val accent: Color = IosSettingsColors.blue
 )
 
 @Composable
 private fun rememberPalette(): PaletteState {
-    val scheme = MaterialTheme.colorScheme
-    val isDark = scheme.background.luminance() < 0.5f
-    return remember(isDark) { PaletteState(isDark, scheme.background, scheme.surface, scheme.outlineVariant.copy(alpha =0.6f), scheme.onBackground, scheme.surfaceContainerHighest, scheme.surfaceContainerHighest) }
+    val dark = PanalinkPalette.isDark
+    return remember(dark) {
+        PaletteState(
+            isDark = dark,
+            bg = IosSettingsColors.groupBackground,
+            card = IosSettingsColors.cell,
+            border = IosSettingsColors.separator,
+            on = IosSettingsColors.label,
+            onSub = IosSettingsColors.secondaryLabel,
+            inputBg = IosSettingsColors.cellElevated,
+            accent = IosSettingsColors.blue
+        )
+    }
 }
-
-private fun Color.luminance(): Float =
-    0.299f * this.red + 0.587f * this.green + 0.114f * this.blue
 
 @Composable
 private fun ScaleChip(
@@ -276,12 +272,12 @@ private fun ScaleChip(
             .shadow(
                 elevation = if (selected) 10.dp else 2.dp,
                 shape = shape,
-                ambientColor = if (selected) Color(0xFF5CF8B0).copy(alpha =0.45f) else Color(0xFF000000).copy(alpha =0.20f),
-                spotColor = if (selected) Color(0xFF5CF8B0).copy(alpha =0.30f) else Color(0xFF000000).copy(alpha =0.15f)
+                ambientColor = if (selected) IosSettingsColors.blue.copy(alpha =0.45f) else Color(0xFF000000).copy(alpha =0.20f),
+                spotColor = if (selected) IosSettingsColors.blue.copy(alpha =0.30f) else Color(0xFF000000).copy(alpha =0.15f)
             )
             .border(
                 width = if (selected) 1.5.dp else 1.dp,
-                color = if (selected) Color(0xFF5CF8B0).copy(alpha =0.9f) else Color(0xFFFFFFFF).copy(alpha =0.14f),
+                color = if (selected) IosSettingsColors.blue.copy(alpha =0.9f) else Color(0xFFFFFFFF).copy(alpha =0.14f),
                 shape = shape
 
             )
@@ -467,7 +463,7 @@ private fun BottomBarLivePreview(
             .fillMaxWidth()
             .height(64.dp)
             .clip(RoundedCornerShape(22.dp))
-            .background(if (pal.isDark) Color(0xFF0C131F) else Color(0xFFF5F9F7))
+            .background(IosSettingsColors.cellElevated)
             .border(1.dp, pal.border, RoundedCornerShape(22.dp)),
         contentAlignment = Alignment.Center
     ) {

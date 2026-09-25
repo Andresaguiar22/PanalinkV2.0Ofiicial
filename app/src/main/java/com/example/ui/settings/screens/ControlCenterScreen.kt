@@ -1,28 +1,52 @@
 package com.example.ui.settings.screens
 
 import android.widget.Toast
-import androidx.compose.animation.*
+import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.animation.core.tween
+import androidx.compose.animation.fadeIn
+import androidx.compose.animation.slideInVertically
 import androidx.compose.foundation.background
-import androidx.compose.foundation.border
-import androidx.compose.foundation.clickable
-import androidx.compose.foundation.layout.*
+import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.shape.CircleShape
-import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material.icons.automirrored.filled.KeyboardArrowRight
-import androidx.compose.material.icons.filled.*
-import androidx.compose.material3.*
-import androidx.compose.runtime.*
+import androidx.compose.material.icons.filled.AccountCircle
+import androidx.compose.material.icons.automirrored.filled.Chat
+import androidx.compose.material.icons.filled.ColorLens
+import androidx.compose.material.icons.filled.Info
+import androidx.compose.material.icons.filled.Lock
+import androidx.compose.material.icons.filled.Notifications
+import androidx.compose.material.icons.filled.Person
+import androidx.compose.material.icons.filled.Refresh
+import androidx.compose.material.icons.filled.Restore
+import androidx.compose.material.icons.filled.Security
+import androidx.compose.material.icons.filled.Storage
+import androidx.compose.material3.AlertDialog
+import androidx.compose.material3.CircularProgressIndicator
+import androidx.compose.material3.Icon
+import androidx.compose.material3.IconButton
+import androidx.compose.material3.Text
+import androidx.compose.material3.TextButton
+import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
-import androidx.compose.ui.graphics.Brush
-import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.graphics.vector.ImageVector
-import androidx.compose.ui.input.nestedscroll.nestedScroll
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.font.FontWeight
@@ -32,11 +56,22 @@ import androidx.compose.ui.unit.sp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.lifecycle.viewmodel.compose.viewModel
 import coil.compose.AsyncImage
+import com.example.feature.settings.model.ControlCenterUiState
 import com.example.feature.settings.model.DashboardAction
+import com.example.ui.settings.ios.IosActionRow
+import com.example.ui.settings.ios.IosBadge
+import com.example.ui.settings.ios.IosBottomSpacer
+import com.example.ui.settings.ios.IosDivider
+import com.example.ui.settings.ios.IosFont
+import com.example.ui.settings.ios.IosGroup
+import com.example.ui.settings.ios.IosListPadding
+import com.example.ui.settings.ios.IosRow
+import com.example.ui.settings.ios.IosSectionHeader
+import com.example.ui.settings.ios.IosSettingsColors
+import com.example.ui.settings.ios.IosSettingsScaffold
+import com.example.ui.settings.ios.IosValueRow
 import com.example.ui.settings.viewmodel.DashboardViewModel
-import com.example.ui.theme.PanalinkPalette
 
-@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun ControlCenterScreen(
     onBack: () -> Unit,
@@ -56,7 +91,6 @@ fun ControlCenterScreen(
 ) {
     val uiState by viewModel.uiState.collectAsStateWithLifecycle()
     val context = LocalContext.current
-    val scrollBehavior = TopAppBarDefaults.exitUntilCollapsedScrollBehavior(rememberTopAppBarState())
 
     var showLogoutDialog by remember { mutableStateOf(false) }
     var showDeleteAccountDialog by remember { mutableStateOf(false) }
@@ -68,29 +102,14 @@ fun ControlCenterScreen(
         }
     }
 
-    Scaffold(
-        modifier = Modifier.nestedScroll(scrollBehavior.nestedScrollConnection),
-        topBar = {
-            LargeTopAppBar(
-                title = { Text("Centro de Control", color = PanalinkPalette.textPrimary, fontWeight = FontWeight.Bold) },
-                navigationIcon = {
-                    IconButton(onClick = onBack) {
-                        Icon(Icons.AutoMirrored.Filled.ArrowBack, contentDescription = "Regresar", tint = PanalinkPalette.textPrimary)
-                    }
-                },
-                actions = {
-                    IconButton(onClick = { viewModel.dispatch(DashboardAction.RefreshDashboard) }) {
-                        Icon(Icons.Default.Refresh, contentDescription = "Actualizar", tint = PanalinkPalette.textPrimary)
-                    }
-                },
-                colors = TopAppBarDefaults.largeTopAppBarColors(
-                    containerColor = Color.Black,
-                    scrolledContainerColor = Color(0xFF1C1C1E)
-                ),
-                scrollBehavior = scrollBehavior
-            )
-        },
-        containerColor = Color.Black
+    IosSettingsScaffold(
+        title = "Centro de Control",
+        onBack = onBack,
+        actions = {
+            IconButton(onClick = { viewModel.dispatch(DashboardAction.RefreshDashboard) }) {
+                Icon(Icons.Default.Refresh, contentDescription = "Actualizar")
+            }
+        }
     ) { padding ->
         if (uiState.isLoading) {
             Box(
@@ -99,412 +118,264 @@ fun ControlCenterScreen(
                     .padding(padding),
                 contentAlignment = Alignment.Center
             ) {
-                CircularProgressIndicator(color = Color(0xFF0A84FF))
+                CircularProgressIndicator(color = IosSettingsColors.blue)
             }
         } else {
             AnimatedVisibility(
                 visible = true,
-                enter = fadeIn(animationSpec = tween(400)) + slideInVertically(animationSpec = tween(400))
+                enter = fadeIn(animationSpec = tween(300)) + slideInVertically(animationSpec = tween(300))
             ) {
                 LazyColumn(
                     modifier = Modifier
                         .fillMaxSize()
                         .padding(padding),
-                    contentPadding = PaddingValues(bottom = 36.dp, start = 16.dp, end = 16.dp),
-                    verticalArrangement = Arrangement.spacedBy(16.dp)
+                    contentPadding = IosListPadding
                 ) {
-                    // 1. Hero Card Superior Dinámico
+                    item { ProfileHeaderGroup(uiState, onNavigateToProfile) }
+
                     item {
-                        Card(
-                            modifier = Modifier.fillMaxWidth(),
-                            shape = RoundedCornerShape(24.dp),
-                            colors = CardDefaults.cardColors(containerColor = Color(0xFF1C1C1E)),
-                            border = androidx.compose.foundation.BorderStroke(1.dp, Color.White.copy(alpha = 0.10f)),
-                            elevation = CardDefaults.cardElevation(0.dp)
-                        ) {
-                            Column(
-                                modifier = Modifier
-                                    .fillMaxWidth()
-                                    .padding(20.dp),
-                                horizontalAlignment = Alignment.CenterHorizontally
-                            ) {
-                                Box(
-                                    modifier = Modifier
-                                        .size(80.dp)
-                                        .clip(CircleShape)
-                                        .background(
-                                            brush = Brush.linearGradient(listOf(Color(0xFF34C759), Color(0xFF0A84FF))),
-                                            shape = CircleShape
-                                        )
-                                        .padding(2.dp),
-                                    contentAlignment = Alignment.Center
-                                ) {
-                                    if (uiState.avatarUrl.isNotBlank()) {
-                                        AsyncImage(
-                                            model = uiState.avatarUrl,
-                                            contentDescription = "Avatar de ${uiState.userName}",
-                                            modifier = Modifier
-                                                .fillMaxSize()
-                                                .clip(CircleShape),
-                                            contentScale = ContentScale.Crop
-                                        )
-                                    } else {
-                                        Icon(
-                                            imageVector = Icons.Default.Person,
-                                            contentDescription = null,
-                                            tint = PanalinkPalette.textPrimary,
-                                            modifier = Modifier.size(44.dp)
-                                        )
-                                    }
-                                }
-
-                                Spacer(modifier = Modifier.height(12.dp))
-
-                                Text(
-                                    text = uiState.userName,
-                                    color = PanalinkPalette.textPrimary,
-                                    fontSize = 20.sp,
-                                    fontWeight = FontWeight.Bold
-                                )
-
-                                Text(
-                                    text = uiState.userHandle,
-                                    color = Color(0xFF8E8E93),
-                                    fontSize = 13.sp
-                                )
-
-                                Spacer(modifier = Modifier.height(12.dp))
-
-                                // Badges Row: Presencia + Seguridad
-                                Row(
-                                    horizontalArrangement = Arrangement.spacedBy(8.dp),
-                                    verticalAlignment = Alignment.CenterVertically
-                                ) {
-                                    val (badgeBg, badgeText, badgeColor) = when (uiState.presenceStatus) {
-                                        "busy" -> Triple(Color(0xFFFF453A).copy(alpha = 0.2f), "🔴 Ocupado", Color(0xFFFF3D00))
-                                        "invisible" -> Triple(Color(0xFF64D2FF).copy(alpha = 0.2f), "⚪ Invisible", Color(0xFF00E5FF))
-                                        else -> Triple(Color(0xFF34C759).copy(alpha = 0.2f), "🟢 Disponible", Color(0xFF25D366))
-                                    }
-
-                                    Surface(
-                                        shape = RoundedCornerShape(20.dp),
-                                        color = badgeBg
-                                    ) {
-                                        Text(
-                                            text = badgeText,
-                                            color = badgeColor,
-                                            fontSize = 11.sp,
-                                            fontWeight = FontWeight.SemiBold,
-                                            modifier = Modifier.padding(horizontal = 10.dp, vertical = 4.dp)
-                                        )
-                                    }
-
-                                    val isProtected = uiState.hasPin || uiState.is2FaEnabled
-                                    Surface(
-                                        shape = RoundedCornerShape(20.dp),
-                                        color = if (isProtected) Color(0xFF34C759).copy(alpha = 0.2f) else Color(0xFFFF9F0A).copy(alpha = 0.2f)
-                                    ) {
-                                        Text(
-                                            text = if (isProtected) "🛡️ Protegida" else "🔒 Básica",
-                                            color = if (isProtected) Color(0xFF4CAF50) else Color(0xFFFF9F0A),
-                                            fontSize = 11.sp,
-                                            fontWeight = FontWeight.SemiBold,
-                                            modifier = Modifier.padding(horizontal = 10.dp, vertical = 4.dp)
-                                        )
-                                    }
-                                }
-
-                                Spacer(modifier = Modifier.height(16.dp))
-
-                                // Contextual Quick Info
-                                Row(
-                                    modifier = Modifier.fillMaxWidth(),
-                                    horizontalArrangement = Arrangement.SpaceEvenly,
-                                    verticalAlignment = Alignment.CenterVertically
-                                ) {
-                                    QuickInfoItem(
-                                        icon = Icons.Default.Smartphone,
-                                        label = "${uiState.activeDevicesCount} Dispositivo(s)",
-                                        value = uiState.connectionStatus
-                                    )
-                                    Box(modifier = Modifier.height(24.dp).width(1.dp).background(Color(0x1FFFFFFF)))
-                                    QuickInfoItem(
-                                        icon = Icons.Default.Storage,
-                                        label = "Almacenamiento",
-                                        value = uiState.storageUsedSummary
-                                    )
-                                    Box(modifier = Modifier.height(24.dp).width(1.dp).background(Color(0xFF37474F)))
-                                    QuickInfoItem(
-                                        icon = Icons.Default.Sync,
-                                        label = "Sincronización",
-                                        value = uiState.lastSynchronization
-                                    )
-                                }
-
-                                Spacer(modifier = Modifier.height(16.dp))
-
-                                Button(
-                                    onClick = onNavigateToProfile,
-                                    colors = ButtonDefaults.buttonColors(containerColor = Color(0xFF0A84FF)),
-                                    shape = RoundedCornerShape(14.dp),
-                                    modifier = Modifier.fillMaxWidth(0.7f)
-                                ) {
-                                    Icon(Icons.Default.Edit, contentDescription = null, tint = Color.White, modifier = Modifier.size(16.dp))
-                                    Spacer(modifier = Modifier.width(6.dp))
-                                    Text("Editar Perfil", color = Color.White, fontWeight = FontWeight.Bold, fontSize = 13.sp)
-                                }
-                            }
+                        IosGroup {
+                            IosValueRow(
+                                title = "Dispositivos activos",
+                                value = uiState.activeDevicesCount.toString(),
+                                icon = Icons.Default.Person,
+                                iconTint = IosSettingsColors.teal
+                            )
+                            IosDivider()
+                            IosValueRow(
+                                title = "Almacenamiento",
+                                value = uiState.storageUsedSummary,
+                                icon = Icons.Default.Storage,
+                                iconTint = IosSettingsColors.orange
+                            )
+                            IosDivider()
+                            IosValueRow(
+                                title = "Última sincronización",
+                                value = uiState.lastSynchronization,
+                                icon = Icons.Default.Refresh,
+                                iconTint = IosSettingsColors.indigo
+                            )
                         }
                     }
 
-                    // 2. Tarjetas Inteligentes (Smart Cards)
+                    item { IosSectionHeader("Módulos inteligentes") }
                     item {
-                        Text(
-                            text = "Módulos Inteligentes".uppercase(),
-                            color = Color(0xFF8E8E93),
-                            fontSize = 13.sp,
-                            fontWeight = FontWeight.SemiBold,
-                            modifier = Modifier.padding(start = 16.dp, top = 2.dp, bottom = 2.dp)
-                        )
+                        IosGroup {
+                            IosRow(
+                                title = "Seguridad y acceso",
+                                subtitle = uiState.securitySummary,
+                                icon = Icons.Default.Security,
+                                iconTint = IosSettingsColors.red,
+                                trailingText = if (uiState.hasPin && uiState.is2FaEnabled) "Máxima" else if (uiState.hasPin) "PIN" else "Básica",
+                                onClick = onNavigateToSecurity
+                            )
+                            IosDivider()
+                            IosRow(
+                                title = "Actividad y sistema",
+                                subtitle = uiState.activitySummary,
+                                icon = Icons.Default.Restore,
+                                iconTint = IosSettingsColors.blue,
+                                trailingText = "${uiState.messagesCount} msj",
+                                onClick = onNavigateToActivity
+                            )
+                            IosDivider()
+                            IosRow(
+                                title = "Presencia",
+                                subtitle = uiState.presenceSummary,
+                                icon = Icons.Default.AccountCircle,
+                                iconTint = IosSettingsColors.green,
+                                onClick = onNavigateToPresence
+                            )
+                        }
                     }
 
+                    item { IosSectionHeader("Ajustes") }
                     item {
-                        SmartDomainCard(
-                            title = "Seguridad & Acceso",
-                            subtitle = uiState.securitySummary,
-                            statusBadge = if (uiState.hasPin && uiState.is2FaEnabled) "🛡️ Protección Máxima" else if (uiState.hasPin) "🔐 PIN Activo" else "⚠️ Sin PIN",
-                            badgeColor = if (uiState.hasPin) Color(0xFF4CAF50) else Color(0xFFFF9F0A),
-                            icon = Icons.Default.Security,
-                            iconColor = Color(0xFFFF453A),
-                            onClick = onNavigateToSecurity
-                        )
+                        IosGroup {
+                            IosRow("Perfil", onNavigateToProfile, Icons.Default.Person, IosSettingsColors.blue, uiState.profileSummary)
+                            IosDivider()
+                            IosRow("Presencia", onNavigateToPresence, Icons.Default.AccountCircle, IosSettingsColors.green, uiState.presenceSummary)
+                            IosDivider()
+                            IosRow("Privacidad", onNavigateToPrivacy, Icons.Default.Lock, IosSettingsColors.purple, uiState.privacySummary)
+                            IosDivider()
+                            IosRow("Seguridad", onNavigateToSecurity, Icons.Default.Security, IosSettingsColors.red, uiState.securitySummary)
+                            IosDivider()
+                            IosRow("Chats", onNavigateToChats, Icons.AutoMirrored.Filled.Chat, IosSettingsColors.teal, uiState.chatsSummary)
+                            IosDivider()
+                            IosRow("Notificaciones", onNavigateToNotifications, Icons.Default.Notifications, IosSettingsColors.orange, uiState.notificationsSummary)
+                            IosDivider()
+                            IosRow("Personalización", onNavigateToCustomization, Icons.Default.ColorLens, IosSettingsColors.pink, uiState.customizationSummary)
+                            IosDivider()
+                            IosRow("Almacenamiento", onNavigateToStorage, Icons.Default.Storage, IosSettingsColors.orange, uiState.storageSummary)
+                            IosDivider()
+                            IosRow("Actividad", onNavigateToActivity, Icons.Default.Restore, IosSettingsColors.indigo, uiState.activitySummary)
+                            IosDivider()
+                            IosRow(
+                                title = "Información",
+                                onClick = onNavigateToAbout,
+                                icon = Icons.Default.Info,
+                                iconTint = IosSettingsColors.gray,
+                                subtitle = "Versión ${uiState.appVersion} • Ayuda y soporte"
+                            )
+                        }
                     }
 
+                    item { IosSectionHeader("Cuenta") }
                     item {
-                        SmartDomainCard(
-                            title = "Centro de Actividad & Sistema",
-                            subtitle = uiState.activitySummary,
-                            statusBadge = "📊 ${uiState.messagesCount} Mensajes",
-                            badgeColor = Color(0xFF0A84FF),
-                            icon = Icons.Default.Restore,
-                            iconColor = Color(0xFF0A84FF),
-                            onClick = onNavigateToActivity
-                        )
+                        IosGroup {
+                            IosActionRow(
+                                title = "Cerrar sesión",
+                                onClick = { showLogoutDialog = true },
+                                color = IosSettingsColors.red
+                            )
+                            IosDivider(startIndent = 16.dp)
+                            IosActionRow(
+                                title = "Eliminar cuenta",
+                                onClick = { showDeleteAccountDialog = true },
+                                color = IosSettingsColors.red
+                            )
+                        }
                     }
 
-                    item {
-                        SmartDomainCard(
-                            title = "Centro de Presencia",
-                            subtitle = uiState.presenceSummary,
-                            statusBadge = uiState.privacySummary,
-                            badgeColor = Color(0xFF25D366),
-                            icon = Icons.Default.AccountCircle,
-                            iconColor = Color(0xFF4CAF50),
-                            onClick = onNavigateToPresence
-                        )
-                    }
-
-                    // 3. Menú Completo de Configuración (tarjetas individuales premium)
-                    item {
-                        Text(
-                            text = "Ajustes Generales".uppercase(),
-                            color = Color(0xFF8E8E93),
-                            fontSize = 13.sp,
-                            fontWeight = FontWeight.SemiBold,
-                            modifier = Modifier.padding(start = 16.dp, top = 8.dp, bottom = 2.dp)
-                        )
-                    }
-
-                    item { IndividualSettingCard("Perfil", uiState.profileSummary, Icons.Default.Person, Color(0xFF0A84FF), onNavigateToProfile) }
-                    item { IndividualSettingCard("Presencia", uiState.presenceSummary, Icons.Default.AccountCircle, Color(0xFF4CAF50), onNavigateToPresence) }
-                    item { IndividualSettingCard("Privacidad", uiState.privacySummary, Icons.Default.Lock, Color(0xFFBF5AF2), onNavigateToPrivacy) }
-                    item { IndividualSettingCard("Seguridad", uiState.securitySummary, Icons.Default.Security, Color(0xFFF44336), onNavigateToSecurity) }
-                    item { IndividualSettingCard("Chats", uiState.chatsSummary, Icons.Default.Chat, Color(0xFF03A9F4), onNavigateToChats) }
-                    item { IndividualSettingCard("Notificaciones", uiState.notificationsSummary, Icons.Default.Notifications, Color(0xFFFFC107), onNavigateToNotifications) }
-                    item { IndividualSettingCard("Personalización", uiState.customizationSummary, Icons.Default.ColorLens, Color(0xFFFF375F), onNavigateToCustomization) }
-                    item { IndividualSettingCard("Almacenamiento", uiState.storageSummary, Icons.Default.Storage, Color(0xFFFF9800), onNavigateToStorage) }
-                    item { IndividualSettingCard("Centro de Actividad", uiState.activitySummary, Icons.Default.Restore, Color(0xFF00BCD4), onNavigateToActivity) }
-                    item { IndividualSettingCard("Información", "Versión ${uiState.appVersion} • Ayuda y Soporte", Icons.Default.Info, Color(0xFF8E8E93), onNavigateToAbout) }
-
-                    item { Spacer(modifier = Modifier.height(8.dp)) }
-                    item { IndividualSettingCard("Cerrar sesión", "Desconectarse de la cuenta actual", Icons.Default.ExitToApp, Color(0xFFFF9F0A)) { showLogoutDialog = true } }
-                    item { IndividualSettingCard("Eliminar cuenta", "Borrar permanentemente todos tus datos", Icons.Default.DeleteForever, Color(0xFFFF453A)) { showDeleteAccountDialog = true } }
+                    item { IosBottomSpacer() }
                 }
             }
         }
     }
 
     if (showLogoutDialog) {
-        androidx.compose.material3.AlertDialog(
+        AlertDialog(
             onDismissRequest = { showLogoutDialog = false },
-            title = { Text("Cerrar sesión", color = PanalinkPalette.textPrimary) },
-            text = { Text("¿Estás seguro de que quieres cerrar la sesión?", color = PanalinkPalette.textPrimary) },
-            containerColor = Color(0xFF1E2B33),
+            containerColor = IosSettingsColors.cell,
+            title = { Text("Cerrar sesión", color = IosSettingsColors.label, fontFamily = IosFont) },
+            text = { Text("¿Estás seguro de que quieres cerrar la sesión?", color = IosSettingsColors.label, fontFamily = IosFont) },
             confirmButton = {
-                androidx.compose.material3.TextButton(
+                TextButton(
                     onClick = {
                         showLogoutDialog = false
                         viewModel.logout(onComplete = onLogout)
                     }
                 ) {
-                    Text("Cerrar sesión", color = Color(0xFFFF5722))
+                    Text("Cerrar sesión", color = IosSettingsColors.red, fontFamily = IosFont, fontWeight = FontWeight.SemiBold)
                 }
             },
             dismissButton = {
-                androidx.compose.material3.TextButton(onClick = { showLogoutDialog = false }) {
-                    Text("Cancelar", color = PanalinkPalette.textPrimary)
+                TextButton(onClick = { showLogoutDialog = false }) {
+                    Text("Cancelar", color = IosSettingsColors.blue, fontFamily = IosFont)
                 }
             }
         )
     }
 
     if (showDeleteAccountDialog) {
-        androidx.compose.material3.AlertDialog(
+        AlertDialog(
             onDismissRequest = { showDeleteAccountDialog = false },
-            title = { Text("Eliminar cuenta", color = PanalinkPalette.textPrimary) },
-            text = { Text("Esta acción es irreversible y borrará todos tus datos. ¿Estás seguro?", color = PanalinkPalette.textPrimary) },
-            containerColor = Color(0xFF1E2B33),
+            containerColor = IosSettingsColors.cell,
+            title = { Text("Eliminar cuenta", color = IosSettingsColors.label, fontFamily = IosFont) },
+            text = { Text("Esta acción es irreversible y borrará todos tus datos. ¿Estás seguro?", color = IosSettingsColors.label, fontFamily = IosFont) },
             confirmButton = {
-                androidx.compose.material3.TextButton(
+                TextButton(
                     onClick = {
                         showDeleteAccountDialog = false
                         viewModel.deleteAccount(onComplete = onDeleteAccount)
                     }
                 ) {
-                    Text("Eliminar", color = Color(0xFFE53935))
+                    Text("Eliminar", color = IosSettingsColors.red, fontFamily = IosFont, fontWeight = FontWeight.SemiBold)
                 }
             },
             dismissButton = {
-                androidx.compose.material3.TextButton(onClick = { showDeleteAccountDialog = false }) {
-                    Text("Cancelar", color = PanalinkPalette.textPrimary)
+                TextButton(onClick = { showDeleteAccountDialog = false }) {
+                    Text("Cancelar", color = IosSettingsColors.blue, fontFamily = IosFont)
                 }
             }
         )
     }
 }
 
+/**
+ * Cabecera de perfil del hub: avatar con anillo, nombre, handle y las pastillas
+ * de estado (presencia / proteccion), como la tarjeta de cuenta de iOS.
+ */
 @Composable
-fun QuickInfoItem(icon: ImageVector, label: String, value: String) {
-    Column(horizontalAlignment = Alignment.CenterHorizontally) {
-        Row(verticalAlignment = Alignment.CenterVertically) {
-            Icon(icon, contentDescription = null, tint = Color(0xFF90A4AE), modifier = Modifier.size(14.dp))
-            Spacer(modifier = Modifier.width(4.dp))
-            Text(value, color = PanalinkPalette.textPrimary, fontSize = 12.sp, fontWeight = FontWeight.Bold)
-        }
-        Text(label, color = Color(0xFF90A4AE), fontSize = 10.sp)
-    }
-}
-
-@Composable
-fun IndividualSettingCard(
-    title: String,
-    description: String,
-    icon: ImageVector,
-    iconColor: Color,
-    onClick: () -> Unit
+private fun ProfileHeaderGroup(
+    uiState: ControlCenterUiState,
+    onNavigateToProfile: () -> Unit
 ) {
-    Card(
-        modifier = Modifier
-            .fillMaxWidth()
-            .padding(vertical = 5.dp)
-            .clickable(onClick = onClick),
-        shape = RoundedCornerShape(16.dp),
-        colors = CardDefaults.cardColors(containerColor = Color(0xFF1E2B33))
-    ) {
+    val presence = when (uiState.presenceStatus) {
+        "busy" -> Triple("Ocupado", IosSettingsColors.red, IosSettingsColors.red)
+        "invisible" -> Triple("Invisible", IosSettingsColors.gray, IosSettingsColors.gray)
+        else -> Triple("Disponible", IosSettingsColors.green, IosSettingsColors.green)
+    }
+    val protected = uiState.hasPin || uiState.is2FaEnabled
+
+    IosGroup {
         Row(
             modifier = Modifier
                 .fillMaxWidth()
-                .padding(horizontal = 16.dp, vertical = 14.dp),
-            verticalAlignment = Alignment.CenterVertically,
-            horizontalArrangement = Arrangement.spacedBy(12.dp)
+                .padding(start = 16.dp, end = 16.dp, top = 16.dp, bottom = 16.dp),
+            verticalAlignment = Alignment.CenterVertically
         ) {
             Box(
                 modifier = Modifier
-                    .size(42.dp)
-                    .clip(RoundedCornerShape(12.dp))
-                    .background(iconColor.copy(alpha = 0.14f)),
-                contentAlignment = Alignment.Center
-            ) {
-                Icon(icon, contentDescription = null, tint = iconColor, modifier = Modifier.size(22.dp))
-            }
-            Column(modifier = Modifier.weight(1f)) {
-                Text(title, color = PanalinkPalette.textPrimary, fontSize = 15.sp, fontWeight = FontWeight.SemiBold)
-                Spacer(modifier = Modifier.height(2.dp))
-                Text(description, color = Color(0xFF90A4AE), fontSize = 12.sp, maxLines = 2, overflow = TextOverflow.Ellipsis)
-            }
-            Icon(
-                imageVector = Icons.AutoMirrored.Filled.KeyboardArrowRight,
-                contentDescription = null,
-                tint = Color(0xFF8E8E93),
-                modifier = Modifier.size(20.dp)
-            )
-        }
-    }
-}
-
-@Composable
-fun SmartDomainCard(
-    title: String,
-    subtitle: String,
-    statusBadge: String,
-    badgeColor: Color,
-    icon: ImageVector,
-    iconColor: Color,
-    onClick: () -> Unit
-) {
-    Card(
-        modifier = Modifier
-            .fillMaxWidth()
-            .clickable(onClick = onClick),
-        shape = RoundedCornerShape(16.dp),
-        colors = CardDefaults.cardColors(containerColor = Color(0xFF1E2B33))
-    ) {
-        Row(
-            modifier = Modifier
-                .fillMaxWidth()
-                .padding(16.dp),
-            verticalAlignment = Alignment.CenterVertically,
-            horizontalArrangement = Arrangement.spacedBy(12.dp)
-        ) {
-            Box(
-                modifier = Modifier
-                    .size(44.dp)
+                    .size(64.dp)
                     .clip(CircleShape)
-                    .background(iconColor.copy(alpha = 0.15f)),
+                    .background(IosSettingsColors.cellElevated),
                 contentAlignment = Alignment.Center
             ) {
-                Icon(icon, contentDescription = null, tint = iconColor, modifier = Modifier.size(24.dp))
-            }
-
-            Column(modifier = Modifier.weight(1f)) {
-                Text(title, color = PanalinkPalette.textPrimary, fontSize = 14.sp, fontWeight = FontWeight.Bold, maxLines = 1, overflow = TextOverflow.Ellipsis)
-                Spacer(modifier = Modifier.height(4.dp))
-                Text(subtitle, color = Color(0xFF90A4AE), fontSize = 11.sp, maxLines = 2, overflow = TextOverflow.Ellipsis)
-                if (statusBadge.isNotBlank()) {
-                    Spacer(modifier = Modifier.height(6.dp))
-                    Surface(
-                        shape = RoundedCornerShape(20.dp),
-                        color = badgeColor.copy(alpha = 0.15f)
-                    ) {
-                        Text(
-                            text = statusBadge,
-                            color = badgeColor,
-                            fontSize = 10.sp,
-                            fontWeight = FontWeight.SemiBold,
-                            modifier = Modifier.padding(horizontal = 8.dp, vertical = 3.dp),
-                            maxLines = 1,
-                            overflow = TextOverflow.Ellipsis
-                        )
-                    }
+                if (uiState.avatarUrl.isNotBlank()) {
+                    AsyncImage(
+                        model = uiState.avatarUrl,
+                        contentDescription = "Avatar de ${uiState.userName}",
+                        modifier = Modifier
+                            .fillMaxSize()
+                            .clip(CircleShape),
+                        contentScale = ContentScale.Crop
+                    )
+                } else {
+                    Icon(
+                        imageVector = Icons.Default.Person,
+                        contentDescription = null,
+                        tint = IosSettingsColors.secondaryLabel,
+                        modifier = Modifier.size(34.dp)
+                    )
                 }
             }
-
+            Spacer(Modifier.width(14.dp))
+            Column(modifier = Modifier.weight(1f)) {
+                Text(
+                    text = uiState.userName,
+                    color = IosSettingsColors.label,
+                    fontFamily = IosFont,
+                    fontSize = 20.sp,
+                    fontWeight = FontWeight.Bold,
+                    maxLines = 1,
+                    overflow = TextOverflow.Ellipsis
+                )
+                Text(
+                    text = uiState.userHandle,
+                    color = IosSettingsColors.secondaryLabel,
+                    fontFamily = IosFont,
+                    fontSize = 14.sp
+                )
+                Spacer(Modifier.height(8.dp))
+                Row(horizontalArrangement = Arrangement.spacedBy(6.dp)) {
+                    IosBadge(presence.first, presence.second)
+                    IosBadge(if (protected) "Protegida" else "Sin PIN", if (protected) IosSettingsColors.green else IosSettingsColors.orange)
+                }
+            }
             Icon(
                 imageVector = Icons.AutoMirrored.Filled.KeyboardArrowRight,
                 contentDescription = null,
-                tint = Color(0xFF90A4AE),
-                modifier = Modifier.size(20.dp)
+                tint = IosSettingsColors.chevron,
+                modifier = Modifier.size(18.dp)
             )
         }
+        IosDivider(startIndent = 16.dp)
+        IosActionRow(
+            title = "Editar perfil",
+            onClick = onNavigateToProfile,
+            color = IosSettingsColors.blue,
+            fontWeight = FontWeight.SemiBold
+        )
     }
 }

@@ -36,6 +36,8 @@ import com.example.ui.viewmodel.SaveProfileUiState
 import com.example.util.PanalinkMediaManager
 import kotlinx.coroutines.launch
 import java.io.File
+import com.example.ui.settings.ios.IosListPadding
+import com.example.ui.settings.ios.IosSettingsScaffold
 import com.example.ui.theme.PanalinkPalette
 
 @OptIn(ExperimentalMaterial3Api::class)
@@ -194,25 +196,12 @@ fun ProfileEditScreen(
         }
     }
 
-    Scaffold(
-        topBar = {
-            TopAppBar(
-                title = { Text("Perfil y Datos de Identidad", color = PanalinkPalette.textPrimary, fontWeight = FontWeight.Bold) },
-                navigationIcon = {
-                    IconButton(onClick = onBack) {
-                        Icon(Icons.AutoMirrored.Filled.ArrowBack, contentDescription = "Regresar", tint = PanalinkPalette.textPrimary)
-                    }
-                },
-                colors = TopAppBarDefaults.topAppBarColors(containerColor = Color.Black)
-            )
-        },
-        containerColor = Color.Black
-    ) { padding ->
+    IosSettingsScaffold(title = "Perfil y datos", onBack = onBack) { padding ->
         LazyColumn(
             modifier = Modifier
                 .fillMaxSize()
-                .padding(padding)
-                .padding(horizontal = 16.dp, vertical = 12.dp),
+                .padding(padding),
+            contentPadding = IosListPadding,
             verticalArrangement = Arrangement.spacedBy(16.dp)
         ) {
             item {

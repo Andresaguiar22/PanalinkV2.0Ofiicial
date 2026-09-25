@@ -4,6 +4,7 @@ import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
@@ -14,258 +15,192 @@ import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.shape.CircleShape
-import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material.icons.filled.Description
 import androidx.compose.material.icons.filled.HelpOutline
 import androidx.compose.material.icons.filled.Security
 import androidx.compose.material.icons.filled.Sync
-import androidx.compose.material3.Card
-import androidx.compose.material3.CardDefaults
-import androidx.compose.material3.ExperimentalMaterial3Api
-import androidx.compose.material3.HorizontalDivider
-import androidx.compose.material3.Icon
-import androidx.compose.material3.IconButton
-import androidx.compose.material3.Scaffold
+import androidx.compose.material3.Button
+import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.Text
-import androidx.compose.material3.TopAppBar
-import androidx.compose.material3.TopAppBarDefaults
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import androidx.lifecycle.viewmodel.compose.viewModel
 import com.example.R
-import com.example.ui.theme.PanalinkPalette
+import com.example.ui.settings.ios.IosBottomSpacer
+import com.example.ui.settings.ios.IosDivider
+import com.example.ui.settings.ios.IosFont
+import com.example.ui.settings.ios.IosGroup
+import com.example.ui.settings.ios.IosIconBadge
+import com.example.ui.settings.ios.IosListPadding
+import com.example.ui.settings.ios.IosSectionHeader
+import com.example.ui.settings.ios.IosSettingsColors
+import com.example.ui.settings.ios.IosSettingsScaffold
+import com.example.update.UpdateStatus
+import com.example.update.UpdateViewModel
 
-@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun AboutScreen(onBack: () -> Unit) {
-    Scaffold(
-        topBar = {
-            TopAppBar(
-                title = { Text("Información", color = PanalinkPalette.textPrimary) },
-                navigationIcon = {
-                    IconButton(onClick = onBack) {
-                        Icon(Icons.AutoMirrored.Filled.ArrowBack, contentDescription = "Regresar", tint = PanalinkPalette.textPrimary)
-                    }
-                },
-                colors = TopAppBarDefaults.topAppBarColors(containerColor = Color(0xFF121B22))
-            )
-        },
-        containerColor = Color(0xFF121B22)
-    ) { padding ->
+    val updateViewModel: UpdateViewModel = viewModel()
+    val installedVersion = updateViewModel.getInstalledVersionName()
+    val updateStatus by updateViewModel.updateStatus.collectAsState()
+    val remoteVersion by updateViewModel.remoteVersionName.collectAsState()
+
+    var showDialog by remember { mutableStateOf(true) }
+    if (showDialog) {
+        com.example.update.UpdateDialog(viewModel = updateViewModel, onDismiss = { showDialog = false })
+    }
+    LaunchedEffect(updateStatus) {
+        if (updateStatus == UpdateStatus.UPDATE_AVAILABLE || updateStatus == UpdateStatus.MANDATORY_UPDATE) {
+            showDialog = true
+        }
+    }
+
+    IosSettingsScaffold(title = "Información", onBack = onBack) { padding ->
         LazyColumn(
-            modifier = Modifier.fillMaxSize().padding(padding),
-            contentPadding = androidx.compose.foundation.layout.PaddingValues(24.dp),
+            modifier = Modifier
+                .fillMaxSize()
+                .padding(padding),
+            contentPadding = IosListPadding,
             horizontalAlignment = Alignment.CenterHorizontally
         ) {
             item {
-                Box(
-                    modifier = Modifier
-                        .size(100.dp)
-                        .background(Color(0xFF25D366).copy(alpha = 0.15f), CircleShape),
-                    contentAlignment = Alignment.Center
-                ) {
-                    Image(
-                        painter = painterResource(id = R.drawable.ic_launcher_foreground),
-                        contentDescription = "PanaLink Logo",
-                        modifier = Modifier.size(80.dp)
-                    )
-                }
-                
-                Spacer(modifier = Modifier.height(16.dp))
-                
-                Text(
-                    text = "PanaLink",
-                    color = PanalinkPalette.textPrimary,
-                    fontSize = 28.sp,
-                    fontWeight = FontWeight.Bold
-                )
-                
-                val updateViewModel: com.example.update.UpdateViewModel = androidx.lifecycle.viewmodel.compose.viewModel()
-                val installedVersion = updateViewModel.getInstalledVersionName()
-                Text(
-                    text = "v$installedVersion 🇻🇪",
-                    color = Color(0xFF90A4AE),
-                    fontSize = 14.sp
-                )
-                
-                Spacer(modifier = Modifier.height(24.dp))
-                
-                Text(
-                    text = "PanaLink es una plataforma de comunicación creada para mantener cerca a familiares, amigos y comunidades, sin importar dónde se encuentren. Nuestra misión es ofrecer una experiencia rápida, segura y confiable para conversar, compartir momentos y mantenerse siempre conectado.",
-                    color = Color(0xFFB0BEC5),
-                    fontSize = 13.sp,
-                    textAlign = TextAlign.Center,
-                    lineHeight = 20.sp
-                )
-                
-                Spacer(modifier = Modifier.height(32.dp))
-            }
-            
-            item {
-                val updateViewModel: com.example.update.UpdateViewModel = androidx.lifecycle.viewmodel.compose.viewModel()
-                val updateStatus by updateViewModel.updateStatus.collectAsState()
-                val remoteVersion by updateViewModel.remoteVersionName.collectAsState()
-                val context = androidx.compose.ui.platform.LocalContext.current
-                
-                var showDialog by androidx.compose.runtime.remember { androidx.compose.runtime.mutableStateOf(true) }
-                if (showDialog) {
-                    com.example.update.UpdateDialog(
-                        viewModel = updateViewModel,
-                        onDismiss = { showDialog = false }
-                    )
-                }
-                
-                androidx.compose.runtime.LaunchedEffect(updateStatus) {
-                    if (updateStatus == com.example.update.UpdateStatus.UPDATE_AVAILABLE || updateStatus == com.example.update.UpdateStatus.MANDATORY_UPDATE) {
-                        showDialog = true
-                    }
-                }
-
-                Card(
-                    colors = CardDefaults.cardColors(containerColor = Color(0xFF1E2B33)),
-                    shape = RoundedCornerShape(16.dp),
-                    modifier = Modifier.fillMaxWidth()
-                ) {
-                    Column(
+                Column(horizontalAlignment = Alignment.CenterHorizontally, modifier = Modifier.padding(top = 12.dp)) {
+                    Box(
                         modifier = Modifier
-                            .padding(16.dp)
-                            .fillMaxWidth(),
-                        horizontalAlignment = Alignment.CenterHorizontally
+                            .size(96.dp)
+                            .clip(CircleShape)
+                            .background(IosSettingsColors.cell),
+                        contentAlignment = Alignment.Center
                     ) {
-                        Text(
-                            text = "Actualizaciones de Software",
-                            color = PanalinkPalette.textPrimary,
-                            fontSize = 16.sp,
-                            fontWeight = FontWeight.Bold,
-                            modifier = Modifier.fillMaxWidth(),
-                            textAlign = TextAlign.Start
+                        Image(
+                            painter = painterResource(id = R.drawable.ic_launcher_foreground),
+                            contentDescription = "PanaLink Logo",
+                            modifier = Modifier.size(76.dp)
                         )
-                        Spacer(modifier = Modifier.height(8.dp))
-                        
+                    }
+                    Spacer(Modifier.height(14.dp))
+                    Text("PanaLink", color = IosSettingsColors.label, fontFamily = IosFont, fontSize = 26.sp, fontWeight = FontWeight.Bold)
+                    Text("v$installedVersion", color = IosSettingsColors.secondaryLabel, fontFamily = IosFont, fontSize = 14.sp)
+                    Spacer(Modifier.height(14.dp))
+                    Text(
+                        text = "PanaLink es una plataforma de comunicación creada para mantener cerca a familiares, amigos y comunidades. Nuestra misión es ofrecer una experiencia rápida, segura y confiable para conversar, compartir momentos y mantenerse siempre conectado.",
+                        color = IosSettingsColors.secondaryLabel,
+                        fontFamily = IosFont,
+                        fontSize = 13.sp,
+                        textAlign = TextAlign.Center,
+                        lineHeight = 19.sp
+                    )
+                    Spacer(Modifier.height(20.dp))
+                }
+            }
+
+            item { IosSectionHeader("Actualizaciones de software") }
+            item {
+                IosGroup {
+                    Column(modifier = Modifier.fillMaxWidth().padding(16.dp)) {
                         Text(
                             text = when (updateStatus) {
-                                com.example.update.UpdateStatus.CHECKING -> "Buscando actualizaciones..."
-                                com.example.update.UpdateStatus.UPDATE_AVAILABLE -> "¡Nueva versión v$remoteVersion disponible!"
-                                com.example.update.UpdateStatus.MANDATORY_UPDATE -> "Actualización obligatoria v$remoteVersion disponible."
-                                com.example.update.UpdateStatus.UP_TO_DATE -> "Tu PanaLink está actualizado (v${updateViewModel.getInstalledVersionName()})."
-                                com.example.update.UpdateStatus.ERROR -> "Error al buscar actualizaciones. Verifica tu conexión."
-                                else -> "Presiona el botón para verificar si hay una nueva versión."
+                                UpdateStatus.CHECKING -> "Buscando actualizaciones..."
+                                UpdateStatus.UPDATE_AVAILABLE -> "Nueva versión v$remoteVersion disponible."
+                                UpdateStatus.MANDATORY_UPDATE -> "Actualización obligatoria v$remoteVersion disponible."
+                                UpdateStatus.UP_TO_DATE -> "Tu PanaLink está actualizado (v$installedVersion)."
+                                UpdateStatus.ERROR -> "Error al buscar actualizaciones. Verifica tu conexión."
+                                else -> "Verifica si hay una nueva versión disponible."
                             },
                             color = when (updateStatus) {
-                                com.example.update.UpdateStatus.UPDATE_AVAILABLE,
-                                com.example.update.UpdateStatus.MANDATORY_UPDATE -> Color(0xFF25D366)
-                                com.example.update.UpdateStatus.ERROR -> Color(0xFFEF5350)
-                                else -> Color(0xFF90A4AE)
+                                UpdateStatus.UPDATE_AVAILABLE, UpdateStatus.MANDATORY_UPDATE -> IosSettingsColors.green
+                                UpdateStatus.ERROR -> IosSettingsColors.red
+                                else -> IosSettingsColors.secondaryLabel
                             },
-                            fontSize = 13.sp,
-                            modifier = Modifier.fillMaxWidth(),
-                            textAlign = TextAlign.Start
+                            fontFamily = IosFont,
+                            fontSize = 14.sp
                         )
-                        
-                        Spacer(modifier = Modifier.height(16.dp))
-                        
-                        androidx.compose.material3.Button(
-                            onClick = {
-                                updateViewModel.checkForUpdates(force = true)
-                            },
-                            enabled = updateStatus != com.example.update.UpdateStatus.CHECKING,
-                            colors = androidx.compose.material3.ButtonDefaults.buttonColors(
-                                containerColor = Color(0xFF25D366),
-                                contentColor = Color.Black
+                        Spacer(Modifier.height(14.dp))
+                        Button(
+                            onClick = { updateViewModel.checkForUpdates(force = true) },
+                            enabled = updateStatus != UpdateStatus.CHECKING,
+                            colors = ButtonDefaults.buttonColors(
+                                containerColor = IosSettingsColors.blue,
+                                contentColor = androidx.compose.ui.graphics.Color.White
                             ),
-                            modifier = Modifier.fillMaxWidth().height(48.dp).padding(horizontal = 16.dp)
+                            modifier = Modifier.fillMaxWidth().height(46.dp)
                         ) {
                             Text(
-                                text = if (updateStatus == com.example.update.UpdateStatus.CHECKING) "Verificando..." else "Buscar actualizaciones",
-                                fontWeight = FontWeight.Bold
+                                text = if (updateStatus == UpdateStatus.CHECKING) "Verificando..." else "Buscar actualizaciones",
+                                fontFamily = IosFont,
+                                fontWeight = FontWeight.SemiBold
                             )
                         }
                     }
                 }
-                
-                Spacer(modifier = Modifier.height(16.dp))
             }
-            
+
+            item { IosSectionHeader("Acerca de la plataforma") }
             item {
-                Card(
-                    colors = CardDefaults.cardColors(containerColor = Color(0xFF1E2B33)),
-                    shape = RoundedCornerShape(16.dp),
-                    modifier = Modifier.fillMaxWidth()
-                ) {
-                    Column(modifier = Modifier.padding(16.dp)) {
-                        AboutFeatureRow(
-                            icon = Icons.Default.Security,
-                            title = "Plataforma y Compatibilidad",
-                            description = "Mensajería en tiempo real, optimizada para diferentes tipos de conexión."
-                        )
-                        HorizontalDivider(modifier = Modifier.padding(vertical = 12.dp), color = Color(0xFF2A3942))
-                        AboutFeatureRow(
-                            icon = Icons.Default.Sync,
-                            title = "Sincronización en la nube",
-                            description = "Rápida, segura y confiable."
-                        )
-                        HorizontalDivider(modifier = Modifier.padding(vertical = 12.dp), color = Color(0xFF2A3942))
-                        AboutFeatureRow(
-                            icon = Icons.Default.Description,
-                            title = "Multimedia Integrada",
-                            description = "Fotos, videos, documentos, notas de voz y llamadas."
-                        )
-                        HorizontalDivider(modifier = Modifier.padding(vertical = 12.dp), color = Color(0xFF2A3942))
-                        AboutFeatureRow(
-                            icon = Icons.Default.HelpOutline,
-                            title = "Soporte Técnico",
-                            description = "Comunícate con el equipo de soporte desde la sección de Ayuda."
-                        )
-                    }
+                IosGroup {
+                    AboutFeatureRow(Icons.Default.Security, "Plataforma y compatibilidad", "Mensajería en tiempo real optimizada para distintos tipos de conexión.")
+                    IosDivider()
+                    AboutFeatureRow(Icons.Default.Sync, "Sincronización en la nube", "Rápida, segura y confiable.")
+                    IosDivider()
+                    AboutFeatureRow(Icons.Default.Description, "Multimedia integrada", "Fotos, vídeos, documentos, notas de voz y llamadas.")
+                    IosDivider()
+                    AboutFeatureRow(Icons.Default.HelpOutline, "Soporte técnico", "Comunícate con el equipo desde la sección de ayuda.")
                 }
-                
-                Spacer(modifier = Modifier.height(32.dp))
-                
+            }
+
+            item {
+                Spacer(Modifier.height(24.dp))
                 Text(
                     text = "Hecho con el ❤️ para la comunidad",
-                    color = Color(0xFF607D8B),
-                    fontSize = 13.sp
-                )
-                Spacer(modifier = Modifier.height(4.dp))
-                Text(
-                    text = "En PanaLink trabajamos continuamente para mejorar el rendimiento, incorporar nuevas funciones y ofrecer una experiencia estable, segura y fácil de usar para todos.",
-                    color = Color(0xFF607D8B),
-                    fontSize = 11.sp,
+                    color = IosSettingsColors.secondaryLabel,
+                    fontFamily = IosFont,
+                    fontSize = 13.sp,
                     textAlign = TextAlign.Center,
-                    modifier = Modifier.fillMaxWidth(0.9f)
+                    modifier = Modifier.fillMaxWidth()
+                )
+                Spacer(Modifier.height(4.dp))
+                Text(
+                    text = "Trabajamos continuamente para mejorar el rendimiento y ofrecer una experiencia estable, segura y fácil de usar para todos.",
+                    color = IosSettingsColors.tertiaryLabel,
+                    fontFamily = IosFont,
+                    fontSize = 12.sp,
+                    textAlign = TextAlign.Center,
+                    modifier = Modifier.fillMaxWidth(0.92f)
                 )
             }
+
+            item { IosBottomSpacer() }
         }
     }
 }
 
 @Composable
-fun AboutFeatureRow(icon: ImageVector, title: String, description: String) {
-    Row(verticalAlignment = Alignment.CenterVertically, modifier = Modifier.fillMaxWidth()) {
-        Box(
-            modifier = Modifier
-                .size(40.dp)
-                .background(Color(0xFF2A3942), CircleShape),
-            contentAlignment = Alignment.Center
-        ) {
-            Icon(icon, contentDescription = null, tint = PanalinkPalette.textPrimary, modifier = Modifier.size(20.dp))
-        }
-        Spacer(modifier = Modifier.width(16.dp))
-        Column {
-            Text(title, color = PanalinkPalette.textPrimary, fontSize = 15.sp, fontWeight = FontWeight.Medium)
-            Text(description, color = Color(0xFF90A4AE), fontSize = 13.sp)
+private fun AboutFeatureRow(icon: ImageVector, title: String, description: String) {
+    Row(
+        modifier = Modifier.fillMaxWidth().padding(start = 16.dp, end = 16.dp, top = 11.dp, bottom = 11.dp),
+        verticalAlignment = Alignment.CenterVertically
+    ) {
+        IosIconBadge(icon, IosSettingsColors.gray)
+        Spacer(Modifier.width(12.dp))
+        Column(modifier = Modifier.weight(1f)) {
+            Text(title, color = IosSettingsColors.label, fontFamily = IosFont, fontSize = 16.sp)
+            Spacer(Modifier.height(2.dp))
+            Text(description, color = IosSettingsColors.secondaryLabel, fontFamily = IosFont, fontSize = 13.sp)
         }
     }
 }

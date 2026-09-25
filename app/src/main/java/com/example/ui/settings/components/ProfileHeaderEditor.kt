@@ -22,6 +22,7 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import coil.compose.AsyncImage
+import com.example.ui.settings.ios.IosSettingsColors
 import com.example.ui.theme.PanalinkPalette
 
 @Composable
@@ -39,7 +40,7 @@ fun ProfileHeaderEditor(
     Surface(
         modifier = modifier.fillMaxWidth(),
         shape = RoundedCornerShape(20.dp),
-        color = Color(0xFF1E2B33)
+        color = IosSettingsColors.cell
     ) {
         Column(modifier = Modifier.fillMaxWidth()) {
             // Cover Photo Banner
@@ -47,7 +48,7 @@ fun ProfileHeaderEditor(
                 modifier = Modifier
                     .fillMaxWidth()
                     .height(130.dp)
-                    .background(Color(0xFF37474F))
+                    .background(IosSettingsColors.cellElevated)
             ) {
                 if (coverUrl.isNotEmpty()) {
                     AsyncImage(
@@ -89,8 +90,8 @@ fun ProfileHeaderEditor(
                         modifier = Modifier
                             .fillMaxSize()
                             .clip(CircleShape)
-                            .background(Color(0xFF263238))
-                            .border(3.dp, Color(0xFF1E2B33), CircleShape),
+                            .background(IosSettingsColors.cellElevated)
+                            .border(3.dp, IosSettingsColors.cell, CircleShape),
                         contentAlignment = Alignment.Center
                     ) {
                         if (avatarUrl.isNotEmpty()) {
@@ -115,15 +116,15 @@ fun ProfileHeaderEditor(
                         modifier = Modifier
                             .size(28.dp)
                             .clip(CircleShape)
-                            .background(Color(0xFF25D366))
+                            .background(IosSettingsColors.green)
                             .align(Alignment.BottomEnd)
-                            .border(2.dp, Color(0xFF1E2B33), CircleShape),
+                            .border(2.dp, IosSettingsColors.cell, CircleShape),
                         contentAlignment = Alignment.Center
                     ) {
                         Icon(
                             imageVector = Icons.Default.CameraAlt,
                             contentDescription = "Cambiar avatar",
-                            tint = Color(0xFF121B22),
+                            tint = Color.White,
                             modifier = Modifier.size(15.dp)
                         )
                     }
@@ -145,7 +146,7 @@ fun ProfileHeaderEditor(
                     Spacer(modifier = Modifier.height(2.dp))
                     Text(
                         text = statusText.ifEmpty { "Sin estado configurado" },
-                        color = Color(0xFF90A4AE),
+                        color = IosSettingsColors.secondaryLabel,
                         fontSize = 12.sp,
                         fontWeight = FontWeight.Normal
                     )
