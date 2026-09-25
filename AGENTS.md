@@ -1050,3 +1050,30 @@ factor `0.55 + pow(1.7)*(3.8-0.55)`, halo `1.7x` alpha `0x08` (casi invisible), 
 * **Validado en local**: PostgreSQL 17.11 (migración EXIT=0, smoke tests de compra/apilamiento/idempotencia/recompensa/misiones/exchange/expiración) y `:app:compileDebugKotlin` → BUILD SUCCESSFUL sin warnings. Bug encontrado y corregido: `jsonb_agg` + `ORDER BY` externo sin GROUP BY daba error en `premium_my_entitlements`/catalog/promotions/events/missions/notifications — el ORDER BY debe ir DENTRO de `jsonb_agg(...)` y el LIMIT en subquery.
 
 * **PRÓXIMO (fases 3+)**: gates en más features (chat/story/live/voice/wall), sondeo de misiones desde las pantallas (al enviar mensaje → `mission_progress`), notificaciones por expiración de entitlement, y pasar el gate del catálogo a la nueva features. No mergear a main ni publicar OTA hasta que el mantenedor confirme el diseño.
+
+---
+
+## 🔐 Sesión única por cuenta (control de dispositivos) - sesión 2026-09-25, rama `kilo/clean-ui-ios`
+
+**Objetivo**: evitar múltiples cuentas por correo y que una misma cuenta esté activa en varios dispositivos; al iniciar en otro dispositivo, la sesión anterior se cierra y el usuario se entera.
+
+### Backend (aplicado y verificado en prod el 2026-09-25)
+* Proyecto Supabase: `tivqjfgjdxgzicrridaz` (ACTIVE_HEALTHY).
+* Migración `supabase/migrations/20260925000000_single_active_session.sql` (rama `kilo/clean-ui-ios`, commits `e0a5ea1`/`7aab7f4`), aplicada por el dueño.
+* Crea: `public.user_devices` (RLS + policy `user_devices_select_own`), RPC `register_device(p_device_id, p_device_name)`, RPC `get_other_active_devices(p_current_device_id)` (devuelve jsonb, activos última hora, excluye el actual), trigger `trg_touch_device_on_session` sobre `auth.sessions` (respaldo), y añade `user_devices` a `supabase_realtime`.
+* **GOTCHA RPC/PostgREST**: el nombre del parámetro debe coincidir EXACTO con la clave que manda la app (`p_current_device_id`). Renombrar el parámetro obliga a actualizar TAMBIÉN las referencias internas del cuerpo plpgsql; si no, `column "..." does not exist`. La app manda `p_device_id`/`p_device_name`/`p_current_device_id`.
+* **PENDIENTE (solo dashboard, no es SQL)**: Authentication → Sessions → **Single session per user** activar. Sin esto, los avisos funcionan pero no fuerza el cierre remoto (GoTrue revoca la sesión vieja al refrescar cuando está activo → la app recibe 401 `invalid_grant`).
+* **PAT**: el `SUPABASE_ACCESS_TOKEN` del sandbox está inválido (401 en Management API y CLI). Para aplicar migraciones hace falta un PAT nuevo del dueño. No hay password/URL de Postgres en los secretos; `service_role` no puede hacer DDL (solo datos por PostgREST).
+* **Validación sin prod**: la migración se validó en PostgreSQL 15 local (Docker) con arnés de `auth.users`/`auth.uid()`/rol `authenticated`/publicación realtime → RLS aísla usuarios, anónimo rechazado, trigger de respaldo OK.
+
+### App (implementado, `:app:compileDebugKotlin` BUILD SUCCESSFUL)
+* `util/DeviceInfo.kt` (nuevo): UUID persistente por instalación + nombre legible (`Build.MANUFACTURER/MODEL`) en SharedPreferences.
+* `SessionManager.kt`: `SessionEvent.SESSION_REVOKED` emitido al detectar 401 `invalid_grant`/`invalid_refresh_token` en el refresh.
+* `SupabaseApiService.kt`: RPCs `register_device`/`get_other_active_devices` (`@POST rest/v1/rpc/...` con `Map<String,String>`).
+* `AuthManager.notifyDeviceRegistration(...)`: best-effort tras login exitoso (404 silencioso si falta el RPC; no rompe el login).
+* `AuthViewModel`/`LoginScreen`: parámetro device + diálogo "tu cuenta ya está activa en otro dispositivo".
+* `MainActivity`: diálogo "tu sesión se cerró porque iniciaste en otro dispositivo" al recibir `SESSION_REVOKED`.
+* `scripts/apply_single_session_migration.sh`: aplica la migración en 1 comando (requiere PAT válido + project-ref).
+* `supabase/manual/APPLY_SINGLE_SESSION_MIGRATION.md`: handoff con comandos y verificación.
+
+**Lección de la sesión**: al compilar, un `}` faltante en `SessionManager.refreshSession` (bloque `else`) rompió el parseo del objeto entero y dio errores "Unresolved reference" en cascada; añadir el `}` lo resolvió todo.
