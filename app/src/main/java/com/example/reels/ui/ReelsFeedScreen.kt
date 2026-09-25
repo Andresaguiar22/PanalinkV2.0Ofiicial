@@ -46,9 +46,11 @@ import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.outlined.ArrowBack
+import androidx.compose.material.icons.automirrored.rounded.Forward
 import androidx.compose.material.icons.automirrored.rounded.Send
 import androidx.compose.material.icons.filled.Add
 import androidx.compose.material.icons.filled.ArrowBack
+import androidx.compose.material.icons.filled.Bookmark
 import androidx.compose.material.icons.filled.Check
 import androidx.compose.material.icons.filled.Close
 import androidx.compose.material.icons.filled.Delete
@@ -60,14 +62,10 @@ import androidx.compose.material.icons.filled.Refresh
 import androidx.compose.material.icons.filled.Search
 import androidx.compose.material.icons.outlined.Search
 
-import androidx.compose.material.icons.rounded.Bookmark
-import androidx.compose.material.icons.rounded.BookmarkBorder
 import androidx.compose.material.icons.rounded.ChatBubble
-import androidx.compose.material.icons.rounded.ChatBubbleOutline
-import androidx.compose.material.icons.rounded.FavoriteBorder
-import androidx.compose.material.icons.rounded.MoreHoriz
-import androidx.compose.material.icons.rounded.VolumeOff
-import androidx.compose.material.icons.rounded.VolumeUp
+import androidx.compose.material.icons.rounded.MoreVert
+import androidx.compose.material.icons.automirrored.rounded.VolumeOff
+import androidx.compose.material.icons.automirrored.rounded.VolumeUp
 import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.AlertDialog
@@ -787,15 +785,15 @@ private fun ReelFeedOverlay(
         Column(
             modifier = Modifier
                 .align(Alignment.BottomEnd)
-                .padding(end = 6.dp, bottom = 50.dp),
+                .padding(end = 8.dp, bottom = 50.dp),
             horizontalAlignment = Alignment.CenterHorizontally,
-            verticalArrangement = Arrangement.spacedBy(14.dp),
+            verticalArrangement = Arrangement.spacedBy(6.dp),
         ) {
             // TikTok avatar in the rail: circular photo with a follow "+" /
             // following "✓" pill sitting on its bottom edge.
             Box(
                 modifier = Modifier
-                    .size(46.dp)
+                    .size(44.dp)
                     .clip(CircleShape)
                     .clickable(onClick = onProfile),
                 contentAlignment = Alignment.Center
@@ -838,7 +836,7 @@ private fun ReelFeedOverlay(
                 }
             }
             ReelActionButtonV2(
-                icon = if (liked) Icons.Filled.Favorite else Icons.Rounded.FavoriteBorder,
+                icon = Icons.Filled.Favorite,
                 count = compactCountV2(localLikes),
                 selected = liked,
                 selectedColor = IosSettingsColors.red,
@@ -850,11 +848,11 @@ private fun ReelFeedOverlay(
                 onLike()
             }
             ReelActionButtonV2(
-                icon = Icons.Rounded.ChatBubbleOutline,
+                icon = Icons.Rounded.ChatBubble,
                 count = compactCountV2(commentsCount),
             ) { onComments() }
             ReelActionButtonV2(
-                icon = if (favorited) Icons.Rounded.Bookmark else Icons.Rounded.BookmarkBorder,
+                icon = Icons.Filled.Bookmark,
                 count = compactCountV2(localFavorites),
                 selected = favorited,
                 selectedColor = Color(0xFFF9C74F),
@@ -866,17 +864,17 @@ private fun ReelFeedOverlay(
                 onFavorite()
             }
             ReelActionButtonV2(
-                icon = Icons.AutoMirrored.Rounded.Send,
+                icon = Icons.AutoMirrored.Rounded.Forward,
                 count = compactCountV2(localShares),
             ) {
                 localShares += 1
                 onShare()
             }
             ReelActionButtonV2(
-                icon = if (muted) Icons.Rounded.VolumeOff else Icons.Rounded.VolumeUp,
+                icon = if (muted) Icons.AutoMirrored.Rounded.VolumeOff else Icons.AutoMirrored.Rounded.VolumeUp,
             ) { onMute() }
             Box {
-                ReelActionButtonV2(icon = Icons.Rounded.MoreHoriz) { menuExpanded = true }
+                ReelActionButtonV2(icon = Icons.Rounded.MoreVert) { menuExpanded = true }
                 DropdownMenu(expanded = menuExpanded, onDismissRequest = { menuExpanded = false }) {
                     DropdownMenuItem(text = { Text("Compartir") }, onClick = { menuExpanded = false; onShare() })
                     DropdownMenuItem(text = { Text("Copiar enlace") }, onClick = { menuExpanded = false; onCopyLink() })
@@ -1026,32 +1024,6 @@ private fun ReelFeedOverlay(
                         }
                 )
             }
-
-            // Ticker de música (chip glassmorphism iOS)
-            Row(
-                modifier = Modifier
-                    .clip(CircleShape)
-                    .background(TransparentBlack, CircleShape)
-                    .border(0.5.dp, Color.White.copy(alpha =  0.1f), CircleShape)
-                    .padding(horizontal =  10.dp, vertical =  6.dp),
-                verticalAlignment = Alignment.CenterVertically,
-            ) {
-                Icon(
-                    Icons.Default.MusicNote,
-                    contentDescription = "Música",
-                    tint = Color.White,
-                    modifier = Modifier.size(14.dp),
-                )
-                Spacer(modifier = Modifier.width(6.dp))
-                Text(
-                    text = "Sonido original - ${profile.displayName?.ifBlank { "pana" } ?: "pana"}",
-                    color = Color.White,
-                    fontSize =  13.sp,
-                    fontWeight = FontWeight.Medium,
-                    maxLines =  1,
-                    overflow = TextOverflow.Ellipsis,
-                )
-            }
         }
 
         // Bottom progress bar + time (m:ss). The bar is seekable: drag or tap it
@@ -1155,13 +1127,13 @@ private fun ReelActionButtonV2(
     }
 
     Column(horizontalAlignment = Alignment.CenterHorizontally) {
-        IconButton(onClick = onClick, modifier = Modifier.size(42.dp)) {
+        IconButton(onClick = onClick, modifier = Modifier.size(36.dp)) {
             Icon(
                 icon,
                 contentDescription = null,
                 tint = if (selected) selectedColor else Color.White,
                 modifier = Modifier
-                    .size(29.dp)
+                    .size(26.dp)
                     .graphicsLayer {
                         scaleX = scale.value
                         scaleY = scale.value
@@ -1172,7 +1144,7 @@ private fun ReelActionButtonV2(
             Text(
                 count,
                 color = IosSettingsColors.label,
-                fontSize = 12.sp,
+                fontSize = 11.sp,
                 fontWeight = FontWeight.SemiBold,
                 style = TextStyle(
                     shadow = androidx.compose.ui.graphics.Shadow(

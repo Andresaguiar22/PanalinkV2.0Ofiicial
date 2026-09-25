@@ -30,6 +30,12 @@ sealed class ChatWallpaperSpec {
         val url: String
     ) : ChatWallpaperSpec()
 
+    /** Patron de garabatos tileado estilo Telegram (dibujado en Compose). */
+    data class Doodle(
+        override val id: String,
+        override val label: String
+    ) : ChatWallpaperSpec()
+
     /** Imagen local elegida con ActivityResultContracts.GetContent(). */
     data class Custom(
         override val id: String,
@@ -57,14 +63,17 @@ sealed class ChatWallpaperSpec {
             Solid("ios_black", "iOS Black",  0xFF000000),
         )
 
-        val DEFAULT_ACTIVE = "ios_black"
+        /** Preset por defecto: garabatos estilo Telegram sobre oscuro profundo. */
+        val TELEGRAM_DOODLE = Doodle("telegram_doodle", "Garabatos iOS")
+
+        val DEFAULT_ACTIVE = "telegram_doodle"
 
         fun fromId(id: String?, customUri: String? = null): ChatWallpaperSpec {
-            if (id.isNullOrBlank()) return Solid(DEFAULT_ACTIVE, "Defecto", 0xFF000000)
+            if (id.isNullOrBlank()) return TELEGRAM_DOODLE
             PRESETS.firstOrNull { it.id == id }?.let { return it }
             if (id.startsWith("http")) return Remote(id, "Imagen remota", id)
             if (id == "custom" && !customUri.isNullOrBlank()) return Custom("custom", "Galería", customUri)
-            return Solid(DEFAULT_ACTIVE, "Defecto", 0xFF000000)
+            return TELEGRAM_DOODLE
         }
     }
 }

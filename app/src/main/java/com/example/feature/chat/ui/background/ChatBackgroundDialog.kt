@@ -41,7 +41,7 @@ fun ChatBackgroundDialog(
     if (!visible) return
 
     val context = LocalContext.current
-    val presetItems = ChatWallpaperSpec.PRESETS
+    val presetItems = listOf(ChatWallpaperSpec.TELEGRAM_DOODLE) + ChatWallpaperSpec.PRESETS
 
     val galleryLauncher = rememberLauncherForActivityResult(
         contract = ActivityResultContracts.GetContent()
@@ -149,6 +149,9 @@ private fun WallpaperCard(
             }
             is ChatWallpaperSpec.Solid -> {
                 Box(Modifier.fillMaxSize().background(Color(spec.color)))
+            }
+            is ChatWallpaperSpec.Doodle -> {
+                TelegramChatDoodle(Modifier.fillMaxSize())
             }
             is ChatWallpaperSpec.Remote -> {
                 AsyncImage(

@@ -79,6 +79,7 @@ import com.example.feature.chat.ui.background.ChatBackgroundDialog
 import com.example.feature.chat.ui.background.ChatPersonalizationStore
 import com.example.feature.chat.ui.background.ChatBubblePaletteDialog
 import com.example.feature.chat.ui.background.ChatWallpaperSpec
+import com.example.feature.chat.ui.background.rememberDoodleBrush
 import com.example.feature.chat.ui.call.ActiveCallOverlay
  
 import com.example.feature.chat.ui.contact.ChatContactDetailSheet
@@ -673,7 +674,7 @@ fun ChatScreen(
 
     Scaffold(
         contentWindowInsets = WindowInsets(0, 0, 0, 0),
-        containerColor = Color(0xFF000000)
+        containerColor = com.example.feature.chat.ui.background.DoodleBaseColor
     ) { innerPadding ->
         Column(
             modifier = Modifier
@@ -681,7 +682,7 @@ fun ChatScreen(
                 .padding(top = innerPadding.calculateTopPadding())
                 .navigationBarsPadding()
                 .imePadding()
-                .background(Color(0xFF000000))
+                .background(rememberDoodleBrush())
         ) {
             // Topbar DENTRO del content: así el fondo de chat corre TAMBIÉN debajo
             // de la barra del perfil (referencia).

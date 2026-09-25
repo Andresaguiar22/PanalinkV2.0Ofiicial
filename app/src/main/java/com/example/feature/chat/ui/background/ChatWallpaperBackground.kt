@@ -47,6 +47,10 @@ fun ChatWallpaperBackground(
             is ChatWallpaperSpec.Solid -> {
                 Box(Modifier.fillMaxSize().background(Color(spec.color)))
             }
+            is ChatWallpaperSpec.Doodle -> {
+                // El patron ya lo pinta el contenedor del chat (ChatScreen); aqui
+                // no se repinta para no crear un segundo mosaico desalineado.
+            }
             is ChatWallpaperSpec.Remote -> {
                 AsyncImage(
                     model = spec.url,
