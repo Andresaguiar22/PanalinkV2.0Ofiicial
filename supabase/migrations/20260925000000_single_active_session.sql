@@ -109,7 +109,7 @@ begin
         from public.user_devices
         where user_id = auth.uid()
           and last_seen_at > now() - interval '1 hour'
-          and (current_device_id is null or device_id <> current_device_id)
+          and (p_current_device_id is null or device_id <> p_current_device_id)
         order by last_seen_at desc
         limit 10
     ) d;
