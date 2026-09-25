@@ -286,20 +286,20 @@ val HaloLightColors = AppColors(
 )
 
 val CyberpunkGlobalColors = AppColors(
-    primary = Color(0xFF0A84FF),
-    secondary = Color(0xFF1C1C1E),
-    background = Color(0xFF000000),
+    primary = Color(0xFF0A84FF),      // iOS blue
+    secondary = Color(0xFF1C1C1E),    // celda agrupada
+    background = Color(0xFF000000),   // fondo agrupado
     surface = Color(0xFF1C1C1E),
     bubbleMe = Color(0xFF0A84FF),
-    bubbleOther = Color(0xFF26262A),
+    bubbleOther = Color(0xFF2C2C2E),
     topBar = Color(0xFF000000),
     bottomBar = Color(0xFF000000),
-    accent = Color(0xFF5E5CE6),
+    accent = Color(0xFF0A84FF),
     isDark = true,
-    onPrimary = Color(0xFF071014),
-    onSecondary = Color(0xFFF5E6C8),
-    onBackground = Color(0xFFF5E6C8),
-    onSurface = Color(0xFFF5E6C8)
+    onPrimary = Color(0xFFFFFFFF),
+    onSecondary = Color(0xFFFFFFFF),
+    onBackground = Color(0xFFFFFFFF),
+    onSurface = Color(0xFFFFFFFF)
 )
 
 val HaloDarkColors = AppColors(
@@ -312,12 +312,12 @@ val HaloDarkColors = AppColors(
     bubbleOther = Color(0xFF212936),
     topBar = Color(0xFF171D29),
     bottomBar = Color(0xFF171D29),
-    accent = Color(0xFFC9A96A),    // dorado de acentos
+    accent = Color(0xFF0A84FF),    // acento azul del sistema
     isDark = true,
-    onPrimary = Color(0xFF06231A),
-    onSecondary = Color(0xFFF4F7FB),
-    onBackground = Color(0xFFF4F7FB), // letras blancas sobre oscuro (pedido del mantenedor)
-    onSurface = Color(0xFFF4F7FB)
+    onPrimary = Color(0xFFFFFFFF),
+    onSecondary = Color(0xFFFFFFFF),
+    onBackground = Color(0xFFFFFFFF), // letras blancas sobre oscuro (pedido del mantenedor)
+    onSurface = Color(0xFFFFFFFF)
 )
 
 object ThemeManager {
@@ -457,15 +457,15 @@ fun MyApplicationTheme(
             tertiary = activeColors.accent,
             background = activeColors.background,
             surface = activeColors.surface,
-            surfaceVariant = Color(0xFF18202A),
+            surfaceVariant = Color(0xFF2C2C2E),
             onPrimary = activeColors.onPrimary,
             onSecondary = activeColors.onSecondary,
-            onTertiary = Color(0xFF071014),
+            onTertiary = Color(0xFFFFFFFF),
             onBackground = activeColors.onBackground,
             onSurface = activeColors.onSurface,
             outline = Color(0xFF0A84FF),
-            outlineVariant = Color(0xFF5E5CE6),
-            error = Color(0xFFFF4D7D),
+            outlineVariant = Color(0xFF2C2C2E),
+            error = Color(0xFFFF453A),
             onError = Color.White
         )
     } else {

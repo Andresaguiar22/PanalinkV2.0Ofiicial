@@ -158,12 +158,12 @@ fun FunkyBottomNavItem(
                     if (selected) {
                         Modifier
                             .background(
-                                Color(0xFF35D07F).copy(alpha = 0.16f),
+                                IosSettingsColors.blue.copy(alpha = 0.16f),
                                 RoundedCornerShape(21.dp)
                             )
                             .border(
                                 1.5.dp,
-                                Color(0xFF35D07F).copy(alpha = 0.85f),
+                                IosSettingsColors.blue.copy(alpha = 0.85f),
                                 RoundedCornerShape(21.dp)
                             )
                     } else {
@@ -196,7 +196,7 @@ fun FunkyBottomNavItem(
 
         Text(
             text = label,
-            color = if (selected) Color(0xFF35D07F) else Color(0xFFB6C2CF),
+            color = if (selected) IosSettingsColors.blue else IosSettingsColors.secondaryLabel,
             fontWeight = if (selected) FontWeight.Bold else FontWeight.Normal,
             fontSize = 10.sp,
             style = if (selected) {
