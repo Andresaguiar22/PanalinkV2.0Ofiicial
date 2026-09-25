@@ -27,6 +27,7 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.Shape
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.unit.dp
+import com.example.ui.settings.ios.IosSettingsColors
 import kotlin.math.hypot
 import kotlin.math.pow
 import kotlin.random.Random
@@ -82,50 +83,51 @@ object PanalinkPalette {
 }
 
 /**
- * Paleta "Panalink Prestige": navy profundo + crema/dorado.
- * Valores muestreados del mockup aprobado por el mantenedor.
+ * Paleta "Panalink Prestige" alineada al lenguaje iOS: fondo agrupado,
+ * celdas y acento azul del sistema. Los nombres historicos se conservan
+ * para no tocar los call sites.
  */
 object PanalinkSkin {
-    val NavyBase = Color(0xFF17212B)
-    val NavyDeep = Color(0xFF0E1621)
+    val NavyBase: Color get() = IosSettingsColors.groupBackground
+    val NavyDeep: Color get() = IosSettingsColors.groupBackground
 
     // Cristales y textos: dependen del tema para que el modo claro sea legible
     // (tinta oscura sobre superficies claras) sin tocar cada pantalla.
-    val Glass: Color get() = if (PanalinkPalette.isDark) Color(0xE6202B36) else Color(0xF2F1F3F7)
-    val GlassStrong: Color get() = if (PanalinkPalette.isDark) Color(0xF025303B) else Color(0xF2FFFFFF)
-    val GlassSoft: Color get() = if (PanalinkPalette.isDark) Color(0x66202B36) else Color(0x99FFFFFF)
+    val Glass: Color get() = IosSettingsColors.cell
+    val GlassStrong: Color get() = IosSettingsColors.cellElevated
+    val GlassSoft: Color get() = IosSettingsColors.cell
 
-    val Cream: Color get() = if (PanalinkPalette.isDark) Color(0xFFFFFFFF) else Color(0xFF1B2330)
-    val TitleCream: Color get() = if (PanalinkPalette.isDark) Color(0xFFFFFFFF) else Color(0xFF6F5A2F)
-    val CreamDim: Color get() = if (PanalinkPalette.isDark) Color(0xFFB6C2CF) else Color(0xFF5C6675)
-    val Sub: Color get() = if (PanalinkPalette.isDark) Color(0xFFB6C2CF) else Color(0xFF5C6675)
+    val Cream: Color get() = IosSettingsColors.label
+    val TitleCream: Color get() = IosSettingsColors.label
+    val CreamDim: Color get() = IosSettingsColors.secondaryLabel
+    val Sub: Color get() = IosSettingsColors.secondaryLabel
 
-    val Gold: Color get() = if (PanalinkPalette.isDark) Color(0xFF35D07F) else Color(0xFF8A6F3E)
-    val GoldBright: Color get() = if (PanalinkPalette.isDark) Color(0xFF35D07F) else Color(0xFF8A6F3E)
-    val GoldDeep = Color(0xFF8A6F3E)
+    val Gold: Color get() = IosSettingsColors.blue
+    val GoldBright: Color get() = IosSettingsColors.blue
+    val GoldDeep: Color get() = IosSettingsColors.blue
 
-    val ReadTick: Color get() = if (PanalinkPalette.isDark) Color(0xFF9DA0A7) else Color(0xFF8A9099)
-    val Divider: Color get() = if (PanalinkPalette.isDark) Color(0x33C6B294) else Color(0x1F8A6F3E)
+    val ReadTick: Color get() = IosSettingsColors.secondaryLabel
+    val Divider: Color get() = IosSettingsColors.separator
 
-    val CardShape: Shape = RoundedCornerShape(20.dp)
+    val CardShape: Shape = RoundedCornerShape(12.dp)
 
-    /** Borde cálido muy sutil, como el del mockup. */
+    /** Borde sutil de las tarjetas agrupadas. */
     val borderGradient: List<Color>
-        get() = if (PanalinkPalette.isDark) {
-            listOf(Color(0x6635D07F), Color(0x3335D07F), Color(0x6635D07F))
-        } else {
-            listOf(Color(0x3D8A6F3E), Color(0x1F8A6F3E), Color(0x3D8A6F3E))
-        }
+        get() = listOf(
+            IosSettingsColors.separator,
+            IosSettingsColors.separator,
+            IosSettingsColors.separator
+        )
 
-    /** Gradiente de la barra flotante: verde-teal -> indigo (mockup). */
+    /** Fondo de la barra flotante. */
     val barGradient: List<Color> = listOf(
-        Color(0xFF173D2B),
-        Color(0xFF172A22),
-        Color(0xFF202B36)
+        Color(0xFF1C1C1E),
+        Color(0xFF1C1C1E),
+        Color(0xFF2C2C2E)
     )
 
-    /** Borde luminoso menta de la barra flotante. */
-    val barGlow = Color(0xFF35D07F)
+    /** Borde luminoso de la barra flotante. */
+    val barGlow: Color get() = IosSettingsColors.blue
 }
 
 /** Posición de una fila dentro del panel continuo de chats. */
@@ -281,7 +283,7 @@ fun LightBrandBackground(modifier: Modifier = Modifier) {
 }
 
 /**
- * Tarjeta translúcida con borde degradado dorado. Las esquinas se controlan con
+ * Tarjeta agrupada estilo iOS con borde fino. Las esquinas se controlan con
  * [shape] para que varias tarjetas contiguas formen un solo panel (como el mockup).
  */
 @Composable
