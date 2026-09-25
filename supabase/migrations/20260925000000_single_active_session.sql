@@ -79,7 +79,7 @@ grant execute on function public.register_device(text, text) to authenticated;
 -- hora) distintos al actual. La app lo llama tras el login para avisar.
 -- ---------------------------------------------------------------------
 create or replace function public.get_other_active_devices(
-    current_device_id text default null
+    p_current_device_id text default null
 )
 returns jsonb
 language plpgsql
