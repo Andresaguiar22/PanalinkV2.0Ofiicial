@@ -1,7 +1,6 @@
 package com.example.ui.components
 
 import androidx.compose.foundation.background
-import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
@@ -24,7 +23,6 @@ import androidx.compose.material.icons.outlined.ChatBubble
 import androidx.compose.material.icons.outlined.DonutLarge
 import androidx.compose.material.icons.outlined.People
 import androidx.compose.material.icons.outlined.PlayArrow
-import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Icon
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
@@ -45,9 +43,6 @@ import androidx.compose.ui.unit.sp
 import androidx.compose.ui.zIndex
 
 // Colores iOS del mockup
-private val IosTabBlack = Color(0xFF000000)
-private val IosTabBarBg = Color(0xE6121212)
-private val IosTabDivider = Color(0xFF38383A)
 private val IosTabTextGray = Color(0xFF8E8E93)
 private val PanalinkTabTint = Color(0xFF10B981)
 
@@ -63,22 +58,7 @@ fun PanaLinkFloatingBottomBar(
         modifier = Modifier
             .fillMaxWidth()
             .navigationBarsPadding()
-            .background(
-                Brush.verticalGradient(
-                    listOf(
-                        Color(0xD9121212),
-                        Color(0xB81C1C1E),
-                        Color(0xD9121212)
-                    )
-                )
-            )
-            .border(1.dp, Color(0x26FFFFFF))
     ) {
-        // Línea superior del Tab Bar (iOS)
-        HorizontalDivider(color = IosTabDivider, thickness = 0.5.dp)
-
-
-
         Row(
             modifier = Modifier
                 .fillMaxWidth()
