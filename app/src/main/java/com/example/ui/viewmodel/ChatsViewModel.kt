@@ -253,13 +253,18 @@ class ChatsViewModel(
         }
         _searchState.value = UserSearchUiState.Loading
         viewModelScope.launch {
-            profilesRepository.searchProfiles(query)
-                .onSuccess { list ->
-                    _searchState.value = UserSearchUiState.Success(list)
-                }
-                .onFailure { error ->
-                    _searchState.value = UserSearchUiState.Error(error.localizedMessage ?: "Error buscando usuarios")
-                }
+            // SOLO se buscan personas que sean contactos del usuario; nunca la BD global.
+            // La fuente de verdad son los contactos cacheados localmente (con fallback a getMyContacts)..
+            val cached = com.example.data.supabase.SessionManager.getCacheList("cached_contacts", Profile::class.java)
+            val contacts = if (cached.isNotEmpty()) cached else profilesRepository.getMyContacts(forceRefresh = false).getOrNull().orEmpty()
+            val normalized = query.trim().lowercase()
+            val filtered = contacts.filter { contact ->
+                listOfNotNull(contact.displayName, contact.firstName, contact.lastName)
+                    .joinToString(" ")
+                    .lowercase()
+                    .contains(normalized)
+            }
+            _searchState.value = UserSearchUiState.Success(filtered)
         }
     }
 
