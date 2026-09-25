@@ -584,18 +584,6 @@ fun PaniOSUnifiedTopBar(
                     }
                 }
 
-                // Caja de herramientas: acción preparada para el contenido que se incorporará después.
-                Box(
-                    modifier = Modifier
-                        .padding(end = 6.dp)
-                        .size(40.dp)
-                        .clip(CircleShape)
-                        .clickable(onClick = onToolbox),
-                    contentAlignment = Alignment.Center
-                ) {
-                    PaniOSToolboxIcon(modifier = Modifier.size(27.dp))
-                }
-
                 // Avatar + estado: espejo visual del logo, ambos parten de un círculo de 40.dp.
                 Column(
                     horizontalAlignment = Alignment.End,
