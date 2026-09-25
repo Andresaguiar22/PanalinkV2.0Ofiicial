@@ -37,6 +37,13 @@ class AuthViewModel(private val authManager: AuthManager = AuthManager()) : View
     private val _uiState = MutableStateFlow<AuthUiState>(AuthUiState.Idle)
     val uiState: StateFlow<AuthUiState> = _uiState
 
+    private val _otherDevices = MutableStateFlow<List<com.example.data.model.ActiveDeviceDto>>(emptyList())
+    val otherDevices: StateFlow<List<com.example.data.model.ActiveDeviceDto>> = _otherDevices
+
+    fun dismissDeviceAlert() {
+        _otherDevices.value = emptyList()
+    }
+
     val isConfigured: Boolean = SupabaseClient.isConfigured
 
     private suspend fun determineAuthenticatedState(user: AuthUser): AuthUiState {
@@ -142,16 +149,22 @@ class AuthViewModel(private val authManager: AuthManager = AuthManager()) : View
         }
     }
 
-    fun login(email: String, pword: String) {
+    fun login(
+        email: String,
+        pword: String,
+        deviceId: String? = null,
+        deviceName: String? = null
+    ) {
         if (email.isBlank() || pword.isBlank()) {
             _uiState.value = AuthUiState.Error("Email y contraseña requeridos.")
             return
         }
         _uiState.value = AuthUiState.Loading
         viewModelScope.launch {
-            authManager.signIn(email, pword)
+            authManager.signIn(email, pword, deviceId, deviceName)
                 .onSuccess { user ->
                     if (user.emailConfirmedAt != null || SupabaseClient.currentToken != null) {
+                        _otherDevices.value = SupabaseClient.otherActiveDevices.value
                         _uiState.value = determineAuthenticatedState(user)
                     } else {
                         _uiState.value = AuthUiState.NeedsEmailVerification(email)

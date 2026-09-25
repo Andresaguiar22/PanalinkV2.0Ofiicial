@@ -1118,4 +1118,7 @@ object SupabaseClient {
             "$defaultMessage: $errorStr"
         }
     }
+
+    /** Dispositivos activos distintos al actual, detectados al hacer login (best-effort). */
+    val otherActiveDevices = kotlinx.coroutines.flow.MutableStateFlow<List<com.example.data.model.ActiveDeviceDto>>(emptyList())
 }

@@ -21,6 +21,8 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.sp
 import androidx.compose.material3.Scaffold
+import androidx.compose.material3.AlertDialog
+import androidx.compose.material3.TextButton
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
@@ -28,6 +30,7 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.setValue
 import kotlinx.coroutines.delay
+import kotlinx.coroutines.flow.collect
 import androidx.compose.ui.Modifier
 import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.compose.animation.fadeIn
@@ -342,6 +345,34 @@ class MainActivity : androidx.fragment.app.FragmentActivity() {
                 val updateViewModel: com.example.update.UpdateViewModel = viewModel()
                 val updateStatus by updateViewModel.updateStatus.collectAsState()
                 var showUpdateDialog by remember { mutableStateOf(false) }
+                var showSessionRevokedDialog by remember { mutableStateOf(false) }
+
+                LaunchedEffect(Unit) {
+                    SessionManager.sessionEvent.collect { event ->
+                        if (event == SessionManager.SessionEvent.SESSION_REVOKED) {
+                            showSessionRevokedDialog = true
+                        }
+                    }
+                }
+
+                if (showSessionRevokedDialog) {
+                    AlertDialog(
+                        onDismissRequest = { showSessionRevokedDialog = false },
+                        title = { Text("Sesión cerrada en otro dispositivo", color = PanalinkPalette.textPrimary, fontWeight = FontWeight.Bold) },
+                        text = {
+                            Text(
+                                "Tu cuenta se inició en otro dispositivo, así que esta sesión se cerró. Si fuiste tú, vuelve a entrar cuando quieras.",
+                                color = PanalinkPalette.textPrimary.copy(alpha = 0.8f),
+                                fontSize = 15.sp
+                            )
+                        },
+                        confirmButton = {
+                            TextButton(onClick = { showSessionRevokedDialog = false }) {
+                                Text("Entendido", color = Color(0xFF18E7F5), fontWeight = FontWeight.Bold)
+                            }
+                        }
+                    )
+                }
 
                 LaunchedEffect(Unit) {
                     updateViewModel.checkForUpdates(force = true)

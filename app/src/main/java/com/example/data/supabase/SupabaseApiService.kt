@@ -1183,4 +1183,18 @@ interface SupabaseApiService {
         @Header("Authorization") authorization: String,
         @Body params: Map<String, String>
     ): Response<Unit>
+
+    @POST("rest/v1/rpc/get_other_active_devices")
+    suspend fun getOtherActiveDevices(
+        @Header("apikey") apiKey: String,
+        @Header("Authorization") authorization: String,
+        @Body params: Map<String, String>
+    ): Response<List<com.example.data.model.ActiveDeviceDto>>
+
+    @POST("rest/v1/rpc/register_device")
+    suspend fun registerDevice(
+        @Header("apikey") apiKey: String,
+        @Header("Authorization") authorization: String,
+        @Body params: Map<String, String>
+    ): Response<Unit>
 }

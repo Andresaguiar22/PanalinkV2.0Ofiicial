@@ -184,7 +184,12 @@ class AuthManager {
     }
 
     // Sign in with email, password
-    suspend fun signIn(email: String, pword: String): Result<AuthUser> = withContext(Dispatchers.IO) {
+    suspend fun signIn(
+        email: String,
+        pword: String,
+        deviceId: String? = null,
+        deviceName: String? = null
+    ): Result<AuthUser> = withContext(Dispatchers.IO) {
         pendingEmail = email
         pendingPassword = pword
         if (!SupabaseClient.isConfigured) {
@@ -265,6 +270,7 @@ class AuthManager {
                         SupabaseClient.currentUser,
                         SupabaseClient.currentProfile
                     )
+                    notifyDeviceRegistration(service, authBody.accessToken, deviceId, deviceName)
                     return@withContext Result.success(authBody.user)
                 } else {
                     val cached = SessionManager.getCachedProfile() ?: SupabaseClient.currentProfile
@@ -280,6 +286,7 @@ class AuthManager {
                             SupabaseClient.currentUser,
                             cached
                         )
+                        notifyDeviceRegistration(service, authBody.accessToken, deviceId, deviceName)
                         return@withContext Result.success(authBody.user)
                     }
 
@@ -308,6 +315,7 @@ class AuthManager {
                         SupabaseClient.currentUser,
                         SupabaseClient.currentProfile
                     )
+                    notifyDeviceRegistration(service, authBody.accessToken, deviceId, deviceName)
                     return@withContext Result.success(authBody.user)
                 }
             } else {
@@ -319,6 +327,44 @@ class AuthManager {
         } catch (e: Exception) {
             Log.e(TAG, "Sign in exception", e)
             return@withContext Result.failure(e)
+        }
+    }
+
+    private suspend fun notifyDeviceRegistration(
+        service: com.example.data.supabase.SupabaseApiService,
+        token: String,
+        deviceId: String?,
+        deviceName: String?
+    ) {
+        if (deviceId.isNullOrBlank()) return
+        try {
+            val registerParams = mapOf(
+                "p_device_id" to deviceId,
+                "p_device_name" to (deviceName ?: "Dispositivo desconocido")
+            )
+            val regResponse = service.registerDevice(
+                apiKey = SupabaseClient.supabaseAnonKey,
+                authorization = "Bearer $token",
+                params = registerParams
+            )
+            if (regResponse.isSuccessful) {
+                try {
+                    val checkResponse = service.getOtherActiveDevices(
+                        apiKey = SupabaseClient.supabaseAnonKey,
+                        authorization = "Bearer $token",
+                        params = mapOf("p_current_device_id" to deviceId)
+                    )
+                    if (checkResponse.isSuccessful) {
+                        SupabaseClient.otherActiveDevices.value = checkResponse.body() ?: emptyList()
+                    }
+                } catch (e: Exception) {
+                    Log.w(TAG, "getOtherActiveDevices best-effort failed: ${e.message}")
+                }
+            } else {
+                Log.i(TAG, "registerDevice best-effort skipped (HTTP ${regResponse.code()}): la tabla de devices aún puede no existir en esta BD.")
+            }
+        } catch (e: Exception) {
+            Log.w(TAG, "Device registration best-effort failed: ${e.message}")
         }
     }
 

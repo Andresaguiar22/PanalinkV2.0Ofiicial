@@ -49,7 +49,8 @@ object SessionManager {
 
     enum class SessionEvent {
         REFRESHED,
-        SYNC_NEEDED
+        SYNC_NEEDED,
+        SESSION_REVOKED
     }
 
     private fun securePrefs(): SharedPreferences {
@@ -285,7 +286,17 @@ object SessionManager {
                 val code = response.code()
                 val errBody = response.errorBody()?.string() ?: ""
                 Log.e(TAG, "Session refresh failed (HTTP $code)")
-                if ((code == 400 || code == 401) && (errBody.contains("invalid_grant") || errBody.contains("invalid_refresh_token"))) clearSession()
+                if ((code == 400 || code == 401) && (errBody.contains("invalid_grant") || errBody.contains("invalid_refresh_token"))) {
+                    // La sesión fue revocada en otro dispositivo (max_sessions=1) o expiró definitivamente.
+
+                    // Avisar antes de limpiar: quien escuche (MainActivity) mostrará el diálogo.
+                    try {
+                        _sessionEvent.tryEmit(SessionEvent.SESSION_REVOKED)
+                    } catch (e: Exception) {
+                        Log.w(TAG, "Error emitting SESSION_REVOKED", e)
+                    }
+                    clearSession()
+                }
             }
         } catch (e: Exception) {
             Log.e(TAG, "Network or server exception during session refresh", e)

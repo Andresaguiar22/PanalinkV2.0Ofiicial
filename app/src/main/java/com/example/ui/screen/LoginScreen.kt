@@ -38,6 +38,7 @@ fun LoginScreen(
     var email by remember { mutableStateOf("") }
     var password by remember { mutableStateOf("") }
     val uiState by viewModel.uiState.collectAsState()
+    val otherDevices by viewModel.otherDevices.collectAsState()
     val context = LocalContext.current
     val audit = remember { SecurityManager.getSecurityAudit(context) }
 
@@ -178,7 +179,7 @@ fun LoginScreen(
 
                         AuroraButton(
                             text = "Entrar de Pana",
-                            onClick = { viewModel.login(email, password) },
+                            onClick = { viewModel.login(email, password, com.example.util.DeviceInfo.getDeviceId(context), com.example.util.DeviceInfo.getDeviceName(context)) },
                             isLoading = uiState is AuthUiState.Loading,
                             modifier = Modifier.testTag("login_submit_button")
                         )
@@ -204,5 +205,29 @@ fun LoginScreen(
                 }
             }
         }
+    }
+
+    if (otherDevices.isNotEmpty()) {
+        val names = otherDevices.mapNotNull { it.deviceName?.takeIf { n -> n.isNotBlank() } }
+        AlertDialog(
+            onDismissRequest = { viewModel.dismissDeviceAlert() },
+            title = { Text("Tu cuenta ya está activa en otro dispositivo", color = PanalinkPalette.textPrimary, fontWeight = FontWeight.Bold) },
+            text = {
+                Text(
+                    text = if (names.isEmpty()) {
+                        "Esta sesión cerrará la anterior en tu otro equipo."
+                    } else {
+                        "Dispositivo(s): " + names.joinToString(", ") + ". Al continuar, esa sesión se cerrará."
+                    },
+                    color = PanalinkPalette.textPrimary.copy(alpha = 0.8f),
+                    fontSize = 15.sp
+                )
+            },
+            confirmButton = {
+                TextButton(onClick = { viewModel.dismissDeviceAlert() }) {
+                    Text("Entendido", color = Color(0xFF18E7F5), fontWeight = FontWeight.Bold)
+                }
+            }
+        )
     }
 }

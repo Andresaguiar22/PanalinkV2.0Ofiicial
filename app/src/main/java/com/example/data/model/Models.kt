@@ -288,3 +288,10 @@ data class ChannelComment(@Json(name = "id") val id: String = "", @Json(name = "
 data class BlockedUser(@Json(name = "id") val id: String? = null, @Json(name = "user_id") val userId: String = "", @Json(name = "blocked_user_id") val blockedUserId: String = "", @Json(name = "created_at") val createdAt: String? = null)
 @JsonClass(generateAdapter = true)
 data class PresenceSession(@Json(name = "id") val id: String = "", @Json(name = "user_id") val userId: String = "", @Json(name = "device_type") val deviceType: String? = null, @Json(name = "os_name") val osName: String? = null, @Json(name = "ip_address") val ipAddress: String? = null, @Json(name = "location_approx") val locationApprox: String? = null, @Json(name = "isp_name") val ispName: String? = null, @Json(name = "app_version") val appVersion: String? = null, @Json(name = "created_at") val createdAt: String? = null, @Json(name = "last_active_at") val lastActiveAt: String? = null, @Json(name = "is_active") val isActive: Boolean = false, @Json(name = "push_token") val pushToken: String? = null)
+
+@JsonClass(generateAdapter = true)
+data class ActiveDeviceDto(
+    @Json(name = "device_name") val deviceName: String? = null,
+    @Json(name = "device_id") val deviceId: String? = null,
+    @Json(name = "last_seen_at") val lastSeenAt: String? = null
+)
