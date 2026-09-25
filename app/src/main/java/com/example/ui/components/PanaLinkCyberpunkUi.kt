@@ -169,7 +169,6 @@ fun PaniOSChatsTopBar(
                     )
                 )
             )
-            .border(1.dp, Color(0x26FFFFFF), RoundedCornerShape(0.dp))
             .statusBarsPadding()
             .padding(horizontal = 16.dp, vertical = 8.dp)
     ) {
@@ -493,7 +492,6 @@ fun PaniOSUnifiedTopBar(
                     )
                 )
             )
-            .border(1.dp, Color(0x26FFFFFF), RoundedCornerShape(0.dp))
             .statusBarsPadding()
             .padding(horizontal =  16.dp, vertical =  8.dp)
     ) {

@@ -179,7 +179,7 @@ fun ChatsTabContent(
                                     ) {
                                         Icon(Icons.Default.Email, contentDescription = null, tint = PanaLinkCyberpunkColors.Cyan.copy(alpha = 0.65f), modifier = Modifier.size(64.dp))
                                         Spacer(Modifier.height(14.dp))
-                                        Text("No tienes chats activos", color = PanaLinkCyberpunkColors.Cream, fontWeight = FontWeight.Bold, fontSize = 17.sp)
+                                        Text("No tienes chats activos", color = PanaLinkCyberpunkColors.Cream, fontWeight = FontWeight.Bold, fontSize =  15.sp)
                                         Spacer(Modifier.height(6.dp))
                                         Text("Usa + para comenzar una nueva conversación.", color = PanaLinkCyberpunkColors.Message.copy(alpha = 0.72f), fontSize = 13.sp, textAlign = TextAlign.Center)
                                     }
@@ -275,7 +275,7 @@ fun ChatItemRow(
                         text = otherUser?.displayName ?: "Pana de panalink",
                         color = Color(0xFFEBEBF5),
                         fontWeight = FontWeight.SemiBold,
-                        fontSize = 17.sp,
+                        fontSize =  15.sp,
                         maxLines = 1,
                         overflow = TextOverflow.Ellipsis
                     )
@@ -288,7 +288,7 @@ fun ChatItemRow(
                 Text(
                     text = formattedTime,
                     color = if (unread > 0) Color(0xFF10B981) else Color(0xFF8E8E93),
-                    fontSize = 15.sp
+                    fontSize =  12.sp
                 )
             }
 
@@ -301,7 +301,7 @@ fun ChatItemRow(
                 Text(
                     text = if (isTyping) "escribiendo…" else (lastMessage?.previewText() ?: "Inicia la conversación chamo..."),
                     color = if (isTyping) Color(0xFF10B981) else Color(0xFF8E8E93),
-                    fontSize = 15.sp,
+                    fontSize =  13.sp,
                     fontWeight = if (isTyping) FontWeight.SemiBold else FontWeight.Normal,
                     maxLines = 1,
                     overflow = TextOverflow.Ellipsis,
@@ -352,16 +352,6 @@ color = Color(0xFF071014),
             modifier = Modifier.size(18.dp)
         )
     }
-
-    // Separador indentado estilo iOS (empieza bajo el avatar y termina
-    // antes del borde derecho; sin espaciado entre filas).
-    Box(
-        modifier = Modifier
-            .fillMaxWidth()
-            .padding(start = 82.dp, end =  16.dp)
-            .height(1.dp)
-            .background(Color(0xFF38383A).copy(alpha =  0.6f))
-    )
 }
 
 @Composable
