@@ -167,6 +167,17 @@ fun ChatsTabContent(
                             .padding(horizontal =  16.dp, vertical =  8.dp)
                     )
                 }
+                if (statesState is StatesUiState.Success && statesState.states.isNotEmpty()) {
+                    item {
+                        com.example.ui.components.StoryShortcutRow(
+                            stories = statesState.states,
+                            currentUserId = SupabaseClient.currentUser?.id,
+                            currentUserAvatar = SupabaseClient.currentProfile?.avatarUrl,
+                            onNavigateToCreateState = onNavigateToCreateState,
+                            onNavigateToViewState = onNavigateToViewState
+                        )
+                    }
+                }
                     when (chatsState) {
                         is ChatsUiState.Loading -> {
                             items(6) { ShimmerChatItemRow() }
