@@ -254,7 +254,8 @@ fun ChatsListScreen(
     onNavigateToMusic: () -> Unit = {},
     onNavigateToVoiceRoom: () -> Unit = {},
     onNavigateToLive: () -> Unit = {},
-    onNavigateToPremium: (() -> Unit)? = null
+    onNavigateToPremium: (() -> Unit)? = null,
+    onNavigateToToolbox: () -> Unit = {}
 ) {
     val context = androidx.compose.ui.platform.LocalContext.current
     var selectedChatIds by remember { mutableStateOf(emptySet<String>()) }
@@ -690,6 +691,7 @@ fun ChatsListScreen(
                                 showRealQrScanner = true
                             },
                             onCompose = { showPlusBottomSheet = true },
+                            onToolbox = onNavigateToToolbox,
                             onProfile = onNavigateToProfile
                         )
                     } else {
@@ -699,6 +701,7 @@ fun ChatsListScreen(
                             onFolder = onNavigateToFavorites,
                             onNotifications = onNavigateToNotifications,
                             unreadNotificationCount = notificationsViewModel.unreadCount.collectAsState(0).value,
+                            onToolbox = onNavigateToToolbox,
                             onProfile =onNavigateToProfile
                         )
                     }
