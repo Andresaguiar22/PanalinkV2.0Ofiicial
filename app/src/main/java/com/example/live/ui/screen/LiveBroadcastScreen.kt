@@ -44,7 +44,7 @@ import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withTimeout
-import com.example.ui.theme.PanalinkPalette
+import com.example.ui.settings.ios.IosSettingsColors
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -257,7 +257,7 @@ fun LiveBroadcastScreen(
                     Column(horizontalAlignment = Alignment.CenterHorizontally) {
                         Text(
                             text = "Se requieren permisos de Cámara y Micrófono para transmitir",
-                            color = PanalinkPalette.textPrimary,
+                            color = IosSettingsColors.label,
                             fontSize = 16.sp,
                             fontWeight = FontWeight.Medium
                         )
@@ -266,8 +266,8 @@ fun LiveBroadcastScreen(
                             onClick = {
                                 permissionLauncher.launch(arrayOf(Manifest.permission.CAMERA, Manifest.permission.RECORD_AUDIO))
                             },
-                            colors = ButtonDefaults.buttonColors(containerColor = Color(0xFF18E7F5))
-                        ) { Text("Conceder Permisos", color = PanalinkPalette.textPrimary) }
+                            colors = ButtonDefaults.buttonColors(containerColor = IosSettingsColors.blue)
+                        ) { Text("Conceder Permisos", color = IosSettingsColors.label) }
                     }
                 }
             } else if (!isLiveStarted) {
@@ -498,7 +498,7 @@ fun LiveBroadcastScreen(
                                     ) {
                                         Text(
                                             text = "Co-Host",
-                                            color = PanalinkPalette.textPrimary,
+                                            color = IosSettingsColors.label,
                                             fontSize = 10.sp,
                                             modifier = Modifier.padding(horizontal = 6.dp, vertical = 2.dp)
                                         )
@@ -525,7 +525,7 @@ fun LiveBroadcastScreen(
                             ) {
                                 Text(
                                     text = err,
-                                    color = PanalinkPalette.textPrimary,
+                                    color = IosSettingsColors.label,
                                     fontSize = 13.sp,
                                     fontWeight = FontWeight.Medium
                                 )
@@ -534,7 +534,7 @@ fun LiveBroadcastScreen(
                                     liveSetupError = null
                                     activeStream?.let { startLiveInBackground(it) }
                                 }) {
-                                    Text("Reintentar conexión", color = PanalinkPalette.textPrimary, fontWeight = FontWeight.Bold)
+                                    Text("Reintentar conexión", color = IosSettingsColors.label, fontWeight = FontWeight.Bold)
                                 }
                             }
                         }
@@ -622,7 +622,7 @@ fun LiveBroadcastScreen(
             },
             dismissButton = {
                 TextButton(onClick = { showEndConfirmation = false }) {
-                    Text("Cancelar", color = PanalinkPalette.textPrimary)
+                    Text("Cancelar", color = IosSettingsColors.label)
                 }
             },
             containerColor = Color(0xFF161618),

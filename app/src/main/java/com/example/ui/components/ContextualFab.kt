@@ -34,7 +34,7 @@ import androidx.compose.foundation.gestures.detectTapGestures
 import androidx.compose.ui.input.pointer.pointerInput
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
-import com.example.ui.theme.PanalinkPalette
+import com.example.ui.settings.ios.IosSettingsColors
 
 
 data class FabSubItem(
@@ -196,7 +196,7 @@ fun ContextualExpandableFab(
                         ) {
                             Text(
                                 text = item.label,
-                                color = PanalinkPalette.textPrimary,
+                                color = IosSettingsColors.label,
                                 fontSize = 9.sp,
                                 fontWeight = FontWeight.Bold
                             )
@@ -240,8 +240,8 @@ fun ContextualExpandableFab(
                                     Color(0xFFFF0000), // Red
                                     Color(0xFFFF7F00), // Orange
                                     Color(0xFFFFD700), // Yellow/Gold
-                                    Color(0xFF18E7F5), // Neon Green
-                                    Color(0xFF00E5FF), // Cyan
+                                    IosSettingsColors.blue, // Neon Green
+                                    IosSettingsColors.blue, // Cyan
                                     Color(0xFF8B00FF), // Violet
                                     Color(0xFFFF0000)  // Red
                                 )
@@ -258,8 +258,8 @@ fun ContextualExpandableFab(
                             brush = Brush.linearGradient(
                                 colors = listOf(
                                     Color(0xFF8B00FF), // Violet / Purple
-                                    Color(0xFF00E5FF), // Blue / Cyan
-                                    Color(0xFF18E7F5)  // Neon Green / Mint
+                                    IosSettingsColors.blue, // Blue / Cyan
+                                    IosSettingsColors.blue  // Neon Green / Mint
                                 )
                             ),
                             shape = RoundedCornerShape(16.dp)

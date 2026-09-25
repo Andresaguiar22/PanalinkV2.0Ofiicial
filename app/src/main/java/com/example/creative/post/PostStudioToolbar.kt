@@ -19,7 +19,7 @@ import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-import com.example.ui.theme.PanalinkPalette
+import com.example.ui.settings.ios.IosSettingsColors
 
 data class PostToolItem(
     val id: String,
@@ -45,7 +45,7 @@ fun PostStudioToolbar(
         PostToolItem("filter", "Filtros", Icons.Default.ColorLens, Color(0xFF10B981)),
         PostToolItem("draw", "Dibujar", Icons.Default.Edit, Color(0xFFEC4899)),
         PostToolItem("ratio", "Aspecto", Icons.Default.AspectRatio, Color(0xFF6366F1)),
-        PostToolItem("inspector", "Inspector", Icons.Default.Tune, Color(0xFF00E5FF)),
+        PostToolItem("inspector", "Inspector", Icons.Default.Tune, IosSettingsColors.blue),
         PostToolItem("caption", "Texto Post", Icons.Default.Article, Color(0xFF14B8A6))
     )
 
@@ -86,7 +86,7 @@ fun PostStudioToolbar(
                     Spacer(modifier = Modifier.height(4.dp))
                     Text(
                         text = tool.name,
-                        color = PanalinkPalette.textPrimary,
+                        color = IosSettingsColors.label,
                         fontSize = 11.sp,
                         fontWeight = FontWeight.Medium
                     )

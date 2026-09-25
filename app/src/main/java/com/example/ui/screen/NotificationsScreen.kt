@@ -35,7 +35,10 @@ import com.example.ui.viewmodel.NotificationsViewModel
 import com.example.identity.model.toIdentityUiState
 import java.text.SimpleDateFormat
 import java.util.*
-import com.example.ui.theme.PanalinkPalette
+import com.example.ui.settings.ios.IosSettingsColors
+import com.example.ui.settings.ios.IosSettingsScaffold
+import com.example.ui.settings.ios.IosFont
+import androidx.compose.material.icons.automirrored.filled.ArrowBack
 
 @OptIn(ExperimentalMaterial3Api::class, ExperimentalFoundationApi::class)
 @Composable
@@ -52,35 +55,20 @@ fun NotificationsScreen(
     val snackbarHostState = remember { SnackbarHostState() }
     var showMuteMenu by remember { mutableStateOf(false) }
 
-    Scaffold(
-        topBar = {
-            TopAppBar(
-                title = { Text("Notificaciones", fontWeight = FontWeight.Bold) },
-                navigationIcon = {
-                    IconButton(onClick = onNavigateBack) {
-                        Icon(Icons.Default.ArrowBack, contentDescription = "Regresar")
-                    }
-                },
-                actions = {
-                    IconButton(onClick = { showMuteMenu = true }) {
-                        Icon(Icons.Default.NotificationsOff, contentDescription = "Silenciar categorías")
-                    }
-                    IconButton(onClick = { viewModel.clearAllNotifications() }) {
-                        Icon(Icons.Default.ClearAll, contentDescription = "Borrar todas")
-                    }
-                    IconButton(onClick = { viewModel.markAllRead() }) {
-                        Icon(Icons.Default.DoneAll, contentDescription = "Marcar leídas todas")
-                    }
-                },
-                colors = TopAppBarDefaults.topAppBarColors(
-                    containerColor = Color.Transparent,
-                    titleContentColor = PanalinkPalette.textPrimary,
-                    navigationIconContentColor = PanalinkPalette.textPrimary
-                )
-            )
-        },
-        snackbarHost = { SnackbarHost(snackbarHostState) },
-        containerColor = Color.Transparent
+    IosSettingsScaffold(
+        title = "Notificaciones",
+        onBack = onNavigateBack,
+        actions = {
+            IconButton(onClick = { showMuteMenu = true }) {
+                Icon(Icons.Default.NotificationsOff, contentDescription = "Silenciar categorías", tint = IosSettingsColors.blue)
+            }
+            IconButton(onClick = { viewModel.clearAllNotifications() }) {
+                Icon(Icons.Default.ClearAll, contentDescription = "Borrar todas", tint = IosSettingsColors.blue)
+            }
+            IconButton(onClick = { viewModel.markAllRead() }) {
+                Icon(Icons.Default.DoneAll, contentDescription = "Marcar leídas todas", tint = IosSettingsColors.blue)
+            }
+        }
     ) { paddingValues ->
         Box(
             modifier = Modifier
@@ -99,7 +87,7 @@ fun NotificationsScreen(
                                 Icon(
                                     imageVector = if (muted) Icons.Default.NotificationsOff else Icons.Default.Notifications,
                                     contentDescription = null,
-                                    tint = if (muted) Color(0xFF7D8CA3) else Color(0xFF18E7F5)
+                                    tint = if (muted) IosSettingsColors.secondaryLabel else IosSettingsColors.blue
                                 )
                                 Spacer(modifier = Modifier.width(8.dp))
                                 Text(type.name.lowercase().replaceFirstChar { it.uppercase() })
@@ -155,6 +143,10 @@ fun NotificationsScreen(
                     }
                 }
             }
+            SnackbarHost(
+                hostState = snackbarHostState,
+                modifier = Modifier.align(Alignment.BottomCenter)
+            )
         }
     }
 }
@@ -162,14 +154,16 @@ fun NotificationsScreen(
 @Composable
 fun NotificationGroup(title: String) {
     Text(
-        text = title,
-        color = PanalinkPalette.textPrimary,
-        fontWeight = FontWeight.Bold,
-        fontSize = 18.sp,
+        text = title.uppercase(),
+        color = IosSettingsColors.secondaryLabel,
+        fontFamily = IosFont,
+        fontWeight = FontWeight.Medium,
+        fontSize = 13.sp,
+        letterSpacing = 0.6.sp,
         modifier = Modifier
             .fillMaxWidth()
-            .background(Color.Transparent.copy(alpha = 0.95f))
-            .padding(horizontal = 16.dp, vertical = 12.dp)
+            .background(IosSettingsColors.groupBackground.copy(alpha = 0.95f))
+            .padding(horizontal = 16.dp, vertical = 10.dp)
     )
 }
 
@@ -178,7 +172,7 @@ fun NotificationCard(
     notification: Notification,
     onClick: () -> Unit
 ) {
-    val backgroundColor = if (notification.isRead) Color.Transparent else Color(0xFFB026FF).copy(alpha = 0.1f)
+    val backgroundColor = if (notification.isRead) Color.Transparent else IosSettingsColors.blue.copy(alpha = 0.10f)
     
     val context = androidx.compose.ui.platform.LocalContext.current
     val identityRepository = androidx.compose.runtime.remember { com.example.identity.bridge.LegacyIdentityBridge(context).identityRepository }
@@ -219,8 +213,8 @@ fun NotificationCard(
                     Icon(
                         imageVector = icon,
                         contentDescription = null,
-                        tint = PanalinkPalette.textPrimary,
-                        modifier = Modifier.size(10.dp)
+                        tint = Color.White,
+                        modifier = Modifier.size(11.dp)
                     )
                 }
             }
@@ -235,8 +229,9 @@ fun NotificationCard(
             Row(verticalAlignment = Alignment.CenterVertically) {
                 Text(
                     text = name,
-                    color = PanalinkPalette.textPrimary,
-                    fontWeight = FontWeight.Bold,
+                    color = IosSettingsColors.label,
+                    fontFamily = IosFont,
+                    fontWeight = FontWeight.SemiBold,
                     fontSize = 15.sp,
                     maxLines = 1,
                     overflow = TextOverflow.Ellipsis,
@@ -245,7 +240,8 @@ fun NotificationCard(
                 Spacer(modifier = Modifier.width(6.dp))
                 Text(
                     text = timeStr,
-                    color = Color.Gray,
+                    color = IosSettingsColors.secondaryLabel,
+                    fontFamily = IosFont,
                     fontSize = 12.sp
                 )
             }
@@ -254,7 +250,8 @@ fun NotificationCard(
             
             Text(
                 text = notification.actionText,
-                color = PanalinkPalette.textPrimary.copy(alpha = 0.8f),
+                color = IosSettingsColors.label.copy(alpha = 0.85f),
+                fontFamily = IosFont,
                 fontSize = 14.sp,
                 maxLines = 2,
                 overflow = TextOverflow.Ellipsis
@@ -264,7 +261,8 @@ fun NotificationCard(
                 Spacer(modifier = Modifier.height(4.dp))
                 Text(
                     text = "\"${notification.previewText}\"",
-                    color = Color.Gray,
+                    color = IosSettingsColors.secondaryLabel,
+                    fontFamily = IosFont,
                     fontSize = 13.sp,
                     maxLines = 1,
                     overflow = TextOverflow.Ellipsis
@@ -280,7 +278,7 @@ fun NotificationCard(
                 contentDescription = null,
                 modifier = Modifier
                     .size(44.dp)
-                    .clip(RoundedCornerShape(8.dp)),
+                    .clip(RoundedCornerShape(10.dp)),
                 contentScale = ContentScale.Crop
             )
         }
@@ -290,7 +288,7 @@ fun NotificationCard(
             Box(
                 modifier = Modifier
                     .size(8.dp)
-                    .background(Color(0xFFB026FF), CircleShape)
+                    .background(IosSettingsColors.blue, CircleShape)
             )
         }
     }
@@ -324,13 +322,14 @@ fun EmptyNotificationView(message: String) {
         Icon(
             imageVector = Icons.Default.Notifications,
             contentDescription = null,
-            tint = Color.Gray.copy(alpha = 0.5f),
-            modifier = Modifier.size(80.dp)
+            tint = IosSettingsColors.secondaryLabel.copy(alpha = 0.5f),
+            modifier = Modifier.size(72.dp)
         )
         Spacer(modifier = Modifier.height(16.dp))
         Text(
             text = message,
-            color = Color.Gray,
+            color = IosSettingsColors.secondaryLabel,
+            fontFamily = IosFont,
             fontSize = 16.sp,
             fontWeight = FontWeight.Medium
         )
@@ -350,7 +349,7 @@ fun NotificationLoading() {
                 Box(
                     modifier = Modifier
                         .size(56.dp)
-                        .background(Color(0xFF262629), CircleShape)
+                        .background(IosSettingsColors.cell, CircleShape)
                 )
                 Spacer(modifier = Modifier.width(12.dp))
                 Column(modifier = Modifier.weight(1f)) {
@@ -358,14 +357,14 @@ fun NotificationLoading() {
                         modifier = Modifier
                             .fillMaxWidth(0.5f)
                             .height(16.dp)
-                            .background(Color(0xFF262629), RoundedCornerShape(4.dp))
+                            .background(IosSettingsColors.cell, RoundedCornerShape(4.dp))
                     )
                     Spacer(modifier = Modifier.height(8.dp))
                     Box(
                         modifier = Modifier
                             .fillMaxWidth(0.8f)
                             .height(14.dp)
-                            .background(Color(0xFF262629), RoundedCornerShape(4.dp))
+                            .background(IosSettingsColors.cell, RoundedCornerShape(4.dp))
                     )
                 }
             }
@@ -500,7 +499,7 @@ fun NotificationBadge(count: Int, modifier: Modifier = Modifier) {
         ) {
             Text(
                 text = if (count > 99) "+99" else count.toString(),
-                color = PanalinkPalette.textPrimary,
+                color = Color.White,
                 fontSize = 11.sp,
                 fontWeight = FontWeight.Bold
             )

@@ -21,7 +21,7 @@ import coil.compose.AsyncImage
 import com.example.data.model.ChannelComment
 import java.text.SimpleDateFormat
 import java.util.*
-import com.example.ui.theme.PanalinkPalette
+import com.example.ui.settings.ios.IosSettingsColors
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -54,10 +54,10 @@ fun FeedCommentsBottomSheet(
                     text = "Comentarios (${comments.size})",
                     fontSize = 18.sp,
                     fontWeight = FontWeight.Bold,
-                    color = PanalinkPalette.textPrimary
+                    color = IosSettingsColors.label
                 )
                 IconButton(onClick = onDismissRequest) {
-                    Icon(imageVector = Icons.Default.Close, contentDescription = "Cerrar", tint = PanalinkPalette.textPrimary)
+                    Icon(imageVector = Icons.Default.Close, contentDescription = "Cerrar", tint = IosSettingsColors.label)
                 }
             }
             HorizontalDivider(color = Color(0xFF1F2C34))
@@ -110,7 +110,7 @@ fun FeedCommentsBottomSheet(
                     Icon(
                         imageVector = Icons.AutoMirrored.Filled.Send,
                         contentDescription = "Enviar",
-                        tint = PanalinkPalette.textPrimary
+                        tint = IosSettingsColors.label
                     )
                 }
             }
@@ -140,7 +140,7 @@ fun CommentItem(comment: ChannelComment) {
                     text = comment.author?.displayName ?: "",
                     fontSize = 14.sp,
                     fontWeight = FontWeight.Bold,
-                    color = PanalinkPalette.textPrimary
+                    color = IosSettingsColors.label
                 )
                 Spacer(modifier = Modifier.width(8.dp))
                 Text(
@@ -153,7 +153,7 @@ fun CommentItem(comment: ChannelComment) {
             Text(
                 text = comment.contentText,
                 fontSize = 14.sp,
-                color = PanalinkPalette.textPrimary
+                color = IosSettingsColors.label
             )
         }
     }

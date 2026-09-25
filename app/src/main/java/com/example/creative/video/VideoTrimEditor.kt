@@ -12,7 +12,7 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-import com.example.ui.theme.PanalinkPalette
+import com.example.ui.settings.ios.IosSettingsColors
 
 @Composable
 fun VideoTrimEditor(
@@ -42,13 +42,13 @@ fun VideoTrimEditor(
         ) {
             Text(
                 "Cortar Vídeo",
-                color = PanalinkPalette.textPrimary,
+                color = IosSettingsColors.label,
                 fontSize = 14.sp,
                 fontWeight = FontWeight.Bold
             )
             Text(
                 "${(range.start / 1000).toInt()}s - ${(range.endInclusive / 1000).toInt()}s (${((range.endInclusive - range.start) / 1000).toInt()}s)",
-                color = Color(0xFF00E5FF),
+                color = IosSettingsColors.blue,
                 fontSize = 12.sp,
                 fontWeight = FontWeight.Medium
             )
@@ -73,8 +73,8 @@ fun VideoTrimEditor(
                 },
                 valueRange = 0f..maxVal,
                 colors = SliderDefaults.colors(
-                    thumbColor = Color(0xFF00E5FF),
-                    activeTrackColor = Color(0xFF00E5FF),
+                    thumbColor = IosSettingsColors.blue,
+                    activeTrackColor = IosSettingsColors.blue,
                     inactiveTrackColor = Color.Transparent
                 )
             )

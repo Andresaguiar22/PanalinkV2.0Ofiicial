@@ -44,7 +44,7 @@ import com.example.ui.components.chat.voice.voiceGestureDetector
 import com.example.ui.screen.triggerLightVibration
 import com.example.util.CameraPermissionState
 import kotlinx.coroutines.delay
-import com.example.ui.theme.PanalinkPalette
+import com.example.ui.settings.ios.IosSettingsColors
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -94,7 +94,7 @@ fun ChatComposer(
     var micDragOffsetX by remember { androidx.compose.runtime.mutableFloatStateOf(0f) }
     var micDragOffsetY by remember { androidx.compose.runtime.mutableFloatStateOf(0f) }
     val isInputEmpty = inputMessage.trim().isEmpty()
-    val primaryColor = PanalinkPalette.accent
+    val primaryColor = IosSettingsColors.blue
     val bubbleColor = androidx.compose.ui.graphics.Color(0xFF09090B)
     // Distancia en PX que debe recorrer el dedo (con el micrófono) para que el
     // candado atrape el mic. Geometría real: el candado vive en el top-end del

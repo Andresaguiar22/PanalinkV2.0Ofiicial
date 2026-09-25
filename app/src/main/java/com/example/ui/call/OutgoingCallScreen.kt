@@ -12,6 +12,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.unit.dp
 import com.example.ui.theme.bounceClick
+import com.example.ui.settings.ios.IosSettingsColors
 
 /**
  * OutgoingCallScreen displays outgoing call feedback to the initiator,
@@ -28,7 +29,7 @@ fun OutgoingCallScreen(
     Box(
         modifier = modifier
             .fillMaxSize()
-            .background(Color(0xFF0D0F12)) // Slate 900
+            .background(IosSettingsColors.groupBackground) // Slate 900
             .padding(24.dp),
         contentAlignment = Alignment.Center
     ) {
@@ -41,7 +42,7 @@ fun OutgoingCallScreen(
             CallStatusText(
                 statusText = if (isVideo) "Llamando por video..." else "Llamando...",
                 opponentName = opponentName,
-                statusColor = Color(0xFF18E7F5),
+                statusColor = IosSettingsColors.blue,
                 modifier = Modifier.padding(top = 64.dp)
             )
 
@@ -49,7 +50,7 @@ fun OutgoingCallScreen(
             CallAvatarPulse(
                 name = opponentName,
                 userId = opponentId,
-                pulseColor = Color(0xFF18E7F5),
+                pulseColor = IosSettingsColors.blue,
                 avatarSize = 130.dp,
                 isAnimating = true
             )
@@ -63,7 +64,7 @@ fun OutgoingCallScreen(
                     onClick = onCancel,
                     icon = Icons.Default.CallEnd,
                     contentDescription = "Cancelar Llamada",
-                    containerColor = Color(0xFFEF4444), // Red 500
+                    containerColor = IosSettingsColors.red, // Red 500
                     contentColor = Color.White,
                     size = 68.dp,
                     iconSize = 32.dp,

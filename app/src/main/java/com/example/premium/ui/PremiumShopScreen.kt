@@ -21,7 +21,7 @@ import androidx.compose.ui.unit.sp
 import androidx.lifecycle.viewmodel.compose.viewModel
 import com.example.premium.domain.model.Entitlement
 import com.example.premium.domain.model.PremiumProduct
-import com.example.ui.theme.PanalinkPalette
+import com.example.ui.settings.ios.IosSettingsColors
 import com.example.ui.theme.PanalinkSkin
 
 /**
@@ -57,7 +57,7 @@ fun PremiumShopScreen(
                 title = { Text("🛍️ Tienda Premium", fontWeight = FontWeight.Bold, color = PanalinkSkin.TitleCream) },
                 navigationIcon = {
                     IconButton(onClick = onBack) {
-                        Icon(Icons.AutoMirrored.Filled.ArrowBack, contentDescription = "Atrás", tint = PanalinkPalette.textPrimary)
+                        Icon(Icons.AutoMirrored.Filled.ArrowBack, contentDescription = "Atrás", tint = IosSettingsColors.label)
                     }
                 },
                 colors = TopAppBarDefaults.centerAlignedTopAppBarColors(containerColor = Color(0xFF121A24))

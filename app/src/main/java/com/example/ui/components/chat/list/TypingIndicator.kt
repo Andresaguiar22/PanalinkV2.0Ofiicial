@@ -13,12 +13,12 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-import com.example.ui.theme.PanalinkPalette
+import com.example.ui.settings.ios.IosSettingsColors
 
 @Composable
 fun TypingIndicator(
     modifier: Modifier = Modifier,
-    color: Color = PanalinkPalette.accent
+    color: Color = IosSettingsColors.blue
 ) {
     Row(
         modifier = modifier,
@@ -66,6 +66,6 @@ private fun Dot(index: Int) {
         modifier = Modifier
             .size(3.dp)
             .alpha(alpha)
-            .background(PanalinkPalette.accent, CircleShape)
+            .background(IosSettingsColors.blue, CircleShape)
     )
 }

@@ -17,7 +17,7 @@ import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-import com.example.ui.theme.PanalinkPalette
+import com.example.ui.settings.ios.IosSettingsColors
 
 /**
  * CallActionButton defines a highly polished circular interactive control
@@ -85,7 +85,7 @@ fun CallActionButton(
             Spacer(modifier = Modifier.height(8.dp))
             Text(
                 text = label,
-                color = PanalinkPalette.textPrimary.copy(alpha = 0.8f),
+                color = IosSettingsColors.label.copy(alpha = 0.8f),
                 fontSize = 12.sp
             )
         }

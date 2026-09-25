@@ -20,7 +20,7 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.example.data.model.Message
-import com.example.ui.theme.PanalinkPalette
+import com.example.ui.settings.ios.IosSettingsColors
 
 @Composable
 fun GhostMessageBubble(
@@ -30,9 +30,9 @@ fun GhostMessageBubble(
     modifier: Modifier = Modifier
 ) {
     val isOpened = message.ghostOpenedAt != null
-    val bubbleColor = if (isMe) PanalinkPalette.chatOutgoing else PanalinkPalette.chatIncoming
-    val ghostColor = PanalinkPalette.accent
-    val textColor = PanalinkPalette.textPrimary
+    val bubbleColor = if (isMe) IosSettingsColors.blue else IosSettingsColors.cell
+    val ghostColor = IosSettingsColors.blue
+    val textColor = IosSettingsColors.label
 
     Surface(
         modifier = modifier

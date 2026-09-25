@@ -28,7 +28,7 @@ import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-import com.example.ui.theme.PanalinkPalette
+import com.example.ui.settings.ios.IosSettingsColors
 
 /** Fondo translúcido común a todos los elementos flotantes del directo. */
 private val LiveGlassFill = Color(0xFF111113).copy(alpha = 0.55f)
@@ -56,7 +56,7 @@ fun LiveStatusPill(
         LivePulseIndicator(isLive = true)
         Text(
             text = "EN VIVO",
-            color = PanalinkPalette.textPrimary,
+            color = IosSettingsColors.label,
             fontWeight = FontWeight.Bold,
             fontSize = 11.sp,
             letterSpacing = 0.6.sp,
@@ -64,7 +64,7 @@ fun LiveStatusPill(
         Spacer(modifier = Modifier.width(2.dp))
         Text(
             text = formatLiveElapsed(elapsedSeconds),
-            color = PanalinkPalette.textPrimary.copy(alpha = 0.9f),
+            color = IosSettingsColors.label,
             fontWeight = FontWeight.Medium,
             fontSize = 12.sp,
         )
@@ -75,12 +75,12 @@ fun LiveStatusPill(
             Icon(
                 imageVector = Icons.Default.Person,
                 contentDescription = "Espectadores",
-                tint = PanalinkPalette.textPrimary.copy(alpha = 0.9f),
+                tint = IosSettingsColors.label,
                 modifier = Modifier.size(12.dp),
             )
             Text(
                 text = "$viewerCount",
-                color = PanalinkPalette.textPrimary.copy(alpha = 0.9f),
+                color = IosSettingsColors.label,
                 fontWeight = FontWeight.Medium,
                 fontSize = 12.sp,
             )
@@ -112,7 +112,7 @@ fun LiveGlassIconButton(
         Icon(
             imageVector = icon,
             contentDescription = contentDescription,
-            tint = PanalinkPalette.textPrimary,
+            tint = IosSettingsColors.label,
             modifier = Modifier.size(22.dp),
         )
     }
@@ -142,7 +142,7 @@ fun LiveEndPill(
     ) {
         Text(
             text = "FINALIZAR",
-            color = PanalinkPalette.textPrimary,
+            color = IosSettingsColors.label,
             fontWeight = FontWeight.Bold,
             fontSize = 13.sp,
             letterSpacing = 0.8.sp,

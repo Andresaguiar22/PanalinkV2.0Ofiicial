@@ -68,7 +68,7 @@ import androidx.annotation.OptIn
 import androidx.media3.common.util.UnstableApi
 
 import androidx.core.splashscreen.SplashScreen.Companion.installSplashScreen
-import com.example.ui.theme.PanalinkPalette
+import com.example.ui.settings.ios.IosSettingsColors
 
 @UnstableApi
 class MainActivity : androidx.fragment.app.FragmentActivity() {
@@ -220,7 +220,7 @@ class MainActivity : androidx.fragment.app.FragmentActivity() {
             val savedShapePreset = prefs.getString("bottom_bar_shape_preset", "pill") ?: "pill"
             com.example.ui.theme.ThemeManager.bottomBarShapePreset.value = savedShapePreset
 
-            val customP = prefs.getInt("custom_primary", 0xFF00E5FF.toInt())
+            val customP = prefs.getInt("custom_primary", 0xFF0A84FF.toInt())
             val customB = prefs.getInt("custom_background", 0xFF000000.toInt())
             val customAc = prefs.getInt("custom_accent", 0xFF8B5CF6.toInt())
             val customS = prefs.getInt("custom_surface", 0xFF121212.toInt())
@@ -358,17 +358,17 @@ class MainActivity : androidx.fragment.app.FragmentActivity() {
                 if (showSessionRevokedDialog) {
                     AlertDialog(
                         onDismissRequest = { showSessionRevokedDialog = false },
-                        title = { Text("Sesión cerrada en otro dispositivo", color = PanalinkPalette.textPrimary, fontWeight = FontWeight.Bold) },
+                        title = { Text("Sesión cerrada en otro dispositivo", color = IosSettingsColors.label, fontWeight = FontWeight.Bold) },
                         text = {
                             Text(
                                 "Tu cuenta se inició en otro dispositivo, así que esta sesión se cerró. Si fuiste tú, vuelve a entrar cuando quieras.",
-                                color = PanalinkPalette.textPrimary.copy(alpha = 0.8f),
+                                color = IosSettingsColors.secondaryLabel,
                                 fontSize = 15.sp
                             )
                         },
                         confirmButton = {
                             TextButton(onClick = { showSessionRevokedDialog = false }) {
-                                Text("Entendido", color = Color(0xFF18E7F5), fontWeight = FontWeight.Bold)
+                                Text("Entendido", color = IosSettingsColors.blue, fontWeight = FontWeight.Bold)
                             }
                         }
                     )
@@ -599,7 +599,7 @@ class MainActivity : androidx.fragment.app.FragmentActivity() {
                                 modifier = Modifier.fillMaxSize()
                             )
                         } else {
-                            Text("Cargando video...", color = PanalinkPalette.textPrimary, fontSize = 14.sp)
+                            Text("Cargando video...", color = IosSettingsColors.label, fontSize = 14.sp)
                         }
                     }
                 } else {

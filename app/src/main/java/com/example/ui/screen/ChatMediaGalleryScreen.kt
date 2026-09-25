@@ -23,7 +23,7 @@ import com.example.ui.components.chat.gallery.MediaGalleryItem
 import com.example.ui.components.chat.gallery.MediaGridItem
 import com.example.ui.viewmodel.MediaGalleryUiState
 import com.example.ui.viewmodel.MediaGalleryViewModel
-import com.example.ui.theme.PanalinkPalette
+import com.example.ui.settings.ios.IosSettingsColors
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -67,11 +67,11 @@ fun ChatMediaGalleryScreen(
             TabRow(
                 selectedTabIndex = selectedTab,
                 containerColor = Color(0xFF18202A),
-                contentColor = Color(0xFF18E7F5),
+                contentColor = IosSettingsColors.blue,
                 indicator = { tabPositions ->
                     TabRowDefaults.SecondaryIndicator(
                         Modifier.tabIndicatorOffset(tabPositions[selectedTab]),
-                        color = Color(0xFF18E7F5)
+                        color = IosSettingsColors.blue
                     )
                 }
             ) {
@@ -82,7 +82,7 @@ fun ChatMediaGalleryScreen(
                         text = { 
                             Text(
                                 title,
-                                color = if (selectedTab == index) Color(0xFF18E7F5) else Color.White.copy(alpha = 0.6f),
+                                color = if (selectedTab == index) IosSettingsColors.blue else Color.White.copy(alpha = 0.6f),
                                 fontSize = 14.sp
                             ) 
                         }
@@ -95,7 +95,7 @@ fun ChatMediaGalleryScreen(
                     is MediaGalleryUiState.Loading -> {
                         CircularProgressIndicator(
                             modifier = Modifier.align(Alignment.Center),
-                            color = Color(0xFF18E7F5)
+                            color = IosSettingsColors.blue
                         )
                     }
                     is MediaGalleryUiState.Empty -> {
@@ -165,13 +165,13 @@ fun EmptyGalleryState(tabName: String) {
         Icon(
             imageVector = icon,
             contentDescription = null,
-            tint = PanalinkPalette.textPrimary.copy(alpha = 0.2f),
+            tint = IosSettingsColors.tertiaryLabel,
             modifier = Modifier.size(80.dp)
         )
         Spacer(modifier = Modifier.height(16.dp))
         Text(
             text = "No hay $tabName aún",
-            color = PanalinkPalette.textPrimary.copy(alpha = 0.4f),
+            color = IosSettingsColors.tertiaryLabel,
             fontSize = 16.sp
         )
     }

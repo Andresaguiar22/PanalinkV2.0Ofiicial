@@ -49,7 +49,7 @@ import androidx.compose.ui.unit.sp
 import com.example.live.ui.LiveCardShape
 import com.example.live.ui.LiveNeon
 import com.example.live.ui.LiveOnNeon
-import com.example.ui.theme.PanalinkPalette
+import com.example.ui.settings.ios.IosSettingsColors
 
 private val FieldShape = RoundedCornerShape(14.dp)
 
@@ -175,14 +175,14 @@ private fun SetupTopBar(onBack: () -> Unit) {
             Icon(
                 imageVector = Icons.AutoMirrored.Filled.ArrowBack,
                 contentDescription = "Regresar",
-                tint = PanalinkPalette.textPrimary,
+                tint = IosSettingsColors.label,
                 modifier = Modifier.size(26.dp),
             )
         }
         Spacer(modifier = Modifier.width(4.dp))
         Text(
             text = "Transmitir en Vivo",
-            color = PanalinkPalette.textPrimary,
+            color = IosSettingsColors.label,
             fontSize = 19.sp,
             fontWeight = FontWeight.Medium,
         )
@@ -277,7 +277,7 @@ private fun PermissionGlassPanel(modifier: Modifier = Modifier) {
             Spacer(modifier = Modifier.height(12.dp))
             Text(
                 text = "Necesitamos tu cámara y micrófono",
-                color = PanalinkPalette.textPrimary,
+                color = IosSettingsColors.label,
                 fontSize = 16.sp,
                 fontWeight = FontWeight.SemiBold,
                 textAlign = TextAlign.Center,
@@ -285,7 +285,7 @@ private fun PermissionGlassPanel(modifier: Modifier = Modifier) {
             Spacer(modifier = Modifier.height(6.dp))
             Text(
                 text = "Concede los permisos para ver tu vista previa y salir en directo.",
-                color = PanalinkPalette.textPrimary.copy(alpha = 0.65f),
+                color = IosSettingsColors.label.copy(alpha = 0.65f),
                 fontSize = 13.sp,
                 textAlign = TextAlign.Center,
             )
@@ -309,7 +309,7 @@ private fun GlassFieldGroup(
         ) {
             Text(
                 text = label,
-                color = PanalinkPalette.textPrimary,
+                color = IosSettingsColors.label,
                 fontSize = 15.sp,
                 fontWeight = FontWeight.SemiBold,
                 modifier = Modifier.weight(1f),
@@ -317,7 +317,7 @@ private fun GlassFieldGroup(
             Icon(
                 imageVector = icon,
                 contentDescription = null,
-                tint = PanalinkPalette.textPrimary.copy(alpha = 0.75f),
+                tint = IosSettingsColors.label.copy(alpha = 0.75f),
                 modifier = Modifier.size(20.dp),
             )
         }
@@ -351,14 +351,14 @@ private fun GlassTextField(
         if (value.isEmpty()) {
             Text(
                 text = placeholder,
-                color = PanalinkPalette.textPrimary.copy(alpha = 0.42f),
+                color = IosSettingsColors.label.copy(alpha = 0.42f),
                 fontSize = 15.sp,
             )
         }
         BasicTextField(
             value = value,
             onValueChange = onValueChange,
-            textStyle = TextStyle(color = PanalinkPalette.textPrimary, fontSize = 15.sp),
+            textStyle = TextStyle(color = IosSettingsColors.label, fontSize = 15.sp),
             cursorBrush = SolidColor(LiveNeon),
             modifier = Modifier.fillMaxSize(),
         )

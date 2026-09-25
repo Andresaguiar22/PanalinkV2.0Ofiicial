@@ -18,7 +18,7 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.example.premium.domain.PremiumManager
-import com.example.ui.theme.PanalinkPalette
+import com.example.ui.settings.ios.IosSettingsColors
 import com.example.ui.theme.PanalinkSkin
 
 /**
@@ -49,7 +49,7 @@ fun CoinChip(
         )
         Text(
             text = "  ·  💎 ${wallet.diamonds}",
-            color = PanalinkPalette.textPrimary.copy(alpha = 0.7f),
+            color = IosSettingsColors.secondaryLabel,
             fontSize = 12.sp
         )
     }

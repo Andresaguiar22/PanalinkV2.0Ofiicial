@@ -32,7 +32,7 @@ import coil.compose.AsyncImage
 import com.example.PanaApplication
 import com.example.data.model.StickerResult
 import com.example.data.repository.StickerRepository
-import com.example.ui.theme.PanalinkPalette
+import com.example.ui.settings.ios.IosSettingsColors
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
@@ -131,12 +131,12 @@ fun KlipyGifStickerPicker(
             ) {
                 Text(
                     text = "Envía un GIF",
-                    color = PanalinkPalette.textPrimary,
+                    color = IosSettingsColors.label,
                     fontSize =   16.sp,
                     fontWeight = FontWeight.Bold
                 )
                 IconButton(onClick = onDismiss) {
-                    Icon(Icons.Default.Close, contentDescription = "Cerrar", tint = PanalinkPalette.textPrimary)
+                    Icon(Icons.Default.Close, contentDescription = "Cerrar", tint = IosSettingsColors.label)
  }
                 }
             }
@@ -154,14 +154,14 @@ fun KlipyGifStickerPicker(
                         Box(
                             modifier = Modifier
                                 .clip(RoundedCornerShape(16.dp))
-                                .background(if (isSelected) Color(0xFF18E7F5) else Color(0xFF18202A))
+                                .background(if (isSelected) IosSettingsColors.blue else Color(0xFF18202A))
                                 .clickable { selectCategory(cat) }
                                 .padding(horizontal =   12.dp, vertical = 6.dp),
                             contentAlignment = Alignment.Center
                         ) {
                             Text(
                                 text = cat.replaceFirstChar { it.titlecase() },
-                                color = PanalinkPalette.textPrimary,
+                                color = IosSettingsColors.label,
                                 fontSize =   12.sp,
                                 fontWeight = if (isSelected) FontWeight.Bold else FontWeight.Normal
                             )
@@ -183,8 +183,8 @@ fun KlipyGifStickerPicker(
                     value = query,
                     onValueChange = { onQueryChange(it) },
                     modifier = Modifier.weight(1f),
-                    textStyle = androidx.compose.ui.text.TextStyle(color = PanalinkPalette.textPrimary, fontSize =   13.sp),
-                    cursorBrush = androidx.compose.ui.graphics.SolidColor(Color(0xFF18E7F5)),
+                    textStyle = androidx.compose.ui.text.TextStyle(color = IosSettingsColors.label, fontSize =   13.sp),
+                    cursorBrush = androidx.compose.ui.graphics.SolidColor(IosSettingsColors.blue),
                     singleLine = true,
                     decorationBox = { inner ->
                         Box(contentAlignment = Alignment.CenterStart) {
@@ -218,7 +218,7 @@ fun KlipyGifStickerPicker(
                     modifier = Modifier.fillMaxSize(),
                     contentAlignment = Alignment.Center
                 ) {
-                    CircularProgressIndicator(color = Color(0xFF18E7F5), strokeWidth = 2.dp)
+                    CircularProgressIndicator(color = IosSettingsColors.blue, strokeWidth = 2.dp)
                 }
             } else {
                 val list = if (tab == 0) gifs else stickers
@@ -282,7 +282,7 @@ fun KlipyGifStickerPicker(
                     ) {
                         Text(
                             text = title,
-                            color = PanalinkPalette.textPrimary,
+                            color = IosSettingsColors.label,
                             fontSize =   13.sp,
                             fontWeight = if (isSelected) FontWeight.Bold else FontWeight.Normal
                         )

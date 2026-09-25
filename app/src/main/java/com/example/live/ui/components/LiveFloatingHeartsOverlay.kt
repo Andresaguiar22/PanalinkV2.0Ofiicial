@@ -12,6 +12,7 @@ import androidx.compose.ui.draw.alpha
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.unit.dp
 import kotlin.random.Random
+import com.example.ui.settings.ios.IosSettingsColors
 
 data class HeartItem(val id: Long = System.currentTimeMillis() + Random.nextLong(1000), val xOffset: Int = Random.nextInt(-60, 60))
 
@@ -58,7 +59,7 @@ fun LiveFloatingHeartsOverlay(
                     Icon(
                         imageVector = Icons.Default.Favorite,
                         contentDescription = null,
-                        tint = listOf(Color(0xFFEF5350), Color(0xFFFF4081), Color(0xFFFFEB3B), Color(0xFF18E7F5)).random(),
+                        tint = listOf(Color(0xFFEF5350), Color(0xFFFF4081), Color(0xFFFFEB3B), IosSettingsColors.blue).random(),
                         modifier = Modifier.size(32.dp)
                     )
                 }

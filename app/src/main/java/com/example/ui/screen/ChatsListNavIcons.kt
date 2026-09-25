@@ -87,7 +87,7 @@ import java.text.SimpleDateFormat
 import java.util.*
 
 import com.example.ui.viewmodel.NotificationsViewModel
-import com.example.ui.theme.PanalinkPalette
+import com.example.ui.settings.ios.IosSettingsColors
 
 @OptIn(ExperimentalMaterial3Api::class)
 
@@ -110,7 +110,7 @@ fun TopActionButton(
         Icon(
             imageVector = icon,
             contentDescription = contentDescription,
-            tint = PanalinkPalette.textPrimary,
+            tint = IosSettingsColors.label,
             modifier = Modifier.size(24.dp)
         )
     }
@@ -183,7 +183,7 @@ fun FunkyBottomNavItem(
                 ) {
                     Text(
                         text = if (badgeCount > 99) "99+" else badgeCount.toString(),
-                        color = PanalinkPalette.textPrimary,
+                        color = IosSettingsColors.label,
                         fontSize = 9.sp,
                         fontWeight = FontWeight.Bold,
                         textAlign = TextAlign.Center
@@ -202,7 +202,7 @@ fun FunkyBottomNavItem(
             style = if (selected) {
                 androidx.compose.ui.text.TextStyle(
                     shadow = androidx.compose.ui.graphics.Shadow(
-                        color = PanalinkPalette.textPrimary.copy(alpha = 0.5f),
+                        color = IosSettingsColors.secondaryLabel,
                         offset = androidx.compose.ui.geometry.Offset(0f, 0f),
                         blurRadius = 8f
                     )

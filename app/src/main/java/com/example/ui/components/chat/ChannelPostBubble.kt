@@ -41,7 +41,7 @@ import androidx.compose.ui.text.withStyle
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import coil.compose.AsyncImage
-import com.example.ui.theme.PanalinkPalette
+import com.example.ui.settings.ios.IosSettingsColors
 
 /**
  * File attachment model for Channel posts (`.apk`, `.zip`, `.docx`, `.pdf`, etc.)
@@ -299,14 +299,14 @@ private fun ChannelFileCard(
                 CircularProgressIndicator(
                     progress = { file.downloadProgress.coerceIn(0f, 1f) },
                     modifier = Modifier.size(24.dp),
-                    color = PanalinkPalette.textPrimary,
+                    color = IosSettingsColors.label,
                     strokeWidth = 2.dp
                 )
             } else {
                 Icon(
                     imageVector = Icons.Default.Download,
                     contentDescription = "Descargar archivo",
-                    tint = PanalinkPalette.textPrimary,
+                    tint = IosSettingsColors.label,
                     modifier = Modifier.size(22.dp)
                 )
             }
@@ -317,7 +317,7 @@ private fun ChannelFileCard(
         Column(modifier = Modifier.weight(1f)) {
             Text(
                 text = file.fileName,
-                color = PanalinkPalette.textPrimary,
+                color = IosSettingsColors.label,
                 fontSize = 14.sp,
                 fontWeight = FontWeight.Bold,
                 maxLines = 1,

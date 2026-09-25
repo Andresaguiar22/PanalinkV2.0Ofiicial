@@ -120,7 +120,7 @@ import com.example.ui.components.OfflineEmptyView
 import com.example.feature.diagnostics.data.DiagnosticsRepository
 import com.example.feature.diagnostics.model.DiagnosticCategory
 import com.example.feature.diagnostics.model.DiagnosticSeverity
-import com.example.ui.theme.PanalinkPalette
+import com.example.ui.settings.ios.IosSettingsColors
 
 /** Max automatic codec-recovery attempts per reel before showing the definitive error. */
 private const val MAX_CODEC_AUTO_RETRIES = 2
@@ -259,7 +259,7 @@ fun TikTokVideoFeedScreen(
             Column(horizontalAlignment = Alignment.CenterHorizontally) {
                 CircularProgressIndicator(color = Color(0xFF00FF85))
                 Spacer(modifier = Modifier.height(16.dp))
-                Text("Cargando vídeos venezolanos... 🇻🇪", color = PanalinkPalette.textPrimary)
+                Text("Cargando vídeos venezolanos... 🇻🇪", color = IosSettingsColors.label)
             }
         }
         return
@@ -335,8 +335,8 @@ fun TikTokVideoFeedScreen(
                                     modifier = Modifier.align(Alignment.BottomStart).padding(4.dp).background(Color.Black.copy(alpha = 0.4f), RoundedCornerShape(4.dp)).padding(horizontal = 4.dp),
                                     verticalAlignment = Alignment.CenterVertically
                                 ) {
-                                    Icon(Icons.Default.PlayArrow, null, tint = PanalinkPalette.textPrimary, modifier = Modifier.size(10.dp))
-                                    Text("${item.state.viewsCount ?: 0}", color = PanalinkPalette.textPrimary, fontSize = 10.sp, fontWeight = FontWeight.Bold)
+                                    Icon(Icons.Default.PlayArrow, null, tint = IosSettingsColors.label, modifier = Modifier.size(10.dp))
+                                    Text("${item.state.viewsCount ?: 0}", color = IosSettingsColors.label, fontSize = 10.sp, fontWeight = FontWeight.Bold)
                                 }
                             }
                         }
@@ -496,7 +496,7 @@ fun TikTokVideoFeedScreen(
                             Icon(
                                 imageVector = Icons.AutoMirrored.Filled.ArrowBack,
                                 contentDescription = "Volver",
-                                tint = PanalinkPalette.textPrimary,
+                                tint = IosSettingsColors.label,
                                 modifier = Modifier.size(24.dp)
                             )
                         }
@@ -578,14 +578,14 @@ fun TikTokVideoFeedScreen(
                                 .weight(1f)
                                 .padding(end =  8.dp)
                                 .height(48.dp),
-                            textStyle = TextStyle(color = PanalinkPalette.textPrimary, fontSize = 13.sp),
+                            textStyle = TextStyle(color = IosSettingsColors.label, fontSize = 13.sp),
                             leadingIcon = { Icon(Icons.Default.Search, contentDescription = null, tint = Color.LightGray, modifier = Modifier.size(18.dp)) },
                             trailingIcon = {
                                 IconButton(onClick = {
                                     searchQuery = ""
                                     showSearchInput = false
                                 }, modifier = Modifier.size(24.dp)) {
-                                    Icon(Icons.Default.Close, contentDescription = "Cerrar", tint = PanalinkPalette.textPrimary, modifier = Modifier.size(16.dp))
+                                    Icon(Icons.Default.Close, contentDescription = "Cerrar", tint = IosSettingsColors.label, modifier = Modifier.size(16.dp))
                                 }
                             },
                             colors = OutlinedTextFieldDefaults.colors(
@@ -615,7 +615,7 @@ fun TikTokVideoFeedScreen(
                             Icon(
                                 imageVector = Icons.Default.Refresh,
                                 contentDescription = "Refrescar feed",
-                                tint = PanalinkPalette.textPrimary,
+                                tint = IosSettingsColors.label,
                                 modifier = Modifier.size(22.dp)
                             )
                         }
@@ -626,7 +626,7 @@ fun TikTokVideoFeedScreen(
                             Icon(
                                 imageVector = Icons.Default.Search,
                                 contentDescription = "Buscar",
-                                tint = PanalinkPalette.textPrimary,
+                                tint = IosSettingsColors.label,
                                 modifier = Modifier.size(24.dp)
                             )
                         }
@@ -686,7 +686,7 @@ fun TikTokVideoFeedScreen(
                 Row(verticalAlignment = Alignment.CenterVertically) {
                     Text(
                         text = "Subiendo",
-                        color = PanalinkPalette.textPrimary.copy(alpha = 0.9f),
+                        color = IosSettingsColors.label.copy(alpha = 0.9f),
                         fontSize = 10.sp,
                         fontWeight = FontWeight.Medium
                     )
@@ -783,7 +783,7 @@ private fun ReelRailAction(
         if (count.isNotEmpty()) {
             Text(
                 text = count,
-                color = PanalinkPalette.textPrimary,
+                color = IosSettingsColors.label,
                 fontSize = 12.sp,
                 fontWeight = FontWeight.Bold,
                 style = TextStyle(
@@ -1694,7 +1694,7 @@ fun TikTokPageItem(
                     ) {
                         Text(
                             "📵",
-                            color = PanalinkPalette.textPrimary.copy(alpha = 0.7f),
+                            color = IosSettingsColors.secondaryLabel,
                             fontSize = 36.sp,
                             textAlign = androidx.compose.ui.text.style.TextAlign.Center,
                             modifier = Modifier.fillMaxWidth(),
@@ -1702,7 +1702,7 @@ fun TikTokPageItem(
                         Spacer(modifier = Modifier.height(12.dp))
                         Text(
                             "Sin conexión",
-                            color = PanalinkPalette.textPrimary.copy(alpha =  0.7f),
+                            color = IosSettingsColors.label.copy(alpha =  0.7f),
                             fontWeight = FontWeight.Bold,
                             fontSize = 16.sp,
                             textAlign = androidx.compose.ui.text.style.TextAlign.Center,
@@ -1710,7 +1710,7 @@ fun TikTokPageItem(
                         Spacer(modifier = Modifier.height(4.dp))
                         Text(
                             "Este vídeo requiere internet. Navega o sal cuando quieras.",
-                            color = PanalinkPalette.textPrimary.copy(alpha = 0.5f),
+                            color = IosSettingsColors.secondaryLabel,
                             fontSize = 13.sp,
                             textAlign = androidx.compose.ui.text.style.TextAlign.Center,
                             modifier = Modifier.fillMaxWidth(),
@@ -1890,7 +1890,7 @@ fun TikTokPageItem(
                                     Spacer(modifier = Modifier.width(6.dp))
                                     Text(
                                         "Viendo desde tu copia guardada sin conexión",
-                                        color = PanalinkPalette.textPrimary.copy(alpha =  0.9f),
+                                        color = IosSettingsColors.label.copy(alpha =  0.9f),
                                         fontSize =  12.sp,
                                         fontWeight = FontWeight.Medium
                                     )
@@ -1946,7 +1946,7 @@ fun TikTokPageItem(
                 Icon(
                     imageVector = Icons.Default.PlayArrow,
                     contentDescription = "Pausado",
-                    tint = PanalinkPalette.textPrimary,
+                    tint = IosSettingsColors.label,
                     modifier = Modifier.size(48.dp)
                 )
             }
@@ -1968,20 +1968,20 @@ fun TikTokPageItem(
                         Icon(
                             imageVector = Icons.Rounded.FastForward,
                             contentDescription = "Adelantando",
-                            tint = PanalinkPalette.textPrimary,
+                            tint = IosSettingsColors.label,
                             modifier = Modifier.size(48.dp)
                         )
                         Spacer(modifier = Modifier.height(4.dp))
-                        Text("2x", color = PanalinkPalette.textPrimary, fontWeight = FontWeight.Bold, fontSize = 16.sp)
+                        Text("2x", color = IosSettingsColors.label, fontWeight = FontWeight.Bold, fontSize = 16.sp)
                     } else {
                         Icon(
                             imageVector = Icons.Rounded.FastRewind,
                             contentDescription = "Retrocediendo",
-                            tint = PanalinkPalette.textPrimary,
+                            tint = IosSettingsColors.label,
                             modifier = Modifier.size(48.dp)
                         )
                         Spacer(modifier = Modifier.height(4.dp))
-                        Text("⏪", color = PanalinkPalette.textPrimary, fontSize = 16.sp)
+                        Text("⏪", color = IosSettingsColors.label, fontSize = 16.sp)
                     }
                 }
             }
@@ -2057,7 +2057,7 @@ fun TikTokPageItem(
                         Icon(
                             imageVector = Icons.Default.Add,
                             contentDescription = "Seguir",
-                            tint = PanalinkPalette.textPrimary,
+                            tint = IosSettingsColors.label,
                             modifier = Modifier.size(14.dp)
                         )
                     }
@@ -2092,7 +2092,7 @@ fun TikTokPageItem(
             ReelRailAction(
                 icon = Icons.Rounded.ChatBubble,
                 count = formatCountCompact(localCommentsCount),
-                tint = PanalinkPalette.textPrimary,
+                tint = IosSettingsColors.label,
                 contentDescription = "Comentarios",
                 onClick = { showCommentDialog = true }
             )
@@ -2110,7 +2110,7 @@ fun TikTokPageItem(
             ReelRailAction(
                 icon = Icons.AutoMirrored.Rounded.Send,
                 count = formatCountCompact(localSharesCount),
-                tint = PanalinkPalette.textPrimary,
+                tint = IosSettingsColors.label,
                 contentDescription = "Compartir",
                 onClick = {
                     // Resolve on IO to avoid blocking Main with VCDN BFF I/O
@@ -2135,7 +2135,7 @@ fun TikTokPageItem(
             ReelRailAction(
                 icon = if (isMuted) Icons.AutoMirrored.Rounded.VolumeOff else Icons.AutoMirrored.Rounded.VolumeUp,
                 count = "",
-                tint = PanalinkPalette.textPrimary,
+                tint = IosSettingsColors.label,
                 contentDescription = if (isMuted) "Activar sonido" else "Silenciar",
                 onClick = { onMuteToggle() }
             )
@@ -2145,7 +2145,7 @@ fun TikTokPageItem(
                 ReelRailAction(
                     icon = Icons.Rounded.MoreHoriz,
                     count = "",
-                    tint = PanalinkPalette.textPrimary,
+                    tint = IosSettingsColors.label,
                     contentDescription = "Opciones",
                     onClick = { showActionMoreMenu = true }
                 )
@@ -2156,7 +2156,7 @@ fun TikTokPageItem(
                     modifier = Modifier.background(Color(0xFF0F0F10))
                 ) {
                     DropdownMenuItem(
-                        text = { Text("Descargar vídeo", color = PanalinkPalette.textPrimary, fontSize = 14.sp) },
+                        text = { Text("Descargar vídeo", color = IosSettingsColors.label, fontSize = 14.sp) },
                         onClick = {
                             // Resolve on IO to avoid blocking Main with VCDN BFF I/O
                             scope.launch(Dispatchers.IO) {
@@ -2169,7 +2169,7 @@ fun TikTokPageItem(
                         }
                     )
                     DropdownMenuItem(
-                        text = { Text(if (isMuted) "Activar sonido" else "Silenciar todo", color = PanalinkPalette.textPrimary, fontSize = 14.sp) },
+                        text = { Text(if (isMuted) "Activar sonido" else "Silenciar todo", color = IosSettingsColors.label, fontSize = 14.sp) },
                         onClick = {
                             onMuteToggle()
                             showActionMoreMenu = false
@@ -2204,7 +2204,7 @@ fun TikTokPageItem(
             ) {
                 Text(
                     text = "@${safeDisplayName}",
-                    color = PanalinkPalette.textPrimary,
+                    color = IosSettingsColors.label,
                     fontWeight = FontWeight.Bold,
                     fontSize = 17.sp,
                     maxLines = 1,
@@ -2253,7 +2253,7 @@ fun TikTokPageItem(
                     ) {
                         Text(
                             text = if (isFollowing) "Siguiendo" else "Seguir",
-                            color = PanalinkPalette.textPrimary,
+                            color = IosSettingsColors.label,
                             fontSize = 12.sp,
                             fontWeight = FontWeight.Bold
                         )
@@ -2266,7 +2266,7 @@ fun TikTokPageItem(
                 val metadata = parseStateMetadata(state.caption); val caption = metadata.baseCaption
                 com.example.ui.components.TextAnnotator.AnnotatedClickableText(
                     text = caption,
-                    style = TextStyle(color = PanalinkPalette.textPrimary, fontSize = 14.sp),
+                    style = TextStyle(color = IosSettingsColors.label, fontSize = 14.sp),
                     hashtagColor = Color(0xFF69F0AE),
                     mentionColor = Color(0xFFE040FB),
                     onHashtagClick = { tag ->
@@ -2296,13 +2296,13 @@ fun TikTokPageItem(
                     ) {
                         Text(
                             text = formatMmSs(currentPosition),
-                            color = PanalinkPalette.textPrimary.copy(alpha = 0.9f),
+                            color = IosSettingsColors.label.copy(alpha = 0.9f),
                             fontSize = 11.sp,
                             fontWeight = FontWeight.Bold
                         )
                         Text(
                             text = formatMmSs(duration),
-                            color = PanalinkPalette.textPrimary.copy(alpha = 0.6f),
+                            color = IosSettingsColors.secondaryLabel,
                             fontSize = 11.sp,
                             fontWeight = FontWeight.Bold
                         )
@@ -2380,16 +2380,16 @@ fun TikTokPageItem(
                     ) {
                         Text(
                             text = "Comentarios (${localCommentsCount})",
-                            color = PanalinkPalette.textPrimary,
+                            color = IosSettingsColors.label,
                             fontWeight = FontWeight.Bold,
                             fontSize = 16.sp
                         )
                         IconButton(onClick = { showCommentDialog = false }) {
-                            Icon(Icons.Default.Close, contentDescription = "Cerrar", tint = PanalinkPalette.textPrimary)
+                            Icon(Icons.Default.Close, contentDescription = "Cerrar", tint = IosSettingsColors.label)
                         }
                     }
 
-                    HorizontalDivider(color = PanalinkPalette.textPrimary.copy(alpha = 0.1f))
+                    HorizontalDivider(color = IosSettingsColors.label.copy(alpha = 0.1f))
 
                     // Scrollable list of comments (using structuredComments to support threaded replies)
                     LazyColumn(
@@ -2411,7 +2411,7 @@ fun TikTokPageItem(
                                     // Visual hierarchy thread connector
                                     Text(
                                         text = "└─ ",
-                                        color = PanalinkPalette.textPrimary.copy(alpha = 0.3f),
+                                        color = IosSettingsColors.label.copy(alpha = 0.3f),
                                         fontSize = 14.sp,
                                         modifier = Modifier.padding(end = 4.dp, top = 2.dp)
                                     )
@@ -2434,7 +2434,7 @@ fun TikTokPageItem(
                                         Text(
                                             text = if (comment.deletedAt != null) "Eliminado"
                                                 else com.example.data.repository.PublicProfileResolver.formatForUi(comment.authorName, "Pana"),
-                                            color = PanalinkPalette.textPrimary.copy(alpha = 0.9f),
+                                            color = IosSettingsColors.label.copy(alpha = 0.9f),
                                             fontWeight = FontWeight.Bold,
                                             fontSize = if (isReply) 12.sp else 13.sp,
                                             modifier = Modifier.clickable { onNavigateToUserProfile?.invoke(comment.userId) }
@@ -2459,7 +2459,7 @@ fun TikTokPageItem(
                                         }
                                         Text(
                                             text = timeStr,
-                                            color = PanalinkPalette.textPrimary.copy(alpha = 0.5f),
+                                            color = IosSettingsColors.secondaryLabel,
                                             fontSize = 11.sp
                                         )
 
@@ -2506,7 +2506,7 @@ fun TikTokPageItem(
                         }
                     }
 
-                    HorizontalDivider(color = PanalinkPalette.textPrimary.copy(alpha = 0.1f))
+                    HorizontalDivider(color = IosSettingsColors.label.copy(alpha = 0.1f))
 
                     // Contextual Ribbon for Threaded Reply Mode
                     val currentReplyingTo = replyingTo
@@ -2557,7 +2557,7 @@ fun TikTokPageItem(
                             modifier = Modifier
                                 .weight(1f)
                                 .focusRequester(focusRequester),
-                            textStyle = TextStyle(color = PanalinkPalette.textPrimary, fontSize = 14.sp),
+                            textStyle = TextStyle(color = IosSettingsColors.label, fontSize = 14.sp),
                             maxLines = 2,
                             colors = OutlinedTextFieldDefaults.colors(
                                 focusedTextColor = Color.White,
@@ -2855,7 +2855,7 @@ fun ReelsErrorView(
 
             Text(
                 text = "No se pudo cargar el vídeo de pana 🇻🇪",
-                color = PanalinkPalette.textPrimary,
+                color = IosSettingsColors.label,
                 fontWeight = FontWeight.Bold,
                 fontSize = 18.sp,
                 textAlign = androidx.compose.ui.text.style.TextAlign.Center
@@ -2863,7 +2863,7 @@ fun ReelsErrorView(
 
             Text(
                 text = "Un problema técnico impidió la reproducción. Inténtalo de nuevo.",
-                color = PanalinkPalette.textPrimary.copy(alpha = 0.6f),
+                color = IosSettingsColors.secondaryLabel,
                 fontSize = 13.sp,
                 textAlign = androidx.compose.ui.text.style.TextAlign.Center,
                 modifier = Modifier.padding(horizontal = 16.dp)

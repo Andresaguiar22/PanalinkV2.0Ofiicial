@@ -19,7 +19,7 @@ import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.example.ui.theme.bounceClick
-import com.example.ui.theme.PanalinkPalette
+import com.example.ui.settings.ios.IosSettingsColors
 
 /**
  * CallErrorScreen presents a premium visual feedback screen when a call
@@ -34,12 +34,12 @@ fun CallErrorScreen(
     onDismiss: () -> Unit,
     modifier: Modifier = Modifier,
     icon: ImageVector = Icons.Default.Warning,
-    iconColor: Color = Color(0xFFEF4444) // Red 500
+    iconColor: Color = IosSettingsColors.red // Red 500
 ) {
     Box(
         modifier = modifier
             .fillMaxSize()
-            .background(Color(0xFF0F172A)) // Slate 900
+            .background(IosSettingsColors.groupBackground) // Slate 900
             .padding(24.dp),
         contentAlignment = Alignment.Center
     ) {
@@ -69,7 +69,7 @@ fun CallErrorScreen(
             // Main error text
             Text(
                 text = title,
-                color = PanalinkPalette.textPrimary,
+                color = IosSettingsColors.label,
                 fontSize = 24.sp,
                 fontWeight = FontWeight.Bold,
                 textAlign = TextAlign.Center
@@ -80,7 +80,7 @@ fun CallErrorScreen(
             // Details/Status
             Text(
                 text = "$opponentName $subtitle",
-                color = PanalinkPalette.textPrimary.copy(alpha = 0.6f),
+                color = IosSettingsColors.label.copy(alpha = 0.6f),
                 fontSize = 16.sp,
                 fontWeight = FontWeight.Medium,
                 textAlign = TextAlign.Center,

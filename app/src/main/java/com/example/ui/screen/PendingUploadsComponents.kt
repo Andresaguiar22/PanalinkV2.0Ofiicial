@@ -89,7 +89,7 @@ import java.text.SimpleDateFormat
 import java.util.*
 
 import com.example.ui.viewmodel.NotificationsViewModel
-import com.example.ui.theme.PanalinkPalette
+import com.example.ui.settings.ios.IosSettingsColors
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -196,11 +196,11 @@ fun PendingPostCard(post: com.example.data.database.PendingPostEntity) {
                         .background(Color.Gray.copy(alpha = 0.2f)),
                     contentAlignment = Alignment.Center
                 ) {
-                    Text("P", color = PanalinkPalette.textPrimary, fontSize = 12.sp, fontWeight = FontWeight.Bold)
+                    Text("P", color = IosSettingsColors.label, fontSize = 12.sp, fontWeight = FontWeight.Bold)
                 }
                 Spacer(modifier = Modifier.width(8.dp))
                 Column {
-                    Text("Subiendo publicación...", color = PanalinkPalette.textPrimary, fontSize = 13.sp, fontWeight = FontWeight.Bold)
+                    Text("Subiendo publicación...", color = IosSettingsColors.label, fontSize = 13.sp, fontWeight = FontWeight.Bold)
                     Text("En cola local", color = Color.Gray, fontSize = 11.sp)
                 }
             }

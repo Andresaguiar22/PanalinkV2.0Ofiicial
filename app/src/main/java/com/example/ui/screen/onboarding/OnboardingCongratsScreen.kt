@@ -27,7 +27,9 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import coil.compose.AsyncImage
 import com.example.ui.viewmodel.onboarding.OnboardingViewModel
-import com.example.ui.theme.PanalinkPalette
+import com.example.ui.settings.ios.IosSettingsColors
+import com.example.ui.settings.ios.IosFont
+import com.example.ui.settings.ios.IosPrimaryButton
 
 data class PresetAvatar(val emoji: String, val brush: Brush)
 
@@ -43,7 +45,7 @@ fun OnboardingCongratsScreen(
     val presets = remember {
         listOf(
             PresetAvatar("🔥", Brush.linearGradient(listOf(Color(0xFFFF5722), Color(0xFFFF9800)))),
-            PresetAvatar("⚡", Brush.linearGradient(listOf(Color(0xFF00E5FF), Color(0xFF00B0FF)))),
+            PresetAvatar("⚡", Brush.linearGradient(listOf(IosSettingsColors.blue, Color(0xFF00B0FF)))),
             PresetAvatar("👾", Brush.linearGradient(listOf(Color(0xFF9C27B0), Color(0xFFE91E63)))),
             PresetAvatar("🚀", Brush.linearGradient(listOf(Color(0xFF4CAF50), Color(0xFF8BC34A))))
         )
@@ -52,7 +54,7 @@ fun OnboardingCongratsScreen(
     Box(
         modifier = Modifier
             .fillMaxSize()
-            .background(Color(0xFF0F172A))
+            .background(IosSettingsColors.groupBackground)
             .padding(24.dp)
     ) {
         val scrollState = rememberScrollState()
@@ -76,7 +78,8 @@ fun OnboardingCongratsScreen(
                 text = "¡Felicidades, ya eres un Pana! 🇻🇪",
                 fontSize = 26.sp,
                 fontWeight = FontWeight.Bold,
-                color = PanalinkPalette.textPrimary,
+                fontFamily = IosFont,
+                color = IosSettingsColors.label,
                 textAlign = TextAlign.Center
             )
 
@@ -85,7 +88,8 @@ fun OnboardingCongratsScreen(
             Text(
                 text = "¡Gracias por elegirnos! Panalink ha sido creada con mucho cariño para mantenerte conectado con alta fidelidad, rapidez y absoluta confianza.",
                 fontSize = 15.sp,
-                color = Color.LightGray,
+                color = IosSettingsColors.secondaryLabel,
+                fontFamily = IosFont,
                 textAlign = TextAlign.Center,
                 modifier = Modifier.padding(horizontal = 16.dp)
             )
@@ -96,9 +100,9 @@ fun OnboardingCongratsScreen(
             Card(
                 modifier = Modifier
                     .fillMaxWidth(0.85f)
-                    .border(2.dp, Color(0xFF00E5FF).copy(alpha = 0.5f), RoundedCornerShape(24.dp)),
-                shape = RoundedCornerShape(24.dp),
-                colors = CardDefaults.cardColors(containerColor = Color(0xFF1E293B))
+                    .border(1.dp, IosSettingsColors.separator, RoundedCornerShape(20.dp)),
+                shape = RoundedCornerShape(20.dp),
+                colors = CardDefaults.cardColors(containerColor = IosSettingsColors.cell)
             ) {
                 Column(
                     modifier = Modifier
@@ -111,8 +115,8 @@ fun OnboardingCongratsScreen(
                         modifier = Modifier
                             .size(90.dp)
                             .clip(CircleShape)
-                            .background(Color(0xFF0F172A))
-                            .border(2.5.dp, Color(0xFF00E5FF), CircleShape),
+                            .background(IosSettingsColors.cellElevated)
+                            .border(2.5.dp, IosSettingsColors.blue, CircleShape),
                         contentAlignment = Alignment.Center
                     ) {
                         if (!avatarUrl.isNullOrEmpty()) {
@@ -139,14 +143,14 @@ fun OnboardingCongratsScreen(
                             Box(
                                 modifier = Modifier
                                     .fillMaxSize()
-                                    .background(Brush.linearGradient(listOf(Color(0xFF334155), Color(0xFF1E293B)))),
+                                    .background(IosSettingsColors.cellElevated),
                                 contentAlignment = Alignment.Center
                             ) {
                                 Text(
                                     text = displayName.firstOrNull()?.uppercase()?.toString() ?: "P",
                                     fontSize = 36.sp,
                                     fontWeight = FontWeight.Bold,
-                                    color = PanalinkPalette.textPrimary
+                                    color = IosSettingsColors.label
                                 )
                             }
                         }
@@ -158,7 +162,8 @@ fun OnboardingCongratsScreen(
                         text = displayName,
                         fontSize = 20.sp,
                         fontWeight = FontWeight.Bold,
-                        color = PanalinkPalette.textPrimary
+                        fontFamily = IosFont,
+                        color = IosSettingsColors.label
                     )
 
                     Spacer(modifier = Modifier.height(4.dp))
@@ -167,7 +172,8 @@ fun OnboardingCongratsScreen(
                         text = "Panalink Oficial Member ⚡",
                         fontSize = 12.sp,
                         fontWeight = FontWeight.Medium,
-                        color = Color(0xFF00E5FF)
+                        fontFamily = IosFont,
+                        color = IosSettingsColors.blue
                     )
 
                     Spacer(modifier = Modifier.height(24.dp))
@@ -179,21 +185,22 @@ fun OnboardingCongratsScreen(
                             text = "Tu Código PIN Único",
                             fontSize = 14.sp,
                             fontWeight = FontWeight.Medium,
-                            color = Color(0xFF90A4AE)
+                            color = IosSettingsColors.secondaryLabel
                         )
                         Spacer(modifier = Modifier.height(8.dp))
                         
                         Box(
                             modifier = Modifier
-                                .background(Color(0xFF1E293B), RoundedCornerShape(12.dp))
-                                .border(1.dp, Color(0xFF334155), RoundedCornerShape(12.dp))
+                                .background(IosSettingsColors.cellElevated, RoundedCornerShape(12.dp))
+                                .border(1.dp, IosSettingsColors.separator, RoundedCornerShape(12.dp))
                                 .padding(horizontal = 24.dp, vertical = 12.dp)
                         ) {
                             Text(
                                 text = pin,
                                 fontSize = 32.sp,
                                 fontWeight = FontWeight.Bold,
-                                color = PanalinkPalette.textPrimary,
+                                fontFamily = IosFont,
+                                color = IosSettingsColors.label,
                                 letterSpacing = 8.sp
                             )
                         }
@@ -204,7 +211,7 @@ fun OnboardingCongratsScreen(
                             text = "Tu Código QR de Pana",
                             fontSize = 14.sp,
                             fontWeight = FontWeight.Medium,
-                            color = Color(0xFF90A4AE)
+                            color = IosSettingsColors.secondaryLabel
                         )
                         Spacer(modifier = Modifier.height(8.dp))
                         
@@ -228,7 +235,8 @@ fun OnboardingCongratsScreen(
                             text = "Esta será tu identidad en Panalink.",
                             fontSize = 12.sp,
                             fontWeight = FontWeight.Normal,
-                            color = Color(0xFF64748B),
+                            fontFamily = IosFont,
+                            color = IosSettingsColors.tertiaryLabel,
                             textAlign = TextAlign.Center
                         )
                     }
@@ -237,32 +245,12 @@ fun OnboardingCongratsScreen(
 
             Spacer(modifier = Modifier.height(32.dp))
 
-            // Start chat button
-            Button(
+            IosPrimaryButton(
+                text = "Continuar y Entrar",
                 onClick = onNext,
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .height(56.dp)
-                    .testTag("onboarding_continue_button"),
-                shape = RoundedCornerShape(28.dp),
-                colors = ButtonDefaults.buttonColors(
-                    containerColor = Color(0xFF00E5FF),
-                    contentColor = Color.Black
-                ),
-                elevation = ButtonDefaults.buttonElevation(defaultElevation = 8.dp)
-            ) {
-                Icon(
-                    imageVector = Icons.AutoMirrored.Filled.ArrowForward,
-                    contentDescription = null,
-                    modifier = Modifier.size(20.dp)
-                )
-                Spacer(modifier = Modifier.width(12.dp))
-                Text(
-                    text = "Continuar y Entrar",
-                    fontSize = 18.sp,
-                    fontWeight = FontWeight.ExtraBold
-                )
-            }
+                icon = Icons.AutoMirrored.Filled.ArrowForward,
+                modifier = Modifier.testTag("onboarding_continue_button")
+            )
         }
     }
 }

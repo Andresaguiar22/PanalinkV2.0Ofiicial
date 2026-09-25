@@ -36,7 +36,7 @@ import androidx.media3.ui.AspectRatioFrameLayout
 import androidx.media3.ui.PlayerView
 import com.example.core.media.ExoPlayerManager
 import kotlinx.coroutines.delay
-import com.example.ui.theme.PanalinkPalette
+import com.example.ui.settings.ios.IosSettingsColors
 
 private val PANA_GREEN = Color(0xFF00A884)
 
@@ -103,11 +103,11 @@ fun VideoTrimmerScreen(
             horizontalArrangement = Arrangement.SpaceBetween
         ) {
             TextButton(onClick = onDismiss) {
-                Icon(Icons.Default.Close, contentDescription = "Cancelar", tint = PanalinkPalette.textPrimary)
+                Icon(Icons.Default.Close, contentDescription = "Cancelar", tint = IosSettingsColors.label)
             }
             Text(
                 text = "Recortar video (${(endMs() - startMs()) / 1000f}s)",
-                color = PanalinkPalette.textPrimary,
+                color = IosSettingsColors.label,
                 fontSize = 16.sp,
                 fontWeight = FontWeight.Medium
             )
@@ -164,7 +164,7 @@ fun VideoTrimmerScreen(
                 Icon(
                     imageVector = if (isPlaying) Icons.Default.PlayArrow else Icons.Default.PlayArrow,
                     contentDescription = if (isPlaying) "Pausar" else "Reproducir",
-                    tint = PanalinkPalette.textPrimary,
+                    tint = IosSettingsColors.label,
                     modifier = Modifier.size(24.dp)
                 )
             }

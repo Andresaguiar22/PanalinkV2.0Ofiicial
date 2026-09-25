@@ -88,6 +88,9 @@ import java.util.*
 
 import com.example.ui.viewmodel.NotificationsViewModel
 import com.example.ui.theme.PanalinkPalette
+import com.example.ui.settings.ios.IosSettingsColors
+import com.example.ui.settings.ios.IosFont
+import com.example.ui.settings.ios.IosGroup
 
 @OptIn(ExperimentalMaterial3Api::class)
 
@@ -192,35 +195,28 @@ fun LlamadasTabContent(
         Column(
             modifier = Modifier
                 .fillMaxSize()
-                .padding(16.dp)
         ) {
-            Card(
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .padding(bottom = 16.dp)
-                    .clickable {
-                        scope.launch {
-                            if (!isConnected) {
-                                callManager.forceReconnect()
-                            }
-                        }
-                    },
-                colors = CardDefaults.cardColors(
-                    containerColor = colors.secondary
-                ),
-                border = BorderStroke(1.dp, PanalinkPalette.glassBorder.copy(alpha = 0.35f)),
-                shape = androidx.compose.foundation.shape.RoundedCornerShape(12.dp),
-                elevation = CardDefaults.cardElevation(defaultElevation = 2.dp)
+            IosGroup(
+                modifier = Modifier.padding(top = 4.dp, bottom = 20.dp)
             ) {
                 Row(
-                    modifier = Modifier.padding(16.dp),
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .clickable {
+                            scope.launch {
+                                if (!isConnected) {
+                                    callManager.forceReconnect()
+                                }
+                            }
+                        }
+                        .padding(horizontal = 14.dp, vertical = 12.dp),
                     verticalAlignment = Alignment.CenterVertically
                 ) {
                     Box(
                         modifier = Modifier
                             .size(12.dp)
                             .background(
-                                color = if (isConnected) Color(0xFF10B981) else Color(0xFFEF4444),
+                                color = if (isConnected) IosSettingsColors.green else IosSettingsColors.red,
                                 shape = androidx.compose.foundation.shape.CircleShape
                             )
                     )
@@ -228,17 +224,19 @@ fun LlamadasTabContent(
                     Column(modifier = Modifier.weight(1f)) {
                         Text(
                             text = if (liveKitEnabled) "Servicio de Llamadas LiveKit" else "Servicio de Llamadas",
-                            color = PanalinkPalette.textPrimary,
-                            fontSize = 14.sp,
-                            fontWeight = FontWeight.Bold
+                            color = IosSettingsColors.label,
+                            fontFamily = IosFont,
+                            fontSize = 15.sp,
+                            fontWeight = FontWeight.SemiBold
                         )
                         Text(
                             text = if (isConnected)
-                                "🟢 Conectado - Listo para llamadas"
+                                "Conectado - Listo para llamadas"
                             else
-                                "🔴 Desconectado - Reconectando...",
-                            color = Color.LightGray,
-                            fontSize = 12.sp
+                                "Desconectado - Reconectando...",
+                            color = IosSettingsColors.secondaryLabel,
+                            fontFamily = IosFont,
+                            fontSize = 13.sp
                         )
                     }
                     // Top-level overflow: clear call history
@@ -248,7 +246,7 @@ fun LlamadasTabContent(
                             Icon(
                                 imageVector = Icons.Default.MoreVert,
                                 contentDescription = "Opciones de llamadas",
-                                tint = PanalinkPalette.textPrimary
+                                tint = IosSettingsColors.secondaryLabel
                             )
                         }
                         DropdownMenu(
@@ -256,30 +254,30 @@ fun LlamadasTabContent(
                             onDismissRequest = { showCallsMenu = false }
                         ) {
                             DropdownMenuItem(
-                                text = { Text("Actualizar 🔄") },
+                                text = { Text("Actualizar 🔄", color = IosSettingsColors.label, fontFamily = IosFont) },
                                 onClick = {
                                     showCallsMenu = false
                                     onRefresh()
                                 },
-                                leadingIcon = { Icon(Icons.Default.Refresh, contentDescription = null, modifier = Modifier.size(18.dp)) }
+                                leadingIcon = { Icon(Icons.Default.Refresh, contentDescription = null, tint = IosSettingsColors.blue, modifier = Modifier.size(18.dp)) }
                             )
                             DropdownMenuItem(
-                                text = { Text("Reconectar servicio 🔁") },
+                                text = { Text("Reconectar servicio 🔁", color = IosSettingsColors.label, fontFamily = IosFont) },
                                 onClick = {
                                     showCallsMenu = false
                                     scope.launch { callManager.forceReconnect() }
                                 },
-                                leadingIcon = { Icon(Icons.Default.Sync, contentDescription = null, modifier = Modifier.size(18.dp)) }
+                                leadingIcon = { Icon(Icons.Default.Sync, contentDescription = null, tint = IosSettingsColors.blue, modifier = Modifier.size(18.dp)) }
                             )
                             if (callHistory.isNotEmpty()) {
                                 HorizontalDivider()
                                 DropdownMenuItem(
-                                    text = { Text("Borrar historial 🗑️", color = Color(0xFFEF4444)) },
+                                    text = { Text("Borrar historial 🗑️", color = IosSettingsColors.red, fontFamily = IosFont) },
                                     onClick = {
                                         showCallsMenu = false
                                         showClearHistoryDialog = true
                                     },
-                                    leadingIcon = { Icon(Icons.Default.Delete, contentDescription = null, tint = Color(0xFFEF4444), modifier = Modifier.size(18.dp)) }
+                                    leadingIcon = { Icon(Icons.Default.Delete, contentDescription = null, tint = IosSettingsColors.red, modifier = Modifier.size(18.dp)) }
                                 )
                             }
                         }
@@ -290,11 +288,13 @@ fun LlamadasTabContent(
             // Call history section
             if (callHistory.isNotEmpty()) {
                 Text(
-                    text = "Recientes",
-                    color = PanalinkPalette.textPrimary,
-                    fontSize = 12.sp,
-                    fontWeight = FontWeight.Bold,
-                    modifier = Modifier.padding(start = 4.dp, bottom = 8.dp)
+                    text = "RECIENTES",
+                    color = IosSettingsColors.secondaryLabel,
+                    fontFamily = IosFont,
+                    fontSize = 13.sp,
+                    fontWeight = FontWeight.Medium,
+                    letterSpacing = 0.6.sp,
+                    modifier = Modifier.padding(start = 16.dp, top = 4.dp, bottom = 7.dp)
                 )
                 LazyColumn(
                     modifier = Modifier
@@ -315,7 +315,8 @@ fun LlamadasTabContent(
                             verticalAlignment = Alignment.CenterVertically,
                             modifier = Modifier
                                 .fillMaxWidth()
-                                .padding(vertical = 8.dp, horizontal = 4.dp)
+                                .padding(horizontal = 16.dp)
+                                .padding(vertical = 9.dp)
                         ) {
                             Box {
                                 com.example.ui.components.PanaAvatar(
@@ -336,9 +337,10 @@ fun LlamadasTabContent(
                             Column(modifier = Modifier.weight(1f)) {
                                 Text(
                                     text = peerName,
-                                    color = PanalinkPalette.textPrimary,
+                                    color = IosSettingsColors.label,
+                                    fontFamily = IosFont,
                                     fontWeight = FontWeight.SemiBold,
-                                    fontSize = 14.sp,
+                                    fontSize = 15.sp,
                                     maxLines = 1,
                                     overflow = TextOverflow.Ellipsis
                                 )
@@ -351,8 +353,8 @@ fun LlamadasTabContent(
                                         else -> if (isOutgoing) Icons.Default.CallMade else Icons.Default.CallReceived
                                     }
                                     val statusColor = when (log.status) {
-                                        com.example.data.model.CallLogStatus.MISSED, com.example.data.model.CallLogStatus.REJECTED -> Color(0xFFEF4444)
-                                        else -> PanalinkPalette.textSecondary
+                                        com.example.data.model.CallLogStatus.MISSED, com.example.data.model.CallLogStatus.REJECTED -> IosSettingsColors.red
+                                        else -> IosSettingsColors.secondaryLabel
                                     }
                                     val statusText = when (log.status) {
                                         com.example.data.model.CallLogStatus.COMPLETED -> {
@@ -366,7 +368,7 @@ fun LlamadasTabContent(
                                     }
                                     Icon(icon, contentDescription = null, tint = statusColor, modifier = Modifier.size(14.dp))
                                     Spacer(modifier = Modifier.width(4.dp))
-                                    Text(text = statusText, color = statusColor, fontSize = 11.sp)
+                                    Text(text = statusText, color = statusColor, fontFamily = IosFont, fontSize = 12.sp)
                                 }
                             }
                             // Quick call-back button
@@ -380,7 +382,7 @@ fun LlamadasTabContent(
                                 },
                                 modifier = Modifier
                                     .background(
-                                        color = PanalinkPalette.textPrimary.copy(alpha = 0.12f),
+                                        color = IosSettingsColors.blue.copy(alpha = 0.14f),
                                         shape = androidx.compose.foundation.shape.CircleShape
                                     )
                                     .size(38.dp)
@@ -388,59 +390,61 @@ fun LlamadasTabContent(
                                 Icon(
                                     imageVector = Icons.Default.Call,
                                     contentDescription = "Llamar de nuevo",
-                                    tint = PanalinkPalette.accent,
+                                    tint = IosSettingsColors.blue,
                                     modifier = Modifier.size(18.dp)
                                 )
                             }
                             // Per-call-item 3-dot menu
                             Box {
                                 IconButton(onClick = { showCallItemMenu = true }) {
-                                    Icon(Icons.Default.MoreVert, contentDescription = "Opciones", tint = PanalinkPalette.textSecondary)
+                                    Icon(Icons.Default.MoreVert, contentDescription = "Opciones", tint = IosSettingsColors.secondaryLabel)
                                 }
                                 DropdownMenu(
                                     expanded = showCallItemMenu,
                                     onDismissRequest = { showCallItemMenu = false }
                                 ) {
                                     DropdownMenuItem(
-                                        text = { Text("Llamar 📞") },
+                                        text = { Text("Llamar 📞", color = IosSettingsColors.label, fontFamily = IosFont) },
                                         onClick = {
                                             showCallItemMenu = false
                                             tryStartCall(peerId, peerName, com.example.call.CallType.AUDIO)
                                         },
-                                        leadingIcon = { Icon(Icons.Default.Call, contentDescription = null, modifier = Modifier.size(18.dp)) }
+                                        leadingIcon = { Icon(Icons.Default.Call, contentDescription = null, tint = IosSettingsColors.blue, modifier = Modifier.size(18.dp)) }
                                     )
                                     DropdownMenuItem(
-                                        text = { Text("Videollamar 🎥") },
+                                        text = { Text("Videollamar 🎥", color = IosSettingsColors.label, fontFamily = IosFont) },
                                         onClick = {
                                             showCallItemMenu = false
                                             tryStartCall(peerId, peerName, com.example.call.CallType.VIDEO)
                                         },
-                                        leadingIcon = { Icon(Icons.Default.Videocam, contentDescription = null, modifier = Modifier.size(18.dp)) }
+                                        leadingIcon = { Icon(Icons.Default.Videocam, contentDescription = null, tint = IosSettingsColors.blue, modifier = Modifier.size(18.dp)) }
                                     )
                                     HorizontalDivider()
                                     DropdownMenuItem(
-                                        text = { Text("Eliminar del historial 🗑️", color = Color(0xFFEF4444)) },
+                                        text = { Text("Eliminar del historial 🗑️", color = IosSettingsColors.red, fontFamily = IosFont) },
                                         onClick = {
                                             showCallItemMenu = false
                                             messagesRepo.deleteCallLog(log.id)
                                         },
-                                        leadingIcon = { Icon(Icons.Default.Delete, contentDescription = null, tint = Color(0xFFEF4444), modifier = Modifier.size(18.dp)) }
+                                        leadingIcon = { Icon(Icons.Default.Delete, contentDescription = null, tint = IosSettingsColors.red, modifier = Modifier.size(18.dp)) }
                                     )
                                 }
                             }
                         }
-                        HorizontalDivider(color = PanalinkPalette.surface, thickness = 0.5.dp)
+                        HorizontalDivider(color = IosSettingsColors.separator, thickness = 0.5.dp, modifier = Modifier.padding(start = 76.dp))
                     }
                 }
                 Spacer(modifier = Modifier.height(8.dp))
             }
 
             Text(
-                text = "Llamar a un Pana",
-                color = PanalinkPalette.textPrimary,
-                fontSize = 12.sp,
-                fontWeight = FontWeight.Bold,
-                modifier = Modifier.padding(bottom = 12.dp)
+                text = "LLAMAR A UN PANA",
+                color = IosSettingsColors.secondaryLabel,
+                fontFamily = IosFont,
+                fontSize = 13.sp,
+                fontWeight = FontWeight.Medium,
+                letterSpacing = 0.6.sp,
+                modifier = Modifier.padding(start = 16.dp, top = 4.dp, bottom = 7.dp)
             )
 
             when (contactsState) {
@@ -451,7 +455,7 @@ fun LlamadasTabContent(
                             .weight(1f),
                         contentAlignment = Alignment.Center
                     ) {
-                        CircularProgressIndicator(color = PanalinkPalette.textPrimary)
+                        CircularProgressIndicator(color = IosSettingsColors.blue)
                     }
                 }
                 is ContactsUiState.Success -> {
@@ -475,14 +479,16 @@ fun LlamadasTabContent(
                                 )
                                 Text(
                                     text = "No tienes panas para llamar",
-                                    color = PanalinkPalette.textPrimary,
-                                    fontSize = 18.sp,
-                                    fontWeight = FontWeight.Bold,
+                                    color = IosSettingsColors.label,
+                                    fontFamily = IosFont,
+                                    fontSize = 17.sp,
+                                    fontWeight = FontWeight.SemiBold,
                                     modifier = Modifier.padding(bottom = 8.dp)
                                 )
                                 Text(
                                     text = "Agrega panas usando su PIN en la pestaña 'Gente' para poder llamarlos gratis.",
-                                    color = Color.LightGray,
+                                    color = IosSettingsColors.secondaryLabel,
+                                    fontFamily = IosFont,
                                     fontSize = 13.sp,
                                     textAlign = TextAlign.Center
                                 )
@@ -502,6 +508,7 @@ fun LlamadasTabContent(
                                     verticalAlignment = Alignment.CenterVertically,
                                     modifier = Modifier
                                         .fillMaxWidth()
+                                        .padding(horizontal = 16.dp)
                                         .padding(vertical = 10.dp)
                                         .testTag("call_contact_row_${contact.displayName}")
                                 ) {
@@ -525,15 +532,17 @@ fun LlamadasTabContent(
                                     Column(modifier = Modifier.weight(1f)) {
                                         Text(
                                             text = contact.displayName,
-                                            color = PanalinkPalette.textPrimary,
-                                            fontWeight = FontWeight.Bold,
-                                            fontSize = 15.sp
+                                            color = IosSettingsColors.label,
+                                            fontFamily = IosFont,
+                                            fontWeight = FontWeight.SemiBold,
+                                            fontSize = 16.sp
                                         )
                                         Spacer(modifier = Modifier.height(2.dp))
                                         Text(
                                             text = if (isContactOnline) "En línea" else "Desconectado",
-                                            color = if (isContactOnline) PanalinkPalette.accent else PanalinkPalette.textSecondary,
-                                            fontSize = 12.sp
+                                            color = if (isContactOnline) IosSettingsColors.green else IosSettingsColors.secondaryLabel,
+                                            fontFamily = IosFont,
+                                            fontSize = 13.sp
                                         )
                                     }
 
@@ -550,7 +559,7 @@ fun LlamadasTabContent(
                                             },
                                             modifier = Modifier
                                                 .background(
-                                                    color = PanalinkPalette.textPrimary.copy(alpha = 0.12f),
+                                                    color = IosSettingsColors.blue.copy(alpha = 0.14f),
                                                     shape = androidx.compose.foundation.shape.CircleShape
                                                 )
                                                 .size(40.dp)
@@ -558,7 +567,7 @@ fun LlamadasTabContent(
                                             Icon(
                                                 imageVector = Icons.Default.Call,
                                                 contentDescription = "Llamada de voz",
-                                                tint = PanalinkPalette.textPrimary,
+                                                tint = IosSettingsColors.blue,
                                                 modifier = Modifier.size(20.dp)
                                             )
                                         }
@@ -572,7 +581,7 @@ fun LlamadasTabContent(
                                             },
                                             modifier = Modifier
                                                 .background(
-                                                    color = PanalinkPalette.accent.copy(alpha = 0.15f),
+                                                    color = IosSettingsColors.blue.copy(alpha = 0.14f),
                                                     shape = androidx.compose.foundation.shape.CircleShape
                                                 )
                                                 .size(40.dp)
@@ -580,20 +589,20 @@ fun LlamadasTabContent(
                                             Icon(
                                                 imageVector = Icons.Default.Videocam,
                                                 contentDescription = "Videollamada",
-                                                tint = PanalinkPalette.accent,
+                                                tint = IosSettingsColors.blue,
                                                 modifier = Modifier.size(20.dp)
                                             )
                                         }
                                         Box {
                                             IconButton(onClick = { showCallContactMenu = true }) {
-                                                Icon(Icons.Default.MoreVert, contentDescription = "Opciones", tint = PanalinkPalette.textSecondary)
+                                                Icon(Icons.Default.MoreVert, contentDescription = "Opciones", tint = IosSettingsColors.secondaryLabel)
                                             }
                                             DropdownMenu(
                                                 expanded = showCallContactMenu,
                                                 onDismissRequest = { showCallContactMenu = false }
                                             ) {
                                                 DropdownMenuItem(
-                                                    text = { Text("Mensaje 💬") },
+                                                    text = { Text("Mensaje 💬", color = IosSettingsColors.label, fontFamily = IosFont) },
                                                     onClick = {
                                                         showCallContactMenu = false
                                                         val repo = com.example.data.repository.ChatsRepository()
@@ -606,20 +615,20 @@ fun LlamadasTabContent(
                                                             }
                                                         }
                                                     },
-                                                    leadingIcon = { Icon(Icons.Default.Email, contentDescription = null, modifier = Modifier.size(18.dp)) }
+                                                    leadingIcon = { Icon(Icons.Default.Email, contentDescription = null, tint = IosSettingsColors.blue, modifier = Modifier.size(18.dp)) }
                                                 )
                                                 DropdownMenuItem(
-                                                    text = { Text("Ver perfil 👤") },
+                                                    text = { Text("Ver perfil 👤", color = IosSettingsColors.label, fontFamily = IosFont) },
                                                     onClick = {
                                                         showCallContactMenu = false
                                                     },
-                                                    leadingIcon = { Icon(Icons.Default.Person, contentDescription = null, modifier = Modifier.size(18.dp)) }
+                                                    leadingIcon = { Icon(Icons.Default.Person, contentDescription = null, tint = IosSettingsColors.blue, modifier = Modifier.size(18.dp)) }
                                                 )
                                             }
                                         }
                                     }
                                 }
-                                HorizontalDivider(color = PanalinkPalette.surface, thickness = 0.5.dp)
+                                HorizontalDivider(color = IosSettingsColors.separator, thickness = 0.5.dp, modifier = Modifier.padding(start = 80.dp))
                             }
                         }
                     }
@@ -633,7 +642,8 @@ fun LlamadasTabContent(
                     ) {
                         Text(
                             text = "Error cargando panas: ${(contactsState as ContactsUiState.Error).message}",
-                            color = Color.Red,
+                            color = IosSettingsColors.red,
+                            fontFamily = IosFont,
                             fontSize = 14.sp
                         )
                     }
@@ -645,21 +655,21 @@ fun LlamadasTabContent(
     if (showClearHistoryDialog) {
         androidx.compose.material3.AlertDialog(
             onDismissRequest = { showClearHistoryDialog = false },
-            title = { Text("¿Borrar historial de llamadas?", color = PanalinkPalette.textPrimary) },
-            text = { Text("Se eliminarán todos los registros de llamadas. Esta acción no se puede deshacer.", color = Color.LightGray) },
+            title = { Text("¿Borrar historial de llamadas?", color = IosSettingsColors.label, fontFamily = IosFont, fontWeight = FontWeight.SemiBold) },
+            text = { Text("Se eliminarán todos los registros de llamadas. Esta acción no se puede deshacer.", color = IosSettingsColors.secondaryLabel, fontFamily = IosFont) },
             confirmButton = {
                 TextButton(onClick = {
                     showClearHistoryDialog = false
                     messagesRepo.clearCallHistory()
                     android.widget.Toast.makeText(context, "Historial borrado 🗑️", android.widget.Toast.LENGTH_SHORT).show()
-                }) { Text("Borrar", color = Color(0xFFEF4444)) }
+                }) { Text("Borrar", color = IosSettingsColors.red, fontFamily = IosFont, fontWeight = FontWeight.SemiBold) }
             },
             dismissButton = {
-                TextButton(onClick = { showClearHistoryDialog = false }) { Text("Cancelar", color = PanalinkPalette.textPrimary) }
+                TextButton(onClick = { showClearHistoryDialog = false }) { Text("Cancelar", color = IosSettingsColors.blue, fontFamily = IosFont) }
             },
-            containerColor = Color(0xFF1A1A1A),
-            titleContentColor = Color.White,
-            textContentColor = Color.LightGray
+            containerColor = IosSettingsColors.cellElevated,
+            titleContentColor = IosSettingsColors.label,
+            textContentColor = IosSettingsColors.secondaryLabel
         )
     }
 }

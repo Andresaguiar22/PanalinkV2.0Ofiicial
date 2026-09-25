@@ -31,8 +31,9 @@ import coil.compose.AsyncImage
 import androidx.compose.ui.platform.testTag
 import com.example.ui.viewmodel.onboarding.OnboardingUiState
 import com.example.ui.viewmodel.onboarding.OnboardingViewModel
-import com.example.ui.components.AuroraBackground
-import com.example.ui.theme.PanalinkPalette
+import com.example.ui.settings.ios.IosSettingsColors
+import com.example.ui.settings.ios.IosFont
+import com.example.ui.settings.ios.IosPrimaryButton
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -68,7 +69,7 @@ fun SetupProfileScreen(
         uri?.let { viewModel.uploadCover(context, it) }
     }
 
-    AuroraBackground {
+    Box(modifier = Modifier.fillMaxSize().background(IosSettingsColors.groupBackground)) {
         Scaffold(
             containerColor = Color.Transparent,
             topBar = {
@@ -79,19 +80,21 @@ fun SetupProfileScreen(
                                 "Configura tu Pana Profile",
                                 fontSize = 18.sp,
                                 fontWeight = FontWeight.Bold,
-                                color = PanalinkPalette.textPrimary
+                                fontFamily = IosFont,
+                                color = IosSettingsColors.label
                             )
                             Text(
                                 "Paso $currentStep de $totalSteps",
                                 fontSize = 12.sp,
-                                color = PanalinkPalette.textPrimary.copy(alpha = 0.7f)
+                                fontFamily = IosFont,
+                                color = IosSettingsColors.secondaryLabel
                             )
                         }
                     },
                     navigationIcon = {
                         if (currentStep > 1) {
                             IconButton(onClick = { currentStep-- }) {
-                                Icon(Icons.AutoMirrored.Filled.ArrowBack, contentDescription = "Atrás", tint = PanalinkPalette.textPrimary)
+                                Icon(Icons.AutoMirrored.Filled.ArrowBack, contentDescription = "Atrás", tint = IosSettingsColors.blue)
                             }
                         }
                     },
@@ -111,8 +114,8 @@ fun SetupProfileScreen(
                             .fillMaxWidth()
                             .height(8.dp)
                             .clip(CircleShape),
-                        color = Color(0xFF00E5FF),
-                        trackColor = Color.White.copy(alpha = 0.1f)
+                        color = IosSettingsColors.blue,
+                        trackColor = IosSettingsColors.cellElevated
                     )
                     Spacer(modifier = Modifier.height(24.dp))
                     Button(
@@ -131,20 +134,21 @@ fun SetupProfileScreen(
                             .fillMaxWidth()
                             .height(56.dp)
                             .testTag("onboarding_next_button"),
-                        shape = RoundedCornerShape(16.dp),
-                        colors = ButtonDefaults.buttonColors(containerColor = Color(0xFF00E5FF))
+                        shape = RoundedCornerShape(12.dp),
+                        colors = ButtonDefaults.buttonColors(containerColor = IosSettingsColors.blue)
                     ) {
                         if (uiState is OnboardingUiState.Loading && currentStep == totalSteps) {
                             CircularProgressIndicator(
-                                color = Color.Black,
+                                color = Color.White,
                                 modifier = Modifier.size(24.dp),
                                 strokeWidth = 2.dp
                             )
                         } else {
                             Text(
                                 if (currentStep == totalSteps) "¡Listo, Vamos! 🚀" else "Siguiente Paso ✨",
-                                color = Color.Black,
-                                fontWeight = FontWeight.Bold,
+                                color = Color.White,
+                                fontWeight = FontWeight.SemiBold,
+                                fontFamily = IosFont,
                                 fontSize = 16.sp
                             )
                         }
@@ -251,14 +255,16 @@ fun IdentityStep(
         Text(
             "Tu Identidad Visual 💎",
             fontSize = 24.sp,
-            fontWeight = FontWeight.ExtraBold,
-            color = PanalinkPalette.textPrimary,
+            fontWeight = FontWeight.Bold,
+            fontFamily = IosFont,
+            color = IosSettingsColors.label,
             textAlign = TextAlign.Center
         )
         Text(
             "Sube una foto de portada y de perfil para destacar.",
             fontSize = 14.sp,
-            color = PanalinkPalette.textPrimary.copy(alpha = 0.6f),
+            fontFamily = IosFont,
+            color = IosSettingsColors.secondaryLabel,
             textAlign = TextAlign.Center,
             modifier = Modifier.padding(top = 8.dp, bottom = 24.dp)
         )
@@ -268,9 +274,9 @@ fun IdentityStep(
             modifier = Modifier
                 .fillMaxWidth()
                 .height(240.dp)
-                .clip(RoundedCornerShape(24.dp))
-                .background(Color.White.copy(alpha = 0.05f))
-                .border(1.dp, Color.White.copy(alpha = 0.1f), RoundedCornerShape(24.dp))
+                .clip(RoundedCornerShape(20.dp))
+                .background(IosSettingsColors.cell)
+                .border(1.dp, IosSettingsColors.separator, RoundedCornerShape(20.dp))
         ) {
             // Cover Image
             Box(
@@ -290,19 +296,19 @@ fun IdentityStep(
                     Box(
                         modifier = Modifier
                             .fillMaxSize()
-                            .background(Brush.linearGradient(listOf(Color(0xFF1E293B), Color(0xFF0F172A)))),
+                            .background(IosSettingsColors.cellElevated),
                         contentAlignment = Alignment.Center
                     ) {
                         Column(horizontalAlignment = Alignment.CenterHorizontally) {
-                            Icon(Icons.Default.AddAPhoto, "Add Cover", tint = PanalinkPalette.textPrimary.copy(alpha = 0.3f), modifier = Modifier.size(32.dp))
-                            Text("Añadir Portada", fontSize = 12.sp, color = PanalinkPalette.textPrimary.copy(alpha = 0.3f))
+                            Icon(Icons.Default.AddAPhoto, "Add Cover", tint = IosSettingsColors.tertiaryLabel, modifier = Modifier.size(32.dp))
+                            Text("Añadir Portada", fontSize = 12.sp, fontFamily = IosFont, color = IosSettingsColors.secondaryLabel)
                         }
                     }
                 }
                 
                 if (isUploadingCover) {
                     Box(Modifier.fillMaxSize().background(Color.Black.copy(alpha = 0.4f)), contentAlignment = Alignment.Center) {
-                        CircularProgressIndicator(color = Color(0xFF00E5FF))
+                        CircularProgressIndicator(color = IosSettingsColors.blue)
                     }
                 }
             }
@@ -314,8 +320,8 @@ fun IdentityStep(
                     .offset(y = (-20).dp)
                     .size(100.dp)
                     .clip(CircleShape)
-                    .background(Color(0xFF0F172A))
-                    .border(4.dp, Color(0xFF00E5FF), CircleShape)
+                    .background(IosSettingsColors.cellElevated)
+                    .border(4.dp, IosSettingsColors.blue, CircleShape)
                     .clickable { onAvatarClick() },
                 contentAlignment = Alignment.Center
             ) {
@@ -331,12 +337,12 @@ fun IdentityStep(
                         )
                     }
                 } else {
-                    Icon(Icons.Default.Person, null, tint = PanalinkPalette.textPrimary.copy(alpha = 0.3f), modifier = Modifier.size(48.dp))
+                    Icon(Icons.Default.Person, null, tint = IosSettingsColors.tertiaryLabel, modifier = Modifier.size(48.dp))
                 }
                 
                 if (isUploadingAvatar) {
                     Box(Modifier.fillMaxSize().background(Color.Black.copy(alpha = 0.4f)), contentAlignment = Alignment.Center) {
-                        CircularProgressIndicator(color = Color(0xFF00E5FF), modifier = Modifier.size(24.dp))
+                        CircularProgressIndicator(color = IosSettingsColors.blue, modifier = Modifier.size(24.dp))
                     }
                 }
                 
@@ -346,7 +352,7 @@ fun IdentityStep(
                         .align(Alignment.BottomEnd)
                         .size(28.dp)
                         .clip(CircleShape)
-                        .background(Color(0xFF00E5FF))
+                        .background(IosSettingsColors.blue)
                         .padding(4.dp),
                     contentAlignment = Alignment.Center
                 ) {
@@ -417,13 +423,13 @@ fun DetailsStep(
         Text(
             "Algo de ti 📝",
             fontSize = 24.sp,
-            fontWeight = FontWeight.ExtraBold,
-            color = PanalinkPalette.textPrimary
+            fontWeight = FontWeight.Bold,
+            color = IosSettingsColors.label
         )
         Text(
             "Tu nombre real y fecha nos ayudan a personalizar tu experiencia.",
             fontSize = 14.sp,
-            color = PanalinkPalette.textPrimary.copy(alpha = 0.6f),
+            color = IosSettingsColors.secondaryLabel,
             textAlign = TextAlign.Center,
             modifier = Modifier.padding(top = 8.dp, bottom = 24.dp)
         )
@@ -458,7 +464,7 @@ fun DetailsStep(
             modifier = Modifier.fillMaxWidth().clickable { showDatePicker = true },
             shape = RoundedCornerShape(16.dp),
             colors = textFieldColors(),
-            leadingIcon = { Icon(Icons.Default.CalendarToday, null, tint = PanalinkPalette.textPrimary.copy(alpha = 0.5f)) },
+            leadingIcon = { Icon(Icons.Default.CalendarToday, null, tint = IosSettingsColors.secondaryLabel) },
             enabled = false
         )
 
@@ -468,7 +474,7 @@ fun DetailsStep(
             "Género / Identidad",
             fontSize = 14.sp,
             fontWeight = FontWeight.Bold,
-            color = PanalinkPalette.textPrimary,
+            color = IosSettingsColors.label,
             modifier = Modifier.fillMaxWidth()
         )
         Spacer(modifier = Modifier.height(12.dp))
@@ -528,13 +534,13 @@ fun VibeStep(
         Text(
             "Tu Vibe ✨",
             fontSize = 24.sp,
-            fontWeight = FontWeight.ExtraBold,
-            color = PanalinkPalette.textPrimary
+            fontWeight = FontWeight.Bold,
+            color = IosSettingsColors.label
         )
         Text(
             "¿Qué estás haciendo? ¿Qué te gusta? Cuéntale al mundo.",
             fontSize = 14.sp,
-            color = PanalinkPalette.textPrimary.copy(alpha = 0.6f),
+            color = IosSettingsColors.secondaryLabel,
             textAlign = TextAlign.Center,
             modifier = Modifier.padding(top = 8.dp, bottom = 24.dp)
         )
@@ -556,7 +562,7 @@ fun VibeStep(
             "Intereses (Elige tus favoritos)",
             fontSize = 14.sp,
             fontWeight = FontWeight.Bold,
-            color = PanalinkPalette.textPrimary,
+            color = IosSettingsColors.label,
             modifier = Modifier.fillMaxWidth()
         )
         Spacer(modifier = Modifier.height(12.dp))
@@ -576,13 +582,13 @@ fun VibeStep(
                     },
                     label = { Text(interest, fontSize = 12.sp) },
                     colors = FilterChipDefaults.filterChipColors(
-                        selectedContainerColor = Color(0xFF00E5FF),
-                        selectedLabelColor = Color.Black,
-                        containerColor = Color.White.copy(alpha = 0.05f),
-                        labelColor = Color.White
+                        selectedContainerColor = IosSettingsColors.blue,
+                        selectedLabelColor = Color.White,
+                        containerColor = IosSettingsColors.cellElevated,
+                        labelColor = IosSettingsColors.label
                     ),
                     border = FilterChipDefaults.filterChipBorder(
-                        borderColor = Color.White.copy(alpha = 0.1f),
+                        borderColor = IosSettingsColors.separator,
                         selectedBorderColor = Color.Transparent,
                         enabled = true,
                         selected = selected
@@ -607,13 +613,13 @@ fun PreviewStep(
         Text(
             "¡Casi listo! 🏁",
             fontSize = 24.sp,
-            fontWeight = FontWeight.ExtraBold,
-            color = PanalinkPalette.textPrimary
+            fontWeight = FontWeight.Bold,
+            color = IosSettingsColors.label
         )
         Text(
             "Así es como te verán los demás panas.",
             fontSize = 14.sp,
-            color = PanalinkPalette.textPrimary.copy(alpha = 0.6f),
+            color = IosSettingsColors.secondaryLabel,
             textAlign = TextAlign.Center,
             modifier = Modifier.padding(top = 8.dp, bottom = 24.dp)
         )
@@ -622,8 +628,8 @@ fun PreviewStep(
         Card(
             modifier = Modifier.fillMaxWidth(),
             shape = RoundedCornerShape(24.dp),
-            colors = CardDefaults.cardColors(containerColor = Color.White.copy(alpha = 0.05f)),
-            border = BorderStroke(1.dp, Color.White.copy(alpha = 0.1f))
+            colors = CardDefaults.cardColors(containerColor = IosSettingsColors.cell),
+            border = BorderStroke(1.dp, IosSettingsColors.separator)
         ) {
             Column {
                 Box(modifier = Modifier.fillMaxWidth().height(140.dp)) {
@@ -635,7 +641,7 @@ fun PreviewStep(
                             contentScale = ContentScale.Crop
                         )
                     } else {
-                        Box(Modifier.fillMaxSize().background(Brush.verticalGradient(listOf(Color(0xFF00E5FF).copy(alpha = 0.3f), Color.Transparent))))
+                        Box(Modifier.fillMaxSize().background(IosSettingsColors.cellElevated))
                     }
                     
                     Box(
@@ -644,8 +650,8 @@ fun PreviewStep(
                             .offset(x = 20.dp, y = 40.dp)
                             .size(80.dp)
                             .clip(CircleShape)
-                            .background(Color(0xFF0F172A))
-                            .border(3.dp, Color(0xFF00E5FF), CircleShape),
+                            .background(IosSettingsColors.cellElevated)
+                            .border(2.dp, IosSettingsColors.blue, CircleShape),
                         contentAlignment = Alignment.Center
                     ) {
                         if (avatarUrl != null) {
@@ -660,7 +666,7 @@ fun PreviewStep(
                                 )
                             }
                         } else {
-                            Icon(Icons.Default.Person, null, tint = PanalinkPalette.textPrimary.copy(alpha = 0.2f), modifier = Modifier.size(40.dp))
+                            Icon(Icons.Default.Person, null, tint = IosSettingsColors.tertiaryLabel, modifier = Modifier.size(40.dp))
                         }
                     }
                 }
@@ -672,18 +678,18 @@ fun PreviewStep(
                         displayName,
                         fontSize = 22.sp,
                         fontWeight = FontWeight.Bold,
-                        color = PanalinkPalette.textPrimary
+                        color = IosSettingsColors.label
                     )
                     Text(
                         "$firstName $lastName",
                         fontSize = 14.sp,
-                        color = PanalinkPalette.textPrimary.copy(alpha = 0.5f)
+                        color = IosSettingsColors.secondaryLabel
                     )
                     
                     Spacer(modifier = Modifier.height(12.dp))
                     
                     Surface(
-                        color = Color(0xFF00E5FF).copy(alpha = 0.1f),
+                        color = IosSettingsColors.blue.copy(alpha = 0.1f),
                         shape = RoundedCornerShape(12.dp),
                         modifier = Modifier.fillMaxWidth()
                     ) {
@@ -691,7 +697,7 @@ fun PreviewStep(
                             statusText,
                             modifier = Modifier.padding(12.dp),
                             fontSize = 13.sp,
-                            color = Color(0xFF00E5FF),
+                            color = IosSettingsColors.blue,
                             fontStyle = androidx.compose.ui.text.font.FontStyle.Italic
                         )
                     }
@@ -703,12 +709,15 @@ fun PreviewStep(
 
 @Composable
 fun textFieldColors() = OutlinedTextFieldDefaults.colors(
-    focusedBorderColor = Color(0xFF00E5FF),
-    unfocusedBorderColor = Color.White.copy(alpha = 0.2f),
-    focusedLabelColor = Color(0xFF00E5FF),
-    cursorColor = Color(0xFF00E5FF),
-    focusedTextColor = Color.White,
-    unfocusedTextColor = Color.White,
-    focusedPlaceholderColor = Color.White.copy(alpha = 0.3f),
-    unfocusedPlaceholderColor = Color.White.copy(alpha = 0.3f)
+    focusedBorderColor = IosSettingsColors.blue,
+    unfocusedBorderColor = IosSettingsColors.separator,
+    focusedLabelColor = IosSettingsColors.blue,
+    unfocusedLabelColor = IosSettingsColors.secondaryLabel,
+    cursorColor = IosSettingsColors.blue,
+    focusedTextColor = IosSettingsColors.label,
+    unfocusedTextColor = IosSettingsColors.label,
+    focusedContainerColor = IosSettingsColors.cell,
+    unfocusedContainerColor = IosSettingsColors.cell,
+    focusedPlaceholderColor = IosSettingsColors.tertiaryLabel,
+    unfocusedPlaceholderColor = IosSettingsColors.tertiaryLabel
 )

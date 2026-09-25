@@ -89,7 +89,7 @@ import java.text.SimpleDateFormat
 import java.util.*
 
 import com.example.ui.viewmodel.NotificationsViewModel
-import com.example.ui.theme.PanalinkPalette
+import com.example.ui.settings.ios.IosSettingsColors
 
 @OptIn(ExperimentalMaterial3Api::class)
 
@@ -131,7 +131,7 @@ fun ContactsTabContent(
                     .padding(40.dp),
                 contentAlignment = Alignment.Center
             ) {
-                CircularProgressIndicator(color = PanalinkPalette.textPrimary)
+                CircularProgressIndicator(color = IosSettingsColors.label)
             }
         }
         is ContactsUiState.Success -> {
@@ -156,7 +156,7 @@ fun ContactsTabContent(
                         item {
                             Text(
                                 text = "Solicitudes pendientes (${requests.size})",
-                                color = PanalinkPalette.textPrimary,
+                                color = IosSettingsColors.label,
                                 fontSize = 12.sp,
                                 fontWeight = FontWeight.Bold,
                                 modifier = Modifier.padding(16.dp, 8.dp)
@@ -178,7 +178,7 @@ fun ContactsTabContent(
                         item {
                             Text(
                                 text = "Mis solicitudes (${sentRequests.size})",
-                                color = PanalinkPalette.textPrimary,
+                                color = IosSettingsColors.label,
                                 fontSize = 12.sp,
                                 fontWeight = FontWeight.Bold,
                                 modifier = Modifier.padding(16.dp, 8.dp)
@@ -202,11 +202,11 @@ fun ContactsTabContent(
                                 Column(modifier = Modifier.weight(1f)) {
                                     Text(
                                         text = request.receiver?.displayName ?: "Pana",
-                                        color = PanalinkPalette.textPrimary
+                                        color = IosSettingsColors.label
                                     )
                                     Text(
                                         text = "Esperando respuesta",
-                                        color = PanalinkPalette.textSecondary,
+                                        color = IosSettingsColors.secondaryLabel,
                                         fontSize = 12.sp
                                     )
                                 }
@@ -227,13 +227,13 @@ fun ContactsTabContent(
                             Icon(
                                 imageVector = Icons.Default.Person,
                                 contentDescription = null,
-                                tint = PanalinkPalette.surface,
+                                tint = IosSettingsColors.cell,
                                 modifier = Modifier.size(72.dp)
                             )
                             Spacer(modifier = Modifier.height(16.dp))
                             Text(
                                 text = "Aún no tienes panas agregados",
-                                color = PanalinkPalette.textSecondary,
+                                color = IosSettingsColors.secondaryLabel,
                                 fontWeight = FontWeight.Bold,
                                 fontSize = 16.sp,
                                 textAlign = TextAlign.Center
@@ -241,7 +241,7 @@ fun ContactsTabContent(
                             Spacer(modifier = Modifier.height(4.dp))
                             Text(
                                 text = "Presiona el botón '+' en la esquina superior para agregar a un pana usando su PIN o escaneando su QR.",
-                                color = PanalinkPalette.textSecondary,
+                                color = IosSettingsColors.secondaryLabel,
                                 fontSize = 13.sp,
                                 textAlign = TextAlign.Center,
                                 lineHeight = 18.sp
@@ -263,10 +263,10 @@ fun ContactsTabContent(
                                     verticalAlignment = Alignment.CenterVertically,
                                     horizontalArrangement = Arrangement.spacedBy(8.dp)
                                 ) {
-                                    Icon(Icons.Default.Email, contentDescription = null, tint = PanalinkPalette.textPrimary)
+                                    Icon(Icons.Default.Email, contentDescription = null, tint = IosSettingsColors.label)
                                     Text(
                                         text = "Selecciona un pana para chatear 💬",
-                                        color = PanalinkPalette.textPrimary,
+                                        color = IosSettingsColors.label,
                                         fontWeight = FontWeight.Bold,
                                         fontSize = 14.sp
                                     )
@@ -277,7 +277,7 @@ fun ContactsTabContent(
 item {
                         Text(
                             text = if (isSelectingContactOnly) "Seleccionar Contacto" else "TUS PANAS AGREGADOS (${contacts.size})",
-                            color = if (isSelectingContactOnly) PanalinkPalette.textPrimary else Color(0xFF8E8E93),
+                            color = if (isSelectingContactOnly) IosSettingsColors.label else IosSettingsColors.secondaryLabel,
                             fontSize =  13.sp,
                             fontWeight = FontWeight.SemiBold,
                             letterSpacing =  1.sp,
@@ -334,14 +334,14 @@ item {
                             Column(modifier = Modifier.weight(1f)) {
                                 Text(
                                     text = contact.displayName,
-                                    color = PanalinkPalette.textPrimary,
+                                    color = IosSettingsColors.label,
                                     fontWeight = FontWeight.Bold,
                                     fontSize = 16.sp
                                 )
                                 Spacer(modifier = Modifier.height(2.dp))
                                 Text(
                                     text = if (isContactOnline) "En línea" else "Conectado por panalink",
-                                    color = if (isContactOnline) PanalinkPalette.accent else PanalinkPalette.textSecondary,
+                                    color = if (isContactOnline) IosSettingsColors.green else IosSettingsColors.secondaryLabel,
                                     fontSize = 13.sp
                                 )
                             }
@@ -352,7 +352,7 @@ item {
                                     Icon(
                                         imageVector = Icons.Default.MoreVert,
                                         contentDescription = "Opciones",
-                                        tint = PanalinkPalette.textSecondary
+                                        tint = IosSettingsColors.secondaryLabel
                                     )
                                 }
                                 androidx.compose.material3.DropdownMenu(
@@ -486,7 +486,7 @@ private fun AddPanaHeroCard(
 
         Text(
             text = "Comparte tu PIN o QR, o agrega a quien quieras",
-            color = Color(0xFF8E8E93),
+            color = IosSettingsColors.secondaryLabel,
             fontSize =  15.sp,
             textAlign = TextAlign.Center,
             modifier = Modifier.padding(horizontal =  8.dp)

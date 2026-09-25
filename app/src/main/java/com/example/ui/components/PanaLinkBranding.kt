@@ -24,12 +24,13 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import com.example.ui.settings.ios.IosSettingsColors
 
 // The beautiful colorful background gradient from the screenshot
 val PanaBackgroundBrush = Brush.linearGradient(
     colors = listOf(
         Color(0xFFE2E75E), // Top-left yellow-green (lime)
-        Color(0xFF00E5FF), // Teal/cyan
+        IosSettingsColors.blue, // Teal/cyan
         Color(0xFF00B0FF), // Soft blue
         Color(0xFFEC407A)  // Bottom-right pink
     )
@@ -97,7 +98,7 @@ fun AuroraBackground(
                 val brushGreen = Brush.radialGradient(
                     colors = listOf(
                         Color(0xFF00FF85).copy(alpha = 0.22f), // Glowing Neon Green
-                        Color(0xFF00E5FF).copy(alpha = 0.10f), // Glowing Cyan
+                        IosSettingsColors.blue.copy(alpha = 0.10f), // Glowing Cyan
                         Color.Transparent
                     ),
                     center = androidx.compose.ui.geometry.Offset(

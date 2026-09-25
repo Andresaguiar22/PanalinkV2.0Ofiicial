@@ -23,7 +23,7 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import coil.compose.AsyncImage
 import com.example.data.model.Profile
-import com.example.ui.theme.PanalinkPalette
+import com.example.ui.settings.ios.IosSettingsColors
 
 /**
  * Diálogo final delim un (flujo minimalista) mostrado antes de enviar una
@@ -41,7 +41,7 @@ fun ContactRequestPreviewDialog(
         onDismissRequest = onDismiss,
         containerColor = Color(0xFF0F1419),
         title = {
-            Text("¿Quieres agregar a este contacto?", color = PanalinkPalette.textPrimary)
+            Text("¿Quieres agregar a este contacto?", color = IosSettingsColors.label)
         },
         text = {
             Column(
@@ -54,14 +54,14 @@ fun ContactRequestPreviewDialog(
                     contentDescription = null,
                     modifier = Modifier
                         .size(72.dp)
-                        .background(Color(0xFF18E7F5), RoundedCornerShape(36.dp))
+                        .background(IosSettingsColors.blue, RoundedCornerShape(36.dp))
                         .padding(2.dp),
                     contentScale = ContentScale.Crop
                 )
                 Spacer(Modifier.height(12.dp))
                 Text(
                     text = profile.displayName.ifNullOrBlank { "Pana ${pinOrToken.take(6)}" },
-                    color = PanalinkPalette.textPrimary,
+                    color = IosSettingsColors.label,
                     fontWeight = FontWeight.Bold,
                     fontSize = 16.sp
                 )
@@ -82,7 +82,7 @@ fun ContactRequestPreviewDialog(
         confirmButton = {
             Button(
                 onClick = onConfirm,
-                colors = ButtonDefaults.buttonColors(containerColor = Color(0xFF18E7F5))
+                colors = ButtonDefaults.buttonColors(containerColor = IosSettingsColors.blue)
             ) {
                 Text("Enviar solicitud", color = Color.Black)
             }
@@ -121,7 +121,7 @@ fun ContactRequestRow(
         Column(modifier = Modifier.weight(1f)) {
             Text(
                 text = request.sender?.displayName ?: "Pana",
-                color = PanalinkPalette.textPrimary,
+                color = IosSettingsColors.label,
                 fontWeight = FontWeight.Bold
             )
             Text(
@@ -133,7 +133,7 @@ fun ContactRequestRow(
         Row() {
             Button(
                 onClick = onAccept,
-                colors = ButtonDefaults.buttonColors(containerColor = Color(0xFF18E7F5)),
+                colors = ButtonDefaults.buttonColors(containerColor = IosSettingsColors.blue),
                 modifier = Modifier.height(36.dp)
             ) {
                 Icon(Icons.Default.CheckCircle, null, tint = Color.Black, modifier = Modifier.size(16.dp))
@@ -145,7 +145,7 @@ fun ContactRequestRow(
                 onClick = onDecline,
                 modifier = Modifier.height(36.dp)
             ) {
-                Text("Rechazar", color = PanalinkPalette.textPrimary, fontSize = 12.sp)
+                Text("Rechazar", color = IosSettingsColors.label, fontSize = 12.sp)
             }
         }
     }

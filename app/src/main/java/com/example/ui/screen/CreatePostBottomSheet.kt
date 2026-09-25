@@ -32,7 +32,7 @@ import androidx.compose.ui.unit.sp
 import androidx.lifecycle.viewmodel.compose.viewModel
 import coil.compose.AsyncImage
 import com.example.ui.viewmodel.CreatePostViewModel
-import com.example.ui.theme.PanalinkPalette
+import com.example.ui.settings.ios.IosSettingsColors
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -91,12 +91,12 @@ fun CreatePostBottomSheet(
                 verticalAlignment = Alignment.CenterVertically
             ) {
                 IconButton(onClick = onDismiss) {
-                    Icon(Icons.Default.Close, contentDescription = "Cerrar", tint = PanalinkPalette.textPrimary)
+                    Icon(Icons.Default.Close, contentDescription = "Cerrar", tint = IosSettingsColors.label)
                 }
                 
                 Text(
                     text = "Nuevo Post",
-                    color = PanalinkPalette.textPrimary,
+                    color = IosSettingsColors.label,
                     fontSize = 18.sp,
                     fontWeight = FontWeight.Bold
                 )
@@ -130,7 +130,7 @@ fun CreatePostBottomSheet(
                             viewModel.publishPost(currentUserId) { onDismiss() } 
                         },
                         colors = ButtonDefaults.buttonColors(
-                            containerColor = Color(0xFF00E5FF),
+                            containerColor = IosSettingsColors.blue,
                             disabledContainerColor = Color.Gray.copy(alpha = 0.3f)
                         ),
                         shape = RoundedCornerShape(20.dp),
@@ -171,7 +171,7 @@ fun CreatePostBottomSheet(
                             val next = if (uiState.privacy == "PUBLIC") "PANAS" else "PUBLIC"
                             viewModel.onPrivacyChanged(next)
                         },
-                        color = PanalinkPalette.textPrimary.copy(alpha = 0.05f),
+                        color = IosSettingsColors.label.copy(alpha = 0.05f),
                         shape = RoundedCornerShape(16.dp),
                         modifier = Modifier.wrapContentWidth()
                     ) {
@@ -182,13 +182,13 @@ fun CreatePostBottomSheet(
                             Icon(
                                 imageVector = if (uiState.privacy == "PUBLIC") Icons.Default.Public else Icons.Default.Lock,
                                 contentDescription = null,
-                                tint = if (uiState.privacy == "PUBLIC") Color(0xFF00E5FF) else Color(0xFFFFD600),
+                                tint = if (uiState.privacy == "PUBLIC") IosSettingsColors.blue else Color(0xFFFFD600),
                                 modifier = Modifier.size(12.dp)
                             )
                             Spacer(modifier = Modifier.width(6.dp))
                             Text(
                                 text = if (uiState.privacy == "PUBLIC") "Público" else "Solo Panas",
-                                color = PanalinkPalette.textPrimary,
+                                color = IosSettingsColors.label,
                                 fontSize = 12.sp,
                                 fontWeight = FontWeight.Medium
                             )
@@ -216,7 +216,7 @@ fun CreatePostBottomSheet(
                             unfocusedIndicatorColor = Color.Transparent,
                             focusedTextColor = Color.White,
                             unfocusedTextColor = Color.White,
-                            cursorColor = Color(0xFF00E5FF)
+                            cursorColor = IosSettingsColors.blue
                         ),
                         textStyle = androidx.compose.ui.text.TextStyle(
                             fontSize = 18.sp,
@@ -265,7 +265,7 @@ fun CreatePostBottomSheet(
                                     .padding(4.dp)
                                     .background(Color.Black.copy(alpha = 0.6f), CircleShape)
                             ) {
-                                Icon(Icons.Default.Close, contentDescription = "Eliminar", tint = PanalinkPalette.textPrimary, modifier = Modifier.size(12.dp))
+                                Icon(Icons.Default.Close, contentDescription = "Eliminar", tint = IosSettingsColors.label, modifier = Modifier.size(12.dp))
                             }
                         }
                     }
@@ -315,7 +315,7 @@ fun CreatePostBottomSheet(
                         )
                         Spacer(modifier = Modifier.width(8.dp))
                         Column(modifier = Modifier.weight(1f)) {
-                            Text(preview.title, color = PanalinkPalette.textPrimary, fontSize = 14.sp, fontWeight = FontWeight.Bold, maxLines = 2)
+                            Text(preview.title, color = IosSettingsColors.label, fontSize = 14.sp, fontWeight = FontWeight.Bold, maxLines = 2)
                             Text("YouTube", color = Color.Gray, fontSize = 12.sp)
                         }
                         IconButton(onClick = { /* Implementar eliminar preview en VM */ }) {
@@ -325,7 +325,7 @@ fun CreatePostBottomSheet(
                 }
             }
 
-            HorizontalDivider(color = PanalinkPalette.textPrimary.copy(alpha = 0.1f))
+            HorizontalDivider(color = IosSettingsColors.label.copy(alpha = 0.1f))
 
             // Accessory Bar
             Row(
@@ -337,7 +337,7 @@ fun CreatePostBottomSheet(
             ) {
                 Row {
                     IconButton(onClick = { mediaPicker.launch("image/*") }) {
-                        Icon(Icons.Default.PhotoLibrary, contentDescription = "Galería Fotos", tint = Color(0xFF00E5FF))
+                        Icon(Icons.Default.PhotoLibrary, contentDescription = "Galería Fotos", tint = IosSettingsColors.blue)
                     }
                     IconButton(onClick = { mediaPicker.launch("video/*") }) {
                         Icon(Icons.Default.Videocam, contentDescription = "Videos", tint = Color(0xFF00FF85))

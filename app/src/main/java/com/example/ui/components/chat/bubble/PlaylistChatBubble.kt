@@ -23,7 +23,7 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import coil.compose.AsyncImage
 import com.example.media.playlist.PlaylistSharePayload
-import com.example.ui.theme.PanalinkPalette
+import com.example.ui.settings.ios.IosSettingsColors
 
 /**
  * Premium shared-playlist card for the chat (Spotify-style):
@@ -39,8 +39,8 @@ fun PlaylistChatBubble(
     onSave: () -> Unit,
     modifier: Modifier = Modifier
 ) {
-    val bubbleColor = if (isMe) PanalinkPalette.chatOutgoing else PanalinkPalette.chatIncoming
-    val accent = PanalinkPalette.accent
+    val bubbleColor = if (isMe) IosSettingsColors.blue else IosSettingsColors.cell
+    val accent = IosSettingsColors.blue
 
     Surface(
         color = bubbleColor,
@@ -99,7 +99,7 @@ fun PlaylistChatBubble(
                 // "PLAYLIST" tag
                 Text(
                     text = "PLAYLIST",
-                    color = PanalinkPalette.textPrimary,
+                    color = IosSettingsColors.label,
                     fontSize = 10.sp,
                     letterSpacing = 2.sp,
                     fontWeight = FontWeight.Bold,
@@ -125,7 +125,7 @@ fun PlaylistChatBubble(
                     Icon(
                         Icons.Default.PlayArrow,
                         contentDescription = "Reproducir",
-                        tint = PanalinkPalette.onAccent,
+                        tint = IosSettingsColors.label,
                         modifier = Modifier.size(28.dp)
                     )
                 }
@@ -134,7 +134,7 @@ fun PlaylistChatBubble(
             Column(modifier = Modifier.padding(horizontal = 12.dp, vertical = 10.dp)) {
                 Text(
                     text = payload.title,
-                    color = PanalinkPalette.textPrimary,
+                    color = IosSettingsColors.label,
                     fontSize = 15.sp,
                     fontWeight = FontWeight.Bold,
                     maxLines = 1,
@@ -145,7 +145,7 @@ fun PlaylistChatBubble(
 
                 Text(
                     text = "${payload.trackCount} canciones • ${formatTotalDuration(payload.durationMs)}",
-                    color = PanalinkPalette.textPrimary.copy(alpha = 0.65f),
+                    color = IosSettingsColors.label.copy(alpha = 0.65f),
                     fontSize = 12.sp,
                     maxLines = 1
                 )
@@ -171,7 +171,7 @@ fun PlaylistChatBubble(
                         modifier = Modifier.weight(1f).height(34.dp),
                         colors = ButtonDefaults.buttonColors(
                             containerColor = accent,
-                            contentColor = PanalinkPalette.onAccent
+                            contentColor = IosSettingsColors.label
                         ),
                         contentPadding = PaddingValues(horizontal = 8.dp),
                         shape = RoundedCornerShape(17.dp)
@@ -197,7 +197,7 @@ fun PlaylistChatBubble(
 
                 Text(
                     text = formattedTime,
-                    color = PanalinkPalette.textPrimary.copy(alpha = 0.5f),
+                    color = IosSettingsColors.secondaryLabel,
                     fontSize = 10.sp,
                     modifier = Modifier.align(Alignment.End).padding(top = 4.dp)
                 )

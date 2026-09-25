@@ -16,7 +16,7 @@ import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.unit.dp
-import com.example.ui.theme.PanalinkPalette
+import com.example.ui.settings.ios.IosSettingsColors
 
 @Composable
 fun PremiumMediaLoadingOverlay(
@@ -108,7 +108,7 @@ private fun ErrorState(onRetry: () -> Unit) {
                 Icon(
                     imageVector = Icons.Default.Refresh,
                     contentDescription = "Retry",
-                    tint = PanalinkPalette.textPrimary
+                    tint = IosSettingsColors.label
                 )
             }
         }

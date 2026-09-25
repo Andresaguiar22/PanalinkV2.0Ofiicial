@@ -42,7 +42,7 @@ import androidx.media3.ui.PlayerView
 import com.example.panatv.PanaTVActivity
 import com.example.util.AppFloatingPlayerManager
 import kotlin.math.roundToInt
-import com.example.ui.theme.PanalinkPalette
+import com.example.ui.settings.ios.IosSettingsColors
 
 @androidx.annotation.OptIn(androidx.media3.common.util.UnstableApi::class)
 @Composable
@@ -133,7 +133,7 @@ fun FloatingPlayerBubble(
                 Icon(
                     imageVector = Icons.Default.Close,
                     contentDescription = "Cerrar reproductor",
-                    tint = PanalinkPalette.textPrimary,
+                    tint = IosSettingsColors.label,
                     modifier = Modifier
                         .size(32.dp)
                         .graphicsLayer {
@@ -211,7 +211,7 @@ fun FloatingPlayerBubble(
                 },
             shape = RoundedCornerShape(16.dp),
             colors = CardDefaults.cardColors(containerColor = Color.Black),
-            border = androidx.compose.foundation.BorderStroke(1.5.dp, Color(0xFF18E7F5).copy(alpha = 0.8f))
+            border = androidx.compose.foundation.BorderStroke(1.5.dp, IosSettingsColors.blue.copy(alpha = 0.8f))
         ) {
             Box(modifier = Modifier.fillMaxSize()) {
                 // The Video Player view
@@ -243,12 +243,12 @@ fun FloatingPlayerBubble(
                         Icon(
                             imageVector = Icons.Default.PlayArrow,
                             contentDescription = null,
-                            tint = Color(0xFF18E7F5),
+                            tint = IosSettingsColors.blue,
                             modifier = Modifier.size(12.dp)
                         )
                         Text(
                             text = if (manager.activeType == "reel") "Reel" else "PanaTV",
-                            color = PanalinkPalette.textPrimary,
+                            color = IosSettingsColors.label,
                             fontSize = 9.sp,
                             maxLines = 1
                         )

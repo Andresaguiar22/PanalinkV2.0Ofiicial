@@ -24,7 +24,7 @@ import coil.compose.AsyncImage
 import coil.request.ImageRequest
 import com.example.data.supabase.SupabaseClient
 import com.example.ui.viewmodel.ProfileViewModel
-import com.example.ui.theme.PanalinkPalette
+import com.example.ui.settings.ios.IosSettingsColors
 
 @Composable
 fun ReelsGrid(viewModel: ProfileViewModel, onNavigateToReel: (String) -> Unit) {
@@ -48,13 +48,13 @@ fun ReelsGrid(viewModel: ProfileViewModel, onNavigateToReel: (String) -> Unit) {
                     Icon(
                         imageVector = Icons.Default.PlayArrow,
                         contentDescription = null,
-                        tint = PanalinkPalette.textPrimary.copy(alpha = 0.3f),
+                        tint = IosSettingsColors.label.copy(alpha = 0.3f),
                         modifier = Modifier.size(48.dp)
                     )
                     Text(
                         text = "Aún no has publicado Reels",
                         style = MaterialTheme.typography.bodyMedium,
-                        color = PanalinkPalette.textPrimary.copy(alpha = 0.5f)
+                        color = IosSettingsColors.secondaryLabel
                     )
                 }
             }
@@ -140,12 +140,12 @@ fun ReelsGrid(viewModel: ProfileViewModel, onNavigateToReel: (String) -> Unit) {
                                         Icon(
                                             imageVector = Icons.Default.PlayArrow,
                                             contentDescription = null,
-                                            tint = PanalinkPalette.textPrimary,
+                                            tint = IosSettingsColors.label,
                                             modifier = Modifier.size(12.dp)
                                         )
                                         Text(
                                             text = (reel.state.viewsCount ?: 0).toString(),
-                                            color = PanalinkPalette.textPrimary,
+                                            color = IosSettingsColors.label,
                                             fontSize = 11.sp,
                                             fontWeight = FontWeight.Bold
                                         )
@@ -166,8 +166,8 @@ fun ReelsGrid(viewModel: ProfileViewModel, onNavigateToReel: (String) -> Unit) {
     if (reelToDelete != null) {
         AlertDialog(
             onDismissRequest = { reelToDelete = null },
-            title = { Text("¿Borrar Reel?", color = PanalinkPalette.textPrimary) },
-            text = { Text("Esta acción no se puede deshacer.", color = PanalinkPalette.textPrimary.copy(alpha = 0.7f)) },
+            title = { Text("¿Borrar Reel?", color = IosSettingsColors.label) },
+            text = { Text("Esta acción no se puede deshacer.", color = IosSettingsColors.secondaryLabel) },
             containerColor = Color(0xFF1E2D35),
             confirmButton = {
                 TextButton(onClick = {
@@ -179,7 +179,7 @@ fun ReelsGrid(viewModel: ProfileViewModel, onNavigateToReel: (String) -> Unit) {
             },
             dismissButton = {
                 TextButton(onClick = { reelToDelete = null }) {
-                    Text("Cancelar", color = PanalinkPalette.textPrimary)
+                    Text("Cancelar", color = IosSettingsColors.label)
                 }
             }
         )

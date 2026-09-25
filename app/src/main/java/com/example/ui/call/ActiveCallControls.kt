@@ -11,7 +11,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.unit.dp
-import com.example.ui.theme.PanalinkPalette
+import com.example.ui.settings.ios.IosSettingsColors
 
 /**
  * ActiveCallControls displays the primary interactive bottom bar controls during an active call.
@@ -108,31 +108,31 @@ fun ActiveCallControls(
                     DropdownMenu(
                         expanded = showMoreMenu,
                         onDismissRequest = { showMoreMenu = false },
-                        modifier = Modifier.background(Color(0xFF1E293B)) // Slate 800
+                        modifier = Modifier.background(IosSettingsColors.cellElevated) // Slate 800
                     ) {
                         DropdownMenuItem(
-                            text = { Text("Cambiar a video", color = PanalinkPalette.textPrimary) },
+                            text = { Text("Cambiar a video", color = IosSettingsColors.label) },
                             onClick = {
                                 showMoreMenu = false
                                 onMoreOptionSelected("change_to_video")
                             },
-                            leadingIcon = { Icon(Icons.Default.Videocam, contentDescription = null, tint = PanalinkPalette.textPrimary) }
+                            leadingIcon = { Icon(Icons.Default.Videocam, contentDescription = null, tint = IosSettingsColors.label) }
                         )
                         DropdownMenuItem(
-                            text = { Text("Dispositivo Bluetooth", color = PanalinkPalette.textPrimary) },
+                            text = { Text("Dispositivo Bluetooth", color = IosSettingsColors.label) },
                             onClick = {
                                 showMoreMenu = false
                                 onMoreOptionSelected("bluetooth")
                             },
-                            leadingIcon = { Icon(Icons.Default.Bluetooth, contentDescription = null, tint = PanalinkPalette.textPrimary) }
+                            leadingIcon = { Icon(Icons.Default.Bluetooth, contentDescription = null, tint = IosSettingsColors.label) }
                         )
                         DropdownMenuItem(
-                            text = { Text("Enviar mensaje", color = PanalinkPalette.textPrimary) },
+                            text = { Text("Enviar mensaje", color = IosSettingsColors.label) },
                             onClick = {
                                 showMoreMenu = false
                                 onMoreOptionSelected("send_message")
                             },
-                            leadingIcon = { Icon(Icons.Default.Message, contentDescription = null, tint = PanalinkPalette.textPrimary) }
+                            leadingIcon = { Icon(Icons.Default.Message, contentDescription = null, tint = IosSettingsColors.label) }
                         )
                     }
                 }
@@ -143,7 +143,7 @@ fun ActiveCallControls(
                 onClick = onEndCall,
                 icon = Icons.Default.CallEnd,
                 contentDescription = "End Call",
-                containerColor = Color(0xFFEF4444), // Red 500
+                containerColor = IosSettingsColors.red, // Red 500
                 contentColor = Color.White,
                 size = 64.dp,
                 iconSize = 30.dp,

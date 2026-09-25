@@ -12,6 +12,7 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.unit.dp
+import com.example.ui.settings.ios.IosSettingsColors
 
 @Composable
 internal fun AnimatedAudioWaves(
@@ -35,7 +36,7 @@ internal fun AnimatedAudioWaves(
                 modifier = Modifier
                     .width(3.dp)
                     .height(animatedHeight)
-                    .background(Color(0xFF18E7F5), RoundedCornerShape(1.5.dp))
+                    .background(IosSettingsColors.blue, RoundedCornerShape(1.5.dp))
             )
         }
     }

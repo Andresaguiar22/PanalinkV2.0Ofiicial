@@ -9,6 +9,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.unit.dp
 import com.example.ui.theme.bounceClick
+import com.example.ui.settings.ios.IosSettingsColors
 
 /**
  * AudioCallScreen hosts active voice-only communication sessions
@@ -30,7 +31,7 @@ fun AudioCallScreen(
     Box(
         modifier = modifier
             .fillMaxSize()
-            .background(Color(0xFF0D0F12)) // Slate 900
+            .background(IosSettingsColors.groupBackground) // Slate 900
             .padding(24.dp),
         contentAlignment = Alignment.Center
     ) {
@@ -43,7 +44,7 @@ fun AudioCallScreen(
             CallStatusText(
                 statusText = if (isConnected) "Llamada de voz activa" else "Reconectando... 📡",
                 opponentName = opponentName,
-                statusColor = if (isConnected) Color.White.copy(alpha = 0.6f) else Color(0xFFFBBF24),
+                statusColor = if (isConnected) Color.White.copy(alpha = 0.6f) else IosSettingsColors.yellow,
                 durationText = formattedDuration,
                 isSignalWarning = !isConnected,
                 modifier = Modifier.padding(top = 64.dp)
@@ -53,7 +54,7 @@ fun AudioCallScreen(
             CallAvatarPulse(
                 name = opponentName,
                 userId = opponentId,
-                pulseColor = if (isConnected) Color(0xFF18E7F5) else Color(0xFFF59E0B),
+                pulseColor = if (isConnected) IosSettingsColors.blue else IosSettingsColors.orange,
                 avatarSize = 130.dp,
                 isAnimating = isConnected
             )

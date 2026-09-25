@@ -15,7 +15,7 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.example.call.CallState
 import com.example.call.CallType
-import com.example.ui.theme.PanalinkPalette
+import com.example.ui.settings.ios.IosSettingsColors
 
 /**
  * CallScreen is the master component that dynamically renders the entire VoIP call interface.
@@ -45,7 +45,7 @@ fun CallScreen(
     Box(
         modifier = modifier
             .fillMaxSize()
-            .background(Color(0xFF0D0F12)) // Premium slate 900
+            .background(IosSettingsColors.groupBackground) // Premium slate 900
     ) {
         AnimatedContent(
             targetState = callState,
@@ -62,7 +62,7 @@ fun CallScreen(
                         modifier = Modifier.fillMaxSize(),
                         contentAlignment = Alignment.Center
                     ) {
-                        CircularProgressIndicator(color = Color(0xFF18E7F5))
+                        CircularProgressIndicator(color = IosSettingsColors.blue)
                     }
                 }
 
@@ -92,27 +92,27 @@ fun CallScreen(
                     Box(
                         modifier = Modifier
                             .fillMaxSize()
-                            .background(Color(0xFF0D0F12)),
+                            .background(IosSettingsColors.groupBackground),
                         contentAlignment = Alignment.Center
                     ) {
                         Column(horizontalAlignment = Alignment.CenterHorizontally) {
                             CallAvatarPulse(
                                 userId = opponentId,
                                 name = opponentName,
-                                pulseColor = Color(0xFF18E7F5),
+                                pulseColor = IosSettingsColors.blue,
                                 isAnimating = true
                             )
                             Spacer(modifier = Modifier.height(24.dp))
                             Text(
                                 text = "Conectando...",
-                                color = PanalinkPalette.textPrimary,
+                                color = IosSettingsColors.label,
                                 fontSize = 18.sp,
                                 fontWeight = FontWeight.Bold
                             )
                             Spacer(modifier = Modifier.height(8.dp))
                             Text(
                                 text = "Estableciendo conexión segura",
-                                color = PanalinkPalette.textPrimary.copy(alpha = 0.6f),
+                                color = IosSettingsColors.label.copy(alpha = 0.6f),
                                 fontSize = 14.sp
                             )
                         }
@@ -161,7 +161,7 @@ fun CallScreen(
                         opponentName = opponentName,
                         onDismiss = onDismissError,
                         icon = Icons.Default.Warning,
-                        iconColor = Color(0xFFF59E0B) // Amber
+                        iconColor = IosSettingsColors.orange // Amber
                     )
                 }
 
@@ -173,7 +173,7 @@ fun CallScreen(
                         opponentName = opponentName,
                         onDismiss = onDismissError,
                         icon = Icons.Default.CallEnd,
-                        iconColor = Color(0xFFEF4444) // Red
+                        iconColor = IosSettingsColors.red // Red
                     )
                 }
 
@@ -185,7 +185,7 @@ fun CallScreen(
                         opponentName = opponentName,
                         onDismiss = onDismissError,
                         icon = Icons.Default.SignalCellularConnectedNoInternet0Bar,
-                        iconColor = Color(0xFFEF4444)
+                        iconColor = IosSettingsColors.red
                     )
                 }
 

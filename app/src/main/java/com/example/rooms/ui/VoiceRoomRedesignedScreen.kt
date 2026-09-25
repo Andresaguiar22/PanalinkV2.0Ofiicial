@@ -70,7 +70,7 @@ import com.example.rooms.model.VoiceRoomSeat
 import com.example.features.stickers.domain.Sticker
 import com.example.features.stickers.presentation.StickerPanel
 import kotlinx.coroutines.launch
-import com.example.ui.theme.PanalinkPalette
+import com.example.ui.settings.ios.IosSettingsColors
 
 // === Helpers ===
 
@@ -495,7 +495,7 @@ fun VoiceRoomRedesignedHeader(
                                 .padding(horizontal = 3.dp, vertical = 1.dp)
                                 .align(Alignment.TopEnd)
                         ) {
-                            Text("!", fontSize = 9.sp, color = PanalinkPalette.textPrimary, fontWeight = FontWeight.Bold)
+                            Text("!", fontSize = 9.sp, color = IosSettingsColors.label, fontWeight = FontWeight.Bold)
                         }
                     }
                 }
@@ -917,7 +917,7 @@ fun VoiceRoomRedesignedSeatCircle(
                 Icon(
                     imageVector = Icons.Default.MicOff,
                     contentDescription = "Silenciado",
-                    tint = PanalinkPalette.textPrimary,
+                    tint = IosSettingsColors.label,
                     modifier = Modifier.size((size.value * 0.18f).dp)
                 )
             }

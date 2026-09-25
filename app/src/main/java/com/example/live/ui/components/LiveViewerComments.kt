@@ -35,7 +35,7 @@ import androidx.compose.ui.unit.sp
 import com.example.data.supabase.SupabaseClient
 import com.example.live.domain.model.LiveComment
 import com.example.ui.components.PanaAvatar
-import com.example.ui.theme.PanalinkPalette
+import com.example.ui.settings.ios.IosSettingsColors
 
 private val MENTION_REGEX = Regex("@[\\p{L}\\p{N}._]+")
 
@@ -218,19 +218,19 @@ private fun CommentRow(
                     }
                     if (isMine) {
                         Spacer(modifier = Modifier.width(5.dp))
-                        RoleBadge(text = "Tú", color = Color(0xFF18E7F5))
+                        RoleBadge(text = "Tú", color = IosSettingsColors.blue)
 }
                 }
                 if (com.example.ui.components.parseCommentGif(comment.text) != null) {
                     com.example.ui.components.CommentMediaText(
                         text = comment.text,
-                        fallbackColor = PanalinkPalette.textPrimary,
+                        fallbackColor = IosSettingsColors.label,
                         compact = true
                     )
                 } else {
                     Text(
                         text = highlightMentions(comment.text),
-                        color = PanalinkPalette.textPrimary,
+                        color = IosSettingsColors.label,
                         fontSize = 13.5.sp,
                         style = shadow
                     )
@@ -240,7 +240,7 @@ private fun CommentRow(
             if (canModerate) {
                 Text(
                     text = "⋮",
-                    color = PanalinkPalette.textPrimary.copy(alpha = 0.7f),
+                    color = IosSettingsColors.secondaryLabel,
                     fontSize = 14.sp,
                     modifier = Modifier
                         .padding(start = 4.dp)
@@ -259,7 +259,7 @@ private fun CommentRow(
             containerColor = Color(0xFF1F2C34)
         ) {
             DropdownMenuItem(
-                text = { Text("Eliminar comentario", color = PanalinkPalette.textPrimary, fontSize = 14.sp) },
+                text = { Text("Eliminar comentario", color = IosSettingsColors.label, fontSize = 14.sp) },
                 onClick = onDelete
             )
             DropdownMenuItem(
@@ -293,7 +293,7 @@ private fun JoinEventRow(displayName: String, shadow: TextStyle) {
                 withStyle(SpanStyle(fontWeight = FontWeight.Bold, color = Color(0xFFB9F6CA))) {
                     append(displayName)
                 }
-                withStyle(SpanStyle(fontStyle = FontStyle.Italic, color = PanalinkPalette.textPrimary.copy(alpha = 0.9f))) {
+                withStyle(SpanStyle(fontStyle = FontStyle.Italic, color = IosSettingsColors.label)) {
                     append(" se unió")
                 }
             },
@@ -309,7 +309,7 @@ private fun RoleBadge(text: String, color: Color) {
     Surface(shape = RoundedCornerShape(5.dp), color = color) {
         Text(
             text = text,
-            color = PanalinkPalette.textPrimary,
+            color = IosSettingsColors.label,
             fontSize = 8.sp,
             fontWeight = FontWeight.Bold,
             modifier = Modifier.padding(horizontal = 5.dp, vertical = 1.dp)

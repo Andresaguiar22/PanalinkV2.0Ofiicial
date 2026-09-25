@@ -28,7 +28,7 @@ import com.example.identity.model.toIdentityUiState
 import com.example.live.domain.model.LiveStream
 import com.example.live.ui.formatLiveCount
 import com.example.ui.components.PanaAvatar
-import com.example.ui.theme.PanalinkPalette
+import com.example.ui.settings.ios.IosSettingsColors
 
 @Composable
 fun LiveViewerHeader(
@@ -89,7 +89,7 @@ fun LiveViewerHeader(
                 Row(verticalAlignment = Alignment.CenterVertically) {
                     Text(
                         text = displayName,
-                        color = PanalinkPalette.textPrimary,
+                        color = IosSettingsColors.label,
                         fontSize = 14.sp,
                         fontWeight = FontWeight.Bold,
                         maxLines = 1,
@@ -120,7 +120,7 @@ fun LiveViewerHeader(
                 Icon(
                     imageVector = Icons.Default.Close,
                     contentDescription = "Cerrar",
-                    tint = PanalinkPalette.textPrimary,
+                    tint = IosSettingsColors.label,
                     modifier = Modifier.size(18.dp)
                 )
             }
@@ -132,12 +132,12 @@ fun LiveViewerHeader(
 private fun LiveBadge() {
     Surface(
         shape = RoundedCornerShape(9.dp),
-        color = PanalinkPalette.textPrimary.copy(alpha = 0.22f),
+        color = IosSettingsColors.label.copy(alpha = 0.22f),
         border = BorderStroke(1.dp, Color.White.copy(alpha = 0.7f))
     ) {
         Text(
             text = "LIVE",
-            color = PanalinkPalette.textPrimary,
+            color = IosSettingsColors.label,
             fontSize = 9.sp,
             fontWeight = FontWeight.Bold,
             modifier = Modifier.padding(horizontal = 6.dp, vertical = 2.dp)
@@ -157,13 +157,13 @@ private fun StatChip(label: String, value: String) {
         ) {
             Text(
                 text = label,
-                color = PanalinkPalette.textPrimary.copy(alpha = 0.85f),
+                color = IosSettingsColors.secondaryLabel,
                 fontSize = 11.sp
             )
             Spacer(modifier = Modifier.width(4.dp))
             Text(
                 text = value,
-                color = PanalinkPalette.textPrimary,
+                color = IosSettingsColors.label,
                 fontSize = 11.sp,
                 fontWeight = FontWeight.Bold
             )

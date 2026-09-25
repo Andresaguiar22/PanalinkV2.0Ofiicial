@@ -25,7 +25,7 @@ import coil.compose.AsyncImage
 import com.example.data.repository.CdnManager
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
-import com.example.ui.theme.PanalinkPalette
+import com.example.ui.settings.ios.IosSettingsColors
 
 @Composable
 fun MediaGridItem(
@@ -74,7 +74,7 @@ fun MediaGridItem(
                     Icon(
                         imageVector = Icons.Default.PlayCircle,
                         contentDescription = "Video",
-                        tint = PanalinkPalette.textPrimary,
+                        tint = IosSettingsColors.label,
                         modifier = Modifier.size(32.dp)
                     )
                 }
@@ -97,13 +97,13 @@ fun MediaGridItem(
                     Spacer(modifier = Modifier.height(4.dp))
                     Text(
                         text = extension,
-                        color = PanalinkPalette.textPrimary,
+                        color = IosSettingsColors.label,
                         fontSize = 12.sp,
                         fontWeight = FontWeight.Bold
                     )
                     Text(
                         text = item.url.split("/").lastOrNull() ?: "Documento",
-                        color = PanalinkPalette.textPrimary.copy(alpha = 0.7f),
+                        color = IosSettingsColors.secondaryLabel,
                         fontSize = 10.sp,
                         maxLines = 1,
                         overflow = TextOverflow.Ellipsis
@@ -127,7 +127,7 @@ fun MediaGridItem(
                     Spacer(modifier = Modifier.height(4.dp))
                     Text(
                         text = "Audio",
-                        color = PanalinkPalette.textPrimary,
+                        color = IosSettingsColors.label,
                         fontSize = 12.sp,
                         fontWeight = FontWeight.Bold
                     )

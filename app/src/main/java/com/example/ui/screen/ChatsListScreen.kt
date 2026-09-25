@@ -89,7 +89,7 @@ import java.text.SimpleDateFormat
 import java.util.*
 
 import com.example.ui.viewmodel.NotificationsViewModel
-import com.example.ui.theme.PanalinkPalette
+import com.example.ui.settings.ios.IosSettingsColors
 
 @OptIn(ExperimentalMaterial3Api::class)
 
@@ -114,7 +114,7 @@ fun SelectionTopAppBar(
     Row(
         modifier = Modifier
             .fillMaxWidth()
-            .background(Color(0xFF005E54)) // Darker elegant WhatsApp teal for selection mode
+            .background(IosSettingsColors.cellElevated) // Darker elegant WhatsApp teal for selection mode
             .statusBarsPadding()
             .padding(horizontal = 4.dp, vertical = 8.dp),
         verticalAlignment = Alignment.CenterVertically
@@ -123,7 +123,7 @@ fun SelectionTopAppBar(
             Icon(
                 imageVector = Icons.Default.ArrowBack,
                 contentDescription = "Cancelar selección",
-                tint = PanalinkPalette.textPrimary
+                tint = IosSettingsColors.label
             )
         }
         
@@ -131,7 +131,7 @@ fun SelectionTopAppBar(
         
         Text(
             text = selectedCount.toString(),
-            color = PanalinkPalette.textPrimary,
+            color = IosSettingsColors.label,
             fontSize = 20.sp,
             fontWeight = FontWeight.Bold,
             modifier = Modifier.weight(1f)
@@ -141,7 +141,7 @@ fun SelectionTopAppBar(
             Icon(
                 imageVector = Icons.Default.PushPin,
                 contentDescription = "Fijar chat",
-                tint = PanalinkPalette.textPrimary
+                tint = IosSettingsColors.label
             )
         }
         
@@ -149,7 +149,7 @@ fun SelectionTopAppBar(
             Icon(
                 imageVector = Icons.Default.Delete,
                 contentDescription = "Eliminar chat",
-                tint = PanalinkPalette.textPrimary
+                tint = IosSettingsColors.label
             )
         }
         
@@ -157,7 +157,7 @@ fun SelectionTopAppBar(
             Icon(
                 imageVector = Icons.Default.NotificationsOff,
                 contentDescription = "Silenciar chat",
-                tint = PanalinkPalette.textPrimary
+                tint = IosSettingsColors.label
             )
         }
         
@@ -165,7 +165,7 @@ fun SelectionTopAppBar(
             Icon(
                 imageVector = Icons.Default.Archive,
                 contentDescription = "Archivar chat",
-                tint = PanalinkPalette.textPrimary
+                tint = IosSettingsColors.label
             )
         }
         
@@ -174,51 +174,51 @@ fun SelectionTopAppBar(
                 Icon(
                     imageVector = Icons.Default.MoreVert,
                     contentDescription = "Opciones avanzadas",
-                    tint = PanalinkPalette.textPrimary
+                    tint = IosSettingsColors.label
                 )
             }
             DropdownMenu(
                 expanded = showMenu,
                 onDismissRequest = { showMenu = false },
-                modifier = Modifier.background(Color(0xFF1F2C34))
+                modifier = Modifier.background(IosSettingsColors.cell)
             ) {
                 DropdownMenuItem(
-                    text = { Text("Marcar como no leído / leído", color = PanalinkPalette.textPrimary, fontSize = 14.sp) },
+                    text = { Text("Marcar como no leído / leído", color = IosSettingsColors.label, fontSize = 14.sp) },
                     onClick = {
                         showMenu = false
                         onMarkReadClicked()
                     }
                 )
                 DropdownMenuItem(
-                    text = { Text("Seleccionar todos", color = PanalinkPalette.textPrimary, fontSize = 14.sp) },
+                    text = { Text("Seleccionar todos", color = IosSettingsColors.label, fontSize = 14.sp) },
                     onClick = {
                         showMenu = false
                         onSelectAllClicked()
                     }
                 )
                 DropdownMenuItem(
-                    text = { Text("Restringir chats", color = PanalinkPalette.textPrimary, fontSize = 14.sp) },
+                    text = { Text("Restringir chats", color = IosSettingsColors.label, fontSize = 14.sp) },
                     onClick = {
                         showMenu = false
                         onRestrictClicked()
                     }
                 )
                 DropdownMenuItem(
-                    text = { Text("Añadir a Favoritos", color = PanalinkPalette.textPrimary, fontSize = 14.sp) },
+                    text = { Text("Añadir a Favoritos", color = IosSettingsColors.label, fontSize = 14.sp) },
                     onClick = {
                         showMenu = false
                         onAddToFavoritesClicked()
                     }
                 )
                 DropdownMenuItem(
-                    text = { Text("Añadir a lista", color = PanalinkPalette.textPrimary, fontSize = 14.sp) },
+                    text = { Text("Añadir a lista", color = IosSettingsColors.label, fontSize = 14.sp) },
                     onClick = {
                         showMenu = false
                         onAddToListClicked()
                     }
                 )
                 DropdownMenuItem(
-                    text = { Text("Vaciar chats", color = PanalinkPalette.textPrimary, fontSize = 14.sp) },
+                    text = { Text("Vaciar chats", color = IosSettingsColors.label, fontSize = 14.sp) },
                     onClick = {
                         showMenu = false
                         onClearChatsClicked()
@@ -307,7 +307,7 @@ fun ChatsListScreen(
 
         AlertDialog(
             onDismissRequest = { showAddToListDialog = false },
-            title = { Text("Añadir a lista de chats 📝", color = PanalinkPalette.textPrimary, fontWeight = FontWeight.Bold) },
+            title = { Text("Añadir a lista de chats 📝", color = IosSettingsColors.label, fontWeight = FontWeight.Bold) },
             text = {
                 Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
                     Text("Selecciona una lista existente o crea una nueva:", color = Color.LightGray, fontSize = 14.sp)
@@ -328,10 +328,10 @@ fun ChatsListScreen(
                                     selectedOption = preset
                                     isCustomSelected = false
                                 },
-                                colors = RadioButtonDefaults.colors(selectedColor = Color(0xFF00A884))
+                                colors = RadioButtonDefaults.colors(selectedColor = IosSettingsColors.green)
                             )
                             Spacer(modifier = Modifier.width(8.dp))
-                            Text(preset, color = PanalinkPalette.textPrimary, fontSize = 16.sp)
+                            Text(preset, color = IosSettingsColors.label, fontSize = 16.sp)
                         }
                     }
                     Row(
@@ -344,10 +344,10 @@ fun ChatsListScreen(
                         RadioButton(
                             selected = isCustomSelected,
                             onClick = { isCustomSelected = true },
-                            colors = RadioButtonDefaults.colors(selectedColor = Color(0xFF00A884))
+                            colors = RadioButtonDefaults.colors(selectedColor = IosSettingsColors.green)
                         )
                         Spacer(modifier = Modifier.width(8.dp))
-                        Text("✏ Crear nueva lista...", color = PanalinkPalette.textPrimary, fontSize = 16.sp)
+                        Text("✏ Crear nueva lista...", color = IosSettingsColors.label, fontSize = 16.sp)
                     }
                     if (isCustomSelected) {
                         OutlinedTextField(
@@ -357,7 +357,7 @@ fun ChatsListScreen(
                             colors = OutlinedTextFieldDefaults.colors(
                                 focusedTextColor = Color.White,
                                 unfocusedTextColor = Color.White,
-                                focusedBorderColor = Color(0xFF00A884),
+                                focusedBorderColor = IosSettingsColors.green,
                                 unfocusedBorderColor = Color.Gray
                             ),
                             singleLine = true,
@@ -376,9 +376,9 @@ fun ChatsListScreen(
                         selectedChatIds = emptySet()
                         showAddToListDialog = false
                     },
-                    colors = ButtonDefaults.buttonColors(containerColor = Color(0xFF00A884))
+                    colors = ButtonDefaults.buttonColors(containerColor = IosSettingsColors.green)
                 ) {
-                    Text("Añadir", color = PanalinkPalette.textPrimary)
+                    Text("Añadir", color = IosSettingsColors.label)
                 }
             },
             dismissButton = {
@@ -386,17 +386,17 @@ fun ChatsListScreen(
                     Text("Cancelar", color = Color.LightGray)
                 }
             },
-            containerColor = Color(0xFF1F2C34)
+            containerColor = IosSettingsColors.cell
         )
     }
 
     if (contactToDelete != null) {
         ModalBottomSheet(
             onDismissRequest = { contactToDelete = null },
-            containerColor = Color(0xFF161618)
+            containerColor = IosSettingsColors.cell
         ) {
             Column(modifier = Modifier.padding(16.dp)) {
-                Text("¿Eliminar a ${contactToDelete!!.displayName}?", color = PanalinkPalette.textPrimary, fontWeight = FontWeight.Bold, fontSize = 18.sp)
+                Text("¿Eliminar a ${contactToDelete!!.displayName}?", color = IosSettingsColors.label, fontWeight = FontWeight.Bold, fontSize = 18.sp)
                 Spacer(modifier = Modifier.height(16.dp))
                 Button(
                     onClick = {
@@ -910,10 +910,10 @@ fun ChatsListScreen(
                     .fillMaxWidth()
                     .clickable(enabled = false) {} // prevent click propagating through sheet
                     .background(
-                        color = Color(0xFF0D0D0F),
+                        color = IosSettingsColors.groupBackground,
                         shape = RoundedCornerShape(topStart = 24.dp, topEnd = 24.dp)
                     )
-                    .border(1.dp, Color(0xFF262629), RoundedCornerShape(topStart = 24.dp, topEnd = 24.dp))
+                    .border(1.dp, IosSettingsColors.separator, RoundedCornerShape(topStart = 24.dp, topEnd = 24.dp))
                     .padding(horizontal = 20.dp, vertical = 16.dp)
                     .navigationBarsPadding()
             ) {
@@ -928,11 +928,11 @@ fun ChatsListScreen(
                             onClick = { showPlusBottomSheet = false },
                             modifier = Modifier.align(Alignment.CenterStart)
                         ) {
-                            Icon(Icons.Default.Close, contentDescription = "Cerrar", tint = PanalinkPalette.textPrimary)
+                            Icon(Icons.Default.Close, contentDescription = "Cerrar", tint = IosSettingsColors.label)
                         }
                         Text(
                             text = "Crear",
-                            color = PanalinkPalette.textPrimary,
+                            color = IosSettingsColors.label,
                             fontSize = 18.sp,
                             fontWeight = FontWeight.Bold
                         )
@@ -942,7 +942,7 @@ fun ChatsListScreen(
 
                     Text(
                         text = "¿Qué deseas crear?",
-                        color = PanalinkPalette.textPrimary,
+                        color = IosSettingsColors.label,
                         fontSize = 16.sp,
                         fontWeight = FontWeight.Medium,
                         modifier = Modifier.fillMaxWidth(),
@@ -965,8 +965,8 @@ fun ChatsListScreen(
                                     onNavigateToCreateStory()
                                 },
                             shape = RoundedCornerShape(16.dp),
-                            colors = CardDefaults.cardColors(containerColor = Color(0xFF161618)),
-                            border = BorderStroke(1.dp, Color(0xFF262629))
+                            colors = CardDefaults.cardColors(containerColor = IosSettingsColors.cell),
+                            border = BorderStroke(1.dp, IosSettingsColors.separator)
                         ) {
                             Column(
                                 modifier = Modifier
@@ -985,10 +985,10 @@ fun ChatsListScreen(
                                         ),
                                     contentAlignment = Alignment.Center
                                 ) {
-                                    Icon(Icons.Default.Add, contentDescription = null, tint = PanalinkPalette.textPrimary, modifier = Modifier.size(32.dp))
+                                    Icon(Icons.Default.Add, contentDescription = null, tint = IosSettingsColors.label, modifier = Modifier.size(32.dp))
                                 }
                                 Spacer(modifier = Modifier.height(12.dp))
-                                Text("Historia", color = PanalinkPalette.textPrimary, fontWeight = FontWeight.Bold, fontSize = 16.sp)
+                                Text("Historia", color = IosSettingsColors.label, fontWeight = FontWeight.Bold, fontSize = 16.sp)
                                 Spacer(modifier = Modifier.height(4.dp))
                                 Text("Comparte momentos\nque desaparecen en\n24 horas.", color = Color.Gray, fontSize = 11.sp, textAlign = TextAlign.Center, lineHeight = 14.sp)
                             }
@@ -1003,8 +1003,8 @@ fun ChatsListScreen(
                                     onNavigateToCreateReel()
                                 },
                             shape = RoundedCornerShape(16.dp),
-                            colors = CardDefaults.cardColors(containerColor = Color(0xFF161618)),
-                            border = BorderStroke(1.dp, Color(0xFF262629))
+                            colors = CardDefaults.cardColors(containerColor = IosSettingsColors.cell),
+                            border = BorderStroke(1.dp, IosSettingsColors.separator)
                         ) {
                             Column(
                                 modifier = Modifier
@@ -1023,10 +1023,10 @@ fun ChatsListScreen(
                                         ),
                                     contentAlignment = Alignment.Center
                                 ) {
-                                    Icon(Icons.Default.PlayArrow, contentDescription = null, tint = PanalinkPalette.textPrimary, modifier = Modifier.size(32.dp))
+                                    Icon(Icons.Default.PlayArrow, contentDescription = null, tint = IosSettingsColors.label, modifier = Modifier.size(32.dp))
                                 }
                                 Spacer(modifier = Modifier.height(12.dp))
-                                Text("Reel", color = PanalinkPalette.textPrimary, fontWeight = FontWeight.Bold, fontSize = 16.sp)
+                                Text("Reel", color = IosSettingsColors.label, fontWeight = FontWeight.Bold, fontSize = 16.sp)
                                 Spacer(modifier = Modifier.height(4.dp))
                                 Text("Crea videos para\ndescubrir y compartir\ncon el mundo.", color = Color.Gray, fontSize = 11.sp, textAlign = TextAlign.Center, lineHeight = 14.sp)
                             }
@@ -1055,11 +1055,11 @@ fun ChatsListScreen(
                                 .background(Color(0xFF38BDF8), RoundedCornerShape(10.dp)),
                             contentAlignment = Alignment.Center
                         ) {
-                            Icon(Icons.Default.MusicNote, contentDescription = null, tint = PanalinkPalette.textPrimary, modifier = Modifier.size(20.dp))
+                            Icon(Icons.Default.MusicNote, contentDescription = null, tint = IosSettingsColors.label, modifier = Modifier.size(20.dp))
                         }
                         Spacer(modifier = Modifier.width(16.dp))
                         Column(modifier = Modifier.weight(1f)) {
-                            Text("Music Studio", color = PanalinkPalette.textPrimary, fontWeight = FontWeight.Bold, fontSize = 15.sp)
+                            Text("Music Studio", color = IosSettingsColors.label, fontWeight = FontWeight.Bold, fontSize = 15.sp)
                             Text("Administra tus playlists y biblioteca musical.", color = Color.Gray, fontSize = 12.sp)
                         }
                         Icon(Icons.Default.KeyboardArrowRight, contentDescription = null, tint = Color.Gray)
@@ -1085,12 +1085,12 @@ fun ChatsListScreen(
                                 .background(Color(0xFFE91E63), RoundedCornerShape(10.dp)),
                             contentAlignment = Alignment.Center
                         ) {
-                            Icon(Icons.Default.Tv, contentDescription = null, tint = PanalinkPalette.textPrimary, modifier = Modifier.size(20.dp))
+                            Icon(Icons.Default.Tv, contentDescription = null, tint = IosSettingsColors.label, modifier = Modifier.size(20.dp))
                         }
                         Spacer(modifier = Modifier.width(16.dp))
                         Column(modifier = Modifier.weight(1f)) {
                             Row(verticalAlignment = Alignment.CenterVertically) {
-                                Text("PanaTV", color = PanalinkPalette.textPrimary, fontWeight = FontWeight.Bold, fontSize = 15.sp)
+                                Text("PanaTV", color = IosSettingsColors.label, fontWeight = FontWeight.Bold, fontSize = 15.sp)
                                 val panatvLocked = !com.example.premium.domain.PremiumManager.hasFeature(com.example.premium.domain.PremiumFeatures.PANATV)
                                 Spacer(modifier = Modifier.width(6.dp))
                                 if (panatvLocked) {
@@ -1125,11 +1125,11 @@ fun ChatsListScreen(
                                 .background(Color(0xFF5E35B1), RoundedCornerShape(10.dp)),
                             contentAlignment = Alignment.Center
                         ) {
-                            Icon(Icons.Default.Search, contentDescription = null, tint = PanalinkPalette.textPrimary, modifier = Modifier.size(20.dp))
+                            Icon(Icons.Default.Search, contentDescription = null, tint = IosSettingsColors.label, modifier = Modifier.size(20.dp))
                         }
                         Spacer(modifier = Modifier.width(16.dp))
                         Column(modifier = Modifier.weight(1f)) {
-                            Text("Buscar Panas", color = PanalinkPalette.textPrimary, fontWeight = FontWeight.Bold, fontSize = 15.sp)
+                            Text("Buscar Panas", color = IosSettingsColors.label, fontWeight = FontWeight.Bold, fontSize = 15.sp)
                             Text("Busca otros usuarios de Panalink por nombre.", color = Color.Gray, fontSize = 12.sp, lineHeight = 14.sp)
                         }
                         Icon(Icons.Default.KeyboardArrowRight, contentDescription = null, tint = Color.Gray)
@@ -1152,11 +1152,11 @@ fun ChatsListScreen(
                                 .background(Color(0xFFC62828), RoundedCornerShape(10.dp)),
                             contentAlignment = Alignment.Center
                         ) {
-                            Icon(Icons.Default.ContactPage, contentDescription = null, tint = PanalinkPalette.textPrimary, modifier = Modifier.size(20.dp))
+                            Icon(Icons.Default.ContactPage, contentDescription = null, tint = IosSettingsColors.label, modifier = Modifier.size(20.dp))
                         }
                         Spacer(modifier = Modifier.width(16.dp))
                         Column(modifier = Modifier.weight(1f)) {
-                            Text("Directorio de Panas", color = PanalinkPalette.textPrimary, fontWeight = FontWeight.Bold, fontSize = 15.sp)
+                            Text("Directorio de Panas", color = IosSettingsColors.label, fontWeight = FontWeight.Bold, fontSize = 15.sp)
                             Text("Mira tu lista completa de contactos enlazados.", color = Color.Gray, fontSize = 12.sp, lineHeight = 14.sp)
                         }
                         Icon(Icons.Default.KeyboardArrowRight, contentDescription = null, tint = Color.Gray)
@@ -1178,11 +1178,11 @@ fun ChatsListScreen(
                                 .background(Color(0xFF00B8D4), RoundedCornerShape(10.dp)),
                             contentAlignment = Alignment.Center
                         ) {
-                            Icon(Icons.Default.Campaign, contentDescription = null, tint = PanalinkPalette.textPrimary, modifier = Modifier.size(20.dp))
+                            Icon(Icons.Default.Campaign, contentDescription = null, tint = IosSettingsColors.label, modifier = Modifier.size(20.dp))
                         }
                         Spacer(modifier = Modifier.width(16.dp))
                         Column(modifier = Modifier.weight(1f)) {
-                            Text("Canal", color = PanalinkPalette.textPrimary, fontWeight = FontWeight.Bold, fontSize = 15.sp)
+                            Text("Canal", color = IosSettingsColors.label, fontWeight = FontWeight.Bold, fontSize = 15.sp)
                             Text("Crea una audiencia y comparte\ndifusiones públicas o privadas.", color = Color.Gray, fontSize = 12.sp, lineHeight = 14.sp)
                         }
                         Box(
@@ -1211,11 +1211,11 @@ fun ChatsListScreen(
                                 .background(Color(0xFF7C4DFF), RoundedCornerShape(10.dp)),
                             contentAlignment = Alignment.Center
                         ) {
-                            Icon(Icons.Default.Mic, contentDescription = null, tint = PanalinkPalette.textPrimary, modifier = Modifier.size(20.dp))
+                            Icon(Icons.Default.Mic, contentDescription = null, tint = IosSettingsColors.label, modifier = Modifier.size(20.dp))
                         }
                         Spacer(modifier = Modifier.width(16.dp))
                         Column(modifier = Modifier.weight(1f)) {
-                            Text("Sala de voz", color = PanalinkPalette.textPrimary, fontWeight = FontWeight.Bold, fontSize = 15.sp)
+                            Text("Sala de voz", color = IosSettingsColors.label, fontWeight = FontWeight.Bold, fontSize = 15.sp)
                             Text("Conversa en vivo con tus panas\nen salas de audio.", color = Color.Gray, fontSize = 12.sp, lineHeight = 14.sp)
                         }
                         Box(
@@ -1244,11 +1244,11 @@ fun ChatsListScreen(
                                 .background(Color(0xFFEF5350), RoundedCornerShape(10.dp)),
                             contentAlignment = Alignment.Center
                         ) {
-                            Icon(Icons.Default.LiveTv, contentDescription = null, tint = PanalinkPalette.textPrimary, modifier = Modifier.size(20.dp))
+                            Icon(Icons.Default.LiveTv, contentDescription = null, tint = IosSettingsColors.label, modifier = Modifier.size(20.dp))
                         }
                         Spacer(modifier = Modifier.width(16.dp))
                         Column(modifier = Modifier.weight(1f)) {
-                            Text("Panalink Live", color = PanalinkPalette.textPrimary, fontWeight = FontWeight.Bold, fontSize = 15.sp)
+                            Text("Panalink Live", color = IosSettingsColors.label, fontWeight = FontWeight.Bold, fontSize = 15.sp)
                             Text("Transmite en vivo o mira\ndirectos de la comunidad.", color = Color.Gray, fontSize = 12.sp, lineHeight = 14.sp)
                         }
                         Box(
@@ -1279,17 +1279,17 @@ fun ChatsListScreen(
                                     showCallsDialog = true
                                 },
                             shape = RoundedCornerShape(12.dp),
-                            colors = CardDefaults.cardColors(containerColor = Color(0xFF161618)),
-                            border = BorderStroke(1.dp, Color(0xFF262629))
+                            colors = CardDefaults.cardColors(containerColor = IosSettingsColors.cell),
+                            border = BorderStroke(1.dp, IosSettingsColors.separator)
                         ) {
                             Row(
                                 modifier = Modifier.fillMaxSize(),
                                 horizontalArrangement = Arrangement.Center,
                                 verticalAlignment = Alignment.CenterVertically
                             ) {
-                                Icon(Icons.Default.Call, contentDescription = null, tint = PanalinkPalette.textPrimary, modifier = Modifier.size(18.dp))
+                                Icon(Icons.Default.Call, contentDescription = null, tint = IosSettingsColors.label, modifier = Modifier.size(18.dp))
                                 Spacer(modifier = Modifier.width(8.dp))
-                                Text("Llamadas", color = PanalinkPalette.textPrimary, fontSize = 14.sp, fontWeight = FontWeight.Medium)
+                                Text("Llamadas", color = IosSettingsColors.label, fontSize = 14.sp, fontWeight = FontWeight.Medium)
                             }
                         }
 
@@ -1303,17 +1303,17 @@ fun ChatsListScreen(
                                     showRealQrScanner = true
                                 },
                             shape = RoundedCornerShape(12.dp),
-                            colors = CardDefaults.cardColors(containerColor = Color(0xFF161618)),
-                            border = BorderStroke(1.dp, Color(0xFF262629))
+                            colors = CardDefaults.cardColors(containerColor = IosSettingsColors.cell),
+                            border = BorderStroke(1.dp, IosSettingsColors.separator)
                         ) {
                             Row(
                                 modifier = Modifier.fillMaxSize(),
                                 horizontalArrangement = Arrangement.Center,
                                 verticalAlignment = Alignment.CenterVertically
                             ) {
-                                Icon(Icons.Default.QrCodeScanner, contentDescription = null, tint = PanalinkPalette.textPrimary, modifier = Modifier.size(18.dp))
+                                Icon(Icons.Default.QrCodeScanner, contentDescription = null, tint = IosSettingsColors.label, modifier = Modifier.size(18.dp))
                                 Spacer(modifier = Modifier.width(8.dp))
-                                Text("Escanear QR", color = PanalinkPalette.textPrimary, fontSize = 14.sp, fontWeight = FontWeight.Medium)
+                                Text("Escanear QR", color = IosSettingsColors.label, fontSize = 14.sp, fontWeight = FontWeight.Medium)
                             }
                         }
                     }
@@ -1331,18 +1331,18 @@ fun ChatsListScreen(
             Scaffold(
                 topBar = {
                     TopAppBar(
-                        title = { Text("Directorio de Panas 👥", color = PanalinkPalette.textPrimary, fontWeight = FontWeight.Bold, fontSize = 18.sp) },
+                        title = { Text("Directorio de Panas 👥", color = IosSettingsColors.label, fontWeight = FontWeight.Bold, fontSize = 18.sp) },
                         navigationIcon = {
                             IconButton(onClick = { showContactsDialog = false }) {
-                                Icon(Icons.Default.Close, contentDescription = "Cerrar", tint = PanalinkPalette.textPrimary)
+                                Icon(Icons.Default.Close, contentDescription = "Cerrar", tint = IosSettingsColors.label)
                             }
                         },
                         actions = {
                             IconButton(onClick = { showRealQrScanner = true }) {
-                                Icon(Icons.Default.QrCodeScanner, contentDescription = "Escanear QR", tint = PanalinkPalette.textPrimary)
+                                Icon(Icons.Default.QrCodeScanner, contentDescription = "Escanear QR", tint = IosSettingsColors.label)
                             }
                             IconButton(onClick = { showAddContactDialog = true }) {
-                                Icon(Icons.Default.PersonAdd, contentDescription = "Agregar Pana", tint = PanalinkPalette.textPrimary)
+                                Icon(Icons.Default.PersonAdd, contentDescription = "Agregar Pana", tint = IosSettingsColors.label)
                             }
                         },
                         colors = TopAppBarDefaults.topAppBarColors(containerColor = Color.Black)
@@ -1380,10 +1380,10 @@ fun ChatsListScreen(
             Scaffold(
                 topBar = {
                     TopAppBar(
-                        title = { Text("Historial de Llamadas 📞", color = PanalinkPalette.textPrimary, fontWeight = FontWeight.Bold, fontSize = 18.sp) },
+                        title = { Text("Historial de Llamadas 📞", color = IosSettingsColors.label, fontWeight = FontWeight.Bold, fontSize = 18.sp) },
                         navigationIcon = {
                             IconButton(onClick = { showCallsDialog = false }) {
-                                Icon(Icons.Default.Close, contentDescription = "Cerrar", tint = PanalinkPalette.textPrimary)
+                                Icon(Icons.Default.Close, contentDescription = "Cerrar", tint = IosSettingsColors.label)
                             }
                         },
                         colors = TopAppBarDefaults.topAppBarColors(containerColor = Color.Black)
@@ -1410,8 +1410,8 @@ fun ChatsListScreen(
         ) {
             Card(
                 shape = RoundedCornerShape(24.dp),
-                colors = CardDefaults.cardColors(containerColor = Color(0xFF121214)),
-                border = BorderStroke(1.dp, Color(0xFF262629)),
+                colors = CardDefaults.cardColors(containerColor = IosSettingsColors.cell),
+                border = BorderStroke(1.dp, IosSettingsColors.separator),
                 modifier = Modifier
                     .fillMaxWidth()
                     .padding(16.dp)
@@ -1434,7 +1434,7 @@ fun ChatsListScreen(
                     Spacer(modifier = Modifier.height(12.dp))
                     Text(
                         text = SupabaseClient.currentProfile?.displayName ?: "Mi Cuenta",
-                        color = PanalinkPalette.textPrimary,
+                        color = IosSettingsColors.label,
                         fontWeight = FontWeight.Bold,
                         fontSize = 16.sp
                     )
@@ -1446,7 +1446,7 @@ fun ChatsListScreen(
 
                     Spacer(modifier = Modifier.height(20.dp))
 
-                    HorizontalDivider(color = Color(0xFF262629), thickness = 1.dp)
+                    HorizontalDivider(color = IosSettingsColors.separator, thickness = 1.dp)
 
                     Spacer(modifier = Modifier.height(10.dp))
 
@@ -1454,7 +1454,7 @@ fun ChatsListScreen(
                     QuickProfileMenuItem(
                         icon = Icons.Default.Person,
                         label = "Editar perfil",
-                        tint = PanalinkPalette.textPrimary
+                        tint = IosSettingsColors.label
                     ) {
                         showQuickProfileDialog = false
                         onNavigateToProfile()
@@ -1496,11 +1496,11 @@ fun ChatsListScreen(
                     Spacer(modifier = Modifier.height(10.dp))
                     Button(
                         onClick = { showQuickProfileDialog = false },
-                        colors = ButtonDefaults.buttonColors(containerColor = Color(0xFF1E1E1F)),
+                        colors = ButtonDefaults.buttonColors(containerColor = IosSettingsColors.cellElevated),
                         shape = RoundedCornerShape(10.dp),
                         modifier = Modifier.fillMaxWidth()
                     ) {
-                        Text("Cerrar", color = PanalinkPalette.textPrimary)
+                        Text("Cerrar", color = IosSettingsColors.label)
                     }
                 }
             }
@@ -1545,16 +1545,16 @@ fun ChatsListScreen(
             },
             title = {
                 Row(verticalAlignment = Alignment.CenterVertically) {
-                    Icon(Icons.Default.Add, contentDescription = null, tint = PanalinkPalette.textPrimary)
+                    Icon(Icons.Default.Add, contentDescription = null, tint = IosSettingsColors.label)
                     Spacer(modifier = Modifier.width(8.dp))
-                    Text("Agregar Contacto de Pana 🇻🇪", color = PanalinkPalette.textPrimary, fontWeight = FontWeight.Bold, fontSize = 18.sp)
+                    Text("Agregar Contacto de Pana 🇻🇪", color = IosSettingsColors.label, fontWeight = FontWeight.Bold, fontSize = 18.sp)
                 }
             },
             text = {
                 Column(modifier = Modifier.fillMaxWidth()) {
                     Text(
                         text = "Introduce el PIN de 6 dígitos de tu pana, o escanea directamente su código QR real con tu cámara:",
-                        color = Color(0xFF90A4AE),
+                        color = IosSettingsColors.secondaryLabel,
                         fontSize = 13.sp,
                         lineHeight = 18.sp
                     )
@@ -1568,14 +1568,14 @@ fun ChatsListScreen(
                                 pinValue = input
                             }
                         },
-                        label = { Text("PIN de 6 dígitos", color = Color(0xFF90A4AE)) },
+                        label = { Text("PIN de 6 dígitos", color = IosSettingsColors.secondaryLabel) },
                         placeholder = { Text("Ej: 222222", color = Color.Gray) },
                         singleLine = true,
                         colors = OutlinedTextFieldDefaults.colors(
                             focusedTextColor = Color.White,
                             unfocusedTextColor = Color.White,
                             focusedBorderColor = colors.primary,
-                            unfocusedBorderColor = Color(0xFF37474F)
+                            unfocusedBorderColor = IosSettingsColors.separator
                         ),
                         modifier = Modifier.fillMaxWidth().testTag("add_contact_pin_input")
                     )
@@ -1617,9 +1617,9 @@ fun ChatsListScreen(
                             horizontalArrangement = Arrangement.Center,
                             modifier = Modifier.fillMaxWidth()
                         ) {
-                            CircularProgressIndicator(color = PanalinkPalette.textPrimary, modifier = Modifier.size(24.dp))
+                            CircularProgressIndicator(color = IosSettingsColors.label, modifier = Modifier.size(24.dp))
                             Spacer(modifier = Modifier.width(8.dp))
-                            Text("Validando PIN de Pana...", color = PanalinkPalette.textPrimary, fontSize = 13.sp)
+                            Text("Validando PIN de Pana...", color = IosSettingsColors.label, fontSize = 13.sp)
                         }
                     }
                 }
@@ -1645,10 +1645,10 @@ fun ChatsListScreen(
                         showAddContactDialog = false 
                     }
                 ) {
-                    Text("Cancelar", color = PanalinkPalette.textPrimary)
+                    Text("Cancelar", color = IosSettingsColors.label)
                 }
             },
-            containerColor = Color(0xFF121214)
+            containerColor = IosSettingsColors.cell
         )
     }
 
@@ -1688,7 +1688,7 @@ fun ChatsListScreen(
                      onClick = { showCerebroOverlay = false },
                      modifier = Modifier.bounceClick()
                  ) {
-                     Text("CERRAR", color = PanalinkPalette.textPrimary, fontWeight = FontWeight.Bold)
+                     Text("CERRAR", color = IosSettingsColors.label, fontWeight = FontWeight.Bold)
                  }
              },
              containerColor = Color.Black,
@@ -1705,10 +1705,10 @@ fun ChatsListScreen(
                              .background(Color.White.copy(alpha = 0.15f), CircleShape),
                          contentAlignment = Alignment.Center
                      ) {
-                         Icon(Icons.Default.Star, contentDescription = null, tint = PanalinkPalette.textPrimary, modifier = Modifier.size(20.dp))
+                         Icon(Icons.Default.Star, contentDescription = null, tint = IosSettingsColors.label, modifier = Modifier.size(20.dp))
                      }
                      Column {
-                         Text("Cerebro Spotlight ⚡", fontWeight = FontWeight.Bold, fontSize = 18.sp, color = PanalinkPalette.textPrimary)
+                         Text("Cerebro Spotlight ⚡", fontWeight = FontWeight.Bold, fontSize = 18.sp, color = IosSettingsColors.label)
                          Text("Buscador Universal y Comandos Rápidos", fontSize = 11.sp, color = Color(0xFF9E9E9E))
                      }
                  }
@@ -1746,7 +1746,7 @@ fun ChatsListScreen(
                                 prefs.edit().putBoolean("minimalist_mode_global", false).apply()
                             }
                         },
-                        label = { Text("¿Qué deseas buscar o ejecutar?", color = PanalinkPalette.textPrimary, fontSize = 12.sp) },
+                        label = { Text("¿Qué deseas buscar o ejecutar?", color = IosSettingsColors.label, fontSize = 12.sp) },
                         placeholder = { Text("Escribe / para ver comandos, o busca panas...", color = Color(0xFF9E9E9E)) },
                         modifier = Modifier
                             .fillMaxWidth()
@@ -1757,7 +1757,7 @@ fun ChatsListScreen(
                             focusedTextColor = Color.White,
                             unfocusedTextColor = Color.White
                         ),
-                        leadingIcon = { Icon(Icons.Default.Search, contentDescription = null, tint = PanalinkPalette.textPrimary) },
+                        leadingIcon = { Icon(Icons.Default.Search, contentDescription = null, tint = IosSettingsColors.label) },
                         shape = RoundedCornerShape(12.dp),
                         singleLine = true
                     )
@@ -1766,7 +1766,7 @@ fun ChatsListScreen(
 
                     if (query.startsWith("/") || query.isEmpty()) {
                         // Display Commands List
-                        Text("Comandos Disponibles de Pana:", fontWeight = FontWeight.Bold, fontSize = 11.sp, color = PanalinkPalette.textPrimary)
+                        Text("Comandos Disponibles de Pana:", fontWeight = FontWeight.Bold, fontSize = 11.sp, color = IosSettingsColors.label)
                         
                         val filteredCommands = if (query.isEmpty()) {
                             cerebroCommands
@@ -1811,9 +1811,9 @@ fun ChatsListScreen(
                                     verticalAlignment = Alignment.CenterVertically,
                                     horizontalArrangement = Arrangement.spacedBy(10.dp)
                                 ) {
-                                    Icon(cmd.icon, contentDescription = null, tint = PanalinkPalette.textPrimary, modifier = Modifier.size(16.dp))
+                                    Icon(cmd.icon, contentDescription = null, tint = IosSettingsColors.label, modifier = Modifier.size(16.dp))
                                     Column(modifier = Modifier.weight(1f)) {
-                                        Text(cmd.name, color = PanalinkPalette.textPrimary, fontWeight = FontWeight.Bold, fontSize = 12.sp)
+                                        Text(cmd.name, color = IosSettingsColors.label, fontWeight = FontWeight.Bold, fontSize = 12.sp)
                                         Text(cmd.description, color = Color(0xFF9E9E9E), fontSize = 10.sp)
                                     }
                                     Box(
@@ -1821,14 +1821,14 @@ fun ChatsListScreen(
                                             .background(Color.White.copy(alpha = 0.15f), RoundedCornerShape(6.dp))
                                             .padding(horizontal = 6.dp, vertical = 2.dp)
                                     ) {
-                                        Text(cmd.command, color = PanalinkPalette.textPrimary, fontSize = 9.sp, fontWeight = FontWeight.Bold)
+                                        Text(cmd.command, color = IosSettingsColors.label, fontSize = 9.sp, fontWeight = FontWeight.Bold)
                                     }
                                 }
                             }
                         }
                     } else {
                         // Display Live Filtered Search Results!
-                        Text("Resultados de Búsqueda:", fontWeight = FontWeight.Bold, fontSize = 11.sp, color = PanalinkPalette.textPrimary)
+                        Text("Resultados de Búsqueda:", fontWeight = FontWeight.Bold, fontSize = 11.sp, color = IosSettingsColors.label)
                         
                         val filteredContacts = contacts.filter { 
                             it.displayName.lowercase().contains(query) 
@@ -1870,9 +1870,9 @@ fun ChatsListScreen(
                                                 status = presenceMap[contact.id]?.status?.rawValue ?: "offline", secondaryStatus = if (presenceMap[contact.id]?.secondaryStatus != com.example.data.repository.SecondaryPresenceStatus.NONE) presenceMap[contact.id]?.secondaryStatus?.rawValue else null,
                                                 size = 32.dp
                                             )
-                                            Text(contact.displayName, color = PanalinkPalette.textPrimary, fontSize = 12.sp, fontWeight = FontWeight.Bold)
+                                            Text(contact.displayName, color = IosSettingsColors.label, fontSize = 12.sp, fontWeight = FontWeight.Bold)
                                         }
-                                        Text("Pana (PIN)", color = PanalinkPalette.textPrimary, fontSize = 10.sp, fontWeight = FontWeight.Bold)
+                                        Text("Pana (PIN)", color = IosSettingsColors.label, fontSize = 10.sp, fontWeight = FontWeight.Bold)
                                     }
                                 }
 
@@ -1903,9 +1903,9 @@ fun ChatsListScreen(
                                                 status = presenceMap[otherId]?.status?.rawValue ?: "offline", secondaryStatus = if (presenceMap[otherId]?.secondaryStatus != com.example.data.repository.SecondaryPresenceStatus.NONE) presenceMap[otherId]?.secondaryStatus?.rawValue else null,
                                                 size = 32.dp
                                             )
-                                            Text(otherName, color = PanalinkPalette.textPrimary, fontSize = 12.sp, fontWeight = FontWeight.Bold)
+                                            Text(otherName, color = IosSettingsColors.label, fontSize = 12.sp, fontWeight = FontWeight.Bold)
                                         }
-                                        Text("Abrir Chat", color = PanalinkPalette.textPrimary, fontSize = 10.sp, fontWeight = FontWeight.Bold)
+                                        Text("Abrir Chat", color = IosSettingsColors.label, fontSize = 10.sp, fontWeight = FontWeight.Bold)
                                     }
                                 }
                             }

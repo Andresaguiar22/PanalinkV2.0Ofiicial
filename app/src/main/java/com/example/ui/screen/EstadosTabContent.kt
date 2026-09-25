@@ -89,7 +89,8 @@ import java.text.SimpleDateFormat
 import java.util.*
 
 import com.example.ui.viewmodel.NotificationsViewModel
-import com.example.ui.theme.PanalinkPalette
+import com.example.ui.settings.ios.IosSettingsColors
+import com.example.ui.settings.ios.IosFont
 
 @OptIn(ExperimentalMaterial3Api::class)
 
@@ -102,7 +103,6 @@ fun EstadosTabContent(
     onNavigateToCreateState: () -> Unit,
     onRefresh: () -> Unit
 ) {
-    val colors = com.example.ui.theme.LocalAppColors.current
     var isRefreshing by remember { mutableStateOf(false) }
     val scope = rememberCoroutineScope()
 
@@ -144,23 +144,23 @@ fun EstadosTabContent(
                     Box(
                         modifier = Modifier
                             .size(20.dp)
-                            .background(Color.White, CircleShape)
-                            .border(1.5.dp, colors.background, CircleShape),
+                            .background(IosSettingsColors.blue, CircleShape)
+                            .border(1.5.dp, IosSettingsColors.groupBackground, CircleShape),
                         contentAlignment = Alignment.Center
                     ) {
-                        Icon(Icons.Default.Add, contentDescription = null, tint = PanalinkPalette.textPrimary, modifier = Modifier.size(14.dp))
+                        Icon(Icons.Default.Add, contentDescription = null, tint = Color.White, modifier = Modifier.size(14.dp))
                     }
                 }
 
                 Spacer(modifier = Modifier.width(16.dp))
 
                 Column {
-                    Text("Mi Estado", color = PanalinkPalette.textPrimary, fontWeight = FontWeight.Bold, fontSize = 16.sp)
+                    Text("Mi Estado", color = IosSettingsColors.label, fontFamily = IosFont, fontWeight = FontWeight.SemiBold, fontSize = 16.sp)
                     Spacer(modifier = Modifier.height(2.dp))
-                    Text("Añade una actualización de texto, foto o vídeo", color = Color(0xFF9AA8B5), fontSize = 13.sp)
+                    Text("Añade una actualización de texto, foto o vídeo", color = IosSettingsColors.secondaryLabel, fontFamily = IosFont, fontSize = 13.sp)
                 }
             }
-            HorizontalDivider(color = Color(0xFF1C2D35), thickness = 0.8.dp)
+            HorizontalDivider(color = IosSettingsColors.separator, thickness = 0.5.dp, modifier = Modifier.padding(start = 88.dp))
         }
 
         // Recent Updates - Facebook-style Carousel Title Header
@@ -168,14 +168,15 @@ fun EstadosTabContent(
             Box(
                 modifier = Modifier
                     .fillMaxWidth()
-                    .background(colors.background)
-                    .padding(horizontal = 16.dp, vertical = 8.dp)
+                    .padding(start = 16.dp, top = 14.dp, bottom = 6.dp)
             ) {
                 Text(
-                    text = "Recientes de los Panas ✨👥",
-                    color = PanalinkPalette.textPrimary,
-                    fontSize = 12.sp,
-                    fontWeight = FontWeight.Bold
+                    text = "RECIENTES DE LOS PANAS",
+                    color = IosSettingsColors.secondaryLabel,
+                    fontFamily = IosFont,
+                    fontSize = 13.sp,
+                    fontWeight = FontWeight.Medium,
+                    letterSpacing = 0.6.sp
                 )
             }
         }
@@ -213,7 +214,8 @@ fun EstadosTabContent(
                         ) {
                             Text(
                                 "No hay estados recientes entre panas. ¡Sé el primero!",
-                                color = Color(0xFF9AA8B5),
+                                color = IosSettingsColors.secondaryLabel,
+                                fontFamily = IosFont,
                                 fontSize = 13.sp,
                                 textAlign = TextAlign.Center
                             )
@@ -225,7 +227,6 @@ fun EstadosTabContent(
                             horizontalArrangement = Arrangement.spacedBy(10.dp),
                             modifier = Modifier
                                 .fillMaxWidth()
-                                .background(colors.background)
                         ) {
                             // "Create state" card inside carousel
                             item {
@@ -235,7 +236,7 @@ fun EstadosTabContent(
                                         .height(170.dp)
                                         .clickable { onNavigateToCreateState() },
                                     shape = RoundedCornerShape(12.dp),
-                                    colors = CardDefaults.cardColors(containerColor = colors.secondary)
+                                    colors = CardDefaults.cardColors(containerColor = IosSettingsColors.cell)
                                 ) {
                                     Box(modifier = Modifier.fillMaxSize()) {
                                         // Check if current user has an active story
@@ -301,7 +302,7 @@ fun EstadosTabContent(
                                                     modifier = Modifier
                                                         .fillMaxWidth()
                                                         .height(110.dp)
-                                                        .background(colors.secondary)
+                                                        .background(IosSettingsColors.cellElevated)
                                                 )
                                             }
                                         }
@@ -312,16 +313,17 @@ fun EstadosTabContent(
                                                 .align(Alignment.Center)
                                                 .offset(y = 20.dp)
                                                 .size(32.dp)
-                                                .background(Color.White, CircleShape)
-                                                .border(2.dp, colors.secondary, CircleShape),
+                                                .background(IosSettingsColors.blue, CircleShape)
+                                                .border(2.dp, IosSettingsColors.groupBackground, CircleShape),
                                             contentAlignment = Alignment.Center
                                         ) {
-                                            Icon(Icons.Default.Add, contentDescription = null, tint = PanalinkPalette.textPrimary, modifier = Modifier.size(18.dp))
+                                            Icon(Icons.Default.Add, contentDescription = null, tint = Color.White, modifier = Modifier.size(18.dp))
                                         }
                                         Text(
                                             text = "Crear Estado",
-                                            color = PanalinkPalette.textPrimary,
-                                            fontWeight = FontWeight.Bold,
+                                            color = Color.White,
+                                            fontFamily = IosFont,
+                                            fontWeight = FontWeight.SemiBold,
                                             fontSize = 11.sp,
                                             textAlign = TextAlign.Center,
                                             modifier = Modifier
@@ -436,12 +438,12 @@ fun EstadosTabContent(
                                         .width(110.dp)
                                         .height(170.dp)
                                         .clickable { onNavigateToViewState(state.id) },
-                                    shape = RoundedCornerShape(12.dp),
-                                    colors = CardDefaults.cardColors(containerColor = colors.secondary),
+                                    shape = RoundedCornerShape(14.dp),
+                                    colors = CardDefaults.cardColors(containerColor = IosSettingsColors.cell),
                                     border = if (hasUnread) {
                                         BorderStroke(1.5.dp, com.example.ui.theme.getPremiumActiveIconGradient())
                                     } else {
-                                        BorderStroke(1.5.dp, Color.Gray.copy(alpha = 0.5f))
+                                        BorderStroke(1.dp, IosSettingsColors.separator)
                                     }
                                 ) {
                                     Box(modifier = Modifier.fillMaxSize()) {
@@ -455,9 +457,10 @@ fun EstadosTabContent(
                                             ) {
                                                 Text(
                                                     text = state.caption ?: "",
-                                                    color = PanalinkPalette.textPrimary,
+                                                    color = Color.White,
+                                                    fontFamily = IosFont,
                                                     fontSize = 11.sp,
-                                                    fontWeight = FontWeight.Bold,
+                                                    fontWeight = FontWeight.SemiBold,
                                                     textAlign = TextAlign.Center,
                                                     maxLines = 4,
                                                     overflow = TextOverflow.Ellipsis,
@@ -486,13 +489,13 @@ fun EstadosTabContent(
                                                     // placa neutra en vez de un spinner infinito si la red no vuelve..
                                                     if (!com.example.util.NetworkMonitor.isOnline.value) {
                                                         Box(
-                                                            modifier = Modifier.fillMaxSize().background(Color(0xFF0D0F12)),
+                                                            modifier = Modifier.fillMaxSize().background(IosSettingsColors.cellElevated),
                                                             contentAlignment = Alignment.Center
                                                         ) {
                                                             Icon(
                                                                 Icons.Default.VolumeUp,
                                                                 contentDescription = "Video",
-                                                                tint = Color(0xFF9AA8B5),
+                                                                tint = IosSettingsColors.secondaryLabel,
                                                                 modifier = Modifier.size(26.dp)
                                                             )
                                                         }
@@ -501,12 +504,12 @@ fun EstadosTabContent(
                                                         Box(
                                                             modifier = Modifier
                                                                 .fillMaxSize()
-                                                                .background(Color(0xFF131A22)),
+                                                                .background(IosSettingsColors.cellElevated),
                                                             contentAlignment = Alignment.Center
                                                         ) {
                                                             CircularProgressIndicator(
                                                                 modifier = Modifier.size(24.dp),
-                                                                color = Color(0xFF18E7F5),
+                                                                color = IosSettingsColors.blue,
                                                                 strokeWidth = 2.dp
                                                             )
                                                         }
@@ -524,7 +527,7 @@ fun EstadosTabContent(
                                                     Icon(
                                                         imageVector = Icons.Default.VolumeUp,
                                                         contentDescription = "Contenido Multimedia",
-                                                        tint = PanalinkPalette.textPrimary,
+                                                        tint = Color.White,
                                                         modifier = Modifier.size(12.dp)
                                                     )
                                                 }
@@ -564,7 +567,7 @@ fun EstadosTabContent(
                                             userId = safeUserId,
                                             size = 28.dp,
                                             borderWidth = 1.5.dp,
-                                            borderColor = if (hasUnread) colors.primary else Color.Gray.copy(alpha = 0.5f),
+                                            borderColor = if (hasUnread) IosSettingsColors.blue else IosSettingsColors.separator,
                                             placeholderName = safeDisplayName,
                                             modifier = Modifier
                                                 .padding(8.dp)
@@ -573,8 +576,9 @@ fun EstadosTabContent(
                                         // Bottom name text
                                         Text(
                                             text = safeDisplayName.split(" ").first(),
-                                            color = PanalinkPalette.textPrimary,
-                                            fontWeight = FontWeight.Bold,
+                                            color = Color.White,
+                                            fontFamily = IosFont,
+                                            fontWeight = FontWeight.SemiBold,
                                             fontSize = 11.sp,
                                             maxLines = 1,
                                             overflow = TextOverflow.Ellipsis,
@@ -595,7 +599,7 @@ fun EstadosTabContent(
                             .padding(16.dp),
                         contentAlignment = Alignment.Center
                     ) {
-                        Text(text = "Error al cargar estados", color = Color.Red, fontSize = 13.sp)
+                        Text(text = "Error al cargar estados", color = IosSettingsColors.red, fontFamily = IosFont, fontSize = 13.sp)
                     }
                 }
             }
@@ -606,17 +610,18 @@ fun EstadosTabContent(
             Box(
                 modifier = Modifier
                     .fillMaxWidth()
-                    .background(colors.background)
-                    .padding(horizontal = 16.dp, vertical = 10.dp)
+                    .padding(start = 16.dp, top = 16.dp, bottom = 6.dp)
             ) {
                 Row(verticalAlignment = Alignment.CenterVertically) {
-                    Icon(Icons.Default.PlayArrow, contentDescription = null, tint = PanalinkPalette.textPrimary, modifier = Modifier.size(16.dp))
+                    Icon(Icons.Default.PlayArrow, contentDescription = null, tint = IosSettingsColors.secondaryLabel, modifier = Modifier.size(16.dp))
                     Spacer(modifier = Modifier.width(6.dp))
                     Text(
-                        text = "El Feed de Panalink 🇻🇪",
-                        color = PanalinkPalette.textPrimary,
+                        text = "EL FEED DE PANALINK",
+                        color = IosSettingsColors.secondaryLabel,
+                        fontFamily = IosFont,
                         fontSize = 13.sp,
-                        fontWeight = FontWeight.Bold
+                        fontWeight = FontWeight.Medium,
+                        letterSpacing = 0.6.sp
                     )
                 }
             }
@@ -641,18 +646,20 @@ fun EstadosTabContent(
                                 .padding(40.dp),
                             horizontalAlignment = Alignment.CenterHorizontally
                         ) {
-                            Icon(Icons.Default.PlayArrow, contentDescription = null, tint = Color(0xFF37474F), modifier = Modifier.size(54.dp))
+                            Icon(Icons.Default.PlayArrow, contentDescription = null, tint = IosSettingsColors.tertiaryLabel, modifier = Modifier.size(54.dp))
                             Spacer(modifier = Modifier.height(12.dp))
                             Text(
                                 text = "Aún no hay vídeos publicados en la comunidad.",
-                                color = Color(0xFF9AA8B5),
+                                color = IosSettingsColors.secondaryLabel,
+                                fontFamily = IosFont,
                                 fontSize = 13.sp,
                                 textAlign = TextAlign.Center
                             )
                             Spacer(modifier = Modifier.height(6.dp))
                             Text(
                                 text = "¡Sube un vídeo desde tu galería para comenzar el ambiente!",
-                                color = Color(0xFF607D8B),
+                                color = IosSettingsColors.tertiaryLabel,
+                                fontFamily = IosFont,
                                 fontSize = 12.sp,
                                 textAlign = TextAlign.Center
                             )
@@ -679,9 +686,9 @@ fun EstadosTabContent(
                                     modifier = Modifier
                                         .weight(1f)
                                         .aspectRatio(0.75f)
-                                        .clip(RoundedCornerShape(12.dp))
-                                        .background(colors.secondary)
-                                        .border(1.dp, Color(0xFF262629), RoundedCornerShape(12.dp))
+                                        .clip(RoundedCornerShape(14.dp))
+                                        .background(IosSettingsColors.cell)
+                                        .border(1.dp, IosSettingsColors.separator, RoundedCornerShape(14.dp))
                                         .clickable { onNavigateToTikTok(videoState.state.id) }
                                 ) {
                                     // Visual card design
@@ -722,7 +729,7 @@ fun EstadosTabContent(
                                         Icon(
                                             imageVector = Icons.Default.PlayArrow,
                                             contentDescription = "Ver Video",
-                                            tint = PanalinkPalette.textPrimary,
+                                            tint = Color.White,
                                             modifier = Modifier.size(24.dp)
                                         )
                                     }
@@ -747,8 +754,9 @@ fun EstadosTabContent(
                                             )
                                             Text(
                                                 text = safeDisplayName.split(" ").first(),
-                                                color = PanalinkPalette.textPrimary,
-                                                fontWeight = FontWeight.Bold,
+                                                color = Color.White,
+                                                fontFamily = IosFont,
+                                                fontWeight = FontWeight.SemiBold,
                                                 fontSize = 11.sp,
                                                 maxLines = 1,
                                                 overflow = TextOverflow.Ellipsis
@@ -758,7 +766,8 @@ fun EstadosTabContent(
                                         if (!videoState.state.caption.isNullOrBlank()) {
                                             Text(
                                                 text = videoState.state.caption,
-                                                color = PanalinkPalette.textPrimary.copy(alpha = 0.9f),
+                                                color = Color.White.copy(alpha = 0.9f),
+                                                fontFamily = IosFont,
                                                 fontSize = 11.sp,
                                                 maxLines = 1,
                                                 overflow = TextOverflow.Ellipsis
@@ -875,15 +884,17 @@ fun StateItemRow(
         Column {
             Text(
                 text = safeDisplayName,
-                color = PanalinkPalette.textPrimary,
-                fontWeight = FontWeight.Bold,
-                fontSize = 15.sp
+                color = IosSettingsColors.label,
+                fontFamily = IosFont,
+                fontWeight = FontWeight.SemiBold,
+                fontSize = 16.sp
             )
             Spacer(modifier = Modifier.height(2.dp))
             Text(
                 text = "Publicado hoy, $formattedTime",
-                color = Color(0xFF9AA8B5),
-                fontSize = 12.sp
+                color = IosSettingsColors.secondaryLabel,
+                fontFamily = IosFont,
+                fontSize = 13.sp
             )
         }
     }
@@ -900,7 +911,6 @@ fun VideoThumbnail(
     contentScale: ContentScale = ContentScale.Crop,
     contentDescription: String? = null
 ) {
-    val colors = com.example.ui.theme.LocalAppColors.current
     var bitmap by remember(videoUrl) { mutableStateOf(videoThumbnailCache[videoUrl]) }
     var isLoading by remember(videoUrl) { mutableStateOf(bitmap == null) }
 
@@ -945,7 +955,7 @@ fun VideoThumbnail(
             )
         } else if (isLoading) {
             CircularProgressIndicator(
-                color = PanalinkPalette.textPrimary,
+                color = IosSettingsColors.blue,
                 modifier = Modifier.size(24.dp),
                 strokeWidth = 2.dp
             )

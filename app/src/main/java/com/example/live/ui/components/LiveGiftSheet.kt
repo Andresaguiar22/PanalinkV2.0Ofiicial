@@ -17,7 +17,7 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.example.live.domain.model.LiveGift
-import com.example.ui.theme.PanalinkPalette
+import com.example.ui.settings.ios.IosSettingsColors
 
 private val QUANTITIES = listOf(1, 5, 10)
 
@@ -48,7 +48,7 @@ fun LiveGiftSheet(
                 verticalAlignment = Alignment.CenterVertically,
                 horizontalArrangement = Arrangement.SpaceBetween
             ) {
-                Text("Regalos", fontSize = 18.sp, fontWeight = FontWeight.Bold, color = PanalinkPalette.textPrimary)
+                Text("Regalos", fontSize = 18.sp, fontWeight = FontWeight.Bold, color = IosSettingsColors.label)
                 Surface(
                     shape = RoundedCornerShape(50),
                     color = Color(0xFF2A2A32)
@@ -68,7 +68,7 @@ fun LiveGiftSheet(
             if (gifts.isEmpty()) {
                 Text(
                     text = "Cargando catálogo de regalos...",
-                    color = PanalinkPalette.textPrimary.copy(alpha = 0.7f),
+                    color = IosSettingsColors.secondaryLabel,
                     fontSize = 13.sp,
                     modifier = Modifier.padding(vertical = 24.dp)
                 )
@@ -95,7 +95,7 @@ fun LiveGiftSheet(
                             Spacer(modifier = Modifier.height(2.dp))
                             Text(
                                 text = gift.name,
-                                color = PanalinkPalette.textPrimary,
+                                color = IosSettingsColors.label,
                                 fontSize = 10.sp,
                                 maxLines = 1
                             )
@@ -113,7 +113,7 @@ fun LiveGiftSheet(
             Spacer(modifier = Modifier.height(14.dp))
 
             Row(verticalAlignment = Alignment.CenterVertically) {
-                Text("Cantidad", color = PanalinkPalette.textPrimary.copy(alpha = 0.75f), fontSize = 12.sp)
+                Text("Cantidad", color = IosSettingsColors.label.copy(alpha = 0.75f), fontSize = 12.sp)
                 Spacer(modifier = Modifier.width(10.dp))
                 QUANTITIES.forEach { q ->
                     val isSelected = quantity == q
@@ -126,7 +126,7 @@ fun LiveGiftSheet(
                     ) {
                         Text(
                             text = "x$q",
-                            color = PanalinkPalette.textPrimary,
+                            color = IosSettingsColors.label,
                             fontSize = 12.sp,
                             fontWeight = FontWeight.Bold,
                             modifier = Modifier.padding(horizontal = 12.dp, vertical = 5.dp)
@@ -156,7 +156,7 @@ fun LiveGiftSheet(
                         !affordable -> "Saldo insuficiente"
                         else -> "Enviar ${current.emoji} x$quantity · 🪙 $cost"
                     },
-                    color = PanalinkPalette.textPrimary,
+                    color = IosSettingsColors.label,
                     fontWeight = FontWeight.Bold,
                     fontSize = 14.sp
                 )

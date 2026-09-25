@@ -13,7 +13,7 @@ val Pink40 = Color(0xFF7D5260)
 // WhatsApp Light Theme Colors
 val WhatsAppBackground = Color(0xFF0D0F12)
 val WhatsAppSurface = Color(0xFF131A22)
-val WhatsAppPrimary = Color(0xFF18E7F5)
+val WhatsAppPrimary = Color(0xFF0A84FF)
 val WhatsAppTextDark = Color(0xFFF5E6C8)
 
 // Elegant Grey Theme

@@ -36,6 +36,7 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import com.example.ui.settings.ios.IosSettingsColors
 
 // Colores del tema Premium Dark (estilo iOS)
 internal val PaniOSIosBlack = Color(0xFF000000)
@@ -44,7 +45,7 @@ internal val PaniOSCardBorder = Color(0x0DFFFFFF) // Blanco al 5%
 internal val PaniOSTextGray = Color(0xFF8E8E93)
 
 // Colores Neón Vibrantes
-internal val PaniOSCyanAccent = Color(0xFF00E5FF)
+internal val PaniOSCyanAccent = IosSettingsColors.blue
 internal val PaniOSPinkAccent = Color(0xFFFF007F)
 internal val PaniOSPurpleAccent = Color(0xFF9D4EDD)
 

@@ -26,7 +26,7 @@ import com.example.media.audio.AudioTrackEntity
 import com.example.media.ui.components.TrackItem
 import com.example.media.playlist.PlaylistEntity
 import com.example.media.player.ui.MusicViewModel
-import com.example.ui.theme.PanalinkPalette
+import com.example.ui.settings.ios.IosSettingsColors
 
 /**
  * P6.7 - Music Home Screen
@@ -102,12 +102,12 @@ fun MusicHomeScreen(
                         Row(verticalAlignment = Alignment.CenterVertically) {
                             Icon(Icons.Default.GraphicEq, contentDescription = null, tint = Color(0xFF0A84FF))
                             Spacer(modifier = Modifier.width(8.dp))
-                            Text("PanaLink Music", color = PanalinkPalette.textPrimary, fontWeight = FontWeight.Bold)
+                            Text("PanaLink Music", color = IosSettingsColors.label, fontWeight = FontWeight.Bold)
                         }
                     },
                     navigationIcon = {
                         IconButton(onClick = onBackClick) {
-                            Icon(Icons.Default.ArrowBack, contentDescription = "Atrás", tint = PanalinkPalette.textPrimary)
+                            Icon(Icons.Default.ArrowBack, contentDescription = "Atrás", tint = IosSettingsColors.label)
                         }
                     },
                     actions = {
@@ -123,7 +123,7 @@ fun MusicHomeScreen(
                             }
                         }
                         IconButton(onClick = onInvitationsClick) {
-                            Icon(Icons.Default.Notifications, contentDescription = "Invitaciones", tint = PanalinkPalette.textPrimary)
+                            Icon(Icons.Default.Notifications, contentDescription = "Invitaciones", tint = IosSettingsColors.label)
                         }
                         IconButton(onClick = { showCreateDialog = true }) {
                             Icon(Icons.Default.AddCircleOutline, contentDescription = "Nueva Playlist", tint = Color(0xFF38BDF8))
@@ -341,7 +341,7 @@ fun AllSongsSection(
             ) {
                 Text(
                     "${tracks.size} canción(es)",
-                    color = PanalinkPalette.textPrimary,
+                    color = IosSettingsColors.label,
                     fontWeight = FontWeight.Bold,
                     fontSize = 16.sp
                 )
@@ -352,13 +352,13 @@ fun AllSongsSection(
                     shape = RoundedCornerShape(20.dp)
                 ) {
                     if (isImporting) {
-                        CircularProgressIndicator(modifier = Modifier.size(16.dp), color = PanalinkPalette.textPrimary, strokeWidth = 2.dp)
+                        CircularProgressIndicator(modifier = Modifier.size(16.dp), color = IosSettingsColors.label, strokeWidth = 2.dp)
                         Spacer(modifier = Modifier.width(8.dp))
-                        Text("Importando...", color = PanalinkPalette.textPrimary, fontSize = 13.sp)
+                        Text("Importando...", color = IosSettingsColors.label, fontSize = 13.sp)
                     } else {
                         Icon(Icons.Default.FileUpload, contentDescription = null, modifier = Modifier.size(16.dp))
                         Spacer(modifier = Modifier.width(6.dp))
-                        Text("Subir canciones", color = PanalinkPalette.textPrimary, fontSize = 13.sp)
+                        Text("Subir canciones", color = IosSettingsColors.label, fontSize = 13.sp)
                     }
                 }
             }
@@ -406,7 +406,7 @@ fun AllSongsSection(
 fun SearchResults(tracks: List<AudioTrackEntity>, onTrackClick: (AudioTrackEntity) -> Unit, onTrackOptionsClick: (AudioTrackEntity) -> Unit) {
     LazyColumn(modifier = Modifier.fillMaxSize().padding(horizontal = 16.dp)) {
         item { 
-            Text("Resultados de búsqueda", color = PanalinkPalette.textPrimary, fontWeight = FontWeight.Bold, modifier = Modifier.padding(vertical = 16.dp)) 
+            Text("Resultados de búsqueda", color = IosSettingsColors.label, fontWeight = FontWeight.Bold, modifier = Modifier.padding(vertical = 16.dp)) 
         }
         items(tracks) { track ->
             TrackItem(track = track, onClick = { onTrackClick(track) }, onTrackOptionsClick = onTrackOptionsClick)
@@ -421,7 +421,7 @@ fun SectionHeader(title: String, onSeeAll: (() -> Unit)? = null) {
         horizontalArrangement = Arrangement.SpaceBetween,
         verticalAlignment = Alignment.CenterVertically
     ) {
-        Text(title, color = PanalinkPalette.textPrimary, fontSize = 18.sp, fontWeight = FontWeight.Bold)
+        Text(title, color = IosSettingsColors.label, fontSize = 18.sp, fontWeight = FontWeight.Bold)
         if (onSeeAll != null) {
             TextButton(onClick = onSeeAll) {
                 Text("Ver todas", color = Color(0xFF38BDF8))
@@ -442,9 +442,9 @@ fun CreatePlaylistCard(onClick: () -> Unit) {
             verticalArrangement = Arrangement.Center,
             horizontalAlignment = Alignment.CenterHorizontally
         ) {
-            Icon(Icons.Default.Add, contentDescription = null, tint = PanalinkPalette.textPrimary, modifier = Modifier.size(32.dp))
+            Icon(Icons.Default.Add, contentDescription = null, tint = IosSettingsColors.label, modifier = Modifier.size(32.dp))
             Spacer(modifier = Modifier.height(8.dp))
-            Text("Nueva", color = PanalinkPalette.textPrimary)
+            Text("Nueva", color = IosSettingsColors.label)
         }
     }
 }
@@ -467,7 +467,7 @@ fun PlaylistCard(playlist: PlaylistEntity, onClick: () -> Unit) {
                 }
             }
             Spacer(modifier = Modifier.height(8.dp))
-            Text(playlist.name, color = PanalinkPalette.textPrimary, fontSize = 14.sp, fontWeight = FontWeight.Bold, maxLines = 1, overflow = TextOverflow.Ellipsis)
+            Text(playlist.name, color = IosSettingsColors.label, fontSize = 14.sp, fontWeight = FontWeight.Bold, maxLines = 1, overflow = TextOverflow.Ellipsis)
             Text("Playlist", color = Color.Gray, fontSize = 12.sp)
         }
     }
@@ -501,7 +501,7 @@ fun AlbumGrid(albums: List<String>) {
                 Row(modifier = Modifier.padding(16.dp), verticalAlignment = Alignment.CenterVertically) {
                     Icon(Icons.Default.Album, contentDescription = null, tint = Color(0xFF38BDF8))
                     Spacer(modifier = Modifier.width(16.dp))
-                    Text(album, color = PanalinkPalette.textPrimary, fontWeight = FontWeight.Bold)
+                    Text(album, color = IosSettingsColors.label, fontWeight = FontWeight.Bold)
                 }
             }
         }
@@ -519,7 +519,7 @@ fun ArtistGrid(artists: List<String>) {
                 Row(modifier = Modifier.padding(16.dp), verticalAlignment = Alignment.CenterVertically) {
                     Icon(Icons.Default.Person, contentDescription = null, tint = Color(0xFF38BDF8))
                     Spacer(modifier = Modifier.width(16.dp))
-                    Text(artist, color = PanalinkPalette.textPrimary, fontWeight = FontWeight.Bold)
+                    Text(artist, color = IosSettingsColors.label, fontWeight = FontWeight.Bold)
                 }
             }
         }

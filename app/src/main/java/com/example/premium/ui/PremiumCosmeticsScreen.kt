@@ -26,6 +26,7 @@ import com.example.effects.AvatarFrameCatalog
 import com.example.effects.AvatarFrameView
 import com.example.premium.domain.model.LevelTierInfo
 import com.example.ui.theme.PanalinkSkin
+import com.example.ui.settings.ios.IosSettingsColors
 
 /**
  * Cosméticos Premium 2.0 — marcos de avatar desbloqueables por nivel.
@@ -75,7 +76,7 @@ fun PremiumCosmeticsScreen(
                 title = { Text("👑 Mi Colección", fontWeight = FontWeight.Bold, color = PanalinkSkin.TitleCream) },
                 navigationIcon = {
                     IconButton(onClick = onBack) {
-                        Icon(Icons.AutoMirrored.Filled.ArrowBack, contentDescription = "Atrás", tint = com.example.ui.theme.PanalinkPalette.textPrimary)
+                        Icon(Icons.AutoMirrored.Filled.ArrowBack, contentDescription = "Atrás", tint = IosSettingsColors.label)
                     }
                 },
                 colors = TopAppBarDefaults.centerAlignedTopAppBarColors(containerColor = Color(0xFF121A24))

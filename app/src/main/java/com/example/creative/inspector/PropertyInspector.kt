@@ -24,7 +24,7 @@ import com.example.creative.animation.CreativeKeyframe
 import com.example.creative.animation.EasingType
 import com.example.creative.core.CreativeLayer
 import com.example.creative.timeline.CreativeTrack
-import com.example.ui.theme.PanalinkPalette
+import com.example.ui.settings.ios.IosSettingsColors
 
 /**
  * P6.5A - Unified Property Inspector Composable
@@ -52,7 +52,7 @@ fun PropertyInspector(
             .padding(12.dp),
         colors = CardDefaults.cardColors(containerColor = Color(0xFF16161E)),
         shape = RoundedCornerShape(20.dp),
-        border = BorderStroke(1.dp, Color(0xFF00E5FF))
+        border = BorderStroke(1.dp, IosSettingsColors.blue)
     ) {
         Column(modifier = Modifier.padding(16.dp)) {
             // Header Row
@@ -72,13 +72,13 @@ fun PropertyInspector(
                         selectedTrack is CreativeTrack.AudioTrack -> "Inspector de Pista de Audio 🎧"
                         else -> "Inspector de Propiedades ⚙️"
                     },
-                    color = PanalinkPalette.textPrimary,
+                    color = IosSettingsColors.label,
                     fontWeight = FontWeight.Bold,
                     fontSize = 16.sp
                 )
 
                 IconButton(onClick = onDismiss) {
-                    Icon(Icons.Default.Close, contentDescription = "Cerrar Inspector", tint = PanalinkPalette.textPrimary)
+                    Icon(Icons.Default.Close, contentDescription = "Cerrar Inspector", tint = IosSettingsColors.label)
                 }
             }
 
@@ -93,26 +93,26 @@ fun PropertyInspector(
                     selected = activeTab == "transform",
                     onClick = { activeTab = "transform" },
                     label = { Text("Transform", fontSize = 11.sp, color = if (activeTab == "transform") Color.Black else Color.White) },
-                    colors = FilterChipDefaults.filterChipColors(selectedContainerColor = Color(0xFF00E5FF))
+                    colors = FilterChipDefaults.filterChipColors(selectedContainerColor = IosSettingsColors.blue)
                 )
                 FilterChip(
                     selected = activeTab == "style",
                     onClick = { activeTab = "style" },
                     label = { Text("Estilo", fontSize = 11.sp, color = if (activeTab == "style") Color.Black else Color.White) },
-                    colors = FilterChipDefaults.filterChipColors(selectedContainerColor = Color(0xFF00E5FF))
+                    colors = FilterChipDefaults.filterChipColors(selectedContainerColor = IosSettingsColors.blue)
                 )
                 FilterChip(
                     selected = activeTab == "animation",
                     onClick = { activeTab = "animation" },
                     label = { Text("Keyframes", fontSize = 11.sp, color = if (activeTab == "animation") Color.Black else Color.White) },
-                    colors = FilterChipDefaults.filterChipColors(selectedContainerColor = Color(0xFF00E5FF))
+                    colors = FilterChipDefaults.filterChipColors(selectedContainerColor = IosSettingsColors.blue)
                 )
                 if (selectedLayer is CreativeLayer.Audio || selectedTrack is CreativeTrack.AudioTrack || selectedTrack is CreativeTrack.VideoTrack) {
                     FilterChip(
                         selected = activeTab == "audio",
                         onClick = { activeTab = "audio" },
                         label = { Text("Audio", fontSize = 11.sp, color = if (activeTab == "audio") Color.Black else Color.White) },
-                        colors = FilterChipDefaults.filterChipColors(selectedContainerColor = Color(0xFF00E5FF))
+                        colors = FilterChipDefaults.filterChipColors(selectedContainerColor = IosSettingsColors.blue)
                     )
                 }
             }
@@ -138,7 +138,7 @@ private fun TransformInspectorPanel(
     if (layer == null) return
 
     Column(verticalArrangement = Arrangement.spacedBy(10.dp)) {
-        Text("Escala: ${(layer.scale * 100).toInt()}%", color = PanalinkPalette.textPrimary, fontSize = 12.sp)
+        Text("Escala: ${(layer.scale * 100).toInt()}%", color = IosSettingsColors.label, fontSize = 12.sp)
         Slider(
             value = layer.scale,
             onValueChange = { newScale ->
@@ -155,10 +155,10 @@ private fun TransformInspectorPanel(
                 }
             },
             valueRange = 0.2f..3.5f,
-            colors = SliderDefaults.colors(thumbColor = Color(0xFF00E5FF), activeTrackColor = Color(0xFF00E5FF))
+            colors = SliderDefaults.colors(thumbColor = IosSettingsColors.blue, activeTrackColor = IosSettingsColors.blue)
         )
 
-        Text("Rotación: ${layer.rotation.toInt()}°", color = PanalinkPalette.textPrimary, fontSize = 12.sp)
+        Text("Rotación: ${layer.rotation.toInt()}°", color = IosSettingsColors.label, fontSize = 12.sp)
         Slider(
             value = layer.rotation,
             onValueChange = { newRot ->
@@ -175,10 +175,10 @@ private fun TransformInspectorPanel(
                 }
             },
             valueRange = -180f..180f,
-            colors = SliderDefaults.colors(thumbColor = Color(0xFF00E5FF), activeTrackColor = Color(0xFF00E5FF))
+            colors = SliderDefaults.colors(thumbColor = IosSettingsColors.blue, activeTrackColor = IosSettingsColors.blue)
         )
 
-        Text("Opacidad: ${(layer.opacity * 100).toInt()}%", color = PanalinkPalette.textPrimary, fontSize = 12.sp)
+        Text("Opacidad: ${(layer.opacity * 100).toInt()}%", color = IosSettingsColors.label, fontSize = 12.sp)
         Slider(
             value = layer.opacity,
             onValueChange = { newOpacity ->
@@ -195,7 +195,7 @@ private fun TransformInspectorPanel(
                 }
             },
             valueRange = 0f..1f,
-            colors = SliderDefaults.colors(thumbColor = Color(0xFF00E5FF), activeTrackColor = Color(0xFF00E5FF))
+            colors = SliderDefaults.colors(thumbColor = IosSettingsColors.blue, activeTrackColor = IosSettingsColors.blue)
         )
     }
 }
@@ -207,7 +207,7 @@ private fun StyleInspectorPanel(
 ) {
     if (layer is CreativeLayer.Text) {
         Column(verticalArrangement = Arrangement.spacedBy(10.dp)) {
-            Text("Tipografía:", color = PanalinkPalette.textPrimary, fontSize = 12.sp, fontWeight = FontWeight.Bold)
+            Text("Tipografía:", color = IosSettingsColors.label, fontSize = 12.sp, fontWeight = FontWeight.Bold)
             val fonts = listOf("SansSerif", "Serif", "Monospace", "Cursive")
             Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
                 fonts.forEach { font ->
@@ -215,12 +215,12 @@ private fun StyleInspectorPanel(
                         selected = layer.fontFamily == font,
                         onClick = { onUpdateLayer(layer.copy(fontFamily = font)) },
                         label = { Text(font, fontSize = 11.sp, color = if (layer.fontFamily == font) Color.Black else Color.White) },
-                        colors = FilterChipDefaults.filterChipColors(selectedContainerColor = Color(0xFF00E5FF))
+                        colors = FilterChipDefaults.filterChipColors(selectedContainerColor = IosSettingsColors.blue)
                     )
                 }
             }
 
-            Text("Color del Texto:", color = PanalinkPalette.textPrimary, fontSize = 12.sp, fontWeight = FontWeight.Bold)
+            Text("Color del Texto:", color = IosSettingsColors.label, fontSize = 12.sp, fontWeight = FontWeight.Bold)
             val colors = listOf("#FFFFFF", "#00E5FF", "#FF4081", "#FFD54F", "#00FF85", "#E040FB", "#000000")
             LazyRow(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
                 items(colors) { hex ->
@@ -232,7 +232,7 @@ private fun StyleInspectorPanel(
                             .background(Color(colorInt))
                             .border(
                                 width = if (layer.colorHex == hex) 2.dp else 0.dp,
-                                color = PanalinkPalette.textPrimary,
+                                color = IosSettingsColors.label,
                                 shape = CircleShape
                             )
                             .clickable { onUpdateLayer(layer.copy(colorHex = hex)) }
@@ -245,11 +245,11 @@ private fun StyleInspectorPanel(
                 horizontalArrangement = Arrangement.SpaceBetween,
                 verticalAlignment = Alignment.CenterVertically
             ) {
-                Text("Sombra de Texto", color = PanalinkPalette.textPrimary, fontSize = 12.sp)
+                Text("Sombra de Texto", color = IosSettingsColors.label, fontSize = 12.sp)
                 Switch(
                     checked = layer.hasShadow,
                     onCheckedChange = { onUpdateLayer(layer.copy(hasShadow = it)) },
-                    colors = SwitchDefaults.colors(checkedThumbColor = Color(0xFF00E5FF))
+                    colors = SwitchDefaults.colors(checkedThumbColor = IosSettingsColors.blue)
                 )
             }
         }
@@ -271,7 +271,7 @@ private fun KeyframeAnimationPanel(
     var selectedEasing by remember { mutableStateOf(EasingType.EASE_IN_OUT) }
 
     Column(verticalArrangement = Arrangement.spacedBy(10.dp)) {
-        Text("Pistas de Propiedad (Keyframes):", color = PanalinkPalette.textPrimary, fontSize = 12.sp, fontWeight = FontWeight.Bold)
+        Text("Pistas de Propiedad (Keyframes):", color = IosSettingsColors.label, fontSize = 12.sp, fontWeight = FontWeight.Bold)
 
         Row(horizontalArrangement = Arrangement.spacedBy(6.dp)) {
             listOf("scale" to "Escala", "rotation" to "Rotación", "opacity" to "Opacidad").forEach { (prop, label) ->
@@ -279,7 +279,7 @@ private fun KeyframeAnimationPanel(
                     selected = selectedProperty == prop,
                     onClick = { selectedProperty = prop },
                     label = { Text(label, fontSize = 11.sp, color = if (selectedProperty == prop) Color.Black else Color.White) },
-                    colors = FilterChipDefaults.filterChipColors(selectedContainerColor = Color(0xFF00E5FF))
+                    colors = FilterChipDefaults.filterChipColors(selectedContainerColor = IosSettingsColors.blue)
                 )
             }
         }
@@ -299,7 +299,7 @@ private fun KeyframeAnimationPanel(
                     }
                     onAddKeyframe(layer.id, selectedProperty, valToSave, selectedEasing)
                 },
-                colors = ButtonDefaults.buttonColors(containerColor = Color(0xFF00E5FF))
+                colors = ButtonDefaults.buttonColors(containerColor = IosSettingsColors.blue)
             ) {
                 Icon(Icons.Default.Add, contentDescription = null, tint = Color.Black, modifier = Modifier.size(16.dp))
                 Spacer(modifier = Modifier.width(4.dp))
@@ -321,31 +321,31 @@ private fun AudioControlPanel(
     onUpdateTrack: (CreativeTrack) -> Unit
 ) {
     Column(verticalArrangement = Arrangement.spacedBy(10.dp)) {
-        Text("Controles de Audio Profesional 🎧", color = PanalinkPalette.textPrimary, fontSize = 12.sp, fontWeight = FontWeight.Bold)
+        Text("Controles de Audio Profesional 🎧", color = IosSettingsColors.label, fontSize = 12.sp, fontWeight = FontWeight.Bold)
 
         if (layer is CreativeLayer.Audio) {
-            Text("Volumen: ${(layer.volume * 100).toInt()}%", color = PanalinkPalette.textPrimary, fontSize = 12.sp)
+            Text("Volumen: ${(layer.volume * 100).toInt()}%", color = IosSettingsColors.label, fontSize = 12.sp)
             Slider(
                 value = layer.volume,
                 onValueChange = { onUpdateLayer(layer.copy(volume = it)) },
                 valueRange = 0f..2f,
-                colors = SliderDefaults.colors(thumbColor = Color(0xFF00E5FF), activeTrackColor = Color(0xFF00E5FF))
+                colors = SliderDefaults.colors(thumbColor = IosSettingsColors.blue, activeTrackColor = IosSettingsColors.blue)
             )
         } else if (track is CreativeTrack.AudioTrack) {
-            Text("Volumen de Música: ${(track.volume * 100).toInt()}%", color = PanalinkPalette.textPrimary, fontSize = 12.sp)
+            Text("Volumen de Música: ${(track.volume * 100).toInt()}%", color = IosSettingsColors.label, fontSize = 12.sp)
             Slider(
                 value = track.volume,
                 onValueChange = { onUpdateTrack(track.copy(volume = it)) },
                 valueRange = 0f..2f,
-                colors = SliderDefaults.colors(thumbColor = Color(0xFF00E5FF), activeTrackColor = Color(0xFF00E5FF))
+                colors = SliderDefaults.colors(thumbColor = IosSettingsColors.blue, activeTrackColor = IosSettingsColors.blue)
             )
         } else if (track is CreativeTrack.VideoTrack) {
-            Text("Volumen del Video Original: ${(track.volume * 100).toInt()}%", color = PanalinkPalette.textPrimary, fontSize = 12.sp)
+            Text("Volumen del Video Original: ${(track.volume * 100).toInt()}%", color = IosSettingsColors.label, fontSize = 12.sp)
             Slider(
                 value = track.volume,
                 onValueChange = { onUpdateTrack(track.copy(volume = it)) },
                 valueRange = 0f..2f,
-                colors = SliderDefaults.colors(thumbColor = Color(0xFF00E5FF), activeTrackColor = Color(0xFF00E5FF))
+                colors = SliderDefaults.colors(thumbColor = IosSettingsColors.blue, activeTrackColor = IosSettingsColors.blue)
             )
         }
     }

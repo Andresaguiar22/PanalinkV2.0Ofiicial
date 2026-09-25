@@ -40,7 +40,7 @@ import androidx.compose.ui.unit.sp
 import coil.compose.AsyncImage
 import com.example.data.model.Message
 import com.example.data.supabase.SupabaseClient
-import com.example.ui.theme.PanalinkPalette
+import com.example.ui.settings.ios.IosSettingsColors
 
 @OptIn(ExperimentalLayoutApi::class)
 @Composable
@@ -119,7 +119,7 @@ fun ChannelPostCard(
                     ) {
                         Text(
                             text = "↪ $forwardedFrom",
-                            color = Color(0xFF00E5FF),
+                            color = IosSettingsColors.blue,
                             fontSize = 13.sp,
                             fontWeight = FontWeight.Medium
                         )
@@ -163,7 +163,7 @@ fun ChannelPostCard(
                 // 4. Main Body Text
                 Text(
                     text = formattedText,
-                    color = PanalinkPalette.textPrimary,
+                    color = IosSettingsColors.label,
                     fontSize = 14.5.sp,
                     lineHeight = 20.sp,
                     modifier = Modifier.fillMaxWidth()
@@ -186,7 +186,7 @@ fun ChannelPostCard(
                             label = "pillBg"
                         )
                         val borderColor by animateColorAsState(
-                            targetValue = if (isMyReaction) Color(0xFF00E5FF) else Color.Transparent,
+                            targetValue = if (isMyReaction) IosSettingsColors.blue else Color.Transparent,
                             label = "pillBorder"
                         )
 
@@ -205,7 +205,7 @@ fun ChannelPostCard(
                                 Spacer(modifier = Modifier.width(4.dp))
                                 Text(
                                     text = "$count",
-                                    color = if (isMyReaction) Color(0xFF00E5FF) else Color(0xFF8596A0),
+                                    color = if (isMyReaction) IosSettingsColors.blue else Color(0xFF8596A0),
                                     fontSize = 11.sp,
                                     fontWeight = FontWeight.Bold
                                 )
@@ -272,13 +272,13 @@ fun ChannelPostCard(
                         Icon(
                             imageVector = Icons.Outlined.ChatBubbleOutline,
                             contentDescription = "Comentarios",
-                            tint = Color(0xFF00E5FF),
+                            tint = IosSettingsColors.blue,
                             modifier = Modifier.size(14.dp)
                         )
                         Spacer(modifier = Modifier.width(4.dp))
                         Text(
                             text = "Comentarios",
-                            color = Color(0xFF00E5FF),
+                            color = IosSettingsColors.blue,
                             fontSize = 11.sp,
                             fontWeight = FontWeight.Bold
                         )
@@ -371,7 +371,7 @@ fun ApkFileAttachmentCard(
                 Icon(
                     imageVector = if (isDownloaded) Icons.Default.Check else Icons.Default.ArrowDownward,
                     contentDescription = "Descargar",
-                    tint = PanalinkPalette.textPrimary,
+                    tint = IosSettingsColors.label,
                     modifier = Modifier.size(24.dp)
                 )
             }
@@ -381,7 +381,7 @@ fun ApkFileAttachmentCard(
             Column(modifier = Modifier.weight(1f)) {
                 Text(
                     text = fileInfo.fileName,
-                    color = PanalinkPalette.textPrimary,
+                    color = IosSettingsColors.label,
                     fontWeight = FontWeight.Bold,
                     fontSize = 14.sp,
                     maxLines = 1,
@@ -437,19 +437,19 @@ private fun formatChannelMessageText(text: String): androidx.compose.ui.text.Ann
         lines.forEachIndexed { index, line ->
             when {
                 line.startsWith("http://") || line.startsWith("https://") -> {
-                    withStyle(SpanStyle(color = Color(0xFF00E5FF), textDecoration = TextDecoration.Underline)) {
+                    withStyle(SpanStyle(color = IosSettingsColors.blue, textDecoration = TextDecoration.Underline)) {
                         append(line)
                     }
                 }
                 line.startsWith("#") -> {
-                    withStyle(SpanStyle(color = Color(0xFF00E5FF), fontWeight = FontWeight.Bold)) {
+                    withStyle(SpanStyle(color = IosSettingsColors.blue, fontWeight = FontWeight.Bold)) {
                         append(line)
                     }
                 }
                 line.contains("Note:", ignoreCase = true) || line.contains("Title:", ignoreCase = true) || line.contains("Fast Download", ignoreCase = true) -> {
                     val parts = line.split(":", limit = 2)
                     if (parts.size == 2) {
-                        withStyle(SpanStyle(fontWeight = FontWeight.Bold, color = PanalinkPalette.textPrimary)) {
+                        withStyle(SpanStyle(fontWeight = FontWeight.Bold, color = IosSettingsColors.label)) {
                             append("${parts[0]}:")
                         }
                         append(parts[1])

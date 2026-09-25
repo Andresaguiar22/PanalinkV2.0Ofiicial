@@ -23,7 +23,7 @@ import androidx.compose.ui.window.DialogProperties
 import coil.compose.AsyncImage
 import coil.request.ImageRequest
 import com.example.data.model.Message
-import com.example.ui.theme.PanalinkPalette
+import com.example.ui.settings.ios.IosSettingsColors
 
 @Composable
 fun GhostViewerDialog(
@@ -66,12 +66,12 @@ fun GhostViewerDialog(
                         )
                         Text(
                             text = "Este contenido desaparecerá para siempre",
-                            color = PanalinkPalette.textPrimary.copy(alpha = 0.6f),
+                            color = IosSettingsColors.secondaryLabel,
                             fontSize = 12.sp
                         )
                     }
                     IconButton(onClick = onClose) {
-                        Icon(Icons.Default.Close, contentDescription = "Cerrar", tint = PanalinkPalette.textPrimary)
+                        Icon(Icons.Default.Close, contentDescription = "Cerrar", tint = IosSettingsColors.label)
                     }
                 }
 
@@ -108,7 +108,7 @@ fun GhostViewerDialog(
                                 Column(horizontalAlignment = Alignment.CenterHorizontally) {
                                     Icon(Icons.Default.Warning, contentDescription = null, tint = Color.Yellow, modifier = Modifier.size(48.dp))
                                     Spacer(modifier = Modifier.height(16.dp))
-                                    Text("Video de vista única", color = PanalinkPalette.textPrimary, textAlign = TextAlign.Center)
+                                    Text("Video de vista única", color = IosSettingsColors.label, textAlign = TextAlign.Center)
                                 }
                             }
                         }
@@ -126,7 +126,7 @@ fun GhostViewerDialog(
                                 Spacer(modifier = Modifier.height(16.dp))
                                 Text(
                                     text = "Nota de voz de vista única",
-                                    color = PanalinkPalette.textPrimary,
+                                    color = IosSettingsColors.label,
                                     fontWeight = FontWeight.Bold,
                                     fontSize = 18.sp
                                 )
@@ -135,7 +135,7 @@ fun GhostViewerDialog(
                         else -> {
                             Text(
                                 text = rawText,
-                                color = PanalinkPalette.textPrimary,
+                                color = IosSettingsColors.label,
                                 fontSize = 18.sp,
                                 textAlign = TextAlign.Center,
                                 modifier = Modifier.padding(24.dp)

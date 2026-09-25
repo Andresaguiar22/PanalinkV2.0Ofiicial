@@ -15,7 +15,7 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.example.live.ui.formatLiveCount
 import com.example.ui.components.PanaAvatar
-import com.example.ui.theme.PanalinkPalette
+import com.example.ui.settings.ios.IosSettingsColors
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -38,7 +38,7 @@ fun LiveStudioSheet(
         contentColor = Color.White
     ) {
         Column(modifier = Modifier.padding(horizontal = 16.dp)) {
-            Text("Panalink Studio", fontSize = 18.sp, fontWeight = FontWeight.Bold, color = PanalinkPalette.textPrimary)
+            Text("Panalink Studio", fontSize = 18.sp, fontWeight = FontWeight.Bold, color = IosSettingsColors.label)
             Spacer(modifier = Modifier.height(12.dp))
 
             Row(verticalAlignment = Alignment.CenterVertically) {
@@ -51,10 +51,10 @@ fun LiveStudioSheet(
                 )
                 Spacer(modifier = Modifier.width(12.dp))
                 Column {
-                    Text(hostName, color = PanalinkPalette.textPrimary, fontSize = 15.sp, fontWeight = FontWeight.Bold)
+                    Text(hostName, color = IosSettingsColors.label, fontSize = 15.sp, fontWeight = FontWeight.Bold)
                     Text(
                         text = if (isBroadcaster) "Estás transmitiendo" else "Anfitrión del directo",
-                        color = PanalinkPalette.textPrimary.copy(alpha = 0.7f),
+                        color = IosSettingsColors.secondaryLabel,
                         fontSize = 12.sp
                     )
                 }
@@ -72,7 +72,7 @@ fun LiveStudioSheet(
 
             Text(
                 text = "En el directo ahora: ${presentUsers.size}",
-                color = PanalinkPalette.textPrimary.copy(alpha = 0.8f),
+                color = IosSettingsColors.label.copy(alpha = 0.8f),
                 fontSize = 13.sp,
                 fontWeight = FontWeight.Bold
             )
@@ -81,7 +81,7 @@ fun LiveStudioSheet(
             if (presentUsers.isEmpty()) {
                 Text(
                     text = "Todavía no hay otros espectadores.",
-                    color = PanalinkPalette.textPrimary.copy(alpha = 0.6f),
+                    color = IosSettingsColors.secondaryLabel,
                     fontSize = 12.sp
                 )
             } else {
@@ -100,7 +100,7 @@ fun LiveStudioSheet(
                             Spacer(modifier = Modifier.height(4.dp))
                             Text(
                                 text = if (userId == myUserId) "Tú" else identity.displayNameOr(userId),
-                                color = PanalinkPalette.textPrimary.copy(alpha = 0.85f),
+                                color = IosSettingsColors.label.copy(alpha = 0.85f),
                                 fontSize = 10.sp,
                                 maxLines = 1
                             )
@@ -113,13 +113,13 @@ fun LiveStudioSheet(
 
             Button(
                 onClick = onStartOwnLive,
-                colors = ButtonDefaults.buttonColors(containerColor = Color(0xFF18E7F5)),
+                colors = ButtonDefaults.buttonColors(containerColor = IosSettingsColors.blue),
                 shape = RoundedCornerShape(50),
                 modifier = Modifier
                     .fillMaxWidth()
                     .height(48.dp)
             ) {
-                Text("Transmitir mi propio Live", color = PanalinkPalette.textPrimary, fontWeight = FontWeight.Bold)
+                Text("Transmitir mi propio Live", color = IosSettingsColors.label, fontWeight = FontWeight.Bold)
             }
 
             Spacer(modifier = Modifier.height(10.dp))
@@ -131,7 +131,7 @@ fun LiveStudioSheet(
                     .fillMaxWidth()
                     .height(48.dp)
             ) {
-                Text("Solicitar ser co-host", color = PanalinkPalette.textPrimary)
+                Text("Solicitar ser co-host", color = IosSettingsColors.label)
             }
 
             Spacer(modifier = Modifier.height(20.dp))
@@ -148,6 +148,6 @@ private fun StudioMetric(label: String, value: String, accent: Color) {
         horizontalAlignment = Alignment.CenterHorizontally
     ) {
         Text(value, color = accent, fontSize = 16.sp, fontWeight = FontWeight.Bold)
-        Text(label, color = PanalinkPalette.textPrimary.copy(alpha = 0.7f), fontSize = 10.sp)
+        Text(label, color = IosSettingsColors.secondaryLabel, fontSize = 10.sp)
     }
 }

@@ -45,7 +45,7 @@ import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
-import com.example.ui.theme.PanalinkPalette
+import com.example.ui.settings.ios.IosSettingsColors
 
 /**
  * Visor a Pantalla Completa para Fotos y Videos en el Chat.
@@ -128,14 +128,14 @@ fun FullScreenMediaViewer(
                             Icon(
                                 imageVector = Icons.Default.Close,
                                 contentDescription = "Cerrar",
-                                tint = PanalinkPalette.textPrimary
+                                tint = IosSettingsColors.label
                             )
                         }
                         if (!title.isNullOrEmpty()) {
                             Spacer(modifier = Modifier.width(8.dp))
                             Text(
                                 text = title!!,
-                                color = PanalinkPalette.textPrimary,
+                                color = IosSettingsColors.label,
                                 fontSize = 16.sp,
                                 fontWeight = FontWeight.SemiBold
                             )
@@ -152,7 +152,7 @@ fun FullScreenMediaViewer(
                             Icon(
                                 imageVector = Icons.Default.Download,
                                 contentDescription = "Guardar en Galería",
-                                tint = PanalinkPalette.textPrimary
+                                tint = IosSettingsColors.label
                             )
                         }
 
@@ -165,7 +165,7 @@ fun FullScreenMediaViewer(
                             Icon(
                                 imageVector = Icons.Default.Share,
                                 contentDescription = "Compartir",
-                                tint = PanalinkPalette.textPrimary
+                                tint = IosSettingsColors.label
                             )
                         }
                     }
@@ -370,7 +370,7 @@ private fun VideoViewerContent(
                     Icon(
                         imageVector = if (isPlaying) Icons.Default.Pause else Icons.Default.PlayArrow,
                         contentDescription = if (isPlaying) "Pausar" else "Reproducir",
-                        tint = PanalinkPalette.textPrimary,
+                        tint = IosSettingsColors.label,
                         modifier = Modifier.size(40.dp)
                     )
                 }
@@ -393,7 +393,7 @@ private fun VideoViewerContent(
                         val formattedTotal = formatDurationMs(durationMs)
                         Text(
                             text = "$formattedCurrent / $formattedTotal",
-                            color = PanalinkPalette.textPrimary,
+                            color = IosSettingsColors.label,
                             fontSize = 13.sp,
                             fontWeight = FontWeight.Medium
                         )
@@ -416,7 +416,7 @@ private fun VideoViewerContent(
                         ) {
                             Text(
                                 text = "${playbackSpeed}x",
-                                color = PanalinkPalette.textPrimary,
+                                color = IosSettingsColors.label,
                                 fontSize = 12.sp,
                                 fontWeight = FontWeight.Bold
                             )

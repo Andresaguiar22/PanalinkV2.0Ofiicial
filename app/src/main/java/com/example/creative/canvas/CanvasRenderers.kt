@@ -30,7 +30,7 @@ import java.io.File
 import androidx.compose.foundation.ExperimentalFoundationApi
 import androidx.compose.foundation.combinedClickable
 import androidx.compose.ui.graphics.graphicsLayer
-import com.example.ui.theme.PanalinkPalette
+import com.example.ui.settings.ios.IosSettingsColors
 
 @OptIn(ExperimentalFoundationApi::class)
 @Composable
@@ -83,7 +83,7 @@ fun TextLayerRenderer(
                 }
             }
             .then(
-                if (isSelected) Modifier.border(1.5.dp, Color(0xFF00E5FF), RoundedCornerShape(4.dp))
+                if (isSelected) Modifier.border(1.5.dp, IosSettingsColors.blue, RoundedCornerShape(4.dp))
                 else Modifier
             )
             .then(
@@ -138,7 +138,7 @@ fun StickerLayerRenderer(
                 }
             }
             .then(
-                if (isSelected) Modifier.border(1.5.dp, Color(0xFF00E5FF), RoundedCornerShape(4.dp))
+                if (isSelected) Modifier.border(1.5.dp, IosSettingsColors.blue, RoundedCornerShape(4.dp))
                 else Modifier
             )
     ) {
@@ -193,7 +193,7 @@ fun InteractiveLayerRenderer(
                 }
             }
             .then(
-                if (isSelected) Modifier.border(1.5.dp, Color(0xFF00E5FF), RoundedCornerShape(12.dp))
+                if (isSelected) Modifier.border(1.5.dp, IosSettingsColors.blue, RoundedCornerShape(12.dp))
                 else Modifier
             )
             .background(Color(0xEE1F1F2C), RoundedCornerShape(16.dp))
@@ -203,14 +203,14 @@ fun InteractiveLayerRenderer(
         Column(horizontalAlignment = Alignment.CenterHorizontally) {
             Text(
                 text = layer.interactiveType.uppercase(),
-                color = Color(0xFF00E5FF),
+                color = IosSettingsColors.blue,
                 fontSize = 11.sp,
                 fontWeight = FontWeight.Bold
             )
             if (layer.title.isNotEmpty()) {
                 Text(
                     text = layer.title,
-                    color = PanalinkPalette.textPrimary,
+                    color = IosSettingsColors.label,
                     fontSize = 15.sp,
                     fontWeight = FontWeight.Bold,
                     modifier = Modifier.padding(top = 4.dp)
@@ -227,7 +227,7 @@ fun InteractiveLayerRenderer(
                                 .background(Color(0xFF2D2D3E), RoundedCornerShape(8.dp))
                                 .padding(horizontal = 12.dp, vertical = 6.dp)
                         ) {
-                            Text(layer.optionA, color = PanalinkPalette.textPrimary, fontSize = 12.sp)
+                            Text(layer.optionA, color = IosSettingsColors.label, fontSize = 12.sp)
                         }
                     }
                     if (layer.optionB.isNotEmpty()) {
@@ -236,7 +236,7 @@ fun InteractiveLayerRenderer(
                                 .background(Color(0xFF2D2D3E), RoundedCornerShape(8.dp))
                                 .padding(horizontal = 12.dp, vertical = 6.dp)
                         ) {
-                            Text(layer.optionB, color = PanalinkPalette.textPrimary, fontSize = 12.sp)
+                            Text(layer.optionB, color = IosSettingsColors.label, fontSize = 12.sp)
                         }
                     }
                 }

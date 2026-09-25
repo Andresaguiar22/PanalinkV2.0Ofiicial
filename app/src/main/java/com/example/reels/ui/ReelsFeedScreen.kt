@@ -133,7 +133,7 @@ import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.collect
 import kotlinx.coroutines.flow.distinctUntilChanged
 import kotlinx.coroutines.launch
-import com.example.ui.theme.PanalinkPalette
+import com.example.ui.settings.ios.IosSettingsColors
 
 private const val MIN_REEL_SCALE = 1f
 private const val MAX_REEL_SCALE = 4f
@@ -320,7 +320,7 @@ fun ReelsFeedScreen(
 
     if (filteredReels.isEmpty()) {
         Box(modifier = Modifier.fillMaxSize().background(Color.Black), contentAlignment = Alignment.Center) {
-            Text("Sin reels todavía", color = PanalinkPalette.textPrimary)
+            Text("Sin reels todavía", color = IosSettingsColors.label)
         }
         return
     }
@@ -774,7 +774,7 @@ private fun ReelFeedOverlay(
                     Icon(
                         if (paused) Icons.Filled.PlayArrow else Icons.Filled.Pause,
                         "ReproducciГіn",
-                        tint = PanalinkPalette.textPrimary,
+                        tint = IosSettingsColors.label,
                         modifier = Modifier.size(30.dp)
                     )
                 }
@@ -831,7 +831,7 @@ private fun ReelFeedOverlay(
                         Icon(
                             if (isFollowing) Icons.Filled.Check else Icons.Filled.Add,
                             contentDescription = if (isFollowing) "Dejar de seguir" else "Seguir",
-                            tint = PanalinkPalette.textPrimary,
+                            tint = IosSettingsColors.label,
                             modifier = Modifier.size(13.dp)
                         )
                     }
@@ -883,7 +883,7 @@ private fun ReelFeedOverlay(
                     DropdownMenuItem(text = { Text("No me interesa") }, onClick = { menuExpanded = false; onNotInterested() })
                     DropdownMenuItem(text = { Text("Ver perfil") }, onClick = { menuExpanded = false; onProfile() })
                     if (isOwner) {
-                        HorizontalDivider(color = PanalinkPalette.textPrimary.copy(alpha = 0.14f))
+                        HorizontalDivider(color = IosSettingsColors.label.copy(alpha = 0.14f))
                         DropdownMenuItem(
                             text = { Text("Eliminar vídeo", color = Color(0xFFFF5252)) },
                             onClick = { menuExpanded = false; onDelete() },
@@ -914,7 +914,7 @@ private fun ReelFeedOverlay(
                 Spacer(Modifier.width(9.dp))
                 Text(
                     profile.displayName?.ifBlank { "pana" } ?: "pana",
-                    color = PanalinkPalette.textPrimary,
+                    color = IosSettingsColors.label,
                     style = MaterialTheme.typography.titleMedium,
                     fontWeight = FontWeight.SemiBold,
                     maxLines = 1,
@@ -925,7 +925,7 @@ private fun ReelFeedOverlay(
                     Spacer(Modifier.width(8.dp))
                     Text(
                         if (isFollowing) "Siguiendo" else "Seguir",
-                        color = PanalinkPalette.textPrimary,
+                        color = IosSettingsColors.label,
                         fontWeight = FontWeight.Bold,
                         style = MaterialTheme.typography.labelMedium,
                         modifier = Modifier
@@ -964,7 +964,7 @@ private fun ReelFeedOverlay(
                 ) {
                     Text(
                         cleanCaption,
-                        color = PanalinkPalette.textPrimary,
+                        color = IosSettingsColors.label,
                         fontSize = 14.sp,
                         lineHeight = 17.sp,
                         maxLines = if (expanded) Int.MAX_VALUE else 2,
@@ -1090,8 +1090,8 @@ private fun ReelProgressBar(
 
     Column(modifier = modifier, verticalArrangement = Arrangement.spacedBy(2.dp)) {
         Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween) {
-            Text(formatTimeV2(shownPosition), color = PanalinkPalette.textPrimary, style = MaterialTheme.typography.labelSmall)
-            Text(formatTimeV2(durationMs), color = PanalinkPalette.textPrimary.copy(alpha = 0.72f), style = MaterialTheme.typography.labelSmall)
+            Text(formatTimeV2(shownPosition), color = IosSettingsColors.label, style = MaterialTheme.typography.labelSmall)
+            Text(formatTimeV2(durationMs), color = IosSettingsColors.label.copy(alpha = 0.72f), style = MaterialTheme.typography.labelSmall)
         }
         Box(
             modifier = Modifier
@@ -1171,7 +1171,7 @@ private fun ReelActionButtonV2(
         if (!count.isNullOrBlank()) {
             Text(
                 count,
-                color = PanalinkPalette.textPrimary,
+                color = IosSettingsColors.label,
                 fontSize = 12.sp,
                 fontWeight = FontWeight.SemiBold,
                 style = TextStyle(
@@ -1287,16 +1287,16 @@ private fun ReelsCommentsSheetV2(
                     ) {
                         Text(
                             text = "Comentarios (${comments.size})",
-                            color = PanalinkPalette.textPrimary,
+                            color = IosSettingsColors.label,
                             fontWeight = FontWeight.Bold,
                             fontSize = 16.sp
                         )
                         IconButton(onClick = onDismiss) {
-                            Icon(Icons.Filled.Close, contentDescription = "Cerrar", tint = PanalinkPalette.textPrimary)
+                            Icon(Icons.Filled.Close, contentDescription = "Cerrar", tint = IosSettingsColors.label)
                         }
                     }
 
-                    HorizontalDivider(color = PanalinkPalette.textPrimary.copy(alpha = 0.1f))
+                    HorizontalDivider(color = IosSettingsColors.label.copy(alpha = 0.1f))
 
                     // Scrollable comment list (threaded replies inline).
                     LazyColumn(
@@ -1317,7 +1317,7 @@ private fun ReelsCommentsSheetV2(
                                 if (isReply) {
                                     Text(
                                         text = "в””в”Җ ",
-                                        color = PanalinkPalette.textPrimary.copy(alpha = 0.3f),
+                                        color = IosSettingsColors.label.copy(alpha = 0.3f),
                                         fontSize = 14.sp,
                                         modifier = Modifier.padding(end = 4.dp, top = 2.dp)
                                     )
@@ -1340,7 +1340,7 @@ private fun ReelsCommentsSheetV2(
                                         Text(
                                             text = if (comment.deletedAt != null) "Eliminado"
                                                 else PublicProfileResolver.formatForUi(comment.authorName, "Pana"),
-                                            color = PanalinkPalette.textPrimary.copy(alpha = 0.9f),
+                                            color = IosSettingsColors.label.copy(alpha = 0.9f),
                                             fontWeight = FontWeight.Bold,
                                               fontSize = if (isReply) 12.sp else 13.sp,
                                             modifier = Modifier.clickable { }
@@ -1364,13 +1364,13 @@ private fun ReelsCommentsSheetV2(
                                         }
                                         Text(
                                             text = timeStr,
-                                            color = PanalinkPalette.textPrimary.copy(alpha = 0.5f),
+                                            color = IosSettingsColors.secondaryLabel,
                                             fontSize = 11.sp
                                         )
                                         if (comment.deletedAt == null) {
                                             Text(
                                                 text = "вҖў Responder",
-                                                color = PanalinkPalette.accent,
+                                                color = IosSettingsColors.blue,
                                                 fontSize = 11.sp,
                                                 fontWeight = FontWeight.SemiBold,
                                                 modifier = Modifier
@@ -1402,7 +1402,7 @@ private fun ReelsCommentsSheetV2(
                                     }
                                     if (comment.deletedAt != null) {
                                         IconButton(onClick = { viewModel.deleteComment(reelId, comment.id) }) {
-                                            Icon(Icons.Filled.Delete, contentDescription = "Eliminar", tint = PanalinkPalette.textPrimary.copy(alpha = 0.5f))
+                                            Icon(Icons.Filled.Delete, contentDescription = "Eliminar", tint = IosSettingsColors.secondaryLabel)
                                         }
                                     }
                                 }
@@ -1410,7 +1410,7 @@ private fun ReelsCommentsSheetV2(
                         }
                     }
 
-                    HorizontalDivider(color = PanalinkPalette.textPrimary.copy(alpha = 0.1f))
+                    HorizontalDivider(color = IosSettingsColors.label.copy(alpha = 0.1f))
 
                     // Replying banner
                     val currentReplyingTo = replyingTo
@@ -1418,14 +1418,14 @@ private fun ReelsCommentsSheetV2(
                         Row(
                             modifier = Modifier
                                 .fillMaxWidth()
-                                .background(PanalinkPalette.surface)
+                                .background(IosSettingsColors.cell)
                                 .padding(horizontal = 16.dp, vertical = 8.dp),
                             verticalAlignment = Alignment.CenterVertically,
                             horizontalArrangement = Arrangement.SpaceBetween
                         ) {
                             Text(
                                 text = "Respondiendo a @${PublicProfileResolver.formatForUi(currentReplyingTo.authorName, "Pana")}",
-                                color = PanalinkPalette.accent,
+                                color = IosSettingsColors.blue,
                                 fontSize = 12.sp,
                                 fontWeight = FontWeight.SemiBold
                             )
@@ -1461,14 +1461,14 @@ private fun ReelsCommentsSheetV2(
                             modifier = Modifier
                                 .weight(1f)
                                 .focusRequester(focusRequester),
-                            textStyle = TextStyle(color = PanalinkPalette.textPrimary, fontSize = 14.sp),
+                            textStyle = TextStyle(color = IosSettingsColors.label, fontSize = 14.sp),
                             maxLines = 2,
                             colors = OutlinedTextFieldDefaults.colors(
                                 focusedTextColor = Color.White,
                                 unfocusedTextColor = Color.White,
-                                focusedContainerColor = PanalinkPalette.surface,
-                                unfocusedContainerColor = PanalinkPalette.surface,
-                                focusedBorderColor = PanalinkPalette.accent,
+                                focusedContainerColor = IosSettingsColors.cell,
+                                unfocusedContainerColor = IosSettingsColors.cell,
+                                focusedBorderColor = IosSettingsColors.blue,
                                 unfocusedBorderColor = Color.Transparent
                             ),
                             shape = RoundedCornerShape(24.dp)
@@ -1478,9 +1478,9 @@ IconButton(
                                 modifier = Modifier
                                     .size(40.dp)
                                     .clip(CircleShape)
-                                    .background(PanalinkPalette.surface)
+                                    .background(IosSettingsColors.cell)
                             ) {
-                                Text("GIF", fontSize = 13.sp, fontWeight = FontWeight.Bold, color = PanalinkPalette.accent)
+                                Text("GIF", fontSize = 13.sp, fontWeight = FontWeight.Bold, color = IosSettingsColors.blue)
                             }
                         IconButton(
                             onClick = {
@@ -1491,7 +1491,7 @@ IconButton(
                                 }
                             },
                             modifier = Modifier
-                                .background(PanalinkPalette.accent, CircleShape)
+                                .background(IosSettingsColors.blue, CircleShape)
                                 .size(40.dp)
                         ) {
                             Icon(

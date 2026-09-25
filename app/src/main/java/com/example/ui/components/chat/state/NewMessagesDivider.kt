@@ -13,13 +13,13 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-import com.example.ui.theme.PanalinkPalette
+import com.example.ui.settings.ios.IosSettingsColors
 
 @Composable
 fun NewMessagesDivider(
     modifier: Modifier = Modifier,
     text: String = "Mensajes nuevos",
-    color: Color = PanalinkPalette.accent.copy(alpha = 0.9f)
+    color: Color = IosSettingsColors.blue.copy(alpha = 0.9f)
 ) {
     Box(
         modifier = modifier
@@ -46,7 +46,7 @@ fun NewMessagesDivider(
             ) {
                 Text(
                     text = text,
-                    color = PanalinkPalette.textPrimary,
+                    color = IosSettingsColors.label,
                     fontSize = 11.sp,
                     fontWeight = FontWeight.Bold
                 )

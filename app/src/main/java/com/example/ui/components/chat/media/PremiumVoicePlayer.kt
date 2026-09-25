@@ -27,7 +27,7 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import kotlin.math.abs
 import com.example.ui.components.PanaAvatar
-import com.example.ui.theme.PanalinkPalette
+import com.example.ui.settings.ios.IosSettingsColors
 
 @Composable
 fun PremiumVoicePlayer(
@@ -93,7 +93,7 @@ fun PremiumVoicePlayer(
     val bubbleBgColor = backgroundColor
     val contentTextColor = if (isSender) Color.White else Color(0xE6FFFFFF) // 90% white
     val playedColor = if (isVoiceNote || isSender) {
-        if (isSender) Color(0xFF00E5FF) else Color(0xFF38BDF8)
+        if (isSender) IosSettingsColors.blue else Color(0xFF38BDF8)
     } else {
         Color(0xFFA78BFA)
     }
@@ -267,7 +267,7 @@ fun PremiumVoicePlayer(
                             }
                             onSpeedChange(playbackSpeed)
                         },
-                    color = PanalinkPalette.textPrimary.copy(alpha = 0.08f)
+                    color = IosSettingsColors.label.copy(alpha = 0.08f)
                 ) {
                     Text(
                         text = "${if (playbackSpeed % 1f == 0f) playbackSpeed.toInt() else playbackSpeed}x",
@@ -303,7 +303,7 @@ fun PremiumVoicePlayer(
                     Icon(
                         imageVector = Icons.Default.Mic,
                         contentDescription = null,
-                        tint = PanalinkPalette.textPrimary,
+                        tint = IosSettingsColors.label,
                         modifier = Modifier.size(9.dp)
                     )
                 }

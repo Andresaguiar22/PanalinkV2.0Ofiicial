@@ -13,7 +13,7 @@ import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.example.media.audio.AudioTrackEntity
-import com.example.ui.theme.PanalinkPalette
+import com.example.ui.settings.ios.IosSettingsColors
 
 @Composable
 fun TrackOptionsBottomSheet(
@@ -28,7 +28,7 @@ fun TrackOptionsBottomSheet(
     onDismiss: () -> Unit
 ) {
     Column(modifier = Modifier.fillMaxWidth().padding(16.dp)) {
-        Text(track.title, color = PanalinkPalette.textPrimary, fontSize = 18.sp, modifier = Modifier.padding(bottom = 16.dp))
+        Text(track.title, color = IosSettingsColors.label, fontSize = 18.sp, modifier = Modifier.padding(bottom = 16.dp))
         
         OptionItem(Icons.Default.PlayArrow, "Reproducir siguiente", onClick = { onPlayNext(); onDismiss() })
         

@@ -15,7 +15,7 @@ import androidx.compose.ui.unit.sp
 import com.example.live.domain.model.GuestStatus
 import com.example.live.domain.model.LiveGuest
 import com.example.ui.components.PanaAvatar
-import com.example.ui.theme.PanalinkPalette
+import com.example.ui.settings.ios.IosSettingsColors
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -49,7 +49,7 @@ fun LiveRequestsSheet(
                 text = if (isBroadcaster) "Solicitudes de co-host" else "Co-host y espectadores",
                 fontSize = 18.sp,
                 fontWeight = FontWeight.Bold,
-                color = PanalinkPalette.textPrimary
+                color = IosSettingsColors.label
             )
 
             Spacer(modifier = Modifier.height(12.dp))
@@ -58,7 +58,7 @@ fun LiveRequestsSheet(
                 if (pending.isEmpty()) {
                     Text(
                         text = "No hay solicitudes pendientes.",
-                        color = PanalinkPalette.textPrimary.copy(alpha = 0.7f),
+                        color = IosSettingsColors.secondaryLabel,
                         fontSize = 13.sp
                     )
                 } else {
@@ -68,7 +68,7 @@ fun LiveRequestsSheet(
                             subtitle = "Quiere ser co-host",
                             actions = {
                                 TextButton(onClick = { onAccept(guest.userId) }) {
-                                    Text("Aceptar", color = Color(0xFF18E7F5), fontWeight = FontWeight.Bold)
+                                    Text("Aceptar", color = IosSettingsColors.blue, fontWeight = FontWeight.Bold)
                                 }
                                 TextButton(onClick = { onReject(guest.userId) }) {
                                     Text("Rechazar", color = Color(0xFFEF5350))
@@ -92,7 +92,7 @@ fun LiveRequestsSheet(
                             )
                             GuestStatus.ACCEPTED, GuestStatus.ACTIVE, GuestStatus.CONNECTED -> Text(
                                 text = "✅ Eres co-host de este directo.",
-                                color = Color(0xFF18E7F5),
+                                color = IosSettingsColors.blue,
                                 fontSize = 13.sp,
                                 fontWeight = FontWeight.Bold
                             )
@@ -103,7 +103,7 @@ fun LiveRequestsSheet(
                             )
                             else -> Text(
                                 text = "Solicita al anfitrión unirte al directo como co-host.",
-                                color = PanalinkPalette.textPrimary.copy(alpha = 0.85f),
+                                color = IosSettingsColors.label.copy(alpha = 0.85f),
                                 fontSize = 13.sp
                             )
                         }
@@ -116,21 +116,21 @@ fun LiveRequestsSheet(
                                 colors = ButtonDefaults.buttonColors(containerColor = Color(0xFF3A3A44)),
                                 shape = RoundedCornerShape(50),
                                 modifier = Modifier.fillMaxWidth()
-                            ) { Text("Cancelar solicitud", color = PanalinkPalette.textPrimary) }
+                            ) { Text("Cancelar solicitud", color = IosSettingsColors.label) }
 
                             GuestStatus.ACCEPTED, GuestStatus.ACTIVE, GuestStatus.CONNECTED -> Button(
                                 onClick = { onLeaveAsGuest() },
                                 colors = ButtonDefaults.buttonColors(containerColor = Color(0xFFEF5350)),
                                 shape = RoundedCornerShape(50),
                                 modifier = Modifier.fillMaxWidth()
-                            ) { Text("Salir como co-host", color = PanalinkPalette.textPrimary) }
+                            ) { Text("Salir como co-host", color = IosSettingsColors.label) }
 
                             else -> Button(
                                 onClick = { onRequestToJoin() },
                                 colors = ButtonDefaults.buttonColors(containerColor = Color(0xFFA73BFA)),
                                 shape = RoundedCornerShape(50),
                                 modifier = Modifier.fillMaxWidth()
-                            ) { Text("Solicitar ser co-host", color = PanalinkPalette.textPrimary, fontWeight = FontWeight.Bold) }
+                            ) { Text("Solicitar ser co-host", color = IosSettingsColors.label, fontWeight = FontWeight.Bold) }
                         }
                     }
                 }
@@ -140,7 +140,7 @@ fun LiveRequestsSheet(
 
             Text(
                 text = "Espectadores ahora: ${presentUsers.size}",
-                color = PanalinkPalette.textPrimary.copy(alpha = 0.8f),
+                color = IosSettingsColors.label.copy(alpha = 0.8f),
                 fontSize = 13.sp,
                 fontWeight = FontWeight.Bold
             )
@@ -150,7 +150,7 @@ fun LiveRequestsSheet(
             if (presentUsers.isEmpty()) {
                 Text(
                     text = "Aún no hay otros espectadores.",
-                    color = PanalinkPalette.textPrimary.copy(alpha = 0.6f),
+                    color = IosSettingsColors.secondaryLabel,
                     fontSize = 12.sp
                 )
             } else {
@@ -171,7 +171,7 @@ fun LiveRequestsSheet(
                             Spacer(modifier = Modifier.width(10.dp))
                             Text(
                                 text = if (userId == myUserId) "Tú" else identity.displayNameOr(userId),
-                                color = PanalinkPalette.textPrimary,
+                                color = IosSettingsColors.label,
                                 fontSize = 13.sp
                             )
                         }
@@ -184,7 +184,7 @@ fun LiveRequestsSheet(
             if (isBroadcaster && active.isNotEmpty()) {
                 Text(
                     text = "Co-hosts activos",
-                    color = PanalinkPalette.textPrimary.copy(alpha = 0.8f),
+                    color = IosSettingsColors.label.copy(alpha = 0.8f),
                     fontSize = 13.sp,
                     fontWeight = FontWeight.Bold
                 )
@@ -231,13 +231,13 @@ private fun GuestRow(
         Column(modifier = Modifier.weight(1f)) {
             Text(
                 text = identity.displayNameOr(guest.userId),
-                color = PanalinkPalette.textPrimary,
+                color = IosSettingsColors.label,
                 fontSize = 13.sp,
                 fontWeight = FontWeight.SemiBold
             )
             Text(
                 text = subtitle,
-                color = PanalinkPalette.textPrimary.copy(alpha = 0.65f),
+                color = IosSettingsColors.label.copy(alpha = 0.65f),
                 fontSize = 11.sp
             )
         }

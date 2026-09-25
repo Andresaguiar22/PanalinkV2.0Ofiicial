@@ -20,7 +20,7 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.example.premium.domain.PremiumFeatures
 import com.example.premium.domain.PremiumManager
-import com.example.ui.theme.PanalinkPalette
+import com.example.ui.settings.ios.IosSettingsColors
 import com.example.ui.theme.PanalinkSkin
 
 /**
@@ -91,7 +91,7 @@ fun PremiumLockedPanel(
         )
         Text(
             text = "Esta es una función Premium. Actívala con monedas por días para desbloquear todos sus beneficios.",
-            color = PanalinkPalette.textPrimary.copy(alpha = 0.7f),
+            color = IosSettingsColors.secondaryLabel,
             fontSize = 13.sp,
             textAlign = TextAlign.Center
         )

@@ -18,7 +18,7 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.example.creative.core.CreativeLayer
-import com.example.ui.theme.PanalinkPalette
+import com.example.ui.settings.ios.IosSettingsColors
 
 /**
  * P6.5A - Professional Multi-Track Timeline UI Composable
@@ -46,7 +46,7 @@ fun MultiTrackTimelineUI(
             .padding(8.dp),
         colors = CardDefaults.cardColors(containerColor = Color(0xFF121218)),
         shape = RoundedCornerShape(16.dp),
-        border = androidx.compose.foundation.BorderStroke(1.dp, Color(0xFF00E5FF))
+        border = androidx.compose.foundation.BorderStroke(1.dp, IosSettingsColors.blue)
     ) {
         Column(modifier = Modifier.padding(12.dp)) {
             // Header with Playhead Time
@@ -56,18 +56,18 @@ fun MultiTrackTimelineUI(
                 verticalAlignment = Alignment.CenterVertically
             ) {
                 Row(verticalAlignment = Alignment.CenterVertically) {
-                    Icon(Icons.Default.Timeline, contentDescription = null, tint = Color(0xFF00E5FF), modifier = Modifier.size(18.dp))
+                    Icon(Icons.Default.Timeline, contentDescription = null, tint = IosSettingsColors.blue, modifier = Modifier.size(18.dp))
                     Spacer(modifier = Modifier.width(6.dp))
                     Text(
                         text = "Timeline Multipista (${currentTimeMs / 1000f}s / ${totalDurationMs / 1000f}s)",
-                        color = PanalinkPalette.textPrimary,
+                        color = IosSettingsColors.label,
                         fontWeight = FontWeight.Bold,
                         fontSize = 13.sp
                     )
                 }
 
                 Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
-                    Text("Snapping 🧲", color = Color(0xFF00E5FF), fontSize = 11.sp, fontWeight = FontWeight.Bold)
+                    Text("Snapping 🧲", color = IosSettingsColors.blue, fontSize = 11.sp, fontWeight = FontWeight.Bold)
                 }
             }
 
@@ -79,8 +79,8 @@ fun MultiTrackTimelineUI(
                 onValueChange = { onSeek(it.toLong()) },
                 valueRange = 0f..totalDurationMs.toFloat(),
                 colors = SliderDefaults.colors(
-                    thumbColor = Color(0xFF00E5FF),
-                    activeTrackColor = Color(0xFF00E5FF)
+                    thumbColor = IosSettingsColors.blue,
+                    activeTrackColor = IosSettingsColors.blue
                 )
             )
 
@@ -119,7 +119,7 @@ fun MultiTrackTimelineUI(
 
                         Text(
                             text = track.name,
-                            color = PanalinkPalette.textPrimary,
+                            color = IosSettingsColors.label,
                             fontSize = 11.sp,
                             fontWeight = FontWeight.Bold,
                             modifier = Modifier.width(90.dp),
@@ -135,7 +135,7 @@ fun MultiTrackTimelineUI(
                                 .height(22.dp)
                                 .background(
                                     when (track) {
-                                        is CreativeTrack.VideoTrack -> Color(0xFF00E5FF).copy(alpha = 0.8f)
+                                        is CreativeTrack.VideoTrack -> IosSettingsColors.blue.copy(alpha = 0.8f)
                                         is CreativeTrack.AudioTrack -> Color(0xFFE040FB).copy(alpha = 0.8f)
                                         is CreativeTrack.VoiceTrack -> Color(0xFF00FF85).copy(alpha = 0.8f)
                                         else -> Color(0xFFFFD54F).copy(alpha = 0.8f)
@@ -185,7 +185,7 @@ fun MultiTrackTimelineUI(
 
                         Text(
                             text = titleName,
-                            color = PanalinkPalette.textPrimary,
+                            color = IosSettingsColors.label,
                             fontSize = 11.sp,
                             modifier = Modifier.width(90.dp),
                             maxLines = 1

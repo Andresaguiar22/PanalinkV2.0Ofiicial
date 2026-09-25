@@ -23,7 +23,7 @@ import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-import com.example.ui.theme.PanalinkPalette
+import com.example.ui.settings.ios.IosSettingsColors
 
 enum class StudioToolTab {
     TEXT,
@@ -54,14 +54,14 @@ fun StudioLayout(
     Column(
         modifier = modifier
             .fillMaxSize()
-            .background(PanalinkPalette.background)
+            .background(IosSettingsColors.groupBackground)
     ) {
         // ZONA SUPERIOR: Acciones del Proyecto
         Row(
             modifier = Modifier
                 .fillMaxWidth()
                 .height(56.dp)
-                .background(PanalinkPalette.surface)
+                .background(IosSettingsColors.cell)
                 .padding(horizontal = 12.dp),
             horizontalArrangement = Arrangement.SpaceBetween,
             verticalAlignment = Alignment.CenterVertically
@@ -74,7 +74,7 @@ fun StudioLayout(
                     Icon(
                         imageVector = Icons.AutoMirrored.Filled.ArrowBack,
                         contentDescription = "Cerrar",
-                        tint = PanalinkPalette.textPrimary
+                        tint = IosSettingsColors.label
                     )
                 }
 
@@ -85,7 +85,7 @@ fun StudioLayout(
                     Icon(
                         imageVector = Icons.AutoMirrored.Filled.Undo,
                         contentDescription = "Deshacer",
-                        tint = PanalinkPalette.textPrimary
+                        tint = IosSettingsColors.label
                     )
                 }
 
@@ -96,7 +96,7 @@ fun StudioLayout(
                     Icon(
                         imageVector = Icons.AutoMirrored.Filled.Redo,
                         contentDescription = "Rehacer",
-                        tint = PanalinkPalette.textPrimary
+                        tint = IosSettingsColors.label
                     )
                 }
             }
@@ -109,18 +109,18 @@ fun StudioLayout(
                     Icon(
                         imageVector = Icons.Default.Save,
                         contentDescription = null,
-                        tint = Color(0xFF18E7F5),
+                        tint = IosSettingsColors.blue,
                         modifier = Modifier.size(18.dp)
                     )
                     Spacer(modifier = Modifier.width(4.dp))
-                    Text("Borrador", color = Color(0xFF18E7F5), fontSize = 13.sp)
+                    Text("Borrador", color = IosSettingsColors.blue, fontSize = 13.sp)
                 }
 
                 Spacer(modifier = Modifier.width(8.dp))
 
                 Button(
                     onClick = onExportClick,
-                    colors = ButtonDefaults.buttonColors(containerColor = Color(0xFF18E7F5)),
+                    colors = ButtonDefaults.buttonColors(containerColor = IosSettingsColors.blue),
                     shape = RoundedCornerShape(20.dp),
                     contentPadding = PaddingValues(horizontal = 16.dp, vertical = 6.dp),
                     modifier = Modifier.testTag("btn_export_studio")
@@ -168,7 +168,7 @@ fun StudioLayout(
                 modifier = Modifier
                     .width(64.dp)
                     .fillMaxHeight()
-                    .background(PanalinkPalette.surface)
+                    .background(IosSettingsColors.cell)
                     .padding(vertical = 8.dp),
                 horizontalAlignment = Alignment.CenterHorizontally,
                 verticalArrangement = Arrangement.SpaceEvenly
@@ -229,7 +229,7 @@ fun StudioLayout(
             modifier = Modifier
                 .fillMaxWidth()
                 .height(110.dp)
-                .background(PanalinkPalette.surface)
+                .background(IosSettingsColors.cell)
                 .padding(horizontal = 12.dp, vertical = 6.dp)
         ) {
             timelineContent()
@@ -244,7 +244,7 @@ private fun StudioToolIconButton(
     isSelected: Boolean,
     onClick: () -> Unit
 ) {
-    val bgColor = if (isSelected) Color(0xFF00E5FF) else Color.Transparent
+    val bgColor = if (isSelected) IosSettingsColors.blue else Color.Transparent
     val contentColor = if (isSelected) Color.Black else Color.White
 
     Column(
@@ -269,7 +269,7 @@ private fun StudioToolIconButton(
         }
         Text(
             text = label,
-            color = if (isSelected) Color(0xFF00E5FF) else Color.Gray,
+            color = if (isSelected) IosSettingsColors.blue else Color.Gray,
             fontSize = 9.sp,
             fontWeight = if (isSelected) FontWeight.Bold else FontWeight.Normal
         )

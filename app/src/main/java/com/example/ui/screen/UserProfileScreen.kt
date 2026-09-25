@@ -36,7 +36,7 @@ import com.example.data.supabase.SupabaseClient
 import com.example.ui.viewmodel.StatesUiState
 import com.example.ui.viewmodel.StatesViewModel
 import kotlinx.coroutines.launch
-import com.example.ui.theme.PanalinkPalette
+import com.example.ui.settings.ios.IosSettingsColors
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -254,14 +254,14 @@ fun UserProfileScreen(
                             ) {
                                 Text(
                                     text = profile.displayName ?: "",
-                                    color = PanalinkPalette.textPrimary,
+                                    color = IosSettingsColors.label,
                                     fontWeight = FontWeight.Bold,
                                     fontSize = 22.sp
                                 )
                                 Spacer(modifier = Modifier.height(4.dp))
                                 Text(
                                     text = "@${profile.displayName?.lowercase()?.replace(" ", "") ?: "pana"}",
-                                    color = PanalinkPalette.textPrimary.copy(alpha = 0.8f),
+                                    color = IosSettingsColors.secondaryLabel,
                                     fontSize = 14.sp
                                 )
                             }
@@ -302,22 +302,22 @@ fun UserProfileScreen(
                                         horizontalArrangement = Arrangement.spacedBy(16.dp)
                                     ) {
                                         Column(horizontalAlignment = Alignment.CenterHorizontally) {
-                                            Text(text = "$followerCount", color = PanalinkPalette.textPrimary, fontWeight = FontWeight.Bold, fontSize = 16.sp)
-                                            Text(text = "Seguidores", color = PanalinkPalette.textPrimary.copy(alpha = 0.6f), fontSize = 11.sp)
+                                            Text(text = "$followerCount", color = IosSettingsColors.label, fontWeight = FontWeight.Bold, fontSize = 16.sp)
+                                            Text(text = "Seguidores", color = IosSettingsColors.secondaryLabel, fontSize = 11.sp)
                                         }
                                         Column(horizontalAlignment = Alignment.CenterHorizontally) {
-                                            Text(text = "$followingCount", color = PanalinkPalette.textPrimary, fontWeight = FontWeight.Bold, fontSize = 16.sp)
-                                            Text(text = "Siguiendo", color = PanalinkPalette.textPrimary.copy(alpha = 0.6f), fontSize = 11.sp)
+                                            Text(text = "$followingCount", color = IosSettingsColors.label, fontWeight = FontWeight.Bold, fontSize = 16.sp)
+                                            Text(text = "Siguiendo", color = IosSettingsColors.secondaryLabel, fontSize = 11.sp)
                                         }
                                         Column(horizontalAlignment = Alignment.CenterHorizontally) {
-                                            Text(text = "$totalLikesCount", color = PanalinkPalette.textPrimary, fontWeight = FontWeight.Bold, fontSize = 16.sp)
-                                            Text(text = "Me gusta", color = PanalinkPalette.textPrimary.copy(alpha = 0.6f), fontSize = 11.sp)
+                                            Text(text = "$totalLikesCount", color = IosSettingsColors.label, fontWeight = FontWeight.Bold, fontSize = 16.sp)
+                                            Text(text = "Me gusta", color = IosSettingsColors.secondaryLabel, fontSize = 11.sp)
                                         }
                                     }
                                     
                                     Text(
                                         text = presenceStatusLabel,
-                                        color = PanalinkPalette.textPrimary.copy(alpha = 0.7f),
+                                        color = IosSettingsColors.secondaryLabel,
                                         fontSize = 12.sp,
                                         modifier = Modifier.padding(vertical = 2.dp)
                                     )
@@ -587,12 +587,12 @@ fun UserProfileScreen(
                                                     Icon(
                                                         imageVector = Icons.Default.PlayArrow,
                                                         contentDescription = null,
-                                                        tint = PanalinkPalette.textPrimary,
+                                                        tint = IosSettingsColors.label,
                                                         modifier = Modifier.size(12.dp)
                                                     )
                                                     Text(
                                                         text = (reel.state.viewsCount ?: 0).toString(),
-                                                        color = PanalinkPalette.textPrimary,
+                                                        color = IosSettingsColors.label,
                                                         fontSize = 11.sp,
                                                         fontWeight = FontWeight.Bold
                                                     )

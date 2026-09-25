@@ -29,7 +29,7 @@ import com.example.identity.model.toIdentityUiState
 import com.example.ui.theme.ChatCardPosition
 import com.example.ui.theme.GoldGlassCard
 import com.example.ui.theme.PanalinkSkin
-import com.example.ui.theme.PanalinkPalette
+import com.example.ui.settings.ios.IosSettingsColors
 import com.example.ui.theme.chatCardShape
 
 @OptIn(ExperimentalFoundationApi::class)
@@ -100,7 +100,7 @@ fun ChatPreviewCard(
                         placeholderName = safeDisplayName,
                         size = 54.dp,
                         borderWidth = 1.5.dp,
-                        borderColor = PanalinkPalette.online
+                        borderColor = IosSettingsColors.green
                     )
 
                     PresenceIndicator(
@@ -133,7 +133,7 @@ fun ChatPreviewCard(
 
                         Text(
                             text = formattedTime,
-                            color = if (chatDetails.unreadCount > 0) PanalinkPalette.online else PanalinkSkin.Sub,
+                            color = if (chatDetails.unreadCount > 0) IosSettingsColors.green else PanalinkSkin.Sub,
                             fontSize = 12.sp,
                             fontWeight = if (chatDetails.unreadCount > 0) FontWeight.Bold else FontWeight.Normal
                         )

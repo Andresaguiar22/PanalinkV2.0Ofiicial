@@ -19,7 +19,7 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.compose.ui.window.Dialog
-import com.example.ui.theme.PanalinkPalette
+import com.example.ui.settings.ios.IosSettingsColors
 
 @Composable
 fun ChatBubblePaletteDialog(
@@ -39,7 +39,7 @@ fun ChatBubblePaletteDialog(
             Column(modifier = Modifier.padding(16.dp)) {
                 Text(
                     "Color de burbujas",
-                    color = PanalinkPalette.textPrimary,
+                    color = IosSettingsColors.label,
                     fontSize = 18.sp,
                     fontWeight = FontWeight.Bold,
                     modifier = Modifier.padding(bottom = 16.dp)
@@ -72,7 +72,7 @@ fun ChatBubblePaletteDialog(
                         Spacer(Modifier.width(12.dp))
                         Text(
                             palette.displayName,
-                            color = PanalinkPalette.textPrimary,
+                            color = IosSettingsColors.label,
                             fontSize = 15.sp,
                             modifier = Modifier.weight(1f)
                         )

@@ -19,6 +19,7 @@ import androidx.compose.ui.unit.sp
 import coil.compose.AsyncImage
 import com.example.media.model.MediaResource
 import java.io.File
+import com.example.ui.settings.ios.IosSettingsColors
 
 @Composable
 fun MediaRenderer(
@@ -56,7 +57,7 @@ fun MediaRenderer(
                     verticalArrangement = Arrangement.Center
                 ) {
                     CircularProgressIndicator(
-                        color = Color(0xFF18E7F5),
+                        color = IosSettingsColors.blue,
                         modifier = Modifier.size(32.dp),
                         strokeWidth = 2.dp
                     )

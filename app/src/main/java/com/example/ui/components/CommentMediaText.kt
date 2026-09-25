@@ -17,7 +17,7 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import coil.compose.AsyncImage
 import androidx.compose.material3.Text
-import com.example.ui.theme.PanalinkPalette
+import com.example.ui.settings.ios.IosSettingsColors
 
 /**
  * Renderiza el texto de un comentario que puede contener el marcador de GIF.
@@ -28,7 +28,7 @@ import com.example.ui.theme.PanalinkPalette
 fun CommentMediaText(
     text: String?,
     modifier: Modifier = Modifier,
-    fallbackColor: Color = PanalinkPalette.textPrimary.copy(alpha = 0.9f),
+    fallbackColor: Color = IosSettingsColors.label,
     /** true = versión compacta para el chat de comentarios en directo (GIFs más pequeños). */
     compact: Boolean = false
 ) {

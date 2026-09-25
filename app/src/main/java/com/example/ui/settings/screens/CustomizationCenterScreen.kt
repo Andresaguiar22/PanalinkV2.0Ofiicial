@@ -405,7 +405,7 @@ private fun ThemeIdentityGrid(
                     val selected = current == key
 
                     val gradient = when (key) {
-                        "halo_dark" -> listOf(Color(0xFF00E5FF), Color(0xFF7C3AED))
+                        "halo_dark" -> listOf(IosSettingsColors.blue, Color(0xFF7C3AED))
                         "royal_purple" -> listOf(Color(0xFFBB86FC), Color(0xFF4A148C))
                         "nordic_ice" -> listOf(Color(0xFF4FC3F7), Color(0xFF81D4FA))
                         "cyberpunk" -> listOf(Color(0xFFFF00FF), Color(0xFF00FFFF))
@@ -435,7 +435,7 @@ private fun ThemeIdentityGrid(
                                     .border(1.dp, Color.White.copy(alpha =0.35f), CircleShape),
                                 contentAlignment = Alignment.Center
                             ) {
-                                Icon(icon, contentDescription = null, tint = PanalinkPalette.textPrimary, modifier = Modifier.size(17.dp))
+                                Icon(icon, contentDescription = null, tint = IosSettingsColors.label, modifier = Modifier.size(17.dp))
                             }
                             Text(label, color = if (selected) pal.accent else pal.on, fontSize =10.5.sp, fontWeight = if (selected) FontWeight.Bold else FontWeight.Medium, maxLines =1)
                             if (selected) {

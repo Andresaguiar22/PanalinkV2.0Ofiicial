@@ -33,7 +33,7 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.input.ImeAction
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-import com.example.ui.theme.PanalinkPalette
+import com.example.ui.settings.ios.IosSettingsColors
 
 private val SendGradient = Brush.linearGradient(
     colors = listOf(Color(0xFFFF2E77), Color(0xFFA73BFA), Color(0xFF2EA8FF))
@@ -91,7 +91,7 @@ fun LiveViewerBottomBar(
                 if (commentText.isEmpty()) {
                     Text(
                         text = "Escribe algo...",
-                        color = PanalinkPalette.textPrimary.copy(alpha = 0.65f),
+                        color = IosSettingsColors.label.copy(alpha = 0.65f),
                         fontSize = 12.5.sp
                     )
                 }
@@ -99,7 +99,7 @@ fun LiveViewerBottomBar(
                     value = commentText,
                     onValueChange = { commentText = it },
                     singleLine = true,
-                    textStyle = TextStyle(color = PanalinkPalette.textPrimary, fontSize = 12.5.sp),
+                    textStyle = TextStyle(color = IosSettingsColors.label, fontSize = 12.5.sp),
                     cursorBrush = SolidColor(Color.White),
                     keyboardOptions = KeyboardOptions(imeAction = ImeAction.Send),
                     keyboardActions = KeyboardActions(onSend = { submit() }),
@@ -137,7 +137,7 @@ fun LiveViewerBottomBar(
                 Icon(
                     imageVector = Icons.AutoMirrored.Filled.Send,
                     contentDescription = "Enviar",
-                    tint = PanalinkPalette.textPrimary,
+                    tint = IosSettingsColors.label,
                     modifier = Modifier.size(16.dp)
                 )
             }
@@ -228,7 +228,7 @@ private fun BarAction(
                 ) {
                     Text(
                         text = if (badgeCount > 99) "99+" else badgeCount.toString(),
-                        color = PanalinkPalette.textPrimary,
+                        color = IosSettingsColors.label,
                         fontSize = 8.sp,
                         fontWeight = FontWeight.Bold
                     )
@@ -238,7 +238,7 @@ private fun BarAction(
         Spacer(modifier = Modifier.height(1.dp))
         Text(
             text = label,
-            color = PanalinkPalette.textPrimary,
+            color = IosSettingsColors.label,
             fontSize = 8.sp,
             maxLines = 1
         )

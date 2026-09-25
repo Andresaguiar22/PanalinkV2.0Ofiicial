@@ -94,7 +94,7 @@ import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.ui.graphics.SolidColor
 import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.text.input.ImeAction
-import com.example.ui.theme.PanalinkPalette
+import com.example.ui.settings.ios.IosSettingsColors
 
 
 // Acción 4: Floating reaction data
@@ -340,7 +340,7 @@ fun ViewStateScreen(
             modifier = Modifier.fillMaxSize().background(Color.Black),
             contentAlignment = Alignment.Center
         ) {
-            CircularProgressIndicator(color = PanalinkPalette.textPrimary)
+            CircularProgressIndicator(color = IosSettingsColors.label)
         }
         return
     }
@@ -350,7 +350,7 @@ fun ViewStateScreen(
             modifier = Modifier.fillMaxSize().background(Color.Black),
             contentAlignment = Alignment.Center
         ) {
-            Text("Error al cargar estados. Reintentando...", color = PanalinkPalette.textPrimary)
+            Text("Error al cargar estados. Reintentando...", color = IosSettingsColors.label)
             LaunchedEffect(Unit) {
                 delay(2000)
                 onClose()
@@ -369,7 +369,7 @@ fun ViewStateScreen(
                 .background(Color.Black),
             contentAlignment = Alignment.Center
         ) {
-            Text("Estado expirado o no encontrado.", color = PanalinkPalette.textPrimary)
+            Text("Estado expirado o no encontrado.", color = IosSettingsColors.label)
             LaunchedEffect(Unit) {
                 delay(1500)
                 onClose()
@@ -912,7 +912,7 @@ var showGifPicker by remember { mutableStateOf(false) }
                 ) {
                     Text(
                         text = cleanCaption,
-                        color = PanalinkPalette.textPrimary,
+                        color = IosSettingsColors.label,
                         fontSize = 24.sp,
                         fontWeight = FontWeight.Bold,
                         textAlign = TextAlign.Center,
@@ -970,7 +970,7 @@ var showGifPicker by remember { mutableStateOf(false) }
                     contentAlignment = Alignment.Center
                 ) {
                     if (resolvedVideoUrl.isNullOrBlank()) {
-                        CircularProgressIndicator(color = PanalinkPalette.textPrimary)
+                        CircularProgressIndicator(color = IosSettingsColors.label)
                         LaunchedEffect(state.id, resolveRetry) {
                             kotlinx.coroutines.delay(6000L)
                             if (resolvedVideoUrl.isNullOrBlank()) {
@@ -1123,7 +1123,7 @@ var showGifPicker by remember { mutableStateOf(false) }
                     .background(Color.Black.copy(alpha = 0.4f)),
                 contentAlignment = Alignment.Center
             ) {
-                CircularProgressIndicator(color = PanalinkPalette.textPrimary, strokeWidth = 3.dp)
+                CircularProgressIndicator(color = IosSettingsColors.label, strokeWidth = 3.dp)
             }
         }
 
@@ -1147,7 +1147,7 @@ var showGifPicker by remember { mutableStateOf(false) }
                             .fillMaxSize()
                             .background(
                                 Brush.radialGradient(
-                                    colors = listOf(Color(0xFFEC407A).copy(alpha = 0.35f), Color(0xFF00E5FF).copy(alpha = 0.20f), Color.Transparent)
+                                    colors = listOf(Color(0xFFEC407A).copy(alpha = 0.35f), IosSettingsColors.blue.copy(alpha = 0.20f), Color.Transparent)
                                 )
                             )
                     )
@@ -1159,7 +1159,7 @@ var showGifPicker by remember { mutableStateOf(false) }
                         var y = 0f
                         while (y < h) {
                             drawLine(
-                                color = PanalinkPalette.textPrimary.copy(alpha = 0.08f),
+                                color = IosSettingsColors.separator,
                                 start = Offset(0f, y),
                                 end = Offset(w, y),
                                 strokeWidth = 1.5f
@@ -1234,7 +1234,7 @@ var showGifPicker by remember { mutableStateOf(false) }
                             .weight(1f)
                             .height(3.dp)
                             .clip(RoundedCornerShape(2.dp)),
-                        color = PanalinkPalette.textPrimary,
+                        color = IosSettingsColors.label,
                         trackColor = Color.White.copy(alpha = 0.3f)
                     )
                 }
@@ -1275,13 +1275,13 @@ var showGifPicker by remember { mutableStateOf(false) }
                         Column {
                             Text(
                                 text = (identityState?.displayName ?: profile.displayName),
-                                color = PanalinkPalette.textPrimary,
+                                color = IosSettingsColors.label,
                                 fontWeight = FontWeight.SemiBold,
                                 fontSize = 14.sp
                             )
                             Text(
                                 text = formattedTime,
-                                color = PanalinkPalette.textPrimary.copy(alpha = 0.6f),
+                                color = IosSettingsColors.secondaryLabel,
                                 fontSize = 11.sp
                             )
                         }
@@ -1312,7 +1312,7 @@ var showGifPicker by remember { mutableStateOf(false) }
                             Icon(
                                 imageVector = Icons.Default.MoreVert,
                                 contentDescription = "Opciones",
-                                tint = PanalinkPalette.textPrimary
+                                tint = IosSettingsColors.label
                             )
                         }
                         
@@ -1333,7 +1333,7 @@ var showGifPicker by remember { mutableStateOf(false) }
                                     }
                                 )
                                 DropdownMenuItem(
-                                    text = { Text("Ver espectadores", color = PanalinkPalette.textPrimary) },
+                                    text = { Text("Ver espectadores", color = IosSettingsColors.label) },
                                     leadingIcon = { Text("👁", fontSize = 16.sp) },
                                     onClick = {
                                         showOwnerMenu = false
@@ -1352,8 +1352,8 @@ var showGifPicker by remember { mutableStateOf(false) }
                                     }
                                 )
                                 DropdownMenuItem(
-                                    text = { Text("Silenciar historias", color = PanalinkPalette.textPrimary) },
-                                    leadingIcon = { Icon(Icons.Default.MoreVert, contentDescription = null, tint = PanalinkPalette.textPrimary) },
+                                    text = { Text("Silenciar historias", color = IosSettingsColors.label) },
+                                    leadingIcon = { Icon(Icons.Default.MoreVert, contentDescription = null, tint = IosSettingsColors.label) },
                                     onClick = {
                                         showOwnerMenu = false
                                         Toast.makeText(context, "Historias de ${(identityState?.displayName ?: profile.displayName)} silenciadas", Toast.LENGTH_SHORT).show()
@@ -1361,8 +1361,8 @@ var showGifPicker by remember { mutableStateOf(false) }
                                 )
                             }
                             DropdownMenuItem(
-                                text = { Text("Compartir enlace", color = PanalinkPalette.textPrimary) },
-                                leadingIcon = { Icon(Icons.Rounded.Share, contentDescription = null, tint = PanalinkPalette.textPrimary) },
+                                text = { Text("Compartir enlace", color = IosSettingsColors.label) },
+                                leadingIcon = { Icon(Icons.Rounded.Share, contentDescription = null, tint = IosSettingsColors.label) },
                                 onClick = {
                                     showOwnerMenu = false
                                     viewModel.incrementShare(state.id)
@@ -1379,7 +1379,7 @@ var showGifPicker by remember { mutableStateOf(false) }
                         onClick = onClose,
                         modifier = Modifier.background(Color.Black.copy(alpha = 0.4f), CircleShape)
                     ) {
-                        Icon(Icons.Default.Close, contentDescription = "Cerrar", tint = PanalinkPalette.textPrimary)
+                        Icon(Icons.Default.Close, contentDescription = "Cerrar", tint = IosSettingsColors.label)
                     }
                 }
                 } // closes outer Row (inside Box)
@@ -1455,7 +1455,7 @@ var showGifPicker by remember { mutableStateOf(false) }
                             showSpectatorsSheet = true
                         },
                         shape = RoundedCornerShape(16.dp),
-                        color = PanalinkPalette.textPrimary.copy(alpha = 0.18f),
+                        color = IosSettingsColors.separator,
                         modifier = Modifier
                             .align(Alignment.CenterStart)
                             .testTag("views_counter_pill")
@@ -1468,12 +1468,12 @@ var showGifPicker by remember { mutableStateOf(false) }
                             Icon(
                                 imageVector = Icons.Default.Visibility,
                                 contentDescription = "Ver espectadores",
-                                tint = PanalinkPalette.textPrimary,
+                                tint = IosSettingsColors.label,
                                 modifier = Modifier.size(18.dp)
                             )
                             Text(
                                 text = "$realViewsCount",
-                                color = PanalinkPalette.textPrimary,
+                                color = IosSettingsColors.label,
                                 fontSize = 12.sp,
                                 fontWeight = FontWeight.SemiBold
                             )
@@ -1485,7 +1485,7 @@ var showGifPicker by remember { mutableStateOf(false) }
                 if (state.mediaType != "text" && cleanCaption.isNotBlank()) {
                     Text(
                         text = cleanCaption,
-                        color = PanalinkPalette.textPrimary,
+                        color = IosSettingsColors.label,
                         fontSize = 13.sp,
                         fontWeight = FontWeight.SemiBold,
                         textAlign = TextAlign.Center,
@@ -1602,7 +1602,7 @@ var showGifPicker by remember { mutableStateOf(false) }
                         modifier = Modifier
                             .fillMaxWidth()
                             .onFocusChanged { isInputFocused = it.isFocused },
-                        textStyle = TextStyle(color = PanalinkPalette.textPrimary, fontSize = 14.sp),
+                        textStyle = TextStyle(color = IosSettingsColors.label, fontSize = 14.sp),
                         singleLine = true,
                         cursorBrush = SolidColor(Color(0xFF00FF85)),
                         keyboardOptions = KeyboardOptions(imeAction = ImeAction.Send),
@@ -1631,7 +1631,7 @@ var showGifPicker by remember { mutableStateOf(false) }
                             if (replyText.isEmpty()) {
                                 Text(
                                     text = if (isOwner) "Añade un comentario..." else "Responde a ${(identityState?.displayName ?: profile.displayName)}...",
-                                    color = PanalinkPalette.textPrimary.copy(alpha = 0.5f),
+                                    color = IosSettingsColors.secondaryLabel,
                                     fontSize = 13.sp,
                                     maxLines = 1,
                                     overflow = TextOverflow.Ellipsis
@@ -1724,7 +1724,7 @@ var showGifPicker by remember { mutableStateOf(false) }
                     Icon(
                         imageVector = Icons.Rounded.Share,
                         contentDescription = "Compartir",
-                        tint = PanalinkPalette.textPrimary,
+                        tint = IosSettingsColors.label,
                         modifier = Modifier.size(20.dp)
                     )
                 }
@@ -1797,18 +1797,18 @@ var showGifPicker by remember { mutableStateOf(false) }
                     ) {
                         Text(
                             text = "Comentarios (${filteredComments.size})",
-                            color = PanalinkPalette.textPrimary,
+                            color = IosSettingsColors.label,
                             fontSize = 16.sp,
                             fontWeight = FontWeight.Bold
                         )
                         IconButton(
                             onClick = { showCommentsSheet = false }
                         ) {
-                            Icon(Icons.Default.Close, contentDescription = "Cerrar", tint = PanalinkPalette.textPrimary)
+                            Icon(Icons.Default.Close, contentDescription = "Cerrar", tint = IosSettingsColors.label)
                         }
                     }
 
-                    Divider(color = PanalinkPalette.textPrimary.copy(alpha = 0.08f))
+                    Divider(color = IosSettingsColors.separator)
 
                     // List of comments
                     LazyColumn(
@@ -1828,7 +1828,7 @@ var showGifPicker by remember { mutableStateOf(false) }
                                 ) {
                                     Text(
                                         text = "Aún no hay comentarios.\n¡Sé el primero en comentar! 💬",
-                                        color = PanalinkPalette.textPrimary.copy(alpha = 0.5f),
+                                        color = IosSettingsColors.secondaryLabel,
                                         fontSize = 14.sp,
                                         textAlign = TextAlign.Center
                                     )
@@ -1864,13 +1864,13 @@ var showGifPicker by remember { mutableStateOf(false) }
                                         ) {
                                             Text(
                                                 text = if (comment.deletedAt != null) "Eliminado" else comment.authorName,
-                                                color = PanalinkPalette.textPrimary,
+                                                color = IosSettingsColors.label,
                                                 fontWeight = FontWeight.SemiBold,
                                                 fontSize = 13.sp
                                             )
                                             Text(
                                                 text = formatCreatedTime(comment.createdAt),
-                                                color = PanalinkPalette.textPrimary.copy(alpha = 0.45f),
+                                                color = IosSettingsColors.label.copy(alpha = 0.45f),
                                                 fontSize = 11.sp
                                             )
                                         }
@@ -1917,7 +1917,7 @@ var showGifPicker by remember { mutableStateOf(false) }
                                             Icon(
                                                 imageVector = Icons.Outlined.Delete,
                                                 contentDescription = "Borrar comentario",
-                                                tint = PanalinkPalette.textPrimary.copy(alpha = 0.5f),
+                                                tint = IosSettingsColors.secondaryLabel,
                                                 modifier = Modifier.size(16.dp)
                                             )
                                         }
@@ -1927,7 +1927,7 @@ var showGifPicker by remember { mutableStateOf(false) }
                         }
                     }
 
-                    Divider(color = PanalinkPalette.textPrimary.copy(alpha = 0.08f))
+                    Divider(color = IosSettingsColors.separator)
 
                     // Text write comments input bar
                     Row(
@@ -1953,9 +1953,9 @@ Box(
                         OutlinedTextField(
                             value = replyText,
                             onValueChange = { replyText = it },
-                            placeholder = { Text("Escribe un comentario...", color = PanalinkPalette.textPrimary.copy(alpha = 0.4f), fontSize = 13.sp) },
+                            placeholder = { Text("Escribe un comentario...", color = IosSettingsColors.label.copy(alpha = 0.4f), fontSize = 13.sp) },
                             modifier = Modifier.weight(1f),
-                            textStyle = androidx.compose.ui.text.TextStyle(color = PanalinkPalette.textPrimary, fontSize = 14.sp),
+                            textStyle = androidx.compose.ui.text.TextStyle(color = IosSettingsColors.label, fontSize = 14.sp),
                             shape = RoundedCornerShape(24.dp),
                             colors = OutlinedTextFieldDefaults.colors(
                                 focusedContainerColor = Color(0xFF1E222B),
@@ -2046,18 +2046,18 @@ if (showGifPicker) {
                     ) {
                         Text(
                             text = "Personas que vieron tu estado (${spectatorsList.size})",
-                            color = PanalinkPalette.textPrimary,
+                            color = IosSettingsColors.label,
                             fontSize = 16.sp,
                             fontWeight = FontWeight.Bold
                         )
                         IconButton(
                             onClick = { showSpectatorsSheet = false }
                         ) {
-                            Icon(Icons.Default.Close, contentDescription = "Cerrar", tint = PanalinkPalette.textPrimary)
+                            Icon(Icons.Default.Close, contentDescription = "Cerrar", tint = IosSettingsColors.label)
                         }
                     }
 
-                    Divider(color = PanalinkPalette.textPrimary.copy(alpha = 0.08f))
+                    Divider(color = IosSettingsColors.separator)
 
                     LazyColumn(
                         modifier = Modifier
@@ -2076,7 +2076,7 @@ if (showGifPicker) {
                                 ) {
                                     Text(
                                         text = "Nadie ha visto tu estado todavía.\n¡Comparte el enlace para tener más vistas! 👁",
-                                        color = PanalinkPalette.textPrimary.copy(alpha = 0.5f),
+                                        color = IosSettingsColors.secondaryLabel,
                                         fontSize = 14.sp,
                                         textAlign = TextAlign.Center
                                     )
@@ -2108,13 +2108,13 @@ if (showGifPicker) {
                                     Column(modifier = Modifier.weight(1f)) {
                                         Text(
                                             text = spectator.name,
-                                            color = PanalinkPalette.textPrimary,
+                                            color = IosSettingsColors.label,
                                             fontWeight = FontWeight.SemiBold,
                                             fontSize = 14.sp
                                         )
                                         Text(
                                             text = "Visto hace ${formatCreatedTime(spectator.viewedAt)}",
-                                            color = PanalinkPalette.textPrimary.copy(alpha = 0.5f),
+                                            color = IosSettingsColors.secondaryLabel,
                                             fontSize = 11.sp
                                         )
                                     }
@@ -2274,7 +2274,7 @@ fun ViewersMarquee(
                 ) {
                     Text(
                         text = "+${spectators.size - 20}",
-                        color = PanalinkPalette.textPrimary,
+                        color = IosSettingsColors.label,
                         fontSize = 9.sp,
                         fontWeight = FontWeight.Bold
                     )
@@ -2384,7 +2384,7 @@ fun VideoPlayer(
 
         if (isBuffering && !hasError) {
             CircularProgressIndicator(
-                color = PanalinkPalette.textPrimary,
+                color = IosSettingsColors.label,
                 modifier = Modifier.align(Alignment.Center)
             )
         }
@@ -2397,9 +2397,9 @@ fun VideoPlayer(
                     .padding(16.dp),
                 horizontalAlignment = Alignment.CenterHorizontally
             ) {
-                Icon(Icons.Default.Close, contentDescription = null, tint = PanalinkPalette.textPrimary, modifier = Modifier.size(48.dp))
+                Icon(Icons.Default.Close, contentDescription = null, tint = IosSettingsColors.label, modifier = Modifier.size(48.dp))
                 Spacer(modifier = Modifier.height(8.dp))
-                Text("Error al reproducir video", color = PanalinkPalette.textPrimary, fontWeight = FontWeight.Bold)
+                Text("Error al reproducir video", color = IosSettingsColors.label, fontWeight = FontWeight.Bold)
                 Spacer(modifier = Modifier.height(8.dp))
                 Button(onClick = {
                     val ctx = context

@@ -7,11 +7,11 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.sp
 
 /**
- * Tipografía por defecto de Panalink: serif en toda la escala, como el wordmark
- * "PanaLink". Al vivir en la escala de Material3, los Text que no declaran
+ * Tipografía por defecto de Panalink: sans-serif en toda la escala, al estilo
+ * iOS (SF Pro). Al vivir en la escala de Material3, los Text que no declaran
  * fontFamily la heredan automaticamente en todas las pantallas.
  */
-private val AppFont = FontFamily.Serif
+private val AppFont = FontFamily.SansSerif
 
 val Typography =
   Typography(

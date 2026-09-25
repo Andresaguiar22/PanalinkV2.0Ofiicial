@@ -19,7 +19,7 @@ import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import coil.compose.AsyncImage
-import com.example.ui.theme.PanalinkPalette
+import com.example.ui.settings.ios.IosSettingsColors
 
 /**
  * P6.7 - External Video Preview Card
@@ -66,7 +66,7 @@ fun ExternalVideoPreviewCard(
                     Icon(
                         imageVector = Icons.Default.PlayArrow,
                         contentDescription = "Reproducir",
-                        tint = PanalinkPalette.textPrimary,
+                        tint = IosSettingsColors.label,
                         modifier = Modifier.size(36.dp)
                     )
                 }
@@ -81,7 +81,7 @@ fun ExternalVideoPreviewCard(
                 ) {
                     Text(
                         text = videoObject.platform.displayName,
-                        color = PanalinkPalette.textPrimary,
+                        color = IosSettingsColors.label,
                         fontSize = 11.sp,
                         fontWeight = FontWeight.Bold,
                         modifier = Modifier.padding(horizontal = 8.dp, vertical = 4.dp)
@@ -92,7 +92,7 @@ fun ExternalVideoPreviewCard(
             Column(modifier = Modifier.padding(12.dp)) {
                 Text(
                     text = videoObject.title,
-                    color = PanalinkPalette.textPrimary,
+                    color = IosSettingsColors.label,
                     fontWeight = FontWeight.Bold,
                     fontSize = 14.sp,
                     maxLines = 2,

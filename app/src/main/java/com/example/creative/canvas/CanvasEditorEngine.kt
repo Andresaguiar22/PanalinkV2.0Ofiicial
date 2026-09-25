@@ -26,7 +26,7 @@ import com.example.creative.core.CreativeLayer
 import com.example.creative.core.CreativeProject
 import kotlin.math.abs
 import kotlin.math.roundToInt
-import com.example.ui.theme.PanalinkPalette
+import com.example.ui.settings.ios.IosSettingsColors
 
 @Composable
 fun CanvasEditorEngine(
@@ -260,7 +260,7 @@ fun CanvasEditorEngine(
             Canvas(modifier = Modifier.fillMaxSize()) {
                 if (showVerticalSnapGuide) {
                     drawLine(
-                        color = Color(0xFF00E5FF),
+                        color = IosSettingsColors.blue,
                         start = Offset(size.width / 2f, 0f),
                         end = Offset(size.width / 2f, size.height),
                         strokeWidth = 2.dp.toPx()
@@ -268,7 +268,7 @@ fun CanvasEditorEngine(
                 }
                 if (showHorizontalSnapGuide) {
                     drawLine(
-                        color = Color(0xFF00E5FF),
+                        color = IosSettingsColors.blue,
                         start = Offset(0f, size.height / 2f),
                         end = Offset(size.width, size.height / 2f),
                         strokeWidth = 2.dp.toPx()
@@ -284,12 +284,12 @@ fun CanvasEditorEngine(
                     .align(Alignment.TopCenter)
                     .padding(top = 16.dp)
                     .background(Color(0xDD0D0D12), RoundedCornerShape(12.dp))
-                    .border(1.dp, Color(0xFF00E5FF), RoundedCornerShape(12.dp))
+                    .border(1.dp, IosSettingsColors.blue, RoundedCornerShape(12.dp))
                     .padding(horizontal = 12.dp, vertical = 6.dp)
             ) {
                 Text(
                     text = hudText!!,
-                    color = PanalinkPalette.textPrimary,
+                    color = IosSettingsColors.label,
                     fontSize = 11.sp,
                     fontWeight = FontWeight.Bold
                 )

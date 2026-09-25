@@ -28,7 +28,7 @@ import com.example.live.ui.viewmodel.LiveGuestViewModel
 import com.example.live.ui.viewmodel.LiveViewModel
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
-import com.example.ui.theme.PanalinkPalette
+import com.example.ui.settings.ios.IosSettingsColors
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -82,7 +82,7 @@ fun LiveGuestScreen(
                 title = { Text("Co-Host Invitado", fontWeight = FontWeight.Bold) },
                 navigationIcon = {
                     IconButton(onClick = { leaveCoHost() }) {
-                        Icon(Icons.Default.ArrowBack, contentDescription = "Regresar", tint = PanalinkPalette.textPrimary)
+                        Icon(Icons.Default.ArrowBack, contentDescription = "Regresar", tint = IosSettingsColors.label)
                     }
                 },
                 colors = TopAppBarDefaults.topAppBarColors(
@@ -106,7 +106,7 @@ fun LiveGuestScreen(
                 ) {
                     Text(
                         text = "¡Has sido invitado como Co-Host a este Live!",
-                        color = PanalinkPalette.textPrimary,
+                        color = IosSettingsColors.label,
                         fontSize = 18.sp,
                         fontWeight = FontWeight.Bold
                     )
@@ -140,9 +140,9 @@ fun LiveGuestScreen(
                                     }
                                 }
                             },
-                            colors = ButtonDefaults.buttonColors(containerColor = Color(0xFF18E7F5))
+                            colors = ButtonDefaults.buttonColors(containerColor = IosSettingsColors.blue)
                         ) {
-                            Text("Aceptar Invitación", color = PanalinkPalette.textPrimary)
+                            Text("Aceptar Invitación", color = IosSettingsColors.label)
                         }
                         OutlinedButton(
                             onClick = {
@@ -175,11 +175,11 @@ fun LiveGuestScreen(
                             .align(Alignment.TopCenter)
                             .padding(top = 16.dp),
                         shape = RoundedCornerShape(12.dp),
-                        color = Color(0xFF18E7F5)
+                        color = IosSettingsColors.blue
                     ) {
                         Text(
                             text = "● CO-HOST EN VIVO",
-                            color = PanalinkPalette.textPrimary,
+                            color = IosSettingsColors.label,
                             fontSize = 12.sp,
                             fontWeight = FontWeight.Bold,
                             modifier = Modifier.padding(horizontal = 12.dp, vertical = 6.dp)
@@ -204,7 +204,7 @@ fun LiveGuestScreen(
                             Icon(
                                 imageVector = if (isMicMuted) Icons.Default.MicOff else Icons.Default.Mic,
                                 contentDescription = "Micrófono",
-                                tint = PanalinkPalette.textPrimary
+                                tint = IosSettingsColors.label
                             )
                         }
 
@@ -218,7 +218,7 @@ fun LiveGuestScreen(
                             Icon(
                                 imageVector = if (isCameraOff) Icons.Default.VideocamOff else Icons.Default.Videocam,
                                 contentDescription = "Cámara",
-                                tint = PanalinkPalette.textPrimary
+                                tint = IosSettingsColors.label
                             )
                         }
 
@@ -226,7 +226,7 @@ fun LiveGuestScreen(
                             onClick = { leaveCoHost() },
                             colors = ButtonDefaults.buttonColors(containerColor = Color(0xFFEF5350))
                         ) {
-                            Text("SALIR", color = PanalinkPalette.textPrimary)
+                            Text("SALIR", color = IosSettingsColors.label)
                         }
                     }
                 }

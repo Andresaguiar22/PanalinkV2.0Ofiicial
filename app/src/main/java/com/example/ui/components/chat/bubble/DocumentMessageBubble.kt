@@ -24,14 +24,14 @@ import androidx.compose.ui.unit.sp
 import com.example.util.PanalinkMediaManager
 import com.example.ui.components.PanaAvatar
 import kotlinx.coroutines.launch
-import com.example.ui.theme.PanalinkPalette
+import com.example.ui.settings.ios.IosSettingsColors
 
 @Composable
 fun DocumentMessageBubble(
     docUrl: String,
     fileName: String? = null,
     mediaSize: Long? = null,
-    bubbleColor: Color = PanalinkPalette.chatOutgoing,
+    bubbleColor: Color = IosSettingsColors.blue,
     senderAvatarUrl: String? = null,
     isSender: Boolean = true,
     messageStatus: String? = "sent",
@@ -52,7 +52,7 @@ fun DocumentMessageBubble(
 
     // Intelligent contrast logic
     val isBubbleLight = bubbleColor.luminance() > 0.45f
-    val contentColor = PanalinkPalette.textPrimary
+    val contentColor = IosSettingsColors.label
     val secondaryColor = contentColor.copy(alpha = 0.6f)
 
     val isSending = messageStatus == "sending" || messageStatus == "pending" || messageStatus == "pending_media"

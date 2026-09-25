@@ -32,7 +32,7 @@ import androidx.fragment.app.FragmentActivity
 import com.example.security.AppLockManager
 import kotlin.math.pow
 import kotlin.math.sqrt
-import com.example.ui.theme.PanalinkPalette
+import com.example.ui.settings.ios.IosSettingsColors
 
 /**
  * Full-screen real lock overlay. Rendered on top of everything while
@@ -65,15 +65,15 @@ fun LockScreen() {
             Box(
                 modifier = Modifier
                     .size(72.dp)
-                    .background(Color(0xFF18E7F5).copy(alpha = 0.15f), CircleShape),
+                    .background(IosSettingsColors.blue.copy(alpha = 0.15f), CircleShape),
                 contentAlignment = Alignment.Center
             ) {
-                Icon(Icons.Default.Lock, contentDescription = null, tint = Color(0xFF18E7F5), modifier = Modifier.size(34.dp))
+                Icon(Icons.Default.Lock, contentDescription = null, tint = IosSettingsColors.blue, modifier = Modifier.size(34.dp))
             }
             Spacer(modifier = Modifier.height(16.dp))
             Text(
                 text = if (method == AppLockManager.LockMethod.PATTERN) "Dibuja tu patrón" else "Ingresa tu PIN",
-                color = PanalinkPalette.textPrimary,
+                color = IosSettingsColors.label,
                 fontSize = 20.sp,
                 fontWeight = FontWeight.Bold
             )
@@ -96,7 +96,7 @@ fun LockScreen() {
                     horizontalAlignment = Alignment.CenterHorizontally,
                     modifier = Modifier.clickable { biometricTrigger++ }
                 ) {
-                    Icon(Icons.Default.Fingerprint, contentDescription = "Desbloquear con biometría", tint = Color(0xFF18E7F5), modifier = Modifier.size(40.dp))
+                    Icon(Icons.Default.Fingerprint, contentDescription = "Desbloquear con biometría", tint = IosSettingsColors.blue, modifier = Modifier.size(40.dp))
                     Text("Usar biometría", color = Color(0xFFB8C4D6), fontSize = 12.sp)
                 }
             }
@@ -144,7 +144,7 @@ private fun PinLockSection(onError: (String?) -> Unit) {
                 modifier = Modifier
                     .size(if (filled) 14.dp else 12.dp)
                     .background(
-                        if (filled) Color(0xFF18E7F5) else Color.White.copy(alpha = 0.2f),
+                        if (filled) IosSettingsColors.blue else Color.White.copy(alpha = 0.2f),
                         CircleShape
                     )
             )
@@ -173,7 +173,7 @@ private fun PinLockSection(onError: (String?) -> Unit) {
                                 },
                             contentAlignment = Alignment.Center
                         ) {
-                            Icon(Icons.Default.Backspace, contentDescription = "Borrar", tint = PanalinkPalette.textPrimary)
+                            Icon(Icons.Default.Backspace, contentDescription = "Borrar", tint = IosSettingsColors.label)
                         }
                         else -> Box(
                             modifier = Modifier
@@ -186,7 +186,7 @@ private fun PinLockSection(onError: (String?) -> Unit) {
                                 },
                             contentAlignment = Alignment.Center
                         ) {
-                            Text(key, color = PanalinkPalette.textPrimary, fontSize = 22.sp, fontWeight = FontWeight.SemiBold)
+                            Text(key, color = IosSettingsColors.label, fontSize = 22.sp, fontWeight = FontWeight.SemiBold)
                         }
                     }
                 }
@@ -221,7 +221,7 @@ fun PatternPad(
     onPatternComplete: (List<Int>) -> Unit,
     modifier: Modifier = Modifier,
     dotColor: Color = Color(0xFFB8C4D6),
-    activeColor: Color = Color(0xFF18E7F5)
+    activeColor: Color = IosSettingsColors.blue
 ) {
     var selected by remember { mutableStateOf<List<Int>>(emptyList()) }
     var currentDrag by remember { mutableStateOf<Offset?>(null) }

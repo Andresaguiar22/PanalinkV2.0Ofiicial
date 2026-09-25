@@ -13,7 +13,9 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-import com.example.ui.theme.PanalinkPalette
+import com.example.ui.settings.ios.IosSettingsColors
+import com.example.ui.settings.ios.IosFont
+import com.example.ui.settings.ios.IosPrimaryButton
 
 @Composable
 fun OnboardingWelcomeScreen(
@@ -22,7 +24,7 @@ fun OnboardingWelcomeScreen(
     Box(
         modifier = Modifier
             .fillMaxSize()
-            .background(Color(0xFF0F172A))
+            .background(IosSettingsColors.groupBackground)
             .padding(24.dp)
     ) {
         Column(
@@ -43,7 +45,7 @@ fun OnboardingWelcomeScreen(
                 text = "¡Bienvenido a Panalink! 👋",
                 fontSize = 28.sp,
                 fontWeight = FontWeight.Bold,
-                color = PanalinkPalette.textPrimary,
+                color = IosSettingsColors.label,
                 textAlign = TextAlign.Center
             )
             
@@ -52,29 +54,15 @@ fun OnboardingWelcomeScreen(
             Text(
                 text = "Tu nueva plataforma favorita para chatear, realizar llamadas y conectar de verdad con tus panas con la mayor velocidad.",
                 fontSize = 15.sp,
-                color = Color.LightGray,
+                color = IosSettingsColors.secondaryLabel,
+                fontFamily = IosFont,
                 textAlign = TextAlign.Center,
                 modifier = Modifier.padding(horizontal = 16.dp)
             )
 
             Spacer(modifier = Modifier.height(48.dp))
 
-            // Beautiful Gradient Starter button
-            Button(
-                onClick = onNext,
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .height(52.dp),
-                shape = RoundedCornerShape(26.dp),
-                colors = ButtonDefaults.buttonColors(containerColor = Color(0xFF00E5FF))
-            ) {
-                Text(
-                    "Comenzar Configuración 🚀",
-                    color = Color.Black,
-                    fontWeight = FontWeight.Bold,
-                    fontSize = 16.sp
-                )
-            }
+            IosPrimaryButton(text = "Comenzar Configuración 🚀", onClick = onNext)
         }
     }
 }

@@ -12,7 +12,7 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-import com.example.ui.theme.PanalinkPalette
+import com.example.ui.settings.ios.IosSettingsColors
 
 data class TimelineClip(
     val id: String,
@@ -59,7 +59,7 @@ fun VideoTimeline(
             modifier = Modifier.fillMaxWidth(),
             horizontalArrangement = Arrangement.SpaceBetween
         ) {
-            Text("Timeline", color = PanalinkPalette.textPrimary, fontSize = 12.sp, fontWeight = FontWeight.Bold)
+            Text("Timeline", color = IosSettingsColors.label, fontSize = 12.sp, fontWeight = FontWeight.Bold)
             Text(
                 "${currentPositionMs / 1000}s / ${totalDurationMs / 1000}s",
                 color = Color.Gray,
@@ -85,12 +85,12 @@ fun VideoTimeline(
                         .fillMaxHeight()
                         .padding(2.dp)
                         .background(
-                            if (index % 2 == 0) Color(0xFF00E5FF).copy(alpha = 0.3f) else Color(0xFFFF4081).copy(alpha = 0.3f),
+                            if (index % 2 == 0) IosSettingsColors.blue.copy(alpha = 0.3f) else Color(0xFFFF4081).copy(alpha = 0.3f),
                             RoundedCornerShape(4.dp)
                         ),
                     contentAlignment = Alignment.Center
                 ) {
-                    Text("Clip ${index + 1}", color = PanalinkPalette.textPrimary, fontSize = 10.sp)
+                    Text("Clip ${index + 1}", color = IosSettingsColors.label, fontSize = 10.sp)
                 }
             }
         }

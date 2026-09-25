@@ -15,7 +15,7 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.example.live.ui.viewmodel.LiveGiftPulse
-import com.example.ui.theme.PanalinkPalette
+import com.example.ui.settings.ios.IosSettingsColors
 
 /**
  * Muestra el último regalo recibido: banner con remitente y una animación
@@ -100,7 +100,7 @@ fun LiveGiftOverlay(
                     Spacer(modifier = Modifier.width(6.dp))
                     Text(
                         text = "$senderName envió ${visible.name} x${visible.quantity}",
-                        color = PanalinkPalette.textPrimary,
+                        color = IosSettingsColors.label,
                         fontSize = 11.sp
                     )
                 }

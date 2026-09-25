@@ -21,7 +21,7 @@ import androidx.lifecycle.viewmodel.compose.viewModel
 import com.example.ui.components.chat.search.ChatSearchResultItem
 import com.example.ui.viewmodel.ChatSearchUiState
 import com.example.ui.viewmodel.ChatSearchViewModel
-import com.example.ui.theme.PanalinkPalette
+import com.example.ui.settings.ios.IosSettingsColors
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -45,14 +45,14 @@ fun ChatSearchScreen(
                     TextField(
                         value = query,
                         onValueChange = { viewModel.onQueryChange(it) },
-                        placeholder = { Text("Buscar en el chat...", color = PanalinkPalette.textPrimary.copy(alpha = 0.5f)) },
+                        placeholder = { Text("Buscar en el chat...", color = IosSettingsColors.secondaryLabel) },
                         modifier = Modifier.fillMaxWidth(),
                         colors = TextFieldDefaults.colors(
                             focusedContainerColor = Color.Transparent,
                             unfocusedContainerColor = Color.Transparent,
                             focusedIndicatorColor = Color.Transparent,
                             unfocusedIndicatorColor = Color.Transparent,
-                            cursorColor = Color(0xFF18E7F5),
+                            cursorColor = IosSettingsColors.blue,
                             focusedTextColor = Color.White,
                             unfocusedTextColor = Color.White
                         ),
@@ -60,7 +60,7 @@ fun ChatSearchScreen(
                         trailingIcon = {
                             if (query.isNotBlank()) {
                                 IconButton(onClick = { viewModel.onQueryChange("") }) {
-                                    Icon(Icons.Default.Close, contentDescription = "Limpiar", tint = PanalinkPalette.textPrimary)
+                                    Icon(Icons.Default.Close, contentDescription = "Limpiar", tint = IosSettingsColors.label)
                                 }
                             }
                         }
@@ -68,7 +68,7 @@ fun ChatSearchScreen(
                 },
                 navigationIcon = {
                     IconButton(onClick = onBack) {
-                        Icon(Icons.AutoMirrored.Filled.ArrowBack, contentDescription = "Volver", tint = PanalinkPalette.textPrimary)
+                        Icon(Icons.AutoMirrored.Filled.ArrowBack, contentDescription = "Volver", tint = IosSettingsColors.label)
                     }
                 },
                 colors = TopAppBarDefaults.topAppBarColors(
@@ -76,7 +76,7 @@ fun ChatSearchScreen(
                 )
             )
         },
-        containerColor = Color(0xFF0D0F12)
+        containerColor = IosSettingsColors.groupBackground
     ) { padding ->
         Box(
             modifier = Modifier
@@ -93,7 +93,7 @@ fun ChatSearchScreen(
                 is ChatSearchUiState.Searching -> {
                     CircularProgressIndicator(
                         modifier = Modifier.align(Alignment.Center),
-                        color = Color(0xFF18E7F5)
+                        color = IosSettingsColors.blue
                     )
                 }
                 is ChatSearchUiState.Empty -> {
@@ -121,7 +121,7 @@ fun ChatSearchScreen(
                             )
                             HorizontalDivider(
                                 modifier = Modifier.padding(horizontal = 16.dp),
-                                color = PanalinkPalette.textPrimary.copy(alpha = 0.05f)
+                                color = IosSettingsColors.separator
                             )
                         }
                     }
@@ -144,13 +144,13 @@ private fun SearchEmptyState(
         Icon(
             imageVector = icon,
             contentDescription = null,
-            tint = PanalinkPalette.textPrimary.copy(alpha = 0.1f),
+            tint = IosSettingsColors.label.copy(alpha = 0.1f),
             modifier = Modifier.size(100.dp)
         )
         Spacer(modifier = Modifier.height(16.dp))
         Text(
             text = message,
-            color = PanalinkPalette.textPrimary.copy(alpha = 0.4f),
+            color = IosSettingsColors.tertiaryLabel,
             fontSize = 16.sp,
             fontWeight = FontWeight.Medium
         )

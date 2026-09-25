@@ -23,7 +23,7 @@ import androidx.compose.ui.unit.sp
 import com.example.data.model.CallLog
 import com.example.data.model.CallLogStatus
 import com.example.data.model.CallLogType
-import com.example.ui.theme.PanalinkPalette
+import com.example.ui.settings.ios.IosSettingsColors
 
 /**
  * CallLogChatBubble renders a call history record inside the chat stream
@@ -69,7 +69,7 @@ fun CallLogChatBubble(
     Surface(
         modifier = modifier.padding(vertical = 4.dp),
         shape = RoundedCornerShape(14.dp),
-        color = if (isMe) PanalinkPalette.chatOutgoing else PanalinkPalette.chatIncoming
+        color = if (isMe) IosSettingsColors.blue else IosSettingsColors.cell
     ) {
         Row(
             modifier = Modifier
@@ -96,7 +96,7 @@ fun CallLogChatBubble(
             Column(modifier = Modifier.weight(1f)) {
                 Text(
                     text = titleText,
-                    color = PanalinkPalette.textPrimary,
+                    color = IosSettingsColors.label,
                     fontSize = 14.sp,
                     fontWeight = FontWeight.Medium
                 )

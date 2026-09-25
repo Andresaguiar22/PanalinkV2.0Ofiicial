@@ -14,13 +14,13 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-import com.example.ui.theme.PanalinkPalette
+import com.example.ui.settings.ios.IosSettingsColors
 
 @Composable
 fun ChatUnreadBadge(
     count: Int,
     modifier: Modifier = Modifier,
-    backgroundColor: Color = PanalinkPalette.accent // Premium Cyan accent
+    backgroundColor: Color = IosSettingsColors.blue // Premium Cyan accent
 ) {
     if (count <= 0) return
 
@@ -35,7 +35,7 @@ fun ChatUnreadBadge(
     ) {
         Text(
             text = text,
-            color = PanalinkPalette.textPrimary,
+            color = IosSettingsColors.label,
             fontSize = 11.sp,
             fontWeight = FontWeight.Bold
         )

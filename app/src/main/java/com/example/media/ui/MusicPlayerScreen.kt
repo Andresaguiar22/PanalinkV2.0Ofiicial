@@ -22,7 +22,7 @@ import coil.compose.AsyncImage
 import com.example.media.player.PanaMusicPlayerManager
 import com.example.media.player.PlayerState
 import com.example.media.player.RepeatMode
-import com.example.ui.theme.PanalinkPalette
+import com.example.ui.settings.ios.IosSettingsColors
 
 /**
  * P6.7 - Music Player Screen (Poweramp / Spotify Style)
@@ -42,10 +42,10 @@ fun MusicPlayerScreen(
     Scaffold(
         topBar = {
             TopAppBar(
-                title = { Text("Reproduciendo", color = PanalinkPalette.textPrimary, fontSize = 16.sp) },
+                title = { Text("Reproduciendo", color = IosSettingsColors.label, fontSize = 16.sp) },
                 navigationIcon = {
                     IconButton(onClick = onBackClick) {
-                        Icon(Icons.Default.KeyboardArrowDown, contentDescription = "Cerrar", tint = PanalinkPalette.textPrimary)
+                        Icon(Icons.Default.KeyboardArrowDown, contentDescription = "Cerrar", tint = IosSettingsColors.label)
                     }
                 },
                 actions = {
@@ -106,7 +106,7 @@ fun MusicPlayerScreen(
                 Column(horizontalAlignment = Alignment.CenterHorizontally) {
                     Text(
                         text = track.title,
-                        color = PanalinkPalette.textPrimary,
+                        color = IosSettingsColors.label,
                         fontSize = 20.sp,
                         fontWeight = FontWeight.Bold,
                         textAlign = TextAlign.Center,
@@ -161,7 +161,7 @@ fun MusicPlayerScreen(
                         Icon(
                             imageVector = Icons.Default.SkipPrevious,
                             contentDescription = "Anterior",
-                            tint = PanalinkPalette.textPrimary,
+                            tint = IosSettingsColors.label,
                             modifier = Modifier.size(36.dp)
                         )
                     }
@@ -185,7 +185,7 @@ fun MusicPlayerScreen(
                         Icon(
                             imageVector = Icons.Default.SkipNext,
                             contentDescription = "Siguiente",
-                            tint = PanalinkPalette.textPrimary,
+                            tint = IosSettingsColors.label,
                             modifier = Modifier.size(36.dp)
                         )
                     }

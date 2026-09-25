@@ -50,7 +50,7 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import coil.compose.AsyncImage
 import com.example.ui.viewmodel.StatesViewModel
-import com.example.ui.theme.PanalinkPalette
+import com.example.ui.settings.ios.IosSettingsColors
 
 private enum class StoryMode { IMAGE, VIDEO, TEXT }
 
@@ -745,12 +745,12 @@ Box(
     if (showOverlongClipDialog) {
         AlertDialog(
             onDismissRequest = { showOverlongClipDialog = false },
-            title = { Text("Tu vídeo dura más de 2 minutos", color = PanalinkPalette.textPrimary) },
+            title = { Text("Tu vídeo dura más de 2 minutos", color = IosSettingsColors.label) },
             text = {
                 Text(
                     "Las historias de vídeo tienen un límite de 2 minutos. Tu vídeo se publicará " +
                         "recortado a los primeros 2 minutos; el resto no se verá. ¿Quieres continuar?",
-                    color = PanalinkPalette.textPrimary.copy(alpha = 0.85f)
+                    color = IosSettingsColors.secondaryLabel
                 )
             },
             confirmButton = {
@@ -760,7 +760,7 @@ Box(
             },
             dismissButton = {
                 TextButton(onClick = { showOverlongClipDialog = false }) {
-                    Text("Cancelar", color = PanalinkPalette.textPrimary.copy(alpha = 0.7f))
+                    Text("Cancelar", color = IosSettingsColors.secondaryLabel)
                 }
             },
             containerColor = Color(0xFF1E2D35)

@@ -18,6 +18,7 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.ui.layout.onGloballyPositioned
 import androidx.compose.ui.unit.dp
+import com.example.ui.settings.ios.IosSettingsColors
 
 
 @Composable
@@ -79,7 +80,7 @@ internal fun PreviewAudioWaveform(
                 val startX = i * (barWidthPx + spacingPx)
                 val isPlayed = i <= activeBarIndex
 
-                val color = if (isPlayed) Color(0xFF18E7F5) else Color(0xFF53636E)
+                val color = if (isPlayed) IosSettingsColors.blue else IosSettingsColors.tertiaryLabel
 
                 drawRoundRect(
                     color = color,

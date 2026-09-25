@@ -14,7 +14,7 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import org.webrtc.SurfaceViewRenderer
-import com.example.ui.theme.PanalinkPalette
+import com.example.ui.settings.ios.IosSettingsColors
 
 /**
  * VideoCallScreen hosts connected video-enhanced calling.
@@ -97,7 +97,7 @@ fun VideoCallScreen(
         ) {
             Text(
                 text = opponentName,
-                color = PanalinkPalette.textPrimary,
+                color = IosSettingsColors.label,
                 fontSize = 24.sp,
                 fontWeight = FontWeight.Bold,
                 style = MaterialTheme.typography.headlineMedium
@@ -111,7 +111,7 @@ fun VideoCallScreen(
             ) {
                 Text(
                     text = formattedDuration,
-                    color = Color(0xFF38BDF8),
+                    color = IosSettingsColors.blue,
                     fontSize = 13.sp,
                     fontWeight = FontWeight.Bold
                 )
@@ -120,12 +120,12 @@ fun VideoCallScreen(
                 Spacer(modifier = Modifier.height(10.dp))
                 Surface(
                     shape = RoundedCornerShape(8.dp),
-                    color = Color(0xFFFBBF24).copy(alpha = 0.2f),
-                    border = androidx.compose.foundation.BorderStroke(1.dp, Color(0xFFFBBF24))
+                    color = IosSettingsColors.yellow.copy(alpha = 0.2f),
+                    border = androidx.compose.foundation.BorderStroke(1.dp, IosSettingsColors.yellow)
                 ) {
                     Text(
                         text = "Reconectando... 📡",
-                        color = Color(0xFFFBBF24),
+                        color = IosSettingsColors.yellow,
                         fontSize = 13.sp,
                         fontWeight = FontWeight.Bold,
                         modifier = Modifier.padding(horizontal = 10.dp, vertical = 4.dp)

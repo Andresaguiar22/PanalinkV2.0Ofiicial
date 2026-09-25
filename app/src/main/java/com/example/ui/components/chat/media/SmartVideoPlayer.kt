@@ -28,7 +28,7 @@ import com.example.core.media.PanaRenderersFactory
 import com.example.data.video.CacheDataSourceFactory
 import com.example.ui.components.chat.media.loading.MediaLoadingState
 import com.example.ui.components.chat.media.loading.PremiumMediaLoadingOverlay
-import com.example.ui.theme.PanalinkPalette
+import com.example.ui.settings.ios.IosSettingsColors
 
 @OptIn(UnstableApi::class)
 @Composable
@@ -105,7 +105,7 @@ fun SmartVideoPlayer(
                 Icon(
                     imageVector = Icons.Default.PlayArrow,
                     contentDescription = "Play",
-                    tint = PanalinkPalette.textPrimary,
+                    tint = IosSettingsColors.label,
                     modifier = Modifier.size(32.dp)
                 )
             }

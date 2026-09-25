@@ -22,7 +22,7 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import coil.compose.AsyncImage
 import com.example.ui.viewmodel.ProfileViewModel
-import com.example.ui.theme.PanalinkPalette
+import com.example.ui.settings.ios.IosSettingsColors
 
 @Composable
 fun SavedGrid(viewModel: ProfileViewModel, onNavigateToReel: (String) -> Unit) {
@@ -54,13 +54,13 @@ fun SavedGrid(viewModel: ProfileViewModel, onNavigateToReel: (String) -> Unit) {
                     Text(
                         text = "No tienes publicaciones guardadas",
                         style = MaterialTheme.typography.bodyMedium,
-                        color = PanalinkPalette.textPrimary.copy(alpha = 0.7f),
+                        color = IosSettingsColors.secondaryLabel,
                         fontWeight = FontWeight.SemiBold
                     )
                     Text(
                         text = "Guarda tus Reels o Historias favoritas con la estrella ⭐ para verlos aquí",
                         style = MaterialTheme.typography.bodySmall,
-                        color = PanalinkPalette.textPrimary.copy(alpha = 0.4f),
+                        color = IosSettingsColors.label.copy(alpha = 0.4f),
                         textAlign = TextAlign.Center,
                         modifier = Modifier.padding(horizontal = 32.dp)
                     )
@@ -120,7 +120,7 @@ fun SavedGrid(viewModel: ProfileViewModel, onNavigateToReel: (String) -> Unit) {
                                         ) {
                                             Text(
                                                 text = item.state.caption ?: "",
-                                                color = PanalinkPalette.textPrimary,
+                                                color = IosSettingsColors.label,
                                                 fontSize = 12.sp,
                                                 maxLines = 4,
                                                 modifier = Modifier.padding(8.dp)
@@ -163,12 +163,12 @@ fun SavedGrid(viewModel: ProfileViewModel, onNavigateToReel: (String) -> Unit) {
                                         Icon(
                                             imageVector = if (item.state.isReel) Icons.Default.PlayArrow else Icons.Default.Favorite,
                                             contentDescription = null,
-                                            tint = PanalinkPalette.textPrimary,
+                                            tint = IosSettingsColors.label,
                                             modifier = Modifier.size(12.dp)
                                         )
                                         Text(
                                             text = if (item.state.isReel) "Reel" else "Historia",
-                                            color = PanalinkPalette.textPrimary,
+                                            color = IosSettingsColors.label,
                                             fontSize = 10.sp,
                                             fontWeight = FontWeight.Bold
                                         )
@@ -192,7 +192,7 @@ fun SavedGrid(viewModel: ProfileViewModel, onNavigateToReel: (String) -> Unit) {
             Text(
                 text = "No se pudieron cargar las publicaciones guardadas",
                 style = MaterialTheme.typography.bodySmall,
-                color = PanalinkPalette.textPrimary.copy(alpha = 0.5f)
+                color = IosSettingsColors.secondaryLabel
             )
         }
     } else {

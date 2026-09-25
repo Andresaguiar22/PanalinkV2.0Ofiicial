@@ -27,9 +27,9 @@ import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import coil.compose.rememberAsyncImagePainter
-import com.example.ui.components.AuroraBackground
-import com.example.ui.theme.LocalAppColors
-import com.example.ui.theme.PanalinkPalette
+import com.example.ui.settings.ios.IosSettingsColors
+import com.example.ui.settings.ios.IosFont
+import com.example.ui.settings.ios.IosPrimaryButton
 
 @Composable
 fun AnimatedPanaWelcomeLogo(
@@ -147,43 +147,19 @@ fun WelcomeScreen(
     onNavigateToLogin: () -> Unit,
     onNavigateToRegister: () -> Unit
 ) {
-    val colors = LocalAppColors.current
-
-    val infiniteTransition = rememberInfiniteTransition(label = "WelcomeButtons")
-
-    // Continuous ultra-soft breathing scale for the main green button (Registrarse)
-    val registerBtnScale by infiniteTransition.animateFloat(
-        initialValue = 0.985f,
-        targetValue = 1.015f,
-        animationSpec = infiniteRepeatable(
-            animation = tween(durationMillis = 3000, easing = FastOutSlowInEasing),
-            repeatMode = RepeatMode.Reverse
-        ),
-        label = "RegisterBtnScale"
-    )
-
-    // Glowing border alpha oscillation for the "Ya tengo cuenta" button
-    val borderAlpha by infiniteTransition.animateFloat(
-        initialValue = 0.35f,
-        targetValue = 0.8f,
-        animationSpec = infiniteRepeatable(
-            animation = tween(durationMillis = 2400, easing = FastOutSlowInEasing),
-            repeatMode = RepeatMode.Reverse
-        ),
-        label = "BorderAlpha"
-    )
-
-    AuroraBackground {
+    Box(
+        modifier = Modifier
+            .fillMaxSize()
+            .background(IosSettingsColors.groupBackground)
+            .padding(24.dp)
+            .navigationBarsPadding()
+            .statusBarsPadding()
+    ) {
         Column(
-            modifier = Modifier
-                .fillMaxSize()
-                .padding(24.dp)
-                .navigationBarsPadding()
-                .statusBarsPadding(),
+            modifier = Modifier.fillMaxSize(),
             verticalArrangement = Arrangement.SpaceBetween,
             horizontalAlignment = Alignment.CenterHorizontally
         ) {
-            // Header spacing
             Spacer(modifier = Modifier.height(16.dp))
 
             // Branding Section
@@ -191,32 +167,26 @@ fun WelcomeScreen(
                 horizontalAlignment = Alignment.CenterHorizontally,
                 verticalArrangement = Arrangement.Center
             ) {
-                // Beautifully animated custom logo
                 AnimatedPanaWelcomeLogo(logoSize = 120.dp)
 
                 Spacer(modifier = Modifier.height(28.dp))
 
                 Text(
                     text = "¡Bienvenido a\nPanaLink! 🇻🇪",
-                    fontSize = 38.sp,
-                    fontWeight = FontWeight.ExtraBold,
-                    color = PanalinkPalette.textPrimary,
+                    fontSize = 34.sp,
+                    fontWeight = FontWeight.Bold,
+                    fontFamily = IosFont,
+                    color = IosSettingsColors.label,
                     textAlign = TextAlign.Center,
-                    lineHeight = 44.sp,
-                    style = androidx.compose.ui.text.TextStyle(
-                        shadow = Shadow(
-                            color = Color.Black.copy(alpha = 0.3f),
-                            offset = androidx.compose.ui.geometry.Offset(0f, 4f),
-                            blurRadius = 8f
-                        )
-                    )
+                    lineHeight = 40.sp
                 )
                 Spacer(modifier = Modifier.height(8.dp))
                 Text(
                     text = "Tu app de mensajería bien criolla.",
                     fontSize = 17.sp,
-                    color = PanalinkPalette.textPrimary.copy(alpha = 0.95f),
-                    fontWeight = FontWeight.SemiBold,
+                    color = IosSettingsColors.secondaryLabel,
+                    fontFamily = IosFont,
+                    fontWeight = FontWeight.Normal,
                     textAlign = TextAlign.Center
                 )
             }
@@ -229,18 +199,20 @@ fun WelcomeScreen(
                 Text(
                     text = "Mensajes rápidos, estados que desaparecen y privacidad real.",
                     fontSize = 15.sp,
-                    color = PanalinkPalette.textPrimary.copy(alpha = 0.9f),
+                    color = IosSettingsColors.secondaryLabel,
+                    fontFamily = IosFont,
                     textAlign = TextAlign.Center,
-                    fontWeight = FontWeight.Medium,
+                    fontWeight = FontWeight.Normal,
                     lineHeight = 22.sp
                 )
-                
+
                 Spacer(modifier = Modifier.height(6.dp))
-                
+
                 Text(
                     text = "Conéctate de pana con tus panas en todo el país sin límites.",
                     fontSize = 12.sp,
-                    color = PanalinkPalette.textPrimary.copy(alpha = 0.75f),
+                    color = IosSettingsColors.tertiaryLabel,
+                    fontFamily = IosFont,
                     textAlign = TextAlign.Center,
                     lineHeight = 16.sp
                 )
@@ -251,74 +223,34 @@ fun WelcomeScreen(
                 modifier = Modifier.fillMaxWidth(),
                 verticalArrangement = Arrangement.spacedBy(12.dp)
             ) {
-                // Registrarse Button: soft breathing scale pulse with custom glow shadow
-                Button(
+                IosPrimaryButton(
+                    text = "Registrarse",
                     onClick = onNavigateToRegister,
-                    colors = ButtonDefaults.buttonColors(
-                        containerColor = Color.Transparent,
-                        contentColor = Color.White
-                    ),
-                    contentPadding = PaddingValues(),
+                    modifier = Modifier.testTag("welcome_register_button")
+                )
+
+                // Secondary button: outlined, iOS style
+                Surface(
+                    onClick = onNavigateToLogin,
                     modifier = Modifier
                         .fillMaxWidth()
-                        .height(54.dp)
-                        .scale(registerBtnScale)
-                        .testTag("welcome_register_button")
-                        .background(
-                            brush = com.example.ui.theme.getPremiumGradient(),
-                            shape = RoundedCornerShape(16.dp)
-                        )
-                        .drawBehind {
-                            // Subtle outer cyan/violet halo
-                            drawIntoCanvas { canvas ->
-                                val glowPaint = Paint().asFrameworkPaint().apply {
-                                    color = android.graphics.Color.parseColor("#00E5FF")
-                                    alpha = 75
-                                    style = android.graphics.Paint.Style.STROKE
-                                    strokeWidth = 3.dp.toPx()
-                                    maskFilter = BlurMaskFilter(6.dp.toPx(), BlurMaskFilter.Blur.NORMAL)
-                                }
-                                canvas.nativeCanvas.drawRoundRect(
-                                    0f, 0f, size.width, size.height,
-                                    16.dp.toPx(), 16.dp.toPx(),
-                                    glowPaint
-                                )
-                            }
-                        },
-                    shape = RoundedCornerShape(16.dp),
-                    elevation = ButtonDefaults.buttonElevation(defaultElevation = 4.dp)
+                        .height(50.dp)
+                        .testTag("welcome_login_button"),
+                    shape = RoundedCornerShape(12.dp),
+                    color = IosSettingsColors.cell,
+                    border = androidx.compose.foundation.BorderStroke(1.dp, IosSettingsColors.separator)
                 ) {
-                    Text(
-                        text = "Registrarse",
-                        fontSize = 16.sp,
-                        fontWeight = FontWeight.Bold
-                    )
+                    Box(contentAlignment = Alignment.Center) {
+                        Text(
+                            text = "Ya tengo cuenta",
+                            fontSize = 16.sp,
+                            fontWeight = FontWeight.SemiBold,
+                            fontFamily = IosFont,
+                            color = IosSettingsColors.blue
+                        )
+                    }
                 }
 
-                // Ya tengo cuenta Button: translucent white with breathing pulsating glowing border
-                Button(
-                    onClick = onNavigateToLogin,
-                    colors = ButtonDefaults.buttonColors(
-                        containerColor = Color.White.copy(alpha = 0.20f),
-                        contentColor = Color.White
-                    ),
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .height(54.dp)
-                        .testTag("welcome_login_button"),
-                    shape = RoundedCornerShape(16.dp),
-                    border = androidx.compose.foundation.BorderStroke(
-                        width = 1.2.dp,
-                        color = PanalinkPalette.textPrimary.copy(alpha = borderAlpha)
-                    )
-                ) {
-                    Text(
-                        text = "Ya tengo cuenta",
-                        fontSize = 16.sp,
-                        fontWeight = FontWeight.Bold
-                    )
-                }
-                
                 Spacer(modifier = Modifier.height(16.dp))
             }
         }

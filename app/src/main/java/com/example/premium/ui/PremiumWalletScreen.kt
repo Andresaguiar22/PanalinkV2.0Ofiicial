@@ -24,6 +24,7 @@ import androidx.lifecycle.viewmodel.compose.viewModel
 import com.example.premium.domain.model.LevelTierInfo
 import com.example.premium.domain.model.WalletTransaction
 import com.example.ui.theme.PanalinkSkin
+import com.example.ui.settings.ios.IosSettingsColors
 
 /**
  * Wallet Premium 2.0 — economía del usuario.
@@ -52,7 +53,7 @@ fun PremiumWalletScreen(
                 title = { Text("👛 Mi Wallet", fontWeight = FontWeight.Bold, color = PanalinkSkin.TitleCream) },
                 navigationIcon = {
                     IconButton(onClick = onBack) {
-                        Icon(Icons.AutoMirrored.Filled.ArrowBack, contentDescription = "Atrás", tint = com.example.ui.theme.PanalinkPalette.textPrimary)
+                        Icon(Icons.AutoMirrored.Filled.ArrowBack, contentDescription = "Atrás", tint = IosSettingsColors.label)
                     }
                 },
                 colors = TopAppBarDefaults.centerAlignedTopAppBarColors(containerColor = Color(0xFF121A24))

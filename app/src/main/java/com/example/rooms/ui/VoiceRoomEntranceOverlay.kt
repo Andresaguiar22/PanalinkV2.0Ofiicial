@@ -44,7 +44,7 @@ import kotlin.math.PI
 import kotlin.math.cos
 import kotlin.math.sin
 import kotlin.random.Random
-import com.example.ui.theme.PanalinkPalette
+import com.example.ui.settings.ios.IosSettingsColors
 
 /**
  * Overlay de ENTRADA a pantalla completa, tipo StarMaker.
@@ -147,7 +147,7 @@ val premiumSpec = com.example.effects.PremiumEffectsCatalog.entranceSpec(spec.co
                 } else {
                     Text(
                         text = event.displayName?.take(1)?.uppercase() ?: "👤",
-                        color = PanalinkPalette.textPrimary,
+                        color = IosSettingsColors.label,
                         fontSize = 44.sp,
                         fontWeight = FontWeight.Bold
                     )
@@ -156,7 +156,7 @@ val premiumSpec = com.example.effects.PremiumEffectsCatalog.entranceSpec(spec.co
             Spacer(modifier = Modifier.height(18.dp))
             Text(
                 text = "✨ ${event.displayName ?: "Alguien"}",
-                color = PanalinkPalette.textPrimary,
+                color = IosSettingsColors.label,
                 fontSize = 24.sp,
                 fontWeight = FontWeight.Bold,
                 textAlign = TextAlign.Center

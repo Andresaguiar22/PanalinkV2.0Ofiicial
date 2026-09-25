@@ -34,7 +34,7 @@ import com.example.features.stickers.domain.Sticker
 import com.example.features.stickers.domain.StickerPack
 import com.example.features.stickers.studio.PanalinkDefaultStickers
 import com.example.features.stickers.studio.StickerStudioScreen
-import com.example.ui.theme.PanalinkPalette
+import com.example.ui.settings.ios.IosSettingsColors
 
 @Composable
 fun StickerPanel(
@@ -100,7 +100,7 @@ fun StickerPanel(
                     .fillMaxSize(),
                 contentAlignment = Alignment.Center
             ) {
-                CircularProgressIndicator(color = Color(0xFF18E7F5))
+                CircularProgressIndicator(color = IosSettingsColors.blue)
             }
         } else if (packs.isEmpty()) {
             Box(
@@ -127,7 +127,7 @@ fun StickerPanel(
                             .padding(horizontal = 10.dp, vertical = 6.dp),
                         contentAlignment = Alignment.Center
                     ) {
-                        Text("+ Crear", color = PanalinkPalette.textPrimary, fontSize = 13.sp, fontWeight = FontWeight.Bold)
+                        Text("+ Crear", color = IosSettingsColors.label, fontSize = 13.sp, fontWeight = FontWeight.Bold)
                     }
                 }
                 items(packs, key = { it.id }) { pack ->
@@ -157,7 +157,7 @@ fun StickerPanel(
                             }
                             Text(
                                 text = pack.name,
-                                color = if (isSelected) Color(0xFF18E7F5) else Color(0xFF9AA8B5),
+                                color = if (isSelected) IosSettingsColors.blue else Color(0xFF9AA8B5),
                                 fontSize = 13.sp,
                                 fontWeight = if (isSelected) FontWeight.Bold else FontWeight.Normal
                             )

@@ -22,7 +22,7 @@ import androidx.compose.ui.unit.sp
 import com.example.data.model.Message
 import java.text.SimpleDateFormat
 import java.util.*
-import com.example.ui.theme.PanalinkPalette
+import com.example.ui.settings.ios.IosSettingsColors
 
 @Composable
 fun ChatSearchResultItem(
@@ -86,13 +86,13 @@ fun ChatSearchResultItem(
                     } else {
                         "Mensaje de texto"
                     },
-                    color = PanalinkPalette.textPrimary,
+                    color = IosSettingsColors.label,
                     fontSize = 14.sp,
                     fontWeight = FontWeight.Bold
                 )
                 Text(
                     text = dateFormat.format(date),
-                    color = PanalinkPalette.textPrimary.copy(alpha = 0.5f),
+                    color = IosSettingsColors.secondaryLabel,
                     fontSize = 11.sp
                 )
             }
@@ -101,7 +101,7 @@ fun ChatSearchResultItem(
             
             Text(
                 text = if (!message.content.isNullOrBlank()) message.content!! else "(Multimedia)",
-                color = PanalinkPalette.textPrimary.copy(alpha = 0.7f),
+                color = IosSettingsColors.secondaryLabel,
                 fontSize = 13.sp,
                 maxLines = 1,
                 overflow = TextOverflow.Ellipsis

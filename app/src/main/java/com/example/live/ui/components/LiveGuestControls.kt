@@ -46,7 +46,7 @@ import com.example.data.model.Profile
 import com.example.live.domain.model.GuestStatus
 import com.example.live.domain.model.LiveGuest
 import com.example.ui.components.PanaAvatar
-import com.example.ui.theme.PanalinkPalette
+import com.example.ui.settings.ios.IosSettingsColors
 
 @Composable
 fun LiveGuestControls(
@@ -84,7 +84,7 @@ fun LiveGuestControls(
             Spacer(modifier = Modifier.width(6.dp))
             Text(
                 "Invitar Co-Host",
-                color = PanalinkPalette.textPrimary,
+                color = IosSettingsColors.label,
                 fontWeight = FontWeight.Bold,
                 fontSize = 13.sp
             )
@@ -223,7 +223,7 @@ fun LiveGuestControls(
                                             },
                                             fontSize =  13.sp,
                                             color = when (guest.status) {
-                                                GuestStatus.ACTIVE -> Color(0xFF18E7F5)
+                                                GuestStatus.ACTIVE -> IosSettingsColors.blue
                                                 GuestStatus.PENDING -> Color(0xFFFFC107)
                                                 else -> Color.White
                                             }
@@ -252,7 +252,7 @@ fun LiveGuestControls(
                         },
                         enabled = selectedUser != null
                     ) {
-                        Text("Enviar Invitación", color = Color(0xFF18E7F5))
+                        Text("Enviar Invitación", color = IosSettingsColors.blue)
                     }
                 },
                 dismissButton ={

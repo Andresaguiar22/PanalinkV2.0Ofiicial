@@ -30,7 +30,7 @@ import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.example.data.model.Profile
-import com.example.ui.theme.PanalinkPalette
+import com.example.ui.settings.ios.IosSettingsColors
 
 /**
  * Accion 4: Barra superior flotante de cristal (glassmorphism premium), calcada de
@@ -107,7 +107,7 @@ fun ChatTopBar(
                 BasicTextField(
                     value = localSearchQuery,
                     onValueChange = onSearchQueryChange,
-                    textStyle = TextStyle(color = PanalinkPalette.textPrimary, fontSize = 16.sp),
+                    textStyle = TextStyle(color = IosSettingsColors.label, fontSize = 16.sp),
                     cursorBrush = SolidColor(accentCyan),
                     decorationBox = { innerTextField ->
                         Box(
@@ -233,7 +233,7 @@ fun ChatTopBar(
                                     )
                                 ) {
                                     DropdownMenuItem(
-                                        text = { Text("Ver contacto", color = PanalinkPalette.textPrimary) },
+                                        text = { Text("Ver contacto", color = IosSettingsColors.label) },
                                         onClick = {
                                             showChatMenu = false
                                             onShowContactDetail()
@@ -247,7 +247,7 @@ fun ChatTopBar(
                                         }
                                     )
                                     DropdownMenuItem(
-                                        text = { Text("Buscar en este chat", color = PanalinkPalette.textPrimary) },
+                                        text = { Text("Buscar en este chat", color = IosSettingsColors.label) },
                                         onClick = {
                                             showChatMenu = false
                                             onStartSearch()
@@ -264,7 +264,7 @@ fun ChatTopBar(
                                         text = {
                                             Text(
                                                 if (isMuted) "Activar notificaciones" else "Silenciar notificaciones",
-                                                color = PanalinkPalette.textPrimary
+                                                color = IosSettingsColors.label
                                             )
                                         },
                                         onClick = {
@@ -283,7 +283,7 @@ fun ChatTopBar(
                                         text = {
                                             Text(
                                                 if (isPinned) "Desanclar chat" else "Fijar chat",
-                                                color = PanalinkPalette.textPrimary
+                                                color = IosSettingsColors.label
                                             )
                                         },
                                         onClick = {
@@ -299,7 +299,7 @@ fun ChatTopBar(
                                         }
                                     )
                                     DropdownMenuItem(
-                                        text = { Text("Archivos multimedia", color = PanalinkPalette.textPrimary) },
+                                        text = { Text("Archivos multimedia", color = IosSettingsColors.label) },
                                         onClick = {
                                             showChatMenu = false
                                             onNavigateToChatMedia()
@@ -313,7 +313,7 @@ fun ChatTopBar(
                                         }
                                     )
                                     DropdownMenuItem(
-                                        text = { Text("Buscar", color = PanalinkPalette.textPrimary) },
+                                        text = { Text("Buscar", color = IosSettingsColors.label) },
                                         onClick = {
                                             showChatMenu = false
                                             onNavigateToSearch()
@@ -323,7 +323,7 @@ fun ChatTopBar(
                                         }
                                     )
                                     DropdownMenuItem(
-                                        text = { Text("Fondo de chat", color = PanalinkPalette.textPrimary) },
+                                        text = { Text("Fondo de chat", color = IosSettingsColors.label) },
                                         onClick = {
                                             showChatMenu = false
                                             onShowBackgroundDialog()
@@ -333,7 +333,7 @@ fun ChatTopBar(
                                         }
                                     )
                                     DropdownMenuItem(
-                                        text = { Text("Color de burbujas", color = PanalinkPalette.textPrimary) },
+                                        text = { Text("Color de burbujas", color = IosSettingsColors.label) },
                                         onClick = {
                                             showChatMenu = false
                                             onShowBubblePaletteDialog()
@@ -343,7 +343,7 @@ fun ChatTopBar(
                                         }
                                     )
                                     DropdownMenuItem(
-                                        text = { Text("Vaciar chat", color = PanalinkPalette.textPrimary) },
+                                        text = { Text("Vaciar chat", color = IosSettingsColors.label) },
                                         onClick = {
                                             showChatMenu = false
                                             onClearChat()
@@ -389,7 +389,7 @@ fun ChatTopBar(
                         text = otherUser?.displayName ?: "Cargando pana...",
                         fontWeight = FontWeight.Bold,
                         fontSize = 15.sp,
-                        color = PanalinkPalette.textPrimary,
+                        color = IosSettingsColors.label,
                         maxLines = 1,
                         softWrap = false,
                         overflow = TextOverflow.Ellipsis,

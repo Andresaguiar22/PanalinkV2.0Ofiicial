@@ -42,7 +42,7 @@ import com.example.live.ui.formatLiveCount
 import com.example.live.ui.viewmodel.LiveViewModel
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
-import com.example.ui.theme.PanalinkPalette
+import com.example.ui.settings.ios.IosSettingsColors
 
 private enum class LiveSheet { None, Gifts, Requests, Studio, More }
 
@@ -294,13 +294,13 @@ fun LiveViewerScreen(
                 Column(horizontalAlignment = Alignment.CenterHorizontally) {
                     Text(
                         text = "🔴 La transmisión terminó",
-                        color = PanalinkPalette.textPrimary,
+                        color = IosSettingsColors.label,
                         fontSize = 17.sp,
                         fontWeight = FontWeight.Bold
                     )
                     Spacer(modifier = Modifier.height(14.dp))
                     Button(onClick = { close() }) {
-                        Text("Salir", color = PanalinkPalette.textPrimary)
+                        Text("Salir", color = IosSettingsColors.label)
                     }
                 }
             }
@@ -321,13 +321,13 @@ fun LiveViewerScreen(
                     ) {
                         Text(
                             text = message,
-                            color = PanalinkPalette.textPrimary,
+                            color = IosSettingsColors.label,
                             fontSize = 14.sp,
                             textAlign = TextAlign.Center
                         )
                         Spacer(modifier = Modifier.height(12.dp))
                         Button(onClick = { close() }) {
-                            Text("Volver", color = PanalinkPalette.textPrimary)
+                            Text("Volver", color = IosSettingsColors.label)
                         }
                     }
                 }
@@ -465,7 +465,7 @@ private fun LiveRailHeartButton(
         Spacer(modifier = Modifier.height(4.dp))
         Text(
             text = formatLiveCount(likeCount),
-            color = PanalinkPalette.textPrimary,
+            color = IosSettingsColors.label,
             fontSize = 12.sp,
             fontWeight = FontWeight.Bold
         )
@@ -496,7 +496,7 @@ private fun LiveRailAction(
         Spacer(modifier = Modifier.height(4.dp))
         Text(
             text = label,
-            color = PanalinkPalette.textPrimary,
+            color = IosSettingsColors.label,
             fontSize = 10.sp
         )
     }

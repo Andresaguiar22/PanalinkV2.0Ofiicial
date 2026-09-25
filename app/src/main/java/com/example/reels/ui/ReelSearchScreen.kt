@@ -43,7 +43,7 @@ import com.example.ui.viewmodel.StatesViewModel
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
-import com.example.ui.theme.PanalinkPalette
+import com.example.ui.settings.ios.IosSettingsColors
 
 /**
  * TikTok-style search over reels.
@@ -133,7 +133,7 @@ fun ReelSearchScreen(
                     Icon(
                         Icons.AutoMirrored.Filled.ArrowBack,
                         contentDescription = "Volver",
-                        tint = PanalinkPalette.textPrimary
+                        tint = IosSettingsColors.label
                     )
                 }
                 Box(
@@ -169,7 +169,7 @@ fun ReelSearchScreen(
                             },
                             singleLine = true,
                             textStyle = MaterialTheme.typography.bodyLarge.copy(
-                                color = PanalinkPalette.textPrimary,
+                                color = IosSettingsColors.label,
                                 fontSize = 16.sp
                             ),
                             keyboardOptions = KeyboardOptions(
@@ -280,7 +280,7 @@ fun ReelSearchScreen(
                             Spacer(Modifier.height(6.dp))
                             Text(
                                 text = user.displayName.ifBlank { "pana" },
-                                color = PanalinkPalette.textPrimary,
+                                color = IosSettingsColors.label,
                                 fontSize = 12.sp,
                                 fontWeight = FontWeight.SemiBold,
                                 maxLines = 1,
@@ -393,13 +393,13 @@ private fun ReelSearchGrid(
                             Icon(
                                 Icons.Filled.PlayArrow,
                                 contentDescription = null,
-                                tint = PanalinkPalette.textPrimary,
+                                tint = IosSettingsColors.label,
                                 modifier = Modifier.size(12.dp)
                             )
                             Spacer(Modifier.width(2.dp))
                             Text(
                                 text = formatCompact(views),
-                                color = PanalinkPalette.textPrimary,
+                                color = IosSettingsColors.label,
                                 fontSize = 11.sp,
                                 fontWeight = FontWeight.Bold,
                                 maxLines = 1,
@@ -417,7 +417,7 @@ private fun ReelSearchGrid(
                                 Spacer(Modifier.width(2.dp))
                                 Text(
                                     text = formatCompact(likes),
-                                    color = PanalinkPalette.textPrimary,
+                                    color = IosSettingsColors.label,
                                     fontSize = 11.sp,
                                     fontWeight = FontWeight.Bold,
                                     maxLines = 1,

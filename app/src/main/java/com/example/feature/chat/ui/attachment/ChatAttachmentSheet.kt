@@ -41,7 +41,7 @@ import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-import com.example.ui.theme.PanalinkPalette
+import com.example.ui.settings.ios.IosSettingsColors
 
 @Composable
 fun ChatAttachmentSheet(
@@ -71,7 +71,7 @@ fun ChatAttachmentSheet(
             Column(modifier = Modifier.padding(16.dp)) {
                 Text(
                     text = "Compartir con tu pana... 🇻🇪",
-                    color = PanalinkPalette.textPrimary,
+                    color = IosSettingsColors.label,
                     fontWeight = FontWeight.Bold,
                     fontSize =  14.sp,
                     modifier = Modifier.padding(bottom =  12.dp)
@@ -138,7 +138,7 @@ private fun AttachmentItem(
                 .background(color, CircleShape),
             contentAlignment = Alignment.Center
         ) {
-            Icon(icon, contentDescription = label, tint = PanalinkPalette.textPrimary, modifier = Modifier.size(22.dp))
+            Icon(icon, contentDescription = label, tint = IosSettingsColors.label, modifier = Modifier.size(22.dp))
         }
         Spacer(modifier = Modifier.height(6.dp))
         Text(label, color = Color(0xFF54656F), fontSize =  11.sp, fontWeight = FontWeight.SemiBold)

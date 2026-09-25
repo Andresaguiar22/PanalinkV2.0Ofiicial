@@ -116,7 +116,7 @@ import kotlinx.coroutines.withTimeoutOrNull
 import java.io.File
 import java.text.SimpleDateFormat
 import java.util.*
-import com.example.ui.theme.PanalinkPalette
+import com.example.ui.settings.ios.IosSettingsColors
 
 
 @OptIn(ExperimentalMaterial3Api::class, ExperimentalFoundationApi::class)
@@ -986,7 +986,7 @@ fun ChatScreen(
                                         ) {
                                             Text(
                                                 text = "${otherUser?.displayName ?: "Tu pana"} está escribiendo...",
-                                                color = Color(0xFF18E7F5),
+                                                color = IosSettingsColors.blue,
                                                 fontSize = 13.sp,
                                                 fontWeight = FontWeight.Medium
                                             )
@@ -1223,7 +1223,7 @@ fun ChatScreen(
         val isMultimediaForward = forwardSource.mediaUrl?.isNotBlank() == true
         AlertDialog(
             onDismissRequest = { showForwardDialog = false },
-            title = { Text("Reenviar mensaje de pana 🇻🇪", color = PanalinkPalette.textPrimary) },
+            title = { Text("Reenviar mensaje de pana 🇻🇪", color = IosSettingsColors.label) },
             text = {
                 Column(modifier = Modifier.fillMaxWidth()) {
                     Text(
@@ -1289,7 +1289,7 @@ fun ChatScreen(
                                         borderWidth = 0.dp
                                     )
                                     Spacer(modifier = Modifier.width(12.dp))
-                                    Text(contact.displayName, color = PanalinkPalette.textPrimary, fontWeight = FontWeight.Bold)
+                                    Text(contact.displayName, color = IosSettingsColors.label, fontWeight = FontWeight.Bold)
                                 }
                             }
                         }
@@ -1298,7 +1298,7 @@ fun ChatScreen(
             },
             confirmButton = {
                 TextButton(onClick = { showForwardDialog = false }) {
-                    Text("Cancelar", color = Color(0xFF18E7F5))
+                    Text("Cancelar", color = IosSettingsColors.blue)
                 }
             },
             containerColor = Color(0xB8131A22)
@@ -1371,7 +1371,7 @@ fun PlaylistPickerDialog(
 ) {
     AlertDialog(
         onDismissRequest = onDismiss,
-        title = { Text("Selecciona una Playlist", color = PanalinkPalette.textPrimary) },
+        title = { Text("Selecciona una Playlist", color = IosSettingsColors.label) },
         text = {
             if (playlists.isEmpty()) {
                 Box(modifier = Modifier.fillMaxWidth().height(100.dp), contentAlignment = Alignment.Center) {
@@ -1407,18 +1407,18 @@ fun PlaylistPickerDialog(
                             }
                             Spacer(modifier = Modifier.width(12.dp))
                             Column {
-                                Text(playlist.name, color = PanalinkPalette.textPrimary, fontWeight = FontWeight.Bold, fontSize = 14.sp)
+                                Text(playlist.name, color = IosSettingsColors.label, fontWeight = FontWeight.Bold, fontSize = 14.sp)
                                 Text("Playlist • Actualizada recientemente", color = Color.Gray, fontSize = 11.sp)
                             }
                         }
-                        HorizontalDivider(color = PanalinkPalette.textPrimary.copy(alpha = 0.1f))
+                        HorizontalDivider(color = IosSettingsColors.separator)
                     }
                 }
             }
         },
         confirmButton = {
             TextButton(onClick = onDismiss) {
-                Text("Cancelar", color = Color(0xFF18E7F5))
+                Text("Cancelar", color = IosSettingsColors.blue)
             }
         },
         containerColor = Color(0xB8131A22),

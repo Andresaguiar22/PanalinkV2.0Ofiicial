@@ -35,7 +35,7 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.compose.ui.text.style.TextOverflow
 import coil.compose.AsyncImage
-import com.example.ui.theme.PanalinkPalette
+import com.example.ui.settings.ios.IosSettingsColors
 
 @Composable
 fun VoiceMessageBubble(
@@ -136,7 +136,7 @@ fun VoiceMessageBubble(
                 Icon(
                     imageVector = Icons.Filled.Mic,
                     contentDescription = null,
-                    tint = PanalinkPalette.textPrimary,
+                    tint = IosSettingsColors.label,
                     modifier = Modifier.size(8.dp)
                 )
             }

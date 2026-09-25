@@ -50,7 +50,7 @@ import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 import java.io.File
-import com.example.ui.theme.PanalinkPalette
+import com.example.ui.settings.ios.IosSettingsColors
 
 private enum class StudioMode { IMAGE, TEXT, VIDEO }
 
@@ -350,7 +350,7 @@ fun StickerStudioScreen(
                 },
                 navigationIcon = {
                     IconButton(onClick = onBack) {
-                        Icon(Icons.AutoMirrored.Filled.ArrowBack, "Volver", tint = PanalinkPalette.textPrimary)
+                        Icon(Icons.AutoMirrored.Filled.ArrowBack, "Volver", tint = IosSettingsColors.label)
                     }
                 },
                 actions = {
@@ -416,7 +416,7 @@ fun StickerStudioScreen(
                             )
                         } else {
                             Column(horizontalAlignment = Alignment.CenterHorizontally) {
-                                Text("Convierte tu imagen en sticker", color = PanalinkPalette.textPrimary, fontSize = 15.sp, fontWeight = FontWeight.SemiBold)
+                                Text("Convierte tu imagen en sticker", color = IosSettingsColors.label, fontSize = 15.sp, fontWeight = FontWeight.SemiBold)
                                 Spacer(Modifier.height(4.dp))
                                 Text("Galería o cámara · pellizca para ajustar", color = Color(0xFF8596A0), fontSize = 12.sp)
                                 Spacer(Modifier.height(16.dp))
@@ -433,9 +433,9 @@ fun StickerStudioScreen(
                                         onClick = { cameraPermissionState.requestPermissions() },
                                         colors = ButtonDefaults.buttonColors(containerColor = Color(0xFF2A3942))
                                     ) {
-                                        Icon(Icons.Filled.CameraAlt, null, tint = PanalinkPalette.textPrimary)
+                                        Icon(Icons.Filled.CameraAlt, null, tint = IosSettingsColors.label)
                                         Spacer(Modifier.width(6.dp))
-                                        Text("Cámara", color = PanalinkPalette.textPrimary)
+                                        Text("Cámara", color = IosSettingsColors.label)
                                     }
                                 }
                             }
@@ -462,7 +462,7 @@ fun StickerStudioScreen(
                             )
                         } else {
                             Column(horizontalAlignment = Alignment.CenterHorizontally) {
-                                Text("Convierte tu video en sticker animado", color = PanalinkPalette.textPrimary, fontSize = 15.sp, fontWeight = FontWeight.SemiBold)
+                                Text("Convierte tu video en sticker animado", color = IosSettingsColors.label, fontSize = 15.sp, fontWeight = FontWeight.SemiBold)
                                 Spacer(Modifier.height(4.dp))
                                 Text("Máximo 5 segundos · recorta y convierte a WebP animado", color = Color(0xFF8596A0), fontSize = 12.sp)
                                 Spacer(Modifier.height(16.dp))
@@ -489,7 +489,7 @@ fun StickerStudioScreen(
                         Column(horizontalAlignment = Alignment.CenterHorizontally) {
                             CircularProgressIndicator(color = PANA_GREEN)
                             Spacer(Modifier.height(10.dp))
-                            Text(processingLabel, color = PanalinkPalette.textPrimary, fontSize = 13.sp)
+                            Text(processingLabel, color = IosSettingsColors.label, fontSize = 13.sp)
                         }
                     }
                 }

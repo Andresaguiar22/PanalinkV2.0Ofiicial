@@ -31,7 +31,7 @@ import com.example.feature.chat.presentation.EmojiMediaUiState
 import androidx.compose.foundation.lazy.grid.LazyVerticalGrid
 import androidx.compose.foundation.lazy.grid.GridCells
 import androidx.compose.foundation.lazy.grid.items
-import com.example.ui.theme.PanalinkPalette
+import com.example.ui.settings.ios.IosSettingsColors
 
 data class EmojiCategory(val name: String, val icon: String, val emojis: List<String>)
 
@@ -118,14 +118,14 @@ fun EmojiAndMediaSheet(
                     Spacer(modifier = Modifier.height(12.dp))
                     Text(
                         text = "Vista Previa",
-                        color = PanalinkPalette.textPrimary,
+                        color = IosSettingsColors.label,
                         fontSize = 15.sp,
                         fontWeight = FontWeight.Bold
                     )
                     Spacer(modifier = Modifier.height(4.dp))
                     Text(
                         text = "Toca fuera de la tarjeta para cerrar",
-                        color = Color(0xFF18E7F5),
+                        color = IosSettingsColors.blue,
                         fontSize = 12.sp,
                         fontWeight = FontWeight.Medium
                     )
@@ -175,8 +175,8 @@ fun EmojiAndMediaSheet(
                         .weight(1f)
                         .background(Color(0xFF18202A), RoundedCornerShape(24.dp))
                         .padding(horizontal = 16.dp, vertical = 8.dp),
-                    textStyle = androidx.compose.ui.text.TextStyle(color = PanalinkPalette.textPrimary, fontSize = 15.sp),
-                    cursorBrush = androidx.compose.ui.graphics.SolidColor(Color(0xFF18E7F5)),
+                    textStyle = androidx.compose.ui.text.TextStyle(color = IosSettingsColors.label, fontSize = 15.sp),
+                    cursorBrush = androidx.compose.ui.graphics.SolidColor(IosSettingsColors.blue),
                     singleLine = true,
                     decorationBox = { innerTextField ->
                         Box(
@@ -340,7 +340,7 @@ fun EmojiAndMediaSheet(
                                         modifier = Modifier
                                             .size(36.dp)
                                             .clip(CircleShape)
-                                            .background(if (isCatSelected) Color(0xFF18E7F5) else Color.Transparent)
+                                            .background(if (isCatSelected) IosSettingsColors.blue else Color.Transparent)
                                             .clickable { selectedEmojiCategory = idx },
                                         contentAlignment = Alignment.Center
                                     ) {
@@ -355,7 +355,7 @@ fun EmojiAndMediaSheet(
                     // Pestaña GIF
                     if (emojiMedia.isGifsLoading) {
                         CircularProgressIndicator(
-                            color = Color(0xFF18E7F5),
+                            color = IosSettingsColors.blue,
                             modifier = Modifier.align(Alignment.Center)
                         )
                     } else if (emojiMedia.gifs.isEmpty()) {

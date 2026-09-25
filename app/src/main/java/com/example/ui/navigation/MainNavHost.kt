@@ -73,7 +73,7 @@ import kotlinx.coroutines.launch
 import kotlinx.coroutines.flow.distinctUntilChanged
 import kotlinx.coroutines.flow.launchIn
 import kotlinx.coroutines.flow.onEach
-import com.example.ui.theme.PanalinkPalette
+import com.example.ui.settings.ios.IosSettingsColors
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -544,7 +544,7 @@ fun MainNavHost(
                         ) {
                             androidx.compose.material3.CircularProgressIndicator(color = Color(0xFF38BDF8))
                             Spacer(modifier = Modifier.height(16.dp))
-                            Text("Preparando tu playlist...", color = PanalinkPalette.textPrimary, fontSize = 14.sp)
+                            Text("Preparando tu playlist...", color = IosSettingsColors.label, fontSize = 14.sp)
                         }
                     } else {
                         com.example.media.ui.SharePlaylistSheet(

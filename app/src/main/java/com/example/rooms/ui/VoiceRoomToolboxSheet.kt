@@ -50,7 +50,7 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.example.effects.AvatarFrameCatalog
 import com.example.effects.AvatarFrameView
-import com.example.ui.theme.PanalinkPalette
+import com.example.ui.settings.ios.IosSettingsColors
 
 /**
  * Toolbox del dueño de la sala de voz (estilo StarMaker).
@@ -90,7 +90,7 @@ fun VoiceRoomToolboxSheet(
             ) {
                 Text(
                     text = "🎛️ Caja de herramientas",
-                    color = PanalinkPalette.textPrimary,
+                    color = IosSettingsColors.label,
                     fontSize = 17.sp,
                     fontWeight = FontWeight.Bold,
                     modifier = Modifier.weight(1f)
@@ -98,7 +98,7 @@ fun VoiceRoomToolboxSheet(
                 Icon(
                     imageVector = Icons.Default.Close,
                     contentDescription = "Cerrar",
-                    tint = PanalinkPalette.textPrimary.copy(alpha = 0.7f),
+                    tint = IosSettingsColors.secondaryLabel,
                     modifier = Modifier
                         .size(22.dp)
                         .clickable { onDismiss() }
@@ -187,7 +187,7 @@ fun VoiceRoomToolboxSheet(
                             Spacer(modifier = Modifier.height(6.dp))
                             Text(
                                 text = spec.label,
-                                color = PanalinkPalette.textPrimary.copy(alpha = 0.9f),
+                                color = IosSettingsColors.label.copy(alpha = 0.9f),
                                 fontSize = 11.sp,
                                 maxLines = 1,
                                 textAlign = TextAlign.Center
@@ -252,7 +252,7 @@ fun VoiceRoomToolboxSheet(
                                     ) {
                                         Text(
                                             text = "—",
-                                            color = PanalinkPalette.textPrimary.copy(alpha = 0.5f),
+                                            color = IosSettingsColors.secondaryLabel,
                                             fontSize = 14.sp
                                         )
                                     }
@@ -278,7 +278,7 @@ fun VoiceRoomToolboxSheet(
                             Spacer(modifier = Modifier.height(4.dp))
                             Text(
                                 text = spec.label,
-                                color = PanalinkPalette.textPrimary.copy(alpha = 0.9f),
+                                color = IosSettingsColors.label.copy(alpha = 0.9f),
                                 fontSize = 10.sp,
                                 maxLines = 1,
                                 textAlign = TextAlign.Center
@@ -339,7 +339,7 @@ fun VoiceRoomMyPendantSheet(
             ) {
                 Text(
                     text = "💍 Mi colgante",
-                    color = PanalinkPalette.textPrimary,
+                    color = IosSettingsColors.label,
                     fontSize = 17.sp,
                     fontWeight = FontWeight.Bold,
                     modifier = Modifier.weight(1f)
@@ -347,7 +347,7 @@ fun VoiceRoomMyPendantSheet(
                 Icon(
                     imageVector = Icons.Default.Close,
                     contentDescription = "Cerrar",
-                    tint = PanalinkPalette.textPrimary.copy(alpha = 0.7f),
+                    tint = IosSettingsColors.secondaryLabel,
                     modifier = Modifier
                         .size(22.dp)
                         .clickable { onDismiss() }
@@ -355,7 +355,7 @@ fun VoiceRoomMyPendantSheet(
             }
             Text(
                 text = "El colgante viaja contigo: se verá sobre tu avatar en cualquier sala.",
-                color = PanalinkPalette.textPrimary.copy(alpha = 0.6f),
+                color = IosSettingsColors.secondaryLabel,
                 fontSize = 12.sp,
                 modifier = Modifier.padding(horizontal = 16.dp, vertical = 6.dp)
             )
@@ -406,7 +406,7 @@ fun VoiceRoomMyPendantSheet(
                                 ) {
                                     Text(
                                         text = "—",
-                                        color = PanalinkPalette.textPrimary.copy(alpha = 0.5f),
+                                        color = IosSettingsColors.secondaryLabel,
                                         fontSize = 14.sp
                                     )
                                 }
@@ -432,7 +432,7 @@ fun VoiceRoomMyPendantSheet(
                         Spacer(modifier = Modifier.height(4.dp))
                         Text(
                             text = spec.label,
-                            color = PanalinkPalette.textPrimary.copy(alpha = 0.9f),
+                            color = IosSettingsColors.label.copy(alpha = 0.9f),
                             fontSize = 10.sp,
                             maxLines = 1,
                             textAlign = TextAlign.Center

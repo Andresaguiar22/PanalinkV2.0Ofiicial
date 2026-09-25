@@ -42,7 +42,7 @@ import com.example.ui.components.rememberResolvedMediaUrl
 import com.example.ui.components.isVideoUrl
 import com.example.ui.screen.FeedFullscreenVideoPlayer
 import com.example.ui.viewmodel.FeedViewModel
-import com.example.ui.theme.PanalinkPalette
+import com.example.ui.settings.ios.IosSettingsColors
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -81,7 +81,7 @@ fun PostDetailScreen(
                 title = {
                     Text(
                         text = "Publicación",
-                        color = PanalinkPalette.textPrimary,
+                        color = IosSettingsColors.label,
                         fontSize = 18.sp,
                         fontWeight = FontWeight.Bold
                     )
@@ -91,7 +91,7 @@ fun PostDetailScreen(
                         Icon(
                             imageVector = Icons.AutoMirrored.Filled.ArrowBack,
                             contentDescription = "Volver",
-                            tint = PanalinkPalette.textPrimary
+                            tint = IosSettingsColors.label
                         )
                     }
                 },
@@ -187,7 +187,7 @@ fun PostDetailScreen(
                                 modifier = Modifier
                                     .size(36.dp)
                                     .clip(CircleShape)
-                                    .background(if (commentText.isNotBlank()) Color(0xFF00E5FF) else Color.Transparent),
+                                    .background(if (commentText.isNotBlank()) IosSettingsColors.blue else Color.Transparent),
                                 enabled = commentText.isNotBlank() && !isSending
                             ) {
                                 if (isSending) {
@@ -236,7 +236,7 @@ fun PostDetailScreen(
                         onClick = onBackClick,
                         colors = ButtonDefaults.buttonColors(containerColor = Color(0xFF2AABEE))
                     ) {
-                        Text("Regresar", color = PanalinkPalette.textPrimary)
+                        Text("Regresar", color = IosSettingsColors.label)
                     }
                 }
             } else {
@@ -277,12 +277,12 @@ fun PostDetailScreen(
                         ) {
                             Text(
                                 text = "Comentarios (${comments.size})",
-                                color = PanalinkPalette.textPrimary,
+                                color = IosSettingsColors.label,
                                 fontSize = 16.sp,
                                 fontWeight = FontWeight.Bold
                             )
                             Spacer(modifier = Modifier.height(8.dp))
-                            HorizontalDivider(color = PanalinkPalette.textPrimary.copy(alpha = 0.08f))
+                            HorizontalDivider(color = IosSettingsColors.separator)
                         }
                     }
 
@@ -453,13 +453,13 @@ fun PostDetailScreen(
                     },
                     modifier = Modifier.background(Color.Black.copy(alpha = 0.5f), CircleShape)
                 ) {
-                    Icon(Icons.Default.Close, contentDescription = "Cerrar", tint = PanalinkPalette.textPrimary)
+                    Icon(Icons.Default.Close, contentDescription = "Cerrar", tint = IosSettingsColors.label)
                 }
 
                 if (mediaList.size > 1) {
                     Text(
                         text = "${pagerState.currentPage + 1}/${mediaList.size}",
-                        color = PanalinkPalette.textPrimary,
+                        color = IosSettingsColors.label,
                         fontWeight = FontWeight.Bold,
                         fontSize = 16.sp,
                         modifier = Modifier
@@ -480,7 +480,7 @@ fun PostDetailScreen(
                         Icon(
                             imageVector = if (backgroundAudioMuted) Icons.Default.VolumeMute else Icons.Default.VolumeUp,
                             contentDescription = if (backgroundAudioMuted) "Activar audio" else "Silenciar audio",
-                            tint = PanalinkPalette.textPrimary,
+                            tint = IosSettingsColors.label,
                             modifier = Modifier.size(20.dp)
                         )
                     }
@@ -510,7 +510,7 @@ fun PostDetailScreen(
                     Icon(
                         imageVector = Icons.Filled.ArrowDownward,
                         contentDescription = "Descargar",
-                        tint = PanalinkPalette.textPrimary
+                        tint = IosSettingsColors.label
                     )
                 }
             }

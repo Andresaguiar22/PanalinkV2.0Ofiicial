@@ -28,7 +28,7 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.compose.ui.window.Dialog
 import coil.compose.AsyncImage
-import com.example.ui.theme.PanalinkPalette
+import com.example.ui.settings.ios.IosSettingsColors
 
 @Composable
 fun ChatBackgroundDialog(
@@ -68,7 +68,7 @@ fun ChatBackgroundDialog(
             Column(modifier = Modifier.padding(16.dp)) {
                 Text(
                     "Seleccionar Fondo",
-                    color = PanalinkPalette.textPrimary,
+                    color = IosSettingsColors.label,
                     fontSize = 18.sp,
                     fontWeight = FontWeight.Bold,
                     modifier = Modifier.padding(bottom = 16.dp)
@@ -177,7 +177,7 @@ private fun WallpaperCard(
                             ),
                         contentAlignment = Alignment.Center
                     ) {
-                        Text("＋", color = PanalinkPalette.textPrimary, fontSize = 34.sp)
+                        Text("＋", color = IosSettingsColors.label, fontSize = 34.sp)
                     }
                 }
             }
@@ -190,7 +190,7 @@ private fun WallpaperCard(
                 .background(Color.Black.copy(alpha = 0.55f))
                 .padding(4.dp)
         ) {
-            Text(spec.label, color = PanalinkPalette.textPrimary, fontSize = 10.sp, modifier = Modifier.align(Alignment.Center))
+            Text(spec.label, color = IosSettingsColors.label, fontSize = 10.sp, modifier = Modifier.align(Alignment.Center))
         }
     }
 }

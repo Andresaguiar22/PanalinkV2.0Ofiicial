@@ -47,7 +47,7 @@ import androidx.compose.ui.hapticfeedback.HapticFeedbackType
 import androidx.compose.ui.platform.LocalHapticFeedback
 import androidx.compose.ui.platform.LocalDensity
 import kotlin.math.abs
-import com.example.ui.theme.PanalinkPalette
+import com.example.ui.settings.ios.IosSettingsColors
 
 @Composable
 internal fun rememberResolvedMediaUrl(rawUrl: String?): String {
@@ -239,7 +239,7 @@ fun FeedPostCard(
                     Row(verticalAlignment = Alignment.CenterVertically) {
                         Text(
                             text = identityState?.displayName ?: post.profile?.displayName ?: "Pana de la Comunidad",
-                            color = PanalinkPalette.textPrimary,
+                            color = IosSettingsColors.label,
                             fontWeight = FontWeight.Bold,
                             fontSize = 15.sp,
                             maxLines = 1,
@@ -319,8 +319,8 @@ fun FeedPostCard(
                     ) {
                         if (isMyPost) {
                             DropdownMenuItem(
-                                text = { Text("Editar", color = PanalinkPalette.textPrimary) },
-                                leadingIcon = { Icon(Icons.Default.Edit, contentDescription = null, tint = PanalinkPalette.textPrimary) },
+                                text = { Text("Editar", color = IosSettingsColors.label) },
+                                leadingIcon = { Icon(Icons.Default.Edit, contentDescription = null, tint = IosSettingsColors.label) },
                                 onClick = {
                                     showMenu = false
                                     onEditClick(post.content ?: "")
@@ -361,7 +361,7 @@ fun FeedPostCard(
                 Column(modifier = Modifier.padding(horizontal = 14.dp, vertical = 6.dp)) {
                     Text(
                         text = cleanCaption,
-                        color = PanalinkPalette.textPrimary,
+                        color = IosSettingsColors.label,
                         fontSize = 15.sp,
                         lineHeight = 22.sp,
                         maxLines = if (isExpandedText) Int.MAX_VALUE else 4,
@@ -438,7 +438,7 @@ fun FeedPostCard(
                         ) {
                             if (resolvedUrl.isBlank()) {
                                 Box(modifier = Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
-                                    CircularProgressIndicator(color = Color(0xFF18E7F5), modifier = Modifier.size(32.dp), strokeWidth = 2.dp)
+                                    CircularProgressIndicator(color = IosSettingsColors.blue, modifier = Modifier.size(32.dp), strokeWidth = 2.dp)
                                 }
                             } else if (post.type == "VIDEO" || post.type == "REEL" || isVideoUrl(resolvedUrl)) {
                                 val videoUri = remember(resolvedUrl) { Uri.parse(resolvedUrl) }
@@ -507,7 +507,7 @@ fun FeedPostCard(
                             Icon(
                                 imageVector = if (isMuted) Icons.Default.VolumeMute else Icons.Default.VolumeUp,
                                 contentDescription = "Sonido",
-                                tint = PanalinkPalette.textPrimary,
+                                tint = IosSettingsColors.label,
                                 modifier = Modifier.size(20.dp)
                             )
                         }
@@ -523,7 +523,7 @@ fun FeedPostCard(
                             Icon(
                                 imageVector = Icons.Default.Fullscreen,
                                 contentDescription = "Expandir",
-                                tint = PanalinkPalette.textPrimary.copy(alpha = 0.7f),
+                                tint = IosSettingsColors.secondaryLabel,
                                 modifier = Modifier
                                     .size(20.dp)
                                     .background(Color.Black.copy(alpha = 0.5f), CircleShape)
@@ -531,7 +531,7 @@ fun FeedPostCard(
                             )
                             Text(
                                 text = "${pagerState.currentPage + 1}/${mediaImagesAndVideos.size}",
-                                color = PanalinkPalette.textPrimary,
+                                color = IosSettingsColors.label,
                                 modifier = Modifier
                                     .background(Color.Black.copy(alpha = 0.6f), RoundedCornerShape(16.dp))
                                     .padding(horizontal = 10.dp, vertical = 4.dp),
@@ -590,7 +590,7 @@ fun FeedPostCard(
                                 .padding(horizontal = 10.dp, vertical = 6.dp),
                             verticalAlignment = Alignment.CenterVertically
                         ) {
-                            Text("🎵 Audio", color = Color(0xFF18E7F5), fontSize = 12.sp, fontWeight = FontWeight.Bold)
+                            Text("🎵 Audio", color = IosSettingsColors.blue, fontSize = 12.sp, fontWeight = FontWeight.Bold)
                         }
                     }
                 }
@@ -599,7 +599,7 @@ fun FeedPostCard(
                 Box(modifier = Modifier.fillMaxWidth().padding(horizontal = 14.dp, vertical = 8.dp)) {
                     if (resolvedAudio.isBlank()) {
                         Box(modifier = Modifier.fillMaxWidth().height(80.dp), contentAlignment = Alignment.Center) {
-                            CircularProgressIndicator(color = Color(0xFF18E7F5), modifier = Modifier.size(28.dp), strokeWidth = 2.dp)
+                            CircularProgressIndicator(color = IosSettingsColors.blue, modifier = Modifier.size(28.dp), strokeWidth = 2.dp)
                         }
                     } else {
                         PlaylistAudioPlayer(audioUrls = listOf(resolvedAudio))
@@ -660,7 +660,7 @@ fun FeedPostCard(
                         Text(text = tail, color = Color.Gray, fontSize = 13.sp, modifier = Modifier.clickable { onCommentClick() })
                     }
                 }
-                HorizontalDivider(color = PanalinkPalette.textPrimary.copy(alpha = 0.06f), thickness = 0.5.dp, modifier = Modifier.padding(horizontal = 12.dp))
+                HorizontalDivider(color = IosSettingsColors.label.copy(alpha = 0.06f), thickness = 0.5.dp, modifier = Modifier.padding(horizontal = 12.dp))
             }
 
             Row(
@@ -695,7 +695,7 @@ fun FeedPostCard(
                 }
 
                 VerticalDivider(
-                    color = PanalinkPalette.textPrimary.copy(alpha = 0.08f),
+                    color = IosSettingsColors.label.copy(alpha = 0.08f),
                     modifier = Modifier.height(24.dp).padding(vertical = 4.dp)
                 )
 
@@ -723,7 +723,7 @@ fun FeedPostCard(
                 }
 
                 VerticalDivider(
-                    color = PanalinkPalette.textPrimary.copy(alpha = 0.08f),
+                    color = IosSettingsColors.label.copy(alpha = 0.08f),
                     modifier = Modifier.height(24.dp).padding(vertical = 4.dp)
                 )
 
@@ -768,7 +768,7 @@ fun FeedPostCard(
                     IconButton(onClick = { onAudioPlaylistClick(post) }, modifier = Modifier.size(36.dp)) {
                         Icon(
                             imageVector = Icons.Default.PlaylistPlay,
-                            tint = Color(0xFF18E7F5),
+                            tint = IosSettingsColors.blue,
                             contentDescription = "Reproducir lista",
                             modifier = Modifier.size(22.dp)
                         )

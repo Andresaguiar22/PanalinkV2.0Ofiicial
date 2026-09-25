@@ -27,6 +27,7 @@ import androidx.compose.ui.unit.sp
 import androidx.lifecycle.viewmodel.compose.viewModel
 import coil.compose.AsyncImage
 import com.example.rooms.model.VoiceRoom
+import com.example.ui.settings.ios.IosSettingsColors
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -37,7 +38,7 @@ fun VoiceRoomBrowserScreen(onBack:()->Unit,onEnterRoom:(String)->Unit,viewModel:
     LaunchedEffect(Unit){viewModel.refresh()}
     Scaffold(topBar={TopAppBar(title={Text("Salas de voz",fontWeight=FontWeight.Bold)},navigationIcon={IconButton(onClick=onBack){Icon(Icons.Default.ArrowBack,"Volver")}},colors=TopAppBarDefaults.topAppBarColors(containerColor=Color(0xB8131A22),titleContentColor=Color.White))},containerColor=Color(0xFF0D0F12)){padding->
         Box(Modifier.fillMaxSize()) {
-            if(state.isLoading && state.rooms.isEmpty()) CircularProgressIndicator(Modifier.align(Alignment.Center),color=Color(0xFF18E7F5))
+            if(state.isLoading && state.rooms.isEmpty()) CircularProgressIndicator(Modifier.align(Alignment.Center),color=IosSettingsColors.blue)
             LazyVerticalGrid(columns=GridCells.Fixed(2),modifier=Modifier.fillMaxSize().padding(padding).padding(12.dp),horizontalArrangement=Arrangement.spacedBy(10.dp),verticalArrangement=Arrangement.spacedBy(10.dp)){
                 items(state.rooms,key={it.id}){room->RoomCard(room,state.memberCounts[room.id]?:0){onEnterRoom(room.id)}}
             }
@@ -45,7 +46,7 @@ fun VoiceRoomBrowserScreen(onBack:()->Unit,onEnterRoom:(String)->Unit,viewModel:
             FloatingActionButton(onClick={
                 // Premium 2.0: beneficios aditivos — crear sala NUNCA se bloquea.
                 showCreate = true
-            },modifier=Modifier.align(Alignment.BottomEnd).padding(20.dp),containerColor=Color(0xFF18E7F5)){Icon(Icons.Default.Add,"Crear sala",tint=Color(0xFF0D0F12))}
+            },modifier=Modifier.align(Alignment.BottomEnd).padding(20.dp),containerColor=IosSettingsColors.blue){Icon(Icons.Default.Add,"Crear sala",tint=Color(0xFF0D0F12))}
             if(showCreate) VoiceRoomCreateDialog(onDismiss={showCreate=false},onCreate={showCreate=false;viewModel.createRoom(it)})
         }
     }

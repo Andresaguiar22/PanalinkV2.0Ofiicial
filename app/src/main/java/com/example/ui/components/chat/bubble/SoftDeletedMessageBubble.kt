@@ -14,7 +14,7 @@ import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.example.data.model.Message
-import com.example.ui.theme.PanalinkPalette
+import com.example.ui.settings.ios.IosSettingsColors
 
 @Composable
 fun SoftDeletedMessageBubble(
@@ -22,8 +22,8 @@ fun SoftDeletedMessageBubble(
     isMe: Boolean,
     modifier: Modifier = Modifier
 ) {
-    val bubbleColor = if (isMe) PanalinkPalette.chatOutgoing else PanalinkPalette.chatIncoming
-    val textColor = PanalinkPalette.textSecondary
+    val bubbleColor = if (isMe) IosSettingsColors.blue else IosSettingsColors.cell
+    val textColor = IosSettingsColors.secondaryLabel
 
     Surface(
         modifier = modifier

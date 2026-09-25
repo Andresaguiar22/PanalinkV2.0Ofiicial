@@ -12,7 +12,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-import com.example.ui.theme.PanalinkPalette
+import com.example.ui.settings.ios.IosSettingsColors
 
 @Composable
 fun CoverPhotoPicker(
@@ -30,7 +30,7 @@ fun CoverPhotoPicker(
         Row(verticalAlignment = Alignment.CenterVertically) {
             Icon(Icons.Default.Image, contentDescription = null, tint = Color(0xFF25D366), modifier = Modifier.size(16.dp))
             Spacer(modifier = Modifier.width(6.dp))
-            Text(if (isUploading) "Subiendo..." else "Cambiar Portada", color = PanalinkPalette.textPrimary, fontSize = 11.sp)
+            Text(if (isUploading) "Subiendo..." else "Cambiar Portada", color = IosSettingsColors.label, fontSize = 11.sp)
         }
     }
 }

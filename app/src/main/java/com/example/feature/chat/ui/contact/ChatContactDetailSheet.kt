@@ -29,7 +29,7 @@ import androidx.compose.ui.unit.sp
 import com.example.data.model.Profile
 import com.example.ui.components.PanaAvatar
 import com.example.ui.theme.bounceClick
-import com.example.ui.theme.PanalinkPalette
+import com.example.ui.settings.ios.IosSettingsColors
 
 @Composable
 fun ChatContactDetailSheet(
@@ -93,14 +93,14 @@ fun ChatContactDetailSheet(
     
     Text(
     text = otherName,
-    color = PanalinkPalette.textPrimary,
+    color = IosSettingsColors.label,
     fontSize = 20.sp,
     fontWeight = FontWeight.Bold
     )
     
     Text(
     text = "en línea",
-    color = Color(0xFF18E7F5),
+    color = IosSettingsColors.blue,
     fontSize = 12.sp,
     fontWeight = FontWeight.Medium
     )
@@ -120,7 +120,7 @@ fun ChatContactDetailSheet(
     .padding(16.dp),
     verticalAlignment = Alignment.CenterVertically
     ) {
-    Icon(Icons.Default.Info, contentDescription = null, tint = Color(0xFF18E7F5), modifier = Modifier.size(24.dp))
+    Icon(Icons.Default.Info, contentDescription = null, tint = IosSettingsColors.blue, modifier = Modifier.size(24.dp))
     Spacer(modifier = Modifier.width(16.dp))
     Column {
     Text(
@@ -128,7 +128,7 @@ fun ChatContactDetailSheet(
     color = Color(0xFF9AA8B5),
     fontSize = 11.sp
     )
-    Text(otherBio, color = PanalinkPalette.textPrimary, fontSize = 14.sp)
+    Text(otherBio, color = IosSettingsColors.label, fontSize = 14.sp)
     
     Spacer(modifier = Modifier.height(4.dp))
     Text(otherPin, color = Color(0xFF9AA8B5), fontSize = 13.sp)
@@ -153,7 +153,7 @@ fun ChatContactDetailSheet(
     context.startActivity(android.content.Intent.createChooser(shareIntent, "Compartir contacto de pana"))
     },
     colors = ButtonDefaults.filledTonalButtonColors(
-    containerColor = Color(0xFF18E7F5),
+    containerColor = IosSettingsColors.blue,
     contentColor = Color.White
     ),
     modifier = Modifier

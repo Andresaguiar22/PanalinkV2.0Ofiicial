@@ -27,7 +27,7 @@ import coil.request.CachePolicy
 import coil.request.ImageRequest
 import com.example.data.repository.CdnManager
 import com.example.ui.components.chat.media.DownloadProgressOverlay
-import com.example.ui.theme.PanalinkPalette
+import com.example.ui.settings.ios.IosSettingsColors
 
 /**
  * Componente principal para visualizar imágenes y videos en las burbujas de chat.
@@ -40,7 +40,7 @@ fun MediaMessageBubble(
     thumbnailUrl: String? = null,
     durationLabel: String? = null,
     captionText: String? = null,
-    bubbleColor: Color = PanalinkPalette.chatIncoming,
+    bubbleColor: Color = IosSettingsColors.cell,
     isDownloading: Boolean = false,
     isUploading: Boolean = false,
     progress: Float? = null,
@@ -82,7 +82,7 @@ fun MediaMessageBubble(
                 ) {
                     Text(
                         text = captionText!!,
-                        color = PanalinkPalette.textPrimary,
+                        color = IosSettingsColors.label,
                         fontSize = 15.sp,
                         lineHeight = 20.sp
                     )
@@ -172,7 +172,7 @@ private fun SingleMediaView(
                 Icon(
                     imageVector = Icons.Default.PlayArrow,
                     contentDescription = "Reproducir Video",
-                    tint = PanalinkPalette.textPrimary,
+                    tint = IosSettingsColors.label,
                     modifier = Modifier.size(36.dp)
                 )
             }
@@ -193,12 +193,12 @@ private fun SingleMediaView(
                         Icon(
                             imageVector = Icons.Default.Videocam,
                             contentDescription = null,
-                            tint = PanalinkPalette.textPrimary,
+                            tint = IosSettingsColors.label,
                             modifier = Modifier.size(12.dp)
                         )
                         Text(
                             text = durationLabel!!,
-                            color = PanalinkPalette.textPrimary,
+                            color = IosSettingsColors.label,
                             fontSize = 11.sp,
                             fontWeight = FontWeight.SemiBold
                         )
@@ -362,7 +362,7 @@ private fun GridImageItem(
             ) {
                 Text(
                     text = "+$overlayCount",
-                    color = PanalinkPalette.textPrimary,
+                    color = IosSettingsColors.label,
                     fontSize = 22.sp,
                     fontWeight = FontWeight.Bold
                 )

@@ -87,7 +87,7 @@ import java.text.SimpleDateFormat
 import java.util.*
 
 import com.example.ui.viewmodel.NotificationsViewModel
-import com.example.ui.theme.PanalinkPalette
+import com.example.ui.settings.ios.IosSettingsColors
 
 @OptIn(ExperimentalMaterial3Api::class)
 
@@ -125,7 +125,7 @@ fun PlusOptionCard(
             }
             Spacer(modifier = Modifier.width(10.dp))
             Column(verticalArrangement = Arrangement.Center) {
-                Text(title, color = PanalinkPalette.textPrimary, fontWeight = FontWeight.Bold, fontSize = 12.sp, maxLines = 1)
+                Text(title, color = IosSettingsColors.label, fontWeight = FontWeight.Bold, fontSize = 12.sp, maxLines = 1)
                 Text(subtitle, color = Color.Gray, fontSize = 9.sp, maxLines = 1, overflow = TextOverflow.Ellipsis)
             }
         }
@@ -169,7 +169,7 @@ fun QuickProfileMenuItem(
     ) {
         Icon(icon, contentDescription = null, tint = tint, modifier = Modifier.size(20.dp))
         Spacer(modifier = Modifier.width(12.dp))
-        Text(label, color = PanalinkPalette.textPrimary, fontSize = 14.sp, fontWeight = FontWeight.Medium)
+        Text(label, color = IosSettingsColors.label, fontSize = 14.sp, fontWeight = FontWeight.Medium)
     }
 }
 

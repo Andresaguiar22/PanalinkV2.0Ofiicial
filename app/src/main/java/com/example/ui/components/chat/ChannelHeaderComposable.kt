@@ -18,7 +18,7 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import coil.compose.AsyncImage
-import com.example.ui.theme.PanalinkPalette
+import com.example.ui.settings.ios.IosSettingsColors
 
 @Composable
 fun ChannelHeaderComposable(
@@ -55,7 +55,7 @@ fun ChannelHeaderComposable(
         Column(modifier = Modifier.weight(1f)) {
             Text(
                 text = channelName,
-                color = PanalinkPalette.textPrimary,
+                color = IosSettingsColors.label,
                 fontSize = 20.sp,
                 fontWeight = FontWeight.ExtraBold,
                 letterSpacing = 0.5.sp
@@ -81,7 +81,7 @@ fun ChannelHeaderComposable(
             ) {
                 Text(
                     text = "Seguir",
-                    color = PanalinkPalette.textPrimary,
+                    color = IosSettingsColors.label,
                     fontSize = 14.sp,
                     fontWeight = FontWeight.Bold
                 )

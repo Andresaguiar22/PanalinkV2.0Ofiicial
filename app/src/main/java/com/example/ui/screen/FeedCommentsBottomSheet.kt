@@ -34,7 +34,7 @@ import com.example.data.model.PostCommentDto
 import com.example.ui.viewmodel.FeedViewModel
 import java.text.SimpleDateFormat
 import java.util.Locale
-import com.example.ui.theme.PanalinkPalette
+import com.example.ui.settings.ios.IosSettingsColors
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -81,7 +81,7 @@ fun FeedCommentsBottomSheet(
                 ) {
                     Text(
                         text = "${comments.size} comentarios",
-                        color = PanalinkPalette.textPrimary,
+                        color = IosSettingsColors.label,
                         fontSize = 15.sp,
                         fontWeight = FontWeight.Bold
                     )
@@ -100,19 +100,19 @@ fun FeedCommentsBottomSheet(
                         },
                         modifier = Modifier.size(28.dp)
                     ) {
-                        Text("文A", color = PanalinkPalette.textPrimary, fontSize = 15.sp, fontWeight = FontWeight.Bold)
+                        Text("文A", color = IosSettingsColors.label, fontSize = 15.sp, fontWeight = FontWeight.Bold)
                     }
 
                     IconButton(
                         onClick = onDismiss,
                         modifier = Modifier.size(28.dp)
                     ) {
-                        Icon(Icons.Default.Close, contentDescription = "Cerrar", tint = PanalinkPalette.textPrimary)
+                        Icon(Icons.Default.Close, contentDescription = "Cerrar", tint = IosSettingsColors.label)
                     }
                 }
             }
 
-            Divider(color = PanalinkPalette.textPrimary.copy(alpha = 0.08f))
+            Divider(color = IosSettingsColors.label.copy(alpha = 0.08f))
 
             // Comments List
             LazyColumn(
@@ -251,7 +251,7 @@ fun FeedCommentsBottomSheet(
                             modifier = Modifier
                                 .size(36.dp)
                                 .clip(CircleShape)
-                                .background(if (commentText.isNotBlank()) Color(0xFF00E5FF) else Color.Transparent),
+                                .background(if (commentText.isNotBlank()) IosSettingsColors.blue else Color.Transparent),
                             enabled = commentText.isNotBlank() && !isSending
                         ) {
                             if (isSending) {
@@ -326,7 +326,7 @@ fun TikTokCommentRow(
             // Comment text
             com.example.ui.components.CommentMediaText(
                 text = comment.content ?: "",
-                fallbackColor = PanalinkPalette.textPrimary
+                fallbackColor = IosSettingsColors.label
             )
 
             if (!comment.mediaUrl.isNullOrBlank()) {

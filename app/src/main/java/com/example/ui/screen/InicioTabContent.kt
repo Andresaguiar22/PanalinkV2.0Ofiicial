@@ -93,7 +93,7 @@ import java.text.SimpleDateFormat
 import java.util.*
 
 import com.example.ui.viewmodel.NotificationsViewModel
-import com.example.ui.theme.PanalinkPalette
+import com.example.ui.settings.ios.IosSettingsColors
 
 @OptIn(ExperimentalMaterial3Api::class)
 
@@ -155,7 +155,7 @@ fun TuTabContent(
         item {
             Card(
                 colors = CardDefaults.cardColors(containerColor = colors.secondary),
-                border = BorderStroke(1.dp, Color(0xFF262629)),
+                border = BorderStroke(1.dp, IosSettingsColors.separator),
                 shape = RoundedCornerShape(16.dp),
                 modifier = Modifier.fillMaxWidth()
             ) {
@@ -181,7 +181,7 @@ fun TuTabContent(
                     ) {
                         Text(
                             text = displayName,
-                            color = PanalinkPalette.textPrimary,
+                            color = IosSettingsColors.label,
                             fontSize = 22.sp,
                             fontWeight = FontWeight.Bold
                         )
@@ -215,7 +215,7 @@ fun TuTabContent(
         item {
             Card(
                 colors = CardDefaults.cardColors(containerColor = colors.secondary),
-                border = BorderStroke(1.dp, Color(0xFF262629)),
+                border = BorderStroke(1.dp, IosSettingsColors.separator),
                 shape = RoundedCornerShape(16.dp),
                 modifier = Modifier.fillMaxWidth()
             ) {
@@ -265,7 +265,7 @@ fun TuTabContent(
                         ) {
                             Text(
                                 text = "PIN: $userPinState",
-                                color = PanalinkPalette.textPrimary,
+                                color = IosSettingsColors.label,
                                 fontSize = 20.sp,
                                 fontWeight = FontWeight.Bold,
                                 letterSpacing = 2.sp
@@ -303,7 +303,7 @@ fun TuTabContent(
                         colors = ButtonDefaults.buttonColors(containerColor = colors.accent),
                         shape = RoundedCornerShape(8.dp)
                     ) {
-                        Text("Configurar PIN de Seguridad", color = PanalinkPalette.textPrimary, fontWeight = FontWeight.Bold)
+                        Text("Configurar PIN de Seguridad", color = IosSettingsColors.label, fontWeight = FontWeight.Bold)
                     }
                 }
             }
@@ -313,7 +313,7 @@ fun TuTabContent(
         item {
             Card(
                 colors = CardDefaults.cardColors(containerColor = colors.secondary),
-                border = BorderStroke(1.dp, Color(0xFF262629)),
+                border = BorderStroke(1.dp, IosSettingsColors.separator),
                 shape = RoundedCornerShape(16.dp),
                 modifier = Modifier.fillMaxWidth()
             ) {
@@ -332,7 +332,7 @@ fun TuTabContent(
 
                     // Tema de Pana Selector
                     Column {
-                        Text("Tema Visual de Pana", color = PanalinkPalette.textPrimary, fontSize = 14.sp, fontWeight = FontWeight.SemiBold)
+                        Text("Tema Visual de Pana", color = IosSettingsColors.label, fontSize = 14.sp, fontWeight = FontWeight.SemiBold)
                         Spacer(modifier = Modifier.height(8.dp))
                         Row(
                             horizontalArrangement = Arrangement.spacedBy(6.dp),
@@ -350,7 +350,7 @@ fun TuTabContent(
                                     modifier = Modifier
                                         .weight(1f)
                                         .clip(RoundedCornerShape(8.dp))
-                                        .background(if (isSelected) colors.accent else Color(0xFF121214))
+                                        .background(if (isSelected) colors.accent else IosSettingsColors.cell)
                                         .clickable { profileThemeChoice = key }
                                         .padding(vertical = 8.dp),
                                     contentAlignment = Alignment.Center
@@ -366,7 +366,7 @@ fun TuTabContent(
                         }
                     }
 
-                    HorizontalDivider(color = Color(0xFF1E2E36), thickness = 0.5.dp)
+                    HorizontalDivider(color = IosSettingsColors.separator, thickness = 0.5.dp)
 
                     // Minimalist Mode Toggle
                     Row(
@@ -375,7 +375,7 @@ fun TuTabContent(
                         verticalAlignment = Alignment.CenterVertically
                     ) {
                         Column(modifier = Modifier.weight(1f)) {
-                            Text("Modo Minimalista", color = PanalinkPalette.textPrimary, fontSize = 14.sp, fontWeight = FontWeight.SemiBold)
+                            Text("Modo Minimalista", color = IosSettingsColors.label, fontSize = 14.sp, fontWeight = FontWeight.SemiBold)
                             Text("Simplifica los menús y acciones", color = Color.LightGray, fontSize = 11.sp)
                         }
                         Switch(
@@ -388,12 +388,12 @@ fun TuTabContent(
                                 checkedThumbColor = Color.White,
                                 checkedTrackColor = colors.accent,
                                 uncheckedThumbColor = Color.Gray,
-                                uncheckedTrackColor = Color(0xFF1E2E36)
+                                uncheckedTrackColor = IosSettingsColors.separator
                             )
                         )
                     }
 
-                    HorizontalDivider(color = Color(0xFF1E2E36), thickness = 0.5.dp)
+                    HorizontalDivider(color = IosSettingsColors.separator, thickness = 0.5.dp)
 
                     // Floating PiP Toggle Option
                     Row(
@@ -402,7 +402,7 @@ fun TuTabContent(
                         verticalAlignment = Alignment.CenterVertically
                     ) {
                         Column(modifier = Modifier.weight(1f)) {
-                            Text("Ventanas Flotantes (PiP)", color = PanalinkPalette.textPrimary, fontSize = 14.sp, fontWeight = FontWeight.SemiBold)
+                            Text("Ventanas Flotantes (PiP)", color = IosSettingsColors.label, fontSize = 14.sp, fontWeight = FontWeight.SemiBold)
                             Text("Permitir que Pana TV y Reels floten al salir", color = Color.LightGray, fontSize = 11.sp)
                         }
                         Switch(
@@ -415,12 +415,12 @@ fun TuTabContent(
                                 checkedThumbColor = Color.White,
                                 checkedTrackColor = colors.accent,
                                 uncheckedThumbColor = Color.Gray,
-                                uncheckedTrackColor = Color(0xFF1E2E36)
+                                uncheckedTrackColor = IosSettingsColors.separator
                             )
                         )
                     }
 
-                    HorizontalDivider(color = Color(0xFF1E2E36), thickness = 0.5.dp)
+                    HorizontalDivider(color = IosSettingsColors.separator, thickness = 0.5.dp)
 
                     // Logout Button
                     Button(
@@ -433,9 +433,9 @@ fun TuTabContent(
                         shape = RoundedCornerShape(8.dp),
                         modifier = Modifier.fillMaxWidth()
                     ) {
-                        Icon(Icons.Default.ExitToApp, contentDescription = null, tint = PanalinkPalette.textPrimary)
+                        Icon(Icons.Default.ExitToApp, contentDescription = null, tint = IosSettingsColors.label)
                         Spacer(modifier = Modifier.width(8.dp))
-                        Text("Cerrar Sesión de Pana", color = PanalinkPalette.textPrimary, fontWeight = FontWeight.Bold)
+                        Text("Cerrar Sesión de Pana", color = IosSettingsColors.label, fontWeight = FontWeight.Bold)
                     }
                 }
             }
@@ -446,8 +446,8 @@ fun TuTabContent(
     if (showEditNameDialog) {
         AlertDialog(
             onDismissRequest = { showEditNameDialog = false },
-            title = { Text("Editar Nombre de Pana", color = PanalinkPalette.textPrimary) },
-            containerColor = Color(0xFF121214),
+            title = { Text("Editar Nombre de Pana", color = IosSettingsColors.label) },
+            containerColor = IosSettingsColors.cell,
             text = {
                 OutlinedTextField(
                     value = nameInputText,
@@ -569,7 +569,7 @@ fun InicioTabContent(
                     ) {
                         Text(
                             text = "Historias 🇻🇪✨",
-                            color = PanalinkPalette.textPrimary,
+                            color = IosSettingsColors.label,
                             fontSize = 14.sp,
                             fontWeight = FontWeight.Bold,
                             modifier = Modifier.padding(start = 16.dp, end = 16.dp, bottom = 8.dp)
@@ -626,7 +626,7 @@ fun InicioTabContent(
                                             .width(115.dp)
                                             .height(195.dp)
                                             .clip(RoundedCornerShape(16.dp))
-                                            .background(Color(0xFF161618)),
+                                            .background(IosSettingsColors.cell),
                                         contentAlignment = Alignment.Center
                                     ) {
                                         Text(
@@ -651,7 +651,7 @@ fun InicioTabContent(
                                 }
                             }
                         }
-                    HorizontalDivider(color = Color(0xFF121214), thickness = 1.dp)
+                    HorizontalDivider(color = IosSettingsColors.cell, thickness = 1.dp)
                     }
                     }
 
@@ -663,7 +663,7 @@ fun InicioTabContent(
                 if (!com.example.util.NetworkMonitor.isOnline.value && (feedUiState.posts.isNotEmpty() || ((statesState is StatesUiState.Success) && statesState.states.isNotEmpty()))) {
                     item(key = { "offline_banner_cached" }) {
                         Surface(
-                            color = Color(0xFF1B1B20),
+                            color = IosSettingsColors.cellElevated,
                             shape = RoundedCornerShape(10.dp),
                             modifier = Modifier
                                 .fillMaxWidth()
@@ -676,13 +676,13 @@ fun InicioTabContent(
                                 Icon(
                                     Icons.Default.WifiOff,
                                     contentDescription = null,
-                                    tint = PanalinkPalette.accent,
+                                    tint = IosSettingsColors.blue,
                                     modifier = Modifier.size(18.dp),
                                 )
                                 Spacer(modifier = Modifier.width(8.dp))
                                 Text(
                                     text = "Sin conexión: estás viendo tus publicaciones e historias guardadas. Se actualizarán solas al volver el internet.",
-                                    color = PanalinkPalette.textPrimary.copy(alpha =  0.85f),
+                                    color = IosSettingsColors.secondaryLabel,
                                     fontSize = 12.sp,
                                     lineHeight =  16.sp
                                 )
@@ -702,7 +702,7 @@ fun InicioTabContent(
                     ) {
                         Text(
                             text = "El Muro 💬",
-                            color = PanalinkPalette.textPrimary,
+                            color = IosSettingsColors.label,
                             fontSize = 18.sp,
                             fontWeight = FontWeight.Bold
                         )
@@ -713,7 +713,7 @@ fun InicioTabContent(
                             Icon(
                                 imageVector = Icons.Default.AddBox,
                                 contentDescription = "Publicar",
-                                tint = PanalinkPalette.accent
+                                tint = IosSettingsColors.blue
                             )
                         }
                     }
@@ -764,7 +764,7 @@ fun InicioTabContent(
                                 .fillMaxWidth()
                                 .padding(horizontal = 16.dp, vertical = 6.dp)
                                 .clip(RoundedCornerShape(14.dp))
-                                .background(Color(0xFF1A1410))
+                                .background(IosSettingsColors.cell)
                                 .border(1.dp, com.example.ui.theme.PanalinkSkin.Gold.copy(alpha = 0.35f), RoundedCornerShape(14.dp))
                                 .clickable {
                                     if (onOpenPremium != null) onOpenPremium()
@@ -784,7 +784,7 @@ fun InicioTabContent(
                                     )
                                     Text(
                                         "Boost de visibilidad y estadísticas en tu muro por días con monedas.",
-                                        color = com.example.ui.theme.PanalinkPalette.textPrimary.copy(alpha = 0.7f),
+                                        color = IosSettingsColors.secondaryLabel,
                                         fontSize = 11.sp
                                     )
                                 }
@@ -802,7 +802,7 @@ fun InicioTabContent(
                         label = "Subiendo publicación",
                         percent = pct,
                         onCancel = { feedViewModel.cancelPendingPost(pending.id) },
-                        color = PanalinkPalette.accent
+                        color = IosSettingsColors.blue
                     )
                     Spacer(modifier = Modifier.height(4.dp))
                 }
@@ -839,7 +839,7 @@ fun InicioTabContent(
                             },
                             onAudioPlaylistClick = { activePlaylistPost = it }
                         )
-                        Spacer(modifier = Modifier.height(8.dp).fillMaxWidth().background(Color(0xFF0C0C0E)))
+                        Spacer(modifier = Modifier.height(8.dp).fillMaxWidth().background(IosSettingsColors.groupBackground))
                     }
                 }
 
@@ -896,7 +896,7 @@ fun InicioTabContent(
                             Spacer(modifier = Modifier.height(16.dp))
                             Text(
                                 text = "El muro está vacío por ahora",
-                                color = PanalinkPalette.textPrimary,
+                                color = IosSettingsColors.label,
                                 fontSize = 16.sp,
                                 fontWeight = FontWeight.Medium
                             )
@@ -911,15 +911,15 @@ fun InicioTabContent(
                             Surface(
                                 onClick = { showCreatePostSheet = true },
                                 shape = RoundedCornerShape(24.dp),
-                                color = PanalinkPalette.accent
+                                color = IosSettingsColors.blue
                             ) {
                                 Row(
                                     modifier = Modifier.padding(horizontal = 20.dp, vertical = 10.dp),
                                     verticalAlignment = Alignment.CenterVertically,
                                     horizontalArrangement = Arrangement.spacedBy(8.dp)
                                 ) {
-                                    Icon(Icons.Default.Add, contentDescription = null, tint = PanalinkPalette.textPrimary, modifier = Modifier.size(18.dp))
-                                    Text("Crear publicación", color = PanalinkPalette.textPrimary, fontWeight = FontWeight.Bold, fontSize = 14.sp)
+                                    Icon(Icons.Default.Add, contentDescription = null, tint = IosSettingsColors.label, modifier = Modifier.size(18.dp))
+                                    Text("Crear publicación", color = IosSettingsColors.label, fontWeight = FontWeight.Bold, fontSize = 14.sp)
                                 }
                             }
                         }
@@ -938,7 +938,7 @@ fun InicioTabContent(
             modifier = Modifier
                 .align(Alignment.BottomEnd)
                 .padding(bottom = 24.dp, end = 16.dp),
-            containerColor = PanalinkPalette.accent,
+            containerColor = IosSettingsColors.blue,
             contentColor = Color.Black
         ) {
             Icon(Icons.Default.Add, contentDescription = "Crear Publicación")
@@ -968,7 +968,7 @@ fun InicioTabContent(
                 activeCommentStateId = null
             },
             sheetState = sheetState,
-            containerColor = Color(0xFF161618)
+            containerColor = IosSettingsColors.cell
         ) {
             Column(
                 modifier = Modifier
@@ -979,7 +979,7 @@ fun InicioTabContent(
             ) {
                 Text(
                     "Comentarios",
-                    color = PanalinkPalette.textPrimary,
+                    color = IosSettingsColors.label,
                     fontSize = 18.sp,
                     fontWeight = FontWeight.Bold,
                     modifier = Modifier.padding(bottom = 16.dp)
@@ -1005,7 +1005,7 @@ fun InicioTabContent(
                             Row(
                                 modifier = Modifier
                                     .fillMaxWidth()
-                                    .background(PanalinkPalette.surface.copy(alpha = 0.6f), RoundedCornerShape(12.dp))
+                                    .background(IosSettingsColors.cellElevated, RoundedCornerShape(12.dp))
                                     .padding(10.dp),
                                 verticalAlignment = Alignment.Top
                             ) {
@@ -1019,7 +1019,7 @@ fun InicioTabContent(
                                 Spacer(modifier = Modifier.width(10.dp))
                                 Column(modifier = Modifier.weight(1f)) {
                                     Row(verticalAlignment = Alignment.CenterVertically) {
-                                        Text(comment.authorName, color = PanalinkPalette.textPrimary, fontWeight = FontWeight.Bold, fontSize = 13.sp)
+                                        Text(comment.authorName, color = IosSettingsColors.label, fontWeight = FontWeight.Bold, fontSize = 13.sp)
                                         Spacer(modifier = Modifier.width(6.dp))
                                         Text(
                                             text = remember(comment.createdAt) {
@@ -1042,7 +1042,7 @@ fun InicioTabContent(
                                         )
                                     }
                                     Spacer(modifier = Modifier.height(2.dp))
-                                    com.example.ui.components.CommentMediaText(text = comment.text, fallbackColor = PanalinkPalette.textPrimary.copy(alpha = 0.9f))
+                                    com.example.ui.components.CommentMediaText(text = comment.text, fallbackColor = IosSettingsColors.label)
                                 }
                             }
                         }
@@ -1065,9 +1065,9 @@ fun InicioTabContent(
                         placeholder = { Text("Añade un comentario...", color = Color.Gray) },
                         modifier = Modifier.weight(1f),
                         colors = OutlinedTextFieldDefaults.colors(
-                            focusedContainerColor = Color(0xFF262629),
-                            unfocusedContainerColor = Color(0xFF262629),
-                            focusedBorderColor = PanalinkPalette.accent,
+                            focusedContainerColor = IosSettingsColors.separator,
+                            unfocusedContainerColor = IosSettingsColors.separator,
+                            focusedBorderColor = IosSettingsColors.blue,
                             unfocusedBorderColor = Color.Transparent,
                             focusedTextColor = Color.White,
                             unfocusedTextColor = Color.White
@@ -1078,9 +1078,9 @@ fun InicioTabContent(
                     Spacer(modifier = Modifier.width(8.dp))
                     IconButton(
                         onClick = { showGifPicker = true },
-                        modifier = Modifier.size(38.dp).background(PanalinkPalette.surface, CircleShape)
+                        modifier = Modifier.size(38.dp).background(IosSettingsColors.cell, CircleShape)
                     ) {
-                        Text("GIF", fontSize = 13.sp, fontWeight = FontWeight.Bold, color = PanalinkPalette.accent)
+                        Text("GIF", fontSize = 13.sp, fontWeight = FontWeight.Bold, color = IosSettingsColors.blue)
                     }
                     IconButton(
                         onClick = {
@@ -1094,7 +1094,7 @@ fun InicioTabContent(
                         },
                         modifier = Modifier.size(48.dp).background(Color(0xFFB026FF), CircleShape)
                     ) {
-                        Icon(Icons.Default.Send, contentDescription = "Enviar", tint = PanalinkPalette.textPrimary, modifier = Modifier.size(20.dp))
+                        Icon(Icons.Default.Send, contentDescription = "Enviar", tint = IosSettingsColors.label, modifier = Modifier.size(20.dp))
                     }
                 }
                 if (showGifPicker) {
@@ -1121,7 +1121,7 @@ fun InicioTabContent(
     if (editingPostId != null) {
         AlertDialog(
             onDismissRequest = { editingPostId = null },
-            title = { Text("Editar publicación", color = PanalinkPalette.textPrimary) },
+            title = { Text("Editar publicación", color = IosSettingsColors.label) },
             text = {
                 TextField(
                     value = editingPostContent,
@@ -1140,7 +1140,7 @@ fun InicioTabContent(
                     editingPostId?.let { feedViewModel.updatePost(it, editingPostContent) }
                     editingPostId = null
                 }) {
-                    Text("Guardar", color = PanalinkPalette.accent)
+                    Text("Guardar", color = IosSettingsColors.blue)
                 }
             },
             dismissButton = {
@@ -1148,14 +1148,14 @@ fun InicioTabContent(
                     Text("Cancelar", color = Color.Gray)
                 }
             },
-            containerColor = PanalinkPalette.surfaceElevated
+            containerColor = IosSettingsColors.cellElevated
         )
     }
 
     if (postToDeleteId != null) {
         AlertDialog(
             onDismissRequest = { postToDeleteId = null },
-            title = { Text("Eliminar publicación", color = PanalinkPalette.textPrimary) },
+            title = { Text("Eliminar publicación", color = IosSettingsColors.label) },
             text = { Text("¿Estás seguro de que quieres eliminar esta publicación? Esta acción no se puede deshacer.", color = Color.LightGray) },
             confirmButton = {
                 TextButton(onClick = {
@@ -1170,7 +1170,7 @@ fun InicioTabContent(
                     Text("Cancelar", color = Color.Gray)
                 }
             },
-            containerColor = PanalinkPalette.surfaceElevated
+            containerColor = IosSettingsColors.cellElevated
         )
     }
 
@@ -1307,13 +1307,13 @@ fun InicioTabContent(
                     },
                     modifier = Modifier.background(Color.Black.copy(alpha = 0.5f), CircleShape)
                 ) {
-                    Icon(Icons.Default.Close, contentDescription = "Cerrar", tint = PanalinkPalette.textPrimary)
+                    Icon(Icons.Default.Close, contentDescription = "Cerrar", tint = IosSettingsColors.label)
                 }
 
                 if (mediaList.size > 1) {
                     Text(
                         text = "${pagerState.currentPage + 1}/${mediaList.size}",
-                        color = PanalinkPalette.textPrimary,
+                        color = IosSettingsColors.label,
                         fontWeight = FontWeight.Bold,
                         fontSize = 16.sp,
                         modifier = Modifier
@@ -1331,7 +1331,7 @@ fun InicioTabContent(
                         Icon(
                             imageVector = if (backgroundAudioMuted) Icons.Default.VolumeMute else Icons.Default.VolumeUp,
                             contentDescription = if (backgroundAudioMuted) "Activar audio" else "Silenciar audio",
-                            tint = PanalinkPalette.textPrimary,
+                            tint = IosSettingsColors.label,
                             modifier = Modifier.size(20.dp)
                         )
                     }
@@ -1361,7 +1361,7 @@ fun InicioTabContent(
                     Icon(
                         imageVector = Icons.Default.ArrowDownward,
                         contentDescription = "Descargar",
-                        tint = PanalinkPalette.textPrimary
+                        tint = IosSettingsColors.label
                     )
                 }
             }
@@ -1428,7 +1428,7 @@ fun InicioTabContent(
                 exoPlayer.stop()
                 activePlaylistPost = null 
             },
-            containerColor = Color(0xFF0F172A),
+            containerColor = IosSettingsColors.groupBackground,
             dragHandle = { BottomSheetDefaults.DragHandle(color = Color.Gray) }
         ) {
             Column(
@@ -1444,7 +1444,7 @@ fun InicioTabContent(
                 ) {
                     Text(
                         text = "Reproductor de Audios (${audiosList.size})",
-                        color = PanalinkPalette.textPrimary,
+                        color = IosSettingsColors.label,
                         fontSize = 18.sp,
                         fontWeight = FontWeight.Bold
                     )
@@ -1452,7 +1452,7 @@ fun InicioTabContent(
                         exoPlayer.stop()
                         activePlaylistPost = null 
                     }) {
-                        Icon(Icons.Default.Close, contentDescription = "Cerrar", tint = PanalinkPalette.textPrimary)
+                        Icon(Icons.Default.Close, contentDescription = "Cerrar", tint = IosSettingsColors.label)
                     }
                 }
                 
@@ -1466,8 +1466,8 @@ fun InicioTabContent(
                 ) {
                     itemsIndexed(audiosList, key = { _, url -> "audio_${url.hashCode()}" }) { index, url ->
                         val isCurrent = index == currentAudioIndex
-                        val itemBgColor = if (isCurrent) PanalinkPalette.surfaceElevated else Color(0xFF1E1E24)
-                        val itemBorderColor = if (isCurrent) PanalinkPalette.accent else Color.Transparent
+                        val itemBgColor = if (isCurrent) IosSettingsColors.cellElevated else IosSettingsColors.cellElevated
+                        val itemBorderColor = if (isCurrent) IosSettingsColors.blue else Color.Transparent
                         
                         Card(
                             onClick = {
@@ -1491,14 +1491,14 @@ fun InicioTabContent(
                                     Icon(
                                         imageVector = if (isCurrent && isPlaying) Icons.Default.PauseCircle else Icons.Default.PlayCircle,
                                         contentDescription = null,
-                                        tint = if (isCurrent) PanalinkPalette.accent else Color.White,
+                                        tint = if (isCurrent) IosSettingsColors.blue else Color.White,
                                         modifier = Modifier.size(28.dp)
                                     )
                                     Spacer(modifier = Modifier.width(12.dp))
                                     Column {
                                         Text(
                                             text = "Audio ${index + 1}",
-                                            color = PanalinkPalette.textPrimary,
+                                            color = IosSettingsColors.label,
                                             fontWeight = if (isCurrent) FontWeight.Bold else FontWeight.Medium,
                                             fontSize = 14.sp
                                         )
@@ -1532,7 +1532,7 @@ fun InicioTabContent(
                                     Icon(
                                         imageVector = Icons.Default.ArrowDownward,
                                         contentDescription = "Descargar",
-                                        tint = PanalinkPalette.accent,
+                                        tint = IosSettingsColors.blue,
                                         modifier = Modifier.size(20.dp)
                                     )
                                 }
@@ -1545,7 +1545,7 @@ fun InicioTabContent(
                 
                 Card(
                     shape = RoundedCornerShape(16.dp),
-                    colors = CardDefaults.cardColors(containerColor = PanalinkPalette.surfaceElevated),
+                    colors = CardDefaults.cardColors(containerColor = IosSettingsColors.cellElevated),
                     modifier = Modifier.fillMaxWidth()
                 ) {
                     Column(
@@ -1556,7 +1556,7 @@ fun InicioTabContent(
                     ) {
                         Text(
                             text = "Reproduciendo: Audio ${currentAudioIndex + 1}",
-                            color = PanalinkPalette.accent,
+                            color = IosSettingsColors.blue,
                             fontWeight = FontWeight.Bold,
                             fontSize = 14.sp
                         )
@@ -1570,8 +1570,8 @@ fun InicioTabContent(
                                 exoPlayer.seekTo(pos)
                             },
                             colors = SliderDefaults.colors(
-                                thumbColor = PanalinkPalette.accent,
-                                activeTrackColor = PanalinkPalette.accent,
+                                thumbColor = IosSettingsColors.blue,
+                                activeTrackColor = IosSettingsColors.blue,
                                 inactiveTrackColor = Color.Gray
                             )
                         )
@@ -1619,7 +1619,7 @@ fun InicioTabContent(
                                 },
                                 modifier = Modifier
                                     .size(56.dp)
-                                    .background(PanalinkPalette.accent, CircleShape)
+                                    .background(IosSettingsColors.blue, CircleShape)
                             ) {
                                 Icon(
                                     imageVector = if (isPlaying) Icons.Default.Pause else Icons.Default.PlayArrow,
@@ -1750,7 +1750,7 @@ internal fun FeedFullscreenVideoPlayer(
                 Icon(
                     imageVector = if (isPlaying) Icons.Default.Pause else Icons.Default.PlayArrow,
                     contentDescription = if (isPlaying) "Pausar" else "Reproducir",
-                    tint = PanalinkPalette.textPrimary,
+                    tint = IosSettingsColors.label,
                     modifier = Modifier.size(36.dp)
                 )
             }
@@ -1768,7 +1768,7 @@ internal fun FeedFullscreenVideoPlayer(
                     val totalSec = (ms / 1000).coerceAtLeast(0)
                     return "%d:%02d".format(totalSec / 60, totalSec % 60)
                 }
-                Text(text = fmt(position), color = PanalinkPalette.textPrimary, fontSize = 12.sp)
+                Text(text = fmt(position), color = IosSettingsColors.label, fontSize = 12.sp)
                 Slider(
                     value = if (duration > 0) position.toFloat() / duration.toFloat() else 0f,
                     onValueChange = { frac ->
@@ -1788,7 +1788,7 @@ internal fun FeedFullscreenVideoPlayer(
                         inactiveTrackColor = Color.White.copy(alpha = 0.3f)
                     )
                 )
-                Text(text = fmt(duration), color = PanalinkPalette.textPrimary, fontSize = 12.sp)
+                Text(text = fmt(duration), color = IosSettingsColors.label, fontSize = 12.sp)
             }
         }
     }

@@ -46,7 +46,7 @@ import coil.compose.AsyncImage
 import com.example.live.domain.model.LiveStream
 import com.example.ui.components.PanaAvatar
 import com.example.ui.components.rememberAsyncMediaUrl
-import com.example.ui.theme.PanalinkPalette
+import com.example.ui.settings.ios.IosSettingsColors
 
 private val LiveCardShape = RoundedCornerShape(20.dp)
 private val LiveRed = Color(0xFFFF28C8)
@@ -138,7 +138,7 @@ fun LiveCard(
             ) {
                 Text(
                     text = live.title,
-                    color = PanalinkPalette.textPrimary,
+                    color = IosSettingsColors.label,
                     fontWeight = FontWeight.Bold,
                     fontSize = 16.sp,
                     maxLines = 1,
@@ -158,7 +158,7 @@ fun LiveCard(
                     )
                     Text(
                         text = hostName,
-                        color = PanalinkPalette.textPrimary.copy(alpha = 0.85f),
+                        color = IosSettingsColors.secondaryLabel,
                         fontSize = 13.sp,
                         fontWeight = FontWeight.Medium,
                         maxLines = 1,
@@ -188,7 +188,7 @@ private fun LiveBadge() {
         LiveGlowDot()
         Text(
             text = "EN VIVO",
-            color = PanalinkPalette.textPrimary,
+            color = IosSettingsColors.label,
             fontSize = 11.sp,
             fontWeight = FontWeight.Bold,
             letterSpacing = 0.6.sp
@@ -239,12 +239,12 @@ private fun ViewerCountBadge(viewerCount: Int) {
         Icon(
             imageVector = Icons.Default.Person,
             contentDescription = null,
-            tint = PanalinkPalette.textPrimary.copy(alpha = 0.9f),
+            tint = IosSettingsColors.label,
             modifier = Modifier.size(12.dp)
         )
         Text(
             text = "$viewerCount",
-            color = PanalinkPalette.textPrimary,
+            color = IosSettingsColors.label,
             fontSize = 11.sp,
             fontWeight = FontWeight.Medium
         )

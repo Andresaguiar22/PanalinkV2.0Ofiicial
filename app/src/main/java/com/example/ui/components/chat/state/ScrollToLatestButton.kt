@@ -19,7 +19,7 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.example.ui.theme.bounceClick
-import com.example.ui.theme.PanalinkPalette
+import com.example.ui.settings.ios.IosSettingsColors
 
 @Composable
 fun ScrollToLatestButton(
@@ -63,7 +63,7 @@ fun ScrollToLatestButton(
                 ) {
                     Text(
                         text = if (unreadCount > 99) "99+" else unreadCount.toString(),
-                        color = PanalinkPalette.textPrimary,
+                        color = IosSettingsColors.label,
                         fontSize = 10.sp,
                         fontWeight = FontWeight.Bold
                     )

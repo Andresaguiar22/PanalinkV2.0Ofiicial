@@ -23,7 +23,7 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import coil.compose.AsyncImage
 import com.example.creative.core.CreativeLayer
-import com.example.ui.theme.PanalinkPalette
+import com.example.ui.settings.ios.IosSettingsColors
 
 /**
  * P6.6.3 - Post Carousel Navigator
@@ -56,7 +56,7 @@ fun PostCarouselNavigator(
             ) {
                 Text(
                     text = "Carrusel (${pages.size} páginas)",
-                    color = PanalinkPalette.textPrimary,
+                    color = IosSettingsColors.label,
                     fontSize = 13.sp,
                     fontWeight = FontWeight.SemiBold
                 )
@@ -133,7 +133,7 @@ fun PostCarouselNavigator(
                                 Icon(
                                     imageVector = Icons.Default.PlayCircle,
                                     contentDescription = "Video",
-                                    tint = PanalinkPalette.textPrimary,
+                                    tint = IosSettingsColors.label,
                                     modifier = Modifier.size(24.dp)
                                 )
                             }

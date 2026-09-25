@@ -26,7 +26,7 @@ import coil.compose.AsyncImage
 import com.example.data.model.Profile
 import com.example.ui.viewmodel.ChatsViewModel
 import com.example.ui.viewmodel.UserSearchUiState
-import com.example.ui.theme.PanalinkPalette
+import com.example.ui.settings.ios.IosSettingsColors
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -53,7 +53,7 @@ fun SearchUsersScreen(
                             query = it
                             viewModel.searchUsers(it)
                         },
-                        placeholder = { Text("Buscar panas...", color = PanalinkPalette.textPrimary.copy(alpha = 0.5f)) },
+                        placeholder = { Text("Buscar panas...", color = IosSettingsColors.secondaryLabel) },
                         modifier = Modifier
                             .fillMaxWidth()
                             .testTag("search_users_input"),
@@ -73,7 +73,7 @@ fun SearchUsersScreen(
                                     query = ""
                                     viewModel.searchUsers("")
                                 }) {
-                                    Icon(Icons.Default.Close, contentDescription = "Limpiar", tint = PanalinkPalette.textPrimary)
+                                    Icon(Icons.Default.Close, contentDescription = "Limpiar", tint = IosSettingsColors.label)
                                 }
                             }
                         }
@@ -81,7 +81,7 @@ fun SearchUsersScreen(
                 },
                 navigationIcon = {
                     IconButton(onClick = onBack, modifier = Modifier.testTag("back_button")) {
-                        Icon(Icons.AutoMirrored.Filled.ArrowBack, contentDescription = "Volver", tint = PanalinkPalette.textPrimary)
+                        Icon(Icons.AutoMirrored.Filled.ArrowBack, contentDescription = "Volver", tint = IosSettingsColors.label)
                     }
                 },
                 actions = {
@@ -89,7 +89,7 @@ fun SearchUsersScreen(
                         Icon(
                             imageVector = Icons.Default.Person,
                             contentDescription = null,
-                            tint = PanalinkPalette.textPrimary.copy(alpha = 0.3f),
+                            tint = IosSettingsColors.tertiaryLabel,
                             modifier = Modifier.size(32.dp)
                         )
                     }
@@ -99,7 +99,7 @@ fun SearchUsersScreen(
                 )
             )
         },
-        containerColor = Color(0xFF0D0F12)
+        containerColor = IosSettingsColors.groupBackground
     ) { innerPadding ->
         Box(
             modifier = Modifier
@@ -134,7 +134,7 @@ fun SearchUsersScreen(
                 is UserSearchUiState.Loading -> {
                     CircularProgressIndicator(
                         modifier = Modifier.align(Alignment.Center),
-                        color = Color(0xFF18E7F5)
+                        color = IosSettingsColors.blue
                     )
                 }
                 is UserSearchUiState.Success -> {
@@ -144,7 +144,7 @@ fun SearchUsersScreen(
                             horizontalAlignment = Alignment.CenterHorizontally,
                             verticalArrangement = Arrangement.Center
                         ) {
-                            Text("No se encontraron panas con \"$query\"", color = PanalinkPalette.textPrimary.copy(alpha = 0.6f))
+                            Text("No se encontraron panas con \"$query\"", color = IosSettingsColors.secondaryLabel)
                         }
                     } else {
                         LazyColumn(modifier = Modifier.fillMaxSize()) {
@@ -197,7 +197,7 @@ fun UserSearchResultItem(
         Column {
             Text(
                 text = user.displayName,
-                color = PanalinkPalette.textPrimary,
+                color = IosSettingsColors.label,
                 fontWeight = FontWeight.Bold,
                 fontSize = 16.sp
             )

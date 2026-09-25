@@ -12,7 +12,7 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import io.livekit.android.room.track.VideoTrack
-import com.example.ui.theme.PanalinkPalette
+import com.example.ui.settings.ios.IosSettingsColors
 
 @Composable
 fun LiveParticipantsLayout(
@@ -53,7 +53,7 @@ fun LiveParticipantsLayout(
                     ) {
                         Text(
                             text = "Co-Host",
-                            color = PanalinkPalette.textPrimary,
+                            color = IosSettingsColors.label,
                             fontSize = 10.sp,
                             modifier = Modifier.padding(horizontal = 4.dp, vertical = 2.dp)
                         )

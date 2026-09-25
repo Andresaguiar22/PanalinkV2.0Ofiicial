@@ -45,7 +45,7 @@ import com.google.mlkit.vision.barcode.BarcodeScanning
 import com.google.mlkit.vision.barcode.common.Barcode
 import com.google.mlkit.vision.common.InputImage
 import java.util.concurrent.Executors
-import com.example.ui.theme.PanalinkPalette
+import com.example.ui.settings.ios.IosSettingsColors
 
 @Composable
 fun CameraXQrScannerDialog(
@@ -103,7 +103,7 @@ fun CameraXQrScannerDialog(
                 ) {
                     Text(
                         text = "Permiso de Cámara Requerido",
-                        color = PanalinkPalette.textPrimary,
+                        color = IosSettingsColors.label,
                         fontSize = 20.sp,
                         fontWeight = FontWeight.Bold
                     )
@@ -119,11 +119,11 @@ fun CameraXQrScannerDialog(
                         onClick = { launcher.launch(Manifest.permission.CAMERA) },
                         colors = ButtonDefaults.buttonColors(containerColor = LocalAppColors.current.primary)
                     ) {
-                        Text("Conceder Permiso 📸", color = PanalinkPalette.textPrimary)
+                        Text("Conceder Permiso 📸", color = IosSettingsColors.label)
                     }
                     Spacer(modifier = Modifier.height(12.dp))
                     TextButton(onClick = onDismiss) {
-                        Text("Cancelar", color = PanalinkPalette.textPrimary)
+                        Text("Cancelar", color = IosSettingsColors.label)
                     }
                 }
             }
@@ -239,7 +239,7 @@ fun CameraXPreviewContainer(
         ) {
             Text(
                 text = "panalink ESCÁNER 📸",
-                color = PanalinkPalette.textPrimary,
+                color = IosSettingsColors.label,
                 fontSize = 20.sp,
                 fontWeight = FontWeight.ExtraBold,
                 letterSpacing = 1.sp
@@ -289,7 +289,7 @@ fun CameraXPreviewContainer(
                 Icon(
                     imageVector = Icons.Default.Close,
                     contentDescription = "Cerrar",
-                    tint = PanalinkPalette.textPrimary
+                    tint = IosSettingsColors.label
                 )
             }
         }

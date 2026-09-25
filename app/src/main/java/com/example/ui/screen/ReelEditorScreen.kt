@@ -81,7 +81,7 @@ import com.example.creative.animation.CreativeKeyframe
 import com.example.creative.animation.EasingType
 import com.example.creative.export.ExportQueueManager
 import com.example.creative.export.ExportJob
-import com.example.ui.theme.PanalinkPalette
+import com.example.ui.settings.ios.IosSettingsColors
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -612,23 +612,23 @@ fun ReelEditorScreen(
                             IconButton(
                                 onClick = { currentStep = "picker" },
                                 modifier = Modifier.background(Color.Black.copy(alpha = 0.5f), CircleShape)
-                            ) { Icon(Icons.AutoMirrored.Default.ArrowBack, contentDescription = null, tint = PanalinkPalette.textPrimary) }
+                            ) { Icon(Icons.AutoMirrored.Default.ArrowBack, contentDescription = null, tint = IosSettingsColors.label) }
 
                             Row(horizontalArrangement = Arrangement.spacedBy(12.dp)) {
                                 IconButton(
                                     onClick = { showTextEditor = true },
                                     modifier = Modifier.background(Color.Black.copy(alpha = 0.5f), CircleShape)
-                                ) { Icon(Icons.Default.TextFields, contentDescription = "Texto", tint = PanalinkPalette.textPrimary) }
+                                ) { Icon(Icons.Default.TextFields, contentDescription = "Texto", tint = IosSettingsColors.label) }
                                 
                                 IconButton(
                                     onClick = { showStickers = true },
                                     modifier = Modifier.background(Color.Black.copy(alpha = 0.5f), CircleShape)
-                                ) { Icon(Icons.Default.EmojiEmotions, contentDescription = "Stickers", tint = PanalinkPalette.textPrimary) }
+                                ) { Icon(Icons.Default.EmojiEmotions, contentDescription = "Stickers", tint = IosSettingsColors.label) }
 
                                 IconButton(
                                     onClick = { showFilters = !showFilters; showAudioPro = false; showTransitions = false },
                                     modifier = Modifier.background(Color.Black.copy(alpha = 0.5f), CircleShape)
-                                ) { Icon(Icons.Default.AutoAwesome, contentDescription = "Filtros", tint = PanalinkPalette.textPrimary) }
+                                ) { Icon(Icons.Default.AutoAwesome, contentDescription = "Filtros", tint = IosSettingsColors.label) }
 
                 IconButton(
                                     onClick = {
@@ -680,7 +680,7 @@ fun ReelEditorScreen(
                                         }
                                     },
                                     modifier = Modifier.background(Color.Black.copy(alpha = 0.5f), CircleShape)
-                                ) { Icon(Icons.Default.AutoAwesomeMotion, contentDescription = "Asistente IA", tint = Color(0xFF18E7F5)) }
+                                ) { Icon(Icons.Default.AutoAwesomeMotion, contentDescription = "Asistente IA", tint = IosSettingsColors.blue) }
                             }
                         }
 
@@ -693,23 +693,23 @@ fun ReelEditorScreen(
                         ) {
                             IconButton(
                                 onClick = { showTimeline = !showTimeline },
-                                modifier = Modifier.background(if (showTimeline) Color(0xFF18E7F5) else Color.Black.copy(alpha = 0.5f), CircleShape)
+                                modifier = Modifier.background(if (showTimeline) IosSettingsColors.blue else Color.Black.copy(alpha = 0.5f), CircleShape)
                             ) { Icon(Icons.Default.Timeline, contentDescription = "Timeline Multipista", tint = if (showTimeline) Color.Black else Color.White) }
 
                             IconButton(
                                 onClick = { showInspector = !showInspector },
-                                modifier = Modifier.background(if (showInspector) Color(0xFF18E7F5) else Color.Black.copy(alpha = 0.5f), CircleShape)
+                                modifier = Modifier.background(if (showInspector) IosSettingsColors.blue else Color.Black.copy(alpha = 0.5f), CircleShape)
                             ) { Icon(Icons.Default.Tune, contentDescription = "Inspector de Propiedades", tint = if (showInspector) Color.Black else Color.White) }
 
                             IconButton(
                                 onClick = { showAudioPro = !showAudioPro; showFilters = false; showTransitions = false },
                                 modifier = Modifier.background(Color.Black.copy(alpha = 0.5f), CircleShape)
-                            ) { Icon(Icons.Default.MusicNote, contentDescription = "Audio Pro", tint = PanalinkPalette.textPrimary) }
+                            ) { Icon(Icons.Default.MusicNote, contentDescription = "Audio Pro", tint = IosSettingsColors.label) }
                             
                             IconButton(
                                 onClick = { showTransitions = !showTransitions; showFilters = false; showAudioPro = false },
                                 modifier = Modifier.background(Color.Black.copy(alpha = 0.5f), CircleShape)
-                            ) { Icon(Icons.Default.Animation, contentDescription = "Transiciones", tint = PanalinkPalette.textPrimary) }
+                            ) { Icon(Icons.Default.Animation, contentDescription = "Transiciones", tint = IosSettingsColors.label) }
                         }
 
                         // Render Button
@@ -721,7 +721,7 @@ fun ReelEditorScreen(
                                 .align(Alignment.BottomEnd)
                                 .navigationBarsPadding()
                                 .padding(16.dp),
-                            colors = ButtonDefaults.buttonColors(containerColor = Color(0xFF18E7F5))
+                            colors = ButtonDefaults.buttonColors(containerColor = IosSettingsColors.blue)
                         ) {
                             Text("Siguiente 🚀", color = Color.Black, fontWeight = FontWeight.Bold)
                         }
@@ -764,12 +764,12 @@ fun ReelEditorScreen(
                                         items(fonts) { f ->
                                             OutlinedButton(
                                                 onClick = { tempFont = f },
-                                                border = BorderStroke(1.dp, if(tempFont == f) Color(0xFF18E7F5) else Color.Gray)
-                                            ) { Text(f, color = PanalinkPalette.textPrimary) }
+                                                border = BorderStroke(1.dp, if(tempFont == f) IosSettingsColors.blue else Color.Gray)
+                                            ) { Text(f, color = IosSettingsColors.label) }
                                         }
                                     }
                                     LazyRow(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
-                                        val colors = listOf(Color.White, Color.Black, Color.Red, Color(0xFF18E7F5), Color(0xFFFF28C8), Color.Yellow)
+                                        val colors = listOf(Color.White, Color.Black, Color.Red, IosSettingsColors.blue, Color(0xFFFF28C8), Color.Yellow)
                                         items(colors) { c ->
                                             Box(modifier = Modifier
                                                 .size(36.dp)
@@ -801,7 +801,7 @@ fun ReelEditorScreen(
                                         showTextEditor = false 
                                     },
                                     modifier = Modifier.align(Alignment.TopEnd).padding(16.dp).statusBarsPadding(),
-                                    colors = ButtonDefaults.buttonColors(containerColor = Color(0xFF18E7F5))
+                                    colors = ButtonDefaults.buttonColors(containerColor = IosSettingsColors.blue)
                                 ) { Text("Listo", color = Color.Black) }
                             }
                         }
@@ -811,11 +811,11 @@ fun ReelEditorScreen(
                             Box(modifier = Modifier.fillMaxSize().background(Color.Black.copy(alpha = 0.5f)).clickable { showStickers = false }) {
                                 Card(
                                     modifier = Modifier.fillMaxWidth().height(300.dp).align(Alignment.BottomCenter).clickable {},
-                                    colors = CardDefaults.cardColors(containerColor = Color(0xFF0D0F12)),
+                                    colors = CardDefaults.cardColors(containerColor = IosSettingsColors.groupBackground),
                                     shape = RoundedCornerShape(topStart = 24.dp, topEnd = 24.dp)
                                 ) {
                                     Column(modifier = Modifier.padding(16.dp)) {
-                                        Text("Stickers Giphy (API)", color = PanalinkPalette.textPrimary, fontWeight = FontWeight.Bold)
+                                        Text("Stickers Giphy (API)", color = IosSettingsColors.label, fontWeight = FontWeight.Bold)
                                         Spacer(modifier = Modifier.height(16.dp))
                                         LazyRow(horizontalArrangement = Arrangement.spacedBy(16.dp)) {
                                             val urls = listOf(
@@ -917,9 +917,9 @@ fun ReelEditorScreen(
                                 LazyRow(contentPadding = PaddingValues(horizontal = 16.dp), horizontalArrangement = Arrangement.spacedBy(12.dp)) {
                                     items(filters) { f ->
                                         Column(horizontalAlignment = Alignment.CenterHorizontally, modifier = Modifier.clickable { activeFilter = f }) {
-                                            Box(modifier = Modifier.size(60.dp).clip(CircleShape).background(Color.DarkGray).border(2.dp, if(activeFilter==f) Color(0xFF18E7F5) else Color.Transparent, CircleShape))
+                                            Box(modifier = Modifier.size(60.dp).clip(CircleShape).background(Color.DarkGray).border(2.dp, if(activeFilter==f) IosSettingsColors.blue else Color.Transparent, CircleShape))
                                             Spacer(modifier = Modifier.height(4.dp))
-                                            Text(f, color = PanalinkPalette.textPrimary, fontSize = 12.sp)
+                                            Text(f, color = IosSettingsColors.label, fontSize = 12.sp)
                                         }
                                     }
                                 }
@@ -931,7 +931,7 @@ fun ReelEditorScreen(
                                 LazyRow(contentPadding = PaddingValues(horizontal = 16.dp), horizontalArrangement = Arrangement.spacedBy(12.dp)) {
                                     items(transitions) { t ->
                                         Box(
-                                            modifier = Modifier.clip(RoundedCornerShape(8.dp)).background(if (selectedTransition == t) Color(0xFF18E7F5) else Color(0xFF131A22)).clickable { selectedTransition = t }.padding(horizontal = 16.dp, vertical = 8.dp)
+                                            modifier = Modifier.clip(RoundedCornerShape(8.dp)).background(if (selectedTransition == t) IosSettingsColors.blue else Color(0xFF131A22)).clickable { selectedTransition = t }.padding(horizontal = 16.dp, vertical = 8.dp)
                                         ) { Text(t, color = if(selectedTransition==t) Color.Black else Color.White) }
                                     }
                                 }
@@ -941,12 +941,12 @@ fun ReelEditorScreen(
                         if (showAudioPro) {
                             Card(
                                 modifier = Modifier.fillMaxWidth().align(Alignment.BottomCenter),
-                                colors = CardDefaults.cardColors(containerColor = Color(0xFF0D0F12)),
+                                colors = CardDefaults.cardColors(containerColor = IosSettingsColors.groupBackground),
                                 shape = RoundedCornerShape(topStart = 24.dp, topEnd = 24.dp)
                             ) {
                                 Column(modifier = Modifier.padding(16.dp).navigationBarsPadding()) {
                                     Row(horizontalArrangement = Arrangement.SpaceBetween, modifier = Modifier.fillMaxWidth()) {
-                                        Text("Edición de Audio Pro 🎙️", color = PanalinkPalette.textPrimary, fontWeight = FontWeight.Bold)
+                                        Text("Edición de Audio Pro 🎙️", color = IosSettingsColors.label, fontWeight = FontWeight.Bold)
                                         Icon(Icons.Default.Close, contentDescription = null, tint = Color.Gray, modifier = Modifier.clickable { showAudioPro = false })
                                     }
                                     Spacer(modifier = Modifier.height(16.dp))
@@ -974,9 +974,9 @@ fun ReelEditorScreen(
                                     Spacer(modifier = Modifier.height(16.dp))
                                     Text("Mezclador (Mixer)", color = Color.Gray, fontSize = 12.sp)
                                     Row(verticalAlignment = Alignment.CenterVertically) {
-                                        Icon(Icons.Default.Mic, contentDescription = null, tint = PanalinkPalette.textPrimary, modifier = Modifier.size(16.dp))
+                                        Icon(Icons.Default.Mic, contentDescription = null, tint = IosSettingsColors.label, modifier = Modifier.size(16.dp))
                                         Slider(value = originalVideoVolume, onValueChange = { originalVideoVolume = it }, valueRange = 0f..100f, modifier = Modifier.weight(1f).padding(horizontal = 8.dp), colors = SliderDefaults.colors(activeTrackColor = Color.White))
-                                        Icon(Icons.Default.MusicNote, contentDescription = null, tint = Color(0xFF18E7F5), modifier = Modifier.size(16.dp))
+                                        Icon(Icons.Default.MusicNote, contentDescription = null, tint = IosSettingsColors.blue, modifier = Modifier.size(16.dp))
                                     }
                                 }
                             }
@@ -986,12 +986,12 @@ fun ReelEditorScreen(
                         if (showAdjustments) {
                             Card(
                                 modifier = Modifier.fillMaxWidth().align(Alignment.BottomCenter),
-                                colors = CardDefaults.cardColors(containerColor = Color(0xFF0D0F12)),
+                                colors = CardDefaults.cardColors(containerColor = IosSettingsColors.groupBackground),
                                 shape = RoundedCornerShape(topStart = 24.dp, topEnd = 24.dp)
                             ) {
                                 Column(modifier = Modifier.padding(16.dp).navigationBarsPadding()) {
                                     Row(horizontalArrangement = Arrangement.SpaceBetween, modifier = Modifier.fillMaxWidth()) {
-                                        Text("Ajustes Técnicos", color = PanalinkPalette.textPrimary, fontWeight = FontWeight.Bold)
+                                        Text("Ajustes Técnicos", color = IosSettingsColors.label, fontWeight = FontWeight.Bold)
                                         Icon(Icons.Default.Close, contentDescription = null, tint = Color.Gray, modifier = Modifier.clickable { showAdjustments = false })
                                     }
                                     Text("Brillo", color = Color.Gray, fontSize = 12.sp)
@@ -1097,13 +1097,13 @@ fun ReelEditorScreen(
                             }
                             Box(modifier = Modifier.fillMaxSize().background(Color.Black.copy(alpha = 0.95f)).clickable{}, contentAlignment = Alignment.Center) {
                                 Column(horizontalAlignment = Alignment.CenterHorizontally, modifier = Modifier.padding(32.dp)) {
-                                    CircularProgressIndicator(progress = { renderProgress }, color = Color(0xFF18E7F5), modifier = Modifier.size(64.dp))
+                                    CircularProgressIndicator(progress = { renderProgress }, color = IosSettingsColors.blue, modifier = Modifier.size(64.dp))
                                     Spacer(modifier = Modifier.height(24.dp))
-                                    Text("Procesando edición...", color = PanalinkPalette.textPrimary, fontWeight = FontWeight.Bold, fontSize = 20.sp)
+                                    Text("Procesando edición...", color = IosSettingsColors.label, fontWeight = FontWeight.Bold, fontSize = 20.sp)
                                     Spacer(modifier = Modifier.height(8.dp))
                                     Text("Motor FFmpeg combinando capas, audio y efectos cinemáticos", color = Color.Gray, fontSize = 12.sp, textAlign = TextAlign.Center)
                                     Spacer(modifier = Modifier.height(16.dp))
-                                    LinearProgressIndicator(progress = { renderProgress }, modifier = Modifier.fillMaxWidth().height(8.dp).clip(RoundedCornerShape(4.dp)), color = Color(0xFF18E7F5), trackColor = Color.DarkGray)
+                                    LinearProgressIndicator(progress = { renderProgress }, modifier = Modifier.fillMaxWidth().height(8.dp).clip(RoundedCornerShape(4.dp)), color = IosSettingsColors.blue, trackColor = Color.DarkGray)
                                 }
                             }
                         }
@@ -1123,15 +1123,15 @@ fun ReelEditorScreen(
                             verticalAlignment = Alignment.CenterVertically
                         ) {
                             IconButton(onClick = { currentStep = "studio" }) {
-                                Icon(Icons.AutoMirrored.Filled.ArrowBack, contentDescription = null, tint = PanalinkPalette.textPrimary)
+                                Icon(Icons.AutoMirrored.Filled.ArrowBack, contentDescription = null, tint = IosSettingsColors.label)
                             }
                             Spacer(modifier = Modifier.width(16.dp))
-                            Text("Ajustes de Publicación 🌍", color = PanalinkPalette.textPrimary, fontSize = 20.sp, fontWeight = FontWeight.Bold)
+                            Text("Ajustes de Publicación 🌍", color = IosSettingsColors.label, fontSize = 20.sp, fontWeight = FontWeight.Bold)
                         }
 
                         // Reel Description (Mandatory)
                         Row(verticalAlignment = Alignment.CenterVertically) {
-                            Text("Descripción del Reel", color = PanalinkPalette.textPrimary, fontWeight = FontWeight.Bold)
+                            Text("Descripción del Reel", color = IosSettingsColors.label, fontWeight = FontWeight.Bold)
                             Text(" *Obligatorio", color = Color.Red, fontSize = 11.sp, modifier = Modifier.padding(start = 8.dp))
                         }
                         OutlinedTextField(
@@ -1142,14 +1142,14 @@ fun ReelEditorScreen(
                             colors = OutlinedTextFieldDefaults.colors(
                                 focusedTextColor = Color.White,
                                 unfocusedTextColor = Color.White,
-                                focusedBorderColor = Color(0xFF18E7F5),
+                                focusedBorderColor = IosSettingsColors.blue,
                                 unfocusedBorderColor = Color.Gray
                             )
                         )
 
                         // Hashtags input (Mandatory: Min 1)
                         Row(verticalAlignment = Alignment.CenterVertically) {
-                            Text("Hashtags", color = PanalinkPalette.textPrimary, fontWeight = FontWeight.Bold)
+                            Text("Hashtags", color = IosSettingsColors.label, fontWeight = FontWeight.Bold)
                             Text(" *Obligatorio (mínimo 1)", color = Color.Red, fontSize = 11.sp, modifier = Modifier.padding(start = 8.dp))
                         }
                         OutlinedTextField(
@@ -1166,7 +1166,7 @@ fun ReelEditorScreen(
                         )
 
                         // Selector de Tipo: Reel vs Historia
-                        Text("¿Dónde publicar?", color = PanalinkPalette.textPrimary, fontWeight = FontWeight.Bold)
+                        Text("¿Dónde publicar?", color = IosSettingsColors.label, fontWeight = FontWeight.Bold)
                         Row(
                             modifier = Modifier.fillMaxWidth(),
                             horizontalArrangement = Arrangement.spacedBy(12.dp)
@@ -1175,8 +1175,8 @@ fun ReelEditorScreen(
                                 modifier = Modifier
                                     .weight(1f)
                                     .clickable { isReelSelected = true },
-                                border = BorderStroke(1.dp, if (isReelSelected) Color(0xFF18E7F5) else Color.Gray.copy(alpha = 0.3f)),
-                                colors = CardDefaults.cardColors(containerColor = if (isReelSelected) Color(0xFF18E7F5).copy(alpha = 0.1f) else Color.Transparent)
+                                border = BorderStroke(1.dp, if (isReelSelected) IosSettingsColors.blue else Color.Gray.copy(alpha = 0.3f)),
+                                colors = CardDefaults.cardColors(containerColor = if (isReelSelected) IosSettingsColors.blue.copy(alpha = 0.1f) else Color.Transparent)
                             ) {
                                 Column(
                                     modifier = Modifier.padding(12.dp),
@@ -1185,9 +1185,9 @@ fun ReelEditorScreen(
                                     Icon(
                                         imageVector = Icons.Default.PlayCircle,
                                         contentDescription = null,
-                                        tint = if (isReelSelected) Color(0xFF18E7F5) else Color.Gray
+                                        tint = if (isReelSelected) IosSettingsColors.blue else Color.Gray
                                     )
-                                    Text("Reel", color = if (isReelSelected) Color(0xFF18E7F5) else Color.Gray, fontSize = 12.sp, fontWeight = FontWeight.Bold)
+                                    Text("Reel", color = if (isReelSelected) IosSettingsColors.blue else Color.Gray, fontSize = 12.sp, fontWeight = FontWeight.Bold)
                                     Text("Público y permanente", color = Color.Gray, fontSize = 9.sp)
                                 }
                             }
@@ -1195,8 +1195,8 @@ fun ReelEditorScreen(
                                 modifier = Modifier
                                     .weight(1f)
                                     .clickable { isReelSelected = false },
-                                border = BorderStroke(1.dp, if (!isReelSelected) Color(0xFF18E7F5) else Color.Gray.copy(alpha = 0.3f)),
-                                colors = CardDefaults.cardColors(containerColor = if (!isReelSelected) Color(0xFF18E7F5).copy(alpha = 0.1f) else Color.Transparent)
+                                border = BorderStroke(1.dp, if (!isReelSelected) IosSettingsColors.blue else Color.Gray.copy(alpha = 0.3f)),
+                                colors = CardDefaults.cardColors(containerColor = if (!isReelSelected) IosSettingsColors.blue.copy(alpha = 0.1f) else Color.Transparent)
                             ) {
                                 Column(
                                     modifier = Modifier.padding(12.dp),
@@ -1205,9 +1205,9 @@ fun ReelEditorScreen(
                                     Icon(
                                         imageVector = Icons.Default.History,
                                         contentDescription = null,
-                                        tint = if (!isReelSelected) Color(0xFF18E7F5) else Color.Gray
+                                        tint = if (!isReelSelected) IosSettingsColors.blue else Color.Gray
                                     )
-                                    Text("Historia", color = if (!isReelSelected) Color(0xFF18E7F5) else Color.Gray, fontSize = 12.sp, fontWeight = FontWeight.Bold)
+                                    Text("Historia", color = if (!isReelSelected) IosSettingsColors.blue else Color.Gray, fontSize = 12.sp, fontWeight = FontWeight.Bold)
                                     Text("Contactos, 24h", color = Color.Gray, fontSize = 9.sp)
                                 }
                             }
@@ -1228,10 +1228,10 @@ fun ReelEditorScreen(
                                 verticalAlignment = Alignment.CenterVertically
                             ) {
                                 Column(modifier = Modifier.weight(1f)) {
-                                    Text("Programar Publicación 📆", color = PanalinkPalette.textPrimary, fontWeight = FontWeight.Bold, fontSize = 14.sp)
+                                    Text("Programar Publicación 📆", color = IosSettingsColors.label, fontWeight = FontWeight.Bold, fontSize = 14.sp)
                                     Text(
                                         text = if (scheduledDateTimeString.isEmpty()) "Publicación inmediata" else "Programado para: $scheduledDateTimeString",
-                                        color = if (scheduledDateTimeString.isEmpty()) Color.Gray else Color(0xFF18E7F5),
+                                        color = if (scheduledDateTimeString.isEmpty()) Color.Gray else IosSettingsColors.blue,
                                         fontSize = 11.sp
                                     )
                                 }
@@ -1240,7 +1240,7 @@ fun ReelEditorScreen(
                                     colors = ButtonDefaults.buttonColors(containerColor = Color.White.copy(alpha = 0.1f)),
                                     contentPadding = PaddingValues(horizontal = 12.dp, vertical = 6.dp)
                                 ) {
-                                    Text(if (scheduledDateTimeString.isEmpty()) "Definir" else "Cambiar", color = PanalinkPalette.textPrimary, fontSize = 12.sp)
+                                    Text(if (scheduledDateTimeString.isEmpty()) "Definir" else "Cambiar", color = IosSettingsColors.label, fontSize = 12.sp)
                                 }
                             }
                         }
@@ -1265,7 +1265,7 @@ fun ReelEditorScreen(
                             enabled = isPublishAllowed,
                             modifier = Modifier.fillMaxWidth().testTag("reel_editor_publish_button"),
                             colors = ButtonDefaults.buttonColors(
-                                containerColor = Color(0xFF18E7F5),
+                                containerColor = IosSettingsColors.blue,
                                 disabledContainerColor = Color.White.copy(alpha = 0.1f)
                             ),
                             shape = RoundedCornerShape(12.dp)
@@ -1296,7 +1296,7 @@ fun ReelEditorScreen(
                             verticalArrangement = Arrangement.spacedBy(16.dp),
                             horizontalAlignment = Alignment.CenterHorizontally
                         ) {
-                            Text("Programar Hora 🕒", color = PanalinkPalette.textPrimary, fontWeight = FontWeight.Bold, fontSize = 18.sp)
+                            Text("Programar Hora 🕒", color = IosSettingsColors.label, fontWeight = FontWeight.Bold, fontSize = 18.sp)
                             
                             val options = listOf("Hoy a las 6:00 PM", "Hoy a las 9:00 PM", "Mañana a las 9:00 AM", "Mañana a las 3:00 PM")
                             options.forEach { opt ->
@@ -1312,7 +1312,7 @@ fun ReelEditorScreen(
                                         .padding(12.dp),
                                     contentAlignment = Alignment.Center
                                 ) {
-                                    Text(opt, color = PanalinkPalette.textPrimary, fontSize = 13.sp)
+                                    Text(opt, color = IosSettingsColors.label, fontSize = 13.sp)
                                 }
                             }
 
@@ -1337,7 +1337,7 @@ fun ReelEditorScreen(
                             .width(320.dp)
                             .padding(20.dp),
                         shape = RoundedCornerShape(24.dp),
-                        colors = CardDefaults.cardColors(containerColor = Color(0xFF0D0F12))
+                        colors = CardDefaults.cardColors(containerColor = IosSettingsColors.groupBackground)
                     ) {
                         Column(
                             modifier = Modifier.padding(20.dp),
@@ -1352,7 +1352,7 @@ fun ReelEditorScreen(
                             ) {
                                 Icon(Icons.Default.Public, contentDescription = null, tint = Color.Black, modifier = Modifier.size(28.dp))
                             }
-                            Text("Importar Vídeo 🌐", color = PanalinkPalette.textPrimary, fontWeight = FontWeight.Bold, fontSize = 18.sp)
+                            Text("Importar Vídeo 🌐", color = IosSettingsColors.label, fontWeight = FontWeight.Bold, fontSize = 18.sp)
                             Text(
                                 "Pega el enlace del vídeo que quieres publicar. Lo importaremos limpio (sin la marca de la app de origen).",
                                 color = Color.Gray, fontSize =  12.sp, textAlign = TextAlign.Center
@@ -1449,7 +1449,7 @@ fun ReelEditorScreen(
                             ) {
                                 Icon(Icons.Default.Drafts, contentDescription = null, tint = Color.Black, modifier = Modifier.size(32.dp))
                             }
-                            Text("Borrador Guardado 📝", color = PanalinkPalette.textPrimary, fontWeight = FontWeight.Bold, fontSize = 18.sp)
+                            Text("Borrador Guardado 📝", color = IosSettingsColors.label, fontWeight = FontWeight.Bold, fontSize = 18.sp)
                             Text("Tu borrador se ha guardado localmente en tu dispositivo.", color = Color.Gray, fontSize = 12.sp, textAlign = TextAlign.Center)
                             Button(
                                 onClick = {

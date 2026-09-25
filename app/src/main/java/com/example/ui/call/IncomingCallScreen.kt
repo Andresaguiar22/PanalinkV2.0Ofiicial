@@ -39,7 +39,7 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.example.ui.components.PanaAvatar
-import com.example.ui.theme.PanalinkPalette
+import com.example.ui.settings.ios.IosSettingsColors
 
 /**
  * Premium incoming call screen (WhatsApp-style) with a soft gradient
@@ -73,9 +73,9 @@ fun IncomingCallScreen(
             .background(
                 Brush.verticalGradient(
                     colors = listOf(
-                        Color(0xFF0B0F14),
-                        Color(0xFF111A26),
-                        Color(0xFF0B0F14)
+                        IosSettingsColors.groupBackground,
+                        IosSettingsColors.cell,
+                        IosSettingsColors.groupBackground
                     )
                 )
             )
@@ -94,20 +94,20 @@ fun IncomingCallScreen(
             ) {
                 Text(
                     text = if (isVideo) "Videollamada entrante" else "Llamada de voz entrante",
-                    color = Color(0xFF9AB3C3),
+                    color = IosSettingsColors.secondaryLabel,
                     fontSize = 14.sp
                 )
                 Spacer(modifier = Modifier.height(10.dp))
                 Text(
                     text = opponentName,
-                    color = PanalinkPalette.textPrimary,
+                    color = IosSettingsColors.label,
                     fontSize = 26.sp,
                     fontWeight = FontWeight.Bold
                 )
                 Spacer(modifier = Modifier.height(4.dp))
                 Text(
                     text = "Panalink",
-                    color = Color(0xFF6C7A89),
+                    color = IosSettingsColors.tertiaryLabel,
                     fontSize = 12.sp
                 )
             }
@@ -123,7 +123,7 @@ fun IncomingCallScreen(
                         .size(164.dp)
                         .scale(pulse)
                         .background(
-                            color = if (isVideo) Color(0xFF1F8CF1).copy(alpha = 0.35f) else Color(0xFF25D366).copy(alpha = 0.35f),
+                            color = if (isVideo) IosSettingsColors.blue.copy(alpha = 0.35f) else IosSettingsColors.green.copy(alpha = 0.35f),
                             shape = CircleShape
                         )
                 )
@@ -133,7 +133,7 @@ fun IncomingCallScreen(
                         .size(154.dp)
                         .scale(pulse)
                         .background(
-                            color = if (isVideo) Color(0xFF1F8CF1).copy(alpha = 0.6f) else Color(0xFF25D366).copy(alpha = 0.6f),
+                            color = if (isVideo) IosSettingsColors.blue.copy(alpha = 0.6f) else IosSettingsColors.green.copy(alpha = 0.6f),
                             shape = CircleShape
                         )
                 )
@@ -163,21 +163,21 @@ fun IncomingCallScreen(
                             .size(78.dp)
                             .scale(1f)
                             .clickable(onClick = onReject),
-                        color = Color(0xFFE53935),
+                        color = IosSettingsColors.red,
                         shape = CircleShape,
                         shadowElevation = 8.dp
                     ) {
                         Icon(
                             imageVector = Icons.Default.CallEnd,
                             contentDescription = "Rechazar",
-                            tint = PanalinkPalette.textPrimary,
+                            tint = IosSettingsColors.label,
                             modifier = Modifier.padding(20.dp)
                         )
                     }
                     Spacer(modifier = Modifier.height(6.dp))
                     Text(
                         text = "Rechazar",
-                        color = Color(0xFFE53935),
+                        color = IosSettingsColors.red,
                         fontSize = 12.sp
                     )
                 }
@@ -188,21 +188,21 @@ fun IncomingCallScreen(
                         modifier = Modifier
                             .size(78.dp)
                             .clickable(onClick = onAccept),
-                        color = Color(0xFF25D366),
+                        color = IosSettingsColors.green,
                         shape = CircleShape,
                         shadowElevation = 8.dp
                     ) {
                         Icon(
                             imageVector = if (isVideo) Icons.Default.Videocam else Icons.Default.Call,
                             contentDescription = "Aceptar",
-                            tint = PanalinkPalette.textPrimary,
+                            tint = IosSettingsColors.label,
                             modifier = Modifier.padding(20.dp)
                         )
                     }
                     Spacer(modifier = Modifier.height(6.dp))
                     Text(
                         text = "Aceptar",
-                        color = Color(0xFF25D366),
+                        color = IosSettingsColors.green,
                         fontSize = 12.sp
                     )
                 }

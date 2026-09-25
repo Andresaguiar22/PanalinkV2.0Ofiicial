@@ -13,13 +13,13 @@ import androidx.compose.ui.unit.dp
  */
 
 /** Verde neón de marca: CTA, anillo del avatar del host y FAB. */
-val LiveNeon = Color(0xFF18E7F5)
+val LiveNeon = Color(0xFF0A84FF)
 
 /** Texto/icono oscuro que se lee sobre [LiveNeon]. */
-val LiveOnNeon = Color(0xFF071014)
+val LiveOnNeon = Color(0xFFFFFFFF)
 
 /** Base nocturna azulada del fondo (no negro puro). */
-val LiveNightBase = Color(0xFF0D0F12)
+val LiveNightBase = Color(0xFF000000)
 
 /** Rojo del indicador de directo y su halo. */
 val LiveLiveRed = Color(0xFFFF3B4E)
@@ -27,7 +27,7 @@ val LiveLiveGlow = Color(0xFFFF28C8)
 
 /** Relleno y borde translúcidos de las superficies "glass". */
 val LiveGlassFill = Color(0xFF131A22).copy(alpha = 0.82f)
-val LiveGlassBorder = Color(0xFF18E7F5).copy(alpha = 0.35f)
+val LiveGlassBorder = Color(0xFF0A84FF).copy(alpha = 0.35f)
 
 /** Scrim oscuro que se pinta sobre las miniaturas para que el texto se lea. */
 val LiveCardScrim = Color(0xFF0D0F12)

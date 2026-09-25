@@ -22,7 +22,7 @@ import androidx.compose.ui.unit.sp
 import androidx.compose.ui.window.Dialog
 import androidx.compose.ui.window.DialogProperties
 import java.util.Locale
-import com.example.ui.theme.PanalinkPalette
+import com.example.ui.settings.ios.IosSettingsColors
 
 @Composable
 fun UpdateDialog(
@@ -81,13 +81,13 @@ fun UpdateDialog(
                     Icon(
                         imageVector = Icons.Default.CloudDownload,
                         contentDescription = "Actualización",
-                        tint = Color(0xFF18E7F5),
+                        tint = IosSettingsColors.blue,
                         modifier = Modifier.size(32.dp)
                     )
                     Spacer(modifier = Modifier.width(12.dp))
                     Text(
                         text = if (isMandatory) "Actualización Obligatoria" else "Nueva Versión Disponible",
-                        color = PanalinkPalette.textPrimary,
+                        color = IosSettingsColors.label,
                         fontSize = 22.sp,
                         fontWeight = FontWeight.Bold,
                         modifier = Modifier.weight(1f)
@@ -105,11 +105,11 @@ fun UpdateDialog(
                 ) {
                     Column(modifier = Modifier.weight(1f)) {
                         Text("Instalada", color = Color(0xFFB8C4D6), fontSize = 12.sp)
-                        Text("v${viewModel.getInstalledVersionName()}", color = PanalinkPalette.textPrimary, fontSize = 16.sp, fontWeight = FontWeight.Bold)
+                        Text("v${viewModel.getInstalledVersionName()}", color = IosSettingsColors.label, fontSize = 16.sp, fontWeight = FontWeight.Bold)
                     }
                     Column(modifier = Modifier.weight(1f)) {
                         Text("Nueva versión", color = Color(0xFFB8C4D6), fontSize = 12.sp)
-                        Text("v${versionInfo.versionName}", color = Color(0xFF18E7F5), fontSize = 16.sp, fontWeight = FontWeight.Bold)
+                        Text("v${versionInfo.versionName}", color = IosSettingsColors.blue, fontSize = 16.sp, fontWeight = FontWeight.Bold)
                     }
                 }
 
@@ -118,7 +118,7 @@ fun UpdateDialog(
                 // Changelog (Scrollable container — más alto para leer todas las mejoras)
                 Text(
                     text = "Novedades de esta versión:",
-                    color = PanalinkPalette.textPrimary,
+                    color = IosSettingsColors.label,
                     fontSize = 15.sp,
                     fontWeight = FontWeight.SemiBold
                 )
@@ -151,7 +151,7 @@ fun UpdateDialog(
                             if (state.progress >= 0f) {
                                 LinearProgressIndicator(
                                     progress = { state.progress },
-                                    color = Color(0xFF18E7F5),
+                                    color = IosSettingsColors.blue,
                                     trackColor = Color(0xFF18202A),
                                     modifier = Modifier
                                         .fillMaxWidth()
@@ -176,7 +176,7 @@ fun UpdateDialog(
                                 }
                             } else {
                                 LinearProgressIndicator(
-                                    color = Color(0xFF18E7F5),
+                                    color = IosSettingsColors.blue,
                                     trackColor = Color(0xFF18202A),
                                     modifier = Modifier
                                         .fillMaxWidth()
@@ -269,7 +269,7 @@ fun UpdateDialog(
                                 viewModel.startDownloadAndInstall()
                             },
                             colors = ButtonDefaults.buttonColors(
-                                containerColor = Color(0xFF18E7F5),
+                                containerColor = IosSettingsColors.blue,
                                 contentColor = Color.Black
                             ),
                             shape = RoundedCornerShape(50.dp),

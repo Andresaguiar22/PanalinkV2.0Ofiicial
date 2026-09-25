@@ -14,7 +14,7 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-import com.example.ui.theme.PanalinkPalette
+import com.example.ui.settings.ios.IosSettingsColors
 
 /**
  * Barra de subida minima, una por seccion. Ocupa lo menos posible: una linea
@@ -28,7 +28,7 @@ fun MiniUploadBar(
     onRetry: (() -> Unit)? = null,
     onDiscard: (() -> Unit)? = null,
     modifier: Modifier = Modifier,
-    color: Color = Color(0xFF18E7F5)
+    color: Color = IosSettingsColors.blue
 ) {
     Column(
         modifier = modifier
@@ -50,7 +50,7 @@ fun MiniUploadBar(
                 Spacer(Modifier.width(6.dp))
                 Text(
                     text = "$label ${percent.coerceIn(0, 100)}%",
-                    color = PanalinkPalette.textPrimary.copy(alpha = 0.85f),
+                    color = IosSettingsColors.secondaryLabel,
                     fontSize = 11.sp,
                     fontWeight = FontWeight.Medium,
                     maxLines = 1
@@ -59,7 +59,7 @@ fun MiniUploadBar(
             if (onRetry != null) {
                 Text(
                     text = "↻",
-                    color = PanalinkPalette.textPrimary,
+                    color = IosSettingsColors.label,
                     fontSize = 14.sp,
                     modifier = Modifier
                         .clickable(onClick = onRetry)

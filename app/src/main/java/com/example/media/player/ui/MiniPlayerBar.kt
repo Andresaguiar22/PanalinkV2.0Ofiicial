@@ -33,7 +33,7 @@ import com.example.media.audio.AudioTrackEntity
 import kotlinx.coroutines.launch
 import kotlin.math.abs
 import kotlin.math.roundToInt
-import com.example.ui.theme.PanalinkPalette
+import com.example.ui.settings.ios.IosSettingsColors
 
 /**
  * P6.7.3 - Mini Player Bar
@@ -118,7 +118,7 @@ fun MiniPlayerBar(
                     Icon(
                         Icons.Rounded.PlayArrow,
                         contentDescription = null,
-                        tint = PanalinkPalette.textPrimary,
+                        tint = IosSettingsColors.label,
                         modifier = Modifier.size(24.dp)
                     )
                 }
@@ -131,7 +131,7 @@ fun MiniPlayerBar(
             ) {
                 Text(
                     track.title,
-                    color = PanalinkPalette.textPrimary,
+                    color = IosSettingsColors.label,
                     fontSize = 14.sp,
                     fontWeight = FontWeight.Bold,
                     maxLines = 1,
@@ -139,7 +139,7 @@ fun MiniPlayerBar(
                 )
                 Text(
                     track.artist,
-                    color = PanalinkPalette.textPrimary.copy(alpha = 0.6f),
+                    color = IosSettingsColors.secondaryLabel,
                     fontSize = 12.sp,
                     maxLines = 1,
                     overflow = TextOverflow.Ellipsis
@@ -150,12 +150,12 @@ fun MiniPlayerBar(
                 Icon(
                     if (isPlaying) Icons.Rounded.Pause else Icons.Rounded.PlayArrow,
                     contentDescription = if (isPlaying) "Pausar" else "Reproducir",
-                    tint = PanalinkPalette.textPrimary
+                    tint = IosSettingsColors.label
                 )
             }
 
             IconButton(onClick = onNext) {
-                Icon(Icons.Rounded.SkipNext, contentDescription = "Siguiente", tint = PanalinkPalette.textPrimary)
+                Icon(Icons.Rounded.SkipNext, contentDescription = "Siguiente", tint = IosSettingsColors.label)
             }
 
             IconButton(
@@ -165,7 +165,7 @@ fun MiniPlayerBar(
                 Icon(
                     Icons.Rounded.Close,
                     contentDescription = "Cerrar reproductor",
-                    tint = PanalinkPalette.textPrimary.copy(alpha = 0.8f),
+                    tint = IosSettingsColors.secondaryLabel,
                     modifier = Modifier.size(20.dp)
                 )
             }

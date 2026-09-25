@@ -23,7 +23,6 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import coil.compose.AsyncImage
 import com.example.ui.settings.ios.IosSettingsColors
-import com.example.ui.theme.PanalinkPalette
 
 @Composable
 fun ProfileHeaderEditor(
@@ -105,7 +104,7 @@ fun ProfileHeaderEditor(
                             Icon(
                                 imageVector = Icons.Default.Person,
                                 contentDescription = null,
-                                tint = PanalinkPalette.textPrimary,
+                                tint = IosSettingsColors.label,
                                 modifier = Modifier.size(44.dp)
                             )
                         }
@@ -139,7 +138,7 @@ fun ProfileHeaderEditor(
                 ) {
                     Text(
                         text = displayName.ifEmpty { "Tu Apodo de Pana" },
-                        color = PanalinkPalette.textPrimary,
+                        color = IosSettingsColors.label,
                         fontSize = 18.sp,
                         fontWeight = FontWeight.Bold
                     )

@@ -43,6 +43,7 @@ import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.example.live.ui.components.LiveCard
 import com.example.live.ui.components.LiveSkeletonCard
 import com.example.live.ui.viewmodel.LiveViewModel
+import com.example.ui.settings.ios.IosSettingsColors
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -185,15 +186,15 @@ private fun LiveBroadcastFab(onClick: () -> Unit) {
             .shadow(
                 elevation = 24.dp,
                 shape = CircleShape,
-                ambientColor = Color(0xFF18E7F5).copy(alpha = 0.9f),
-                spotColor = Color(0xFF18E7F5).copy(alpha = 1f)
+                ambientColor = IosSettingsColors.blue.copy(alpha = 0.9f),
+                spotColor = IosSettingsColors.blue.copy(alpha = 1f)
             )
             .clip(CircleShape),
         contentAlignment = Alignment.Center
     ) {
         FloatingActionButton(
             onClick = onClick,
-            containerColor = Color(0xFF18E7F5),
+            containerColor = IosSettingsColors.blue,
             contentColor = Color(0xFF04231A),
             shape = CircleShape
         ) {

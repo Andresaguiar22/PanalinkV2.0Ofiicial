@@ -60,7 +60,7 @@ import com.example.rooms.model.VoiceRoomSeat
 import kotlin.math.cos
 import kotlin.math.sin
 import kotlin.random.Random
-import com.example.ui.theme.PanalinkPalette
+import com.example.ui.settings.ios.IosSettingsColors
 
 // === Paleta Starmaker — azul profundo / petróleo ===
 
@@ -277,7 +277,7 @@ fun VoiceRoomHeader(
                             .padding(horizontal = 3.dp, vertical = 1.dp)
                             .align(Alignment.TopEnd)
                     ) {
-                        Text("!", fontSize = 9.sp, color = PanalinkPalette.textPrimary, fontWeight = FontWeight.Bold)
+                        Text("!", fontSize = 9.sp, color = IosSettingsColors.label, fontWeight = FontWeight.Bold)
                     }
                 }
             }
@@ -428,7 +428,7 @@ fun VoiceRoomSpeakingAura(
             val px = c.x + cos(ang * DEG) * rad
             val py = c.y + sin(ang * DEG) * rad
             drawCircle(
-                color = PanalinkPalette.textPrimary.copy(alpha = 0.9f),
+                color = IosSettingsColors.label,
                 radius = 1.6f,
                 center = Offset(px, py)
             )
@@ -614,7 +614,7 @@ private fun VoiceRoomSeatCircle(
                 Icon(
                     Icons.Default.MicOff,
                     contentDescription = "Silenciado",
-                    tint = PanalinkPalette.textPrimary,
+                    tint = IosSettingsColors.label,
                     modifier = Modifier.size((size.value * 0.18f).dp)
                 )
             }

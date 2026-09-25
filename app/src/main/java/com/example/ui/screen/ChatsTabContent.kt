@@ -30,6 +30,7 @@ import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.*
 import androidx.compose.material.icons.automirrored.filled.ExitToApp
+import androidx.compose.material.icons.automirrored.filled.Chat
 import androidx.compose.material3.*
 import androidx.compose.material3.TabRowDefaults.tabIndicatorOffset
 import androidx.compose.runtime.*
@@ -89,7 +90,7 @@ import java.text.SimpleDateFormat
 import java.util.*
 
 import com.example.ui.viewmodel.NotificationsViewModel
-import com.example.ui.theme.PanalinkPalette
+import com.example.ui.settings.ios.IosSettingsColors
 
 
 @Composable
@@ -139,7 +140,7 @@ fun ChatsTabContent(
             ?: emptyList()
     }
 
-    Box(Modifier.fillMaxSize().background(Color(0xFF0D0F12))) {
+    Box(Modifier.fillMaxSize().background(IosSettingsColors.groupBackground)) {
         PanalinkPullToRefreshBox(
             isRefreshing = isRefreshing,
             onRefresh = {
@@ -177,11 +178,11 @@ fun ChatsTabContent(
                                         modifier = Modifier.fillMaxWidth().padding(48.dp),
                                         horizontalAlignment = Alignment.CenterHorizontally
                                     ) {
-                                        Icon(Icons.Default.Email, contentDescription = null, tint = PanaLinkCyberpunkColors.Cyan.copy(alpha = 0.65f), modifier = Modifier.size(64.dp))
+                                        Icon(Icons.AutoMirrored.Filled.Chat, contentDescription = null, tint = IosSettingsColors.secondaryLabel, modifier = Modifier.size(64.dp))
                                         Spacer(Modifier.height(14.dp))
-                                        Text("No tienes chats activos", color = PanaLinkCyberpunkColors.Cream, fontWeight = FontWeight.Bold, fontSize =  15.sp)
+                                        Text("No tienes chats activos", color = IosSettingsColors.label, fontWeight = FontWeight.SemiBold, fontSize =  15.sp)
                                         Spacer(Modifier.height(6.dp))
-                                        Text("Usa + para comenzar una nueva conversación.", color = PanaLinkCyberpunkColors.Message.copy(alpha = 0.72f), fontSize = 13.sp, textAlign = TextAlign.Center)
+                                        Text("Usa + para comenzar una nueva conversación.", color = IosSettingsColors.secondaryLabel, fontSize = 13.sp, textAlign = TextAlign.Center)
                                     }
                                 }
                             } else {
@@ -204,7 +205,7 @@ fun ChatsTabContent(
                         }
                         is ChatsUiState.Error -> {
                             item {
-                                Text(chatsState.message, color = Color(0xFFFF6B7A), textAlign = TextAlign.Center, modifier = Modifier.fillMaxWidth().padding(40.dp))
+                                Text(chatsState.message, color = IosSettingsColors.red, textAlign = TextAlign.Center, modifier = Modifier.fillMaxWidth().padding(40.dp))
                             }
                         }
                     }
@@ -243,7 +244,7 @@ fun ChatItemRow(
             .fillMaxWidth()
             
             .background(
-                if (isSelected) Color(0xFF1C1C1E)
+                if (isSelected) IosSettingsColors.cellElevated
                 else Color.Transparent
             )
             .combinedClickable(onLongClick = onLongClick, onClick = onClick)
@@ -273,7 +274,7 @@ fun ChatItemRow(
                 ) {
                     Text(
                         text = otherUser?.displayName ?: "Pana de panalink",
-                        color = Color(0xFFEBEBF5),
+                        color = IosSettingsColors.label,
                         fontWeight = FontWeight.SemiBold,
                         fontSize =  15.sp,
                         maxLines = 1,
@@ -281,13 +282,13 @@ fun ChatItemRow(
                     )
                     if (isPinned) {
                         Spacer(Modifier.width(5.dp))
-                        Icon(Icons.Default.PushPin, contentDescription = "Anclado", tint = Color(0xFF8E8E93), modifier = Modifier.size(12.dp))
+                        Icon(Icons.Default.PushPin, contentDescription = "Anclado", tint = IosSettingsColors.secondaryLabel, modifier = Modifier.size(12.dp))
                     }
                 }
 
                 Text(
                     text = formattedTime,
-                    color = if (unread > 0) Color(0xFF10B981) else Color(0xFF8E8E93),
+                    color = if (unread > 0) IosSettingsColors.blue else IosSettingsColors.secondaryLabel,
                     fontSize =  12.sp
                 )
             }
@@ -300,7 +301,7 @@ fun ChatItemRow(
             ) {
                 Text(
                     text = if (isTyping) "escribiendo…" else (lastMessage?.previewText() ?: "Inicia la conversación chamo..."),
-                    color = if (isTyping) Color(0xFF10B981) else Color(0xFF8E8E93),
+                    color = if (isTyping) IosSettingsColors.green else IosSettingsColors.secondaryLabel,
                     fontSize =  13.sp,
                     fontWeight = if (isTyping) FontWeight.SemiBold else FontWeight.Normal,
                     maxLines = 1,
@@ -310,7 +311,7 @@ fun ChatItemRow(
 
                 if (isMuted) {
                     Spacer(Modifier.width(6.dp))
-                    Icon(Icons.Default.NotificationsOff, contentDescription = "Silenciado", tint = Color(0xFF8E8E93), modifier = Modifier.size(14.dp))
+                    Icon(Icons.Default.NotificationsOff, contentDescription = "Silenciado", tint = IosSettingsColors.secondaryLabel, modifier = Modifier.size(14.dp))
                 }
 
                 if (isMine && lastMessage != null) {
@@ -318,7 +319,7 @@ fun ChatItemRow(
                     Icon(
                         imageVector = if (lastMessage.seenAt != null) Icons.Default.DoneAll else Icons.Default.Done,
                         contentDescription = if (lastMessage.seenAt != null) "Visto" else "Enviado",
-                        tint = Color(0xFF34B7F1),
+                        tint = IosSettingsColors.blue,
                         modifier = Modifier.size(16.dp)
                     )
                 }
@@ -329,13 +330,13 @@ fun ChatItemRow(
                         modifier = Modifier
                             .defaultMinSize(minWidth = 20.dp)
                             .height(20.dp)
-                            .background(Color(0xFF10B981), CircleShape)
+                            .background(IosSettingsColors.blue, CircleShape)
                             .padding(horizontal = 5.dp),
                         contentAlignment = Alignment.Center
                     ) {
                         Text(
                             text = if (unread > 99) "99+" else unread.toString(),
-color = Color(0xFF071014),
+color = Color.White,
                             fontWeight = FontWeight.Bold,
                             fontSize = 10.sp
                         )
@@ -348,7 +349,7 @@ color = Color(0xFF071014),
         Icon(
             imageVector = Icons.Default.ChevronRight,
             contentDescription = null,
-            tint = Color(0xFF3A3A3C),
+            tint = IosSettingsColors.chevron,
             modifier = Modifier.size(18.dp)
         )
     }
@@ -456,7 +457,7 @@ if (hasUnread) com.example.ui.theme.getPremiumActiveIconGradient() else Brush.li
                 ) {
                     Text(
                         text = initials,
-                        color = PanalinkPalette.textPrimary,
+                        color = IosSettingsColors.label,
                         fontWeight = FontWeight.Bold,
                         fontSize = (size.value * 0.38f).sp
                     )
@@ -469,14 +470,14 @@ if (hasUnread) com.example.ui.theme.getPremiumActiveIconGradient() else Brush.li
                 modifier = Modifier
                     .size(20.dp)
                     .align(Alignment.BottomEnd)
-                    .background(Color.White, CircleShape)
-                    .border(1.dp, Color.White, CircleShape),
+                    .background(IosSettingsColors.groupBackground, CircleShape)
+                    .border(1.dp, IosSettingsColors.groupBackground, CircleShape),
                 contentAlignment = Alignment.Center
             ) {
                 Icon(
                     imageVector = Icons.Default.CheckCircle,
                     contentDescription = "Selected",
-                    tint = Color(0xFF18E7F5), // WhatsApp primary green
+                    tint = IosSettingsColors.blue,
                     modifier = Modifier.size(20.dp)
                 )
             }

@@ -15,7 +15,9 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-import com.example.ui.theme.PanalinkPalette
+import com.example.ui.settings.ios.IosSettingsColors
+import com.example.ui.settings.ios.IosFont
+import com.example.ui.settings.ios.IosPrimaryButton
 
 @Composable
 fun PermissionsScreen(
@@ -32,7 +34,7 @@ fun PermissionsScreen(
     Box(
         modifier = Modifier
             .fillMaxSize()
-            .background(Color(0xFF0F172A))
+            .background(IosSettingsColors.groupBackground)
             .padding(24.dp)
     ) {
         Column(
@@ -53,53 +55,44 @@ fun PermissionsScreen(
                 text = "¡Mantente Conectado! 📡",
                 fontSize = 26.sp,
                 fontWeight = FontWeight.Bold,
-                color = PanalinkPalette.textPrimary,
+                fontFamily = IosFont,
+                color = IosSettingsColors.label,
                 textAlign = TextAlign.Center
             )
             Spacer(modifier = Modifier.height(12.dp))
             Text(
                 text = "Para recibir los mensajes de tus panas al instante y no perderte de ninguna llamada, Panalink necesita enviarte notificaciones.",
                 fontSize = 15.sp,
-                color = Color.LightGray,
+                color = IosSettingsColors.secondaryLabel,
+                fontFamily = IosFont,
                 textAlign = TextAlign.Center,
                 modifier = Modifier.padding(horizontal = 16.dp)
             )
 
             Spacer(modifier = Modifier.height(48.dp))
 
-            // Main Grant Button
-            Button(
+            IosPrimaryButton(
+                text = "Activar Notificaciones 🔔",
                 onClick = {
                     if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
                         permissionLauncher.launch(android.Manifest.permission.POST_NOTIFICATIONS)
                     } else {
                         onNext()
                     }
-                },
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .height(52.dp),
-                shape = RoundedCornerShape(26.dp),
-                colors = ButtonDefaults.buttonColors(containerColor = Color(0xFF00E5FF))
-            ) {
-                Text(
-                    text = "Activar Notificaciones 🔔",
-                    color = Color.Black,
-                    fontWeight = FontWeight.Bold,
-                    fontSize = 16.sp
-                )
-            }
+                }
+            )
 
             Spacer(modifier = Modifier.height(16.dp))
 
             // Skip / Omit button
             TextButton(
                 onClick = onNext,
-                colors = ButtonDefaults.textButtonColors(contentColor = Color.LightGray)
+                colors = ButtonDefaults.textButtonColors(contentColor = IosSettingsColors.blue)
             ) {
                 Text(
                     text = "Omitir por ahora, configurar luego",
                     fontSize = 14.sp,
+                    fontFamily = IosFont,
                     fontWeight = FontWeight.SemiBold
                 )
             }

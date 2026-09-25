@@ -25,7 +25,7 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import coil.compose.AsyncImage
 import com.example.data.model.ChatWithDetails
-import com.example.ui.theme.PanalinkPalette
+import com.example.ui.settings.ios.IosSettingsColors
 
 /**
  * Chat picker used when sharing a playlist: lists the user's conversations and
@@ -52,10 +52,10 @@ fun SharePlaylistSheet(
             Icon(Icons.Default.MusicNote, contentDescription = null, tint = Color(0xFF38BDF8))
             Spacer(modifier = Modifier.width(10.dp))
             Column {
-                Text("Compartir playlist", color = PanalinkPalette.textPrimary, fontSize = 18.sp, fontWeight = FontWeight.Bold)
+                Text("Compartir playlist", color = IosSettingsColors.label, fontSize = 18.sp, fontWeight = FontWeight.Bold)
                 Text(
                     playlistTitle,
-                    color = PanalinkPalette.textPrimary.copy(alpha = 0.6f),
+                    color = IosSettingsColors.secondaryLabel,
                     fontSize = 13.sp,
                     maxLines = 1,
                     overflow = TextOverflow.Ellipsis
@@ -147,7 +147,7 @@ fun SharePlaylistSheet(
                             Column(modifier = Modifier.weight(1f)) {
                                 Text(
                                     title,
-                                    color = PanalinkPalette.textPrimary,
+                                    color = IosSettingsColors.label,
                                     fontSize = 15.sp,
                                     fontWeight = FontWeight.SemiBold,
                                     maxLines = 1,

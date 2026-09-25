@@ -17,7 +17,8 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.example.ui.viewmodel.onboarding.OnboardingUiState
 import com.example.ui.viewmodel.onboarding.OnboardingViewModel
-import com.example.ui.theme.PanalinkPalette
+import com.example.ui.settings.ios.IosSettingsColors
+import com.example.ui.settings.ios.IosFont
 
 @Composable
 fun FinalizingSetupScreen(
@@ -33,7 +34,7 @@ fun FinalizingSetupScreen(
     Box(
         modifier = Modifier
             .fillMaxSize()
-            .background(Color(0xFF0F172A))
+            .background(IosSettingsColors.groupBackground)
             .padding(24.dp),
         contentAlignment = Alignment.Center
     ) {
@@ -45,18 +46,20 @@ fun FinalizingSetupScreen(
                 is OnboardingUiState.Error -> {
                     Text(
                         text = "Error al completar el registro: ${state.message}",
-                        color = MaterialTheme.colorScheme.error,
+                        color = IosSettingsColors.red,
+                        fontFamily = IosFont,
                         fontSize = 16.sp
                     )
                 }
                 else -> {
-                    CircularProgressIndicator(color = Color(0xFF00E5FF))
+                    CircularProgressIndicator(color = IosSettingsColors.blue)
                     Spacer(modifier = Modifier.height(24.dp))
                     Text(
                         text = "Preparando tu experiencia Panalink... 🚀",
-                        color = PanalinkPalette.textPrimary,
+                        color = IosSettingsColors.label,
+                        fontFamily = IosFont,
                         fontSize = 18.sp,
-                        fontWeight = FontWeight.Bold
+                        fontWeight = FontWeight.SemiBold
                     )
                 }
             }

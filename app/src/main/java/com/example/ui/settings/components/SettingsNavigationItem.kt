@@ -21,7 +21,7 @@ import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-import com.example.ui.theme.PanalinkPalette
+import com.example.ui.settings.ios.IosSettingsColors
 
 @Composable
 fun SettingsNavigationItem(
@@ -35,7 +35,7 @@ fun SettingsNavigationItem(
         headlineContent = {
             Text(
                 text = title,
-                color = PanalinkPalette.textPrimary,
+                color = IosSettingsColors.label,
                 fontSize = 16.sp,
                 fontWeight = FontWeight.SemiBold
             )

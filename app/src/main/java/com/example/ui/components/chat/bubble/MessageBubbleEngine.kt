@@ -88,7 +88,7 @@ import com.example.data.repository.CdnManager
 import com.example.data.model.formatIsoDateTime
 import com.example.util.AudioPlayer
 import com.example.ui.theme.LocalAppColors
-import com.example.ui.theme.PanalinkPalette
+import com.example.ui.settings.ios.IosSettingsColors
 import kotlinx.serialization.json.Json
 import kotlinx.serialization.serializer
 import kotlinx.coroutines.Dispatchers
@@ -282,16 +282,16 @@ fun MessageBubbleEngine(
         start = Offset.Zero,
         end = Offset.Infinite
     )
-    val incomingColor = PanalinkPalette.chatIncoming
+    val incomingColor = IosSettingsColors.cell
     
     val bubbleColor = if (isSticker || isBigEmoji) Color.Transparent 
                       else if (isMe) paletteColors.last()
                       else incomingColor
     val bubbleBrush = if (isMe && !isSticker && !isBigEmoji) outgoingGradient else null
-    val contentTextColor = PanalinkPalette.textPrimary
+    val contentTextColor = IosSettingsColors.label
     // Hora y estado legibles: sobre el gradiente saliente (cian arriba) el gris se
     // perdia; se usa blanco translucido. En entrantes, gris claro sobre el pizarra.
-    val statusTextColor = if (isMe) PanalinkPalette.textPrimary.copy(alpha = 0.92f) else PanalinkPalette.textSecondary
+    val statusTextColor = if (isMe) IosSettingsColors.label.copy(alpha = 0.92f) else IosSettingsColors.secondaryLabel
     val elevation = if (isSticker || isBigEmoji) 0f else 1f
 
     var showMenu by remember { mutableStateOf(false) }
@@ -384,7 +384,7 @@ fun MessageBubbleEngine(
         allMessages.find { it.id == message.replyToMessageId }
     }
 
-    val highlightColor = if (isSelected) PanalinkPalette.accent.copy(alpha = 0.15f) else if (isHighlighted) PanalinkPalette.accent.copy(alpha = 0.30f) else Color.Transparent
+    val highlightColor = if (isSelected) IosSettingsColors.blue.copy(alpha = 0.15f) else if (isHighlighted) IosSettingsColors.blue.copy(alpha = 0.30f) else Color.Transparent
 
     // WhatsApp-style spacing: tight inside a consecutive group, wider between groups
     val groupTopSpacing = if (groupPosition == MessageGroupPosition.FIRST || groupPosition == MessageGroupPosition.SINGLE) 6.dp else 1.dp
@@ -453,8 +453,8 @@ fun MessageBubbleEngine(
                     if (repliedMsg != null) {
                         val repliedByMe = repliedMsg.senderId == (SupabaseClient.currentUser?.id ?: "")
                         val replySenderName = if (repliedByMe) "Tú" else (otherUserName?.takeIf { it.isNotBlank() } ?: "Contacto")
-                        val quoteAccent = if (repliedByMe) PanalinkPalette.accent else PanalinkPalette.accent
-                        val quoteBg = if (isMe) PanalinkPalette.surfaceElevated.copy(alpha = 0.65f) else PanalinkPalette.surfaceElevated.copy(alpha = 0.45f)
+                        val quoteAccent = if (repliedByMe) IosSettingsColors.blue else IosSettingsColors.blue
+                        val quoteBg = if (isMe) IosSettingsColors.cellElevated.copy(alpha = 0.65f) else IosSettingsColors.cellElevated.copy(alpha = 0.45f)
                         val repliedType = repliedMsg.messageType?.lowercase() ?: ""
                         val repliedThumbUrl = repliedMsg.mediaUrl.takeIf {
                             repliedType == "image" || repliedType == "video" ||

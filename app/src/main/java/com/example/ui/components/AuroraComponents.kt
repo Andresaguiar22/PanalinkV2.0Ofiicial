@@ -21,7 +21,7 @@ import androidx.compose.ui.unit.sp
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.ChevronRight
 import androidx.compose.ui.graphics.vector.ImageVector
-import com.example.ui.theme.PanalinkPalette
+import com.example.ui.settings.ios.IosSettingsColors
 
 @Composable
 fun AuroraButton(
@@ -31,7 +31,7 @@ fun AuroraButton(
     icon: ImageVector? = null,
     enabled: Boolean = true,
     isLoading: Boolean = false,
-    gradient: Brush = Brush.horizontalGradient(listOf(Color(0xFF00E5FF), Color(0xFF7C3AED)))
+    gradient: Brush = Brush.horizontalGradient(listOf(Color(0xFF0A84FF), Color(0xFF5E5CE6)))
 ) {
     Box(
         modifier = modifier
@@ -48,19 +48,19 @@ fun AuroraButton(
         contentAlignment = Alignment.Center
     ) {
         if (isLoading) {
-            CircularProgressIndicator(color = PanalinkPalette.textPrimary, modifier = Modifier.size(24.dp))
+            CircularProgressIndicator(color = IosSettingsColors.label, modifier = Modifier.size(24.dp))
         } else {
             Row(
                 verticalAlignment = Alignment.CenterVertically,
                 horizontalArrangement = Arrangement.Center
             ) {
                 if (icon != null) {
-                    Icon(icon, contentDescription = null, tint = PanalinkPalette.textPrimary, modifier = Modifier.size(24.dp))
+                    Icon(icon, contentDescription = null, tint = IosSettingsColors.label, modifier = Modifier.size(24.dp))
                     Spacer(modifier = Modifier.width(8.dp))
                 }
                 Text(
                     text = text,
-                    color = PanalinkPalette.textPrimary,
+                    color = IosSettingsColors.label,
                     fontWeight = FontWeight.Bold,
                     fontSize = 16.sp
                 )
@@ -82,7 +82,7 @@ fun AuroraOutlinedButton(
         enabled = enabled,
         modifier = modifier.fillMaxWidth().height(56.dp),
         shape = RoundedCornerShape(16.dp),
-        color = PanalinkPalette.textPrimary.copy(alpha = 0.05f),
+        color = IosSettingsColors.label.copy(alpha = 0.05f),
         border = BorderStroke(1.dp, Color.White.copy(alpha = 0.2f))
     ) {
         Row(
@@ -91,12 +91,12 @@ fun AuroraOutlinedButton(
             horizontalArrangement = Arrangement.Center
         ) {
             if (icon != null) {
-                Icon(icon, contentDescription = null, tint = PanalinkPalette.textPrimary, modifier = Modifier.size(24.dp))
+                Icon(icon, contentDescription = null, tint = IosSettingsColors.label, modifier = Modifier.size(24.dp))
                 Spacer(modifier = Modifier.width(8.dp))
             }
             Text(
                 text = text,
-                color = PanalinkPalette.textPrimary,
+                color = IosSettingsColors.label,
                 fontWeight = FontWeight.Bold,
                 fontSize = 16.sp
             )
