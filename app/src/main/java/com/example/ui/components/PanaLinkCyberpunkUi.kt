@@ -381,6 +381,90 @@ fun PaniOSSearchBar(
     }
 }
 @Composable
+private fun PaniOSToolboxIcon(
+    modifier: Modifier = Modifier
+) {
+    val transition = androidx.compose.animation.core.rememberInfiniteTransition(label = "toolbox")
+    val wobble by transition.animateFloat(
+        initialValue = -2.2f,
+        targetValue = 2.2f,
+        animationSpec = androidx.compose.animation.core.infiniteRepeatable(
+            animation = androidx.compose.animation.core.tween(
+                durationMillis = 520,
+                easing = androidx.compose.animation.core.FastOutSlowInEasing
+            ),
+            repeatMode = androidx.compose.animation.core.RepeatMode.Reverse
+        ),
+        label = "wobble"
+    )
+    val squeeze by transition.animateFloat(
+        initialValue = 0.985f,
+        targetValue = 1.015f,
+        animationSpec = androidx.compose.animation.core.infiniteRepeatable(
+            animation = androidx.compose.animation.core.tween(
+                durationMillis = 700,
+                easing = androidx.compose.animation.core.FastOutSlowInEasing
+            ),
+            repeatMode = androidx.compose.animation.core.RepeatMode.Reverse
+        ),
+        label = "squeeze"
+    )
+
+    androidx.compose.foundation.Canvas(
+        modifier = modifier
+            .graphicsLayer {
+                rotationZ = wobble
+                scaleX = squeeze
+                scaleY = squeeze
+            }
+    ) {
+        val stroke = size.minDimension * 0.075f
+        val body = androidx.compose.ui.geometry.Rect(
+            left = size.width * 0.16f,
+            top = size.height * 0.36f,
+            right = size.width * 0.84f,
+            bottom = size.height * 0.82f
+        )
+        val bodyRadius = size.minDimension * 0.14f
+        drawRoundRect(
+            color = Color(0xFF1C1C1E),
+            topLeft = body.topLeft,
+            size = body.size,
+            cornerRadius = androidx.compose.ui.geometry.CornerRadius(bodyRadius, bodyRadius)
+        )
+        drawRoundRect(
+            color = Color(0xFF8E8E93),
+            topLeft = body.topLeft,
+            size = body.size,
+            cornerRadius = androidx.compose.ui.geometry.CornerRadius(bodyRadius, bodyRadius),
+            style = androidx.compose.ui.graphics.drawscope.Stroke(width = stroke)
+        )
+
+        drawRoundRect(
+            color = Color(0xFF262628),
+            topLeft = androidx.compose.ui.geometry.Offset(size.width * 0.34f, size.height * 0.20f),
+            size = androidx.compose.ui.geometry.Size(size.width * 0.32f, size.height * 0.25f),
+            cornerRadius = androidx.compose.ui.geometry.CornerRadius(size.minDimension * 0.09f, size.minDimension * 0.09f),
+            style = androidx.compose.ui.graphics.drawscope.Stroke(width = stroke)
+        )
+
+        drawLine(
+            color = Color(0xFF0A84FF),
+            start = androidx.compose.ui.geometry.Offset(size.width * 0.20f, size.height * 0.50f),
+            end = androidx.compose.ui.geometry.Offset(size.width * 0.80f, size.height * 0.50f),
+            strokeWidth = stroke,
+            cap = androidx.compose.ui.graphics.StrokeCap.Round
+        )
+
+        drawCircle(
+            color = Color(0xFF34C759),
+            radius = size.minDimension * 0.055f,
+            center = androidx.compose.ui.geometry.Offset(size.width * 0.50f, size.height * 0.62f)
+        )
+    }
+}
+
+@Composable
 fun PaniOSUnifiedTopBar(
     onEdit: (() -> Unit)? = null,
     onCamera: (() -> Unit)? = null,
@@ -389,6 +473,7 @@ fun PaniOSUnifiedTopBar(
     onFolder: (() -> Unit)? = null,
     onNotifications: (() -> Unit)? = null,
     unreadNotificationCount: Int = 0,
+    onToolbox: () -> Unit = {},
     onProfile: () -> Unit = {},
     modifier: Modifier = Modifier
 ) {
@@ -495,6 +580,18 @@ fun PaniOSUnifiedTopBar(
                             }
                         }
                     }
+                }
+
+                // Caja de herramientas: acción preparada para el contenido que se incorporará después.
+                Box(
+                    modifier = Modifier
+                        .padding(end = 6.dp)
+                        .size(40.dp)
+                        .clip(CircleShape)
+                        .clickable(onClick = onToolbox),
+                    contentAlignment = Alignment.Center
+                ) {
+                    PaniOSToolboxIcon(modifier = Modifier.size(27.dp))
                 }
 
                 // Avatar + estado: espejo visual del logo, ambos parten de un círculo de 40.dp.
