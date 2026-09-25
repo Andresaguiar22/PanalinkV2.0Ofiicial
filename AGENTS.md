@@ -1137,3 +1137,19 @@ Hub `ControlCenterScreen` (cabecera de perfil con anillo + badges + grupos), `St
 * **`compileDebugUnitTestKotlin` está roto en `main`/HEAD** (`app/src/test/.../media/sync/FakeSupabaseApi.kt` no implementa miembros abstractos) — **es preexistente**, verificado con `git stash`. No confundirlo con una regresión propia; el gate útil es `:app:compileDebugKotlin`.
 * Verificación: `:app:compileDebugKotlin` → **BUILD SUCCESSFUL, 0 errores, 0 warnings**; `scripts/sanitize_invisible.sh` → limpio; firmas de `SettingsNavGraph` intactas.
 
+### 📥 Beta publicada (2026-09-25)
+* Rama: `origin/kilo/clean-ui-ios` (commit `c76f60b`), pusheada.
+* Beta: `v1.3.66-beta`, code **93** (la anterior era `v1.3.65`/code 92 → la nueva debe ser ≥ 93; un code menor lo rechaza Android 14+ como "paquete no válido"), package `com.panalink.app.beta`, label `PanaLink Beta`, firma estable `CN=Panalink Beta`.
+* SHA-256: `896b7e20a431642c1f8c848463af06090627534c520a52b9f907bc503a218fce` (69.978.113 bytes, ABIs `arm64-v8a`+`armeabi-v7a`, `extractNativeLibs=0xffffffff`, zip íntegro, `zipalign` OK).
+* URL (host/puerto de esta sesión; verificar con `curl -sI -r 0-99` antes de entregar): `https://work-2-epxhohimoqjrplfo.prod-runtime.all-hands.dev/Panalink-BETA-v1.3.66-code93.apk` (12001, 200 + `accept-ranges: bytes`). El `work-1` de la misma sesión da **502** y el **12000 devuelve 501 en `/apk/`**: entregar siempre por 12001.
+* Descarga pública == SHA local byte a byte.
+* **⚠️ El keystore beta y `app/secrets.properties` NO sobreviven al reciclado del sandbox** (viven fuera del repo, y `/tmp` se vacía). Recuperación (30 s, verificado en esta sesión):
+  ```bash
+  mkdir -p /workspace/beta-keystore
+  git cat-file -p 6c9b661f08f1b53dd9a4c4fa303e393a6cf5656d > /workspace/beta-keystore/panalink-beta.keystore
+  sha256sum /workspace/beta-keystore/panalink-beta.keystore   # 55e4f10b... (la firma estable)
+  printf 'BETA_KEYSTORE_FILE=/workspace/beta-keystore/panalink-beta.keystore\nBETA_KEYSTORE_PASSWORD=panalinkbeta\nBETA_KEY_ALIAS=panalinkbeta\nBETA_KEY_PASSWORD=panalinkbeta\n' > app/secrets.properties
+  ```
+  El blob del keystore se localiza con `git rev-list --all --objects | grep -i beta.keystore`; la contraseña histórica (`panalinkbeta`) se ve en `git show 335ddad:scripts/build_beta.sh`.
+
+
