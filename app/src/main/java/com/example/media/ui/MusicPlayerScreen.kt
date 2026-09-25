@@ -131,7 +131,7 @@ fun MusicPlayerScreen(
                         colors = SliderDefaults.colors(
                             thumbColor = IosSettingsColors.blue,
                             activeTrackColor = IosSettingsColors.blue,
-                            inactiveTrackColor = Color(0xFF334155)
+                            inactiveTrackColor = IosSettingsColors.cellElevated
                         )
                     )
                     Row(

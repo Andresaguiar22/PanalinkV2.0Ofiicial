@@ -327,13 +327,13 @@ fun UserProfileScreen(
                                         horizontalArrangement = Arrangement.spacedBy(6.dp)
                                     ) {
                                         Surface(
-                                            color = Color(0xFF64B5F6).copy(alpha = 0.25f),
+                                            color = IosSettingsColors.blue.copy(alpha = 0.25f),
                                             shape = RoundedCornerShape(6.dp),
-                                            border = BorderStroke(1.dp, Color(0xFF64B5F6).copy(alpha = 0.6f))
+                                            border = BorderStroke(1.dp, IosSettingsColors.blue.copy(alpha = 0.6f))
                                         ) {
                                             Text(
                                                 text = "Confiable",
-                                                color = Color(0xFF64B5F6),
+                                                color = IosSettingsColors.blue,
                                                 fontSize = 9.sp,
                                                 fontWeight = FontWeight.Bold,
                                                 modifier = Modifier.padding(horizontal = 6.dp, vertical = 2.dp)

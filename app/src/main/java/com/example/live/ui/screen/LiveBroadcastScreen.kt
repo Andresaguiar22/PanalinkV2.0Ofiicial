@@ -332,12 +332,12 @@ fun LiveBroadcastScreen(
                                 modifier = Modifier
                                     .fillMaxWidth()
                                     .clip(RoundedCornerShape(12.dp))
-                                    .background(Color(0xFFEF5350).copy(alpha = 0.18f))
+                                    .background(IosSettingsColors.red.copy(alpha = 0.18f))
                                     .padding(horizontal = 12.dp, vertical = 10.dp)
                             ) {
                                 Text(
                                     text = message,
-                                    color = Color(0xFFFF8A80),
+                                    color = IosSettingsColors.red,
                                     fontSize = 13.sp,
                                     fontWeight = FontWeight.Medium
                                 )
@@ -517,7 +517,7 @@ fun LiveBroadcastScreen(
                                 .fillMaxWidth()
                                 .padding(horizontal = 24.dp),
                             shape = RoundedCornerShape(12.dp),
-                            color = Color(0xFFEF5350).copy(alpha = 0.92f)
+                            color = IosSettingsColors.red.copy(alpha = 0.92f)
                         ) {
                             Column(
                                 modifier = Modifier.padding(12.dp),
@@ -617,7 +617,7 @@ fun LiveBroadcastScreen(
             text = { Text("¿Estás seguro de que deseas finalizar este Live? Esta acción no se puede deshacer.") },
             confirmButton = {
                 TextButton(onClick = { showEndConfirmation = false; stopAndFinish() }) {
-                    Text("Finalizar", color = Color(0xFFEF5350), fontWeight = FontWeight.Bold)
+                    Text("Finalizar", color = IosSettingsColors.red, fontWeight = FontWeight.Bold)
                 }
             },
             dismissButton = {

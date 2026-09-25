@@ -59,25 +59,25 @@ fun FeedPostSkeleton() {
                     .padding(horizontal = 14.dp, vertical = 12.dp),
                 verticalAlignment = Alignment.CenterVertically
             ) {
-                Box(modifier = Modifier.size(44.dp).clip(CircleShape).background(Color(0xFF2A2A30)))
+                Box(modifier = Modifier.size(44.dp).clip(CircleShape).background(IosSettingsColors.cellElevated))
                 Spacer(modifier = Modifier.width(10.dp))
                 Column(modifier = Modifier.weight(1f)) {
-                    Box(modifier = Modifier.fillMaxWidth(0.6f).height(14.dp).clip(RoundedCornerShape(4.dp)).background(Color(0xFF2A2A30)))
+                    Box(modifier = Modifier.fillMaxWidth(0.6f).height(14.dp).clip(RoundedCornerShape(4.dp)).background(IosSettingsColors.cellElevated))
                     Spacer(modifier = Modifier.height(6.dp))
-                    Box(modifier = Modifier.fillMaxWidth(0.4f).height(10.dp).clip(RoundedCornerShape(4.dp)).background(Color(0xFF2A2A30)))
+                    Box(modifier = Modifier.fillMaxWidth(0.4f).height(10.dp).clip(RoundedCornerShape(4.dp)).background(IosSettingsColors.cellElevated))
                 }
             }
 
             Column(modifier = Modifier.padding(horizontal = 14.dp, vertical = 6.dp)) {
-                Box(modifier = Modifier.fillMaxWidth().height(12.dp).clip(RoundedCornerShape(4.dp)).background(Color(0xFF2A2A30)))
+                Box(modifier = Modifier.fillMaxWidth().height(12.dp).clip(RoundedCornerShape(4.dp)).background(IosSettingsColors.cellElevated))
                 Spacer(modifier = Modifier.height(6.dp))
-                Box(modifier = Modifier.fillMaxWidth().height(12.dp).clip(RoundedCornerShape(4.dp)).background(Color(0xFF2A2A30)))
+                Box(modifier = Modifier.fillMaxWidth().height(12.dp).clip(RoundedCornerShape(4.dp)).background(IosSettingsColors.cellElevated))
                 Spacer(modifier = Modifier.height(6.dp))
-                Box(modifier = Modifier.fillMaxWidth(0.7f).height(12.dp).clip(RoundedCornerShape(4.dp)).background(Color(0xFF2A2A30)))
+                Box(modifier = Modifier.fillMaxWidth(0.7f).height(12.dp).clip(RoundedCornerShape(4.dp)).background(IosSettingsColors.cellElevated))
             }
 
             Spacer(modifier = Modifier.height(8.dp))
-            Box(modifier = Modifier.fillMaxWidth().height(220.dp).background(Color(0xFF2A2A30)))
+            Box(modifier = Modifier.fillMaxWidth().height(220.dp).background(IosSettingsColors.cellElevated))
             Spacer(modifier = Modifier.height(8.dp))
 
             Row(
@@ -86,11 +86,11 @@ fun FeedPostSkeleton() {
                     .padding(horizontal = 14.dp, vertical = 8.dp),
                 verticalAlignment = Alignment.CenterVertically
             ) {
-                Box(modifier = Modifier.size(18.dp).clip(CircleShape).background(Color(0xFF2A2A30)))
+                Box(modifier = Modifier.size(18.dp).clip(CircleShape).background(IosSettingsColors.cellElevated))
                 Spacer(modifier = Modifier.width(5.dp))
-                Box(modifier = Modifier.width(40.dp).height(12.dp).clip(RoundedCornerShape(4.dp)).background(Color(0xFF2A2A30)))
+                Box(modifier = Modifier.width(40.dp).height(12.dp).clip(RoundedCornerShape(4.dp)).background(IosSettingsColors.cellElevated))
                 Spacer(modifier = Modifier.weight(1f))
-                Box(modifier = Modifier.width(80.dp).height(12.dp).clip(RoundedCornerShape(4.dp)).background(Color(0xFF2A2A30)))
+                Box(modifier = Modifier.width(80.dp).height(12.dp).clip(RoundedCornerShape(4.dp)).background(IosSettingsColors.cellElevated))
             }
             HorizontalDivider(color = IosSettingsColors.label.copy(alpha = 0.06f), thickness = 0.5.dp, modifier = Modifier.padding(horizontal = 12.dp))
 
@@ -108,9 +108,9 @@ fun FeedPostSkeleton() {
                         horizontalArrangement = Arrangement.Center,
                         verticalAlignment = Alignment.CenterVertically
                     ) {
-                        Box(modifier = Modifier.size(20.dp).clip(RoundedCornerShape(4.dp)).background(Color(0xFF2A2A30)))
+                        Box(modifier = Modifier.size(20.dp).clip(RoundedCornerShape(4.dp)).background(IosSettingsColors.cellElevated))
                         Spacer(modifier = Modifier.width(6.dp))
-                        Box(modifier = Modifier.width(50.dp).height(12.dp).clip(RoundedCornerShape(4.dp)).background(Color(0xFF2A2A30)))
+                        Box(modifier = Modifier.width(50.dp).height(12.dp).clip(RoundedCornerShape(4.dp)).background(IosSettingsColors.cellElevated))
                     }
                     if (it < 2) {
                         VerticalDivider(
@@ -133,12 +133,12 @@ fun CommentSkeleton() {
             .padding(horizontal = 16.dp, vertical = 8.dp),
         verticalAlignment = Alignment.CenterVertically
     ) {
-        Box(modifier = Modifier.size(36.dp).clip(CircleShape).background(Color(0xFF2A2A30)))
+        Box(modifier = Modifier.size(36.dp).clip(CircleShape).background(IosSettingsColors.cellElevated))
         Spacer(modifier = Modifier.width(10.dp))
         Column(modifier = Modifier.weight(1f)) {
-            Box(modifier = Modifier.fillMaxWidth(0.4f).height(12.dp).clip(RoundedCornerShape(4.dp)).background(Color(0xFF2A2A30)))
+            Box(modifier = Modifier.fillMaxWidth(0.4f).height(12.dp).clip(RoundedCornerShape(4.dp)).background(IosSettingsColors.cellElevated))
             Spacer(modifier = Modifier.height(6.dp))
-            Box(modifier = Modifier.fillMaxWidth().height(12.dp).clip(RoundedCornerShape(4.dp)).background(Color(0xFF2A2A30)))
+            Box(modifier = Modifier.fillMaxWidth().height(12.dp).clip(RoundedCornerShape(4.dp)).background(IosSettingsColors.cellElevated))
         }
     }
 }

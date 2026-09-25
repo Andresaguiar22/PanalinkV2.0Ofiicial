@@ -1296,7 +1296,7 @@ fun VoiceRoomRedesignedBottomBar(
             val micIcon = if (isMuted) Icons.Default.MicOff else Icons.Default.Mic
             val micTint = when {
                 needsPermission -> VoiceRoomPalette.ActiveCyan
-                isMuted -> Color(0xFFFF8A80)
+                isMuted -> IosSettingsColors.red
                 else -> VoiceRoomPalette.ActiveCyan
             }
             Icon(
@@ -1350,7 +1350,7 @@ fun VoiceRoomRedesignedBottomBar(
                     text = {
                         Text(
                             text = if (isMuted) "Activar micrófono" else "Silenciar micrófono",
-                            color = if (isMuted) Color(0xFFFF8A80) else VoiceRoomPalette.TextPrimary,
+                            color = if (isMuted) IosSettingsColors.red else VoiceRoomPalette.TextPrimary,
                             fontSize = 13.sp
                         )
                     },
@@ -1358,7 +1358,7 @@ fun VoiceRoomRedesignedBottomBar(
                         Icon(
                             imageVector = if (isMuted) Icons.Default.MicOff else Icons.Default.Mic,
                             contentDescription = null,
-                            tint = if (isMuted) Color(0xFFFF8A80) else VoiceRoomPalette.ActiveCyan,
+                            tint = if (isMuted) IosSettingsColors.red else VoiceRoomPalette.ActiveCyan,
                             modifier = Modifier.size(16.dp)
                         )
                     }
@@ -1398,12 +1398,12 @@ fun VoiceRoomRedesignedBottomBar(
 
         DropdownMenuItem(
             onClick = { onLeaveRoom(); showMenu = false },
-            text = { Text("Salir de la sala", color = Color(0xFFFF8A80), fontSize = 13.sp) },
+            text = { Text("Salir de la sala", color = IosSettingsColors.red, fontSize = 13.sp) },
             leadingIcon = {
                 Icon(
                     imageVector = Icons.Default.Close,
                     contentDescription = null,
-                    tint = Color(0xFFFF8A80),
+                    tint = IosSettingsColors.red,
                     modifier = Modifier.size(16.dp)
                 )
             }

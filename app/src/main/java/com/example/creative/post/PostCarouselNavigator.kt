@@ -111,7 +111,7 @@ fun PostCarouselNavigator(
                             .background(IosSettingsColors.cell)
                             .border(
                                 width = if (isSelected) 2.dp else 1.dp,
-                                color = if (isSelected) IosSettingsColors.blue else Color(0xFF334155),
+                                color = if (isSelected) IosSettingsColors.blue else IosSettingsColors.cellElevated,
                                 shape = RoundedCornerShape(10.dp)
                             )
                             .clickable { onSelectPage(index) }

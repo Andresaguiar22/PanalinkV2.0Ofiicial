@@ -122,7 +122,7 @@ fun VoiceRoomToolboxSheet(
                         modifier = Modifier
                             .weight(1f)
                             .clip(RoundedCornerShape(20.dp))
-                            .background(if (selected) Color(0xFF334155) else Color.Transparent)
+                            .background(if (selected) IosSettingsColors.cellElevated else Color.Transparent)
                             .clickable { tab = index }
                             .padding(vertical = 8.dp),
                         contentAlignment = Alignment.Center

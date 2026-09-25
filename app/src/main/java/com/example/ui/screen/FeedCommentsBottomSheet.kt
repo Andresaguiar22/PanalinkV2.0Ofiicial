@@ -154,7 +154,7 @@ fun FeedCommentsBottomSheet(
                     modifier = Modifier
                         .fillMaxWidth()
                         .padding(bottom = 8.dp)
-                        .background(Color(0xFF1E222B), RoundedCornerShape(16.dp))
+                        .background(IosSettingsColors.cellElevated, RoundedCornerShape(16.dp))
                         .padding(horizontal = 12.dp, vertical = 6.dp),
                     horizontalArrangement = Arrangement.SpaceBetween,
                     verticalAlignment = Alignment.CenterVertically
@@ -184,7 +184,7 @@ fun FeedCommentsBottomSheet(
                 Row(
                     modifier = Modifier
                         .fillMaxWidth()
-                        .background(Color(0xFF1E222B), RoundedCornerShape(28.dp))
+                        .background(IosSettingsColors.cellElevated, RoundedCornerShape(28.dp))
                         .padding(horizontal = 14.dp, vertical = 4.dp),
                     verticalAlignment = Alignment.CenterVertically
                 ) {

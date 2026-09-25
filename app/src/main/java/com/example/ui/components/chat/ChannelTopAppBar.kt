@@ -54,7 +54,7 @@ fun ChannelTopAppBar(
     onHeaderClick: () -> Unit = {},
     modifier: Modifier = Modifier
 ) {
-    val backgroundColor = Color(0xFF17212B) // Telegram Dark TopBar
+    val backgroundColor = IosSettingsColors.groupBackground // Telegram Dark TopBar
     val contentColor = Color.White
     val secondaryTextColor = IosSettingsColors.secondaryLabel
     val verifiedBadgeColor = IosSettingsColors.blue // Telegram Cyan
@@ -142,7 +142,7 @@ fun ChannelTopAppBar(
             Icon(
                 imageVector = if (isMuted) Icons.Default.NotificationsOff else Icons.Default.Notifications,
                 contentDescription = if (isMuted) "Activar notificaciones" else "Silenciar",
-                tint = if (isMuted) Color(0xFFE53935) else contentColor
+                tint = if (isMuted) IosSettingsColors.red else contentColor
             )
         }
 

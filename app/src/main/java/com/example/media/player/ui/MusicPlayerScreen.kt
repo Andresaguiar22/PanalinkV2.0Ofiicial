@@ -205,7 +205,7 @@ fun MusicPlayerScreen(
                                     .fillMaxSize()
                                     .background(
                                         Brush.linearGradient(
-                                            listOf(Color(0xFF334155), IosSettingsColors.cell)
+                                            listOf(IosSettingsColors.cellElevated, IosSettingsColors.cell)
                                         )
                                     ),
                                 contentAlignment = Alignment.Center

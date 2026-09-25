@@ -1159,7 +1159,7 @@ fun ChatScreen(
                     Icon(
                         imageVector = Icons.Default.Delete,
                         contentDescription = "Eliminada",
-                        tint = Color(0xFFE53935),
+                        tint = IosSettingsColors.red,
                         modifier = Modifier.size(40.dp)
                     )
                 }

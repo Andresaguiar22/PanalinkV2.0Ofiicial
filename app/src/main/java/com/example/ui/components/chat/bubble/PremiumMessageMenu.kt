@@ -37,6 +37,7 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.compose.ui.window.Popup
 import androidx.compose.ui.window.PopupProperties
+import com.example.ui.settings.ios.IosSettingsColors
 
 /**
  * PremiumMenuItem Data model
@@ -127,7 +128,7 @@ fun PremiumMessageMenu(
                                 .padding(vertical = 6.dp)
                         ) {
                             menuItems.forEachIndexed { index, item ->
-                                val textColor = if (item.isDestructive) Color(0xFFFF5252) else Color.White
+                                val textColor = if (item.isDestructive) IosSettingsColors.red else Color.White
 
                                 Row(
                                     modifier = Modifier

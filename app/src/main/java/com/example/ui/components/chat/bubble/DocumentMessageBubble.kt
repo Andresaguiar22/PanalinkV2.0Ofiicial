@@ -201,7 +201,7 @@ private fun getDocumentFileInfo(extension: String): Pair<ImageVector, Color> {
         "pdf" -> Icons.Default.PictureAsPdf to Color(0xFFF44336)
         "doc", "docx" -> Icons.Default.Description to Color(0xFF2196F3)
         "xls", "xlsx" -> Icons.Default.TableChart to IosSettingsColors.green
-        "ppt", "pptx" -> Icons.Default.PresentToAll to Color(0xFFFF5722)
+        "ppt", "pptx" -> Icons.Default.PresentToAll to IosSettingsColors.orange
         "zip", "rar", "7z" -> Icons.Default.FolderZip to Color(0xFFFFC107)
         "apk" -> Icons.Default.Android to Color(0xFF3DDC84)
         "txt" -> Icons.Default.Article to Color(0xFF9E9E9E)

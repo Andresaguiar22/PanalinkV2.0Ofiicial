@@ -105,7 +105,7 @@ fun LiveGlassIconButton(
         modifier = modifier
             .size(48.dp)
             .clip(CircleShape)
-            .background(if (isAlert) Color(0xFFEF5350).copy(alpha = 0.85f) else LiveGlassFill)
+            .background(if (isAlert) IosSettingsColors.red.copy(alpha = 0.85f) else LiveGlassFill)
             .border(1.dp, LiveGlassBorder, CircleShape),
         colors = IconButtonDefaults.iconButtonColors(contentColor = Color.White),
     ) {

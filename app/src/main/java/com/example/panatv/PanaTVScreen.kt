@@ -70,12 +70,12 @@ import androidx.compose.animation.core.*
 import com.example.ui.settings.ios.IosSettingsColors
 
 // ── Xuper TV style palette ──────────────────────────────────────────────
-private val TvBg = Color(0xFF0D0F12)
+private val TvBg: Color get() = IosSettingsColors.groupBackground
 private val TvCard: Color get() = IosSettingsColors.groupBackground
 private val TvCardAlt: Color get() = IosSettingsColors.cellElevated
 private val TvAccent: Color get() = IosSettingsColors.blue
 private val TvAccentSoft = Color(0x3318E7F5)
-private val TvTextSecondary = IosSettingsColors.secondaryLabel
+private val TvTextSecondary: Color get() = IosSettingsColors.secondaryLabel
 
 internal fun tvCategoryLabel(category: String): String = when (category) {
     "movies" -> "Películas"
@@ -693,7 +693,7 @@ fun PanaTVScreen(viewModel: PanaTVViewModel = viewModel()) {
                             Box(
                                 modifier = Modifier
                                     .clip(RoundedCornerShape(4.dp))
-                                    .background(Color(0xFFE53935))
+                                    .background(IosSettingsColors.red)
                                     .padding(horizontal = 6.dp, vertical = 2.dp)
                             ) {
                                 Text("EN VIVO", color = IosSettingsColors.label, fontSize = 9.sp, fontWeight = FontWeight.Bold)
@@ -980,7 +980,7 @@ fun PanaTVScreen(viewModel: PanaTVViewModel = viewModel()) {
                                         Icon(
                                             Icons.Default.WifiOff,
                                             contentDescription = null,
-                                            tint = Color(0xFFEF5350),
+                                            tint = IosSettingsColors.red,
                                             modifier = Modifier.size(40.dp)
                                         )
                                         Spacer(modifier = Modifier.height(8.dp))
@@ -1047,7 +1047,7 @@ fun PanaTVScreen(viewModel: PanaTVViewModel = viewModel()) {
                                 Box(
                                     modifier = Modifier
                                         .clip(RoundedCornerShape(4.dp))
-                                        .background(Color(0xFFE53935))
+                                        .background(IosSettingsColors.red)
                                         .padding(horizontal = 6.dp, vertical = 2.dp)
                                 ) {
                                     Text("EN VIVO", color = IosSettingsColors.label, fontSize = 9.sp, fontWeight = FontWeight.Bold)
@@ -1321,7 +1321,7 @@ fun PanaTVScreen(viewModel: PanaTVViewModel = viewModel()) {
                                             Box(
                                                 modifier = Modifier
                                                     .clip(RoundedCornerShape(4.dp))
-                                                    .background(Color(0xFFE53935))
+                                                    .background(IosSettingsColors.red)
                                                     .padding(horizontal = 4.dp, vertical = 1.dp)
                                             ) {
                                                 Text("VIENDO", color = IosSettingsColors.label, fontSize = 7.sp, fontWeight = FontWeight.Bold)

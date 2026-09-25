@@ -49,7 +49,7 @@ import com.example.ui.components.rememberAsyncMediaUrl
 import com.example.ui.settings.ios.IosSettingsColors
 
 private val LiveCardShape = RoundedCornerShape(20.dp)
-private val LiveRed = IosSettingsColors.pink
+private val LiveRed: Color get() = IosSettingsColors.pink
 
 /**
  * Tarjeta de transmisión con estética glassmorphism: sin bloque de color, borde
@@ -91,7 +91,7 @@ fun LiveCard(
                         .fillMaxSize()
                         .background(
                             Brush.linearGradient(
-                                colors = listOf(IosSettingsColors.groupBackground, Color(0xFF0D0F12))
+                                colors = listOf(IosSettingsColors.groupBackground, IosSettingsColors.groupBackground)
                             )
                         )
                         .blur(28.dp)
@@ -179,7 +179,7 @@ private fun LiveBadge() {
     Row(
         modifier = Modifier
             .clip(CircleShape)
-            .background(Color(0xFF0D0F12).copy(alpha = 0.55f))
+            .background(IosSettingsColors.groupBackground.copy(alpha = 0.55f))
             .border(1.dp, Color.White.copy(alpha = 0.15f), CircleShape)
             .padding(horizontal = 10.dp, vertical = 5.dp),
         verticalAlignment = Alignment.CenterVertically,
@@ -230,7 +230,7 @@ private fun ViewerCountBadge(viewerCount: Int) {
     Row(
         modifier = Modifier
             .clip(CircleShape)
-            .background(Color(0xFF0D0F12).copy(alpha = 0.55f))
+            .background(IosSettingsColors.groupBackground.copy(alpha = 0.55f))
             .border(1.dp, Color.White.copy(alpha = 0.12f), CircleShape)
             .padding(horizontal = 9.dp, vertical = 5.dp),
         verticalAlignment = Alignment.CenterVertically,

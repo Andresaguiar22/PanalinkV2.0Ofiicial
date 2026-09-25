@@ -24,7 +24,7 @@ val LiveNightBase = Color(0xFF000000)
 
 /** Rojo del indicador de directo y su halo. */
 val LiveLiveRed = Color(0xFFFF3B4E)
-val LiveLiveGlow = IosSettingsColors.pink
+val LiveLiveGlow: Color get() = IosSettingsColors.pink
 
 /** Relleno y borde translúcidos de las superficies "glass". */
 val LiveGlassFill = Color(0xFF131A22).copy(alpha = 0.82f)
@@ -45,10 +45,10 @@ val LiveBadgeFill = Color(0xFF131A22).copy(alpha = 0.78f)
 val LiveHudFill = Color(0xFF131A22).copy(alpha = 0.78f)
 
 /** Borde fino y claro del HUD: separa la superficie flotante del video de fondo. */
-val LiveHudBorder = IosSettingsColors.blue.copy(alpha = 0.55f)
+val LiveHudBorder: Color get() = IosSettingsColors.blue.copy(alpha = 0.55f)
 
 /** Rojo corporativo de alerta: botón "FINALIZAR" y su halo exterior. */
-val LiveEndRed = IosSettingsColors.pink
+val LiveEndRed: Color get() = IosSettingsColors.pink
 
 /** Esquinas de las tarjetas del listado y del panel de configuración. */
 val LiveCardShape = RoundedCornerShape(24.dp)

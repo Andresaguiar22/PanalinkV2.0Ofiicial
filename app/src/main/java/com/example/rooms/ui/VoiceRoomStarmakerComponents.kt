@@ -1066,7 +1066,7 @@ fun VoiceRoomMicSeatButton(
     val tint = when {
         needsPermission -> VoiceRoomPalette.ActiveCyan
         !isSeated -> if (pendingRequest) Color(0xFF888888) else VoiceRoomPalette.ActiveCyan
-        isMuted -> Color(0xFFFF8A80)
+        isMuted -> IosSettingsColors.red
         else -> VoiceRoomPalette.ActiveCyan
     }
     val enabled = needsPermission || isSeated || !pendingRequest
@@ -1359,7 +1359,7 @@ fun VoiceRoomSettingsSheet(
                         if (member.userId != myUserId && member.userId != room?.ownerId) {
                             if (isHost && member.role != "admin") TextButton(onClick = { onSetAdmin(member.userId, true) }) { Text("Hacer admin", color = VoiceRoomPalette.ActiveCyan, fontSize = 11.sp) }
                             if (isHost && member.role == "admin") TextButton(onClick = { onSetAdmin(member.userId, false) }) { Text("Quitar admin", color = VoiceRoomPalette.Gold, fontSize = 11.sp) }
-                            TextButton(onClick = { onKick(member.userId) }) { Text("Expulsar", color = Color(0xFFFF8A80), fontSize = 11.sp) }
+                            TextButton(onClick = { onKick(member.userId) }) { Text("Expulsar", color = IosSettingsColors.red, fontSize = 11.sp) }
                         }
                         onOpenProfile?.let { TextButton(onClick = { it(member.userId) }) { Text("Ver", color = VoiceRoomPalette.TextSecondary, fontSize = 11.sp) } }
                         HorizontalDivider(color = Color(0x1FFFFFFF))

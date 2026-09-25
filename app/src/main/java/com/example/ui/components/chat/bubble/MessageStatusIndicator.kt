@@ -108,7 +108,7 @@ fun MessageStatusIndicator(
                                 androidx.compose.material3.Icon(
                                     imageVector = Icons.Filled.Refresh,
                                     contentDescription = "Reintentar envío",
-                                    tint = Color(0xFFEF5350),
+                                    tint = IosSettingsColors.red,
                                     modifier = Modifier.size(16.dp)
                                 )
                             }
@@ -116,7 +116,7 @@ fun MessageStatusIndicator(
                             androidx.compose.material3.Icon(
                                 imageVector = Icons.Filled.Error,
                                 contentDescription = "Error",
-                                tint = Color(0xFFEF5350),
+                                tint = IosSettingsColors.red,
                                 modifier = Modifier.size(14.dp)
                             )
                         }

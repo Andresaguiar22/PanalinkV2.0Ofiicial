@@ -353,20 +353,20 @@ fun ChatTopBar(
                                         }
                                     )
                                     DropdownMenuItem(
-                                        text = { Text("Borrar chat", color = Color(0xFFFF5252)) },
+                                        text = { Text("Borrar chat", color = IosSettingsColors.red) },
                                         onClick = {
                                             showChatMenu = false
                                             onDeleteChat()
                                         },
                                         leadingIcon = {
-                                            Icon(Icons.Default.Delete, contentDescription = null, tint = Color(0xFFFF5252))
+                                            Icon(Icons.Default.Delete, contentDescription = null, tint = IosSettingsColors.red)
                                         }
                                     )
                                     DropdownMenuItem(
                                         text = {
                                             Text(
                                                 if (isBlockedUser) "Desbloquear contacto" else "Bloquear contacto",
-                                                color = Color(0xFFFF5252)
+                                                color = IosSettingsColors.red
                                             )
                                         },
                                         onClick = {
@@ -374,7 +374,7 @@ fun ChatTopBar(
                                             onToggleBlockUser()
                                         },
                                         leadingIcon = {
-                                            Icon(Icons.Default.Block, contentDescription = null, tint = Color(0xFFFF5252))
+                                            Icon(Icons.Default.Block, contentDescription = null, tint = IosSettingsColors.red)
                                         }
                                     )
                                 }

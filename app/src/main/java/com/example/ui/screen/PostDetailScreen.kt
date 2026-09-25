@@ -115,7 +115,7 @@ fun PostDetailScreen(
                             Row(
                                 modifier = Modifier
                                     .fillMaxWidth()
-                                    .background(Color(0xFF1E222B))
+                                    .background(IosSettingsColors.cellElevated)
                                     .padding(horizontal = 12.dp, vertical = 8.dp),
                                 horizontalArrangement = Arrangement.SpaceBetween,
                                 verticalAlignment = Alignment.CenterVertically
@@ -150,8 +150,8 @@ fun PostDetailScreen(
                                     Text("Escribe un comentario...", color = Color.Gray, fontSize = 14.sp)
                                 },
                                 colors = OutlinedTextFieldDefaults.colors(
-                                    focusedContainerColor = Color(0xFF1E222B),
-                                    unfocusedContainerColor = Color(0xFF1E222B),
+                                    focusedContainerColor = IosSettingsColors.cellElevated,
+                                    unfocusedContainerColor = IosSettingsColors.cellElevated,
                                     focusedBorderColor = Color.Transparent,
                                     unfocusedBorderColor = Color.Transparent,
                                     focusedTextColor = Color.White,

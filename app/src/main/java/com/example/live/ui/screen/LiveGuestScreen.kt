@@ -151,7 +151,7 @@ fun LiveGuestScreen(
                                 }
                                 onNavigateBack()
                             },
-                            colors = ButtonDefaults.outlinedButtonColors(contentColor = Color(0xFFEF5350))
+                            colors = ButtonDefaults.outlinedButtonColors(contentColor = IosSettingsColors.red)
                         ) {
                             Text("Rechazar")
                         }
@@ -199,7 +199,7 @@ fun LiveGuestScreen(
                                 isMicMuted = !isMicMuted
                                 scope.launch { roomRepository.setMicrophoneEnabled(!isMicMuted) }
                             },
-                            colors = IconButtonDefaults.iconButtonColors(containerColor = if (isMicMuted) Color(0xFFEF5350) else Color.Black.copy(alpha = 0.5f))
+                            colors = IconButtonDefaults.iconButtonColors(containerColor = if (isMicMuted) IosSettingsColors.red else Color.Black.copy(alpha = 0.5f))
                         ) {
                             Icon(
                                 imageVector = if (isMicMuted) Icons.Default.MicOff else Icons.Default.Mic,
@@ -213,7 +213,7 @@ fun LiveGuestScreen(
                                 isCameraOff = !isCameraOff
                                 scope.launch { roomRepository.setCameraEnabled(!isCameraOff) }
                             },
-                            colors = IconButtonDefaults.iconButtonColors(containerColor = if (isCameraOff) Color(0xFFEF5350) else Color.Black.copy(alpha = 0.5f))
+                            colors = IconButtonDefaults.iconButtonColors(containerColor = if (isCameraOff) IosSettingsColors.red else Color.Black.copy(alpha = 0.5f))
                         ) {
                             Icon(
                                 imageVector = if (isCameraOff) Icons.Default.VideocamOff else Icons.Default.Videocam,
@@ -224,7 +224,7 @@ fun LiveGuestScreen(
 
                         Button(
                             onClick = { leaveCoHost() },
-                            colors = ButtonDefaults.buttonColors(containerColor = Color(0xFFEF5350))
+                            colors = ButtonDefaults.buttonColors(containerColor = IosSettingsColors.red)
                         ) {
                             Text("SALIR", color = IosSettingsColors.label)
                         }

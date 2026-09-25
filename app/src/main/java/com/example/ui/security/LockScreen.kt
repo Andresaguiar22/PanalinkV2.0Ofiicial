@@ -54,7 +54,7 @@ fun LockScreen() {
         }
     }
 
-    Surface(modifier = Modifier.fillMaxSize(), color = Color(0xFF0D0F12)) {
+    Surface(modifier = Modifier.fillMaxSize(), color = IosSettingsColors.groupBackground) {
         Column(
             modifier = Modifier
                 .fillMaxSize()

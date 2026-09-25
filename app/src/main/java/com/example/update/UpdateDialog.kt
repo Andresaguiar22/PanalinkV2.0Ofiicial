@@ -100,7 +100,7 @@ fun UpdateDialog(
                 Row(
                     modifier = Modifier
                         .fillMaxWidth()
-                        .background(Color(0xFF0D0F12), RoundedCornerShape(14.dp))
+                        .background(IosSettingsColors.groupBackground, RoundedCornerShape(14.dp))
                         .padding(16.dp)
                 ) {
                     Column(modifier = Modifier.weight(1f)) {
@@ -128,7 +128,7 @@ fun UpdateDialog(
                         .fillMaxWidth()
                         .heightIn(max = 300.dp)
                         .verticalScroll(rememberScrollState())
-                        .background(Color(0xFF0D0F12), RoundedCornerShape(14.dp))
+                        .background(IosSettingsColors.groupBackground, RoundedCornerShape(14.dp))
                         .padding(14.dp)
                 ) {
                     Column {
@@ -200,11 +200,11 @@ fun UpdateDialog(
                                 .background(Color(0xFFE57373).copy(alpha = 0.15f), RoundedCornerShape(12.dp))
                                 .padding(12.dp)
                         ) {
-                            Icon(Icons.Default.ErrorOutline, contentDescription = null, tint = Color(0xFFEF5350))
+                            Icon(Icons.Default.ErrorOutline, contentDescription = null, tint = IosSettingsColors.red)
                             Spacer(modifier = Modifier.width(8.dp))
                             Text(
                                 text = "Error: ${state.message}",
-                                color = Color(0xFFEF5350),
+                                color = IosSettingsColors.red,
                                 fontSize = 12.sp,
                                 modifier = Modifier.weight(1f)
                             )
@@ -225,11 +225,11 @@ fun UpdateDialog(
                             .background(Color(0xFFE57373).copy(alpha = 0.15f), RoundedCornerShape(12.dp))
                             .padding(12.dp)
                     ) {
-                        Icon(Icons.Default.ErrorOutline, contentDescription = null, tint = Color(0xFFEF5350))
+                        Icon(Icons.Default.ErrorOutline, contentDescription = null, tint = IosSettingsColors.red)
                         Spacer(modifier = Modifier.width(8.dp))
                         Text(
                             text = "Error al instalar: $error",
-                            color = Color(0xFFEF5350),
+                            color = IosSettingsColors.red,
                             fontSize = 12.sp,
                             modifier = Modifier.weight(1f)
                         )
@@ -247,7 +247,7 @@ fun UpdateDialog(
                             onClick = {
                                 viewModel.cancelDownload()
                             },
-                            colors = ButtonDefaults.textButtonColors(contentColor = Color(0xFFEF5350))
+                            colors = ButtonDefaults.textButtonColors(contentColor = IosSettingsColors.red)
                         ) {
                             Text("Cancelar", fontWeight = FontWeight.Bold)
                         }

@@ -63,9 +63,9 @@ fun CommentItemBubble(
     modifier: Modifier = Modifier
 ) {
     val bubbleBg = Color(0xFF1E2C3A) // Telegram Dark Bubble
-    val replyBoxBg = Color(0xFF17212B) // Inner Reply Preview Box
+    val replyBoxBg = IosSettingsColors.groupBackground // Inner Reply Preview Box
     val accentBlue = IosSettingsColors.blue
-    val replyBorderColor = Color(0xFF64B5F6)
+    val replyBorderColor = IosSettingsColors.blue
     val secondaryText = IosSettingsColors.secondaryLabel
     val primaryText = Color.White
 

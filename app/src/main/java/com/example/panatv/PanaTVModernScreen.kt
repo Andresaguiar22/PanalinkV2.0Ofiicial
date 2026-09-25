@@ -66,12 +66,12 @@ import coil.request.ImageRequest
 import kotlinx.coroutines.delay
 import com.example.ui.settings.ios.IosSettingsColors
 
-private val PanaTvBackground = Color(0xFF0D0F12)
+private val PanaTvBackground: Color get() = IosSettingsColors.groupBackground
 private val PanaTvSurface: Color get() = IosSettingsColors.groupBackground
-private val PanaTvText = Color(0xFFF5E6C8)
-private val PanaTvMuted = IosSettingsColors.secondaryLabel
+private val PanaTvText: Color get() = IosSettingsColors.label
+private val PanaTvMuted: Color get() = IosSettingsColors.secondaryLabel
 private val PanaTvAccent: Color get() = IosSettingsColors.blue
-private val PanaTvBlue = IosSettingsColors.blue
+private val PanaTvBlue: Color get() = IosSettingsColors.blue
 
 // Automatic source retries per channel: a live server that drops the connection
 // is re-attached silently (2 tries), then the error UI ("Reintentar") appears.
@@ -571,7 +571,7 @@ fun PanaTVModernScreen(viewModel: PanaTVViewModel = viewModel()) {
                             .padding(horizontal = 10.dp, vertical = 7.dp),
                         verticalAlignment = Alignment.CenterVertically
                     ) {
-                        Surface(shape = RoundedCornerShape(5.dp), color = Color(0xFFE53935)) {
+                        Surface(shape = RoundedCornerShape(5.dp), color = IosSettingsColors.red) {
                             Text("EN VIVO", color = IosSettingsColors.label, fontSize = 8.sp, fontWeight = FontWeight.Bold, modifier = Modifier.padding(horizontal = 6.dp, vertical = 3.dp))
                         }
                         Spacer(Modifier.width(8.dp))
@@ -1050,7 +1050,7 @@ private fun CategoryChip(label: String, selected: Boolean, accent: Color = PanaT
 @Composable
 private fun ChannelLogo(channel: PanaTVChannelEntity, size: Int, padding: Int) {
     Box(
-        Modifier.size(size.dp).clip(RoundedCornerShape(8.dp)).background(Color(0xFF0D0F12)),
+        Modifier.size(size.dp).clip(RoundedCornerShape(8.dp)).background(IosSettingsColors.groupBackground),
         contentAlignment = Alignment.Center
     ) {
         if (channel.logoUrl.isNotBlank()) {

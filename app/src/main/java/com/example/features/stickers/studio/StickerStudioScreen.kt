@@ -65,8 +65,8 @@ private val TEXT_COLORS = listOf(
     StudioColor("Blanco", Color.White),
     StudioColor("Pana", Color(0xFF00A884)),
     StudioColor("Sol", Color(0xFFFFD54F)),
-    StudioColor("Coral", Color(0xFFFF5252)),
-    StudioColor("Cielo", Color(0xFF64B5F6)),
+    StudioColor("Coral", IosSettingsColors.red),
+    StudioColor("Cielo", IosSettingsColors.blue),
     StudioColor("Uva", Color(0xFFCE93D8)),
     StudioColor("Negro", Color(0xFF111B21))
 )

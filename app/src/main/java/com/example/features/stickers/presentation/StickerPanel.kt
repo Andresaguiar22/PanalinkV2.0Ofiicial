@@ -113,7 +113,7 @@ fun StickerPanel(
             LazyRow(
                 modifier = Modifier
                     .fillMaxWidth()
-                    .background(Color(0xFF0D0F12))
+                    .background(IosSettingsColors.groupBackground)
                     .padding(horizontal = 8.dp, vertical = 6.dp),
                 horizontalArrangement = Arrangement.spacedBy(8.dp),
                 verticalAlignment = Alignment.CenterVertically

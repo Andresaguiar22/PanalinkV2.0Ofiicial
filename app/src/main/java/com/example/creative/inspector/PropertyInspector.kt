@@ -307,7 +307,7 @@ private fun KeyframeAnimationPanel(
             }
 
             IconButton(onClick = { onRemoveKeyframe(layer.id, selectedProperty, currentTimeMs) }) {
-                Icon(Icons.Default.Delete, contentDescription = "Eliminar Keyframe", tint = Color(0xFFFF5252))
+                Icon(Icons.Default.Delete, contentDescription = "Eliminar Keyframe", tint = IosSettingsColors.red)
             }
         }
     }

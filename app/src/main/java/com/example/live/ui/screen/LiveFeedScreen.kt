@@ -67,7 +67,7 @@ fun LiveFeedScreen(
                     colors = listOf(
                         IosSettingsColors.blue,
                         IosSettingsColors.groupBackground,
-                        Color(0xFF0D0F12)
+                        IosSettingsColors.groupBackground
                     ),
                     center = Offset.Unspecified,
                     radius = 1200f

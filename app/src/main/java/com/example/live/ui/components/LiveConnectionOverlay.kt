@@ -82,7 +82,7 @@ fun LiveConnectionOverlay(
                         else -> ""
                     }
                     val color = when (connectionState) {
-                        is LiveConnectionState.Error -> Color(0xFFEF5350)
+                        is LiveConnectionState.Error -> IosSettingsColors.red
                         is LiveConnectionState.Reconnecting -> Color(0xFFFFC107)
                         else -> Color.White
                     }
@@ -137,12 +137,12 @@ fun LivePulseIndicator(
                     .size(10.dp)
                     .scale(pulseScale)
                     .alpha(pulseAlpha)
-                    .background(Color(0xFFEF5350), CircleShape)
+                    .background(IosSettingsColors.red, CircleShape)
             )
             Box(
                 modifier = Modifier
                     .size(10.dp)
-                    .background(Color(0xFFEF5350), CircleShape)
+                    .background(IosSettingsColors.red, CircleShape)
             )
         }
     }

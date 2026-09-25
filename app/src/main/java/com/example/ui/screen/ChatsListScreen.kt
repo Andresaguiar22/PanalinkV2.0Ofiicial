@@ -1241,7 +1241,7 @@ fun ChatsListScreen(
                         Box(
                             modifier = Modifier
                                 .size(40.dp)
-                                .background(Color(0xFFEF5350), RoundedCornerShape(10.dp)),
+                                .background(IosSettingsColors.red, RoundedCornerShape(10.dp)),
                             contentAlignment = Alignment.Center
                         ) {
                             Icon(Icons.Default.LiveTv, contentDescription = null, tint = IosSettingsColors.label, modifier = Modifier.size(20.dp))
@@ -1253,10 +1253,10 @@ fun ChatsListScreen(
                         }
                         Box(
                             modifier = Modifier
-                                .background(Color(0xFFEF5350).copy(alpha = 0.15f), RoundedCornerShape(4.dp))
+                                .background(IosSettingsColors.red.copy(alpha = 0.15f), RoundedCornerShape(4.dp))
                                 .padding(horizontal = 6.dp, vertical = 2.dp)
                         ) {
-                            Text("LIVE", color = Color(0xFFEF5350), fontSize = 10.sp, fontWeight = FontWeight.Bold)
+                            Text("LIVE", color = IosSettingsColors.red, fontSize = 10.sp, fontWeight = FontWeight.Bold)
                         }
                     }
 
@@ -1753,7 +1753,7 @@ fun ChatsListScreen(
                             .focusRequester(focusRequester),
                         colors = OutlinedTextFieldDefaults.colors(
                             focusedBorderColor = colors.primary,
-                            unfocusedBorderColor = Color(0xFF263238),
+                            unfocusedBorderColor = IosSettingsColors.separator,
                             focusedTextColor = Color.White,
                             unfocusedTextColor = Color.White
                         ),
@@ -1783,7 +1783,7 @@ fun ChatsListScreen(
                                     modifier = Modifier
                                         .fillMaxWidth()
                                         .background(Color(0xFF0F1216), RoundedCornerShape(12.dp))
-                                        .border(0.5.dp, Color(0xFF263238), RoundedCornerShape(12.dp))
+                                        .border(0.5.dp, IosSettingsColors.separator, RoundedCornerShape(12.dp))
                                         .bounceClick {
                                             if (cmd.command == "/nuevo-chat") {
                                                 showCerebroOverlay = false
@@ -1851,7 +1851,7 @@ fun ChatsListScreen(
                                         modifier = Modifier
                                             .fillMaxWidth()
                                             .background(Color(0xFF0F1216), RoundedCornerShape(12.dp))
-                                            .border(0.5.dp, Color(0xFF263238), RoundedCornerShape(12.dp))
+                                            .border(0.5.dp, IosSettingsColors.separator, RoundedCornerShape(12.dp))
                                             .bounceClick {
                                                 showCerebroOverlay = false
                                                 onNavigateToSearch()
@@ -1884,7 +1884,7 @@ fun ChatsListScreen(
                                         modifier = Modifier
                                             .fillMaxWidth()
                                             .background(Color(0xFF0F1216), RoundedCornerShape(12.dp))
-                                            .border(0.5.dp, Color(0xFF263238), RoundedCornerShape(12.dp))
+                                            .border(0.5.dp, IosSettingsColors.separator, RoundedCornerShape(12.dp))
                                             .bounceClick {
                                                 showCerebroOverlay = false
                                                 onNavigateToChat(chat.chat.id, otherId)

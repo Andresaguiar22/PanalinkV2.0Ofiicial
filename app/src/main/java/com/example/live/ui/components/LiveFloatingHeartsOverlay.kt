@@ -59,7 +59,7 @@ fun LiveFloatingHeartsOverlay(
                     Icon(
                         imageVector = Icons.Default.Favorite,
                         contentDescription = null,
-                        tint = listOf(Color(0xFFEF5350), Color(0xFFFF4081), Color(0xFFFFEB3B), IosSettingsColors.blue).random(),
+                        tint = listOf(IosSettingsColors.red, Color(0xFFFF4081), Color(0xFFFFEB3B), IosSettingsColors.blue).random(),
                         modifier = Modifier.size(32.dp)
                     )
                 }

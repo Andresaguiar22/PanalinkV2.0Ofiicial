@@ -230,7 +230,7 @@ fun LiveGuestControls(
                                         )
                                         if (onRemove != null) {
                                             TextButton(onClick = { onRemove(guest.userId) }) {
-                                                Text("Remover", color = Color(0xFFEF5350), fontSize =  12.sp)
+                                                Text("Remover", color = IosSettingsColors.red, fontSize =  12.sp)
                                             }
                                         }
                                     }

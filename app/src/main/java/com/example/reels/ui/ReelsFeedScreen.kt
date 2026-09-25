@@ -668,7 +668,7 @@ fun ReelsFeedScreen(
                     viewModel.deleteState(reelId) {
                         android.widget.Toast.makeText(context, "Publicación eliminada", android.widget.Toast.LENGTH_SHORT).show()
                     }
-                }) { Text("Eliminar", color = Color(0xFFFF5252)) }
+                }) { Text("Eliminar", color = IosSettingsColors.red) }
             },
             dismissButton = {
                 TextButton(onClick = { deleteReelId = null }) { Text("Cancelar") }
@@ -885,7 +885,7 @@ private fun ReelFeedOverlay(
                     if (isOwner) {
                         HorizontalDivider(color = IosSettingsColors.label.copy(alpha = 0.14f))
                         DropdownMenuItem(
-                            text = { Text("Eliminar vídeo", color = Color(0xFFFF5252)) },
+                            text = { Text("Eliminar vídeo", color = IosSettingsColors.red) },
                             onClick = { menuExpanded = false; onDelete() },
                         )
                     }

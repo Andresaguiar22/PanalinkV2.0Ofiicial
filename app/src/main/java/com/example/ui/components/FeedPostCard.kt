@@ -208,7 +208,7 @@ fun FeedPostCard(
         Column(
             modifier = Modifier
                 .fillMaxWidth()
-                .background(Color(0xFF0D0F12))
+                .background(IosSettingsColors.groupBackground)
         ) {
             Row(
                 modifier = Modifier
@@ -315,7 +315,7 @@ fun FeedPostCard(
                     DropdownMenu(
                         expanded = showMenu,
                         onDismissRequest = { showMenu = false },
-                        modifier = Modifier.background(Color(0xFF2A2A30))
+                        modifier = Modifier.background(IosSettingsColors.cellElevated)
                     ) {
                         if (isMyPost) {
                             DropdownMenuItem(
@@ -620,7 +620,7 @@ fun FeedPostCard(
                         com.example.ui.components.chat.media.DocumentPreviewCard(
                             docUrl = resolvedDocUrl,
                             mediaSize = null,
-                            bubbleColor = Color(0xFF2A2A30),
+                            bubbleColor = IosSettingsColors.cellElevated,
                             isSender = false,
                             senderAvatarUrl = null,
                             messageStatus = "sent",

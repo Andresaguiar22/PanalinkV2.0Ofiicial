@@ -178,7 +178,7 @@ fun ChatComposer(
                         .heightIn(min = 56.dp)
                         .padding(start = 0.dp, end = 16.dp)
                         .background(bubbleColor, RoundedCornerShape(28.dp))
-                        .border(1.dp, androidx.compose.ui.graphics.Color(0xFFE53935).copy(alpha = 0.5f + 0.5f * deleteProgress), RoundedCornerShape(28.dp))
+                        .border(1.dp, IosSettingsColors.red.copy(alpha = 0.5f + 0.5f * deleteProgress), RoundedCornerShape(28.dp))
                         .padding(horizontal = 12.dp, vertical = 10.dp),
                     verticalAlignment = Alignment.CenterVertically
                 ) {
@@ -200,7 +200,7 @@ fun ChatComposer(
                         Icon(
                             imageVector = Icons.Default.Delete,
                             contentDescription = "Eliminar",
-                            tint = androidx.compose.ui.graphics.Color(0xFFE53935),
+                            tint = IosSettingsColors.red,
                             modifier = Modifier.size(30.dp)
                         )
                         // Tapa que se abre con el recorrido
@@ -220,7 +220,7 @@ fun ChatComposer(
                             Box(
                                 modifier = Modifier
                                     .size(width = 20.dp, height = 6.dp)
-                                    .background(androidx.compose.ui.graphics.Color(0xFFE53935), RoundedCornerShape(3.dp))
+                                    .background(IosSettingsColors.red, RoundedCornerShape(3.dp))
                             )
                         }
                     }

@@ -53,7 +53,7 @@ fun PrivacySettingSwitch(
             if (isPremium && !hasEntitlement) {
                 Text(
                     text = "Requiere Panalink Premium",
-                    color = Color(0xFFE53935),
+                    color = IosSettingsColors.red,
                     fontSize = 10.sp,
                     fontWeight = FontWeight.Bold,
                     modifier = Modifier.padding(top = 4.dp)

@@ -1136,7 +1136,7 @@ var showGifPicker by remember { mutableStateOf(false) }
                             .fillMaxSize()
                             .background(
                                 Brush.verticalGradient(
-                                    colors = listOf(Color(0xFFFF5722).copy(alpha = 0.40f), Color(0xFFFFC107).copy(alpha = 0.25f))
+                                    colors = listOf(IosSettingsColors.orange.copy(alpha = 0.40f), Color(0xFFFFC107).copy(alpha = 0.25f))
                                 )
                             )
                     )
@@ -1319,7 +1319,7 @@ var showGifPicker by remember { mutableStateOf(false) }
                         DropdownMenu(
                             expanded = showOwnerMenu,
                             onDismissRequest = { showOwnerMenu = false },
-                            modifier = Modifier.background(Color(0xFF1E222B))
+                            modifier = Modifier.background(IosSettingsColors.cellElevated)
                         ) {
                             if (isOwner) {
                                 DropdownMenuItem(
@@ -1958,8 +1958,8 @@ Box(
                             textStyle = androidx.compose.ui.text.TextStyle(color = IosSettingsColors.label, fontSize = 14.sp),
                             shape = RoundedCornerShape(24.dp),
                             colors = OutlinedTextFieldDefaults.colors(
-                                focusedContainerColor = Color(0xFF1E222B),
-                                unfocusedContainerColor = Color(0xFF1E222B),
+                                focusedContainerColor = IosSettingsColors.cellElevated,
+                                unfocusedContainerColor = IosSettingsColors.cellElevated,
                                 focusedBorderColor = IosSettingsColors.green,
                                 unfocusedBorderColor = Color.White.copy(alpha = 0.15f)
                             ),

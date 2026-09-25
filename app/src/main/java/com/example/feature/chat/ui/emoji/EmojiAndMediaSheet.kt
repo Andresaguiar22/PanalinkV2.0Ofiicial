@@ -138,7 +138,7 @@ fun EmojiAndMediaSheet(
         modifier = Modifier
             .fillMaxWidth()
             .height(340.dp)
-            .background(Color(0xFF0D0F12))
+            .background(IosSettingsColors.groupBackground)
     ) {
         // Handle (drag indicator bar)
         Box(

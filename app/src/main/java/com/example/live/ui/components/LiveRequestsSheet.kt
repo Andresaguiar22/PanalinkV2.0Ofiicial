@@ -71,7 +71,7 @@ fun LiveRequestsSheet(
                                     Text("Aceptar", color = IosSettingsColors.blue, fontWeight = FontWeight.Bold)
                                 }
                                 TextButton(onClick = { onReject(guest.userId) }) {
-                                    Text("Rechazar", color = Color(0xFFEF5350))
+                                    Text("Rechazar", color = IosSettingsColors.red)
                                 }
                             }
                         )
@@ -98,7 +98,7 @@ fun LiveRequestsSheet(
                             )
                             GuestStatus.REJECTED -> Text(
                                 text = "❌ El anfitrión rechazó tu solicitud. Puedes intentarlo de nuevo.",
-                                color = Color(0xFFEF5350),
+                                color = IosSettingsColors.red,
                                 fontSize = 13.sp
                             )
                             else -> Text(
@@ -120,7 +120,7 @@ fun LiveRequestsSheet(
 
                             GuestStatus.ACCEPTED, GuestStatus.ACTIVE, GuestStatus.CONNECTED -> Button(
                                 onClick = { onLeaveAsGuest() },
-                                colors = ButtonDefaults.buttonColors(containerColor = Color(0xFFEF5350)),
+                                colors = ButtonDefaults.buttonColors(containerColor = IosSettingsColors.red),
                                 shape = RoundedCornerShape(50),
                                 modifier = Modifier.fillMaxWidth()
                             ) { Text("Salir como co-host", color = IosSettingsColors.label) }
@@ -195,7 +195,7 @@ fun LiveRequestsSheet(
                         subtitle = "En el directo",
                         actions = {
                             TextButton(onClick = { onRemove(guest.userId) }) {
-                                Text("Quitar", color = Color(0xFFEF5350))
+                                Text("Quitar", color = IosSettingsColors.red)
                             }
                         }
                     )

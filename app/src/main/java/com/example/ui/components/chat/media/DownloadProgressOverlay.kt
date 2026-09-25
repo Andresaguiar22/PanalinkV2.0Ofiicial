@@ -101,7 +101,7 @@ fun DownloadProgressOverlay(
                         Icon(
                             imageVector = Icons.Default.Refresh,
                             contentDescription = "Reintentar",
-                            tint = Color(0xFFFF5252),
+                            tint = IosSettingsColors.red,
                             modifier = Modifier.size(28.dp)
                         )
                     }

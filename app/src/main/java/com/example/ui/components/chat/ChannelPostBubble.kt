@@ -82,7 +82,7 @@ fun ChannelPostBubble(
     modifier: Modifier = Modifier
 ) {
     val bubbleBg = Color(0xFF1E2C3A) // Telegram Post Surface Dark
-    val fileCardBg = Color(0xFF17212B) // Inner Card Surface
+    val fileCardBg = IosSettingsColors.groupBackground // Inner Card Surface
     val accentBlue = IosSettingsColors.blue
     val forwardedTextColor = Color(0xFFB388FF) // Telegram Purple Header
     val secondaryText = IosSettingsColors.secondaryLabel
@@ -205,7 +205,7 @@ fun ChannelPostBubble(
                         Row(
                             modifier = Modifier
                                 .clip(RoundedCornerShape(12.dp))
-                                .background(Color(0xFF17212B))
+                                .background(IosSettingsColors.groupBackground)
                                 .clickable(enabled = onCommentsClick != null) { onCommentsClick?.invoke() }
                                 .padding(horizontal = 8.dp, vertical = 4.dp),
                             verticalAlignment = Alignment.CenterVertically
@@ -376,7 +376,7 @@ fun QuickShareButton(
  * Parses post text to highlight hashtags (`#...`), URLs (`http...`), and bold text.
  */
 private fun formatRichPostText(text: String): AnnotatedString {
-    val linkColor = Color(0xFF64B5F6)
+    val linkColor = IosSettingsColors.blue
     val hashtagColor = IosSettingsColors.blue
 
     return buildAnnotatedString {

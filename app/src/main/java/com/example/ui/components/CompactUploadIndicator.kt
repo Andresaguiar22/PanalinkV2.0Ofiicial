@@ -71,7 +71,7 @@ fun CompactUploadIndicator(
                 onClick = onCancel,
                 contentPadding = PaddingValues(horizontal = 8.dp, vertical = 0.dp)
             ) {
-                Text("Cancelar", color = Color(0xFFFF5252), fontSize = 12.sp)
+                Text("Cancelar", color = IosSettingsColors.red, fontSize = 12.sp)
             }
         }
         

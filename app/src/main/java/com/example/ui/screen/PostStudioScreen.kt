@@ -470,7 +470,7 @@ fun PostStudioScreen(
                         .height(120.dp),
                     colors = OutlinedTextFieldDefaults.colors(
                         focusedBorderColor = IosSettingsColors.blue,
-                        unfocusedBorderColor = Color(0xFF334155),
+                        unfocusedBorderColor = IosSettingsColors.cellElevated,
                         focusedTextColor = Color.White
                     )
                 )
@@ -482,7 +482,7 @@ fun PostStudioScreen(
                     modifier = Modifier.fillMaxWidth(),
                     colors = OutlinedTextFieldDefaults.colors(
                         focusedBorderColor = IosSettingsColors.blue,
-                        unfocusedBorderColor = Color(0xFF334155),
+                        unfocusedBorderColor = IosSettingsColors.cellElevated,
                         focusedTextColor = Color.White
                     )
                 )

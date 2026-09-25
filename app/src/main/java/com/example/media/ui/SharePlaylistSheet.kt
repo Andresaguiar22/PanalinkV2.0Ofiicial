@@ -125,7 +125,7 @@ fun SharePlaylistSheet(
                                 modifier = Modifier
                                     .size(46.dp)
                                     .clip(CircleShape)
-                                    .background(Color(0xFF334155)),
+                                    .background(IosSettingsColors.cellElevated),
                                 contentAlignment = Alignment.Center
                             ) {
                                 if (!avatar.isNullOrEmpty()) {

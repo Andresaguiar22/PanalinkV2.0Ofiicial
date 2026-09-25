@@ -263,7 +263,7 @@ private fun CommentRow(
                 onClick = onDelete
             )
             DropdownMenuItem(
-                text = { Text("Bloquear usuario", color = Color(0xFFEF5350), fontSize = 14.sp) },
+                text = { Text("Bloquear usuario", color = IosSettingsColors.red, fontSize = 14.sp) },
                 onClick = onBlock
             )
         }

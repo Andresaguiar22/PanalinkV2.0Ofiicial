@@ -59,7 +59,7 @@ fun CommentInputBar(
     onCancelReplyClick: () -> Unit = {},
     modifier: Modifier = Modifier
 ) {
-    val barBg = Color(0xFF17212B) // Telegram Dark Bar Surface
+    val barBg = IosSettingsColors.groupBackground // Telegram Dark Bar Surface
     val inputBg = Color(0xFF242F3D)
     val accentBlue = IosSettingsColors.blue
     val primaryText = Color.White

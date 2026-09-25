@@ -142,7 +142,7 @@ fun LiveBroadcastSetup(
         errorMessage?.let { message ->
             Text(
                 text = message,
-                color = Color(0xFFFF8A80),
+                color = IosSettingsColors.red,
                 fontSize = 13.sp,
                 fontWeight = FontWeight.Medium,
                 textAlign = TextAlign.Center,
