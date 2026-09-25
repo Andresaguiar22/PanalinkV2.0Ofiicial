@@ -504,7 +504,7 @@ fun MessageBubbleEngine(
                                 }
                                 Text(
                                     text = replyPreviewText,
-                                    color = Color(0xFF94A3B8),
+                                    color = IosSettingsColors.secondaryLabel,
                                     fontSize = 12.sp,
                                     maxLines = 1,
                                     overflow = TextOverflow.Ellipsis
@@ -554,7 +554,7 @@ fun MessageBubbleEngine(
                                 )
                                 Text(
                                     text = "$storyType Historia",
-                                    color = Color(0xFF94A3B8),
+                                    color = IosSettingsColors.secondaryLabel,
                                     fontSize = 11.sp,
                                     maxLines = 1,
                                     overflow = TextOverflow.Ellipsis
@@ -753,7 +753,7 @@ fun MessageBubbleEngine(
                                     ) {
                                         Text(text = emoji, fontSize = 12.sp)
                                         if (count > 1) {
-                                            Text(text = count.toString(), color = Color(0xFF94A3B8), fontSize = 10.sp)
+                                            Text(text = count.toString(), color = IosSettingsColors.secondaryLabel, fontSize = 10.sp)
                                         }
                                     }
                                 }
@@ -845,7 +845,7 @@ fun MessageBubbleEngine(
                                 Spacer(modifier = Modifier.width(3.dp))
                                 Text(
                                     text = "$count",
-                                    color = Color(0xFF94A3B8),
+                                    color = IosSettingsColors.secondaryLabel,
                                     fontSize = 9.sp,
                                     fontWeight = FontWeight.Bold
                                 )

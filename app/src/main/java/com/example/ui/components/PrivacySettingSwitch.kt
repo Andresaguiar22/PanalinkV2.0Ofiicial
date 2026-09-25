@@ -46,7 +46,7 @@ fun PrivacySettingSwitch(
             Spacer(modifier = Modifier.height(2.dp))
             Text(
                 text = description,
-                color = Color(0xFF9AA8B5),
+                color = IosSettingsColors.secondaryLabel,
                 fontSize = 11.sp,
                 lineHeight = 15.sp
             )
@@ -67,7 +67,7 @@ fun PrivacySettingSwitch(
             colors = SwitchDefaults.colors(
                 checkedThumbColor = Color.White,
                 checkedTrackColor = IosSettingsColors.blue,
-                uncheckedThumbColor = Color(0xFF9AA8B5),
+                uncheckedThumbColor = IosSettingsColors.secondaryLabel,
                 uncheckedTrackColor = IosSettingsColors.cellElevated
             )
         )

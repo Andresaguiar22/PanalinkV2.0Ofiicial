@@ -238,7 +238,7 @@ fun ChatComposer(
 
                     Text(
                         text = String.format("%02d:%02d", recordDurationSeconds / 60, recordDurationSeconds % 60),
-                        color = androidx.compose.ui.graphics.Color(0xFF94A3B8),
+                        color = IosSettingsColors.secondaryLabel,
                         fontSize = 12.sp
                     )
                 }
@@ -281,7 +281,7 @@ fun ChatComposer(
                             Icon(
                                 imageVector = if (isStickerPanelOpen) Icons.Default.Keyboard else Icons.Default.SentimentSatisfied,
                                 contentDescription = "Emojis, GIFs y Stickers",
-                                tint = if (isStickerPanelOpen) primaryColor else androidx.compose.ui.graphics.Color(0xFF94A3B8),
+                                tint = if (isStickerPanelOpen) primaryColor else IosSettingsColors.secondaryLabel,
                                 modifier = Modifier.size(24.dp)
                             )
                         }
@@ -336,7 +336,7 @@ fun ChatComposer(
                             Icon(
                                 imageVector = if (isAttachmentMenuOpen) Icons.Default.Close else Icons.Default.AttachFile,
                                 contentDescription = "Menú Adjuntos",
-                                tint = if (isAttachmentMenuOpen) androidx.compose.ui.graphics.Color(0xFFFF2D55) else androidx.compose.ui.graphics.Color(0xFF94A3B8),
+                                tint = if (isAttachmentMenuOpen) androidx.compose.ui.graphics.Color(0xFFFF2D55) else IosSettingsColors.secondaryLabel,
                                 modifier = Modifier.size(24.dp)
                             )
                         }
@@ -672,7 +672,7 @@ fun ChatComposer(
 
                             Text(
                                 text = String.format("%02d:%02d", totalSecs / 60, totalSecs % 60),
-                                color = androidx.compose.ui.graphics.Color(0xFF94A3B8),
+                                color = IosSettingsColors.secondaryLabel,
                                 fontSize = 11.sp
                             )
                         }
@@ -766,7 +766,7 @@ fun ChatComposer(
                     Spacer(modifier = Modifier.weight(1f))
                     Text(
                         text = String.format("%02d:%02d", recordDurationSeconds / 60, recordDurationSeconds % 60),
-                        color = androidx.compose.ui.graphics.Color(0xFF94A3B8),
+                        color = IosSettingsColors.secondaryLabel,
                         fontSize = 12.sp
                     )
                 }
@@ -805,7 +805,7 @@ fun ChatComposer(
                     Icon(
                         imageVector = Icons.Default.Lock,
                         contentDescription = "Fijar grabación",
-                        tint = if (lockHighlight > 0.8f) primaryColor else androidx.compose.ui.graphics.Color(0xFF94A3B8),
+                        tint = if (lockHighlight > 0.8f) primaryColor else IosSettingsColors.secondaryLabel,
                         modifier = Modifier.size(20.dp).graphicsLayer {
                             val base = 1f + (lockHighlight * 0.2f)
                             val over = 1f + (bounce.value * 0.35f)
@@ -817,7 +817,7 @@ fun ChatComposer(
                     Icon(
                         imageVector = Icons.Default.KeyboardArrowUp,
                         contentDescription = null,
-                        tint = androidx.compose.ui.graphics.Color(0xFF94A3B8),
+                        tint = IosSettingsColors.secondaryLabel,
                         modifier = Modifier.size(16.dp).graphicsLayer {
                             translationY = -10f * lockHighlight
                             alpha = 1f - lockHighlight

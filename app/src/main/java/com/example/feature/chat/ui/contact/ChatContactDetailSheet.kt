@@ -125,13 +125,13 @@ fun ChatContactDetailSheet(
     Column {
     Text(
     text = "Bio y PIN PanaLink",
-    color = Color(0xFF9AA8B5),
+    color = IosSettingsColors.secondaryLabel,
     fontSize = 11.sp
     )
     Text(otherBio, color = IosSettingsColors.label, fontSize = 14.sp)
     
     Spacer(modifier = Modifier.height(4.dp))
-    Text(otherPin, color = Color(0xFF9AA8B5), fontSize = 13.sp)
+    Text(otherPin, color = IosSettingsColors.secondaryLabel, fontSize = 13.sp)
     }
     }
     }

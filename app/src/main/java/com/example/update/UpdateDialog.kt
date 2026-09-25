@@ -104,11 +104,11 @@ fun UpdateDialog(
                         .padding(16.dp)
                 ) {
                     Column(modifier = Modifier.weight(1f)) {
-                        Text("Instalada", color = Color(0xFFB8C4D6), fontSize = 12.sp)
+                        Text("Instalada", color = IosSettingsColors.secondaryLabel, fontSize = 12.sp)
                         Text("v${viewModel.getInstalledVersionName()}", color = IosSettingsColors.label, fontSize = 16.sp, fontWeight = FontWeight.Bold)
                     }
                     Column(modifier = Modifier.weight(1f)) {
-                        Text("Nueva versión", color = Color(0xFFB8C4D6), fontSize = 12.sp)
+                        Text("Nueva versión", color = IosSettingsColors.secondaryLabel, fontSize = 12.sp)
                         Text("v${versionInfo.versionName}", color = IosSettingsColors.blue, fontSize = 16.sp, fontWeight = FontWeight.Bold)
                     }
                 }
@@ -133,7 +133,7 @@ fun UpdateDialog(
                 ) {
                     Column {
                         if (versionInfo.changelog.isEmpty()) {
-                            Text("- Mejoras de estabilidad y rendimiento general.", color = Color(0xFFB8C4D6), fontSize = 14.sp)
+                            Text("- Mejoras de estabilidad y rendimiento general.", color = IosSettingsColors.secondaryLabel, fontSize = 14.sp)
                         } else {
                             versionInfo.changelog.forEach { log ->
                                 Text("• $log", color = Color(0xFFE0E0E0), fontSize = 14.sp, modifier = Modifier.padding(vertical = 3.dp))
@@ -165,12 +165,12 @@ fun UpdateDialog(
                                 ) {
                                     Text(
                                         text = "Descargando... ${(state.progress * 100).toInt()}%",
-                                        color = Color(0xFFB8C4D6),
+                                        color = IosSettingsColors.secondaryLabel,
                                         fontSize = 12.sp
                                     )
                                     Text(
                                         text = formatBytes(state.bytesDownloaded) + " / " + formatBytes(state.totalBytes),
-                                        color = Color(0xFFB8C4D6),
+                                        color = IosSettingsColors.secondaryLabel,
                                         fontSize = 12.sp
                                     )
                                 }
@@ -185,7 +185,7 @@ fun UpdateDialog(
                                 Spacer(modifier = Modifier.height(8.dp))
                                 Text(
                                     text = "Descargando... " + formatBytes(state.bytesDownloaded),
-                                    color = Color(0xFFB8C4D6),
+                                    color = IosSettingsColors.secondaryLabel,
                                     fontSize = 12.sp
                                 )
                             }
@@ -258,7 +258,7 @@ fun UpdateDialog(
                                     viewModel.cancelDownload()
                                     onDismiss()
                                 },
-                                colors = ButtonDefaults.textButtonColors(contentColor = Color(0xFFB8C4D6))
+                                colors = ButtonDefaults.textButtonColors(contentColor = IosSettingsColors.secondaryLabel)
                             ) {
                                 Text("Más tarde", fontWeight = FontWeight.SemiBold)
                             }

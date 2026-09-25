@@ -59,7 +59,7 @@ fun FavoritesScreen(
                         Text(
                             "${favoritedMessages.size} mensajes",
                             style = MaterialTheme.typography.bodySmall,
-                            color = Color(0xFFB8C4D6)
+                            color = IosSettingsColors.secondaryLabel
                         )
                     }
                 },
@@ -93,7 +93,7 @@ fun FavoritesScreen(
                     )
                     Text(
                         "Mantén presionado un mensaje para guardarlo",
-                        color = Color(0xFFB8C4D6),
+                        color = IosSettingsColors.secondaryLabel,
                         fontSize = 14.sp
                     )
                 }

@@ -97,8 +97,8 @@ fun PremiumVoicePlayer(
     } else {
         Color(0xFFA78BFA)
     }
-    val unplayedColor = Color(0xFF94A3B8).copy(alpha = 0.35f)
-    val secondaryText = Color(0xFF94A3B8)
+    val unplayedColor = IosSettingsColors.secondaryLabel.copy(alpha = 0.35f)
+    val secondaryText = IosSettingsColors.secondaryLabel
 
     // Acción 4: La forma asimétrica la aplica el contenedor de la burbuja.
     val waveTransition = rememberInfiniteTransition(label = "WaveAnimation")

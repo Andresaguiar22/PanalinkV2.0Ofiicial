@@ -188,7 +188,7 @@ fun KlipyGifStickerPicker(
                     singleLine = true,
                     decorationBox = { inner ->
                         Box(contentAlignment = Alignment.CenterStart) {
-                            if (query.isEmpty()) Text("Buscar GIFs o stickers...", color = Color(0xFF9AA8B5), fontSize =   13.sp)
+                            if (query.isEmpty()) Text("Buscar GIFs o stickers...", color = IosSettingsColors.secondaryLabel, fontSize =   13.sp)
                             inner()
                         }
                     }
@@ -203,7 +203,7 @@ fun KlipyGifStickerPicker(
                         },
                         modifier = Modifier.size(24.dp)
                     ) {
-                        Icon(Icons.Default.Close, contentDescription = "Limpiar", tint = Color(0xFF9AA8B5), modifier = Modifier.size(14.dp))
+                        Icon(Icons.Default.Close, contentDescription = "Limpiar", tint = IosSettingsColors.secondaryLabel, modifier = Modifier.size(14.dp))
                     }
                 } else {
                     Box(modifier = Modifier.size(24.dp))
@@ -227,7 +227,7 @@ fun KlipyGifStickerPicker(
                         modifier = Modifier.fillMaxSize(),
                         contentAlignment = Alignment.Center
                     ) {
-                        Text("No se encontraron resultados", color = Color(0xFF9AA8B5), fontSize = 13.sp)
+                        Text("No se encontraron resultados", color = IosSettingsColors.secondaryLabel, fontSize = 13.sp)
                     }
                 } else {
                     LazyVerticalGrid(

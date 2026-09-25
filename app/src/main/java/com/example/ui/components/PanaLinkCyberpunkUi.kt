@@ -43,14 +43,14 @@ import com.example.data.supabase.SupabaseClient
 import com.example.ui.settings.ios.IosSettingsColors
 
 object PanaLinkCyberpunkColors {
-    val Background = Color(0xFF17212B)
-    val Glass = Color(0xE6202B36)
-    val Cream = Color(0xFFFFFFFF)
-    val Message = Color(0xFFE6EDF3)
-    val Cyan = Color(0xFF35D07F)
-    val Magenta = Color(0xFF35D07F)
-    val Purple = Color(0xFF2BAE66)
-    val Gold = Color(0xFF35D07F)
+    val Background: Color get() = IosSettingsColors.groupBackground
+    val Glass: Color get() = IosSettingsColors.cell
+    val Cream: Color get() = IosSettingsColors.label
+    val Message: Color get() = IosSettingsColors.secondaryLabel
+    val Cyan: Color get() = IosSettingsColors.blue
+    val Magenta: Color get() = IosSettingsColors.blue
+    val Purple: Color get() = IosSettingsColors.blue
+    val Gold: Color get() = IosSettingsColors.blue
 }
 
 private val cyberpunkBorderBrush = Brush.linearGradient(
@@ -138,7 +138,7 @@ fun PanaLinkNeonGlassPanel(
                 Brush.verticalGradient(
                     listOf(
                         PanaLinkCyberpunkColors.Glass.copy(alpha = 0.94f),
-                        Color(0xC20B1118),
+                        IosSettingsColors.groupBackground,
                         PanaLinkCyberpunkColors.Glass.copy(alpha = 0.90f)
                     )
                 )
@@ -164,9 +164,9 @@ fun PaniOSChatsTopBar(
             .background(
                 Brush.verticalGradient(
                     listOf(
-                        Color(0xD90D0F12),
-                        Color(0xB81C2024),
-                        Color(0xD90D0F12)
+                        IosSettingsColors.groupBackground,
+                        IosSettingsColors.cell,
+                        IosSettingsColors.groupBackground
                     )
                 )
             )
@@ -235,7 +235,7 @@ fun PaniOSChatsTopBar(
             color = Color.White,
             fontSize = 34.sp,
             fontWeight = FontWeight.Bold,
-            fontFamily = FontFamily.Serif,
+            fontFamily = FontFamily.SansSerif,
             letterSpacing = 0.2.sp,
             maxLines = 1,
             overflow = TextOverflow.Ellipsis
@@ -266,13 +266,13 @@ fun PanaLinkCyberpunkTopBar(
     ) {
         Text(
             text = "PanaLink",
-            color = Color(0xFF35D07F),
+            color = IosSettingsColors.blue,
             fontSize = 31.sp,
             fontWeight = FontWeight.Bold,
-            fontFamily = FontFamily.Serif,
+            fontFamily = FontFamily.SansSerif,
             style = TextStyle(
                 shadow = androidx.compose.ui.graphics.Shadow(
-                    color = Color(0x5535D07F),
+                    color = IosSettingsColors.blue,
                     blurRadius = 12f
                 )
             )
@@ -286,15 +286,15 @@ fun PanaLinkCyberpunkTopBar(
                 .background(
                     Brush.horizontalGradient(
                         listOf(
-                            Color(0xE6202B36),
-                            Color(0xF025303B),
-                            Color(0xE6202B36)
+                            IosSettingsColors.cell,
+                            IosSettingsColors.cellElevated,
+                            IosSettingsColors.cell
                         )
                     )
                 )
                 .border(
                     1.dp,
-                    Color(0x6635D07F),
+                    IosSettingsColors.blue,
                     RoundedCornerShape(28.dp)
                 )
                 .padding(horizontal = 5.dp, vertical = 4.dp)
@@ -304,7 +304,7 @@ fun PanaLinkCyberpunkTopBar(
                     .matchParentSize()
                     .blur(16.dp, BlurredEdgeTreatment.Unbounded)
                     .background(
-                        Color(0x3335D07F),
+                        IosSettingsColors.blue.copy(alpha = 0.2f),
                         RoundedCornerShape(28.dp)
                     )
             )
@@ -333,7 +333,7 @@ fun PanaLinkCyberpunkTopBar(
                         userId = SupabaseClient.currentUser?.id,
                         size = 40.dp,
                         borderWidth = 1.5.dp,
-                        borderColor = Color(0xFF35D07F),
+                        borderColor = IosSettingsColors.blue,
                         placeholderName = SupabaseClient.currentProfile?.displayName ?: "",
                         contentDescription = "Perfil"
                     )
@@ -443,7 +443,7 @@ private fun PaniOSToolboxIcon(
         )
 
         drawRoundRect(
-            color = Color(0xFF262628),
+            color = IosSettingsColors.cell,
             topLeft = androidx.compose.ui.geometry.Offset(size.width * 0.34f, size.height * 0.20f),
             size = androidx.compose.ui.geometry.Size(size.width * 0.32f, size.height * 0.25f),
             cornerRadius = androidx.compose.ui.geometry.CornerRadius(size.minDimension * 0.09f, size.minDimension * 0.09f),
@@ -459,7 +459,7 @@ private fun PaniOSToolboxIcon(
         )
 
         drawCircle(
-            color = Color(0xFF34C759),
+            color = IosSettingsColors.green,
             radius = size.minDimension * 0.055f,
             center = androidx.compose.ui.geometry.Offset(size.width * 0.50f, size.height * 0.62f)
         )
@@ -487,9 +487,9 @@ fun PaniOSUnifiedTopBar(
             .background(
                 Brush.verticalGradient(
                     listOf(
-                        Color(0xD90D0F12),
-                        Color(0xB81C2024),
-                        Color(0xD90D0F12)
+                        IosSettingsColors.groupBackground,
+                        IosSettingsColors.cell,
+                        IosSettingsColors.groupBackground
                     )
                 )
             )

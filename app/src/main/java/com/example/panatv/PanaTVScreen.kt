@@ -75,7 +75,7 @@ private val TvCard: Color get() = IosSettingsColors.groupBackground
 private val TvCardAlt: Color get() = IosSettingsColors.cellElevated
 private val TvAccent: Color get() = IosSettingsColors.blue
 private val TvAccentSoft = Color(0x3318E7F5)
-private val TvTextSecondary = Color(0xFFB8C4D6)
+private val TvTextSecondary = IosSettingsColors.secondaryLabel
 
 internal fun tvCategoryLabel(category: String): String = when (category) {
     "movies" -> "Películas"

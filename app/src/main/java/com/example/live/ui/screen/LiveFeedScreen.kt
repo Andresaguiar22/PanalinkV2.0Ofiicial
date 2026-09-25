@@ -128,19 +128,19 @@ fun LiveFeedScreen(
                             Icon(
                                 imageVector = Icons.Default.LiveTv,
                                 contentDescription = null,
-                                tint = Color(0xFFB8C4D6).copy(alpha = 0.5f),
+                                tint = IosSettingsColors.secondaryLabel.copy(alpha = 0.5f),
                                 modifier = Modifier.size(72.dp)
                             )
                             Spacer(modifier = Modifier.height(16.dp))
                             Text(
                                 text = "No hay transmisiones en vivo activas",
-                                color = Color(0xFFB8C4D6),
+                                color = IosSettingsColors.secondaryLabel,
                                 fontSize = 16.sp
                             )
                             Spacer(modifier = Modifier.height(8.dp))
                             Text(
                                 text = "Sé el primero en transmitir",
-                                color = Color(0xFFB8C4D6).copy(alpha = 0.7f),
+                                color = IosSettingsColors.secondaryLabel.copy(alpha = 0.7f),
                                 fontSize = 14.sp
                             )
                         }

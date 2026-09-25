@@ -111,7 +111,7 @@ fun CallLogChatBubble(
                     Spacer(modifier = Modifier.width(4.dp))
                     Text(
                         text = subtitleText,
-                        color = Color(0xFF8596A0),
+                        color = IosSettingsColors.secondaryLabel,
                         fontSize = 12.sp
                     )
                 }
@@ -121,7 +121,7 @@ fun CallLogChatBubble(
 
             Text(
                 text = formattedTime,
-                color = Color(0xFF8596A0),
+                color = IosSettingsColors.secondaryLabel,
                 fontSize = 11.sp,
                 modifier = Modifier.align(Alignment.Bottom)
             )

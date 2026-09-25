@@ -418,7 +418,7 @@ fun StickerStudioScreen(
                             Column(horizontalAlignment = Alignment.CenterHorizontally) {
                                 Text("Convierte tu imagen en sticker", color = IosSettingsColors.label, fontSize = 15.sp, fontWeight = FontWeight.SemiBold)
                                 Spacer(Modifier.height(4.dp))
-                                Text("Galería o cámara · pellizca para ajustar", color = Color(0xFF8596A0), fontSize = 12.sp)
+                                Text("Galería o cámara · pellizca para ajustar", color = IosSettingsColors.secondaryLabel, fontSize = 12.sp)
                                 Spacer(Modifier.height(16.dp))
                                 Row(horizontalArrangement = Arrangement.spacedBy(12.dp)) {
                                     Button(
@@ -464,7 +464,7 @@ fun StickerStudioScreen(
                             Column(horizontalAlignment = Alignment.CenterHorizontally) {
                                 Text("Convierte tu video en sticker animado", color = IosSettingsColors.label, fontSize = 15.sp, fontWeight = FontWeight.SemiBold)
                                 Spacer(Modifier.height(4.dp))
-                                Text("Máximo 5 segundos · recorta y convierte a WebP animado", color = Color(0xFF8596A0), fontSize = 12.sp)
+                                Text("Máximo 5 segundos · recorta y convierte a WebP animado", color = IosSettingsColors.secondaryLabel, fontSize = 12.sp)
                                 Spacer(Modifier.height(16.dp))
                                 Button(
                                     onClick = { pickVideo.launch(PickVisualMediaRequest(ActivityResultContracts.PickVisualMedia.VideoOnly)) },
@@ -512,7 +512,7 @@ fun StickerStudioScreen(
                                 colors = SwitchDefaults.colors(checkedTrackColor = PANA_GREEN)
                             )
                             Spacer(Modifier.width(8.dp))
-                            Text(if (outlineEnabled) "Activado" else "Desactivado", color = Color(0xFF8596A0), fontSize = 12.sp)
+                            Text(if (outlineEnabled) "Activado" else "Desactivado", color = IosSettingsColors.secondaryLabel, fontSize = 12.sp)
                         }
                         Spacer(Modifier.height(6.dp))
                         ToolLabel("Fondo")
@@ -522,7 +522,7 @@ fun StickerStudioScreen(
                         OutlinedTextField(
                             value = overlayText,
                             onValueChange = { if (it.length <= 30) overlayText = it },
-                            placeholder = { Text("Ej: EPALE", color = Color(0xFF8596A0)) },
+                            placeholder = { Text("Ej: EPALE", color = IosSettingsColors.secondaryLabel) },
                             singleLine = true,
                             modifier = Modifier.fillMaxWidth(),
                             colors = studioTextFieldColors()
@@ -537,7 +537,7 @@ fun StickerStudioScreen(
                         OutlinedTextField(
                             value = textInput,
                             onValueChange = { if (it.length <= 40) textInput = it },
-                            placeholder = { Text("Ej: CHAMO 😎", color = Color(0xFF8596A0)) },
+                            placeholder = { Text("Ej: CHAMO 😎", color = IosSettingsColors.secondaryLabel) },
                             modifier = Modifier.fillMaxWidth(),
                             maxLines = 2,
                             colors = studioTextFieldColors()
@@ -615,7 +615,7 @@ private fun studioTextFieldColors() = OutlinedTextFieldDefaults.colors(
 
 @Composable
 private fun ToolLabel(text: String) {
-    Text(text, color = Color(0xFF8596A0), fontSize = 11.sp, fontWeight = FontWeight.SemiBold)
+    Text(text, color = IosSettingsColors.secondaryLabel, fontSize = 11.sp, fontWeight = FontWeight.SemiBold)
     Spacer(Modifier.height(4.dp))
 }
 
@@ -631,14 +631,14 @@ private fun ColorRow(colors: List<StudioColor>, selected: Int, onSelect: (Int) -
                     .background(if (c.color == Color.Transparent) IosSettingsColors.cellElevated else c.color)
                     .border(
                         width = if (selected == i) 3.dp else 1.dp,
-                        color = if (selected == i) PANA_GREEN else Color(0xFF8596A0),
+                        color = if (selected == i) PANA_GREEN else IosSettingsColors.secondaryLabel,
                         shape = CircleShape
                     )
                     .clickable { onSelect(i) },
                 contentAlignment = Alignment.Center
             ) {
                 if (c.color == Color.Transparent) {
-                    Text("∅", color = Color(0xFF8596A0), fontSize = 12.sp)
+                    Text("∅", color = IosSettingsColors.secondaryLabel, fontSize = 12.sp)
                 }
             }
         }

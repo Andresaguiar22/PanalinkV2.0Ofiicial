@@ -63,7 +63,7 @@ fun CommentInputBar(
     val inputBg = Color(0xFF242F3D)
     val accentBlue = IosSettingsColors.blue
     val primaryText = Color.White
-    val secondaryText = Color(0xFF8E959B)
+    val secondaryText = IosSettingsColors.secondaryLabel
 
     var textState by remember { mutableStateOf("") }
 

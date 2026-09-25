@@ -85,7 +85,7 @@ fun ChannelPostBubble(
     val fileCardBg = Color(0xFF17212B) // Inner Card Surface
     val accentBlue = IosSettingsColors.blue
     val forwardedTextColor = Color(0xFFB388FF) // Telegram Purple Header
-    val secondaryText = Color(0xFF8E959B)
+    val secondaryText = IosSettingsColors.secondaryLabel
     val primaryText = Color.White
 
     Row(
@@ -276,7 +276,7 @@ private fun ChannelFileCard(
     onDownloadClick: () -> Unit
 ) {
     val accentBlue = IosSettingsColors.blue
-    val secondaryText = Color(0xFF8E959B)
+    val secondaryText = IosSettingsColors.secondaryLabel
 
     Row(
         modifier = Modifier
@@ -366,7 +366,7 @@ fun QuickShareButton(
         Icon(
             imageVector = Icons.AutoMirrored.Filled.Reply,
             contentDescription = "Reenviar rápidamente",
-            tint = Color(0xFF8E959B),
+            tint = IosSettingsColors.secondaryLabel,
             modifier = Modifier.size(18.dp)
         )
     }

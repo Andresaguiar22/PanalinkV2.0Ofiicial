@@ -88,7 +88,7 @@ fun PaniOSReelsStudioPicker(
                     color = Color.White,
                     fontSize = 32.sp,
                     fontWeight = FontWeight.Bold,
-                    fontFamily = FontFamily.Serif,
+                    fontFamily = FontFamily.SansSerif,
                     letterSpacing = 0.5.sp
                 )
                 Spacer(modifier = Modifier.width(12.dp))
@@ -219,7 +219,7 @@ private fun PaniOSStudioActionCard(
                 color = Color.White,
                 fontSize = 20.sp,
                 fontWeight = FontWeight.Bold,
-                fontFamily = FontFamily.Serif
+                fontFamily = FontFamily.SansSerif
             )
             Spacer(modifier = Modifier.width(8.dp))
             Text(text = emoji, fontSize = 18.sp)

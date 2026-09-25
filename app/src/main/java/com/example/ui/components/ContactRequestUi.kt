@@ -68,13 +68,13 @@ fun ContactRequestPreviewDialog(
                 Spacer(Modifier.height(4.dp))
                 Text(
                     text = "PIN/QR: $pinOrToken",
-                    color = Color(0xFF9AA8B5),
+                    color = IosSettingsColors.secondaryLabel,
                     fontSize = 12.sp
                 )
                 Spacer(Modifier.height(6.dp))
                 Text(
                     text = "Cuando acepte, se agregarán como contacto mutuos. Si rechaza, se elimina de tu lista.",
-                    color = Color(0xFF9AA8B5),
+                    color = IosSettingsColors.secondaryLabel,
                     fontSize = 12.sp
                 )
             }
@@ -126,7 +126,7 @@ fun ContactRequestRow(
             )
             Text(
                 text = "Quiere ser tu Pana 🤝",
-                color = Color(0xFF9AA8B5),
+                color = IosSettingsColors.secondaryLabel,
                 fontSize = 12.sp
             )
         }

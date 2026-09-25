@@ -180,7 +180,7 @@ private fun ChatPreview(wallpaper: String, textSize: Float) {
                 fontSize = 10.sp,
                 fontWeight = FontWeight.Bold,
                 fontFamily = IosFont,
-                color = Color(0xFF8596A0),
+                color = IosSettingsColors.secondaryLabel,
                 modifier = Modifier.align(Alignment.CenterHorizontally)
             )
             Box(

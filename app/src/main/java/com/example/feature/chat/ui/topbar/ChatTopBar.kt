@@ -99,7 +99,7 @@ fun ChatTopBar(
                     Icon(
                         Icons.AutoMirrored.Filled.ArrowBack,
                         contentDescription = "Detener búsqueda",
-                        tint = Color(0xFF94A3B8),
+                        tint = IosSettingsColors.secondaryLabel,
                         modifier = Modifier.size(24.dp)
                     )
                 }
@@ -119,7 +119,7 @@ fun ChatTopBar(
                             if (localSearchQuery.isEmpty()) {
                                 Text(
                                     "Buscar en este chat...",
-                                    color = Color(0xFF94A3B8),
+                                    color = IosSettingsColors.secondaryLabel,
                                     fontSize = 16.sp
                                 )
                             }
@@ -203,7 +203,7 @@ fun ChatTopBar(
                                     .align(Alignment.BottomEnd)
                                     .size(11.dp)
                                     .clip(CircleShape)
-                                    .background(if (isOnlineReal) Color(0xFF4ADE80) else Color(0xFF94A3B8))
+                                    .background(if (isOnlineReal) Color(0xFF4ADE80) else IosSettingsColors.secondaryLabel)
                                     .border(2.dp, Color(0xFF3A4759), CircleShape)
                             )
                         }
@@ -242,7 +242,7 @@ fun ChatTopBar(
                                             Icon(
                                                 Icons.Default.Person,
                                                 contentDescription = null,
-                                                tint = Color(0xFF94A3B8)
+                                                tint = IosSettingsColors.secondaryLabel
                                             )
                                         }
                                     )
@@ -256,7 +256,7 @@ fun ChatTopBar(
                                             Icon(
                                                 Icons.Default.Search,
                                                 contentDescription = null,
-                                                tint = Color(0xFF94A3B8)
+                                                tint = IosSettingsColors.secondaryLabel
                                             )
                                         }
                                     )
@@ -275,7 +275,7 @@ fun ChatTopBar(
                                             Icon(
                                                 if (isMuted) Icons.Default.Notifications else Icons.Default.NotificationsOff,
                                                 contentDescription = null,
-                                                tint = Color(0xFF94A3B8)
+                                                tint = IosSettingsColors.secondaryLabel
                                             )
                                         }
                                     )
@@ -294,7 +294,7 @@ fun ChatTopBar(
                                             Icon(
                                                 Icons.Default.PushPin,
                                                 contentDescription = null,
-                                                tint = Color(0xFF94A3B8)
+                                                tint = IosSettingsColors.secondaryLabel
                                             )
                                         }
                                     )
@@ -308,7 +308,7 @@ fun ChatTopBar(
                                             Icon(
                                                 Icons.Default.PermMedia,
                                                 contentDescription = null,
-                                                tint = Color(0xFF94A3B8)
+                                                tint = IosSettingsColors.secondaryLabel
                                             )
                                         }
                                     )
@@ -319,7 +319,7 @@ fun ChatTopBar(
                                             onNavigateToSearch()
                                         },
                                         leadingIcon = {
-                                            Icon(Icons.Default.Search, contentDescription = null, tint = Color(0xFF94A3B8))
+                                            Icon(Icons.Default.Search, contentDescription = null, tint = IosSettingsColors.secondaryLabel)
                                         }
                                     )
                                     DropdownMenuItem(
@@ -329,7 +329,7 @@ fun ChatTopBar(
                                             onShowBackgroundDialog()
                                         },
                                         leadingIcon = {
-                                            Icon(Icons.Default.Wallpaper, contentDescription = null, tint = Color(0xFF94A3B8))
+                                            Icon(Icons.Default.Wallpaper, contentDescription = null, tint = IosSettingsColors.secondaryLabel)
                                         }
                                     )
                                     DropdownMenuItem(
@@ -339,7 +339,7 @@ fun ChatTopBar(
                                             onShowBubblePaletteDialog()
                                         },
                                         leadingIcon = {
-                                            Icon(Icons.Default.Palette, contentDescription = null, tint = Color(0xFF94A3B8))
+                                            Icon(Icons.Default.Palette, contentDescription = null, tint = IosSettingsColors.secondaryLabel)
                                         }
                                     )
                                     DropdownMenuItem(
@@ -349,7 +349,7 @@ fun ChatTopBar(
                                             onClearChat()
                                         },
                                         leadingIcon = {
-                                            Icon(Icons.Default.DeleteSweep, contentDescription = null, tint = Color(0xFF94A3B8))
+                                            Icon(Icons.Default.DeleteSweep, contentDescription = null, tint = IosSettingsColors.secondaryLabel)
                                         }
                                     )
                                     DropdownMenuItem(
@@ -450,7 +450,7 @@ private fun PresenceLabel(
             Text(
                 text = presenceText.ifEmpty { "Fuera de línea" },
                 fontSize = 12.sp,
-                color = Color(0xFF94A3B8),
+                color = IosSettingsColors.secondaryLabel,
                 maxLines = 1,
                 overflow = TextOverflow.Ellipsis
             )

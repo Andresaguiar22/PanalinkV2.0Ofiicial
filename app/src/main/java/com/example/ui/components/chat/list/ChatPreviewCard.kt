@@ -123,7 +123,7 @@ fun ChatPreviewCard(
                         Text(
                             text = safeDisplayName.ifBlank { "Pana de panalink" },
                             color = PanalinkSkin.Cream,
-                            fontFamily = FontFamily.Serif,
+                            fontFamily = FontFamily.SansSerif,
                             fontWeight = FontWeight.Bold,
                             fontSize = 17.sp,
                             maxLines = 1,

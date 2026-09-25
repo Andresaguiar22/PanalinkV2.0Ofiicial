@@ -27,6 +27,7 @@ import androidx.compose.ui.unit.sp
 import androidx.compose.material.icons.filled.Error
 import androidx.compose.material.icons.filled.Refresh
 import com.example.util.DeliveryState
+import com.example.ui.settings.ios.IosSettingsColors
 
 @Composable
 fun MessageStatusIndicator(
@@ -36,7 +37,7 @@ fun MessageStatusIndicator(
     isEdited: Boolean = false,
     isFavorited: Boolean = false,
     isPinned: Boolean = false,
-    textColor: Color = Color(0xFF8596A0),
+    textColor: Color = IosSettingsColors.secondaryLabel,
     onRetry: (() -> Unit)? = null,
     modifier: Modifier = Modifier
 ) {

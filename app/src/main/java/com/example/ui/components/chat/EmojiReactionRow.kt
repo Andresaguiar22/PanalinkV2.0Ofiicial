@@ -80,7 +80,7 @@ fun EmojiReactionRow(
                     Icon(
                         imageVector = Icons.Default.Add,
                         contentDescription = "Agregar reacción",
-                        tint = Color(0xFF8E959B),
+                        tint = IosSettingsColors.secondaryLabel,
                         modifier = Modifier.size(16.dp)
                     )
                 }
@@ -136,7 +136,7 @@ private fun ReactionPillButton(
 
         Text(
             text = formatReactionCount(item.count),
-            color = if (item.isUserReacted) Color.White else Color(0xFF8E959B),
+            color = if (item.isUserReacted) Color.White else IosSettingsColors.secondaryLabel,
             fontSize = 12.sp,
             fontWeight = if (item.isUserReacted) FontWeight.Bold else FontWeight.Medium
         )

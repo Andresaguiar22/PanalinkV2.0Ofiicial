@@ -66,7 +66,7 @@ fun CommentItemBubble(
     val replyBoxBg = Color(0xFF17212B) // Inner Reply Preview Box
     val accentBlue = IosSettingsColors.blue
     val replyBorderColor = Color(0xFF64B5F6)
-    val secondaryText = Color(0xFF8E959B)
+    val secondaryText = IosSettingsColors.secondaryLabel
     val primaryText = Color.White
 
     Row(

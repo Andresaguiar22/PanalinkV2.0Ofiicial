@@ -205,7 +205,7 @@ fun ChannelPostCard(
                                 Spacer(modifier = Modifier.width(4.dp))
                                 Text(
                                     text = "$count",
-                                    color = if (isMyReaction) IosSettingsColors.blue else Color(0xFF8596A0),
+                                    color = if (isMyReaction) IosSettingsColors.blue else IosSettingsColors.secondaryLabel,
                                     fontSize = 11.sp,
                                     fontWeight = FontWeight.Bold
                                 )
@@ -291,22 +291,22 @@ fun ChannelPostCard(
                         Icon(
                             imageVector = Icons.Outlined.RemoveRedEye,
                             contentDescription = "Vistas",
-                            tint = Color(0xFF8596A0),
+                            tint = IosSettingsColors.secondaryLabel,
                             modifier = Modifier.size(13.dp)
                         )
                         Text(
                             text = "168.8K",
-                            color = Color(0xFF8596A0),
+                            color = IosSettingsColors.secondaryLabel,
                             fontSize = 11.sp
                         )
                         Text(
                             text = "•",
-                            color = Color(0xFF8596A0),
+                            color = IosSettingsColors.secondaryLabel,
                             fontSize = 11.sp
                         )
                         Text(
                             text = formatTimeOnly(message.createdAt),
-                            color = Color(0xFF8596A0),
+                            color = IosSettingsColors.secondaryLabel,
                             fontSize = 11.sp
                         )
                     }
@@ -329,7 +329,7 @@ fun ChannelPostCard(
                 Icon(
                     imageVector = Icons.AutoMirrored.Filled.Reply,
                     contentDescription = "Reenviar",
-                    tint = Color(0xFF8596A0),
+                    tint = IosSettingsColors.secondaryLabel,
                     modifier = Modifier.size(20.dp)
                 )
             }
@@ -390,7 +390,7 @@ fun ApkFileAttachmentCard(
                 Spacer(modifier = Modifier.height(2.dp))
                 Text(
                     text = fileInfo.fileSize,
-                    color = Color(0xFF8596A0),
+                    color = IosSettingsColors.secondaryLabel,
                     fontSize = 12.sp
                 )
             }
@@ -399,7 +399,7 @@ fun ApkFileAttachmentCard(
                 Icon(
                     imageVector = Icons.Default.MoreVert,
                     contentDescription = "Opciones",
-                    tint = Color(0xFF8596A0)
+                    tint = IosSettingsColors.secondaryLabel
                 )
             }
         }

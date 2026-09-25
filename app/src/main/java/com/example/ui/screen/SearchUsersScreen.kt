@@ -119,7 +119,7 @@ fun SearchUsersScreen(
                         Spacer(modifier = Modifier.height(16.dp))
                         Text(
                             text = "Escribe un nombre para buscar",
-                            color = Color(0xFFB8C4D6),
+                            color = IosSettingsColors.secondaryLabel,
                             fontWeight = FontWeight.Bold,
                             fontSize = 16.sp
                         )

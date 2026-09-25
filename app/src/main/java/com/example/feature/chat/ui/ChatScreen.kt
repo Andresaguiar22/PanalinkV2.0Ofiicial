@@ -831,7 +831,7 @@ fun ChatScreen(
                             ) {
                                 Text(
                                     text = if (localSearchQuery.isNotEmpty()) "No se encontraron mensajes de pana 🔍" else "Escribe un mensaje para empezar de pana! 🇻🇪",
-                                    color = Color(0xFFB8C4D6),
+                                    color = IosSettingsColors.secondaryLabel,
                                     fontSize = 14.sp
                                 )
                             }
@@ -902,7 +902,7 @@ fun ChatScreen(
                                             ) {
                                                 Text(
                                                     text = dateText,
-                                                    color = Color(0xFFB8C4D6),
+                                                    color = IosSettingsColors.secondaryLabel,
                                                     fontSize = 12.sp,
                                                     modifier = Modifier.padding(horizontal = 14.dp, vertical = 5.dp),
                                                     fontWeight = FontWeight.Medium
@@ -1145,7 +1145,7 @@ fun ChatScreen(
                     Icon(
                         imageVector = Icons.Default.Mic,
                         contentDescription = null,
-                        tint = Color(0xFF8696A0),
+                        tint = IosSettingsColors.secondaryLabel,
                         modifier = Modifier.size(30.dp)
                     )
                 }
@@ -1228,7 +1228,7 @@ fun ChatScreen(
                 Column(modifier = Modifier.fillMaxWidth()) {
                     Text(
                         text = "Selecciona un contacto para reenviar:",
-                        color = Color(0xFF8596A0),
+                        color = IosSettingsColors.secondaryLabel,
                         fontSize = 14.sp,
                         modifier = Modifier.padding(bottom = 12.dp)
                     )

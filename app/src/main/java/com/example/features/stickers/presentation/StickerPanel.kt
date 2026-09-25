@@ -107,7 +107,7 @@ fun StickerPanel(
                 modifier = Modifier.fillMaxSize(),
                 contentAlignment = Alignment.Center
             ) {
-                Text("No hay paquetes de stickers disponibles", color = Color(0xFF9AA8B5), fontSize = 14.sp)
+                Text("No hay paquetes de stickers disponibles", color = IosSettingsColors.secondaryLabel, fontSize = 14.sp)
             }
         } else {
             LazyRow(
@@ -157,7 +157,7 @@ fun StickerPanel(
                             }
                             Text(
                                 text = pack.name,
-                                color = if (isSelected) IosSettingsColors.blue else Color(0xFF9AA8B5),
+                                color = if (isSelected) IosSettingsColors.blue else IosSettingsColors.secondaryLabel,
                                 fontSize = 13.sp,
                                 fontWeight = if (isSelected) FontWeight.Bold else FontWeight.Normal
                             )
@@ -172,7 +172,7 @@ fun StickerPanel(
                         modifier = Modifier.fillMaxSize(),
                         contentAlignment = Alignment.Center
                     ) {
-                        Text("Este paquete no tiene stickers", color = Color(0xFF9AA8B5), fontSize = 13.sp)
+                        Text("Este paquete no tiene stickers", color = IosSettingsColors.secondaryLabel, fontSize = 13.sp)
                     }
                 } else {
                     LazyVerticalGrid(

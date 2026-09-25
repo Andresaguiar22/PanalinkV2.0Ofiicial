@@ -577,7 +577,7 @@ Box(
                                     color = TextGrayStory,
                                     fontSize = 15.sp,
                                     fontWeight = FontWeight.Medium,
-                                    fontFamily = FontFamily.Serif
+                                    fontFamily = FontFamily.SansSerif
                                 )
                             }
                         }

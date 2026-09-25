@@ -30,6 +30,7 @@ import coil.compose.AsyncImage
 import coil.decode.GifDecoder
 import coil.decode.ImageDecoderDecoder
 import coil.request.ImageRequest
+import com.example.ui.settings.ios.IosSettingsColors
 
 @Composable
 fun StickerBubbleContent(
@@ -78,13 +79,13 @@ fun StickerBubbleContent(
                 Icon(
                     imageVector = Icons.Default.BrokenImage,
                     contentDescription = null,
-                    tint = Color(0xFF8696A0),
+                    tint = IosSettingsColors.secondaryLabel,
                     modifier = Modifier.size(36.dp)
                 )
             } else {
                 Column(horizontalAlignment = Alignment.CenterHorizontally) {
                     Text("😢", fontSize = 28.sp)
-                    Text("Sticker no disponible", color = Color(0xFF8696A0), fontSize = 9.sp)
+                    Text("Sticker no disponible", color = IosSettingsColors.secondaryLabel, fontSize = 9.sp)
                 }
             }
         } else {

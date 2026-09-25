@@ -77,7 +77,7 @@ fun LockScreen() {
                 fontSize = 20.sp,
                 fontWeight = FontWeight.Bold
             )
-            Text("PanaLink está protegido", color = Color(0xFFB8C4D6), fontSize = 13.sp)
+            Text("PanaLink está protegido", color = IosSettingsColors.secondaryLabel, fontSize = 13.sp)
             Spacer(modifier = Modifier.height(24.dp))
 
             when (method) {
@@ -97,7 +97,7 @@ fun LockScreen() {
                     modifier = Modifier.clickable { biometricTrigger++ }
                 ) {
                     Icon(Icons.Default.Fingerprint, contentDescription = "Desbloquear con biometría", tint = IosSettingsColors.blue, modifier = Modifier.size(40.dp))
-                    Text("Usar biometría", color = Color(0xFFB8C4D6), fontSize = 12.sp)
+                    Text("Usar biometría", color = IosSettingsColors.secondaryLabel, fontSize = 12.sp)
                 }
             }
         }
@@ -220,7 +220,7 @@ private fun PatternLockSection(onError: (String?) -> Unit) {
 fun PatternPad(
     onPatternComplete: (List<Int>) -> Unit,
     modifier: Modifier = Modifier,
-    dotColor: Color = Color(0xFFB8C4D6),
+    dotColor: Color = IosSettingsColors.secondaryLabel,
     activeColor: Color = IosSettingsColors.blue
 ) {
     var selected by remember { mutableStateOf<List<Int>>(emptyList()) }

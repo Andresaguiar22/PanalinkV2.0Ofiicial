@@ -234,7 +234,7 @@ fun AudioVisualizer(
     val y = (maxBarHeight - barHeight) / 2
     
     drawRoundRect(
-    color = if (isPlaying) IosSettingsColors.green else Color(0xFF8596A0).copy(alpha = 0.6f),
+    color = if (isPlaying) IosSettingsColors.green else IosSettingsColors.secondaryLabel.copy(alpha = 0.6f),
     topLeft = androidx.compose.ui.geometry.Offset(x, y),
     size = androidx.compose.ui.geometry.Size(barWidth, barHeight),
     cornerRadius = androidx.compose.ui.geometry.CornerRadius(barWidth / 2, barWidth / 2)

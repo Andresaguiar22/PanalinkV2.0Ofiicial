@@ -62,7 +62,7 @@ private fun RoomCard(room:VoiceRoom,members:Int,onClick:()->Unit){
             }
             Column(Modifier.padding(10.dp)){
                 Text(room.name,color=Color.White,fontWeight=FontWeight.Bold,fontSize=14.sp,maxLines=1,overflow=TextOverflow.Ellipsis)
-                Text(room.category.replaceFirstChar{it.uppercase()},color=Color(0xFFB8C4D6),fontSize=10.sp)
+                Text(room.category.replaceFirstChar{it.uppercase()},color=IosSettingsColors.secondaryLabel,fontSize=10.sp)
                 if(room.description.isNotBlank()) Text(room.description,color=Color(0xFFD9E3EF),fontSize=11.sp,maxLines=2,overflow=TextOverflow.Ellipsis,modifier=Modifier.padding(top=4.dp))
                 Spacer(Modifier.height(7.dp))
                 Row(verticalAlignment=Alignment.CenterVertically){Icon(Icons.Default.Person,null,tint=Color(0xBAB3FFD4),modifier=Modifier.size(13.dp));Spacer(Modifier.width(3.dp));Text("$members",color=Color.White,fontSize=11.sp,fontWeight=FontWeight.SemiBold);Spacer(Modifier.width(8.dp));Text("${room.maxSeats} sillones",color=Color.Gray,fontSize=10.sp)}

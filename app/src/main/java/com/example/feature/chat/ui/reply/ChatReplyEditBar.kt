@@ -74,7 +74,7 @@ fun ChatReplyEditBar(
                     }
                     Text(
                         text = replyBarText,
-                        color = Color(0xFF8696A0),
+                        color = IosSettingsColors.secondaryLabel,
                         fontSize = 11.sp,
                         maxLines = 1,
                         overflow = TextOverflow.Ellipsis
@@ -84,7 +84,7 @@ fun ChatReplyEditBar(
                     Icon(
                         imageVector = Icons.Default.Close,
                         contentDescription = "Cancelar respuesta",
-                        tint = Color(0xFF8696A0)
+                        tint = IosSettingsColors.secondaryLabel
                     )
                 }
             }
@@ -116,7 +116,7 @@ fun ChatReplyEditBar(
                     )
                     Text(
                         text = editingMsg.textContent,
-                        color = Color(0xFF8696A0),
+                        color = IosSettingsColors.secondaryLabel,
                         fontSize = 11.sp,
                         maxLines = 1,
                         overflow = TextOverflow.Ellipsis
@@ -126,7 +126,7 @@ fun ChatReplyEditBar(
                     Icon(
                         imageVector = Icons.Default.Close,
                         contentDescription = "Cancelar edición",
-                        tint = Color(0xFF8696A0)
+                        tint = IosSettingsColors.secondaryLabel
                     )
                 }
             }

@@ -164,7 +164,7 @@ fun EmojiAndMediaSheet(
                     Icon(
                         imageVector = Icons.AutoMirrored.Filled.ArrowBack,
                         contentDescription = "Atrás",
-                        tint = Color(0xFF9AA8B5)
+                        tint = IosSettingsColors.secondaryLabel
                     )
                 }
 
@@ -189,7 +189,7 @@ fun EmojiAndMediaSheet(
                                     1 -> "Buscar GIF..."
                                     else -> "Buscar stickers..."
                                 }
-                                Text(hintText, color = Color(0xFF9AA8B5), fontSize = 15.sp)
+                                Text(hintText, color = IosSettingsColors.secondaryLabel, fontSize = 15.sp)
                             }
                             innerTextField()
                         }
@@ -198,7 +198,7 @@ fun EmojiAndMediaSheet(
 
                 if (searchQuery.isNotEmpty()) {
                     IconButton(onClick = { onSearchQueryChange("") }) {
-                        Icon(Icons.Default.Close, contentDescription = "Limpiar", tint = Color(0xFF9AA8B5))
+                        Icon(Icons.Default.Close, contentDescription = "Limpiar", tint = IosSettingsColors.secondaryLabel)
                     }
                 }
             }
@@ -212,7 +212,7 @@ fun EmojiAndMediaSheet(
             ) {
                 // Left: Search Button
                 IconButton(onClick = { onSearchActiveChange(true) }) {
-                    Icon(Icons.Default.Search, contentDescription = "Buscar", tint = Color(0xFF9AA8B5))
+                    Icon(Icons.Default.Search, contentDescription = "Buscar", tint = IosSettingsColors.secondaryLabel)
                 }
 
                 // Center: Unified selector of 3 tabs (Emoji, GIF, Sticker)
@@ -242,7 +242,7 @@ fun EmojiAndMediaSheet(
                                     Icon(
                                         imageVector = Icons.Default.SentimentSatisfied,
                                         contentDescription = "Emojis",
-                                        tint = if (isSelected) Color.White else Color(0xFF9AA8B5),
+                                        tint = if (isSelected) Color.White else IosSettingsColors.secondaryLabel,
                                         modifier = Modifier.size(20.dp)
                                     )
                                 } else if (index == 1) {
@@ -250,13 +250,13 @@ fun EmojiAndMediaSheet(
                                         text = "GIF",
                                         fontWeight = FontWeight.Bold,
                                         fontSize = 13.sp,
-                                        color = if (isSelected) Color.White else Color(0xFF9AA8B5)
+                                        color = if (isSelected) Color.White else IosSettingsColors.secondaryLabel
                                     )
                                 } else {
                                     Icon(
                                         imageVector = Icons.Default.StickyNote2,
                                         contentDescription = "Stickers",
-                                        tint = if (isSelected) Color.White else Color(0xFF9AA8B5),
+                                        tint = if (isSelected) Color.White else IosSettingsColors.secondaryLabel,
                                         modifier = Modifier.size(20.dp)
                                     )
                                 }
@@ -270,14 +270,14 @@ fun EmojiAndMediaSheet(
                     Icon(
                         imageVector = if (isGhostMode) Icons.Default.VisibilityOff else Icons.Default.Visibility,
                         contentDescription = "Mensaje de una vista",
-                        tint = if (isGhostMode) IosSettingsColors.blue else Color(0xFF9AA8B5),
+                        tint = if (isGhostMode) IosSettingsColors.blue else IosSettingsColors.secondaryLabel,
                         modifier = Modifier.size(22.dp)
                     )
                 }
 
                 // Right: Backspace/Clear character
                 IconButton(onClick = onBackspace) {
-                    Icon(Icons.Default.Backspace, contentDescription = "Borrar", tint = Color(0xFF9AA8B5))
+                    Icon(Icons.Default.Backspace, contentDescription = "Borrar", tint = IosSettingsColors.secondaryLabel)
                 }
             }
         }
@@ -361,7 +361,7 @@ fun EmojiAndMediaSheet(
                     } else if (emojiMedia.gifs.isEmpty()) {
                         Text(
                             text = "No se encontraron GIFs",
-                            color = Color(0xFF9AA8B5),
+                            color = IosSettingsColors.secondaryLabel,
                             fontSize = 13.sp,
                             modifier = Modifier.align(Alignment.Center)
                         )

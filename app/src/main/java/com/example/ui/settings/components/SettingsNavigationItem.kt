@@ -28,7 +28,7 @@ fun SettingsNavigationItem(
     title: String,
     description: String,
     icon: ImageVector,
-    iconColor: Color = Color(0xFF8596A0),
+    iconColor: Color = IosSettingsColors.secondaryLabel,
     onClick: () -> Unit
 ) {
     ListItem(
@@ -69,7 +69,7 @@ fun SettingsNavigationItem(
             Icon(
                 imageVector = Icons.AutoMirrored.Filled.KeyboardArrowRight,
                 contentDescription = null,
-                tint = Color(0xFF8596A0)
+                tint = IosSettingsColors.secondaryLabel
             )
         },
         colors = ListItemDefaults.colors(
