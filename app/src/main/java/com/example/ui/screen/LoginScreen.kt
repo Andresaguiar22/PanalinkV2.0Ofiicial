@@ -215,9 +215,9 @@ fun LoginScreen(
             text = {
                 Text(
                     text = if (names.isEmpty()) {
-                        "Esta sesión cerrará la anterior en tu otro equipo."
+                        "Por seguridad, se cerró la sesión que tenías abierta en tu otro dispositivo."
                     } else {
-                        "Dispositivo(s): " + names.joinToString(", ") + ". Al continuar, esa sesión se cerrará."
+                        "Por seguridad, se cerró la sesión en: " + names.joinToString(", ") + "."
                     },
                     color = PanalinkPalette.textPrimary.copy(alpha = 0.8f),
                     fontSize = 15.sp

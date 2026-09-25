@@ -355,7 +355,33 @@ class AuthManager {
                         params = mapOf("p_current_device_id" to deviceId)
                     )
                     if (checkResponse.isSuccessful) {
-                        SupabaseClient.otherActiveDevices.value = checkResponse.body() ?: emptyList()
+                        val others = checkResponse.body() ?: emptyList()
+                        SupabaseClient.otherActiveDevices.value = others
+
+                        // Sesion unica gratis: si habia otras sesiones activas, las
+                        // cerramos (GoTrue scope=others). La actual (la mas reciente)
+                        // queda viva. Los dispositivos viejos recibiran 401 al refrescar.
+                        if (others.isNotEmpty()) {
+                            val logoutResponse = service.logoutOtherSessions(
+                                apiKey = SupabaseClient.supabaseAnonKey,
+                                authorization = "Bearer $token"
+                            )
+                            if (logoutResponse.isSuccessful) {
+                                // Refrescar el timestamp del dispositivo actual.
+                                try {
+                                    service.registerDevice(
+                                        apiKey = SupabaseClient.supabaseAnonKey,
+                                        authorization = "Bearer $token",
+                                        params = registerParams
+                                    )
+                                } catch (e: Exception) {
+                                    Log.w(TAG, "Re-register actual best-effort failed: ${e.message}")
+                                }
+                                Log.i(TAG, "Otras sesiones cerradas (${others.size}); sesion actual conservada.")
+                            } else {
+                                Log.i(TAG, "logout?scope=others no disponible (HTTP ${logoutResponse.code()}).")
+                            }
+                        }
                     }
                 } catch (e: Exception) {
                     Log.w(TAG, "getOtherActiveDevices best-effort failed: ${e.message}")

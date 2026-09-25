@@ -1197,4 +1197,13 @@ interface SupabaseApiService {
         @Header("Authorization") authorization: String,
         @Body params: Map<String, String>
     ): Response<Unit>
+
+    // Cierra todas las DEMAS sesiones del usuario (deja viva la actual).
+    // Endpoint nativo de GoTrue; disponible en el plan Free (no requiere
+    // la opción de pago "Single session per user").
+    @POST("auth/v1/logout?scope=others")
+    suspend fun logoutOtherSessions(
+        @Header("apikey") apiKey: String,
+        @Header("Authorization") authorization: String
+    ): Response<Unit>
 }

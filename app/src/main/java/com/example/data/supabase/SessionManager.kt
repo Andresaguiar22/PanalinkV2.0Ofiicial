@@ -286,7 +286,12 @@ object SessionManager {
                 val code = response.code()
                 val errBody = response.errorBody()?.string() ?: ""
                 Log.e(TAG, "Session refresh failed (HTTP $code)")
-                if ((code == 400 || code == 401) && (errBody.contains("invalid_grant") || errBody.contains("invalid_refresh_token"))) {
+                if ((code == 400 || code == 401) && (
+                        errBody.contains("invalid_grant") ||
+                        errBody.contains("invalid_refresh_token") ||
+                        errBody.contains("refresh_token_not_found") ||
+                        errBody.contains("Session from session_id claim in JWT does not exist")
+                    )) {
                     // La sesión fue revocada en otro dispositivo (max_sessions=1) o expiró definitivamente.
 
                     // Avisar antes de limpiar: quien escuche (MainActivity) mostrará el diálogo.
