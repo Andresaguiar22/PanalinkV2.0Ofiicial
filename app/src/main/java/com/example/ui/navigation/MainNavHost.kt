@@ -61,6 +61,7 @@ import com.example.ui.screen.SplashScreen
 import com.example.reels.ui.ReelsFeedScreen
 import com.example.ui.screen.UserProfileScreen
 import com.example.ui.screen.ViewStateScreen
+import com.example.toolbox.ui.ToolboxScreen
 import com.example.ui.viewmodel.AuthViewModel
 import com.example.feature.chat.presentation.ChatViewModel
 import com.example.ui.viewmodel.ChatsViewModel
@@ -329,7 +330,8 @@ fun MainNavHost(
                 onNavigateToMusic = { mainNavController.navigate("musicHome") { launchSingleTop = true } },
                 onNavigateToVoiceRoom = { mainNavController.navigate("voiceRooms") { launchSingleTop = true } },
                 onNavigateToLive = { mainNavController.navigate("live_feed") { launchSingleTop = true } },
-                onNavigateToPremium = { mainNavController.navigate("premiumHome") { launchSingleTop = true } }
+                onNavigateToPremium = { mainNavController.navigate("premiumHome") { launchSingleTop = true } },
+                onNavigateToToolbox = { mainNavController.navigate("toolbox") { launchSingleTop = true } }
             )
         }
 
@@ -936,6 +938,11 @@ fun MainNavHost(
                     mainNavController.navigate("premiumHome") { launchSingleTop = true }
                 }
             )
+        }
+
+        // Toolbox — herramientas temporales con interfaz iOS.
+        composable("toolbox") {
+            ToolboxScreen(onBack = { mainNavController.popBackStack() })
         }
 
         // Premium 2.0 — Centro de beneficios
