@@ -280,7 +280,7 @@ private fun JoinEventRow(displayName: String, shadow: TextStyle) {
             modifier = Modifier
                 .size(26.dp)
                 .clip(CircleShape)
-                .background(Color.White.copy(alpha = 0.16f)),
+                .background(IosSettingsColors.separator),
             contentAlignment = Alignment.Center
         ) {
             Text(text = "👋", fontSize = 13.sp)
@@ -290,7 +290,7 @@ private fun JoinEventRow(displayName: String, shadow: TextStyle) {
 
         Text(
             text = buildAnnotatedString {
-                withStyle(SpanStyle(fontWeight = FontWeight.Bold, color = Color(0xFFB9F6CA))) {
+                withStyle(SpanStyle(fontWeight = FontWeight.Bold, color = IosSettingsColors.green)) {
                     append(displayName)
                 }
                 withStyle(SpanStyle(fontStyle = FontStyle.Italic, color = IosSettingsColors.label)) {
@@ -330,7 +330,7 @@ private fun highlightMentions(text: String): AnnotatedString {
                     if (match.range.first > lastIndex) {
                         append(text.substring(lastIndex, match.range.first))
                     }
-                    withStyle(SpanStyle(color = Color(0xFF6FD3FF), fontWeight = FontWeight.SemiBold)) {
+                    withStyle(SpanStyle(color = IosSettingsColors.blue, fontWeight = FontWeight.SemiBold)) {
                         append(match.value)
                     }
                     lastIndex = match.range.last + 1

@@ -129,7 +129,7 @@ fun VoiceRoomToolboxSheet(
                     ) {
                         Text(
                             text = if (index == 0) "✨ Entradas" else "💍 Colgantes",
-                            color = if (selected) Color.White else Color.White.copy(alpha = 0.6f),
+                            color = if (selected) IosSettingsColors.label else IosSettingsColors.secondaryLabel,
                             fontSize = 13.sp,
                             fontWeight = if (selected) FontWeight.Bold else FontWeight.Medium
                         )
@@ -155,13 +155,13 @@ fun VoiceRoomToolboxSheet(
                             modifier = Modifier
                                 .clip(RoundedCornerShape(16.dp))
                                 .background(
-                                    if (selected) Color(0xFF3B4758)
+                                    if (selected) IosSettingsColors.separator
                                     else IosSettingsColors.cell,
                                     RoundedCornerShape(16.dp)
                                 )
                                 .border(
                                     width = if (selected) 2.dp else 1.dp,
-                                    color = if (selected) IosSettingsColors.blue else Color(0x22FFFFFF),
+                                    color = if (selected) IosSettingsColors.blue else IosSettingsColors.separator,
                                     shape = RoundedCornerShape(16.dp)
                                 )
                                 .clickable { onSelectEntrance(spec.code) }
@@ -220,13 +220,13 @@ fun VoiceRoomToolboxSheet(
                             modifier = Modifier
                                 .clip(RoundedCornerShape(16.dp))
                                 .background(
-                                    if (selected) Color(0xFF3B4758)
+                                    if (selected) IosSettingsColors.separator
                                     else IosSettingsColors.cell,
                                     RoundedCornerShape(16.dp)
                                 )
                                 .border(
                                     width = if (selected) 2.dp else 1.dp,
-                                    color = if (selected) IosSettingsColors.blue else Color(0x22FFFFFF),
+                                    color = if (selected) IosSettingsColors.blue else IosSettingsColors.separator,
                                     shape = RoundedCornerShape(16.dp)
                                 )
                                 .clickable { onSelectPendant(spec.code) }
@@ -246,8 +246,8 @@ fun VoiceRoomToolboxSheet(
                                         modifier = Modifier
                                             .size(36.dp)
                                             .clip(CircleShape)
-                                            .background(Color(0xFF0B1220), CircleShape)
-                                            .border(1.dp, Color(0x33FFFFFF), CircleShape),
+                                            .background(IosSettingsColors.cell, CircleShape)
+                                            .border(1.dp, IosSettingsColors.separator, CircleShape),
                                         contentAlignment = Alignment.Center
                                     ) {
                                         Text(
@@ -263,7 +263,7 @@ fun VoiceRoomToolboxSheet(
                                             .clip(CircleShape)
                                             .background(
                                                 Brush.linearGradient(
-                                                    listOf(Color(0xFF475569), IosSettingsColors.groupBackground)
+                                                    listOf(IosSettingsColors.separator, IosSettingsColors.groupBackground)
                                                 ),
                                                 CircleShape
                                             )
@@ -376,13 +376,13 @@ fun VoiceRoomMyPendantSheet(
                         modifier = Modifier
                             .clip(RoundedCornerShape(16.dp))
                             .background(
-                                if (selected) Color(0xFF3B4758)
+                                if (selected) IosSettingsColors.separator
                                 else IosSettingsColors.cell,
                                 RoundedCornerShape(16.dp)
                             )
                             .border(
                                 width = if (selected) 2.dp else 1.dp,
-                                color = if (selected) IosSettingsColors.blue else Color(0x22FFFFFF),
+                                color = if (selected) IosSettingsColors.blue else IosSettingsColors.separator,
                                 shape = RoundedCornerShape(16.dp)
                             )
                             .clickable { onSelect(spec.code) }
@@ -400,8 +400,8 @@ fun VoiceRoomMyPendantSheet(
                                     modifier = Modifier
                                         .size(36.dp)
                                         .clip(CircleShape)
-                                        .background(Color(0xFF0B1220), CircleShape)
-                                        .border(1.dp, Color(0x33FFFFFF), CircleShape),
+                                        .background(IosSettingsColors.cell, CircleShape)
+                                        .border(1.dp, IosSettingsColors.separator, CircleShape),
                                     contentAlignment = Alignment.Center
                                 ) {
                                     Text(
@@ -417,7 +417,7 @@ fun VoiceRoomMyPendantSheet(
                                         .clip(CircleShape)
                                         .background(
                                             Brush.linearGradient(
-                                                listOf(Color(0xFF475569), IosSettingsColors.groupBackground)
+                                                listOf(IosSettingsColors.separator, IosSettingsColors.groupBackground)
                                             ),
                                             CircleShape
                                         )

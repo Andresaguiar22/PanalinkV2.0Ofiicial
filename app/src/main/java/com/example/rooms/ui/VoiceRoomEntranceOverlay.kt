@@ -97,7 +97,7 @@ val premiumSpec = com.example.effects.PremiumEffectsCatalog.entranceSpec(spec.co
             modifier = Modifier
                 .fillMaxSize()
                 .alpha((currentProgress * 0.5f).coerceIn(0f, 1f))
-                .background(Color(0xAA000000))
+                .background(IosSettingsColors.mediaScrim)
         )
 
         // === Motor premium GPU: brillos, rayos y anillos (alta resolución) ===
@@ -132,7 +132,7 @@ val premiumSpec = com.example.effects.PremiumEffectsCatalog.entranceSpec(spec.co
                     )
                     .padding(4.dp)
                     .clip(CircleShape)
-                    .background(Color(0xDD0B1220)),
+                    .background(IosSettingsColors.cell),
                 contentAlignment = Alignment.Center
             ) {
                 if (!event.avatarUrl.isNullOrBlank()) {

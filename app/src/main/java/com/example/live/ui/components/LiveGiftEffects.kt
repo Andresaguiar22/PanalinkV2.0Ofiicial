@@ -405,7 +405,7 @@ private fun GiftBanner(
         modifier = modifier
             .alpha(alpha)
             .scale(popScale)
-            .background(Color(0x66222222), RoundedCornerShape(16.dp))
+            .background(IosSettingsColors.mediaScrimSoft, RoundedCornerShape(16.dp))
             .padding(horizontal = 12.dp, vertical = 8.dp),
         verticalAlignment = Alignment.CenterVertically
     ) {

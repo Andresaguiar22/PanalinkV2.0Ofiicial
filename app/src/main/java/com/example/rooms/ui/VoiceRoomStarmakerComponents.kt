@@ -27,7 +27,7 @@ import androidx.compose.material.icons.filled.Lock
 import androidx.compose.material.icons.filled.Mic
 import androidx.compose.material.icons.filled.MicOff
 import androidx.compose.material.icons.filled.People
-import androidx.compose.material.icons.filled.Send
+import androidx.compose.material.icons.automirrored.filled.Send
 import androidx.compose.material.icons.filled.Settings
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
@@ -65,18 +65,18 @@ import com.example.ui.settings.ios.IosSettingsColors
 // === Paleta Starmaker — azul profundo / petróleo ===
 
 internal object VoiceRoomPalette {
-    val MainBlue       = Color(0xFF00557D)
-    val DeepBlue       = Color(0xFF00466A)
-    val SurfaceBlue    = Color(0xFF075D84)
-    val DarkSurface    = Color(0xFF003E5E)
-    val BgTop          = Color(0xFF000E1A)
-    val BgBottom       = Color(0xFF000509)
+    val MainBlue get() = IosSettingsColors.cell
+    val DeepBlue get() = IosSettingsColors.groupBackground
+    val SurfaceBlue get() = IosSettingsColors.cellElevated
+    val DarkSurface get() = IosSettingsColors.cellElevated
+    val BgTop get() = IosSettingsColors.groupBackground
+    val BgBottom get() = IosSettingsColors.groupBackground
     val ActiveCyan     = IosSettingsColors.blue
-    val ActiveCyanSoft = Color(0x4D4FE7EA)
-    val Pink           = Color(0xFFFF5C7A)
-    val RedLive        = Color(0xFFEF2D55)
-    val TextPrimary    = Color(0xFFF2F7FA)
-    val TextSecondary  = Color(0xFFA9C5D2)
+    val ActiveCyanSoft get() = IosSettingsColors.blue.copy(alpha = 0.3f)
+    val Pink get() = IosSettingsColors.pink
+    val RedLive get() = IosSettingsColors.red
+    val TextPrimary get() = IosSettingsColors.label
+    val TextSecondary get() = IosSettingsColors.secondaryLabel
 
     // Aliases backward-compat con VoiceRoomScreenV2
     val Bg             = DeepBlue
@@ -85,7 +85,7 @@ internal object VoiceRoomPalette {
     val SurfaceDark    = DarkSurface
     val Accent         = ActiveCyan
     val AccentSoft     = ActiveCyanSoft
-    val Gold           = Color(0xFFF6C66B)
+    val Gold get() = IosSettingsColors.yellow
 }
 
 // === Background ===
@@ -332,7 +332,7 @@ fun VoiceRoomLiveBadge() {
             modifier = Modifier
                 .size(5.dp)
                 .clip(CircleShape)
-                .background(Color.White.copy(alpha = dotAlpha))
+                .background(IosSettingsColors.label.copy(alpha = dotAlpha))
         )
         Text("LIVE", color = VoiceRoomPalette.RedLive, fontSize = 9.sp, fontWeight = FontWeight.Bold)
     }
@@ -563,7 +563,7 @@ private fun VoiceRoomSeatCircle(
             .background(circleBg)
             .border(
                 if (speaking) 2.dp else 1.dp,
-                if (speaking) VoiceRoomPalette.ActiveCyan else Color(0x1AFFFFFF),
+                if (speaking) VoiceRoomPalette.ActiveCyan else IosSettingsColors.separator,
                 CircleShape
             )
             .shadow(if (occupied) 8.dp else 2.dp, CircleShape, clip = false)
@@ -781,7 +781,7 @@ private fun VoiceRoomChatMessage(
             modifier = Modifier
                 .weight(1f, fill = false)
                 .clip(RoundedCornerShape(10.dp))
-                .background(Color(0x14FFFFFF))
+                .background(IosSettingsColors.separator)
                 .padding(horizontal = 8.dp, vertical = 3.dp),
             horizontalAlignment = Alignment.Start
         ) {
@@ -1040,7 +1040,7 @@ fun VoiceRoomInputBar(
                     modifier = Modifier.size(32.dp)
                 ) {
                     Icon(
-                        Icons.Default.Send,
+                        Icons.AutoMirrored.Filled.Send,
                         contentDescription = "Enviar",
                         tint = if (value.isNotBlank()) VoiceRoomPalette.ActiveCyan else VoiceRoomPalette.TextSecondary.copy(alpha = 0.4f),
                         modifier = Modifier.size(18.dp)
@@ -1065,7 +1065,7 @@ fun VoiceRoomMicSeatButton(
     val icon = if (needsPermission || (isMuted && isSeated)) Icons.Default.MicOff else Icons.Default.Mic
     val tint = when {
         needsPermission -> VoiceRoomPalette.ActiveCyan
-        !isSeated -> if (pendingRequest) Color(0xFF888888) else VoiceRoomPalette.ActiveCyan
+        !isSeated -> if (pendingRequest) IosSettingsColors.tertiaryLabel else VoiceRoomPalette.ActiveCyan
         isMuted -> IosSettingsColors.red
         else -> VoiceRoomPalette.ActiveCyan
     }
@@ -1125,7 +1125,7 @@ fun VoiceRoomMembersSheet(
     ModalBottomSheet(
         onDismissRequest = { scope.launch { sheetState.hide(); onDismiss() } },
         containerColor = VoiceRoomPalette.DeepBlue,
-        contentColor = Color.White,
+        contentColor = IosSettingsColors.label,
         sheetState = sheetState,
         dragHandle = null,
         tonalElevation = 12.dp,
@@ -1160,7 +1160,7 @@ fun VoiceRoomMembersSheet(
                                 Text("Ver", color = VoiceRoomPalette.TextSecondary, fontSize = 11.sp)
                             }
                         }
-                        HorizontalDivider(color = Color(0x1FFFFFFF))
+                        HorizontalDivider(color = IosSettingsColors.separator)
                     }
                 }
             }
@@ -1201,7 +1201,7 @@ fun VoiceRoomAnimatedDialog(
         text = text ?: content,
         confirmButton = {
             TextButton(onClick = onConfirm) {
-                Text(confirmText, color = if (dangerConfirm) Color(0xFFFF6E6E) else VoiceRoomPalette.ActiveCyan, fontWeight = FontWeight.SemiBold)
+                Text(confirmText, color = if (dangerConfirm) IosSettingsColors.red else VoiceRoomPalette.ActiveCyan, fontWeight = FontWeight.SemiBold)
             }
         },
         dismissButton = if (dismissText != null && onDismissClick != null) {
@@ -1250,7 +1250,7 @@ fun VoiceRoomSettingsSheet(
     )
     val categoryLabel = categories.firstOrNull { it.first == category }?.second ?: "General"
 
-    ModalBottomSheet(onDismissRequest = { onClose() }, containerColor = VoiceRoomPalette.DeepBlue, contentColor = Color.White, tonalElevation = 16.dp, modifier = Modifier.navigationBarsPadding()) {
+    ModalBottomSheet(onDismissRequest = { onClose() }, containerColor = VoiceRoomPalette.DeepBlue, contentColor = IosSettingsColors.label, tonalElevation = 16.dp, modifier = Modifier.navigationBarsPadding()) {
         Column(Modifier.fillMaxWidth().padding(horizontal = 16.dp, vertical = 10.dp)) {
             Row(verticalAlignment = Alignment.CenterVertically) {
                 Icon(Icons.Default.Settings, null, tint = VoiceRoomPalette.ActiveCyan, modifier = Modifier.size(22.dp))
@@ -1298,7 +1298,7 @@ fun VoiceRoomSettingsSheet(
                             minLines = if (editingField == "description") 2 else 1,
                             maxLines = if (editingField == "description") 4 else 1,
                             placeholder = { Text(if (editingField == "cover") "https://..." else if (editingField == "description") "Describe tu sala" else "Nombre de la sala") },
-                            colors = OutlinedTextFieldDefaults.colors(focusedBorderColor = VoiceRoomPalette.ActiveCyan, unfocusedBorderColor = Color(0xFF3E3E44), focusedTextColor = Color.White, unfocusedTextColor = Color.White)
+                            colors = OutlinedTextFieldDefaults.colors(focusedBorderColor = VoiceRoomPalette.ActiveCyan, unfocusedBorderColor = IosSettingsColors.separator, focusedTextColor = IosSettingsColors.label, unfocusedTextColor = IosSettingsColors.label)
                         )
                         Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.End) {
                             TextButton(onClick = { editingField = null }) { Text("Listo", color = VoiceRoomPalette.ActiveCyan) }
@@ -1362,7 +1362,7 @@ fun VoiceRoomSettingsSheet(
                             TextButton(onClick = { onKick(member.userId) }) { Text("Expulsar", color = IosSettingsColors.red, fontSize = 11.sp) }
                         }
                         onOpenProfile?.let { TextButton(onClick = { it(member.userId) }) { Text("Ver", color = VoiceRoomPalette.TextSecondary, fontSize = 11.sp) } }
-                        HorizontalDivider(color = Color(0x1FFFFFFF))
+                        HorizontalDivider(color = IosSettingsColors.separator)
                     }
                 }
             }
@@ -1386,7 +1386,7 @@ fun VoiceRoomSettingsSheet(
                                 Text(text = ban.reason ?: "Sin motivo", color = VoiceRoomPalette.TextSecondary, fontSize = 11.sp, maxLines = 1, overflow = TextOverflow.Ellipsis)
                             }
                             TextButton(onClick = { onRemoveBan(ban.userId) }) { Text("Desbanear", color = VoiceRoomPalette.ActiveCyan, fontSize = 11.sp) }
-                            HorizontalDivider(color = Color(0x1FFFFFFF))
+                            HorizontalDivider(color = IosSettingsColors.separator)
                         }
                     }
                 }
@@ -1406,14 +1406,14 @@ fun SettingsCard(content: @Composable ColumnScope.() -> Unit) {
 }
 
 @Composable
-fun SettingsDivider() { HorizontalDivider(color = Color(0x1AFFFFFF), modifier = Modifier.padding(horizontal = 14.dp)) }
+fun SettingsDivider() { HorizontalDivider(color = IosSettingsColors.separator, modifier = Modifier.padding(horizontal = 14.dp)) }
 
 @Composable
 fun SettingsRow(title: String, subtitle: String = "", danger: Boolean = false, onClick: (() -> Unit)? = null) {
     val clickModifier = if (onClick != null) Modifier.clickable(onClick = onClick!!) else Modifier
     Row(Modifier.fillMaxWidth().then(clickModifier).padding(horizontal = 16.dp, vertical = 13.dp), verticalAlignment = Alignment.CenterVertically) {
         Column(Modifier.weight(1f)) {
-            Text(text = title, color = if (danger) Color(0xFFFF6E6E) else VoiceRoomPalette.TextPrimary, fontSize = 14.sp, fontWeight = FontWeight.Medium)
+            Text(text = title, color = if (danger) IosSettingsColors.red else VoiceRoomPalette.TextPrimary, fontSize = 14.sp, fontWeight = FontWeight.Medium)
             if (subtitle.isNotBlank()) { Text(text = subtitle, color = VoiceRoomPalette.TextSecondary, fontSize = 11.sp, maxLines = 1, overflow = TextOverflow.Ellipsis) }
         }
         if (danger) Text("⚠️", fontSize = 14.sp) else if (onClick != null) Icon(Icons.Default.Check, null, tint = VoiceRoomPalette.TextSecondary, modifier = Modifier.size(16.dp))
@@ -1427,6 +1427,6 @@ fun SettingsToggleRow(title: String, subtitle: String = "", checked: Boolean, on
             Text(text = title, color = VoiceRoomPalette.TextPrimary, fontSize = 14.sp, fontWeight = FontWeight.Medium)
             if (subtitle.isNotBlank()) { Text(text = subtitle, color = VoiceRoomPalette.TextSecondary, fontSize = 11.sp) }
         }
-        Switch(checked = checked, onCheckedChange = onCheckedChange, colors = SwitchDefaults.colors(checkedThumbColor = VoiceRoomPalette.ActiveCyan, checkedTrackColor = VoiceRoomPalette.ActiveCyan.copy(alpha = 0.35f), uncheckedThumbColor = Color.White, uncheckedTrackColor = Color(0xFF3E3E44)))
+        Switch(checked = checked, onCheckedChange = onCheckedChange, colors = SwitchDefaults.colors(checkedThumbColor = VoiceRoomPalette.ActiveCyan, checkedTrackColor = VoiceRoomPalette.ActiveCyan.copy(alpha = 0.35f), uncheckedThumbColor = IosSettingsColors.label, uncheckedTrackColor = IosSettingsColors.separator))
     }
 }

@@ -106,7 +106,7 @@ fun LiveGuestControls(
                             singleLine = true,
                             label = { Text("Buscar por nombre de usuario") },
                             placeholder = { Text("Escribe un nombre...") },
-                            leadingIcon = { Icon(Icons.Default.Search, contentDescription = null, tint = Color.Gray) },
+                            leadingIcon = { Icon(Icons.Default.Search, contentDescription = null, tint = IosSettingsColors.secondaryLabel) },
                             trailingIcon = {
                                 if (query.isNotEmpty()) {
                                     IconButton(onClick = {
@@ -114,7 +114,7 @@ fun LiveGuestControls(
                                         selectedUser = null
                                         onClearSearch?.invoke()
                                     }) {
-                                        Icon(Icons.Default.Close, contentDescription = "Limpiar", tint = Color.Gray)
+                                        Icon(Icons.Default.Close, contentDescription = "Limpiar", tint = IosSettingsColors.secondaryLabel)
                                     }
                                 }
                             },
@@ -139,7 +139,7 @@ fun LiveGuestControls(
                                     Text(selectedUser!!.displayName ?: "", color = IosSettingsColors.label, fontWeight = FontWeight.Bold, fontSize =  13.sp)
                                     Text(
                                         "Invitar a este usuario",
-                                        color = Color.Gray,
+                                        color = IosSettingsColors.secondaryLabel,
                                         fontSize =  11.sp
                                     )
                                 }
@@ -149,14 +149,14 @@ fun LiveGuestControls(
                                     selectedUser = null
                                     onClearSearch?.invoke()
                                 }) {
-                                    Icon(Icons.Default.Close, contentDescription = "Quitar seleccion", tint = Color.Gray)
+                                    Icon(Icons.Default.Close, contentDescription = "Quitar seleccion", tint = IosSettingsColors.secondaryLabel)
                                 }
                             }
                         } else if (query.isNotBlank()) {
                             if (searchResults.isEmpty()) {
                                 Text(
                                     "Buscando...",
-                                    color = Color.Gray,
+                                    color = IosSettingsColors.secondaryLabel,
                                     fontSize =  12.sp
                                 )
                             } else {
@@ -180,7 +180,7 @@ fun LiveGuestControls(
                                                 Text(user.displayName ?: "", color = IosSettingsColors.label, fontWeight = FontWeight.Medium, fontSize =  13.sp, maxLines = 1, overflow = TextOverflow.Ellipsis)
                                                 Text(
                                                     "Tocar para invitar",
-                                                    color = Color.Gray,
+                                                    color = IosSettingsColors.secondaryLabel,
                                                     fontSize =  11.sp
                                                 )
                                             }
@@ -193,7 +193,7 @@ fun LiveGuestControls(
                         Text(
                             "El invitado recibira una notificacion en tiempo real y podra aceptar o rechazar al instante",
                             fontSize =  12.sp,
-                            color = Color.Gray
+                            color = IosSettingsColors.secondaryLabel
                         )
                         Spacer(modifier = Modifier.height(8.dp))
                         Text(
@@ -203,7 +203,7 @@ fun LiveGuestControls(
                         )
                         Spacer(modifier = Modifier.height(8.dp))
                         if (guests.isEmpty()) {
-                            Text("No hay invitados activos", color = Color.Gray, fontSize =  13.sp)
+                            Text("No hay invitados activos", color = IosSettingsColors.secondaryLabel, fontSize =  13.sp)
                         } else {
                             LazyColumn(modifier = Modifier.height(120.dp)) {
                                 items(guests, key = { it.userId }) { guest ->

@@ -77,7 +77,7 @@ fun LiveBroadcastSetup(
     Box(
         modifier = Modifier
             .fillMaxSize()
-            .background(Color(0xFF05070A)),
+            .background(IosSettingsColors.groupBackground),
     ) {
         LiveCameraPreviewBackground(
             active = hasPermissions && cameraPreviewActive,

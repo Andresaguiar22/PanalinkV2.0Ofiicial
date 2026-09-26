@@ -14,27 +14,27 @@ import com.example.ui.settings.ios.IosSettingsColors
  */
 
 /** Verde neón de marca: CTA, anillo del avatar del host y FAB. */
-val LiveNeon = Color(0xFF0A84FF)
+val LiveNeon get() = IosSettingsColors.blue
 
 /** Texto/icono oscuro que se lee sobre [LiveNeon]. */
-val LiveOnNeon = Color(0xFFFFFFFF)
+val LiveOnNeon get() = IosSettingsColors.onAccent
 
 /** Base nocturna azulada del fondo (no negro puro). */
-val LiveNightBase = Color(0xFF000000)
+val LiveNightBase get() = IosSettingsColors.groupBackground
 
 /** Rojo del indicador de directo y su halo. */
-val LiveLiveRed = Color(0xFFFF3B4E)
+val LiveLiveRed get() = IosSettingsColors.red
 val LiveLiveGlow: Color get() = IosSettingsColors.pink
 
 /** Relleno y borde translúcidos de las superficies "glass". */
-val LiveGlassFill = Color(0xFF131A22).copy(alpha = 0.82f)
-val LiveGlassBorder = Color(0xFF0A84FF).copy(alpha = 0.35f)
+val LiveGlassFill get() = IosSettingsColors.cell.copy(alpha = 0.82f)
+val LiveGlassBorder get() = IosSettingsColors.blue.copy(alpha = 0.35f)
 
 /** Scrim oscuro que se pinta sobre las miniaturas para que el texto se lea. */
-val LiveCardScrim = Color(0xFF0D0F12)
+val LiveCardScrim get() = IosSettingsColors.groupBackground
 
 /** Fondo translúcido de los badges flotantes sobre las miniaturas. */
-val LiveBadgeFill = Color(0xFF131A22).copy(alpha = 0.78f)
+val LiveBadgeFill get() = IosSettingsColors.cell.copy(alpha = 0.78f)
 
 /**
  * Fondo translúcido del HUD del directo (píldora de estado y botones circulares).
@@ -42,7 +42,7 @@ val LiveBadgeFill = Color(0xFF131A22).copy(alpha = 0.78f)
  * Es oscuro a propósito: el HUD va encima del video de cámara, y un relleno claro
  * dejaría el texto blanco sin contraste cuando la escena es brillante.
  */
-val LiveHudFill = Color(0xFF131A22).copy(alpha = 0.78f)
+val LiveHudFill get() = IosSettingsColors.cell.copy(alpha = 0.78f)
 
 /** Borde fino y claro del HUD: separa la superficie flotante del video de fondo. */
 val LiveHudBorder: Color get() = IosSettingsColors.blue.copy(alpha = 0.55f)

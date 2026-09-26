@@ -124,7 +124,7 @@ fun VoiceRoomCreateDialog(onDismiss:()->Unit,onCreate:(CreateRoomRequest)->Unit)
 
   // Hoja de categorias
   if(showCategorySheet){
-   AlertDialog(onDismissRequest={showCategorySheet=false},title={Text("Modo de sala",fontWeight=FontWeight.Bold)},text={Column{categories.forEach{(key,label)->Row(Modifier.fillMaxWidth().clickable{category=key;showCategorySheet=false}.padding(vertical=10.dp),verticalAlignment=Alignment.CenterVertically){Icon(if(category==key)Icons.Default.Check else Icons.Default.Public,null,tint=if(category==key)RoomAccent2 else Color.Gray,modifier=Modifier.size(18.dp));Spacer(Modifier.width(10.dp));Text(label,color=TextColor,fontSize=15.sp)}}}},confirmButton={TextButton(onClick={showCategorySheet=false}){Text("Cerrar")}})
+   AlertDialog(onDismissRequest={showCategorySheet=false},title={Text("Modo de sala",fontWeight=FontWeight.Bold)},text={Column{categories.forEach{(key,label)->Row(Modifier.fillMaxWidth().clickable{category=key;showCategorySheet=false}.padding(vertical=10.dp),verticalAlignment=Alignment.CenterVertically){Icon(if(category==key)Icons.Default.Check else Icons.Default.Public,null,tint=if(category==key)RoomAccent2 else IosSettingsColors.secondaryLabel,modifier=Modifier.size(18.dp));Spacer(Modifier.width(10.dp));Text(label,color=TextColor,fontSize=15.sp)}}}},confirmButton={TextButton(onClick={showCategorySheet=false}){Text("Cerrar")}})
   }
  }
 }

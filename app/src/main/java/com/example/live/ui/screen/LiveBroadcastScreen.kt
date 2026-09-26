@@ -400,7 +400,7 @@ fun LiveBroadcastScreen(
                 Box(
                     modifier = Modifier
                         .fillMaxSize()
-                        .background(Color(0xFF0E0E10))
+                        .background(IosSettingsColors.groupBackground)
                 ) {
                     // Capa base: track local de LiveKit (la cámara real ya está
                     // publicada). Sin ella el fondo queda inmersivo en negro.
@@ -626,8 +626,8 @@ fun LiveBroadcastScreen(
                 }
             },
             containerColor = IosSettingsColors.cell,
-            titleContentColor = Color.White,
-            textContentColor = Color.Gray
+            titleContentColor = IosSettingsColors.label,
+            textContentColor = IosSettingsColors.secondaryLabel
         )
     }
 }

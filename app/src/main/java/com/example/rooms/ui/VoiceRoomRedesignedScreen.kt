@@ -32,7 +32,7 @@ import androidx.compose.material.icons.filled.Group
 import androidx.compose.material.icons.filled.Mic
 import androidx.compose.material.icons.filled.MicOff
 import androidx.compose.material.icons.filled.Person
-import androidx.compose.material.icons.filled.Send
+import androidx.compose.material.icons.automirrored.filled.Send
 import androidx.compose.material.icons.filled.Settings
 import androidx.compose.material.icons.filled.Share
 import androidx.compose.material.icons.filled.Star
@@ -178,7 +178,7 @@ fun VoiceRoomRedesignedScreen(
             .fillMaxSize()
             .background(
                 brush = Brush.verticalGradient(
-                    colors = listOf(IosSettingsColors.groupBackground, Color(0xFF020617))
+                    colors = listOf(IosSettingsColors.groupBackground, IosSettingsColors.groupBackground)
                 )
             )
     ) {
@@ -636,7 +636,7 @@ private fun VoiceRoomSeatNameChip(
             overflow = TextOverflow.Ellipsis,
             modifier = Modifier
                 .background(
-                    color = Color(0x990B1220),
+                    color = IosSettingsColors.mediaScrim,
                     shape = RoundedCornerShape(6.dp)
                 )
                 .padding(horizontal = 5.dp, vertical = 1.dp)
@@ -857,7 +857,7 @@ fun VoiceRoomRedesignedSeatCircle(
         1.5.dp
     }
 
-    val borderColor = if (speaking && !isMuted) VoiceRoomPalette.ActiveCyan else Color(0x33FFFFFF)
+    val borderColor = if (speaking && !isMuted) VoiceRoomPalette.ActiveCyan else IosSettingsColors.separator
 
     Box(
         modifier = Modifier
@@ -1108,7 +1108,7 @@ fun VoiceRoomRedesignChatMessage(
                     .weight(1f, fill = false)
                     .widthIn(max = 200.dp)
                     .clip(RoundedCornerShape(10.dp))
-                    .background(Color(0x14FFFFFF))
+                    .background(IosSettingsColors.separator)
                     .padding(horizontal = 8.dp, vertical = 3.dp),
                 horizontalAlignment = Alignment.Start
             ) {
@@ -1230,7 +1230,7 @@ fun VoiceRoomRedesignedBottomBar(
             modifier = Modifier.size(36.dp)
         ) {
             Icon(
-                imageVector = Icons.Default.Send,
+                imageVector = Icons.AutoMirrored.Filled.Send,
                 contentDescription = "Enviar",
                 tint = if (inputText.isNotBlank()) VoiceRoomPalette.ActiveCyan else VoiceRoomPalette.TextSecondary.copy(alpha = 0.4f),
                 modifier = Modifier.size(20.dp)
