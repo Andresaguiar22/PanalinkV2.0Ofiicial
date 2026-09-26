@@ -202,9 +202,9 @@ fun LiveViewerScreen(
             visible = showChatPanel,
             modifier = Modifier
                 .align(Alignment.BottomStart)
-                .padding(start = 10.dp, bottom = 72.dp)
+                .padding(start = 10.dp, bottom = 4.dp)
                 .fillMaxWidth(0.62f)
-                .heightIn(max = 250.dp)
+                .heightIn(max = 340.dp)
         ) {
             if (comments.isNotEmpty()) {
                 LiveViewerComments(

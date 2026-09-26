@@ -128,21 +128,34 @@ internal fun rememberFreshMediaUrl(rawUrl: String?): String {
  * la tarjeta cae al overlay Play sobre fondo scrim (nunca un frame negro vacío).
  */
 @Composable
-internal fun rememberFeedVideoThumbnail(rawMediaUrl: String?): String {
+internal fun rememberFeedVideoThumbnail(rawMediaUrl: String?, resolvedMediaUrl: String? = null): String {
     val raw = rawMediaUrl?.trim().orEmpty()
-    if (!com.example.data.repository.VcdnUrlResolver.isVcdnUrl(raw)) return ""
-    var poster by remember(raw) { mutableStateOf("") }
-    LaunchedEffect(raw) {
-        if (!com.example.util.NetworkMonitor.isOnline.value) return@LaunchedEffect
-        poster = com.example.data.repository.VcdnUrlResolver.resolvePoster(raw) ?: ""
+    val resolved = resolvedMediaUrl?.trim().orEmpty()
+    if (raw.isBlank() && resolved.isBlank()) return ""
+    // VCDN: el poster real viene del BFF (`resolvePoster`, estable y cacheado).
+    if (com.example.data.repository.VcdnUrlResolver.isVcdnUrl(raw)) {
+        var poster by remember(raw) { mutableStateOf("") }
+        LaunchedEffect(raw) {
+            if (!com.example.util.NetworkMonitor.isOnline.value) return@LaunchedEffect
+            poster = com.example.data.repository.VcdnUrlResolver.resolvePoster(raw) ?: ""
+        }
+        return poster
     }
-    return poster
+    // CDN convencional (cloudflare PanaLink): la URL del vídeo (ya re-anchada a la
+    // base CDN activa) es el thumbnail. El VideoFrameDecoder de Coil ya está
+    // registrado en el ImageLoader de la app y extrae el PRIMER FRAME real del
+    // vídeo como imagen, así la miniatura es un frame real estable, sin depender
+    // de ExoPlayer ni del backend. Coil cachea el frame por URL (memory+disk),
+    // por lo que el scroll no regenera nada.
+    return resolved.ifBlank { raw }
 }
 
 /** Overlay elegante "estoy es un video": Play centrado + scrim degradado. */
 @Composable
 internal fun VideoThumbnailOverlay(resolvedThumbnail: String, modifier: Modifier = Modifier) {
-    Box(modifier = modifier.fillMaxSize().background(iosBgWhenNoThumb(resolvedThumbnail)), contentAlignment = Alignment.Center) {
+    // El fondo degradado va SIEMPRE: si el frame real tarda en llegar (o no existe),
+    // la tarjeta nunca queda negra ni "vacía"; el Play la identifica como vídeo.
+    Box(modifier = modifier.fillMaxSize().background(videoThumbFallbackBrush()), contentAlignment = Alignment.Center) {
         if (resolvedThumbnail.isNotBlank()) {
 
             androidx.compose.foundation.Image(
@@ -195,12 +208,9 @@ internal fun VideoThumbnailOverlay(resolvedThumbnail: String, modifier: Modifier
     }
 }
 
-private fun iosBgWhenNoThumb(resolvedThumbnail: String): Brush =
-    if (resolvedThumbnail.isBlank()) {
-        Brush.linearGradient(listOf(Color(0xFF141A26), Color(0xFF1E2632)))
-    } else {
-        Brush.linearGradient(listOf(Color.Transparent, Color.Transparent))
-    }
+/** Fondo de respaldo de una tarjeta de vídeo: degradado oscuro elegante. */
+private fun videoThumbFallbackBrush(): Brush =
+    Brush.linearGradient(listOf(Color(0xFF141A26), Color(0xFF1E2632)))
 
 private fun urlPathOf(url: String): String =
     url.substringBefore('?').substringBefore('#').lowercase()
@@ -543,7 +553,7 @@ fun FeedPostCard(
                                 // Se pinta un thumbnail (poster del BFF VCDN si existe) + overlay
                                 // Play exuberante; el tap abre el visor (Mini-Reels Muro), donde
                                 // si se reproduce con el motor robusto de reels.
-                                val videoThumb = rememberFeedVideoThumbnail(url)
+                                val videoThumb = rememberFeedVideoThumbnail(url, resolvedUrl)
                                 VideoThumbnailOverlay(
                                     resolvedThumbnail = videoThumb,
                                     modifier = Modifier.fillMaxSize()

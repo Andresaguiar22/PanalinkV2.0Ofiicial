@@ -530,11 +530,11 @@ private fun chatCardPositionFor(index: Int, total: Int): com.example.ui.theme.Ch
 private fun ChatStatusCircles(seen: Boolean, delivered: Boolean) {
     val count = if (seen) 3 else if (delivered) 2 else 1
     val color = if (seen) Color(0xFF22C55E) else if (delivered) Color(0xFFF59E0B) else Color(0xFF9CA3AF)
-    val diameter = 4.dp
-    val gap = 1.5.dp
+    val diameter = 12.dp
+    val gap = 3.dp
     androidx.compose.foundation.layout.Box(
         modifier = Modifier
-            .height(11.dp)
+            .height(16.dp)
             .width(gap * (count - 1) + diameter)
     ) {
         for (i in 0 until count) {

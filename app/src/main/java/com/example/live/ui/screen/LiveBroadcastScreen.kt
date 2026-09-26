@@ -560,9 +560,9 @@ fun LiveBroadcastScreen(
                             fadeOutBottom = true,
                             modifier = Modifier
                                 .fillMaxWidth()
-                                .heightIn(max = maxHeight / 2)
+                                .heightIn(max = maxHeight * 0.62f)
                                 .navigationBarsPadding()
-                                .padding(bottom = 76.dp)
+                                .padding(bottom = 4.dp)
                         )
                     }
 

@@ -165,10 +165,10 @@ fun MessageStatusIndicator(
  */
 @Composable
 private fun StatusCircles(count: Int, color: Color, offsetStagger: Boolean) {
-    val diameter = 4.dp
-    val gap = 1.dp
+    val diameter = 12.dp
+    val gap = 3.dp
     androidx.compose.foundation.layout.Box(
-        modifier = Modifier.height(11.dp).width(gap * (count - 1) + diameter)
+        modifier = Modifier.height(16.dp).width(gap * (count - 1) + diameter)
     ) {
         for (i in 0 until count) {
             androidx.compose.foundation.Canvas(

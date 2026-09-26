@@ -34,14 +34,14 @@ fun CommentMediaText(
 ) {
     val gif = parseCommentGif(text)
     if (gif != null) {
-        val gifSize = if (compact) 96.dp else 130.dp
+        val gifSize = if (compact) 64.dp else 130.dp
         Box(
             modifier = modifier
                 .size(gifSize)
                 .padding(top = 2.dp)
                 .background(IosSettingsColors.cellElevated, RoundedCornerShape(8.dp))
                 .clip(RoundedCornerShape(8.dp)),
-            contentAlignment = Alignment.Center
+            contentAlignment = Alignment.CenterStart
         ) {
             AsyncImage(
                 model = gif.url,

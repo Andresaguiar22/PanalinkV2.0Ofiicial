@@ -94,12 +94,13 @@ class SocialMediaUploadWorker(
                         setProgressAsync(workDataOf("uploadId" to uploadId, "progress" to uploadPct, "bytesWritten" to bytesWritten, "totalBytes" to totalBytes, "status" to "Subiendo archivo...", "uploadType" to entity.uploadType))
                     }
                 }
-                // Failover total para TODO tipo de media: CDN primero; si falla, B2.
-                // VCDN (proxy edge function) para video PUBLICO (reels/stories). El
-                // resto (imagenes, audio, chat privado, thumbnails) sigue 100% por el
-                // UploadFailoverRouter (B2/CDN), sin tocarlo.
+                // Failover total para TODO tipo de media: CDN de PanaLink (cloudflare) primero;
+                // si falla, B2. VCDN (proxy edge function) queda SOLO para REELS
+                // (decidido 2026-09-26: historia/muro van al CDN convencional porque
+                // VCDN daba problemas de reproduccion). El resto (imagenes, audio,
+                // chat privado, thumbnails) sigue 100% por el UploadFailoverRouter).
                 val isPublicVideo = entity.mimeType.startsWith("video/") &&
-                    (entity.uploadType == "REEL" || entity.uploadType == "STATE")
+                    entity.uploadType == "REEL"
                 val ext = if (finalUploadFile.name.contains(".")) finalUploadFile.name.substringAfterLast(".") else "bin"
                 val stableFileName = "social_${entity.id}_${entity.uploadType.lowercase()}.$ext"
                 val uploadResult = if (isPublicVideo) {

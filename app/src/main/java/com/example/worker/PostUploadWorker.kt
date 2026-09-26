@@ -379,19 +379,7 @@ open class PostUploadWorker(
         clientMessageUuid: String,
         onProgress: (bytesWritten: Long, totalBytes: Long) -> Unit
     ): kotlin.Result<UploadMediaResult> {
-        val isPublicVideo = mimeType.startsWith("video/") && mediaKind == "VIDEO"
-        return if (isPublicVideo) {
-            com.example.data.repository.VideoRouter.uploadPublicVideo(
-                file = file,
-                mimeType = mimeType,
-                userId = userId,
-                uploadType = "POST",
-                customFileName = stableFileName,
-                clientMessageUuid = clientMessageUuid,
-                onProgress = onProgress
-            )
-        } else {
-            com.example.data.repository.UploadFailoverRouter.uploadWithFailover(
+        return com.example.data.repository.UploadFailoverRouter.uploadWithFailover(
                 file = file,
                 mimeType = mimeType,
                 userId = userId,
@@ -409,7 +397,6 @@ open class PostUploadWorker(
                     onProgress = progress
                 )
             }
-        }
     }
 
     private fun kindForMime(mime: String): String? = when {
