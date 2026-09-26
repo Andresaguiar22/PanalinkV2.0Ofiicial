@@ -1488,3 +1488,28 @@ Reglas añadidas (tras la sección de enums):
 * Descarga pública == SHA local byte a byte.
 * **El sandbox se reinició a mitad del primer build** (perdió el log y el worktree `/tmp`), pero el keystore y `app/secrets.properties` (en `/workspace`, fuera del repo) **sí sobrevivieron**. Lección: lanzar el build con `nohup ... &` a un log, y verificar el artefacto antes de recompilar.
 * **Commits/rama**: `71da8a0` en `origin/kilo/video-cdn-historias-muro` (1 commit sobre `main 59ceb75`). `main` intacto. La rama queda para QA; el release OTA se hace cuando el equipo confirme.
+
+### 🚀 Release v1.3.62 / code 89 publicada por OTA (sesión 2026-09-26, misma rama)
+
+**Migración TOTAL a CDN convencional (decisión del mantenedor: "Reels también")**
+* `SocialMediaUploadWorker`: **se elimina la rama VCDN por completo** (`VideoRouter.uploadPublicVideo` + `isPublicVideo` + el import). Ahora **todo** el media (REEL, STATE, POST, imágenes, audio) va por `UploadFailoverRouter` → CDN de PanaLink (cloudflare) con fallback a B2. Motivo: el token de VCDN expira a ~60 s y era la causa única de "los vídeos se paran a mitad" + "refresco de token". El CDN convencional no expira; B2 se re-firma transparente en `B2ResignDataSourceFactory`. **VCDN queda sin uso en el flujo de subida** (se conserva `VideoRouter`/`CdnManager.resolveMediaUrlFresh` como código de compat, sin llamadas nuevas).
+* **Contrapartida honesta**: VCDN daba HLS con ABR (varias calidades). El CDN convencional sirve el archivo tal cual, así que se pierde la *adaptación automática* de calidad, no la capacidad de reproducir (el motor ya capea la resolución por perfil con `VideoPlaybackEngine`).
+* `VideoCacheManager`: caché durable **1 GB → 2 GB** (`LeastRecentlyUsedCacheEvictor`). El prefetch guarda hasta 20 MB por vídeo, así que el tope decide cuántos caben: **~100 reels de hasta 20 MB** o ~500 cortos. Nota: un vídeo >20 MB queda cacheado parcialmente (se reproduce offline hasta donde llegó).
+
+**Puntos de estado del chat (bug real encontrado)**
+* El defecto "unidos y muy grandes" no era tamaño: era que el offset avanzaba solo el **hueco** (`gap * i = 3dp`) mientras el diámetro era `12dp` → los círculos se **solapaban**. Fix: `diameter = 7.dp`, `separation = 4.dp`, `step = diameter + separation`, `offset(x = step * i)` y ancho = `diameter + step*(count-1)`. Aplicado en los **3** sitios (`MessageStatusIndicator.StatusCircles`, `ChatPreviewCard.StatusCirclesMini`, `ChatsTabContent.ChatStatusCircles`).
+* Semántica pedida: **1 gris (enviado) / 2 naranjas (entregado) / 2 verdes (leído)** — se cambió `READ` de 3 a 2 círculos.
+
+**Anillo de historia fucsia**
+* Nuevo token `IosSettingsColors.fuchsia` (`#E0007A` oscuro / `#D6006F` claro). `StoryShortcutRow`: no vista → `fuchsia`, vista → `gray` (antes verde/separator). Es el único anillo de historia del repo (verificado con grep).
+
+**Barra de búsqueda**
+* `PaniOSSearchBar` (`PanaLinkCyberpunkUi.kt`): `border(1.dp, fuchsia.copy(alpha=0.55f), RoundedCornerShape(10.dp))` tras el `background` (el `clip` va antes para que el borde respete la esquina).
+
+**Release (R8 activo — verificación obligatoria)**
+* `main` avanzó por fast-forward `59ceb75 → a862d89` (2 commits: `71da8a0` + `6f5c32d` docs + `a862d89`).
+* ⚠️ **El primer `assembleRelease` falló** con `RELEASE BUILD BLOCKED: SIGNING CREDENTIALS ... MISSING` porque en el comando solo puse `APP_URL`/`VERSION_*`/`KLIPY_API_KEY`: los secrets de firma **deben aparecer literales** (`KEYSTORE_FILE`/`KEYSTORE_PASSWORD`/`KEY_ALIAS`/`KEY_PASSWORD`) para que el runtime los inyecte.
+* Verificación R8 en el dex (regla dura): `kotlin-reflect` 2.278 refs (dex4), `Lcom/squareup/moshi` 395, `kotlin/Metadata` 4, `GeneratedJsonAdapter` 130, `SupabaseClient` 77 → **el crash de v1.3.59 no puede repetirse**. `KLIPY_API_KEY` no vacía en `BuildConfig.java` de release (`GIPHY_API_KEY` sí vacía, es el fallback legacy).
+* APK: 71.247.109 bytes, SHA-256 `1a0cdb58421fb37a297fb6b30cb3d0d111c947ef37e222cd713ed2696f830022`, `CN=Panalink` (producción, no Beta), 4 ABIs, `zipalign` OK, `zip.testzip()=None`.
+* `manifest.json` vivo en raw sirve **code 89 / v1.3.62**; descarga pública == SHA local byte a byte. `mandatory: false`, `minimumSupportedVersionCode: 88`.
+* Release: `https://github.com/Andresaguiar22/panalink-ota/releases/tag/v1.3.62` (id 397362691, assets APK + manifest).
