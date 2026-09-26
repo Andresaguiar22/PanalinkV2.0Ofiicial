@@ -122,3 +122,54 @@
     public static **[] values();
     public static ** valueOf(java.lang.String);
 }
+
+# --- Kotlin reflection / moshi-kotlin (KotlinJsonAdapterFactory) ------------
+# SupabaseClient.<clinit> construye el Moshi con KotlinJsonAdapterFactory, que usa
+# kotlin-reflect (Class.la kotlinMetadata, constructors, params) para generar adapters
+#en runtime. Sin estos keeps, R8 elimina/ofusca el metadata y el <clinit> falla
+#con NoClassDefFoundError: <clinit> failed for class ...SupabaseClient al
+# arrancar la app. (Caso real reportado por usuarios en release v1.3.59/code 86.)
+-keepattributes RuntimeVisibleAnnotations,RuntimeVisibleParameterAnnotations,RuntimeVisibleTypeAnnotations,AnnotationDefault,InnerClasses,EnclosingMethod,Signature,Exceptions
+
+# kotlin-reflect: el motor de reflexion de Moshi (klass.metadata, constructors, etc.)
+-keep class kotlin.reflect.** { *; }
+-keep class kotlin.reflect.jvm.** { *; }
+-keep class kotlin.reflect.full.** { *; }
+-keep class kotlin.Metadata { *; }
+-dontwarn kotlin.reflect.**
+
+# Kotlin intrinsics/metadata internals necesarios para leer @Metadata
+-keepclassmembers class kotlin.** {
+    public static *** getMetadata(...);
+}
+-dontwarn kotlin.**
+
+# Moshi runtime + factories resueltos por reflexion
+-keep class com.squareup.moshi.** { *; }
+-dontwarn com.squareup.moshi.**
+
+# moshi-kotlin (KotlinJsonAdapterFactory) y sus internals
+-keep class com.squareup.moshi.kotlin.** { *; }
+-dontwarn com.squareup.moshi.kotlin.**
+
+# Los adapters generados por KSP (moshi-kotlin-codegen) tienen forma <Clase>JsonAdapter
+# y R8 los necesita para la factory anotada; conservarlos TODOS enteros
+-keep class **JsonAdapter { *; }
+-keepclasseswithmembers class * {
+    @com.squareup.moshi.Generated *;
+}
+-keep class com.squareup.moshi.Generated { *; }
+
+# Retrofit + converters (reflexion en create())—— refuerzo explicito
+-keep class retrofit2.** { *; }
+-keep class retrofit2.converter.moshi.** { *; }
+-dontwarn retrofit2.**
+
+# OkHttp internals usados por el stack realtime/websocket
+-keep class okhttp3.** { *; }
+-keep class okio.** { *; }
+-dontwarn okhttp3.**
+-dontwarn okio.**
+
+# Clases de modelo del dominio con @JsonClass se resuelven por reflexion generica
+-keep @com.squareup.moshi.JsonClass class * { *; }
