@@ -1251,6 +1251,24 @@ La refactorizacion iOS esta **cerrada y aprobada** en `kilo/clean-ui-ios` (96 co
 * **NO pusheada** y **sin OTA**: el encargo de release sigue pendiente de la confirmacion del mantenedor.
 * Trabajo pendiente del encargo: unificar las 26 barras a `IosSettingsScaffold`, migrar iconos a Rounded, normalizar fondos de Scaffold, y preparar release/OTA.
 
+### Auditoria de conformidad con la spec del Muro (sesion 2026-09-25)
+
+La spec original vive en el historial de la conversacion (`/workspace/conversations/<id>/events/`, buscar "IMPLEMENTACION INTEGRAL"). Se comparo punto por punto; dos desviaciones reales encontradas y corregidas:
+
+| Seccion de la spec | Estado | Detalle |
+|---|---|---|
+| §4/§5/§6 visor vertical de video, solo videos, autoplay del visible, swipe | OK | `MuroVideoViewer` con `VerticalPager`; el pager recibe `videoPosts` filtrados |
+| §7 una sola fuente de verdad | OK | `feedViewModel.toggleLike/sharePost`; `PostDto` viene de `feedUiState.posts` |
+| §8 perfil + caption expandible | OK | `MuroPostHeader`, `maxLines` 2 -> expandido |
+| **§5 lifecycle Android** | **FALTABA** | `MuroVideoPlayerPool.pauseAll()` no se llamaba desde ningun sitio: el video seguia decodificando en segundo plano. Fix: observer `ON_PAUSE`/`ON_RESUME` en el visor (patron de `TikTokVideoFeedScreen`/`PanaTVScreen`). Commit `1449a9d` |
+| **§9 visor de fotos** | **DESVIADO** | Estaba **horizontal** y **sin reacciones/comentarios/compartir**, cuando la spec pide *"navegacion vertical entre imagenes"* y `foto -> reacciones -> comentarios -> compartir`. Fix: `VerticalPager`, lista de **posts** (no URLs planas) para poder mostrar caption y acciones, y los mismos botones que el visor de video. Comparte `MuroActionButton`/`MuroPostHeader` (pasados a `internal`) |
+| §9 foto/video nunca mezclados | OK | se separan por `isVideoUrl` en el tap y cada visor recibe solo su tipo |
+
+* **Nav vertical de fotos + zoom**: se arbitra con `userScrollEnabled = !isZoomed`. Mientras la foto esta ampliada el arrastre hace *pan*; solo cuando vuelve a escala 1 el pager toma el gesto. Sin esa guarda, arrastrar una foto ampliada cambiaria de pagina.
+* **`MuroPhotoViewer` cambio de firma**: ahora `(posts, initialPostId, initialPhotoIndex, onBack, onToggleLike, onOpenComments, onShare)`; se elimino `mediaUrls`/`initialPage`.
+* **§1 version optimizada (transcodificacion)**: **NO implementada**. La app no transcodifica; delega en el pipeline de VCDN (`transcode_progress`/`status`), que **ya genera variantes ABR**. Un `ffmpeg` en el cliente seria duplicar infraestructura y la spec pide no complicar de mas. El trabajo de fluidez se resolvio en el **reproductor** (cap de resolucion + motor unico), que es la palanca real.
+
+
 ### ⚠️ Correccion: el fix del cap NO estaba aplicado en 5 reproductores (sesion 2026-09-25, commits `350db6e`/`6765831`)
 
 `VideoPlaybackEngine` (commit `81f38bc`) define el cap correcto, pero **solo 3 call sites lo usaban**. Al auditar TODOS los `ExoPlayer.Builder(` del repo aparecieron **5 players de video que lo esquivaban** y seguian decodificando a resolucion de origen:
@@ -1267,8 +1285,9 @@ La refactorizacion iOS esta **cerrada y aprobada** en `kilo/clean-ui-ios` (96 co
 * **REGLA**: al tocar reproduccion, auditar con `grep -rn "ExoPlayer.Builder("` y verificar que cada player **de video** tenga `setMaxVideoSize`. Un motor "unico" que solo usan 3 de 8 players no es un motor unico.
 * Los players de **audio** (`media/audio/AudioPlayerEngine.kt`, y el de musica de fondo en `InicioTabContent`/`PostDetailScreen`/`CameraCaptureView`) se dejan **sin** cap a proposito: son solo audio.
 * Se expusieron `VideoPlaybackEngine.maxDecodeEdge(context, profile)` y `maxBitrate(profile)` para que los players que deben conservar su propio data source (headers dinamicos, HLS directo de VCDN sin cache, IPTV) capen sin recurrir a `clearVideoSizeConstraints()`.
-* **Test real** `app/src/test/java/com/example/core/media/VideoPlaybackEngineCapTest.kt` (4 casos): construye el player con Robolectric y lee el `DefaultTrackSelector.parameters` resultante, asi que verifica el **cableado** y no solo la formula. `builtPlayerCarriesTheDecodeCap` falla si alguien vuelve a quitar el cap (maxVideoWidth null = sin limite). Suite completa: **332 tests, BUILD SUCCESSFUL**.
-* **Ojo Robolectric**: un caso que creaba un `Context` con otra densidad (`createConfigurationContext`) pasaba aislado pero reventaba en la suite con `FileSystemAlreadyExistsException`. No meter contexts alternativos en tests Robolectric de este repo.
-* Leccion de metodo: la sesion habia reportado "el fix del cap esta aplicado" basandose en que el motor existia. **Existir != estar cableado**: hay que contar los call sites.
+* **Test real** `app/src/test/java/com/example/core/media/VideoPlaybackEngineCapTest.kt` (5 casos): JVM puro sobre `VideoPlaybackEngine.maxDecodeEdgeFor(longEdge, profile)` (la formula real, extraida de `maxDecodeEdge`). Cubre el contrato por perfil en paneles 1280/1920/2400/2560/3840, que un 4K no se decodifique a tamano completo, que PREVIEW cape mas que pantalla completa, los suelos en paneles minusculos y los techos de bitrate. Suite completa: **332 tests, 0 fallos**.
+* **⚠️ Robolectric + `FileSystemAlreadyExistsException` (diagnostico CORREGIDO)**: en esta sesion se atribuyo primero a `createConfigurationContext`. **Falso.** El stack real es `ZipFileSystemProvider.newFileSystem` → `DefaultNativeRuntimeLoader.maybeCopyFonts` → `AndroidTestEnvironment.setUpApplicationState` → `RobolectricTestRunner.beforeTest`: revienta en el **setup de Robolectric, antes del cuerpo del test**, y basta con que la clase exista para desestabilizar la suite (medido: con la clase 1 fallo, sin ella 332/332 verde con `--rerun-tasks`). Es una carrera de Robolectric al copiar fuentes, no un bug del test. **Salida**: no testear formulas puras con Robolectric; extraer la formula y testearla en JVM puro.
+* **⚠️ Ojo con el 4K en tests de cap**: el cap es sobre el **lado largo**. En 4K el lado largo es **3840**, no 2160 (ese es el alto). Un aserto `cap < 2160` es incorrecto: en un panel 1080p el cap es 2304, legitimo y por debajo de 3840.
+* Leccion de metodo: la sesion habia reportado "el fix del cap esta aplicado" basandose en que el motor existia. **Existir != estar cableado**: hay que contar los call sites. Y al diagnosticar un test rojo, **leer el stack completo antes de proponer la causa**: los dos diagnosticos de esta sesion (`createConfigurationContext`, `clearVideoSizeConstraints`) eran plausibles pero incorrectos.
 
 
