@@ -1194,7 +1194,10 @@ Tras la migración quedan **32 archivos** con literales de color, y **todos son 
 * URL (host de esta sesión; verificar siempre con `curl -sI`): `https://work-2-kzctadcbxbkovvbf.prod-runtime.all-hands.dev/Panalink-BETA-v1.3.64-code91.apk` (puerto 12001; el `work-1` de esta sesión da **502**).
 * Nota de servidor: el APK debe copiarse a `.toolchain/serve_apk/` (volumen persistente); `/tmp` se vacía al reciclar el sandbox.
 
-### Pendiente para el mantenedor
-* **Publicar OTA del build actual** cuando el equipo valide la beta en dispositivo (la rama `kilo/clean-ui-ios` tiene 96 commits sobre `main` y `main` todavía NO tiene `IosSettingsKit.kt`; el merge a `main` + release OTA es el paso final).
+### Estado: CERRADO (2026-09-26)
+* El mantenedor **dio por cerrada** la refactorización de aspecto iOS tras validarla: "quedó espectacular".
+* **OTA NO se publica por ahora** (decisión explícita del mantenedor). La rama `kilo/clean-ui-ios` (96 commits sobre `main`, HEAD `5038eaa`) queda como fuente de verdad de esta apariencia, sin fusionar a `main`.
+* Cuando en el futuro se retome: `main` todavía NO tiene `IosSettingsKit.kt`; el merge es **fast-forward** (`main` no tiene commits que la rama no tenga) y el release OTA es el paso final (ver "Canal OTA" arriba).
+* Beta de referencia para QA: `v1.3.64-beta` / code **91** en `.toolchain/serve_apk/` (persistente). Las betas 86-90 quedan obsoletas.
 
 
