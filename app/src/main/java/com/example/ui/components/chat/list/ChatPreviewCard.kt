@@ -233,19 +233,21 @@ private fun isEmojiOnly(text: String): Boolean {
 /** Círculos pequeños de estado del mensaje para la preview de chat (enviado/entregado/leído). */
 @androidx.compose.runtime.Composable
 private fun StatusCirclesMini(count: Int, color: Color) {
-    val diameter = 12.dp
-    val gap = 3.dp
+    // Offset = diámetro + hueco (no solo el hueco) para que los puntos no se peguen.
+    val diameter = 7.dp
+    val separation = 4.dp
+    val step = diameter + separation
     androidx.compose.foundation.layout.Box(
         modifier = Modifier
-            .height(16.dp)
-            .width(gap * (count - 1) + diameter)
+            .height(diameter)
+            .width(diameter + step * (count - 1))
     ) {
         for (i in 0 until count) {
             androidx.compose.foundation.Canvas(
                 modifier = Modifier
                     .size(diameter)
                     .align(androidx.compose.ui.Alignment.CenterStart)
-                    .offset(x = gap * i)
+                    .offset(x = step * i)
             ) {
                 drawCircle(color = color, radius = size.minDimension / 2f)
             }

@@ -363,6 +363,7 @@ fun PaniOSSearchBar(
             .height(36.dp)
             .clip(RoundedCornerShape(10.dp))
             .background(IosSettingsColors.cell)
+            .border(1.dp, IosSettingsColors.fuchsia.copy(alpha = 0.55f), RoundedCornerShape(10.dp))
             .clickable(onClick = onSearchClick)
             .padding(horizontal = 10.dp),
         verticalAlignment = Alignment.CenterVertically

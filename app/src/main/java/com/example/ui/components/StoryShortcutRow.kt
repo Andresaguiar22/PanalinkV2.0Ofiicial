@@ -142,8 +142,9 @@ private fun StoryShortcutItem(
     showAddBadge: Boolean,
     onClick: () -> Unit
 ) {
-    val unseenColor = IosSettingsColors.green
-    val seenColor = IosSettingsColors.separator
+    // No vista -> fucsia intenso; vista -> gris neutro.
+    val unseenColor = IosSettingsColors.fuchsia
+    val seenColor = IosSettingsColors.gray
     val ringColors = remember(stories, unseenColor, seenColor) {
         if (stories.isEmpty()) listOf(seenColor)
         else stories.map { if (it.state.viewedByMe == true) seenColor else unseenColor }

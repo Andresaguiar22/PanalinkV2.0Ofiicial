@@ -89,6 +89,8 @@ object IosSettingsColors {
     val yellow: Color get() = if (dark) Color(0xFFFFD60A) else Color(0xFFFFCC00)
     val purple: Color get() = if (dark) Color(0xFFBF5AF2) else Color(0xFFAF52DE)
     val pink: Color get() = if (dark) Color(0xFFFF375F) else Color(0xFFFF2D55)
+    /** Fucsia intenso: anillo de historia no vista y acentos de marca. */
+    val fuchsia: Color get() = if (dark) Color(0xFFE0007A) else Color(0xFFD6006F)
     val teal: Color get() = if (dark) Color(0xFF64D2FF) else Color(0xFF5AC8FA)
     val indigo: Color get() = if (dark) Color(0xFF5E5CE6) else Color(0xFF5856D6)
     val gray: Color get() = Color(0xFF8E8E93)

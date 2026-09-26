@@ -138,9 +138,9 @@ fun MessageStatusIndicator(
                         )
                     }
                     DeliveryState.READ -> {
-                        // Tres círculos pintados (verde) = leído por el destinatario.
+                        // Dos círculos pintados (verde) = leído por el destinatario.
                         StatusCircles(
-                            count = 3,
+                            count = 2,
                             color = Color(0xFF22C55E),
                             offsetStagger = true
                         )
@@ -165,17 +165,20 @@ fun MessageStatusIndicator(
  */
 @Composable
 private fun StatusCircles(count: Int, color: Color, offsetStagger: Boolean) {
-    val diameter = 12.dp
-    val gap = 3.dp
+    // Punto pequeño con separación clara: el offset avanza el diámetro MÁS el
+    // hueco, no solo el hueco (ese era el bug que los dejaba solapados).
+    val diameter = 7.dp
+    val separation = 4.dp
+    val step = diameter + separation
     androidx.compose.foundation.layout.Box(
-        modifier = Modifier.height(16.dp).width(gap * (count - 1) + diameter)
+        modifier = Modifier.height(diameter).width(diameter + step * (count - 1))
     ) {
         for (i in 0 until count) {
             androidx.compose.foundation.Canvas(
                 modifier = Modifier
                     .size(diameter)
                     .align(Alignment.CenterStart)
-                    .offset(x = gap * i)
+                    .offset(x = step * i)
             ) {
                 drawCircle(color = color, radius = size.minDimension / 2f)
             }

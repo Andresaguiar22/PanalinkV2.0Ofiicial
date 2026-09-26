@@ -528,21 +528,24 @@ private fun chatCardPositionFor(index: Int, total: Int): com.example.ui.theme.Ch
 /** Círculos pequeños de estado del mensaje (enviado=1 gris / entregado=2 naranja / leído=3 verdes). */
 @androidx.compose.runtime.Composable
 private fun ChatStatusCircles(seen: Boolean, delivered: Boolean) {
-    val count = if (seen) 3 else if (delivered) 2 else 1
+    // 1 gris = enviado, 2 naranjas = entregado, 2 verdes = leído.
+    val count = if (seen || delivered) 2 else 1
     val color = if (seen) Color(0xFF22C55E) else if (delivered) Color(0xFFF59E0B) else Color(0xFF9CA3AF)
-    val diameter = 12.dp
-    val gap = 3.dp
+    // Offset = diámetro + hueco para que los puntos queden separados, no pegados.
+    val diameter = 7.dp
+    val separation = 4.dp
+    val step = diameter + separation
     androidx.compose.foundation.layout.Box(
         modifier = Modifier
-            .height(16.dp)
-            .width(gap * (count - 1) + diameter)
+            .height(diameter)
+            .width(diameter + step * (count - 1))
     ) {
         for (i in 0 until count) {
             androidx.compose.foundation.Canvas(
                 modifier = Modifier
                     .size(diameter)
                     .align(Alignment.CenterStart)
-                    .offset(x = gap * i)
+                    .offset(x = step * i)
             ) {
                 drawCircle(color = color, radius = size.minDimension / 2f)
             }

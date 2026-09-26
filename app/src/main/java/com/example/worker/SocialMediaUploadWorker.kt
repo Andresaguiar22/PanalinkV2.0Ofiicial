@@ -11,7 +11,6 @@ import com.example.data.repository.ProfilesRepository
 import com.example.data.repository.StatesRepository
 import com.example.data.repository.SupabaseStorageRepository
 import com.example.data.repository.UploadFailoverRouter
-import com.example.data.repository.VideoRouter
 import com.example.data.repository.UploadRepository
 import com.example.data.supabase.SupabaseClient
 import java.io.File
@@ -94,44 +93,31 @@ class SocialMediaUploadWorker(
                         setProgressAsync(workDataOf("uploadId" to uploadId, "progress" to uploadPct, "bytesWritten" to bytesWritten, "totalBytes" to totalBytes, "status" to "Subiendo archivo...", "uploadType" to entity.uploadType))
                     }
                 }
-                // Failover total para TODO tipo de media: CDN de PanaLink (cloudflare) primero;
-                // si falla, B2. VCDN (proxy edge function) queda SOLO para REELS
-                // (decidido 2026-09-26: historia/muro van al CDN convencional porque
-                // VCDN daba problemas de reproduccion). El resto (imagenes, audio,
-                // chat privado, thumbnails) sigue 100% por el UploadFailoverRouter).
-                val isPublicVideo = entity.mimeType.startsWith("video/") &&
-                    entity.uploadType == "REEL"
+                // Failover total para TODO tipo de media: CDN de PanaLink (cloudflare)
+                // primero; si falla, B2. VCDN queda FUERA del flujo de subida por
+                // completo (decidido 2026-09-26): su token expira a ~60s y era la
+                // causa de que reels/historias se parasen a mitad de reproduccion y
+                // exigiesen refresco manual. El CDN convencional no expira y B2
+                // re-firma transparente en el DataSource.
                 val ext = if (finalUploadFile.name.contains(".")) finalUploadFile.name.substringAfterLast(".") else "bin"
                 val stableFileName = "social_${entity.id}_${entity.uploadType.lowercase()}.$ext"
-                val uploadResult = if (isPublicVideo) {
-                    VideoRouter.uploadPublicVideo(
-                        file = finalUploadFile,
-                        mimeType = entity.mimeType,
+                val uploadResult = UploadFailoverRouter.uploadWithFailover(
+                    file = finalUploadFile,
+                    mimeType = entity.mimeType,
+                    userId = currentUid,
+                    uploadType = entity.uploadType,
+                    customFileName = stableFileName,
+                    clientMessageUuid = entity.id,
+                    onProgress = progressCb
+                ) { progress ->
+                    UploadRepository().uploadVideo(
+                        mediaFile = finalUploadFile,
+                        mediaMimeType = entity.mimeType,
+                        caption = captionForUpload,
                         userId = currentUid,
-                        uploadType = entity.uploadType,
-                        customFileName = stableFileName,
-                        clientMessageUuid = entity.id,
-                        onProgress = progressCb
+                        stableFileName = stableFileName,
+                        onProgress = progress
                     )
-                } else {
-                    UploadFailoverRouter.uploadWithFailover(
-                        file = finalUploadFile,
-                        mimeType = entity.mimeType,
-                        userId = currentUid,
-                        uploadType = entity.uploadType,
-                        customFileName = stableFileName,
-                        clientMessageUuid = entity.id,
-                        onProgress = progressCb
-                    ) { progress ->
-                        UploadRepository().uploadVideo(
-                            mediaFile = finalUploadFile,
-                            mediaMimeType = entity.mimeType,
-                            caption = captionForUpload,
-                            userId = currentUid,
-                            stableFileName = stableFileName,
-                            onProgress = progress
-                        )
-                    }
                 }
                 if (uploadResult.isSuccess) {
                     val mediaInfo = uploadResult.getOrThrow()

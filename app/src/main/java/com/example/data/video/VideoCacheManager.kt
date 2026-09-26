@@ -11,7 +11,10 @@ import androidx.media3.common.util.UnstableApi
 @UnstableApi
 object VideoCacheManager {
     private const val CACHE_DIR_NAME = "media3_video_cache"
-    private const val MAX_CACHE_SIZE_BYTES = 1024 * 1024 * 1024L // 1 GB durable media cache
+    // 2 GB durable media cache: el LRU desaloja los vídeos más viejos, así que el
+    // tope es lo que decide cuántos caben (~100 reels de hasta 20 MB, o ~500 cortos).
+    // Los vídeos ya vistos siguen reproduciéndose sin red mientras no sean desalojados.
+    private const val MAX_CACHE_SIZE_BYTES = 2L * 1024L * 1024L * 1024L // 2 GB
 
     @Volatile
     private var cache: SimpleCache? = null
