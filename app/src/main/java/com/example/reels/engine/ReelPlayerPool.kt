@@ -9,14 +9,9 @@ import androidx.media3.common.MediaItem
 import androidx.media3.common.PlaybackException
 import androidx.media3.common.Player
 import androidx.media3.common.util.UnstableApi
-import androidx.media3.datasource.DefaultDataSource
-import androidx.media3.exoplayer.DefaultLoadControl
 import androidx.media3.exoplayer.ExoPlayer
-import androidx.media3.exoplayer.source.DefaultMediaSourceFactory
-import androidx.media3.exoplayer.trackselection.DefaultTrackSelector
-import com.example.core.media.PanaRenderersFactory
+import com.example.core.media.VideoPlaybackEngine
 import com.example.data.repository.CdnManager
-import com.example.data.video.CacheDataSourceFactory
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.SupervisorJob
@@ -44,17 +39,9 @@ class ReelPlayerPool(private val context: Context) {
         private const val TAG = "ReelPlayerPool"
         const val POOL_SIZE = 3
 
-        // Fast-start friendly: begin playback almost immediately (300 ms) once
-        // enough data is buffered; after a rebuffer allow a wider margin so a
-        // long video does not stall while the player refills after a URL swap.
-        private const val MIN_BUFFER_MS = 10_000
-        private const val MAX_BUFFER_MS = 60_000
-        private const val BUFFER_FOR_PLAYBACK_MS = 300
-        private const val BUFFER_FOR_PLAYBACK_AFTER_REBUFFER_MS = 6_000
-
-        /** Techo de bitrate (~20 Mbps) para no descartar fuentes de alta calidad
-         *  que si caben en pantalla, pero sin dejar entrar picos absurdos. */
-        private const val MAX_VIDEO_BITRATE = 20_000_000
+        // Buffering, decoder order and the decode-resolution cap now live in
+        // VideoPlaybackEngine (Profile.REELS) so reels and the Muro viewer share
+        // one tuning. Only reels-specific constants remain here.
 
         // VCDN signed URLs expire ~60s (BFF TTL). Any cached URL older than this
         // is force-refreshed BEFORE playback starts to avoid a mid-playback 401.
@@ -152,45 +139,9 @@ class ReelPlayerPool(private val context: Context) {
 
     /** Builds a fresh, correctly-tuned ExoPlayer. This is the ONLY place players are created. */
     private fun buildSlot(slot: Int): ExoPlayer {
-        val loadControl = DefaultLoadControl.Builder()
-            .setBufferDurationsMs(
-                MIN_BUFFER_MS,
-                MAX_BUFFER_MS,
-                BUFFER_FOR_PLAYBACK_MS,
-                BUFFER_FOR_PLAYBACK_AFTER_REBUFFER_MS
-            )
-            .setBackBuffer(4_000, true)
-            .setPrioritizeTimeOverSizeThresholds(true)
-            .build()
-
-        val metrics = context.resources.displayMetrics
-        val longEdge = maxOf(metrics.widthPixels, metrics.heightPixels)
-        val capped = (longEdge * 1.2f).toInt().coerceAtLeast(1_280)
-        val trackSelector = DefaultTrackSelector(context).apply {
-            // Cap decoding at what the panel can actually show. Forcing
-            // Int.MAX_VALUE made a 4K/HDR source decode 4K on a 1080p screen,
-            // which stalls high-resolution reels even though the extra pixels
-            // are invisible. The long edge keeps a small headroom for rotation.
-            setParameters(
-                buildUponParameters()
-                    .setMaxVideoSize(capped, capped)
-                    .setMaxVideoBitrate(MAX_VIDEO_BITRATE)
-            )
-        }
-
-        val dataSourceFactory = DefaultDataSource.Factory(
-            context,
-            CacheDataSourceFactory.getCacheDataSourceFactory(context)
-        )
-
-        return ExoPlayer.Builder(context, PanaRenderersFactory.create(context))
-            .setTrackSelector(trackSelector)
-            .setMediaSourceFactory(
-                DefaultMediaSourceFactory(context).setDataSourceFactory(dataSourceFactory)
-            )
-            .setLoadControl(loadControl)
-            .setHandleAudioBecomingNoisy(true)
-            .build()
+        // Same engine as the Muro/feed players; only the profile differs, so reels
+        // and the vertical Muro viewer can never drift apart again.
+        return VideoPlaybackEngine.build(context, VideoPlaybackEngine.Profile.REELS)
             .also { player ->
                 player.playWhenReady = false
                 player.repeatMode = Player.REPEAT_MODE_ALL

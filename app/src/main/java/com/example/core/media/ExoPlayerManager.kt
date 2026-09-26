@@ -57,36 +57,15 @@ object ExoPlayerManager {
         playerPool.clear()
     }
 
-    private fun createExoPlayer(context: Context): ExoPlayer {
-        val renderersFactory = PanaRenderersFactory.create(context, preferSoftware = true)
-
-        val loadControl = DefaultLoadControl.Builder()
-            .setBufferDurationsMs(
-                5000,   // minBufferMs
-                15000,  // maxBufferMs
-                500,    // bufferForPlaybackMs
-                3000    // bufferForPlaybackAfterRebufferMs
-            )
-            .build()
-
-        // Wrap the cache factory with DefaultDataSource so scheme routing works:
-        // http(s) -> cache factory (B2 re-sign + cache), content:// (gallery) /
-        // file:// / asset:// -> the matching local DataSources. Without this wrap,
-        // gallery URIs (content://) reached DefaultHttpDataSource and failed, which
-        // is why the reel/story editor preview showed a black screen.
-        val dataSourceFactory = androidx.media3.datasource.DefaultDataSource.Factory(
-            context,
-            com.example.data.video.CacheDataSourceFactory.getCacheDataSourceFactory(context)
-        )
-
-        val mediaSourceFactory = DefaultMediaSourceFactory(context)
-            .setDataSourceFactory(dataSourceFactory)
-
-        return ExoPlayer.Builder(context, renderersFactory)
-            .setMediaSourceFactory(mediaSourceFactory)
-            .setLoadControl(loadControl)
-            .build().apply {
-                repeatMode = Player.REPEAT_MODE_ONE
-            }
-    }
+    /**
+     * The pooled players serve inline feed previews and the fullscreen Muro viewer,
+     * so they are built with the [VideoPlaybackEngine.Profile.VIEWER] profile:
+     * hardware-first decoders and a resolution cap. Building them with software
+     * decoders at full source resolution was the cause of the stutter on
+     * high-bitrate posts.
+     */
+    private fun createExoPlayer(context: Context): ExoPlayer =
+        VideoPlaybackEngine.build(context, VideoPlaybackEngine.Profile.VIEWER).apply {
+            repeatMode = Player.REPEAT_MODE_ONE
+        }
 }
