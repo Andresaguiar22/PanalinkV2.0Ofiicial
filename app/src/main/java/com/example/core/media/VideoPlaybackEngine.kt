@@ -63,11 +63,17 @@ object VideoPlaybackEngine {
      */
     fun maxDecodeEdge(context: Context, profile: Profile): Int {
         val metrics = context.resources.displayMetrics
-        val longEdge = maxOf(metrics.widthPixels, metrics.heightPixels)
-        return when (profile) {
-            Profile.PREVIEW -> (longEdge * 0.75f).toInt().coerceAtLeast(960)
-            else -> (longEdge * 1.2f).toInt().coerceAtLeast(1280)
-        }
+        return maxDecodeEdgeFor(maxOf(metrics.widthPixels, metrics.heightPixels), profile)
+    }
+
+    /**
+     * The formula behind [maxDecodeEdge], split out so the contract can be tested
+     * without an Android runtime: the cap is a pure function of the panel's longest
+     * edge and the profile.
+     */
+    fun maxDecodeEdgeFor(longEdge: Int, profile: Profile): Int = when (profile) {
+        Profile.PREVIEW -> (longEdge * 0.75f).toInt().coerceAtLeast(960)
+        else -> (longEdge * 1.2f).toInt().coerceAtLeast(1280)
     }
 
     /** Bitrate ceiling for [profile]; paired with [maxDecodeEdge]. */
