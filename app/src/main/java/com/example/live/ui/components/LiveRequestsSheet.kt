@@ -42,7 +42,7 @@ fun LiveRequestsSheet(
     ModalBottomSheet(
         onDismissRequest = onDismiss,
         containerColor = IosSettingsColors.cell,
-        contentColor = Color.White
+        contentColor = IosSettingsColors.label
     ) {
         Column(modifier = Modifier.padding(horizontal = 16.dp)) {
             Text(
@@ -80,7 +80,7 @@ fun LiveRequestsSheet(
             } else {
                 Surface(
                     shape = RoundedCornerShape(14.dp),
-                    color = Color(0xFF26262E),
+                    color = IosSettingsColors.cellElevated,
                     modifier = Modifier.fillMaxWidth()
                 ) {
                     Column(modifier = Modifier.padding(14.dp)) {

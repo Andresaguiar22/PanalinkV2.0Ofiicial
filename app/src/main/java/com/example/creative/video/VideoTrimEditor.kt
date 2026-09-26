@@ -32,7 +32,7 @@ fun VideoTrimEditor(
     Column(
         modifier = modifier
             .fillMaxWidth()
-            .background(Color(0xFF18181F), RoundedCornerShape(12.dp))
+            .background(IosSettingsColors.cell, RoundedCornerShape(12.dp))
             .padding(16.dp)
     ) {
         Row(
@@ -60,8 +60,8 @@ fun VideoTrimEditor(
             modifier = Modifier
                 .fillMaxWidth()
                 .height(48.dp)
-                .background(Color(0xFF2A2A36), RoundedCornerShape(8.dp))
-                .border(1.dp, Color(0xFF3F3F52), RoundedCornerShape(8.dp)),
+                .background(IosSettingsColors.cellElevated, RoundedCornerShape(8.dp))
+                .border(1.dp, IosSettingsColors.separator, RoundedCornerShape(8.dp)),
             contentAlignment = Alignment.Center
         ) {
             val maxVal = if (totalDurationMs > 0) totalDurationMs.toFloat() else 10000f

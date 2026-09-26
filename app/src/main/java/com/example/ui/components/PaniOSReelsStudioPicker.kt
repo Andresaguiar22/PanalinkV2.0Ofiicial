@@ -85,7 +85,7 @@ fun PaniOSReelsStudioPicker(
             ) {
                 Text(
                     text = "Estudio de Reels",
-                    color = Color.White,
+                    color = IosSettingsColors.label,
                     fontSize = 32.sp,
                     fontWeight = FontWeight.Bold,
                     fontFamily = FontFamily.SansSerif,
@@ -216,7 +216,7 @@ private fun PaniOSStudioActionCard(
         ) {
             Text(
                 text = title,
-                color = Color.White,
+                color = IosSettingsColors.label,
                 fontSize = 20.sp,
                 fontWeight = FontWeight.Bold,
                 fontFamily = FontFamily.SansSerif

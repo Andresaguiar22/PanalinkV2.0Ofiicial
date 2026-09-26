@@ -126,7 +126,7 @@ fun PlusOptionCard(
             Spacer(modifier = Modifier.width(10.dp))
             Column(verticalArrangement = Arrangement.Center) {
                 Text(title, color = IosSettingsColors.label, fontWeight = FontWeight.Bold, fontSize = 12.sp, maxLines = 1)
-                Text(subtitle, color = Color.Gray, fontSize = 9.sp, maxLines = 1, overflow = TextOverflow.Ellipsis)
+                Text(subtitle, color = IosSettingsColors.secondaryLabel, fontSize = 9.sp, maxLines = 1, overflow = TextOverflow.Ellipsis)
             }
         }
     }
@@ -146,7 +146,7 @@ fun DisabledPlusOptionBadge(
         contentAlignment = Alignment.Center
     ) {
         Column(horizontalAlignment = Alignment.CenterHorizontally, verticalArrangement = Arrangement.Center) {
-            Text(text, color = Color.Gray, fontSize = 11.sp, fontWeight = FontWeight.Medium)
+            Text(text, color = IosSettingsColors.secondaryLabel, fontSize = 11.sp, fontWeight = FontWeight.Medium)
             Text("Próximamente", color = Color.Red.copy(alpha = 0.6f), fontSize = 7.sp, fontWeight = FontWeight.Bold)
         }
     }

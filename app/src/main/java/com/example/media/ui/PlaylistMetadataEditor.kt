@@ -46,7 +46,7 @@ fun PlaylistMetadataEditor(
                     .size(160.dp)
                     .align(Alignment.CenterHorizontally)
                     .clip(RoundedCornerShape(12.dp))
-                    .background(Color.Gray)
+                    .background(IosSettingsColors.separator)
                     .clickable { onOpenCoverStudio() }
             ) {
                 if (coverPath != null) {
@@ -54,7 +54,7 @@ fun PlaylistMetadataEditor(
                 } else {
                     Icon(Icons.Default.Edit, contentDescription = null, modifier = Modifier.align(Alignment.Center))
                 }
-                Text("Cambiar Portada", color = IosSettingsColors.label, fontSize = 12.sp, modifier = Modifier.align(Alignment.BottomCenter).background(Color.Black.copy(alpha = 0.5f)).fillMaxWidth().padding(4.dp))
+                Text("Cambiar Portada", color = IosSettingsColors.label, fontSize = 12.sp, modifier = Modifier.align(Alignment.BottomCenter).background(IosSettingsColors.mediaScrimSoft).fillMaxWidth().padding(4.dp))
             }
 
             Spacer(modifier = Modifier.height(24.dp))

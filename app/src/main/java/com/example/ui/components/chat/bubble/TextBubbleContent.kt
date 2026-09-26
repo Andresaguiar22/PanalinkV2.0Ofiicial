@@ -12,12 +12,13 @@ import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 
+import com.example.ui.settings.ios.IosSettingsColors
 @OptIn(ExperimentalLayoutApi::class)
 @Composable
 fun TextBubbleContent(
     text: String,
     textSizeSp: Float = 15f,
-    textColor: Color = Color.White,
+    textColor: Color = IosSettingsColors.label,
     modifier: Modifier = Modifier,
     statusIndicator: (@Composable () -> Unit)? = null
 ) {

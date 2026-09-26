@@ -263,7 +263,7 @@ fun CreatePostBottomSheet(
                                     .align(Alignment.TopEnd)
                                     .size(24.dp)
                                     .padding(4.dp)
-                                    .background(Color.Black.copy(alpha = 0.6f), CircleShape)
+                                    .background(IosSettingsColors.mediaScrim, CircleShape)
                             ) {
                                 Icon(Icons.Default.Close, contentDescription = "Eliminar", tint = IosSettingsColors.label, modifier = Modifier.size(12.dp))
                             }

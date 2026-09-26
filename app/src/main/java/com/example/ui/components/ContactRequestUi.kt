@@ -84,7 +84,7 @@ fun ContactRequestPreviewDialog(
                 onClick = onConfirm,
                 colors = ButtonDefaults.buttonColors(containerColor = IosSettingsColors.blue)
             ) {
-                Text("Enviar solicitud", color = Color.Black)
+                Text("Enviar solicitud", color = IosSettingsColors.onAccent)
             }
         },
         dismissButton = {
@@ -136,9 +136,9 @@ fun ContactRequestRow(
                 colors = ButtonDefaults.buttonColors(containerColor = IosSettingsColors.blue),
                 modifier = Modifier.height(36.dp)
             ) {
-                Icon(Icons.Default.CheckCircle, null, tint = Color.Black, modifier = Modifier.size(16.dp))
+                Icon(Icons.Default.CheckCircle, null, tint = IosSettingsColors.onAccent, modifier = Modifier.size(16.dp))
                 Spacer(Modifier.width(4.dp))
-                Text("Aceptar", color = Color.Black, fontSize = 12.sp)
+                Text("Aceptar", color = IosSettingsColors.onAccent, fontSize = 12.sp)
             }
             Spacer(Modifier.width(8.dp))
             OutlinedButton(

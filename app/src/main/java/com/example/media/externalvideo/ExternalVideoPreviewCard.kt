@@ -43,7 +43,7 @@ fun ExternalVideoPreviewCard(
                 modifier = Modifier
                     .fillMaxWidth()
                     .height(180.dp)
-                    .background(Color.Black)
+                    .background(IosSettingsColors.groupBackground)
             ) {
                 if (!videoObject.thumbnail.isNullOrEmpty()) {
                     AsyncImage(
@@ -73,7 +73,7 @@ fun ExternalVideoPreviewCard(
 
                 // Platform Tag
                 Surface(
-                    color = Color.Black.copy(alpha = 0.7f),
+                    color = IosSettingsColors.mediaScrim,
                     shape = RoundedCornerShape(6.dp),
                     modifier = Modifier
                         .padding(8.dp)
@@ -102,7 +102,7 @@ fun ExternalVideoPreviewCard(
                     Spacer(modifier = Modifier.height(2.dp))
                     Text(
                         text = videoObject.author,
-                        color = Color.Gray,
+                        color = IosSettingsColors.secondaryLabel,
                         fontSize = 12.sp
                     )
                 }

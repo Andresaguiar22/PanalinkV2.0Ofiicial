@@ -383,7 +383,7 @@ fun ProfileEditScreen(
                                                 },
                                             contentAlignment = Alignment.Center
                                         ) {
-                                            Text(interest, fontSize = 9.sp, color = if (isSelected) IosSettingsColors.green else Color.White)
+                                            Text(interest, fontSize = 9.sp, color = if (isSelected) IosSettingsColors.green else IosSettingsColors.secondaryLabel)
                                         }
                                     }
                                 }
@@ -406,7 +406,7 @@ fun ProfileEditScreen(
                                                 },
                                             contentAlignment = Alignment.Center
                                         ) {
-                                            Text(interest, fontSize = 9.sp, color = if (isSelected) IosSettingsColors.green else Color.White)
+                                            Text(interest, fontSize = 9.sp, color = if (isSelected) IosSettingsColors.green else IosSettingsColors.secondaryLabel)
                                         }
                                     }
                                 }

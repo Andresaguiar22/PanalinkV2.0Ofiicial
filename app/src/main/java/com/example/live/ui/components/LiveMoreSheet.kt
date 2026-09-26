@@ -34,7 +34,7 @@ fun LiveMoreSheet(
     ModalBottomSheet(
         onDismissRequest = onDismiss,
         containerColor = IosSettingsColors.cell,
-        contentColor = Color.White
+        contentColor = IosSettingsColors.label
     ) {
         Column(modifier = Modifier.padding(horizontal = 16.dp)) {
             Text("Más opciones", fontSize = 18.sp, fontWeight = FontWeight.Bold, color = IosSettingsColors.label)
@@ -51,7 +51,7 @@ fun LiveMoreSheet(
                 LIVE_REPORT_REASONS.forEach { reason ->
                     Text(
                         text = reason,
-                        color = Color(0xFFEF9A9A),
+                        color = IosSettingsColors.red,
                         fontSize = 13.sp,
                         modifier = Modifier
                             .fillMaxWidth()

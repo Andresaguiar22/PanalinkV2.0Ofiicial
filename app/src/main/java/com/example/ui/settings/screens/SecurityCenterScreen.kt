@@ -326,7 +326,7 @@ fun SecurityCenterScreen(
                         modifier = Modifier
                             .size(200.dp)
                             .clip(RoundedCornerShape(16.dp))
-                            .background(Color.White)
+                            .background(IosSettingsColors.label)
                             .padding(12.dp),
                         contentAlignment = Alignment.Center
                     ) {
@@ -582,7 +582,7 @@ private fun AutoLockGroup(
                         Text(
                             text = label,
                             color = when {
-                                selected -> Color.White
+                                selected -> IosSettingsColors.onAccent
                                 enabled -> IosSettingsColors.label
                                 else -> IosSettingsColors.tertiaryLabel
                             },

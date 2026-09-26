@@ -14,7 +14,7 @@ import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.ArrowBack
+import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material.icons.filled.LiveTv
 import androidx.compose.material.icons.filled.Videocam
 import androidx.compose.material3.ExperimentalMaterial3Api
@@ -80,13 +80,13 @@ fun LiveFeedScreen(
                     title = { Text("Panalink Live", fontWeight = FontWeight.Bold) },
                     navigationIcon = {
                         IconButton(onClick = onNavigateBack) {
-                            Icon(Icons.Default.ArrowBack, contentDescription = "Regresar")
+                            Icon(Icons.AutoMirrored.Filled.ArrowBack, contentDescription = "Regresar")
                         }
                     },
                     colors = TopAppBarDefaults.topAppBarColors(
                         containerColor = Color.Transparent,
-                        titleContentColor = Color.White,
-                        navigationIconContentColor = Color.White
+                        titleContentColor = IosSettingsColors.label,
+                        navigationIconContentColor = IosSettingsColors.label
                     )
                 )
             },
@@ -195,7 +195,7 @@ private fun LiveBroadcastFab(onClick: () -> Unit) {
         FloatingActionButton(
             onClick = onClick,
             containerColor = IosSettingsColors.blue,
-            contentColor = Color(0xFF04231A),
+            contentColor = IosSettingsColors.onAccent,
             shape = CircleShape
         ) {
             Icon(Icons.Default.Videocam, contentDescription = "Transmitir en Vivo")

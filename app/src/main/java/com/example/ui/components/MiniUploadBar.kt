@@ -68,7 +68,7 @@ fun MiniUploadBar(
             }
             Text(
                 text = "✕",
-                color = Color.Gray,
+                color = IosSettingsColors.secondaryLabel,
                 fontSize = 12.sp,
                 modifier = Modifier
                     .clickable(onClick = { onDiscard?.invoke() ?: onCancel() })
@@ -83,7 +83,7 @@ fun MiniUploadBar(
                 .height(2.dp)
                 .clip(RoundedCornerShape(1.dp)),
             color = color,
-            trackColor = Color.White.copy(alpha = 0.12f)
+            trackColor = IosSettingsColors.separator
         )
     }
 }

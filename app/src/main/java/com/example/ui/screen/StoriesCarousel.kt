@@ -183,7 +183,7 @@ fun StoriesCarousel(
                                 contentScale = ContentScale.Crop
                             )
                             Box(modifier = Modifier.fillMaxSize().background(brush = Brush.verticalGradient(colors = listOf(Color.Transparent, Color.Black.copy(alpha = 0.7f)), startY = 100f)))
-                            PanaAvatar(avatarUrl = safeAvatarUrl, userId = safeUserId, size = 32.dp, borderWidth = 2.dp, borderColor = if (hasUnread) IosSettingsColors.blue else Color.Gray.copy(alpha = 0.5f), placeholderName = safeDisplayName, modifier = Modifier.padding(8.dp))
+                            PanaAvatar(avatarUrl = safeAvatarUrl, userId = safeUserId, size = 32.dp, borderWidth = 2.dp, borderColor = if (hasUnread) IosSettingsColors.blue else IosSettingsColors.secondaryLabel.copy(alpha = 0.5f), placeholderName = safeDisplayName, modifier = Modifier.padding(8.dp))
                             Text(text = safeDisplayName?.take(15) ?: "", color = IosSettingsColors.label, fontSize = 11.sp, fontWeight = FontWeight.Bold, maxLines = 1, overflow = TextOverflow.Ellipsis, modifier = Modifier.align(Alignment.BottomStart).padding(8.dp))
                         }
                     }

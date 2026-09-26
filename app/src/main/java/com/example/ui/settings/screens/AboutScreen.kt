@@ -136,7 +136,7 @@ fun AboutScreen(onBack: () -> Unit) {
                             enabled = updateStatus != UpdateStatus.CHECKING,
                             colors = ButtonDefaults.buttonColors(
                                 containerColor = IosSettingsColors.blue,
-                                contentColor = androidx.compose.ui.graphics.Color.White
+                                contentColor = IosSettingsColors.onAccent
                             ),
                             modifier = Modifier.fillMaxWidth().height(46.dp)
                         ) {

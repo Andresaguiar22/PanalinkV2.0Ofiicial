@@ -31,7 +31,7 @@ fun PlayerProgressBar(
             onValueChangeFinished = { onSeek(sliderValue.toLong()) },
             valueRange = 0f..duration.toFloat(),
             colors = SliderDefaults.colors(
-                thumbColor = Color.White,
+                thumbColor = IosSettingsColors.label,
                 activeTrackColor = IosSettingsColors.blue
             )
         )

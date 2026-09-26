@@ -123,7 +123,7 @@ fun ProfileHeaderEditor(
                         Icon(
                             imageVector = Icons.Default.CameraAlt,
                             contentDescription = "Cambiar avatar",
-                            tint = Color.White,
+                            tint = IosSettingsColors.label,
                             modifier = Modifier.size(15.dp)
                         )
                     }

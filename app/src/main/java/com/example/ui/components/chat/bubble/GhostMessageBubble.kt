@@ -62,20 +62,20 @@ fun GhostMessageBubble(
                 Icon(
                     imageVector = if (isOpened) Icons.Default.VisibilityOff else Icons.Default.Visibility,
                     contentDescription = null,
-                    tint = if (isOpened) Color.Gray else ghostColor,
+                    tint = if (isOpened) IosSettingsColors.secondaryLabel else ghostColor,
                     modifier = Modifier.size(24.dp)
                 )
 
                 Column {
                     Text(
                         text = if (isOpened) "Secreto consumido" else "Mensaje Fantasma",
-                        color = if (isOpened) Color.Gray else ghostColor,
+                        color = if (isOpened) IosSettingsColors.secondaryLabel else ghostColor,
                         fontWeight = FontWeight.Bold,
                         fontSize = 14.sp
                     )
                     Text(
                         text = if (isOpened) "Ya no puedes ver este contenido" else "Toca para revelar el secreto",
-                        color = if (isOpened) Color.Gray else textColor.copy(alpha = 0.7f),
+                        color = if (isOpened) IosSettingsColors.secondaryLabel else textColor.copy(alpha = 0.7f),
                         fontSize = 12.sp
                     )
                 }

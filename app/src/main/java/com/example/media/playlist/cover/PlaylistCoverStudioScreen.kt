@@ -4,6 +4,7 @@ import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.*
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.*
+import androidx.compose.material.icons.automirrored.filled.*
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
@@ -34,7 +35,7 @@ fun PlaylistCoverStudioScreen(
                 title = { Text("Playlist Cover Studio", color = IosSettingsColors.label) },
                 navigationIcon = {
                     IconButton(onClick = onBack) {
-                        Icon(Icons.Default.ArrowBack, contentDescription = "Atrás", tint = IosSettingsColors.label)
+                        Icon(Icons.AutoMirrored.Filled.ArrowBack, contentDescription = "Atrás", tint = IosSettingsColors.label)
                     }
                 },
                 actions = {
@@ -61,7 +62,7 @@ fun PlaylistCoverStudioScreen(
         Box(
             modifier = Modifier
                 .fillMaxSize()
-                .background(Color.Black)
+                .background(IosSettingsColors.groupBackground)
                 .padding(padding),
             contentAlignment = Alignment.Center
         ) {
@@ -92,7 +93,7 @@ fun CoverStudioControls(
     onUndo: () -> Unit
 ) {
     Surface(
-        color = Color(0xFF1F2937),
+        color = IosSettingsColors.cell,
         tonalElevation = 8.dp
     ) {
         Row(
@@ -111,7 +112,7 @@ fun CoverStudioControls(
                 Icon(Icons.Default.EmojiEmotions, contentDescription = "Sticker", tint = IosSettingsColors.label)
             }
             IconButton(onClick = onUndo) {
-                Icon(Icons.Default.Undo, contentDescription = "Deshacer", tint = IosSettingsColors.label)
+                Icon(Icons.AutoMirrored.Filled.Undo, contentDescription = "Deshacer", tint = IosSettingsColors.label)
             }
         }
     }

@@ -535,7 +535,7 @@ fun MainNavHost(
                 androidx.compose.material3.ModalBottomSheet(
                     onDismissRequest = { if (!isPreparingShare) showShareSheet = false },
                     containerColor = IosSettingsColors.groupBackground,
-                    dragHandle = { androidx.compose.material3.BottomSheetDefaults.DragHandle(color = Color.Gray) }
+                    dragHandle = { androidx.compose.material3.BottomSheetDefaults.DragHandle(color = IosSettingsColors.secondaryLabel) }
                 ) {
                     if (isPreparingShare) {
                         Column(

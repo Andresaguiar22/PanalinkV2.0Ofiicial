@@ -37,8 +37,8 @@ fun ProfileField(
             focusedLabelColor = IosSettingsColors.green,
             focusedTextColor = IosSettingsColors.label,
             unfocusedTextColor = IosSettingsColors.label,
-            focusedPlaceholderColor = Color.Gray,
-            unfocusedPlaceholderColor = Color.Gray
+            focusedPlaceholderColor = IosSettingsColors.secondaryLabel,
+            unfocusedPlaceholderColor = IosSettingsColors.secondaryLabel
         ),
         singleLine = singleLine,
         leadingIcon = if (leadingIcon != null) {

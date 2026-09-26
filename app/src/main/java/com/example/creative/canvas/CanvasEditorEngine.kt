@@ -283,7 +283,7 @@ fun CanvasEditorEngine(
                 modifier = Modifier
                     .align(Alignment.TopCenter)
                     .padding(top = 16.dp)
-                    .background(Color(0xDD0D0D12), RoundedCornerShape(12.dp))
+                    .background(IosSettingsColors.cellElevated.copy(alpha = 0.87f), RoundedCornerShape(12.dp))
                     .border(1.dp, IosSettingsColors.blue, RoundedCornerShape(12.dp))
                     .padding(horizontal = 12.dp, vertical = 6.dp)
             ) {

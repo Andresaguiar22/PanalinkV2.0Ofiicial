@@ -91,7 +91,7 @@ fun MusicPlayerScreen(
         label = "topColor"
     )
     val gradientBrush = Brush.verticalGradient(
-        colors = listOf(animatedTop, Color.Black)
+        colors = listOf(animatedTop, IosSettingsColors.groupBackground)
     )
 
     Scaffold(
@@ -150,7 +150,7 @@ fun MusicPlayerScreen(
                     .fillMaxSize()
                     .background(
                         Brush.verticalGradient(
-                            listOf(Color.Transparent, Color(0xFF0B0F19).copy(alpha = 0.9f))
+                            listOf(Color.Transparent, IosSettingsColors.groupBackground.copy(alpha = 0.9f))
                         )
                     )
             )

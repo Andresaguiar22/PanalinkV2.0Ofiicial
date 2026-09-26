@@ -678,7 +678,7 @@ fun PanaTVScreen(viewModel: PanaTVViewModel = viewModel()) {
 
                         if ((!isVideoRendering || isBuffering) && exoPlayer != null) {
                             Box(
-                                modifier = Modifier.fillMaxSize().background(Color.Black),
+                                modifier = Modifier.fillMaxSize().background(IosSettingsColors.groupBackground),
                                 contentAlignment = Alignment.Center
                             ) {
                                 CircularProgressIndicator(color = TvAccent)

@@ -177,7 +177,7 @@ private fun StoryShortcutItem(
                     Icon(
                         imageVector = Icons.Default.Add,
                         contentDescription = "Crear historia",
-                        tint = Color.White,
+                        tint = IosSettingsColors.label,
                         modifier = Modifier.size(14.dp)
                     )
                 }

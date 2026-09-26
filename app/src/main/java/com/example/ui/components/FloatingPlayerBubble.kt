@@ -124,7 +124,7 @@ fun FloatingPlayerBubble(
                         spotColor = Color.Red
                     )
                     .background(
-                        color = if (isNearCloseZone) IosSettingsColors.pink else Color.Black.copy(alpha = 0.75f),
+                        color = if (isNearCloseZone) IosSettingsColors.pink else IosSettingsColors.mediaScrim,
                         shape = CircleShape
                     )
                     .pointerInput(Unit) {} // Consume touch
@@ -210,7 +210,7 @@ fun FloatingPlayerBubble(
                     }
                 },
             shape = RoundedCornerShape(16.dp),
-            colors = CardDefaults.cardColors(containerColor = Color.Black),
+            colors = CardDefaults.cardColors(containerColor = IosSettingsColors.groupBackground),
             border = androidx.compose.foundation.BorderStroke(1.5.dp, IosSettingsColors.blue.copy(alpha = 0.8f))
         ) {
             Box(modifier = Modifier.fillMaxSize()) {
@@ -233,7 +233,7 @@ fun FloatingPlayerBubble(
                 Box(
                     modifier = Modifier
                         .fillMaxWidth()
-                        .background(Color.Black.copy(alpha = 0.4f))
+                        .background(IosSettingsColors.mediaScrimSoft)
                         .padding(horizontal = 8.dp, vertical = 4.dp)
                 ) {
                     Row(

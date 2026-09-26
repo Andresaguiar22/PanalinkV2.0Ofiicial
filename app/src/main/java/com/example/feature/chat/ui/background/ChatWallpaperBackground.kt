@@ -12,6 +12,7 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.layout.ContentScale
 import coil.compose.AsyncImage
 
+import com.example.ui.settings.ios.IosSettingsColors
 /**
  * Fondo del área de mensajes. Dibuja el spec seleccionado: gradiente premium,
  * sólido, imagen remota o imagen local de la galería.
@@ -58,7 +59,7 @@ fun ChatWallpaperBackground(
                     contentScale = ContentScale.Crop,
                     modifier = Modifier.fillMaxSize()
                 )
-                Box(Modifier.fillMaxSize().background(Color.Black.copy(alpha = 0.25f)))
+                Box(Modifier.fillMaxSize().background(IosSettingsColors.mediaScrimSoft))
             }
             is ChatWallpaperSpec.Custom -> {
                 AsyncImage(
@@ -67,7 +68,7 @@ fun ChatWallpaperBackground(
                     contentScale = ContentScale.Crop,
                     modifier = Modifier.fillMaxSize()
                 )
-                Box(Modifier.fillMaxSize().background(Color.Black.copy(alpha = 0.25f)))
+                Box(Modifier.fillMaxSize().background(IosSettingsColors.mediaScrimSoft))
             }
         }
         content()

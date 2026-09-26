@@ -52,7 +52,7 @@ fun ChatBubblePaletteDialog(
                             .fillMaxWidth()
                             .clip(RoundedCornerShape(12.dp))
                             .clickable { onSelect(palette) }
-                            .background(if (selected) Color.White.copy(alpha = 0.10f) else Color.Transparent)
+                            .background(if (selected) IosSettingsColors.label.copy(alpha = 0.10f) else Color.Transparent)
                             .border(
                                 width = if (selected) 2.dp else 0.dp,
                                 color = if (selected) IosSettingsColors.green else Color.Transparent,

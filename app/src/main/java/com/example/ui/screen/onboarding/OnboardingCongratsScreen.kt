@@ -219,7 +219,7 @@ fun OnboardingCongratsScreen(
                             modifier = Modifier
                                 .size(150.dp)
                                 .clip(RoundedCornerShape(12.dp))
-                                .background(Color.White)
+                                .background(IosSettingsColors.label)
                                 .padding(8.dp),
                             contentAlignment = Alignment.Center
                         ) {

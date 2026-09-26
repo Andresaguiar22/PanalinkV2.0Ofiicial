@@ -122,7 +122,7 @@ fun PostStudioScreen(
                             Spacer(modifier = Modifier.width(4.dp))
                             Text(
                                 text = if (uiState.isExporting) "Exportando..." else "Guardado local",
-                                color = Color.Gray,
+                                color = IosSettingsColors.secondaryLabel,
                                 fontSize = 11.sp
                             )
                         }
@@ -255,7 +255,7 @@ fun PostStudioScreen(
                             Box(
                                 modifier = Modifier
                                     .fillMaxSize()
-                                    .background(Color.Black),
+                                    .background(IosSettingsColors.groupBackground),
                                 contentAlignment = Alignment.Center
                             ) {
                                 Icon(

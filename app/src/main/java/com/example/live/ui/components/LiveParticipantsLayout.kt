@@ -36,7 +36,7 @@ fun LiveParticipantsLayout(
                     .width(120.dp)
                     .height(200.dp),
                 shape = RoundedCornerShape(12.dp),
-                color = Color.Black
+                color = IosSettingsColors.groupBackground
             ) {
                 Box(modifier = Modifier.fillMaxSize()) {
                     LiveVideoSurface(
@@ -46,7 +46,7 @@ fun LiveParticipantsLayout(
                     )
                     Surface(
                         shape = RoundedCornerShape(4.dp),
-                        color = Color.Black.copy(alpha = 0.6f),
+                        color = IosSettingsColors.mediaScrim,
                         modifier = Modifier
                             .align(Alignment.BottomStart)
                             .padding(4.dp)

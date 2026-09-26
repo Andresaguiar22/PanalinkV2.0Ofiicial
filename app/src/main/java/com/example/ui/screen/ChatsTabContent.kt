@@ -347,7 +347,7 @@ fun ChatItemRow(
                     ) {
                         Text(
                             text = if (unread > 99) "99+" else unread.toString(),
-color = Color.White,
+color = IosSettingsColors.onAccent,
                             fontWeight = FontWeight.Bold,
                             fontSize = 10.sp
                         )

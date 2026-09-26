@@ -197,7 +197,7 @@ fun CallScreen(
                         opponentName = opponentName,
                         onDismiss = onDismissError,
                         icon = Icons.Default.CallEnd,
-                        iconColor = Color.White.copy(alpha = 0.5f)
+                        iconColor = IosSettingsColors.label.copy(alpha = 0.5f)
                     )
                 }
             }

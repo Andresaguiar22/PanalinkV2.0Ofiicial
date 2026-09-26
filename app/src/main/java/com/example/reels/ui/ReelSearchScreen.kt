@@ -384,7 +384,7 @@ private fun ReelSearchGrid(
                             .background(
                                 androidx.compose.ui.graphics.Brush.verticalGradient(
                                     0.5f to Color.Transparent,
-                                    1f to Color.Black.copy(alpha = 0.75f)
+                                    1f to IosSettingsColors.mediaScrim
                                 )
                             )
                             .padding(horizontal = 6.dp, vertical = 5.dp)

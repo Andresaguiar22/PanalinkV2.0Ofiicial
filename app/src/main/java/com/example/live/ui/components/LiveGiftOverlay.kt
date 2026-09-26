@@ -76,7 +76,7 @@ fun LiveGiftOverlay(
                             Spacer(modifier = Modifier.width(4.dp))
                             Text(
                                 text = "x${visible.quantity}",
-                                color = Color(0xFFFFD54F),
+                                color = IosSettingsColors.yellow,
                                 fontSize = 18.sp,
                                 fontWeight = FontWeight.Bold
                             )
@@ -90,7 +90,7 @@ fun LiveGiftOverlay(
                     modifier = Modifier
                         .alpha(bannerAlpha)
                         .background(
-                            Color.Black.copy(alpha = 0.55f),
+                            IosSettingsColors.mediaScrimSoft,
                             RoundedCornerShape(50)
                         )
                         .padding(horizontal = 10.dp, vertical = 5.dp),

@@ -85,7 +85,7 @@ fun FullScreenMediaViewer(
         Box(
             modifier = modifier
                 .fillMaxSize()
-                .background(Color.Black)
+                .background(IosSettingsColors.groupBackground)
         ) {
             // Async resolution: resolveMediaUrlSync can perform VCDN BFF I/O (runBlocking),
             // so resolve on IO dispatcher to never block Compose/Main thread.

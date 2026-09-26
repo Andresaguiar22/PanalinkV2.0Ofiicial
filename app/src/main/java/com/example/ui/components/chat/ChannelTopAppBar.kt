@@ -55,7 +55,7 @@ fun ChannelTopAppBar(
     modifier: Modifier = Modifier
 ) {
     val backgroundColor = IosSettingsColors.groupBackground // Telegram Dark TopBar
-    val contentColor = Color.White
+    val contentColor = IosSettingsColors.label
     val secondaryTextColor = IosSettingsColors.secondaryLabel
     val verifiedBadgeColor = IosSettingsColors.blue // Telegram Cyan
 

@@ -53,8 +53,8 @@ fun ChatSearchScreen(
                             focusedIndicatorColor = Color.Transparent,
                             unfocusedIndicatorColor = Color.Transparent,
                             cursorColor = IosSettingsColors.blue,
-                            focusedTextColor = Color.White,
-                            unfocusedTextColor = Color.White
+                            focusedTextColor = IosSettingsColors.label,
+                            unfocusedTextColor = IosSettingsColors.label
                         ),
                         singleLine = true,
                         trailingIcon = {

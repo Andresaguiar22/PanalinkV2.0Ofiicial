@@ -149,7 +149,7 @@ fun LiveViewerScreen(
     Box(
         modifier = Modifier
             .fillMaxSize()
-            .background(Color.Black)
+            .background(IosSettingsColors.groupBackground)
             .pointerInput(liveId) {
                 detectTapGestures(
                     onDoubleTap = { viewModel.tapLike(liveId) },
@@ -175,7 +175,7 @@ fun LiveViewerScreen(
                 .align(Alignment.BottomCenter)
                 .background(
                     Brush.verticalGradient(
-                        colors = listOf(Color.Transparent, Color.Black.copy(alpha = 0.6f))
+                        colors = listOf(Color.Transparent, IosSettingsColors.mediaScrim)
                     )
                 )
         )
@@ -288,7 +288,7 @@ fun LiveViewerScreen(
             Box(
                 modifier = Modifier
                     .fillMaxSize()
-                    .background(Color.Black.copy(alpha = 0.65f)),
+                    .background(IosSettingsColors.mediaScrim),
                 contentAlignment = Alignment.Center
             ) {
                 Column(horizontalAlignment = Alignment.CenterHorizontally) {

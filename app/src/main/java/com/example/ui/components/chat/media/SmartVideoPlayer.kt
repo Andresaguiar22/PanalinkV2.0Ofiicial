@@ -79,7 +79,7 @@ fun SmartVideoPlayer(
             .fillMaxWidth()
             .height(200.dp)
             .clip(RoundedCornerShape(12.dp))
-            .background(Color.Black),
+            .background(IosSettingsColors.groupBackground),
         contentAlignment = Alignment.Center
     ) {
         if (!isPlaying) {
@@ -94,7 +94,7 @@ fun SmartVideoPlayer(
                 modifier = Modifier
                     .size(56.dp)
                     .clip(CircleShape)
-                    .background(Color.Black.copy(alpha = 0.6f))
+                    .background(IosSettingsColors.mediaScrim)
                     .clickable {
                         isPlaying = true
                         exoPlayer.prepare()

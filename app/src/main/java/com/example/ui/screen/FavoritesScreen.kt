@@ -70,7 +70,7 @@ fun FavoritesScreen(
                 },
                 colors = TopAppBarDefaults.topAppBarColors(
                     containerColor = IosSettingsColors.groupBackground,
-                    titleContentColor = Color.White
+                    titleContentColor = IosSettingsColors.label
                 )
             )
         },

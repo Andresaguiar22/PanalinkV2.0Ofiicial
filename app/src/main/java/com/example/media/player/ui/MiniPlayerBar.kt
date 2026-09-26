@@ -91,7 +91,7 @@ fun MiniPlayerBar(
                 )
             }
             .clip(RoundedCornerShape(12.dp))
-            .background(Color(0xFF1F2937).copy(alpha = 0.95f))
+            .background(IosSettingsColors.cell.copy(alpha = 0.95f))
             .clickable(onClick = onClick)
     ) {
         Row(
@@ -104,7 +104,7 @@ fun MiniPlayerBar(
                 modifier = Modifier
                     .size(44.dp)
                     .clip(RoundedCornerShape(8.dp))
-                    .background(Color(0xFF374151)),
+                    .background(IosSettingsColors.cellElevated),
                 contentAlignment = Alignment.Center
             ) {
                 if (!track.coverPath.isNullOrEmpty()) {
@@ -177,7 +177,7 @@ fun MiniPlayerBar(
                 .fillMaxWidth()
                 .height(2.dp),
             color = IosSettingsColors.blue,
-            trackColor = Color.White.copy(alpha = 0.1f)
+            trackColor = IosSettingsColors.separator
         )
     }
 }

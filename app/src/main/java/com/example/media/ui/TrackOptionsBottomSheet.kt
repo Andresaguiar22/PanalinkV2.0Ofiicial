@@ -4,6 +4,7 @@ import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.*
+import androidx.compose.material.icons.automirrored.filled.*
 import androidx.compose.material3.*
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
@@ -33,7 +34,7 @@ fun TrackOptionsBottomSheet(
         OptionItem(Icons.Default.PlayArrow, "Reproducir siguiente", onClick = { onPlayNext(); onDismiss() })
         
         // Todos pueden agregar a SUS propias playlists
-        OptionItem(Icons.Default.PlaylistAdd, "Agregar a mis playlists", onClick = { onAddToPlaylist(); onDismiss() })
+        OptionItem(Icons.AutoMirrored.Filled.PlaylistAdd, "Agregar a mis playlists", onClick = { onAddToPlaylist(); onDismiss() })
         
         OptionItem(if (track.isFavorite) Icons.Default.Favorite else Icons.Default.FavoriteBorder, "Favorito", onClick = { onFavorite(); onDismiss() })
         
@@ -50,7 +51,7 @@ fun TrackOptionsBottomSheet(
 }
 
 @Composable
-private fun OptionItem(icon: ImageVector, label: String, color: Color = Color.White, onClick: () -> Unit) {
+private fun OptionItem(icon: ImageVector, label: String, color: Color = IosSettingsColors.label, onClick: () -> Unit) {
     Row(
         modifier = Modifier.fillMaxWidth().clickable(onClick = onClick).padding(vertical = 12.dp),
         verticalAlignment = Alignment.CenterVertically

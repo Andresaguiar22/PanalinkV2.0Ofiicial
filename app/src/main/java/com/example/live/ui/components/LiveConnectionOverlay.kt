@@ -55,7 +55,7 @@ fun LiveConnectionOverlay(
             contentAlignment = Alignment.Center
         ) {
             Surface(
-                color = Color.Black.copy(alpha = 0.7f),
+                color = IosSettingsColors.mediaScrim,
                 shape = CircleShape,
                 modifier = Modifier.size(120.dp)
             ) {
@@ -84,7 +84,7 @@ fun LiveConnectionOverlay(
                     val color = when (connectionState) {
                         is LiveConnectionState.Error -> IosSettingsColors.red
                         is LiveConnectionState.Reconnecting -> IosSettingsColors.yellow
-                        else -> Color.White
+                        else -> IosSettingsColors.label
                     }
 
                     Icon(

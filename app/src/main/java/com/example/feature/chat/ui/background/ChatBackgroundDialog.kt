@@ -190,7 +190,7 @@ private fun WallpaperCard(
             modifier = Modifier
                 .fillMaxWidth()
                 .align(Alignment.BottomCenter)
-                .background(Color.Black.copy(alpha = 0.55f))
+                .background(IosSettingsColors.mediaScrimSoft)
                 .padding(4.dp)
         ) {
             Text(spec.label, color = IosSettingsColors.label, fontSize = 10.sp, modifier = Modifier.align(Alignment.Center))

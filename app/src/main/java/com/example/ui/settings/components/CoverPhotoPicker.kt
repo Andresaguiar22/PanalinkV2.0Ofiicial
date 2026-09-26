@@ -22,7 +22,7 @@ fun CoverPhotoPicker(
 ) {
     OutlinedButton(
         onClick = onPickImage,
-        colors = ButtonDefaults.outlinedButtonColors(contentColor = Color.White),
+        colors = ButtonDefaults.outlinedButtonColors(contentColor = IosSettingsColors.label),
         border = BorderStroke(1.dp, IosSettingsColors.green),
         shape = RoundedCornerShape(10.dp),
         modifier = modifier

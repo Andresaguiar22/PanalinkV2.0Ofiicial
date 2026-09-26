@@ -112,8 +112,8 @@ fun VoiceRoomBackground(
                 .background(
                     Brush.radialGradient(
                         colors = listOf(
-                            Color(0x08FFFFFF),
-                            Color(0x00FFFFFF)
+                            IosSettingsColors.label.copy(alpha = 0.03f),
+                            Color.Transparent
                         ),
                         center = Offset.Zero,
                         radius = 1200f

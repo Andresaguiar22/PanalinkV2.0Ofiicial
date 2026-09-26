@@ -67,7 +67,7 @@ fun CommentItemBubble(
     val accentBlue = IosSettingsColors.blue
     val replyBorderColor = IosSettingsColors.blue
     val secondaryText = IosSettingsColors.secondaryLabel
-    val primaryText = Color.White
+    val primaryText = IosSettingsColors.label
 
     Row(
         modifier = modifier

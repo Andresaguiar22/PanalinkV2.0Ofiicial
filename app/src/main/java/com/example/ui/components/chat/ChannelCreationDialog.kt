@@ -48,7 +48,7 @@ fun CreateChannelDialog(
 
     val context = LocalContext.current
 
-    AlertDialog(
+    BasicAlertDialog(
         onDismissRequest = onDismiss,
         properties = androidx.compose.ui.window.DialogProperties(usePlatformDefaultWidth = false),
         modifier = Modifier
@@ -264,7 +264,7 @@ fun CreateChannelDialog(
                                         modifier = Modifier.fillMaxSize(),
                                         contentScale = ContentScale.Crop
                                     )
-                                    Box(modifier = Modifier.fillMaxSize().background(Color.Black.copy(alpha = 0.3f)))
+                                    Box(modifier = Modifier.fillMaxSize().background(IosSettingsColors.mediaScrimSoft.copy(alpha = 0.3f)))
                                     Icon(Icons.Default.Edit, contentDescription = null, tint = IosSettingsColors.label, modifier = Modifier.align(Alignment.TopEnd).padding(8.dp))
                                 } else if (isUploadingCover) {
                                     CircularProgressIndicator(color = IosSettingsColors.blue)
@@ -297,7 +297,7 @@ fun CreateChannelDialog(
                                             modifier = Modifier.fillMaxSize(),
                                             contentScale = ContentScale.Crop
                                         )
-                                        Box(modifier = Modifier.fillMaxSize().background(Color.Black.copy(alpha = 0.3f)))
+                                        Box(modifier = Modifier.fillMaxSize().background(IosSettingsColors.mediaScrimSoft.copy(alpha = 0.3f)))
                                     } else if (isUploadingAvatar) {
                                         CircularProgressIndicator(color = IosSettingsColors.blue, modifier = Modifier.size(24.dp))
                                     } else {

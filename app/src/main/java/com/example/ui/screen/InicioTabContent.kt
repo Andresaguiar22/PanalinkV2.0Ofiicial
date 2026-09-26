@@ -1227,7 +1227,7 @@ fun InicioTabContent(
         Box(
             modifier = Modifier
                 .fillMaxSize()
-                .background(Color.Black)
+                .background(IosSettingsColors.groupBackground)
         ) {
             androidx.compose.foundation.pager.HorizontalPager(
                 state = pagerState,

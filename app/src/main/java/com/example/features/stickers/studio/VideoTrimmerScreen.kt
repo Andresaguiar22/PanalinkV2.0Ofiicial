@@ -124,7 +124,7 @@ fun VideoTrimmerScreen(
                 },
                 enabled = (endMs() - startMs()) >= 200L
             ) {
-                Icon(Icons.Default.Check, contentDescription = "Confirmar", tint = if ((endMs() - startMs()) >= 200L) PANA_GREEN else Color.Gray)
+                Icon(Icons.Default.Check, contentDescription = "Confirmar", tint = if ((endMs() - startMs()) >= 200L) PANA_GREEN else IosSettingsColors.secondaryLabel)
             }
         }
 
@@ -159,7 +159,7 @@ fun VideoTrimmerScreen(
                 },
                 modifier = Modifier
                     .align(Alignment.Center)
-                    .background(Color(0x66000000), RoundedCornerShape(50.dp))
+                    .background(IosSettingsColors.mediaScrimSoft, RoundedCornerShape(50.dp))
             ) {
                 Icon(
                     imageVector = if (isPlaying) Icons.Default.PlayArrow else Icons.Default.PlayArrow,
@@ -217,7 +217,7 @@ private fun TrimTimeline(
 
             // Background track
             drawLine(
-                color = Color(0xFF4A5568),
+                color = IosSettingsColors.separator,
                 start = Offset(0f, height / 2),
                 end = Offset(width, height / 2),
                 strokeWidth = 4.dp.toPx(),

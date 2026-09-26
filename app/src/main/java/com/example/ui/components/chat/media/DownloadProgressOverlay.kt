@@ -49,7 +49,7 @@ fun DownloadProgressOverlay(
         Box(
             modifier = Modifier
                 .fillMaxSize()
-                .background(Color.Black.copy(alpha = 0.55f)),
+                .background(IosSettingsColors.mediaScrimSoft),
             contentAlignment = Alignment.Center
         ) {
             Column(
@@ -70,14 +70,14 @@ fun DownloadProgressOverlay(
                                 progress = { progress.coerceIn(0f, 1f) },
                                 modifier = Modifier.size(50.dp),
                                 color = IosSettingsColors.blue,
-                                trackColor = Color.White.copy(alpha = 0.2f),
+                                trackColor = IosSettingsColors.separator,
                                 strokeWidth = 3.dp
                             )
                         } else {
                             CircularProgressIndicator(
                                 modifier = Modifier.size(50.dp),
                                 color = IosSettingsColors.blue,
-                                trackColor = Color.White.copy(alpha = 0.2f),
+                                trackColor = IosSettingsColors.separator,
                                 strokeWidth = 3.dp
                             )
                         }

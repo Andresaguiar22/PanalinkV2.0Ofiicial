@@ -224,7 +224,7 @@ fun ChannelPostCard(
                             Icon(
                                 imageVector = Icons.Default.Add,
                                 contentDescription = "Reaccionar",
-                                tint = Color.Gray,
+                                tint = IosSettingsColors.secondaryLabel,
                                 modifier = Modifier.size(16.dp)
                             )
                         }

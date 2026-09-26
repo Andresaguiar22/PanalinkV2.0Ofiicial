@@ -113,7 +113,7 @@ fun KlipyGifStickerPicker(
                     .padding(vertical =   8.dp)
                     .size(40.dp, 4.dp)
                     .clip(RoundedCornerShape(2.dp))
-                    .background(Color.Gray.copy(alpha = 0.5f))
+                    .background(IosSettingsColors.secondaryLabel.copy(alpha = 0.5f))
             )
         }
     ) {

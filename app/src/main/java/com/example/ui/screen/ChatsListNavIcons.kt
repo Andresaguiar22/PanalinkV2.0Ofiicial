@@ -178,7 +178,7 @@ fun FunkyBottomNavItem(
                         .align(Alignment.TopEnd)
                         .offset(x = 4.dp, y = (-4).dp)
                         .background(Color.Red, CircleShape)
-                        .border(1.dp, Color.Black, CircleShape)
+                        .border(1.dp, IosSettingsColors.groupBackground, CircleShape)
                         .padding(horizontal = 4.dp, vertical = 2.dp)
                 ) {
                     Text(

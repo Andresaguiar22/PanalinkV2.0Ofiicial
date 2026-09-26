@@ -23,7 +23,7 @@ fun CallStatusText(
     statusText: String,
     opponentName: String,
     modifier: Modifier = Modifier,
-    statusColor: Color = Color.White.copy(alpha = 0.6f),
+    statusColor: Color = IosSettingsColors.label.copy(alpha = 0.6f),
     durationText: String? = null,
     isSignalWarning: Boolean = false
 ) {
@@ -64,7 +64,7 @@ fun CallStatusText(
             Spacer(modifier = Modifier.height(14.dp))
             Box(
                 modifier = Modifier
-                    .background(Color.White.copy(alpha = 0.08f), shape = CircleShape)
+                    .background(IosSettingsColors.separator, shape = CircleShape)
                     .padding(horizontal = 16.dp, vertical = 6.dp)
             ) {
                 Text(

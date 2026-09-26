@@ -113,7 +113,7 @@ fun ChannelPostItem(
                             Icon(
                                 imageVector = Icons.AutoMirrored.Filled.Comment,
                                 contentDescription = "Comments",
-                                tint = Color.Gray,
+                                tint = IosSettingsColors.secondaryLabel,
                                 modifier = Modifier.size(16.dp)
                             )
                             if (commentsCount > 0) {
@@ -140,7 +140,7 @@ fun ChannelPostItem(
                         Icon(
                             imageVector = Icons.Default.Share,
                             contentDescription = "Share",
-                            tint = Color.Gray,
+                            tint = IosSettingsColors.secondaryLabel,
                             modifier = Modifier.size(16.dp)
                         )
                     }

@@ -43,7 +43,7 @@ fun PremiumImageViewer(
     Box(
         modifier = modifier
             .fillMaxSize()
-            .background(Color.Black)
+            .background(IosSettingsColors.groupBackground)
             .pointerInput(Unit) {
                 detectTransformGestures { _, pan, zoom, _ ->
                     scale = (scale * zoom).coerceIn(1f, 5f)

@@ -65,7 +65,7 @@ fun OutgoingCallScreen(
                     icon = Icons.Default.CallEnd,
                     contentDescription = "Cancelar Llamada",
                     containerColor = IosSettingsColors.red, // Red 500
-                    contentColor = Color.White,
+                    contentColor = IosSettingsColors.onAccent,
                     size = 68.dp,
                     iconSize = 32.dp,
                     label = "Cancelar",

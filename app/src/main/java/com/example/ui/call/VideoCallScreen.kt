@@ -61,7 +61,7 @@ fun VideoCallScreen(
     Box(
         modifier = modifier
             .fillMaxSize()
-            .background(Color.Black)
+            .background(IosSettingsColors.groupBackground)
     ) {
         // 1. Fullscreen Remote Video View (LiveKit or WebRTC renderer)
         Box(modifier = Modifier.fillMaxSize()) {
@@ -84,7 +84,7 @@ fun VideoCallScreen(
             Box(
                 modifier = Modifier
                     .fillMaxSize()
-                    .background(Color.Black.copy(alpha = 0.15f))
+                    .background(IosSettingsColors.mediaScrimSoft.copy(alpha = 0.15f))
             )
         }
 
@@ -106,7 +106,7 @@ fun VideoCallScreen(
             // Duration Badge
             Box(
                 modifier = Modifier
-                    .background(Color.Black.copy(alpha = 0.45f), shape = CircleShape)
+                    .background(IosSettingsColors.mediaScrimSoft, shape = CircleShape)
                     .padding(horizontal = 12.dp, vertical = 6.dp)
             ) {
                 Text(

@@ -63,7 +63,7 @@ fun YouTubePostCard(
                 .fillMaxWidth()
                 .height(220.dp)
                 .clip(RoundedCornerShape(16.dp))
-                .background(Color.Black)
+                .background(IosSettingsColors.groupBackground)
         ) {
             if (isPlaying) {
                 YouTubePlayerComposable(
@@ -86,7 +86,7 @@ fun YouTubePostCard(
                     modifier = Modifier
                         .align(Alignment.Center)
                         .size(64.dp)
-                        .background(Color.Black.copy(alpha = 0.6f), CircleShape)
+                        .background(IosSettingsColors.mediaScrim, CircleShape)
                         .clickable { isPlaying = true },
                     contentAlignment = Alignment.Center
                 ) {
@@ -106,7 +106,7 @@ fun YouTubePostCard(
                             .fillMaxWidth()
                             .background(
                                 androidx.compose.ui.graphics.Brush.verticalGradient(
-                                    colors = listOf(Color.Transparent, Color.Black.copy(alpha = 0.8f))
+                                    colors = listOf(Color.Transparent, IosSettingsColors.mediaScrim)
                                 )
                             )
                             .padding(12.dp)

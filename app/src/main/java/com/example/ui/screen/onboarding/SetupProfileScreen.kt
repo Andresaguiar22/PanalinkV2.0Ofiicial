@@ -307,7 +307,7 @@ fun IdentityStep(
                 }
                 
                 if (isUploadingCover) {
-                    Box(Modifier.fillMaxSize().background(Color.Black.copy(alpha = 0.4f)), contentAlignment = Alignment.Center) {
+                    Box(Modifier.fillMaxSize().background(IosSettingsColors.mediaScrimSoft), contentAlignment = Alignment.Center) {
                         CircularProgressIndicator(color = IosSettingsColors.blue)
                     }
                 }
@@ -341,7 +341,7 @@ fun IdentityStep(
                 }
                 
                 if (isUploadingAvatar) {
-                    Box(Modifier.fillMaxSize().background(Color.Black.copy(alpha = 0.4f)), contentAlignment = Alignment.Center) {
+                    Box(Modifier.fillMaxSize().background(IosSettingsColors.mediaScrimSoft), contentAlignment = Alignment.Center) {
                         CircularProgressIndicator(color = IosSettingsColors.blue, modifier = Modifier.size(24.dp))
                     }
                 }

@@ -52,7 +52,7 @@ fun LiveSkeletonCard() {
         shape = RoundedCornerShape(20.dp),
         colors = CardDefaults.cardColors(containerColor = Color.Transparent),
         elevation = CardDefaults.cardElevation(defaultElevation = 0.dp),
-        border = BorderStroke(1.dp, Color.White.copy(alpha = 0.1f))
+        border = BorderStroke(1.dp, IosSettingsColors.separator)
     ) {
         Box(modifier = Modifier.fillMaxSize()) {
             Box(
@@ -79,7 +79,7 @@ fun LiveSkeletonCard() {
                         Brush.verticalGradient(
                             colors = listOf(
                                 Color.Transparent,
-                                Color.Black.copy(alpha = 0.7f)
+                                IosSettingsColors.mediaScrim
                             )
                         )
                     )

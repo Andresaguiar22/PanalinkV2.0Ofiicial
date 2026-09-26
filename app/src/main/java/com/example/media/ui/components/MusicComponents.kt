@@ -55,7 +55,7 @@ fun TrackItem(
                     modifier = Modifier.fillMaxSize()
                 )
             } else {
-                Icon(Icons.Default.MusicNote, contentDescription = null, tint = Color.Gray)
+                Icon(Icons.Default.MusicNote, contentDescription = null, tint = IosSettingsColors.secondaryLabel)
             }
         }
 
@@ -72,7 +72,7 @@ fun TrackItem(
             )
             Text(
                 text = track.artist,
-                color = Color.Gray,
+                color = IosSettingsColors.secondaryLabel,
                 fontSize = 13.sp,
                 maxLines = 1,
                 overflow = TextOverflow.Ellipsis
@@ -80,7 +80,7 @@ fun TrackItem(
         }
 
         IconButton(onClick = { onTrackOptionsClick(track) }) {
-            Icon(Icons.Default.MoreVert, contentDescription = "Opciones", tint = Color.Gray)
+            Icon(Icons.Default.MoreVert, contentDescription = "Opciones", tint = IosSettingsColors.secondaryLabel)
         }
     }
 }
