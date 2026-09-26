@@ -1231,7 +1231,7 @@ fun ReelEditorScreen(
                                     Text("Programar Publicación 📆", color = IosSettingsColors.label, fontWeight = FontWeight.Bold, fontSize = 14.sp)
                                     Text(
                                         text = if (scheduledDateTimeString.isEmpty()) "Publicación inmediata" else "Programado para: $scheduledDateTimeString",
-                                        color = if (scheduledDateTimeString.isEmpty()) Color.Gray else IosSettingsColors.blue,
+                                        color = if (scheduledDateTimeString.isEmpty()) IosSettingsColors.secondaryLabel else IosSettingsColors.blue,
                                         fontSize = 11.sp
                                     )
                                 }
