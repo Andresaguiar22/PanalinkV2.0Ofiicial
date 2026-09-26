@@ -287,10 +287,10 @@ fun TikTokVideoFeedScreen(
                             onClick = { selectedFilter = filter },
                             label = { Text(filter) },
                             colors = FilterChipDefaults.filterChipColors(
-                                containerColor = IosSettingsColors.label.copy(alpha = 0.05f),
+                                containerColor = Color.White.copy(alpha = 0.05f),
                                 selectedContainerColor = IosSettingsColors.green,
-                                labelColor = IosSettingsColors.label,
-                                selectedLabelColor = IosSettingsColors.onAccent
+                                labelColor = Color.White,
+                                selectedLabelColor = Color.Black
                             ),
                             border = null,
                             shape = RoundedCornerShape(20.dp)
@@ -300,7 +300,7 @@ fun TikTokVideoFeedScreen(
 
                 if (videoStates.isEmpty()) {
                     Box(modifier = Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
-                        Text("No se encontraron vídeos 🇻🇪🔍", color = IosSettingsColors.secondaryLabel)
+                        Text("No se encontraron vídeos 🇻🇪🔍", color = Color.Gray)
                     }
                 } else {
                     androidx.compose.foundation.lazy.grid.LazyVerticalGrid(
@@ -371,7 +371,7 @@ fun TikTokVideoFeedScreen(
                     Column(horizontalAlignment = Alignment.CenterHorizontally) {
                         Text(
                             text = "No se encontraron vídeos 🇻🇪🔍",
-                            color = IosSettingsColors.secondaryLabel,
+                            color = Color.Gray,
                             fontSize = 16.sp,
                             fontWeight = FontWeight.SemiBold
                         )
@@ -572,7 +572,7 @@ fun TikTokVideoFeedScreen(
                         OutlinedTextField(
                             value = searchQuery,
                             onValueChange = { searchQuery = it },
-                            placeholder = { Text("Buscar reels o panas venezolanos...", color = IosSettingsColors.secondaryLabel, fontSize = 13.sp) },
+                            placeholder = { Text("Buscar reels o panas venezolanos...", color = Color.Gray, fontSize = 13.sp) },
                             singleLine = true,
                             modifier = Modifier
                                 .weight(1f)
@@ -589,10 +589,10 @@ fun TikTokVideoFeedScreen(
                                 }
                             },
                             colors = OutlinedTextFieldDefaults.colors(
-                                focusedTextColor = IosSettingsColors.label,
-                                unfocusedTextColor = IosSettingsColors.label,
+                                focusedTextColor = Color.White,
+                                unfocusedTextColor = Color.White,
                                 focusedBorderColor = IosSettingsColors.green,
-                                unfocusedBorderColor = IosSettingsColors.separator,
+                                unfocusedBorderColor = Color.White.copy(alpha = 0.2f),
                                 focusedContainerColor = IosSettingsColors.mediaScrim,
                                 unfocusedContainerColor = IosSettingsColors.mediaScrimSoft
                             ),
@@ -706,7 +706,7 @@ fun TikTokVideoFeedScreen(
                         .height(2.dp)
                         .clip(RoundedCornerShape(1.dp)),
                     color = IosSettingsColors.green,
-                    trackColor = IosSettingsColors.separator
+                    trackColor = Color.White.copy(alpha = 0.15f)
                 )
             }
         }
@@ -726,7 +726,7 @@ private fun ReelFeedTab(label: String, selected: Boolean, onClick: () -> Unit) {
     ) {
         Text(
             text = label,
-            color = if (selected) IosSettingsColors.label else IosSettingsColors.label.copy(alpha = 0.6f),
+            color = if (selected) Color.White else Color.White.copy(alpha = 0.6f),
             fontWeight = if (selected) FontWeight.Bold else FontWeight.SemiBold,
             fontSize = 17.sp,
             style = TextStyle(
@@ -742,7 +742,7 @@ private fun ReelFeedTab(label: String, selected: Boolean, onClick: () -> Unit) {
             modifier = Modifier
                 .size(width = 28.dp, height = 3.dp)
                 .clip(RoundedCornerShape(2.dp))
-                .background(if (selected) IosSettingsColors.label else Color.Transparent)
+                .background(if (selected) Color.White else Color.Transparent)
         )
     }
 }
@@ -2034,7 +2034,7 @@ fun TikTokPageItem(
                         .size(48.dp),
                     size = 48.dp,
                     borderWidth = 1.dp,
-                    borderColor = IosSettingsColors.label,
+                    borderColor = Color.White,
                     contentDescription = "Perfil del creador",
                     placeholderName = safeDisplayName
                 )
@@ -2076,7 +2076,7 @@ fun TikTokPageItem(
             ReelRailAction(
                 icon = if (localIsLiked) Icons.Rounded.Favorite else Icons.Rounded.FavoriteBorder,
                 count = formatCountCompact(localLikesCount),
-                tint = if (localIsLiked) IosSettingsColors.red else IosSettingsColors.label,
+                tint = if (localIsLiked) IosSettingsColors.red else Color.White,
                 contentDescription = "Me Gusta",
                 iconModifier = Modifier.graphicsLayer {
                     scaleX = likeScale
@@ -2101,7 +2101,7 @@ fun TikTokPageItem(
             ReelRailAction(
                 icon = if (localIsFavorited) Icons.Rounded.Bookmark else Icons.Rounded.BookmarkBorder,
                 count = formatCountCompact(localFavoritesCount),
-                tint = if (localIsFavorited) IosSettingsColors.yellow else IosSettingsColors.label,
+                tint = if (localIsFavorited) Color(0xFFF9C74F) else Color.White,
                 contentDescription = "Guardar",
                 onClick = { onFavoriteClick() }
             )
@@ -2229,7 +2229,7 @@ fun TikTokPageItem(
                         modifier = Modifier
                             .clip(RoundedCornerShape(6.dp))
                             .background(
-                                if (isFollowing) IosSettingsColors.label.copy(alpha = 0.12f)
+                                if (isFollowing) Color.White.copy(alpha = 0.12f)
                                 else IosSettingsColors.red
                             )
                             .clickable {
@@ -2267,7 +2267,7 @@ fun TikTokPageItem(
                 com.example.ui.components.TextAnnotator.AnnotatedClickableText(
                     text = caption,
                     style = TextStyle(color = IosSettingsColors.label, fontSize = 14.sp),
-                    hashtagColor = IosSettingsColors.green,
+                    hashtagColor = Color(0xFF69F0AE),
                     mentionColor = IosSettingsColors.blue,
                     onHashtagClick = { tag ->
                         onHashtagClick?.invoke(tag)
@@ -2324,9 +2324,9 @@ fun TikTokPageItem(
                     },
                     valueRange = 0f..duration.toFloat(),
                     colors = SliderDefaults.colors(
-                        thumbColor = IosSettingsColors.label,
-                        activeTrackColor = IosSettingsColors.label,
-                        inactiveTrackColor = IosSettingsColors.separator
+                        thumbColor = Color.White,
+                        activeTrackColor = Color.White,
+                        inactiveTrackColor = Color.White.copy(alpha = 0.3f)
                     ),
                     modifier = Modifier
                         .fillMaxWidth()
@@ -2367,7 +2367,7 @@ fun TikTokPageItem(
                             .align(Alignment.CenterHorizontally)
                             .padding(top = 8.dp, bottom = 12.dp)
                             .size(width = 40.dp, height = 4.dp)
-                            .background(IosSettingsColors.secondaryLabel.copy(alpha = 0.5f), CircleShape)
+                            .background(Color.Gray.copy(alpha = 0.5f), CircleShape)
                     )
 
                     // Header
@@ -2491,14 +2491,14 @@ fun TikTokPageItem(
                                     if (comment.deletedAt != null) {
                                         Text(
                                             text = "Este comentario ha sido eliminado",
-                                            color = IosSettingsColors.label.copy(alpha = 0.4f),
+                                            color = Color.White.copy(alpha =   0.4f),
                                             fontSize = if (isReply) 13.sp else 14.sp,
                                             fontStyle = androidx.compose.ui.text.font.FontStyle.Italic
                                         )
                                     } else {
                                         com.example.ui.components.CommentMediaText(
                                             text = comment.text,
-                                            fallbackColor = IosSettingsColors.label
+                                            fallbackColor = Color.White
                                         )
                                     }
                                 }
@@ -2552,7 +2552,7 @@ fun TikTokPageItem(
                             onValueChange = { commentText = it },
                             placeholder = { 
                                 val hint = if (replyingTo != null) "Escribe tu respuesta..." else "Escribe tu comentario de pana..."
-                                Text(hint, color = IosSettingsColors.secondaryLabel) 
+                                Text(hint, color = Color.Gray) 
                             },
                             modifier = Modifier
                                 .weight(1f)
@@ -2560,8 +2560,8 @@ fun TikTokPageItem(
                             textStyle = TextStyle(color = IosSettingsColors.label, fontSize = 14.sp),
                             maxLines = 2,
                             colors = OutlinedTextFieldDefaults.colors(
-                                focusedTextColor = IosSettingsColors.label,
-                                unfocusedTextColor = IosSettingsColors.label,
+                                focusedTextColor = Color.White,
+                                unfocusedTextColor = Color.White,
                                 focusedContainerColor = IosSettingsColors.cellElevated,
                                 unfocusedContainerColor = IosSettingsColors.cellElevated,
                                 focusedBorderColor = IosSettingsColors.green,

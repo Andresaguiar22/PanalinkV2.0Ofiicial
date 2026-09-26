@@ -459,7 +459,7 @@ fun CameraPreviewAndControls(
                     Box(
                         modifier = Modifier
                             .size(8.dp)
-                            .background(IosSettingsColors.label, CircleShape)
+                            .background(Color.White, CircleShape)
                     )
                     Spacer(modifier = Modifier.width(6.dp))
                     Text(
@@ -511,7 +511,7 @@ fun CameraPreviewAndControls(
             Box(
                 modifier = Modifier
                     .size(84.dp)
-                    .border(4.dp, IosSettingsColors.label, CircleShape)
+                    .border(4.dp, Color.White, CircleShape)
                     .padding(6.dp),
                 contentAlignment = Alignment.Center
             ) {
