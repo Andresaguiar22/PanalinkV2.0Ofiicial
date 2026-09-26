@@ -639,10 +639,10 @@ Box(
                                     .padding(horizontal = 10.dp, vertical = 8.dp),
                                 verticalAlignment = Alignment.CenterVertically
                             ) {
-                                Icon(Icons.Filled.LibraryMusic, null, Modifier.size(14.dp), tint = Color.White
+                                Icon(Icons.Filled.LibraryMusic, null, Modifier.size(14.dp), tint = IosSettingsColors.label
                                 )
                                 Spacer(Modifier.width(4.dp))
-                                Text(item.name, color = Color.White, fontSize = 12.sp)
+                                Text(item.name, color = IosSettingsColors.label, fontSize = 12.sp)
                             }
                         }
                     }
@@ -654,7 +654,7 @@ Box(
                     ) {
                         Text(
                             audioName ?: "Ningún audio seleccionado",
-                            color = if (audioName == null) TextGrayStory else Color.White,
+                            color = if (audioName == null) TextGrayStory else IosSettingsColors.label,
                             fontSize = 13.sp,
                             modifier = Modifier.weight(1f),
                             maxLines = 1,
@@ -667,7 +667,7 @@ Box(
                                     Icon(
                                         if (audioPlaying) Icons.Filled.Stop else Icons.Filled.Audiotrack,
                                         contentDescription = if (audioPlaying) "Parar" else "Reproducir",
-                                        tint = if (audioPlaying) BrandGreenStory else Color.White
+                                        tint = if (audioPlaying) BrandGreenStory else IosSettingsColors.label
                                     )
                                 }
                             }
@@ -675,7 +675,7 @@ Box(
                                 onClick = { pickAudio.launch("audio/*") },
                                 modifier = Modifier.height(34.dp),
                                 shape = RoundedCornerShape(12.dp),
-                                colors = ButtonDefaults.buttonColors(containerColor = IconBoxBgStory, contentColor = Color.White)
+                                colors = ButtonDefaults.buttonColors(containerColor = IconBoxBgStory, contentColor = IosSettingsColors.label)
                             ) {
 
                                 if (isUploadingAudio) {
@@ -738,7 +738,7 @@ Box(
                 .padding(bottom = 8.dp)
                 .width(134.dp)
                 .height(5.dp)
-                .background(Color.White, CircleShape)
+                .background(IosSettingsColors.separator, CircleShape)
         )
     }
 
@@ -780,7 +780,7 @@ private fun SegmentedButtonStory(
         targetValue = if (selected) SegmentedActiveStory else Color.Transparent,
         animationSpec = tween(durationMillis = 200)
     )
-    val contentColor = if (selected) Color.White else TextGrayStory
+    val contentColor = if (selected) IosSettingsColors.label else TextGrayStory
     Row(
         modifier = modifier
             .clip(RoundedCornerShape(8.dp))
@@ -814,7 +814,7 @@ private fun SettingRowWithSwitchStory(
     ) {
         Text(
             text = buildAnnotatedString {
-                withStyle(style = SpanStyle(color = Color.White, fontSize = 16.sp)) {
+                withStyle(style = SpanStyle(color = IosSettingsColors.label, fontSize = 16.sp)) {
                     append("$title ")
                 }
                 withStyle(style = SpanStyle(color = TextGrayStory, fontSize = 14.sp)) {
@@ -856,7 +856,7 @@ private fun IosCustomSwitchStory(checked: Boolean, onCheckedChange:(Boolean) -> 
                 .size(27.dp)
                 .shadow(elevation = 2.dp, shape = CircleShape)
                 .clip(CircleShape)
-                .background(Color.White)
+                .background(IosSettingsColors.label)
         )
     }
 }

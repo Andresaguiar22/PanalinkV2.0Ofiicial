@@ -153,7 +153,7 @@ fun ReelSearchScreen(
                         Icon(
                             Icons.Filled.Search,
                             contentDescription = null,
-                            tint = Color.Gray,
+                            tint = IosSettingsColors.secondaryLabel,
                             modifier = Modifier.size(20.dp)
                         )
                         Spacer(Modifier.width(8.dp))
@@ -185,7 +185,7 @@ fun ReelSearchScreen(
                                     if (query.isEmpty()) {
                                         Text(
                                             text = "Buscar vídeos",
-                                            color = Color.Gray,
+                                            color = IosSettingsColors.secondaryLabel,
                                             fontSize = 16.sp
                                         )
                                     }
@@ -200,7 +200,7 @@ fun ReelSearchScreen(
                             Icon(
                                 Icons.Filled.Clear,
                                 contentDescription = "Limpiar",
-                                tint = Color.Gray,
+                                tint = IosSettingsColors.secondaryLabel,
                                 modifier = Modifier
                                     .size(20.dp)
                                     .clickable {
@@ -247,7 +247,7 @@ fun ReelSearchScreen(
                 ) {
                     Text(
                         text = if (searching) "Buscando..." else "${searchResults.size} vídeos",
-                        color = Color.Gray,
+                        color = IosSettingsColors.secondaryLabel,
                         fontSize = 13.sp
                     )
                 }
@@ -315,7 +315,7 @@ fun ReelSearchScreen(
                             Icon(
                                 Icons.Filled.Search,
                                 contentDescription = null,
-                                tint = Color.Gray.copy(alpha = 0.6f),
+                                tint = IosSettingsColors.secondaryLabel.copy(alpha = 0.6f),
                                 modifier = Modifier.size(52.dp)
                             )
                             Spacer(Modifier.height(12.dp))
@@ -324,7 +324,7 @@ fun ReelSearchScreen(
                                     "Busca vídeos por título, hashtag o usuario"
                                 else
                                     "No se encontraron vídeos",
-                                color = Color.Gray,
+                                color = IosSettingsColors.secondaryLabel,
                                 fontSize = 15.sp
                             )
                         }

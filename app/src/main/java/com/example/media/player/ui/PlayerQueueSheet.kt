@@ -97,16 +97,16 @@ fun QueueItem(
             modifier = Modifier
                 .size(40.dp)
                 .clip(RoundedCornerShape(4.dp))
-                .background(Color(0xFF374151)),
+                .background(IosSettingsColors.cellElevated),
             contentAlignment = Alignment.Center
         ) {
             if (!track.coverPath.isNullOrEmpty()) {
                 AsyncImage(model = track.coverPath, contentDescription = null, contentScale = ContentScale.Crop)
             } else {
-                Icon(Icons.Default.MusicNote, contentDescription = null, tint = Color.Gray)
+                Icon(Icons.Default.MusicNote, contentDescription = null, tint = IosSettingsColors.secondaryLabel)
             }
             if (isCurrent) {
-                Box(modifier = Modifier.fillMaxSize().background(Color.Black.copy(alpha = 0.4f)), contentAlignment = Alignment.Center) {
+                Box(modifier = Modifier.fillMaxSize().background(IosSettingsColors.mediaScrimSoft), contentAlignment = Alignment.Center) {
                     Icon(Icons.Default.PlayArrow, contentDescription = null, tint = IosSettingsColors.blue, modifier = Modifier.size(20.dp))
                 }
             }
@@ -117,7 +117,7 @@ fun QueueItem(
         Column(modifier = Modifier.weight(1f)) {
             Text(
                 track.title,
-                color = if (isCurrent) IosSettingsColors.blue else Color.White,
+                color = if (isCurrent) IosSettingsColors.blue else IosSettingsColors.label,
                 fontSize = 15.sp,
                 fontWeight = if (isCurrent) FontWeight.Bold else FontWeight.Normal,
                 maxLines = 1,
@@ -133,9 +133,9 @@ fun QueueItem(
         }
         
         IconButton(onClick = onRemove) {
-            Icon(Icons.Default.Close, contentDescription = "Eliminar", tint = Color.Gray, modifier = Modifier.size(20.dp))
+            Icon(Icons.Default.Close, contentDescription = "Eliminar", tint = IosSettingsColors.secondaryLabel, modifier = Modifier.size(20.dp))
         }
 
-        Icon(Icons.Default.DragHandle, contentDescription = "Mover", tint = Color.Gray)
+        Icon(Icons.Default.DragHandle, contentDescription = "Mover", tint = IosSettingsColors.secondaryLabel)
     }
 }

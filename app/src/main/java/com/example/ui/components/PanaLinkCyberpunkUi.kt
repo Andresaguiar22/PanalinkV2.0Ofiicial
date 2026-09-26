@@ -232,7 +232,7 @@ fun PaniOSChatsTopBar(
         // Large Title iOS
         Text(
             text = "PanaLink",
-            color = Color.White,
+            color = IosSettingsColors.label,
             fontSize = 34.sp,
             fontWeight = FontWeight.Bold,
             fontFamily = FontFamily.SansSerif,
@@ -313,13 +313,13 @@ fun PanaLinkCyberpunkTopBar(
                 horizontalArrangement = Arrangement.spacedBy(1.dp)
             ) {
                 IconButton(onClick = onAdd, modifier = Modifier.size(42.dp)) {
-                    Icon(Icons.Default.Add, contentDescription = "Crear", tint = Color.White)
+                    Icon(Icons.Default.Add, contentDescription = "Crear", tint = IosSettingsColors.label)
                 }
                 IconButton(onClick = onSearch, modifier = Modifier.size(42.dp)) {
-                    Icon(Icons.Default.Search, contentDescription = "Buscar", tint = Color.White)
+                    Icon(Icons.Default.Search, contentDescription = "Buscar", tint = IosSettingsColors.label)
                 }
                 IconButton(onClick = onFolder, modifier = Modifier.size(42.dp)) {
-                    Icon(Icons.Default.Folder, contentDescription = "Favoritos", tint = Color.White)
+                    Icon(Icons.Default.Folder, contentDescription = "Favoritos", tint = IosSettingsColors.label)
                 }
                 Box(
                     modifier = Modifier
@@ -516,13 +516,13 @@ fun PaniOSUnifiedTopBar(
                     .background(
                         Brush.horizontalGradient(
                             listOf(
-                                Color(0x33FFFFFF),
-                                Color(0x1AFFFFFF),
-                                Color(0x33FFFFFF)
+                                IosSettingsColors.separator,
+                                IosSettingsColors.separator,
+                                IosSettingsColors.separator
                             )
                         )
                     )
-                    .border(1.dp, Color(0x4DFFFFFF), RoundedCornerShape(22.dp))
+                    .border(1.dp, IosSettingsColors.separator, RoundedCornerShape(22.dp))
                     .padding(horizontal =  5.dp, vertical =  3.dp),
                 verticalAlignment = Alignment.CenterVertically,
                 horizontalArrangement = Arrangement.Center
@@ -572,7 +572,7 @@ fun PaniOSUnifiedTopBar(
                                     ) {
                                         Text(
                                             text = if (unreadNotificationCount >  9) "9+" else unreadNotificationCount.toString(),
-                                            color = Color.White,
+                                            color = IosSettingsColors.onAccent,
                                             fontSize =  9.sp,
                                             fontWeight = FontWeight.Bold
                                         )
@@ -612,7 +612,7 @@ fun PaniOSUnifiedTopBar(
                             status = myPresence.rawValue,
                             secondaryStatus = if (mySecondaryPresence != com.example.data.repository.SecondaryPresenceStatus.NONE) mySecondaryPresence.rawValue else null,
                             size =  12.dp,
-                            borderColor = Color.White,
+                            borderColor = IosSettingsColors.label,
                             modifier = Modifier
                                 .align(Alignment.BottomEnd)
                                 .offset(x =  2.dp, y =  2.dp)

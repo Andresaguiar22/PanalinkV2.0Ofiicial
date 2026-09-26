@@ -149,7 +149,7 @@ fun EstadosTabContent(
                             .border(1.5.dp, IosSettingsColors.groupBackground, CircleShape),
                         contentAlignment = Alignment.Center
                     ) {
-                        Icon(Icons.Default.Add, contentDescription = null, tint = Color.White, modifier = Modifier.size(14.dp))
+                        Icon(Icons.Default.Add, contentDescription = null, tint = IosSettingsColors.label, modifier = Modifier.size(14.dp))
                     }
                 }
 
@@ -318,11 +318,11 @@ fun EstadosTabContent(
                                                 .border(2.dp, IosSettingsColors.groupBackground, CircleShape),
                                             contentAlignment = Alignment.Center
                                         ) {
-                                            Icon(Icons.Default.Add, contentDescription = null, tint = Color.White, modifier = Modifier.size(18.dp))
+                                            Icon(Icons.Default.Add, contentDescription = null, tint = IosSettingsColors.label, modifier = Modifier.size(18.dp))
                                         }
                                         Text(
                                             text = "Crear Estado",
-                                            color = Color.White,
+                                            color = IosSettingsColors.label,
                                             fontFamily = IosFont,
                                             fontWeight = FontWeight.SemiBold,
                                             fontSize = 11.sp,
@@ -458,7 +458,7 @@ fun EstadosTabContent(
                                             ) {
                                                 Text(
                                                     text = state.caption ?: "",
-                                                    color = Color.White,
+                                                    color = IosSettingsColors.label,
                                                     fontFamily = IosFont,
                                                     fontSize = 11.sp,
                                                     fontWeight = FontWeight.SemiBold,
@@ -528,7 +528,7 @@ fun EstadosTabContent(
                                                     Icon(
                                                         imageVector = Icons.AutoMirrored.Filled.VolumeUp,
                                                         contentDescription = "Contenido Multimedia",
-                                                        tint = Color.White,
+                                                        tint = IosSettingsColors.label,
                                                         modifier = Modifier.size(12.dp)
                                                     )
                                                 }
@@ -550,7 +550,7 @@ fun EstadosTabContent(
                                                 .height(50.dp)
                                                 .background(
                                                     Brush.verticalGradient(
-                                                        colors = listOf(Color.Transparent, Color.Black.copy(alpha = 0.8f))
+                                                        colors = listOf(Color.Transparent, IosSettingsColors.mediaScrim)
                                                     )
                                                 )
                                         )
@@ -577,7 +577,7 @@ fun EstadosTabContent(
                                         // Bottom name text
                                         Text(
                                             text = safeDisplayName.split(" ").first(),
-                                            color = Color.White,
+                                            color = IosSettingsColors.label,
                                             fontFamily = IosFont,
                                             fontWeight = FontWeight.SemiBold,
                                             fontSize = 11.sp,
@@ -695,10 +695,10 @@ fun EstadosTabContent(
                                     // Visual card design
                                     if (videoState.state.mediaType.equals("video", ignoreCase = true) || videoState.state.mediaType.contains("video", ignoreCase = true) || videoState.state.isReel) {
                                         Box(
-                                            modifier = Modifier.fillMaxSize().background(Color.Black),
+                                            modifier = Modifier.fillMaxSize().background(IosSettingsColors.groupBackground),
                                             contentAlignment = Alignment.Center
                                         ) {
-                                            Icon(Icons.Default.PlayArrow, contentDescription="Play", tint=Color.White)
+                                            Icon(Icons.Default.PlayArrow, contentDescription="Play", tint=IosSettingsColors.label)
                                         }
                                     } else {
                                         AsyncImage(
@@ -715,7 +715,7 @@ fun EstadosTabContent(
                                             .fillMaxSize()
                                             .background(
                                                 Brush.verticalGradient(
-                                                    colors = listOf(Color.Transparent, Color.Black.copy(alpha = 0.7f))
+                                                    colors = listOf(Color.Transparent, IosSettingsColors.mediaScrim)
                                                 )
                                             )
                                     )
@@ -730,7 +730,7 @@ fun EstadosTabContent(
                                         Icon(
                                             imageVector = Icons.Default.PlayArrow,
                                             contentDescription = "Ver Video",
-                                            tint = Color.White,
+                                            tint = IosSettingsColors.label,
                                             modifier = Modifier.size(24.dp)
                                         )
                                     }
@@ -755,7 +755,7 @@ fun EstadosTabContent(
                                             )
                                             Text(
                                                 text = safeDisplayName.split(" ").first(),
-                                                color = Color.White,
+                                                color = IosSettingsColors.label,
                                                 fontFamily = IosFont,
                                                 fontWeight = FontWeight.SemiBold,
                                                 fontSize = 11.sp,
@@ -767,7 +767,7 @@ fun EstadosTabContent(
                                         if (!videoState.state.caption.isNullOrBlank()) {
                                             Text(
                                                 text = videoState.state.caption,
-                                                color = Color.White.copy(alpha = 0.9f),
+                                                color = IosSettingsColors.label.copy(alpha = 0.9f),
                                                 fontFamily = IosFont,
                                                 fontSize = 11.sp,
                                                 maxLines = 1,

@@ -69,16 +69,16 @@ fun SharePlaylistSheet(
             value = query,
             onValueChange = { query = it },
             modifier = Modifier.fillMaxWidth(),
-            placeholder = { Text("Buscar contacto...", color = Color.Gray) },
-            leadingIcon = { Icon(Icons.Default.Search, contentDescription = null, tint = Color.Gray) },
+            placeholder = { Text("Buscar contacto...", color = IosSettingsColors.secondaryLabel) },
+            leadingIcon = { Icon(Icons.Default.Search, contentDescription = null, tint = IosSettingsColors.secondaryLabel) },
             shape = RoundedCornerShape(24.dp),
             colors = OutlinedTextFieldDefaults.colors(
                 focusedContainerColor = IosSettingsColors.cell,
                 unfocusedContainerColor = IosSettingsColors.cell,
                 focusedBorderColor = IosSettingsColors.blue,
                 unfocusedBorderColor = Color.Transparent,
-                focusedTextColor = Color.White,
-                unfocusedTextColor = Color.White
+                focusedTextColor = IosSettingsColors.label,
+                unfocusedTextColor = IosSettingsColors.label
             ),
             singleLine = true
         )
@@ -95,7 +95,7 @@ fun SharePlaylistSheet(
                 Box(modifier = Modifier.fillMaxWidth().height(200.dp), contentAlignment = Alignment.Center) {
                     Text(
                         if (query.isBlank()) "No tienes chats todavía" else "Sin resultados",
-                        color = Color.Gray,
+                        color = IosSettingsColors.secondaryLabel,
                         fontSize = 14.sp
                     )
                 }
@@ -155,7 +155,7 @@ fun SharePlaylistSheet(
                                 )
                                 Text(
                                     if (isGroup) "Grupo" else "Contacto",
-                                    color = Color.Gray,
+                                    color = IosSettingsColors.secondaryLabel,
                                     fontSize = 12.sp
                                 )
                             }

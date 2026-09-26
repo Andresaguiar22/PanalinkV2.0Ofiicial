@@ -89,7 +89,7 @@ fun CreateChannelDialog(
                                 modifier = Modifier
                                     .size(if (step == currentStep) 12.dp else 8.dp)
                                     .clip(CircleShape)
-                                    .background(if (step == currentStep) IosSettingsColors.blue else Color.Gray.copy(alpha = 0.3f))
+                                    .background(if (step == currentStep) IosSettingsColors.blue else IosSettingsColors.separator)
                             )
                             if (index < 2) {
                                 Spacer(modifier = Modifier.width(8.dp))
@@ -102,7 +102,7 @@ fun CreateChannelDialog(
                     when (step) {
                         1 -> {
                             // Step 1: Basic Info
-                            Text("Paso 1: Información básica", color = Color.Gray, fontSize = 12.sp)
+                            Text("Paso 1: Información básica", color = IosSettingsColors.secondaryLabel, fontSize = 12.sp)
                             Spacer(modifier = Modifier.height(16.dp))
                             
                             OutlinedTextField(
@@ -112,10 +112,10 @@ fun CreateChannelDialog(
                                 modifier = Modifier.fillMaxWidth(),
                                 shape = RoundedCornerShape(12.dp),
                                 colors = OutlinedTextFieldDefaults.colors(
-                                    focusedTextColor = Color.White,
-                                    unfocusedTextColor = Color.White,
+                                    focusedTextColor = IosSettingsColors.label,
+                                    unfocusedTextColor = IosSettingsColors.label,
                                     focusedBorderColor = IosSettingsColors.blue,
-                                    unfocusedBorderColor = Color.Gray.copy(alpha = 0.5f)
+                                    unfocusedBorderColor = IosSettingsColors.separator
                                 ),
                                 singleLine = true
                             )
@@ -127,17 +127,17 @@ fun CreateChannelDialog(
                                 modifier = Modifier.fillMaxWidth().height(100.dp),
                                 shape = RoundedCornerShape(12.dp),
                                 colors = OutlinedTextFieldDefaults.colors(
-                                    focusedTextColor = Color.White,
-                                    unfocusedTextColor = Color.White,
+                                    focusedTextColor = IosSettingsColors.label,
+                                    unfocusedTextColor = IosSettingsColors.label,
                                     focusedBorderColor = IosSettingsColors.blue,
-                                    unfocusedBorderColor = Color.Gray.copy(alpha = 0.5f)
+                                    unfocusedBorderColor = IosSettingsColors.separator
                                 ),
                                 maxLines = 3
                             )
                         }
                         2 -> {
                             // Step 2: Appearance
-                            Text("Paso 2: Apariencia visual", color = Color.Gray, fontSize = 12.sp)
+                            Text("Paso 2: Apariencia visual", color = IosSettingsColors.secondaryLabel, fontSize = 12.sp)
                             Spacer(modifier = Modifier.height(16.dp))
                             
                             val coroutineScope = rememberCoroutineScope()
@@ -253,7 +253,7 @@ fun CreateChannelDialog(
                                     .height(120.dp)
                                     .clip(RoundedCornerShape(12.dp))
                                     .background(IosSettingsColors.cellElevated)
-                                    .border(1.dp, Color.Gray.copy(alpha = 0.3f), RoundedCornerShape(12.dp))
+                                    .border(1.dp, IosSettingsColors.separator, RoundedCornerShape(12.dp))
                                     .clickable { coverPicker.launch(androidx.activity.result.PickVisualMediaRequest(ActivityResultContracts.PickVisualMedia.ImageOnly)) },
                                 contentAlignment = Alignment.Center
                             ) {
@@ -270,9 +270,9 @@ fun CreateChannelDialog(
                                     CircularProgressIndicator(color = IosSettingsColors.blue)
                                 } else {
                                     Column(horizontalAlignment = Alignment.CenterHorizontally) {
-                                        Icon(Icons.Default.Image, contentDescription = null, tint = Color.Gray)
+                                        Icon(Icons.Default.Image, contentDescription = null, tint = IosSettingsColors.secondaryLabel)
                                         Spacer(modifier = Modifier.height(4.dp))
-                                        Text("Añadir Portada", color = Color.Gray, fontSize = 12.sp)
+                                        Text("Añadir Portada", color = IosSettingsColors.secondaryLabel, fontSize = 12.sp)
                                     }
                                 }
                             }
@@ -301,19 +301,19 @@ fun CreateChannelDialog(
                                     } else if (isUploadingAvatar) {
                                         CircularProgressIndicator(color = IosSettingsColors.blue, modifier = Modifier.size(24.dp))
                                     } else {
-                                        Icon(Icons.Default.AddAPhoto, contentDescription = null, tint = Color.Gray)
+                                        Icon(Icons.Default.AddAPhoto, contentDescription = null, tint = IosSettingsColors.secondaryLabel)
                                     }
                                 }
                                 Spacer(modifier = Modifier.width(16.dp))
                                 Column {
                                     Text("Foto de Perfil del Canal", color = IosSettingsColors.label, fontWeight = FontWeight.Bold)
-                                    Text("Toca el círculo para subir una foto", color = Color.Gray, fontSize = 12.sp)
+                                    Text("Toca el círculo para subir una foto", color = IosSettingsColors.secondaryLabel, fontSize = 12.sp)
                                 }
                             }
                         }
                         3 -> {
                             // Step 3: Settings
-                            Text("Paso 3: Configuración", color = Color.Gray, fontSize = 12.sp)
+                            Text("Paso 3: Configuración", color = IosSettingsColors.secondaryLabel, fontSize = 12.sp)
                             Spacer(modifier = Modifier.height(16.dp))
                             
                             // Visibilidad
@@ -330,7 +330,7 @@ fun CreateChannelDialog(
                                     Text("Visibilidad", color = IosSettingsColors.label, fontWeight = FontWeight.Bold)
                                     Text(
                                         if (visibility == "public") "Cualquiera puede encontrar el canal" else "Solo por invitación",
-                                        color = Color.Gray,
+                                        color = IosSettingsColors.secondaryLabel,
                                         fontSize = 12.sp
                                     )
                                 }
@@ -360,7 +360,7 @@ fun CreateChannelDialog(
                                     Text("Solo Lectura", color = IosSettingsColors.label, fontWeight = FontWeight.Bold)
                                     Text(
                                         if (isReadonly) "Solo tú puedes publicar" else "Los miembros pueden interactuar",
-                                        color = Color.Gray,
+                                        color = IosSettingsColors.secondaryLabel,
                                         fontSize = 12.sp
                                     )
                                 }
@@ -384,11 +384,11 @@ fun CreateChannelDialog(
                     ) {
                         if (step > 1) {
                             TextButton(onClick = { step-- }) {
-                                Text("Atrás", color = Color.Gray)
+                                Text("Atrás", color = IosSettingsColors.secondaryLabel)
                             }
                         } else {
                             TextButton(onClick = onDismiss) {
-                                Text("Cancelar", color = Color.Gray)
+                                Text("Cancelar", color = IosSettingsColors.secondaryLabel)
                             }
                         }
 

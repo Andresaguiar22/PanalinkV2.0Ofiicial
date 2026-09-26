@@ -127,7 +127,7 @@ fun PlaylistScreen(
                     
                     Text(
                         text = playlist.description ?: "Playlist de PanaLink",
-                        color = Color.Gray,
+                        color = IosSettingsColors.secondaryLabel,
                         fontSize = 14.sp,
                         modifier = Modifier.padding(horizontal = 24.dp, vertical = 4.dp)
                     )
@@ -136,7 +136,7 @@ fun PlaylistScreen(
                         modifier = Modifier.padding(vertical = 8.dp),
                         verticalAlignment = Alignment.CenterVertically
                     ) {
-                        Icon(Icons.Default.Person, contentDescription = null, tint = Color.Gray, modifier = Modifier.size(16.dp))
+                        Icon(Icons.Default.Person, contentDescription = null, tint = IosSettingsColors.secondaryLabel, modifier = Modifier.size(16.dp))
                         Spacer(modifier = Modifier.width(4.dp))
                         Text(
                             text = when(userRole) {
@@ -144,13 +144,13 @@ fun PlaylistScreen(
                                 com.example.media.playlist.PlaylistMemberRole.EDITOR -> "Editor"
                                 com.example.media.playlist.PlaylistMemberRole.VIEWER -> "Espectador"
                             },
-                            color = Color.Gray, 
+                            color = IosSettingsColors.secondaryLabel, 
                             fontSize = 12.sp
                         )
                         Spacer(modifier = Modifier.width(12.dp))
-                        Icon(Icons.Default.AccessTime, contentDescription = null, tint = Color.Gray, modifier = Modifier.size(16.dp))
+                        Icon(Icons.Default.AccessTime, contentDescription = null, tint = IosSettingsColors.secondaryLabel, modifier = Modifier.size(16.dp))
                         Spacer(modifier = Modifier.width(4.dp))
-                        Text(text = "${songs.size} canciones", color = Color.Gray, fontSize = 12.sp)
+                        Text(text = "${songs.size} canciones", color = IosSettingsColors.secondaryLabel, fontSize = 12.sp)
                     }
 
                     Row(
@@ -176,7 +176,7 @@ fun PlaylistScreen(
                             FloatingActionButton(
                                 onClick = onPlayAllClick,
                                 containerColor = IosSettingsColors.blue,
-                                contentColor = Color.Black,
+                                contentColor = IosSettingsColors.onAccent,
                                 shape = androidx.compose.foundation.shape.CircleShape,
                                 modifier = Modifier.size(56.dp)
                             ) {

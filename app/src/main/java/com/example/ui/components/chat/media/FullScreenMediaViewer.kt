@@ -118,7 +118,7 @@ fun FullScreenMediaViewer(
                 Row(
                     modifier = Modifier
                         .fillMaxWidth()
-                        .background(Color.Black.copy(alpha = 0.6f))
+                        .background(IosSettingsColors.mediaScrimSoft)
                         .padding(horizontal = 12.dp, vertical = 16.dp),
                     verticalAlignment = Alignment.CenterVertically,
                     horizontalArrangement = Arrangement.SpaceBetween
@@ -350,7 +350,7 @@ private fun VideoViewerContent(
             Box(
                 modifier = Modifier
                     .fillMaxSize()
-                    .background(Color.Black.copy(alpha = 0.45f))
+                    .background(IosSettingsColors.mediaScrimSoft)
             ) {
                 // Botón central de Play / Pausa
                 IconButton(
@@ -365,7 +365,7 @@ private fun VideoViewerContent(
                         .align(Alignment.Center)
                         .size(68.dp)
                         .clip(CircleShape)
-                        .background(Color.Black.copy(alpha = 0.6f))
+                        .background(IosSettingsColors.mediaScrimSoft)
                 ) {
                     Icon(
                         imageVector = if (isPlaying) Icons.Default.Pause else Icons.Default.PlayArrow,
@@ -380,7 +380,7 @@ private fun VideoViewerContent(
                     modifier = Modifier
                         .align(Alignment.BottomCenter)
                         .fillMaxWidth()
-                        .background(Color.Black.copy(alpha = 0.75f))
+                        .background(IosSettingsColors.mediaScrim)
                         .padding(horizontal = 16.dp, vertical = 12.dp)
                 ) {
                     Row(
@@ -411,7 +411,7 @@ private fun VideoViewerContent(
                             },
                             modifier = Modifier
                                 .clip(RoundedCornerShape(6.dp))
-                                .background(Color.White.copy(alpha = 0.15f))
+                                .background(IosSettingsColors.separator)
                                 .padding(horizontal = 8.dp, vertical = 2.dp)
                         ) {
                             Text(
@@ -437,7 +437,7 @@ private fun VideoViewerContent(
                         colors = SliderDefaults.colors(
                             thumbColor = IosSettingsColors.blue,
                             activeTrackColor = IosSettingsColors.blue,
-                            inactiveTrackColor = Color.White.copy(alpha = 0.3f)
+                            inactiveTrackColor = IosSettingsColors.label.copy(alpha = 0.3f)
                         )
                     )
                 }

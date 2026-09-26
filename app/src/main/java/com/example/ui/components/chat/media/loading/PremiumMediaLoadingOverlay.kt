@@ -51,9 +51,9 @@ fun PremiumMediaLoadingOverlay(
 @Composable
 private fun ShimmerEffect() {
     val shimmerColors = listOf(
-        Color.White.copy(alpha = 0.05f),
-        Color.White.copy(alpha = 0.15f),
-        Color.White.copy(alpha = 0.05f),
+        IosSettingsColors.separator,
+        IosSettingsColors.label.copy(alpha = 0.15f),
+        IosSettingsColors.separator,
     )
 
     val transition = rememberInfiniteTransition(label = "shimmer")
@@ -76,7 +76,7 @@ private fun ShimmerEffect() {
     Box(
         modifier = Modifier
             .fillMaxSize()
-            .background(Color.Black.copy(alpha = 0.1f))
+            .background(IosSettingsColors.mediaScrimSoft)
             .background(brush)
     ) {
         CircularProgressIndicator(
@@ -94,7 +94,7 @@ private fun ErrorState(onRetry: () -> Unit) {
     Box(
         modifier = Modifier
             .fillMaxSize()
-            .background(Color.Black.copy(alpha = 0.4f)),
+            .background(IosSettingsColors.mediaScrimSoft),
         contentAlignment = Alignment.Center
     ) {
         Column(horizontalAlignment = Alignment.CenterHorizontally) {
@@ -103,7 +103,7 @@ private fun ErrorState(onRetry: () -> Unit) {
                 modifier = Modifier
                     .size(48.dp)
                     .clip(CircleShape)
-                    .background(Color.White.copy(alpha = 0.2f))
+                    .background(IosSettingsColors.separator)
             ) {
                 Icon(
                     imageVector = Icons.Default.Refresh,
