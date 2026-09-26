@@ -35,7 +35,7 @@ fun LiveStudioSheet(
     ModalBottomSheet(
         onDismissRequest = onDismiss,
         containerColor = IosSettingsColors.cell,
-        contentColor = Color.White
+        contentColor = IosSettingsColors.label
     ) {
         Column(modifier = Modifier.padding(horizontal = 16.dp)) {
             Text("Panalink Studio", fontSize = 18.sp, fontWeight = FontWeight.Bold, color = IosSettingsColors.label)
@@ -46,7 +46,7 @@ fun LiveStudioSheet(
                     userId = hostId,
                     size = 48.dp,
                     borderWidth = 2.dp,
-                    borderColor = Color.White,
+                    borderColor = IosSettingsColors.label,
                     placeholderName = hostName
                 )
                 Spacer(modifier = Modifier.width(12.dp))
@@ -63,9 +63,9 @@ fun LiveStudioSheet(
             Spacer(modifier = Modifier.height(16.dp))
 
             Row(horizontalArrangement = Arrangement.spacedBy(10.dp)) {
-                StudioMetric("Espectadores", formatLiveCount(viewerCount), Color(0xFF6FD3FF))
-                StudioMetric("Me gusta", formatLiveCount(likeCount), Color(0xFFFF7BAC))
-                StudioMetric("Monedas", giftCoins.toString(), Color(0xFFFFD54F))
+                StudioMetric("Espectadores", formatLiveCount(viewerCount), IosSettingsColors.blue)
+                StudioMetric("Me gusta", formatLiveCount(likeCount), IosSettingsColors.pink)
+                StudioMetric("Monedas", giftCoins.toString(), IosSettingsColors.yellow)
             }
 
             Spacer(modifier = Modifier.height(18.dp))
@@ -94,7 +94,7 @@ fun LiveStudioSheet(
                                 userId = userId,
                                 size = 44.dp,
                                 borderWidth = 1.5.dp,
-                                borderColor = Color(0xFF2EA8FF),
+                                borderColor = IosSettingsColors.blue,
                                 placeholderName = identity.displayNameOr(userId)
                             )
                             Spacer(modifier = Modifier.height(4.dp))
@@ -143,7 +143,7 @@ fun LiveStudioSheet(
 private fun StudioMetric(label: String, value: String, accent: Color) {
     Column(
         modifier = Modifier
-            .background(Color(0xFF26262E), RoundedCornerShape(14.dp))
+            .background(IosSettingsColors.cellElevated, RoundedCornerShape(14.dp))
             .padding(horizontal = 14.dp, vertical = 10.dp),
         horizontalAlignment = Alignment.CenterHorizontally
     ) {

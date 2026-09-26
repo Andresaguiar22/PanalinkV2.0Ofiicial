@@ -36,7 +36,7 @@ import androidx.compose.ui.unit.sp
 import com.example.ui.settings.ios.IosSettingsColors
 
 private val SendGradient = Brush.linearGradient(
-    colors = listOf(Color(0xFFFF2E77), IosSettingsColors.blue, Color(0xFF2EA8FF))
+    colors = listOf(IosSettingsColors.pink, IosSettingsColors.blue, IosSettingsColors.teal)
 )
 
 @Composable
@@ -83,7 +83,7 @@ fun LiveViewerBottomBar(
                 .weight(1f)
                 .height(38.dp)
                 .clip(RoundedCornerShape(50))
-                .background(Color.White.copy(alpha = 0.14f))
+                .background(IosSettingsColors.separator)
                 .padding(start = 14.dp, end = 3.dp),
             verticalAlignment = Alignment.CenterVertically
         ) {
@@ -100,7 +100,7 @@ fun LiveViewerBottomBar(
                     onValueChange = { commentText = it },
                     singleLine = true,
                     textStyle = TextStyle(color = IosSettingsColors.label, fontSize = 12.5.sp),
-                    cursorBrush = SolidColor(Color.White),
+                    cursorBrush = SolidColor(IosSettingsColors.label),
                     keyboardOptions = KeyboardOptions(imeAction = ImeAction.Send),
                     keyboardActions = KeyboardActions(onSend = { submit() }),
                     modifier = Modifier
@@ -154,13 +154,13 @@ fun LiveViewerBottomBar(
         BarAction(
             icon = Icons.Default.CardGiftcard,
             label = "Regalos",
-            iconTint = Color(0xFFFF7BAC),
+            iconTint = IosSettingsColors.pink,
             onClick = onOpenGifts
         )
         BarAction(
             icon = Icons.Default.PersonAdd,
             label = "Pedidos",
-            iconTint = if (requestPending) IosSettingsColors.yellow else Color.White,
+            iconTint = if (requestPending) IosSettingsColors.yellow else IosSettingsColors.label,
             onClick = onOpenRequests
         )
         BarAction(
@@ -185,7 +185,7 @@ private fun BarAction(
     icon: ImageVector,
     label: String,
     onClick: () -> Unit,
-    iconTint: Color = Color.White,
+    iconTint: Color = IosSettingsColors.label,
     gradientIcon: Boolean = false,
     badgeCount: Int = 0
 ) {
@@ -206,7 +206,7 @@ private fun BarAction(
                 Icon(
                     imageVector = icon,
                     contentDescription = label,
-                    tint = Color(0xFFB388FF),
+                    tint = IosSettingsColors.purple,
                     modifier = Modifier.size(22.dp)
                 )
             } else {

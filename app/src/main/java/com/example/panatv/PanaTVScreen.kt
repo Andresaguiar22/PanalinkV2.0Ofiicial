@@ -625,7 +625,7 @@ fun PanaTVScreen(viewModel: PanaTVViewModel = viewModel()) {
                         .fillMaxWidth()
                         .padding(horizontal = 16.dp)
                         .aspectRatio(16f / 9f)
-                        .background(Color.Black, RoundedCornerShape(12.dp))
+                        .background(IosSettingsColors.groupBackground, RoundedCornerShape(12.dp))
                         .clip(RoundedCornerShape(12.dp))
                         .pointerInput(Unit) {
                             detectTransformGestures(
@@ -690,7 +690,7 @@ fun PanaTVScreen(viewModel: PanaTVViewModel = viewModel()) {
                             modifier = Modifier
                                 .align(Alignment.TopStart)
                                 .fillMaxWidth()
-                                .background(Color.Black.copy(alpha = 0.35f))
+                                .background(IosSettingsColors.mediaScrimSoft)
                                 .padding(horizontal = 12.dp, vertical = 8.dp),
                             verticalAlignment = Alignment.CenterVertically
                         ) {
@@ -728,7 +728,7 @@ fun PanaTVScreen(viewModel: PanaTVViewModel = viewModel()) {
                             modifier = Modifier
                                 .align(Alignment.BottomStart)
                                 .fillMaxWidth()
-                                .background(Color.Black.copy(alpha = 0.35f))
+                                .background(IosSettingsColors.mediaScrimSoft)
                                 .padding(horizontal = 4.dp),
                             verticalAlignment = Alignment.CenterVertically,
                             horizontalArrangement = Arrangement.SpaceBetween
@@ -839,7 +839,7 @@ fun PanaTVScreen(viewModel: PanaTVViewModel = viewModel()) {
                         modifier = Modifier.align(Alignment.Center)
                     ) {
                         Surface(
-                            color = Color.Black.copy(alpha = 0.7f),
+                            color = IosSettingsColors.mediaScrim,
                             shape = RoundedCornerShape(16.dp),
                             modifier = Modifier.padding(32.dp)
                         ) {
@@ -942,7 +942,7 @@ fun PanaTVScreen(viewModel: PanaTVViewModel = viewModel()) {
                 Box(
                     modifier = Modifier
                         .fillMaxSize()
-                        .background(Color.Black)
+                        .background(IosSettingsColors.groupBackground)
                         .clickable(
                             interactionSource = remember { androidx.compose.foundation.interaction.MutableInteractionSource() },
                             indication = null
@@ -977,7 +977,7 @@ fun PanaTVScreen(viewModel: PanaTVViewModel = viewModel()) {
                         if ((!isVideoRendering || isBuffering) && currentChannel != null) {
                             if (isBuffering && !playerError.isBlank()) {
                                 Box(
-                                    modifier = Modifier.fillMaxSize().background(Color.Black),
+                                    modifier = Modifier.fillMaxSize().background(IosSettingsColors.groupBackground),
                                     contentAlignment = Alignment.Center
                                 ) {
                                     Column(horizontalAlignment = Alignment.CenterHorizontally) {
@@ -1041,7 +1041,7 @@ fun PanaTVScreen(viewModel: PanaTVViewModel = viewModel()) {
                                 modifier = Modifier
                                     .align(Alignment.TopStart)
                                     .fillMaxWidth()
-                                    .background(Color.Black.copy(alpha = 0.5f))
+                                    .background(IosSettingsColors.mediaScrimSoft)
                                     .padding(horizontal = 8.dp, vertical = 6.dp),
                                 verticalAlignment = Alignment.CenterVertically
                             ) {
@@ -1137,7 +1137,7 @@ fun PanaTVScreen(viewModel: PanaTVViewModel = viewModel()) {
 
                                 // Progress bar scrubber: only for seekable/DVR windows;
                                 // suppress the VOD-style slider on non-seekable live streams.
-                                if (duration > 0L && exoPlayer?.isCurrentWindowSeekable == true) {
+                                if (duration > 0L && exoPlayer?.isCurrentMediaItemSeekable == true) {
                                     Box(
                                         modifier = Modifier
                                             .fillMaxWidth()
@@ -1183,7 +1183,7 @@ fun PanaTVScreen(viewModel: PanaTVViewModel = viewModel()) {
                                 Row(
                                     modifier = Modifier
                                         .fillMaxWidth()
-                                        .background(Color.Black.copy(alpha = 0.5f))
+                                        .background(IosSettingsColors.mediaScrimSoft)
                                         .padding(horizontal = 8.dp, vertical = 4.dp),
                                     verticalAlignment = Alignment.CenterVertically,
                                     horizontalArrangement = Arrangement.SpaceBetween
@@ -1349,7 +1349,7 @@ fun PanaTVScreen(viewModel: PanaTVViewModel = viewModel()) {
                                 .align(Alignment.CenterStart)
                                 .padding(start = 16.dp)
                                 .size(48.dp)
-                                .background(Color.Black.copy(alpha = 0.6f), CircleShape)
+                                .background(IosSettingsColors.mediaScrimSoft, CircleShape)
                         ) {
                             Icon(
                                 Icons.Default.Lock,
@@ -1506,7 +1506,7 @@ private fun ChannelCard(
                     .align(Alignment.TopStart)
                     .size(24.dp)
                     .clip(CircleShape)
-                    .background(Color.Black.copy(alpha = 0.35f))
+                    .background(IosSettingsColors.mediaScrimSoft)
                     .clickable(onClick = onToggleFavorite),
                 contentAlignment = Alignment.Center
             ) {

@@ -69,8 +69,8 @@ fun LiveViewerHeader(
             modifier = Modifier
                 .weight(1f)
                 .clip(RoundedCornerShape(26.dp))
-                .background(Color.White.copy(alpha = 0.14f))
-                .border(0.5.dp, Color.White.copy(alpha = 0.18f), RoundedCornerShape(26.dp))
+                .background(IosSettingsColors.separator)
+                .border(0.5.dp, IosSettingsColors.label.copy(alpha = 0.18f), RoundedCornerShape(26.dp))
                 .padding(horizontal = 10.dp, vertical = 9.dp),
             verticalAlignment = Alignment.CenterVertically
         ) {
@@ -78,7 +78,7 @@ fun LiveViewerHeader(
                 userId = hostId,
                 size = 46.dp,
                 borderWidth = 2.dp,
-                borderColor = Color.White,
+                borderColor = IosSettingsColors.label,
                 contentDescription = "Avatar de $displayName",
                 placeholderName = displayName
             )
@@ -113,7 +113,7 @@ fun LiveViewerHeader(
 
         Surface(
             shape = RoundedCornerShape(50),
-            color = Color.Black.copy(alpha = 0.35f),
+            color = IosSettingsColors.mediaScrimSoft,
             modifier = Modifier.padding(top = 2.dp)
         ) {
             IconButton(onClick = onClose, modifier = Modifier.size(34.dp)) {
@@ -133,7 +133,7 @@ private fun LiveBadge() {
     Surface(
         shape = RoundedCornerShape(9.dp),
         color = IosSettingsColors.label.copy(alpha = 0.22f),
-        border = BorderStroke(1.dp, Color.White.copy(alpha = 0.7f))
+        border = BorderStroke(1.dp, IosSettingsColors.label.copy(alpha = 0.7f))
     ) {
         Text(
             text = "LIVE",
@@ -149,7 +149,7 @@ private fun LiveBadge() {
 private fun StatChip(label: String, value: String) {
     Surface(
         shape = RoundedCornerShape(50),
-        color = Color.Black.copy(alpha = 0.22f)
+        color = IosSettingsColors.mediaScrimSoft
     ) {
         Row(
             modifier = Modifier.padding(horizontal = 8.dp, vertical = 3.dp),

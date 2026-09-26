@@ -73,7 +73,7 @@ fun LiveCard(
         shape = LiveCardShape,
         colors = CardDefaults.cardColors(containerColor = Color.Transparent),
         elevation = CardDefaults.cardElevation(defaultElevation = 0.dp),
-        border = BorderStroke(1.dp, Color.White.copy(alpha = 0.1f))
+        border = BorderStroke(1.dp, IosSettingsColors.separator)
     ) {
         Box(modifier = Modifier.fillMaxSize()) {
             if (resolvedThumbnailUrl.isNotBlank()) {
@@ -102,7 +102,7 @@ fun LiveCard(
             Box(
                 modifier = Modifier
                     .fillMaxSize()
-                    .background(Color.Black.copy(alpha = 0.35f))
+                    .background(IosSettingsColors.mediaScrimSoft)
             )
             Box(
                 modifier = Modifier
@@ -112,8 +112,8 @@ fun LiveCard(
                             colors = listOf(
                                 Color.Transparent,
                                 Color.Transparent,
-                                Color.Black.copy(alpha = 0.55f),
-                                Color.Black.copy(alpha = 0.85f)
+                                IosSettingsColors.mediaScrimSoft,
+                                IosSettingsColors.mediaScrim
                             )
                         )
                     )
@@ -153,7 +153,7 @@ fun LiveCard(
                         userId = live.hostId,
                         size = 26.dp,
                         borderWidth = 1.dp,
-                        borderColor = Color.White.copy(alpha = 0.35f),
+                        borderColor = IosSettingsColors.label.copy(alpha = 0.35f),
                         contentDescription = "Avatar de $hostName"
                     )
                     Text(
@@ -180,7 +180,7 @@ private fun LiveBadge() {
         modifier = Modifier
             .clip(CircleShape)
             .background(IosSettingsColors.groupBackground.copy(alpha = 0.55f))
-            .border(1.dp, Color.White.copy(alpha = 0.15f), CircleShape)
+            .border(1.dp, IosSettingsColors.separator, CircleShape)
             .padding(horizontal = 10.dp, vertical = 5.dp),
         verticalAlignment = Alignment.CenterVertically,
         horizontalArrangement = Arrangement.spacedBy(6.dp)
@@ -231,7 +231,7 @@ private fun ViewerCountBadge(viewerCount: Int) {
         modifier = Modifier
             .clip(CircleShape)
             .background(IosSettingsColors.groupBackground.copy(alpha = 0.55f))
-            .border(1.dp, Color.White.copy(alpha = 0.12f), CircleShape)
+            .border(1.dp, IosSettingsColors.separator, CircleShape)
             .padding(horizontal = 9.dp, vertical = 5.dp),
         verticalAlignment = Alignment.CenterVertically,
         horizontalArrangement = Arrangement.spacedBy(4.dp)

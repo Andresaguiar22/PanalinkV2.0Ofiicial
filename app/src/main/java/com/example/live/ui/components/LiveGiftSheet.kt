@@ -40,7 +40,7 @@ fun LiveGiftSheet(
     ModalBottomSheet(
         onDismissRequest = onDismiss,
         containerColor = IosSettingsColors.cell,
-        contentColor = Color.White
+        contentColor = IosSettingsColors.label
     ) {
         Column(modifier = Modifier.padding(horizontal = 16.dp)) {
             Row(
@@ -51,11 +51,11 @@ fun LiveGiftSheet(
                 Text("Regalos", fontSize = 18.sp, fontWeight = FontWeight.Bold, color = IosSettingsColors.label)
                 Surface(
                     shape = RoundedCornerShape(50),
-                    color = Color(0xFF2A2A32)
+                    color = IosSettingsColors.cellElevated
                 ) {
                     Text(
                         text = "🪙 ${balance ?: "—"}",
-                        color = Color(0xFFFFD54F),
+                        color = IosSettingsColors.yellow,
                         fontSize = 13.sp,
                         fontWeight = FontWeight.Bold,
                         modifier = Modifier.padding(horizontal = 12.dp, vertical = 6.dp)
@@ -85,7 +85,7 @@ fun LiveGiftSheet(
                             modifier = Modifier
                                 .clip(RoundedCornerShape(14.dp))
                                 .background(
-                                    if (isSelected) Color(0xFF3A2A4D) else Color(0xFF26262E)
+                                    if (isSelected) IosSettingsColors.purple.copy(alpha = 0.35f) else IosSettingsColors.cellElevated
                                 )
                                 .clickable { selected = gift }
                                 .padding(vertical = 8.dp),
@@ -101,7 +101,7 @@ fun LiveGiftSheet(
                             )
                             Text(
                                 text = "🪙 ${gift.coins}",
-                                color = Color(0xFFFFD54F),
+                                color = IosSettingsColors.yellow,
                                 fontSize = 10.sp,
                                 fontWeight = FontWeight.Bold
                             )
@@ -119,7 +119,7 @@ fun LiveGiftSheet(
                     val isSelected = quantity == q
                     Surface(
                         shape = RoundedCornerShape(50),
-                        color = if (isSelected) IosSettingsColors.blue else Color(0xFF26262E),
+                        color = if (isSelected) IosSettingsColors.blue else IosSettingsColors.cellElevated,
                         modifier = Modifier
                             .padding(end = 8.dp)
                             .clickable { quantity = q }

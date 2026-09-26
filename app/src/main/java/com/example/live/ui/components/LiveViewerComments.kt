@@ -93,7 +93,7 @@ fun LiveViewerComments(
 
     val textShadow = TextStyle(
         shadow = Shadow(
-            color = Color.Black.copy(alpha = 0.85f),
+            color = IosSettingsColors.mediaScrim,
             offset = Offset(1.5f, 1.5f),
             blurRadius = 4f
         )
@@ -153,7 +153,7 @@ fun LiveViewerComments(
                     .background(
                         Brush.verticalGradient(
                             0.62f to Color.Transparent,
-                            1f to Color(0xFF0E0E10)
+                            1f to IosSettingsColors.groupBackground
                         )
                     )
             )
@@ -195,7 +195,7 @@ private fun CommentRow(
                 userId = comment.userId,
                 size = 26.dp,
                 borderWidth = 0.5.dp,
-                borderColor = Color.White.copy(alpha = 0.5f),
+                borderColor = IosSettingsColors.label.copy(alpha = 0.5f),
                 contentDescription = "Avatar de $displayName",
                 placeholderName = displayName
             )
@@ -206,7 +206,7 @@ private fun CommentRow(
                 Row(verticalAlignment = Alignment.CenterVertically) {
                     Text(
                         text = displayName,
-                        color = if (isMine) IosSettingsColors.yellow else Color.White.copy(alpha = 0.92f),
+                        color = if (isMine) IosSettingsColors.yellow else IosSettingsColors.label.copy(alpha = 0.92f),
                         fontSize = 13.sp,
                         fontWeight = FontWeight.Bold,
                         style = shadow,

@@ -24,7 +24,7 @@ import com.example.ui.settings.ios.IosSettingsColors
 fun LiveSkeletonCard() {
     val shimmerColors = listOf(
         IosSettingsColors.cell,
-        Color(0xFF2A3A42),
+        IosSettingsColors.cellElevated,
         IosSettingsColors.cell
     )
 
@@ -68,7 +68,7 @@ fun LiveSkeletonCard() {
                     .padding(12.dp)
                     .size(32.dp)
                     .clip(CircleShape)
-                    .background(Color.Gray.copy(alpha = 0.4f))
+                    .background(IosSettingsColors.separator)
             )
 
             Box(
@@ -91,7 +91,7 @@ fun LiveSkeletonCard() {
                             .fillMaxWidth(0.6f)
                             .height(16.dp)
                             .clip(RoundedCornerShape(4.dp))
-                            .background(Color.Gray.copy(alpha = 0.4f))
+                            .background(IosSettingsColors.separator)
                     )
                     Spacer(modifier = Modifier.height(6.dp))
                     Box(
@@ -99,7 +99,7 @@ fun LiveSkeletonCard() {
                             .fillMaxWidth(0.4f)
                             .height(12.dp)
                             .clip(RoundedCornerShape(4.dp))
-                            .background(Color.Gray.copy(alpha = 0.3f))
+                            .background(IosSettingsColors.separator)
                     )
                 }
             }
