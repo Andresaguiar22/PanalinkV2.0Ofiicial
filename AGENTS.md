@@ -1251,6 +1251,18 @@ La refactorizacion iOS esta **cerrada y aprobada** en `kilo/clean-ui-ios` (96 co
 * **NO pusheada** y **sin OTA**: el encargo de release sigue pendiente de la confirmacion del mantenedor.
 * Trabajo pendiente del encargo: unificar las 26 barras a `IosSettingsScaffold`, migrar iconos a Rounded, normalizar fondos de Scaffold, y preparar release/OTA.
 
+### 🎧 Visor de historias: el audio del video sonaba sobre la foto siguiente (sesion 2026-09-25, commit `802869d`)
+
+**Sintoma**: al pasar de una historia de VIDEO a la siguiente de la MISMA publicacion (foto), se veia la imagen pero seguia sonando el audio del video — se mezclaban.
+
+* **Causa raiz**: `StoryVideoPlayerSession` es **unica para todo el visor** (`remember` una sola vez en `ViewStateScreen`) y se reutiliza entre historias. Al cambiar de historia el composable `VideoPlayer` se desmonta, pero **nadie detenia el player**: seguia con `playWhenReady = true` y volumen 1, asi que el audio continuaba por debajo de la foto. `setPaused` solo se dispara con el estado `isPaused` (pausa del usuario), no al cambiar de historia.
+* **Segundo sintoma, mismo origen**: `storyPlayer.onPositionChanged` se registraba al entrar en la rama de video y **nunca se limpiaba**. Como la sesion es compartida, el video seguia empujando `elapsedMs` mientras la foto avanzaba con su propio temporizador -> tambien descuadraba la barra de progreso de la foto.
+* **Fix**: `StoryVideoPlayerSession.stopPlayback()` (`player.stop()`, libera decoder y audio ya) + invalidar `currentMediaStateId`; `ViewStateScreen` lo llama en la rama **no-video** del loop de progreso y retira `onPositionChanged` con `try/finally` + `awaitCancellation`; el `DisposableEffect` de `VideoPlayer` limpia todos los callbacks compartidos.
+* **⚠️ `stop()` conserva el media item**: deja el player en IDLE pero con el item cargado, asi que al volver al video anterior `play()` lo tomaria por "misma story" (`isSameStory`) y solo haria `play()` sobre un player sin preparar -> **negro**. Por eso `stopPlayback()` invalida `currentMediaStateId` para forzar `setMediaItem` + `prepare` en el proximo `play`.
+* **⚠️ La detencion NO va en el `onDispose` del `VideoPlayer`**: parar en cada dispose obligaria a un **re-buffer entre dos historias de VIDEO consecutivas**. Solo se para cuando la historia visible **deja de ser video**. (Primer intento: se puso en el dispose y se corrigio antes de commitear.)
+* **Regla general**: cuando un reproductor es un **singleton reutilizado entre paginas** (aqui `StoryVideoPlayerSession`, y el mismo patron en `ReelPlayerPool`/`ReelDualPlayerManager`), desmontar el composable **no** detiene el player. Hay que parar explicitamente al salir de la rama de video y limpiar los callbacks, porque son estado compartido.
+* **Warnings preexistentes**: al recompilarse `ViewStateScreen` salieron 5 warnings que no eran de este cambio (`Icons.Default/Filled.Send`, `Divider`). Se corrigieron: `Icons.AutoMirrored.Filled.Send` y `HorizontalDivider` (el archivo tiene wildcard `material3.*`, asi que no hizo falta import nuevo). Compila `w:0`.
+
 ### Auditoria de conformidad con la spec del Muro (sesion 2026-09-25)
 
 La spec original vive en el historial de la conversacion (`/workspace/conversations/<id>/events/`, buscar "IMPLEMENTACION INTEGRAL"). Se comparo punto por punto; dos desviaciones reales encontradas y corregidas:
