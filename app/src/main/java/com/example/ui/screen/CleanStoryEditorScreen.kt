@@ -364,7 +364,7 @@ Box(
                     Icon(
                         Icons.AutoMirrored.Filled.ArrowBackIos,
                         "Atrás",
-                        tint = Color.White,
+                        tint = IosSettingsColors.label,
                         modifier = Modifier.size(28.dp)
                     )
                 }
@@ -372,7 +372,7 @@ Box(
                 // Título Centrado
                 Text(
                     "Nueva historia",
-                    color = Color.White,
+                    color = IosSettingsColors.label,
                     fontSize = 17.sp,
                     fontWeight = FontWeight.SemiBold,
                     letterSpacing = 0.5.sp,
@@ -495,8 +495,8 @@ Box(
                             .fillMaxWidth()
                             .heightIn(min = 70.dp, max = 110.dp),
                         colors = OutlinedTextFieldDefaults.colors(
-                            focusedTextColor = Color.White,
-                            unfocusedTextColor = Color.White,
+                            focusedTextColor = IosSettingsColors.label,
+                            unfocusedTextColor = IosSettingsColors.label,
                             focusedBorderColor = BrandGreenStory,
                             unfocusedBorderColor = TextGrayStory.copy(alpha = .4f)
                         ),
@@ -604,8 +604,8 @@ Box(
                             placeholder = { Text("Texto que irá sobre el medio…", color = TextGrayStory) },
                             modifier = Modifier.fillMaxWidth(),
                             colors = OutlinedTextFieldDefaults.colors(
-                                focusedTextColor = Color.White,
-                                unfocusedTextColor = Color.White,
+                                focusedTextColor = IosSettingsColors.label,
+                                unfocusedTextColor = IosSettingsColors.label,
                                 focusedBorderColor = BrandGreenStory,
                                 unfocusedBorderColor = TextGrayStory.copy(alpha = .4f)
                             ),
@@ -720,7 +720,7 @@ Box(
                     Spacer(Modifier.width(8.dp))
                     Text(
                         "Publicar historia",
-                        color = Color.White,
+                        color = IosSettingsColors.onAccent,
                         fontSize = 16.sp,
                         fontWeight = FontWeight.SemiBold
                     )

@@ -207,7 +207,7 @@ fun TuTabContent(
 
                     Text(
                         text = email,
-                        color = Color.LightGray,
+                        color = IosSettingsColors.secondaryLabel,
                         fontSize = 14.sp
                     )
                 }
@@ -237,7 +237,7 @@ fun TuTabContent(
                     Spacer(modifier = Modifier.height(4.dp))
                     Text(
                         text = "Comparte este QR o PIN para que te agreguen al instante",
-                        color = Color.LightGray,
+                        color = IosSettingsColors.secondaryLabel,
                         fontSize = 12.sp,
                         textAlign = TextAlign.Center,
                         modifier = Modifier.padding(horizontal = 16.dp)
@@ -250,7 +250,7 @@ fun TuTabContent(
                             modifier = Modifier
                                 .size(160.dp)
                                 .clip(RoundedCornerShape(12.dp))
-                                .background(Color.White)
+                                .background(IosSettingsColors.onAccent)
                                 .border(2.dp, colors.accent, RoundedCornerShape(12.dp))
                                 .padding(12.dp)
                         ) {
@@ -360,7 +360,7 @@ fun TuTabContent(
                                 ) {
                                     Text(
                                         text = label,
-                                        color = if (isSelected) Color.White else Color.LightGray,
+                                        color = if (isSelected) IosSettingsColors.onAccent else IosSettingsColors.secondaryLabel,
                                         fontSize = 12.sp,
                                         fontWeight = FontWeight.Bold
                                     )
@@ -379,7 +379,7 @@ fun TuTabContent(
                     ) {
                         Column(modifier = Modifier.weight(1f)) {
                             Text("Modo Minimalista", color = IosSettingsColors.label, fontSize = 14.sp, fontWeight = FontWeight.SemiBold)
-                            Text("Simplifica los menús y acciones", color = Color.LightGray, fontSize = 11.sp)
+                            Text("Simplifica los menús y acciones", color = IosSettingsColors.secondaryLabel, fontSize = 11.sp)
                         }
                         Switch(
                             checked = isMinimalistMode,
@@ -388,9 +388,9 @@ fun TuTabContent(
                                 prefs.edit().putBoolean("minimalist_mode_global", checked).apply()
                             },
                             colors = SwitchDefaults.colors(
-                                checkedThumbColor = Color.White,
+                                checkedThumbColor = IosSettingsColors.onAccent,
                                 checkedTrackColor = colors.accent,
-                                uncheckedThumbColor = Color.Gray,
+                                uncheckedThumbColor = IosSettingsColors.secondaryLabel,
                                 uncheckedTrackColor = IosSettingsColors.separator
                             )
                         )
@@ -406,7 +406,7 @@ fun TuTabContent(
                     ) {
                         Column(modifier = Modifier.weight(1f)) {
                             Text("Ventanas Flotantes (PiP)", color = IosSettingsColors.label, fontSize = 14.sp, fontWeight = FontWeight.SemiBold)
-                            Text("Permitir que Pana TV y Reels floten al salir", color = Color.LightGray, fontSize = 11.sp)
+                            Text("Permitir que Pana TV y Reels floten al salir", color = IosSettingsColors.secondaryLabel, fontSize = 11.sp)
                         }
                         Switch(
                             checked = isFloatingPipEnabled,
@@ -415,9 +415,9 @@ fun TuTabContent(
                                 prefs.edit().putBoolean("floating_pip_enabled", checked).apply()
                             },
                             colors = SwitchDefaults.colors(
-                                checkedThumbColor = Color.White,
+                                checkedThumbColor = IosSettingsColors.onAccent,
                                 checkedTrackColor = colors.accent,
-                                uncheckedThumbColor = Color.Gray,
+                                uncheckedThumbColor = IosSettingsColors.secondaryLabel,
                                 uncheckedTrackColor = IosSettingsColors.separator
                             )
                         )
@@ -457,10 +457,10 @@ fun TuTabContent(
                     onValueChange = { nameInputText = it },
                     label = { Text("Nombre Completo") },
                     colors = OutlinedTextFieldDefaults.colors(
-                        focusedTextColor = Color.White,
-                        unfocusedTextColor = Color.White,
+                        focusedTextColor = IosSettingsColors.label,
+                        unfocusedTextColor = IosSettingsColors.label,
                         focusedBorderColor = colors.accent,
-                        unfocusedBorderColor = Color.LightGray
+                        unfocusedBorderColor = IosSettingsColors.secondaryLabel
                     ),
                     singleLine = true
                 )
@@ -479,7 +479,7 @@ fun TuTabContent(
             },
             dismissButton = {
                 TextButton(onClick = { showEditNameDialog = false }) {
-                    Text("Cancelar", color = Color.LightGray)
+                    Text("Cancelar", color = IosSettingsColors.secondaryLabel)
                 }
             }
         )
@@ -634,7 +634,7 @@ fun InicioTabContent(
                                     ) {
                                         Text(
                                             "Sin conexión",
-                                            color = Color.Gray,
+                                            color = IosSettingsColors.secondaryLabel,
                                             fontSize = 12.sp,
                                             fontWeight = FontWeight.SemiBold,
                                             textAlign = TextAlign.Center
@@ -860,19 +860,19 @@ fun InicioTabContent(
                             Icon(
                                 imageVector = Icons.Default.WifiOff,
                                 contentDescription = null,
-                                tint = Color.Gray.copy(alpha = 0.5f),
+                                tint = IosSettingsColors.secondaryLabel.copy(alpha = 0.5f),
                                 modifier = Modifier.size(48.dp)
                             )
                             Spacer(modifier = Modifier.height(16.dp))
                             Text(
                                 text = "Sin conexión",
-                                color = Color.Gray,
+                                color = IosSettingsColors.secondaryLabel,
                                 fontSize = 16.sp,
                                 fontWeight = FontWeight.SemiBold
                             )
                             Text(
                                 text = "El muro espera internet. Revisa tu conexión e inténtalo más tarde.",
-                                color = Color.Gray.copy(alpha = 0.6f),
+                                color = IosSettingsColors.secondaryLabel.copy(alpha = 0.6f),
                                 fontSize = 13.sp,
                                 textAlign = TextAlign.Center
                             )
@@ -893,7 +893,7 @@ fun InicioTabContent(
                             Icon(
                                 imageVector = Icons.Default.ChatBubbleOutline,
                                 contentDescription = null,
-                                tint = Color.Gray.copy(alpha = 0.3f),
+                                tint = IosSettingsColors.secondaryLabel.copy(alpha = 0.3f),
                                 modifier = Modifier.size(64.dp)
                             )
                             Spacer(modifier = Modifier.height(16.dp))
@@ -906,7 +906,7 @@ fun InicioTabContent(
                             Spacer(modifier = Modifier.height(8.dp))
                             Text(
                                 text = "Sé el primero en compartir algo con la comunidad",
-                                color = Color.Gray.copy(alpha = 0.7f),
+                                color = IosSettingsColors.secondaryLabel.copy(alpha = 0.7f),
                                 fontSize = 13.sp,
                                 textAlign = TextAlign.Center
                             )
@@ -985,9 +985,9 @@ fun InicioTabContent(
                         item {
                             Box(modifier = Modifier.fillMaxWidth().padding(24.dp), contentAlignment = Alignment.Center) {
                                 Column(horizontalAlignment = Alignment.CenterHorizontally) {
-                                    Icon(Icons.Default.ChatBubbleOutline, contentDescription = null, tint = Color.Gray.copy(alpha = 0.3f), modifier = Modifier.size(48.dp))
+                                    Icon(Icons.Default.ChatBubbleOutline, contentDescription = null, tint = IosSettingsColors.secondaryLabel.copy(alpha = 0.3f), modifier = Modifier.size(48.dp))
                                     Spacer(modifier = Modifier.height(8.dp))
-                                    Text("No hay comentarios aún. Sé el primero.", color = Color.Gray, fontSize = 14.sp)
+                                    Text("No hay comentarios aún. Sé el primero.", color = IosSettingsColors.secondaryLabel, fontSize = 14.sp)
                                 }
                             }
                         }
@@ -1028,7 +1028,7 @@ fun InicioTabContent(
                                                     }
                                                 } catch (e: Exception) { "hace poco" }
                                             },
-                                            color = Color.Gray,
+                                            color = IosSettingsColors.secondaryLabel,
                                             fontSize = 11.sp
                                         )
                                     }
@@ -1053,15 +1053,15 @@ fun InicioTabContent(
                     OutlinedTextField(
                         value = commentText,
                         onValueChange = { commentText = it },
-                        placeholder = { Text("Añade un comentario...", color = Color.Gray) },
+                        placeholder = { Text("Añade un comentario...", color = IosSettingsColors.secondaryLabel) },
                         modifier = Modifier.weight(1f),
                         colors = OutlinedTextFieldDefaults.colors(
                             focusedContainerColor = IosSettingsColors.separator,
                             unfocusedContainerColor = IosSettingsColors.separator,
                             focusedBorderColor = IosSettingsColors.blue,
                             unfocusedBorderColor = Color.Transparent,
-                            focusedTextColor = Color.White,
-                            unfocusedTextColor = Color.White
+                            focusedTextColor = IosSettingsColors.label,
+                            unfocusedTextColor = IosSettingsColors.label
                         ),
                         shape = RoundedCornerShape(24.dp),
                         maxLines = 4
@@ -1121,8 +1121,8 @@ fun InicioTabContent(
                     colors = TextFieldDefaults.colors(
                         focusedContainerColor = Color.Transparent,
                         unfocusedContainerColor = Color.Transparent,
-                        focusedTextColor = Color.White,
-                        unfocusedTextColor = Color.White
+                        focusedTextColor = IosSettingsColors.label,
+                        unfocusedTextColor = IosSettingsColors.label
                     )
                 )
             },
@@ -1136,7 +1136,7 @@ fun InicioTabContent(
             },
             dismissButton = {
                 TextButton(onClick = { editingPostId = null }) {
-                    Text("Cancelar", color = Color.Gray)
+                    Text("Cancelar", color = IosSettingsColors.secondaryLabel)
                 }
             },
             containerColor = IosSettingsColors.cellElevated
@@ -1147,7 +1147,7 @@ fun InicioTabContent(
         AlertDialog(
             onDismissRequest = { postToDeleteId = null },
             title = { Text("Eliminar publicación", color = IosSettingsColors.label) },
-            text = { Text("¿Estás seguro de que quieres eliminar esta publicación? Esta acción no se puede deshacer.", color = Color.LightGray) },
+            text = { Text("¿Estás seguro de que quieres eliminar esta publicación? Esta acción no se puede deshacer.", color = IosSettingsColors.secondaryLabel) },
             confirmButton = {
                 TextButton(onClick = {
                     postToDeleteId?.let { feedViewModel.deletePost(it) }
@@ -1158,7 +1158,7 @@ fun InicioTabContent(
             },
             dismissButton = {
                 TextButton(onClick = { postToDeleteId = null }) {
-                    Text("Cancelar", color = Color.Gray)
+                    Text("Cancelar", color = IosSettingsColors.secondaryLabel)
                 }
             },
             containerColor = IosSettingsColors.cellElevated
@@ -1296,7 +1296,7 @@ fun InicioTabContent(
                             backgroundAudioPlayer = null
                         }
                     },
-                    modifier = Modifier.background(Color.Black.copy(alpha = 0.5f), CircleShape)
+                    modifier = Modifier.background(IosSettingsColors.mediaScrimSoft, CircleShape)
                 ) {
                     Icon(Icons.Default.Close, contentDescription = "Cerrar", tint = IosSettingsColors.label)
                 }
@@ -1308,7 +1308,7 @@ fun InicioTabContent(
                         fontWeight = FontWeight.Bold,
                         fontSize = 16.sp,
                         modifier = Modifier
-                            .background(Color.Black.copy(alpha = 0.5f), RoundedCornerShape(12.dp))
+                            .background(IosSettingsColors.mediaScrimSoft, RoundedCornerShape(12.dp))
                             .padding(horizontal = 12.dp, vertical = 6.dp)
                     )
                 }
@@ -1317,7 +1317,7 @@ fun InicioTabContent(
                 if (fullScreenBackgroundAudio != null && backgroundAudioPlayer != null) {
                     IconButton(
                         onClick = { backgroundAudioMuted = !backgroundAudioMuted; backgroundAudioPlayer?.volume = if (backgroundAudioMuted) 0f else 1f },
-                        modifier = Modifier.background(Color.Black.copy(alpha = 0.5f), CircleShape)
+                        modifier = Modifier.background(IosSettingsColors.mediaScrimSoft, CircleShape)
                     ) {
                         Icon(
                             imageVector = if (backgroundAudioMuted) Icons.AutoMirrored.Filled.VolumeMute else Icons.AutoMirrored.Filled.VolumeUp,
@@ -1347,7 +1347,7 @@ fun InicioTabContent(
                             android.widget.Toast.makeText(context, "Error: ${e.message}", android.widget.Toast.LENGTH_LONG).show()
                         }
                     },
-                    modifier = Modifier.background(Color.Black.copy(alpha = 0.5f), CircleShape)
+                    modifier = Modifier.background(IosSettingsColors.mediaScrimSoft, CircleShape)
                 ) {
                     Icon(
                         imageVector = Icons.Default.ArrowDownward,
@@ -1420,7 +1420,7 @@ fun InicioTabContent(
                 activePlaylistPost = null 
             },
             containerColor = IosSettingsColors.groupBackground,
-            dragHandle = { BottomSheetDefaults.DragHandle(color = Color.Gray) }
+            dragHandle = { BottomSheetDefaults.DragHandle(color = IosSettingsColors.secondaryLabel) }
         ) {
             Column(
                 modifier = Modifier
@@ -1482,7 +1482,7 @@ fun InicioTabContent(
                                     Icon(
                                         imageVector = if (isCurrent && isPlaying) Icons.Default.PauseCircle else Icons.Default.PlayCircle,
                                         contentDescription = null,
-                                        tint = if (isCurrent) IosSettingsColors.blue else Color.White,
+                                        tint = if (isCurrent) IosSettingsColors.blue else IosSettingsColors.label,
                                         modifier = Modifier.size(28.dp)
                                     )
                                     Spacer(modifier = Modifier.width(12.dp))
@@ -1495,7 +1495,7 @@ fun InicioTabContent(
                                         )
                                         Text(
                                             text = "Panalink Audio File",
-                                            color = Color.Gray,
+                                            color = IosSettingsColors.secondaryLabel,
                                             fontSize = 11.sp
                                         )
                                     }
@@ -1563,7 +1563,7 @@ fun InicioTabContent(
                             colors = SliderDefaults.colors(
                                 thumbColor = IosSettingsColors.blue,
                                 activeTrackColor = IosSettingsColors.blue,
-                                inactiveTrackColor = Color.Gray
+                                inactiveTrackColor = IosSettingsColors.separator
                             )
                         )
                         
@@ -1575,8 +1575,8 @@ fun InicioTabContent(
                             val curSec = (playbackPosition / 1000) % 60
                             val durMin = (audioDuration / 1000) / 60
                             val durSec = (audioDuration / 1000) % 60
-                            Text(String.format("%02d:%02d", curMin, curSec), color = Color.Gray, fontSize = 11.sp)
-                            Text(String.format("%02d:%02d", durMin, durSec), color = Color.Gray, fontSize = 11.sp)
+                            Text(String.format("%02d:%02d", curMin, curSec), color = IosSettingsColors.secondaryLabel, fontSize = 11.sp)
+                            Text(String.format("%02d:%02d", durMin, durSec), color = IosSettingsColors.secondaryLabel, fontSize = 11.sp)
                         }
                         
                         Spacer(modifier = Modifier.height(12.dp))
@@ -1594,7 +1594,7 @@ fun InicioTabContent(
                                 },
                                 enabled = currentAudioIndex > 0
                             ) {
-                                Icon(Icons.Default.SkipPrevious, contentDescription = "Anterior", tint = if (currentAudioIndex > 0) Color.White else Color.Gray, modifier = Modifier.size(36.dp))
+                                Icon(Icons.Default.SkipPrevious, contentDescription = "Anterior", tint = if (currentAudioIndex > 0) IosSettingsColors.label else IosSettingsColors.secondaryLabel, modifier = Modifier.size(36.dp))
                             }
                             
                             Spacer(modifier = Modifier.width(24.dp))
@@ -1615,7 +1615,7 @@ fun InicioTabContent(
                                 Icon(
                                     imageVector = if (isPlaying) Icons.Default.Pause else Icons.Default.PlayArrow,
                                     contentDescription = "Play/Pause",
-                                    tint = Color.Black,
+                                    tint = IosSettingsColors.onAccent,
                                     modifier = Modifier.size(32.dp)
                                 )
                             }
@@ -1630,7 +1630,7 @@ fun InicioTabContent(
                                 },
                                 enabled = currentAudioIndex + 1 < audiosList.size
                             ) {
-                                Icon(Icons.Default.SkipNext, contentDescription = "Siguiente", tint = if (currentAudioIndex + 1 < audiosList.size) Color.White else Color.Gray, modifier = Modifier.size(36.dp))
+                                Icon(Icons.Default.SkipNext, contentDescription = "Siguiente", tint = if (currentAudioIndex + 1 < audiosList.size) IosSettingsColors.label else IosSettingsColors.secondaryLabel, modifier = Modifier.size(36.dp))
                             }
                         }
                     }
@@ -1736,7 +1736,7 @@ internal fun FeedFullscreenVideoPlayer(
                 modifier = Modifier
                     .align(Alignment.Center)
                     .size(64.dp)
-                    .background(Color.Black.copy(alpha = 0.45f), CircleShape)
+                    .background(IosSettingsColors.mediaScrimSoft, CircleShape)
             ) {
                 Icon(
                     imageVector = if (isPlaying) Icons.Default.Pause else Icons.Default.PlayArrow,
@@ -1751,7 +1751,7 @@ internal fun FeedFullscreenVideoPlayer(
                 modifier = Modifier
                     .align(Alignment.BottomCenter)
                     .fillMaxWidth()
-                    .background(Color.Black.copy(alpha = 0.45f))
+                    .background(IosSettingsColors.mediaScrimSoft)
                     .padding(horizontal = 16.dp, vertical = 10.dp),
                 verticalAlignment = Alignment.CenterVertically
             ) {
@@ -1774,9 +1774,9 @@ internal fun FeedFullscreenVideoPlayer(
                         .weight(1f)
                         .padding(horizontal = 10.dp),
                     colors = SliderDefaults.colors(
-                        thumbColor = Color.White,
-                        activeTrackColor = Color.White,
-                        inactiveTrackColor = Color.White.copy(alpha = 0.3f)
+                        thumbColor = IosSettingsColors.onAccent,
+                        activeTrackColor = IosSettingsColors.onAccent,
+                        inactiveTrackColor = IosSettingsColors.onAccent.copy(alpha = 0.3f)
                     )
                 )
                 Text(text = fmt(duration), color = IosSettingsColors.label, fontSize = 12.sp)
@@ -1806,7 +1806,7 @@ private fun FacebookMyStoryCard(
             .width(115.dp)
             .height(195.dp)
             .clip(RoundedCornerShape(16.dp))
-            .border(1.dp, Color.White.copy(alpha =  0.05f), RoundedCornerShape(16.dp))
+            .border(1.dp, IosSettingsColors.separator, RoundedCornerShape(16.dp))
             .clickable(onClick = onClick)
     ) {
         Column(modifier = Modifier.fillMaxSize()) {
@@ -1831,7 +1831,7 @@ private fun FacebookMyStoryCard(
                 } else {
                     Text(
                         placeholderName?.firstOrNull()?.toString() ?: "U",
-                        color = Color.White.copy(alpha =  0.4f),
+                        color = IosSettingsColors.label.copy(alpha =  0.4f),
                         fontSize =  36.sp,
                         fontWeight = FontWeight.Bold
                     )
@@ -1849,7 +1849,7 @@ private fun FacebookMyStoryCard(
         // Nombre Abajo
         Text(
             text = placeholderName?.take(14) ?: "Crear historia",
-            color = Color.White,
+            color = IosSettingsColors.label,
             fontSize =  13.sp,
             fontWeight = FontWeight.SemiBold,
             maxLines = 1,
@@ -1867,7 +1867,7 @@ private fun FacebookMyStoryCard(
                 .border(4.dp, IosStoryDarkBg, CircleShape),
             contentAlignment = Alignment.Center
         ) {
-            Icon(Icons.Default.Add, contentDescription = "Add", tint = Color.Black, modifier = Modifier.size(20.dp))
+            Icon(Icons.Default.Add, contentDescription = "Add", tint = IosSettingsColors.onAccent, modifier = Modifier.size(20.dp))
         }
     }
 }
@@ -1887,7 +1887,7 @@ private fun FacebookFriendStoryCard(
             .height(195.dp)
             .clip(RoundedCornerShape(16.dp))
             .background(Brush.verticalGradient(listOf(IosSettingsColors.blue, IosSettingsColors.teal)))
-            .border(1.dp, Color.White.copy(alpha =  0.05f), RoundedCornerShape(16.dp))
+            .border(1.dp, IosSettingsColors.separator, RoundedCornerShape(16.dp))
             .clickable(onClick = onClick)
     ) {
         // Imagen/Thumbnail full card
@@ -1934,7 +1934,7 @@ private fun FacebookFriendStoryCard(
                 .fillMaxSize()
                 .background(
                     brush = Brush.verticalGradient(
-                        colors = listOf(Color.Transparent, Color.Black.copy(alpha =  0.7f)),
+                        colors = listOf(Color.Transparent, IosSettingsColors.mediaScrim),
                         startY =  100f
                     )
                 )
@@ -1947,7 +1947,7 @@ private fun FacebookFriendStoryCard(
                 .padding(12.dp)
                 .size(36.dp)
                 .background(
-                    if (hasUnread) IosPanaLinkGreen else Color.White.copy(alpha =  0.6f),
+                    if (hasUnread) IosPanaLinkGreen else IosSettingsColors.label.copy(alpha =  0.6f),
                     CircleShape
                 )
                 .padding(2.dp)
@@ -1966,7 +1966,7 @@ private fun FacebookFriendStoryCard(
         // Nombre Abajo (debe anclarse al fondo: sin el align caia sobre el avatar)
         Text(
             text = safeDisplayName?.take(15) ?: "",
-            color = Color.White,
+            color = IosSettingsColors.label,
             fontSize =  13.sp,
             fontWeight = FontWeight.SemiBold,
             maxLines =  1,

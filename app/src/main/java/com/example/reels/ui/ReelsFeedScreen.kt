@@ -137,7 +137,7 @@ private const val MIN_REEL_SCALE = 1f
 private const val MAX_REEL_SCALE = 4f
 
 // Glassmorphism base del header iOS (negro 40%)
-private val TransparentBlack = Color(0x66000000)
+private val TransparentBlack = IosSettingsColors.mediaScrimSoft
 
 /**
  * TikTok-style Reels feed, rebuilt from scratch.
@@ -811,7 +811,7 @@ private fun ReelFeedOverlay(
                             .offset(y = 12.dp)
                             .size(22.dp)
                             .clip(CircleShape)
-                            .background(if (isFollowing) Color(0xFF2B2B2B) else IosSettingsColors.green)
+                            .background(if (isFollowing) IosSettingsColors.cellElevated else IosSettingsColors.green)
                             .border(2.dp, Color.Black, CircleShape)
                             .clickable {
                                 if (currentUid.isNullOrBlank()) return@clickable
@@ -854,7 +854,7 @@ private fun ReelFeedOverlay(
                 icon = Icons.Filled.Bookmark,
                 count = compactCountV2(localFavorites),
                 selected = favorited,
-                selectedColor = Color(0xFFF9C74F),
+                selectedColor = IosSettingsColors.yellow,
                 popOnSelect = true,
             ) {
                 val next = !favorited
@@ -1107,7 +1107,7 @@ private fun ReelActionButtonV2(
     icon: androidx.compose.ui.graphics.vector.ImageVector,
     count: String? = null,
     selected: Boolean = false,
-    selectedColor: Color = Color(0xFFF9C74F),
+    selectedColor: Color = IosSettingsColors.yellow,
     popOnSelect: Boolean = false,
     onClick: () -> Unit,
 ) {
@@ -1231,7 +1231,7 @@ private fun ReelsCommentsSheetV2(
                 modifier = Modifier
                     .fillMaxWidth()
                     .fillMaxHeight(0.72f)
-                    .background(color = Color(0xF2101D24), shape = RoundedCornerShape(topStart = 24.dp, topEnd = 24.dp))
+                    .background(color = IosSettingsColors.cell, shape = RoundedCornerShape(topStart = 24.dp, topEnd = 24.dp))
                     .clickable(enabled = true, onClick = {})
                     .imePadding()
             ) {
@@ -1245,7 +1245,7 @@ private fun ReelsCommentsSheetV2(
                             .align(Alignment.CenterHorizontally)
                             .padding(top = 8.dp, bottom = 12.dp)
                             .size(width = 40.dp, height = 4.dp)
-                            .background(Color.Gray.copy(alpha = 0.5f), CircleShape)
+                            .background(IosSettingsColors.secondaryLabel.copy(alpha = 0.5f), CircleShape)
                     )
 
                     // Header
@@ -1427,7 +1427,7 @@ private fun ReelsCommentsSheetV2(
                             onValueChange = { commentText = it },
                             placeholder = {
                                 val hint = if (replyingTo != null) "Escribe tu respuesta..." else "Escribe tu comentario de pana..."
-                                Text(hint, color = Color.Gray)
+                                Text(hint, color = IosSettingsColors.secondaryLabel)
                             },
                             modifier = Modifier
                                 .weight(1f)

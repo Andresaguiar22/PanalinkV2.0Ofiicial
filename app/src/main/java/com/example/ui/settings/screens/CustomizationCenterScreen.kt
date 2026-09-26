@@ -191,7 +191,7 @@ ScaleChip(
                             checked = uiState.isMinimalistMode,
                             onCheckedChange = { viewModel.dispatch(CustomizationAction.SetMinimalistMode(it)) },
                             colors = SwitchDefaults.colors(
-                                checkedThumbColor = Color.White,
+                                checkedThumbColor = IosSettingsColors.onAccent,
                                 checkedTrackColor = pal.accent,
                                 uncheckedThumbColor = pal.onSub,
                                 uncheckedTrackColor = pal.border
@@ -272,12 +272,12 @@ private fun ScaleChip(
             .shadow(
                 elevation = if (selected) 10.dp else 2.dp,
                 shape = shape,
-                ambientColor = if (selected) IosSettingsColors.blue.copy(alpha =0.45f) else Color(0xFF000000).copy(alpha =0.20f),
-                spotColor = if (selected) IosSettingsColors.blue.copy(alpha =0.30f) else Color(0xFF000000).copy(alpha =0.15f)
+                ambientColor = if (selected) IosSettingsColors.blue.copy(alpha =0.45f) else IosSettingsColors.groupBackground.copy(alpha =0.20f),
+                spotColor = if (selected) IosSettingsColors.blue.copy(alpha =0.30f) else IosSettingsColors.groupBackground.copy(alpha =0.15f)
             )
             .border(
                 width = if (selected) 1.5.dp else 1.dp,
-                color = if (selected) IosSettingsColors.blue.copy(alpha =0.9f) else Color(0xFFFFFFFF).copy(alpha =0.14f),
+                color = if (selected) IosSettingsColors.blue.copy(alpha =0.9f) else IosSettingsColors.label.copy(alpha =0.14f),
                 shape = shape
 
             )
@@ -432,7 +432,7 @@ private fun ThemeIdentityGrid(
                                     .size(36.dp)
                                     .clip(CircleShape)
                                     .background(Brush.linearGradient(gradient))
-                                    .border(1.dp, Color.White.copy(alpha =0.35f), CircleShape),
+                                    .border(1.dp, IosSettingsColors.label.copy(alpha =0.35f), CircleShape),
                                 contentAlignment = Alignment.Center
                             ) {
                                 Icon(icon, contentDescription = null, tint = IosSettingsColors.label, modifier = Modifier.size(17.dp))
@@ -489,7 +489,7 @@ private fun BottomBarLivePreview(
                         .border(1.dp, if (selected) colors[1].copy(alpha =0.7f) else pal.border, shape),
                     contentAlignment = Alignment.Center
                 ) {
-                    Icon(icon, contentDescription = null, tint = if (selected) Color.White else pal.onSub, modifier = Modifier.size(if (selected) 24.dp else 17.dp))
+                    Icon(icon, contentDescription = null, tint = if (selected) IosSettingsColors.onAccent else pal.onSub, modifier = Modifier.size(if (selected) 24.dp else 17.dp))
                 }
             }
         }
