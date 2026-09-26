@@ -1201,3 +1201,53 @@ Tras la migración quedan **32 archivos** con literales de color, y **todos son 
 * Beta de referencia para QA: `v1.3.64-beta` / code **91** en `.toolchain/serve_apk/` (persistente). Las betas 86-90 quedan obsoletas.
 
 
+
+---
+
+## 🎬 Muro: motor de video, visores y navegacion post-publicacion (sesion 2026-09-25, rama `kilo/muro-video-engine`)
+
+Encargo vigente: **"IMPLEMENTACION INTEGRAL - VIDEOS, FEED, MURO Y RELEASE"**. Conservar backend, modelos y API; sin rediseno superficial.
+
+### Motor unico de reproduccion (commit `81f38bc`)
+* `app/src/main/java/com/example/core/media/VideoPlaybackEngine.kt`: **fuente unica** de afinado de ExoPlayer por contexto (`Profile.VIEWER` / `FEED` / `REELS`). `ExoPlayerManager` y `ReelPlayerPool` ya construyen sus players con el.
+* **Diagnostico aplicado**: antes se usaba `PanaRenderersFactory(preferSoftware = true)` **sin** `TrackSelector`, asi que la app decodificaba 1080p/4K en CPU. Ahora hay `DefaultTrackSelector` con maximos por perfil y `DefaultLoadControl` fast-start.
+
+### Visores del Muro (commit `16d3d66`)
+* **`muro/viewer/MuroVideoPlayerPool.kt`**: pool de `POOL_SIZE=2` players con `Profile.VIEWER`, `setMuted`, mapa observable `postId -> player` para Compose y `isBuffering`.
+  - **Refresco de la URL firmada de VCDN** antes de que expire (preservando posicion): es lo que evita el atasco a los ~60 s en videos largos.
+  - **Leccion Kotlin**: `player.removeListener(null)` NO compila (`actual type is 'Player.Listener?'`). Hay que guardar el listener por slot (`listeners[slot]`) y quitarlo con la referencia real antes de `release()`.
+* **`muro/viewer/MuroVideoViewer.kt`**: visor vertical inmersivo. Se ancla en el post tocado y **sigue por los videos del muro** (swipe arriba = siguiente), asi que un swipe nunca cae en una foto. Solo reproduce la pagina visible; fondo negro (capa sobre media, sin tokens) y `texture_view` a proposito (SurfaceView no scrollea bien dentro del `VerticalPager` y perfora los overlays Compose).
+* **`muro/viewer/MuroPhotoViewer.kt`**: visor de fotos **independiente** (horizontal, pinch-zoom, doble tap para restablecer, contador). Fotos y videos ya no comparten carrusel: al tocar se separa la lista por tipo (`isVideoUrl`).
+* Integracion en `InicioTabContent`: `onMediaClick` decide visor por tipo; ambos se montan al final del composable.
+
+### Navegacion post-publicacion (P0.2)
+* `UploadRepository` emite `UploadSuccessEvent(postId)`; `PostUploadWorker` lo propaga tras `createPost`; `FeedViewModel.publishedPostId` + `consumePublishedPost()`.
+* `InicioTabContent` espera acotadamente (10 x 300 ms) a que el post llegue a la lista y **abre el video recien publicado** en vez de dejar al usuario sin feedback. Consume el id para no reabrirlo al volver.
+
+### Sincronizacion de interacciones (P0.3)
+* **`FeedPostCard`**: se elimino el estado de like en sombra (`isLiked`). El repositorio ya escribe el toggle optimista en Room y la lista es un flow de Room ⇒ `post.isLikedByMe` es la unica fuente de verdad. Antes tarjeta y visor discrepaban tras un like.
+* **`ReelsFeedScreen`**: `LaunchedEffect(state.likesCount/favoritesCount/likedByMe/favoritedByMe)` reconcilia los contadores optimistas con el valor del servidor (sin esto, un like hecho en otro lado nunca llegaba al contador).
+* **`PanaLinkCyberpunkUi`** (barra superior): el contenedor del avatar ya **no** aplica `clip(CircleShape)`; el clip recortaba el punto de presencia contra el borde de la foto (se veia "cortado"). El avatar se clipea por dentro, el punto va por encima con `zIndex(1f)` y borde del color del fondo de la barra.
+
+### Tests
+* `:app:testDebugUnitTest` -> **BUILD SUCCESSFUL** (80 archivos de test, suite completa verde).
+* **`FakeSupabaseApi.kt` estaba desactualizado** (no implementaba `getOtherActiveDevices` / `registerDevice` / `logoutOtherSessions`, anadidos a `SupabaseApiService` por la sesion unica) y **rompia la compilacion de TODO el source set de test** — no era de esta rama. Corregido en `55d3904` (mismo patron que los commits `3b807c1`/`8e3f417`). Si `:app:testDebugUnitTest` falla con "does not implement abstract members", es este fake, no el codigo de produccion.
+* `sanitize_invisible.sh` limpio; `:app:compileDebugKotlin` con `w:0`.
+
+### Auditoria de apariencia iOS (pedido del mantenedor)
+La refactorizacion iOS esta **cerrada y aprobada** en `kilo/clean-ui-ios` (96 commits, HEAD `5038eaa`, OTA diferida). Sobre la base `e0d6344` la cobertura es **alta**:
+* **47 de 49** archivos de `ui/screen` + `ui/settings/screens` usan `IosSettingsColors`; los 2 restantes no tienen chrome (utils / NavHost).
+* **Cero** literales de color en `ui/components/chat/interaction`, `ui/chat/emoji`, `media/social`, `media/feed`.
+* El paquete `call/` **no tiene UI** (14 archivos de motor/estado); la UI de llamadas ya esta tokenizada.
+* Los 324 literales que quedan estan en las 4 capas declaradas intencionales en AGENTS.md (tema, kit de tokens, catalogo de arte, capas sobre media).
+
+**Pendientes reales identificados** (no son literales de color, son coherencia de chrome):
+1. **26 pantallas usan `TopAppBar` directo** en vez de `IosSettingsScaffold` (16 lo usan). La barra es lo que mas "se ve": music/player (5 archivos), `premium/*` (4), `media/ui/*`, `live/ui/screen/*`, `SearchUsersScreen`, `ChatMediaGalleryScreen`, `FavoritesScreen`, `PostDetailScreen`, `PostStudioScreen`, `StickerStudioScreen`, `VoiceRoomBrowserScreen`, `SetupProfileScreen`, `ChatSearchScreen`.
+2. **776 usos de `Icons.Default.*` vs 43 `Icons.Rounded.*`**: los iconos siguen siendo el set Filled plano (look Android) en la mayoria de pantallas. Top: `Close` 63, `PlayArrow` 37, `Person` 25, `Search` 21, `Add` 20. Migrar a `Icons.Rounded.*` (ya disponibles via `material-icons-extended`) es el mayor salto de acabado que queda.
+3. **Fondos de `Scaffold` no normalizados**: unos usan `groupBackground`, otros `cell`, `cellElevated` o `MaterialTheme.colorScheme.background` (p.ej. `UserProfileScreen`). Unificar a `groupBackground` para pantallas de contenido.
+
+### Estado de la rama
+* `kilo/muro-video-engine` desde `e0d6344`; commits `81f38bc` (motor de video), `16d3d66` (visores + navegacion + interacciones), `55d3904` (fake de test).
+* **NO pusheada** y **sin OTA**: el encargo de release sigue pendiente de la confirmacion del mantenedor.
+* Trabajo pendiente del encargo: unificar las 26 barras a `IosSettingsScaffold`, migrar iconos a Rounded, normalizar fondos de Scaffold, y preparar release/OTA.
+
