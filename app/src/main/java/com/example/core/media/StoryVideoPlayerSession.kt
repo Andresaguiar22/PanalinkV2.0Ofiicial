@@ -175,16 +175,21 @@ class StoryVideoPlayerSession(private val context: Context) {
             .setBackBuffer(4_000, true)
             .setPrioritizeTimeOverSizeThresholds(true)
             .build()
-        val metrics = context.resources.displayMetrics
-        val longEdge = maxOf(metrics.widthPixels, metrics.heightPixels)
-        val capped = (longEdge * 1.2f).toInt().coerceAtLeast(1_280)
+        val capped = com.example.core.media.VideoPlaybackEngine.maxDecodeEdge(
+            context,
+            com.example.core.media.VideoPlaybackEngine.Profile.VIEWER
+        )
         val trackSelector = DefaultTrackSelector(context).apply {
             // Igual que en los reels: no decodificar mas pixeles de los que la
             // pantalla puede mostrar (4K en panel 1080p solo causa tirones).
             setParameters(
                 buildUponParameters()
                     .setMaxVideoSize(capped, capped)
-                    .setMaxVideoBitrate(20_000_000)
+                    .setMaxVideoBitrate(
+                        com.example.core.media.VideoPlaybackEngine.maxBitrate(
+                            com.example.core.media.VideoPlaybackEngine.Profile.VIEWER
+                        )
+                    )
             )
         }
         val player = ExoPlayer.Builder(context, PanaRenderersFactory.create(context))

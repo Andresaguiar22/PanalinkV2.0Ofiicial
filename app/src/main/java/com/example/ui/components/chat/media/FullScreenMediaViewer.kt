@@ -264,7 +264,27 @@ private fun VideoViewerContent(
     var lastRefreshPosMs by remember { mutableLongStateOf(0L) }
 
     val exoPlayer = remember {
-        val p = ExoPlayer.Builder(context, com.example.core.media.PanaRenderersFactory.create(context)).build()
+        // Full-screen playback inside the chat: VIEWER cap, so a 1080p/4K clip is
+        // decoded at panel size instead of full source resolution.
+        val cap = com.example.core.media.VideoPlaybackEngine.maxDecodeEdge(
+            context,
+            com.example.core.media.VideoPlaybackEngine.Profile.VIEWER
+        )
+        val p = ExoPlayer.Builder(context, com.example.core.media.PanaRenderersFactory.create(context))
+            .setTrackSelector(
+                androidx.media3.exoplayer.trackselection.DefaultTrackSelector(context).apply {
+                    setParameters(
+                        buildUponParameters()
+                            .setMaxVideoSize(cap, cap)
+                            .setMaxVideoBitrate(
+                                com.example.core.media.VideoPlaybackEngine.maxBitrate(
+                                    com.example.core.media.VideoPlaybackEngine.Profile.VIEWER
+                                )
+                            )
+                    )
+                }
+            )
+            .build()
         p.setMediaItem(MediaItem.fromUri(videoUrl))
         p.prepare()
         p.playWhenReady = true

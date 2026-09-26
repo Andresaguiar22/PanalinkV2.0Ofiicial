@@ -444,8 +444,20 @@ class ReelDualPlayerManager(private val context: Context) {
             .setBackBuffer(5000, true)
             .setPrioritizeTimeOverSizeThresholds(true)
             .build()
+        // Cap the decoded resolution instead of clearVideoSizeConstraints(): the old
+        // call decoded 1080p/4K at full source size, which is what made high-res
+        // reels stutter. The cap comes from the shared engine so reels stay in sync
+        // with the Muro viewer and the feed.
+        val cap = com.example.core.media.VideoPlaybackEngine.maxDecodeEdge(
+            context,
+            com.example.core.media.VideoPlaybackEngine.Profile.REELS
+        )
         val trackSelector = DefaultTrackSelector(context, androidx.media3.exoplayer.trackselection.AdaptiveTrackSelection.Factory()).apply {
-            setParameters(buildUponParameters().clearVideoSizeConstraints())
+            setParameters(
+                buildUponParameters()
+                    .setMaxVideoSize(cap, cap)
+                    .setMaxVideoBitrate(com.example.core.media.VideoPlaybackEngine.maxBitrate(com.example.core.media.VideoPlaybackEngine.Profile.REELS))
+            )
         }
         // CONSUMO DIRECTO VCDN: sin SimpleCache ni intermediarios. Los reels se leen
         // directo de la URL firmada (HLS VCDN) → nada se escribe a disco, no hay

@@ -42,7 +42,27 @@ fun SmartVideoPlayer(
     var loadingState by remember { mutableStateOf<MediaLoadingState>(MediaLoadingState.Idle) }
 
     val exoPlayer = remember(videoUrl) {
+        // Inline bubble inside the chat list: use the PREVIEW cap so a 1080p/4K clip
+        // does not decode at full source resolution inside a 200dp row.
+        val context0 = context
+        val cap = com.example.core.media.VideoPlaybackEngine.maxDecodeEdge(
+            context0,
+            com.example.core.media.VideoPlaybackEngine.Profile.PREVIEW
+        )
         ExoPlayer.Builder(context, PanaRenderersFactory.create(context))
+            .setTrackSelector(
+                androidx.media3.exoplayer.trackselection.DefaultTrackSelector(context0).apply {
+                    setParameters(
+                        buildUponParameters()
+                            .setMaxVideoSize(cap, cap)
+                            .setMaxVideoBitrate(
+                                com.example.core.media.VideoPlaybackEngine.maxBitrate(
+                                    com.example.core.media.VideoPlaybackEngine.Profile.PREVIEW
+                                )
+                            )
+                    )
+                }
+            )
             .setMediaSourceFactory(
                 DefaultMediaSourceFactory(context)
                     .setDataSourceFactory(CacheDataSourceFactory.getCacheDataSourceFactory(context))

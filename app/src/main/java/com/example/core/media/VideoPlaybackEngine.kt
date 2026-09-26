@@ -55,26 +55,34 @@ object VideoPlaybackEngine {
         }
 
     /**
-     * Decode cap. The panel cannot show more pixels than it has, so decoding a 4K
-     * source on a 1080p screen only burns CPU and causes dropped frames.
-     * [Preview] is capped harder because it renders inside a scrolling list.
+     * Longest decoded edge for [profile]. The panel cannot show more pixels than it
+     * has, so decoding a 4K source on a 1080p screen only burns CPU and drops frames.
+     * Exposed so players that must keep their own data source (dynamic headers,
+     * direct-to-VCDN HLS, cache-free IPTV) still cap the decoded resolution instead
+     * of calling `clearVideoSizeConstraints()`, which decodes at full source size.
      */
-    private fun trackSelector(context: Context, profile: Profile): DefaultTrackSelector {
+    fun maxDecodeEdge(context: Context, profile: Profile): Int {
         val metrics = context.resources.displayMetrics
         val longEdge = maxOf(metrics.widthPixels, metrics.heightPixels)
-        val cap = when (profile) {
+        return when (profile) {
             Profile.PREVIEW -> (longEdge * 0.75f).toInt().coerceAtLeast(960)
             else -> (longEdge * 1.2f).toInt().coerceAtLeast(1280)
         }
-        val maxBitrate = when (profile) {
-            Profile.PREVIEW -> 8_000_000
-            else -> 20_000_000
-        }
+    }
+
+    /** Bitrate ceiling for [profile]; paired with [maxDecodeEdge]. */
+    fun maxBitrate(profile: Profile): Int = when (profile) {
+        Profile.PREVIEW -> 8_000_000
+        else -> 20_000_000
+    }
+
+    private fun trackSelector(context: Context, profile: Profile): DefaultTrackSelector {
+        val cap = maxDecodeEdge(context, profile)
         return DefaultTrackSelector(context).apply {
             setParameters(
                 buildUponParameters()
                     .setMaxVideoSize(cap, cap)
-                    .setMaxVideoBitrate(maxBitrate)
+                    .setMaxVideoBitrate(maxBitrate(profile))
             )
         }
     }

@@ -155,9 +155,18 @@ object AppFloatingPlayerManager {
             .setPrioritizeTimeOverSizeThresholds(true)
             .build()
 
-        // Setup adaptive track selection
+        // Cap the decoded resolution instead of clearVideoSizeConstraints(): decoding
+        // at full source size (4K on a 1080p panel) is what caused stutter here too.
+        val cap = com.example.core.media.VideoPlaybackEngine.maxDecodeEdge(
+            context,
+            com.example.core.media.VideoPlaybackEngine.Profile.VIEWER
+        )
         val trackSelector = DefaultTrackSelector(context, androidx.media3.exoplayer.trackselection.AdaptiveTrackSelection.Factory()).apply {
-            setParameters(buildUponParameters().clearVideoSizeConstraints()) // Allow high quality
+            setParameters(
+                buildUponParameters()
+                    .setMaxVideoSize(cap, cap)
+                    .setMaxVideoBitrate(com.example.core.media.VideoPlaybackEngine.maxBitrate(com.example.core.media.VideoPlaybackEngine.Profile.VIEWER))
+            )
         }
 
         // Keep a reference to the HTTP factory so acquirePlayer() can update
