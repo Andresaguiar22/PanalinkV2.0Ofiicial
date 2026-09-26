@@ -86,7 +86,7 @@ fun CameraXQrScannerDialog(
         Box(
             modifier = Modifier
                 .fillMaxSize()
-                .background(Color.Black)
+                .background(IosSettingsColors.groupBackground)
         ) {
             if (hasCameraPermission) {
                 CameraXPreviewContainer(
@@ -186,22 +186,22 @@ fun CameraXPreviewContainer(
 
             // Outer dark scrim
             // Top Scrim
-            drawRect(color = Color.Black.copy(alpha = 0.65f), size = androidx.compose.ui.geometry.Size(width, top))
+            drawRect(color = IosSettingsColors.mediaScrim, size = androidx.compose.ui.geometry.Size(width, top))
             // Bottom Scrim
             drawRect(
-                color = Color.Black.copy(alpha = 0.65f),
+                color = IosSettingsColors.mediaScrim,
                 topLeft = Offset(0f, bottom),
                 size = androidx.compose.ui.geometry.Size(width, height - bottom)
             )
             // Left Scrim
             drawRect(
-                color = Color.Black.copy(alpha = 0.65f),
+                color = IosSettingsColors.mediaScrim,
                 topLeft = Offset(0f, top),
                 size = androidx.compose.ui.geometry.Size(left, boxSize)
             )
             // Right Scrim
             drawRect(
-                color = Color.Black.copy(alpha = 0.65f),
+                color = IosSettingsColors.mediaScrim,
                 topLeft = Offset(right, top),
                 size = androidx.compose.ui.geometry.Size(width - right, boxSize)
             )
@@ -270,7 +270,7 @@ fun CameraXPreviewContainer(
                 },
                 modifier = Modifier
                     .size(56.dp)
-                    .background(Color.Black.copy(alpha = 0.5f), androidx.compose.foundation.shape.CircleShape)
+                    .background(IosSettingsColors.mediaScrimSoft, androidx.compose.foundation.shape.CircleShape)
             ) {
                 Icon(
                     imageVector = Icons.Default.Refresh,
@@ -284,7 +284,7 @@ fun CameraXPreviewContainer(
                 onClick = onDismiss,
                 modifier = Modifier
                     .size(56.dp)
-                    .background(Color.Black.copy(alpha = 0.5f), androidx.compose.foundation.shape.CircleShape)
+                    .background(IosSettingsColors.mediaScrimSoft, androidx.compose.foundation.shape.CircleShape)
             ) {
                 Icon(
                     imageVector = Icons.Default.Close,

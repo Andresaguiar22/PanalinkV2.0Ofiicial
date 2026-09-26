@@ -18,6 +18,7 @@ import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.*
 import androidx.compose.material.icons.outlined.*
+import androidx.compose.material.icons.automirrored.filled.*
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.runtime.saveable.rememberSaveable
@@ -417,7 +418,7 @@ fun FeedPostCard(
                     modifier = Modifier
                         .fillMaxWidth()
                         .height(460.dp)
-                        .background(Color.Black)
+                        .background(IosSettingsColors.groupBackground)
                 ) {
                     HorizontalPager(
                         state = pagerState,
@@ -502,10 +503,10 @@ fun FeedPostCard(
                                 .align(Alignment.BottomEnd)
                                 .padding(12.dp)
                                 .size(36.dp)
-                                .background(Color.Black.copy(alpha = 0.6f), CircleShape)
+                                .background(IosSettingsColors.mediaScrim, CircleShape)
                         ) {
                             Icon(
-                                imageVector = if (isMuted) Icons.Default.VolumeMute else Icons.Default.VolumeUp,
+                                imageVector = if (isMuted) Icons.AutoMirrored.Filled.VolumeMute else Icons.AutoMirrored.Filled.VolumeUp,
                                 contentDescription = "Sonido",
                                 tint = IosSettingsColors.label,
                                 modifier = Modifier.size(20.dp)
@@ -526,14 +527,14 @@ fun FeedPostCard(
                                 tint = IosSettingsColors.secondaryLabel,
                                 modifier = Modifier
                                     .size(20.dp)
-                                    .background(Color.Black.copy(alpha = 0.5f), CircleShape)
+                                    .background(IosSettingsColors.mediaScrimSoft, CircleShape)
                                     .padding(6.dp)
                             )
                             Text(
                                 text = "${pagerState.currentPage + 1}/${mediaImagesAndVideos.size}",
                                 color = IosSettingsColors.label,
                                 modifier = Modifier
-                                    .background(Color.Black.copy(alpha = 0.6f), RoundedCornerShape(16.dp))
+                                    .background(IosSettingsColors.mediaScrim, RoundedCornerShape(16.dp))
                                     .padding(horizontal = 10.dp, vertical = 4.dp),
                                 fontSize = 12.sp,
                                 fontWeight = FontWeight.Bold
@@ -566,7 +567,7 @@ fun FeedPostCard(
                                         .fillMaxWidth()
                                         .height(6.dp)
                                         .clip(CircleShape)
-                                        .background(Color.White.copy(alpha = 0.3f))
+                                        .background(IosSettingsColors.separator)
                                 )
                                 // Sliding pill indicator
                                 Box(
@@ -575,7 +576,7 @@ fun FeedPostCard(
                                         .width(18.dp)
                                         .height(6.dp)
                                         .clip(CircleShape)
-                                        .background(Color.White)
+                                        .background(IosSettingsColors.label)
                                 )
                             }
                         }
@@ -586,7 +587,7 @@ fun FeedPostCard(
                             modifier = Modifier
                                 .align(Alignment.TopStart)
                                 .padding(12.dp)
-                                .background(Color.Black.copy(alpha = 0.7f), RoundedCornerShape(16.dp))
+                                .background(IosSettingsColors.mediaScrim, RoundedCornerShape(16.dp))
                                 .padding(horizontal = 10.dp, vertical = 6.dp),
                             verticalAlignment = Alignment.CenterVertically
                         ) {
@@ -767,7 +768,7 @@ fun FeedPostCard(
                 ) {
                     IconButton(onClick = { onAudioPlaylistClick(post) }, modifier = Modifier.size(36.dp)) {
                         Icon(
-                            imageVector = Icons.Default.PlaylistPlay,
+                            imageVector = Icons.AutoMirrored.Filled.PlaylistPlay,
                             tint = IosSettingsColors.blue,
                             contentDescription = "Reproducir lista",
                             modifier = Modifier.size(22.dp)

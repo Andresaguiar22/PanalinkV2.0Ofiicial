@@ -498,7 +498,7 @@ fun ReelsFeedScreen(
                 modifier = Modifier
                     .size(40.dp)
                     .background(TransparentBlack, CircleShape)
-                    .border(0.5.dp, Color.White.copy(alpha =   0.1f), CircleShape)
+                    .border(0.5.dp, IosSettingsColors.separator, CircleShape)
                     .clickable(
                         interactionSource = remember { MutableInteractionSource() },
                         indication = null,
@@ -509,7 +509,7 @@ fun ReelsFeedScreen(
                 Icon(
                     Icons.AutoMirrored.Outlined.ArrowBack,
                     contentDescription = "Volver",
-                    tint = Color.White,
+                    tint = IosSettingsColors.label,
                     modifier = Modifier.size(22.dp)
                 )
             }
@@ -524,7 +524,7 @@ fun ReelsFeedScreen(
             ) {
                 ReelFilterV2.values().forEach { option ->
                     val selected = filter == option
-                    val bgColor = if (selected) Color.White.copy(alpha =   0.28f) else Color.Transparent
+                    val bgColor = if (selected) IosSettingsColors.label.copy(alpha = 0.28f) else Color.Transparent
                     Box(
                         modifier = Modifier
                             .clip(CircleShape)
@@ -545,7 +545,7 @@ fun ReelsFeedScreen(
                     ) {
                         Text(
                             option.label,
-                            color = if (selected) Color.White else Color.White.copy(alpha =   0.7f),
+                            color = if (selected) IosSettingsColors.label else IosSettingsColors.label.copy(alpha = 0.7f),
                             fontSize =   14.sp,
                             fontWeight = FontWeight.Medium,
                             maxLines =   1,
@@ -559,7 +559,7 @@ fun ReelsFeedScreen(
                 modifier = Modifier
                     .size(40.dp)
                     .background(TransparentBlack, CircleShape)
-                    .border(0.5.dp, Color.White.copy(alpha =   0.1f), CircleShape)
+                    .border(0.5.dp, IosSettingsColors.separator, CircleShape)
                     .clickable(
                         interactionSource = remember { MutableInteractionSource() },
                         indication = null,
@@ -570,7 +570,7 @@ fun ReelsFeedScreen(
                 Icon(
                     Icons.Outlined.Search,
                     contentDescription = "Buscar",
-                    tint = Color.White,
+                    tint = IosSettingsColors.label,
                     modifier = Modifier.size(22.dp)
                 )
             }
@@ -580,7 +580,7 @@ fun ReelsFeedScreen(
                 modifier = Modifier
                     .size(40.dp)
                     .background(TransparentBlack, CircleShape)
-                    .border(0.5.dp, Color.White.copy(alpha =   0.1f), CircleShape)
+                    .border(0.5.dp, IosSettingsColors.separator, CircleShape)
                     .clickable(
                         interactionSource = remember { MutableInteractionSource() },
                         indication = null,
@@ -599,14 +599,14 @@ fun ReelsFeedScreen(
                 if (refreshing) {
                     CircularProgressIndicator(
                         modifier = Modifier.size(18.dp),
-                        color = Color.White,
+                        color = IosSettingsColors.label,
                         strokeWidth = 2.dp,
                     )
                 } else {
                     Icon(
                         Icons.Default.Refresh,
                         contentDescription = "Actualizar reels",
-                        tint = Color.White,
+                        tint = IosSettingsColors.label,
                         modifier = Modifier.size(20.dp)
                     )
                 }
@@ -631,7 +631,7 @@ fun ReelsFeedScreen(
                 .padding(bottom = 4.dp)
                 .width(134.dp)
                 .height(5.dp)
-                .background(Color.White, CircleShape)
+                .background(IosSettingsColors.label, CircleShape)
         )
     }
 
@@ -812,7 +812,7 @@ private fun ReelFeedOverlay(
                             .size(22.dp)
                             .clip(CircleShape)
                             .background(if (isFollowing) IosSettingsColors.cellElevated else IosSettingsColors.green)
-                            .border(2.dp, Color.Black, CircleShape)
+                            .border(2.dp, IosSettingsColors.groupBackground, CircleShape)
                             .clickable {
                                 if (currentUid.isNullOrBlank()) return@clickable
                                 overlayScope.launch {
@@ -970,7 +970,7 @@ private fun ReelFeedOverlay(
                     if (cleanCaption.length > 60 || cleanCaption.lines().size > 2) {
                         Text(
                             text = if (expanded) "Ver menos" else "Ver más",
-                            color = Color.White,
+                            color = IosSettingsColors.label,
                             fontSize = 13.sp,
                             fontWeight = FontWeight.SemiBold,
                             modifier = Modifier
@@ -1088,14 +1088,14 @@ private fun ReelProgressBar(
                 },
             contentAlignment = Alignment.CenterStart,
         ) {
-            Box(Modifier.fillMaxWidth().height(2.dp).clip(CircleShape).background(Color.White.copy(alpha = 0.25f)))
-            Box(Modifier.fillMaxWidth(fraction).height(2.dp).clip(CircleShape).background(Color.White))
+            Box(Modifier.fillMaxWidth().height(2.dp).clip(CircleShape).background(IosSettingsColors.separator))
+            Box(Modifier.fillMaxWidth(fraction).height(2.dp).clip(CircleShape).background(IosSettingsColors.label))
             Box(Modifier.fillMaxWidth(fraction), contentAlignment = Alignment.CenterEnd) {
                 Box(
                     Modifier
                         .size(if (dragFraction != null) 14.dp else 8.dp)
                         .clip(CircleShape)
-                        .background(Color.White)
+                        .background(IosSettingsColors.label)
                 )
             }
         }
@@ -1130,7 +1130,7 @@ private fun ReelActionButtonV2(
             Icon(
                 icon,
                 contentDescription = null,
-                tint = if (selected) selectedColor else Color.White,
+                tint = if (selected) selectedColor else IosSettingsColors.label,
                 modifier = Modifier
                     .size(26.dp)
                     .graphicsLayer {

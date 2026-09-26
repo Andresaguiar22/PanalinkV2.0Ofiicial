@@ -66,7 +66,7 @@ fun MusicPlayerScreen(
                     .padding(padding),
                 contentAlignment = Alignment.Center
             ) {
-                Text("No hay ningún audio seleccionado", color = Color.Gray)
+                Text("No hay ningún audio seleccionado", color = IosSettingsColors.secondaryLabel)
             }
         } else {
             Column(
@@ -116,7 +116,7 @@ fun MusicPlayerScreen(
                     Spacer(modifier = Modifier.height(4.dp))
                     Text(
                         text = "${track.artist} • ${track.album}",
-                        color = Color.Gray,
+                        color = IosSettingsColors.secondaryLabel,
                         fontSize = 14.sp,
                         textAlign = TextAlign.Center
                     )
@@ -138,8 +138,8 @@ fun MusicPlayerScreen(
                         modifier = Modifier.fillMaxWidth(),
                         horizontalArrangement = Arrangement.SpaceBetween
                     ) {
-                        Text(formatMs(playerState.currentPositionMs), color = Color.Gray, fontSize = 12.sp)
-                        Text(formatMs(playerState.durationMs), color = Color.Gray, fontSize = 12.sp)
+                        Text(formatMs(playerState.currentPositionMs), color = IosSettingsColors.secondaryLabel, fontSize = 12.sp)
+                        Text(formatMs(playerState.durationMs), color = IosSettingsColors.secondaryLabel, fontSize = 12.sp)
                     }
                 }
 
@@ -153,7 +153,7 @@ fun MusicPlayerScreen(
                         Icon(
                             imageVector = Icons.Default.Shuffle,
                             contentDescription = "Aleatorio",
-                            tint = if (playerState.isShuffle) IosSettingsColors.blue else Color.Gray
+                            tint = if (playerState.isShuffle) IosSettingsColors.blue else IosSettingsColors.secondaryLabel
                         )
                     }
 
@@ -170,7 +170,7 @@ fun MusicPlayerScreen(
                     FloatingActionButton(
                         onClick = { playerManager.togglePlayPause() },
                         containerColor = IosSettingsColors.blue,
-                        contentColor = Color.Black,
+                        contentColor = IosSettingsColors.onAccent,
                         shape = CircleShape,
                         modifier = Modifier.size(64.dp)
                     ) {
@@ -197,7 +197,7 @@ fun MusicPlayerScreen(
                                 else -> Icons.Default.Repeat
                             },
                             contentDescription = "Repetir",
-                            tint = if (playerState.repeatMode != RepeatMode.NONE) IosSettingsColors.blue else Color.Gray
+                            tint = if (playerState.repeatMode != RepeatMode.NONE) IosSettingsColors.blue else IosSettingsColors.secondaryLabel
                         )
                     }
                 }

@@ -461,7 +461,7 @@ Box(
                     ) {
                         Text(
                             textContent.ifBlank { "Tu texto aparecerá aquí" },
-                            color = if (textContent.isBlank()) Color.White.copy(alpha = .5f) else Color.White,
+                            color = if (textContent.isBlank()) IosSettingsColors.label.copy(alpha = .5f) else IosSettingsColors.label,
                             fontSize = 20.sp,
                             fontWeight = FontWeight.SemiBold,
                             textAlign = TextAlign.Center,
@@ -480,7 +480,7 @@ Box(
                                 Modifier
                                     .size(28.dp)
                                     .clip(CircleShape)
-                                    .border(if (palette == p) 2.dp else  0.5.dp, Color.White, CircleShape)
+                                    .border(if (palette == p) 2.dp else  0.5.dp, IosSettingsColors.label, CircleShape)
                                     .background(Brush.linearGradient(listOf(p.top, p.bottom)))
                                     .clickable { palette = p }
                             )
@@ -525,7 +525,7 @@ Box(
                             if (mode == StoryMode.VIDEO) {
                                 Icon(
                                     Icons.Outlined.Videocam, null,
-                                    tint = Color.White,
+                                    tint = IosSettingsColors.label,
                                     modifier = Modifier
                                         .align(Alignment.TopEnd)
                                         .padding(10.dp)
@@ -535,13 +535,13 @@ Box(
                             if (overlayTextEnabled && textContent.isNotBlank()) {
                                 Text(
                                     textContent,
-                                    color = Color.White,
+                                    color = IosSettingsColors.label,
                                     fontSize = 18.sp,
                                     fontWeight = FontWeight.SemiBold,
                                     textAlign = TextAlign.Center,
                                     modifier = Modifier
                                         .align(Alignment.BottomCenter)
-                                        .background(Color.Black.copy(alpha = .45f))
+                                        .background(IosSettingsColors.mediaScrimSoft)
                                         .fillMaxWidth()
                                         .padding(12.dp)
                                 )

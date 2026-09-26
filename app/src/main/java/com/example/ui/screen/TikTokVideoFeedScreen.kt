@@ -287,10 +287,10 @@ fun TikTokVideoFeedScreen(
                             onClick = { selectedFilter = filter },
                             label = { Text(filter) },
                             colors = FilterChipDefaults.filterChipColors(
-                                containerColor = Color.White.copy(alpha = 0.05f),
+                                containerColor = IosSettingsColors.label.copy(alpha = 0.05f),
                                 selectedContainerColor = IosSettingsColors.green,
-                                labelColor = Color.White,
-                                selectedLabelColor = Color.Black
+                                labelColor = IosSettingsColors.label,
+                                selectedLabelColor = IosSettingsColors.onAccent
                             ),
                             border = null,
                             shape = RoundedCornerShape(20.dp)
@@ -300,7 +300,7 @@ fun TikTokVideoFeedScreen(
 
                 if (videoStates.isEmpty()) {
                     Box(modifier = Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
-                        Text("No se encontraron vídeos 🇻🇪🔍", color = Color.Gray)
+                        Text("No se encontraron vídeos 🇻🇪🔍", color = IosSettingsColors.secondaryLabel)
                     }
                 } else {
                     androidx.compose.foundation.lazy.grid.LazyVerticalGrid(
@@ -314,7 +314,7 @@ fun TikTokVideoFeedScreen(
                                     .aspectRatio(0.56f)
                                     .padding(2.dp)
                                     .clip(RoundedCornerShape(8.dp))
-                                    .background(Color(0xFF1E1E24))
+                                    .background(IosSettingsColors.cell)
                                     .clickable {
                                         // Play this video in full screen
                                         val targetId = item.state.id
@@ -332,7 +332,7 @@ fun TikTokVideoFeedScreen(
                                 
                                 // View count overlay
                                 Row(
-                                    modifier = Modifier.align(Alignment.BottomStart).padding(4.dp).background(Color.Black.copy(alpha = 0.4f), RoundedCornerShape(4.dp)).padding(horizontal = 4.dp),
+                                    modifier = Modifier.align(Alignment.BottomStart).padding(4.dp).background(IosSettingsColors.mediaScrimSoft, RoundedCornerShape(4.dp)).padding(horizontal = 4.dp),
                                     verticalAlignment = Alignment.CenterVertically
                                 ) {
                                     Icon(Icons.Default.PlayArrow, null, tint = IosSettingsColors.label, modifier = Modifier.size(10.dp))
@@ -371,7 +371,7 @@ fun TikTokVideoFeedScreen(
                     Column(horizontalAlignment = Alignment.CenterHorizontally) {
                         Text(
                             text = "No se encontraron vídeos 🇻🇪🔍",
-                            color = Color.Gray,
+                            color = IosSettingsColors.secondaryLabel,
                             fontSize = 16.sp,
                             fontWeight = FontWeight.SemiBold
                         )
@@ -513,8 +513,8 @@ fun TikTokVideoFeedScreen(
                                 .padding(horizontal =  12.dp)
                                 .height(36.dp)
                                 .clip(RoundedCornerShape(18.dp)),
-                            color = Color.Black.copy(alpha =  0.6f),
-                            contentColor = Color(0xFFFF3B5C),
+                            color = IosSettingsColors.mediaScrim,
+                            contentColor = IosSettingsColors.pink,
                             shape = RoundedCornerShape(18.dp)
                         ) {
                             Row(
@@ -527,12 +527,12 @@ fun TikTokVideoFeedScreen(
                                 Icon(
                                     imageVector = Icons.Default.LiveTv,
                                     contentDescription = "Entrar a Panalink Live",
-                                    tint = Color(0xFFFF3B5C),
+                                    tint = IosSettingsColors.pink,
                                     modifier = Modifier.size(16.dp)
                                 )
                                 Text(
                                     text = "LIVE",
-                                    color = Color(0xFFFF3B5C),
+                                    color = IosSettingsColors.pink,
                                     fontSize = 12.sp,
                                     fontWeight = FontWeight.Bold,
                                     style = TextStyle(
@@ -572,7 +572,7 @@ fun TikTokVideoFeedScreen(
                         OutlinedTextField(
                             value = searchQuery,
                             onValueChange = { searchQuery = it },
-                            placeholder = { Text("Buscar reels o panas venezolanos...", color = Color.Gray, fontSize = 13.sp) },
+                            placeholder = { Text("Buscar reels o panas venezolanos...", color = IosSettingsColors.secondaryLabel, fontSize = 13.sp) },
                             singleLine = true,
                             modifier = Modifier
                                 .weight(1f)
@@ -589,12 +589,12 @@ fun TikTokVideoFeedScreen(
                                 }
                             },
                             colors = OutlinedTextFieldDefaults.colors(
-                                focusedTextColor = Color.White,
-                                unfocusedTextColor = Color.White,
+                                focusedTextColor = IosSettingsColors.label,
+                                unfocusedTextColor = IosSettingsColors.label,
                                 focusedBorderColor = IosSettingsColors.green,
-                                unfocusedBorderColor = Color.White.copy(alpha = 0.2f),
-                                focusedContainerColor = Color.Black.copy(alpha = 0.6f),
-                                unfocusedContainerColor = Color.Black.copy(alpha =  0.4f)
+                                unfocusedBorderColor = IosSettingsColors.separator,
+                                focusedContainerColor = IosSettingsColors.mediaScrim,
+                                unfocusedContainerColor = IosSettingsColors.mediaScrimSoft
                             ),
                             shape = RoundedCornerShape(24.dp)
                         )
@@ -679,7 +679,7 @@ fun TikTokVideoFeedScreen(
                     .statusBarsPadding()
                     .padding(top = 64.dp)
                     .clip(RoundedCornerShape(8.dp))
-                    .background(Color.Black.copy(alpha = 0.55f))
+                    .background(IosSettingsColors.mediaScrimSoft)
                     .padding(horizontal = 10.dp, vertical = 6.dp),
                 horizontalAlignment = Alignment.CenterHorizontally
             ) {
@@ -706,7 +706,7 @@ fun TikTokVideoFeedScreen(
                         .height(2.dp)
                         .clip(RoundedCornerShape(1.dp)),
                     color = IosSettingsColors.green,
-                    trackColor = Color.White.copy(alpha = 0.15f)
+                    trackColor = IosSettingsColors.separator
                 )
             }
         }
@@ -726,7 +726,7 @@ private fun ReelFeedTab(label: String, selected: Boolean, onClick: () -> Unit) {
     ) {
         Text(
             text = label,
-            color = if (selected) Color.White else Color.White.copy(alpha = 0.6f),
+            color = if (selected) IosSettingsColors.label else IosSettingsColors.label.copy(alpha = 0.6f),
             fontWeight = if (selected) FontWeight.Bold else FontWeight.SemiBold,
             fontSize = 17.sp,
             style = TextStyle(
@@ -742,7 +742,7 @@ private fun ReelFeedTab(label: String, selected: Boolean, onClick: () -> Unit) {
             modifier = Modifier
                 .size(width = 28.dp, height = 3.dp)
                 .clip(RoundedCornerShape(2.dp))
-                .background(if (selected) Color.White else Color.Transparent)
+                .background(if (selected) IosSettingsColors.label else Color.Transparent)
         )
     }
 }
@@ -788,7 +788,7 @@ private fun ReelRailAction(
                 fontWeight = FontWeight.Bold,
                 style = TextStyle(
                     shadow = androidx.compose.ui.graphics.Shadow(
-                        color = Color.Black.copy(alpha = 0.7f),
+                        color = IosSettingsColors.mediaScrim,
                         offset = Offset(1f, 1f),
                         blurRadius = 3f
                     )
@@ -1873,7 +1873,7 @@ fun TikTokPageItem(
                         // sabe que está viendo contenido guardado..
                         if (!com.example.util.NetworkMonitor.isOnline.value && hasLocalCopy && !hasError && !isBuffering) {
                             Surface(
-                                color = Color.Black.copy(alpha =  0.55f),
+                                color = IosSettingsColors.mediaScrimSoft,
                                 shape = androidx.compose.foundation.shape.RoundedCornerShape(50.dp),
                                 modifier = Modifier
                                     .align(Alignment.BottomCenter)
@@ -1940,7 +1940,7 @@ fun TikTokPageItem(
                 modifier = Modifier
                     .align(Alignment.Center)
                     .size(80.dp)
-                    .background(Color.Black.copy(alpha = 0.5f), CircleShape),
+                    .background(IosSettingsColors.mediaScrimSoft, CircleShape),
                 contentAlignment = Alignment.Center
             ) {
                 Icon(
@@ -1960,7 +1960,7 @@ fun TikTokPageItem(
                 modifier = Modifier
                     .align(Alignment.Center)
                     .size(96.dp)
-                    .background(Color.Black.copy(alpha = 0.55f), CircleShape),
+                    .background(IosSettingsColors.mediaScrimSoft, CircleShape),
                 contentAlignment = Alignment.Center
             ) {
                 Column(horizontalAlignment = Alignment.CenterHorizontally) {
@@ -2034,7 +2034,7 @@ fun TikTokPageItem(
                         .size(48.dp),
                     size = 48.dp,
                     borderWidth = 1.dp,
-                    borderColor = Color.White,
+                    borderColor = IosSettingsColors.label,
                     contentDescription = "Perfil del creador",
                     placeholderName = safeDisplayName
                 )
@@ -2076,7 +2076,7 @@ fun TikTokPageItem(
             ReelRailAction(
                 icon = if (localIsLiked) Icons.Rounded.Favorite else Icons.Rounded.FavoriteBorder,
                 count = formatCountCompact(localLikesCount),
-                tint = if (localIsLiked) IosSettingsColors.red else Color.White,
+                tint = if (localIsLiked) IosSettingsColors.red else IosSettingsColors.label,
                 contentDescription = "Me Gusta",
                 iconModifier = Modifier.graphicsLayer {
                     scaleX = likeScale
@@ -2101,7 +2101,7 @@ fun TikTokPageItem(
             ReelRailAction(
                 icon = if (localIsFavorited) Icons.Rounded.Bookmark else Icons.Rounded.BookmarkBorder,
                 count = formatCountCompact(localFavoritesCount),
-                tint = if (localIsFavorited) Color(0xFFF9C74F) else Color.White,
+                tint = if (localIsFavorited) IosSettingsColors.yellow else IosSettingsColors.label,
                 contentDescription = "Guardar",
                 onClick = { onFavoriteClick() }
             )
@@ -2217,7 +2217,7 @@ fun TikTokPageItem(
                     },
                     style = TextStyle(
                         shadow = androidx.compose.ui.graphics.Shadow(
-                            color = Color.Black.copy(alpha = 0.8f),
+                            color = IosSettingsColors.mediaScrim,
                             offset = Offset(1f, 1f),
                             blurRadius = 4f
                         )
@@ -2229,7 +2229,7 @@ fun TikTokPageItem(
                         modifier = Modifier
                             .clip(RoundedCornerShape(6.dp))
                             .background(
-                                if (isFollowing) Color.White.copy(alpha = 0.12f)
+                                if (isFollowing) IosSettingsColors.label.copy(alpha = 0.12f)
                                 else IosSettingsColors.red
                             )
                             .clickable {
@@ -2267,7 +2267,7 @@ fun TikTokPageItem(
                 com.example.ui.components.TextAnnotator.AnnotatedClickableText(
                     text = caption,
                     style = TextStyle(color = IosSettingsColors.label, fontSize = 14.sp),
-                    hashtagColor = Color(0xFF69F0AE),
+                    hashtagColor = IosSettingsColors.green,
                     mentionColor = IosSettingsColors.blue,
                     onHashtagClick = { tag ->
                         onHashtagClick?.invoke(tag)
@@ -2324,9 +2324,9 @@ fun TikTokPageItem(
                     },
                     valueRange = 0f..duration.toFloat(),
                     colors = SliderDefaults.colors(
-                        thumbColor = Color.White,
-                        activeTrackColor = Color.White,
-                        inactiveTrackColor = Color.White.copy(alpha = 0.3f)
+                        thumbColor = IosSettingsColors.label,
+                        activeTrackColor = IosSettingsColors.label,
+                        inactiveTrackColor = IosSettingsColors.separator
                     ),
                     modifier = Modifier
                         .fillMaxWidth()
@@ -2350,7 +2350,7 @@ fun TikTokPageItem(
                     .fillMaxWidth()
                     .fillMaxHeight(0.6f)
                     .background(
-                        color = Color(0xF2101D24), // Semitransparent WhatsApp deep charcoal
+                        color = IosSettingsColors.cellElevated.copy(alpha = 0.95f), // Semitransparent WhatsApp deep charcoal
                         shape = RoundedCornerShape(topStart = 24.dp, topEnd = 24.dp)
                     )
                     .clickable(enabled = true, onClick = {}) // consume clicks to avoid pausing video behind
@@ -2367,7 +2367,7 @@ fun TikTokPageItem(
                             .align(Alignment.CenterHorizontally)
                             .padding(top = 8.dp, bottom = 12.dp)
                             .size(width = 40.dp, height = 4.dp)
-                            .background(Color.Gray.copy(alpha = 0.5f), CircleShape)
+                            .background(IosSettingsColors.secondaryLabel.copy(alpha = 0.5f), CircleShape)
                     )
 
                     // Header
@@ -2491,14 +2491,14 @@ fun TikTokPageItem(
                                     if (comment.deletedAt != null) {
                                         Text(
                                             text = "Este comentario ha sido eliminado",
-                                            color = Color.White.copy(alpha =   0.4f),
+                                            color = IosSettingsColors.label.copy(alpha = 0.4f),
                                             fontSize = if (isReply) 13.sp else 14.sp,
                                             fontStyle = androidx.compose.ui.text.font.FontStyle.Italic
                                         )
                                     } else {
                                         com.example.ui.components.CommentMediaText(
                                             text = comment.text,
-                                            fallbackColor = Color.White
+                                            fallbackColor = IosSettingsColors.label
                                         )
                                     }
                                 }
@@ -2552,7 +2552,7 @@ fun TikTokPageItem(
                             onValueChange = { commentText = it },
                             placeholder = { 
                                 val hint = if (replyingTo != null) "Escribe tu respuesta..." else "Escribe tu comentario de pana..."
-                                Text(hint, color = Color.Gray) 
+                                Text(hint, color = IosSettingsColors.secondaryLabel) 
                             },
                             modifier = Modifier
                                 .weight(1f)
@@ -2560,8 +2560,8 @@ fun TikTokPageItem(
                             textStyle = TextStyle(color = IosSettingsColors.label, fontSize = 14.sp),
                             maxLines = 2,
                             colors = OutlinedTextFieldDefaults.colors(
-                                focusedTextColor = Color.White,
-                                unfocusedTextColor = Color.White,
+                                focusedTextColor = IosSettingsColors.label,
+                                unfocusedTextColor = IosSettingsColors.label,
                                 focusedContainerColor = IosSettingsColors.cellElevated,
                                 unfocusedContainerColor = IosSettingsColors.cellElevated,
                                 focusedBorderColor = IosSettingsColors.green,
@@ -2737,7 +2737,7 @@ fun ReelsSkeletonLoader(avatarUrl: String?, displayName: String) {
     Box(
         modifier = Modifier
             .fillMaxSize()
-            .background(Color(0xFF070708))
+            .background(IosSettingsColors.groupBackground)
     ) {
         // Ambient background gradient
         Box(
@@ -2745,7 +2745,7 @@ fun ReelsSkeletonLoader(avatarUrl: String?, displayName: String) {
                 .fillMaxSize()
                 .background(
                     Brush.radialGradient(
-                        colors = listOf(Color(0xFF1E1E24).copy(alpha = 0.4f), Color.Black),
+                        colors = listOf(IosSettingsColors.cellElevated.copy(alpha = 0.4f), IosSettingsColors.groupBackground),
                         radius = 1200f
                     )
                 )
@@ -2768,19 +2768,19 @@ fun ReelsSkeletonLoader(avatarUrl: String?, displayName: String) {
                 Box(
                     modifier = Modifier
                         .size(40.dp)
-                        .background(Color.White.copy(alpha = 0.2f), CircleShape)
+                        .background(IosSettingsColors.separator, CircleShape)
                 )
                 // Username and Seguir button skeleton
                 Column(verticalArrangement = Arrangement.spacedBy(6.dp)) {
                     Box(
                         modifier = Modifier
                             .size(100.dp, 16.dp)
-                            .background(Color.White.copy(alpha = 0.2f), RoundedCornerShape(4.dp))
+                            .background(IosSettingsColors.separator, RoundedCornerShape(4.dp))
                     )
                     Box(
                         modifier = Modifier
                             .size(60.dp, 12.dp)
-                            .background(Color.White.copy(alpha = 0.15f), RoundedCornerShape(4.dp))
+                            .background(IosSettingsColors.separator, RoundedCornerShape(4.dp))
                     )
                 }
             }
@@ -2790,13 +2790,13 @@ fun ReelsSkeletonLoader(avatarUrl: String?, displayName: String) {
                     modifier = Modifier
                         .fillMaxWidth(0.7f)
                         .height(14.dp)
-                        .background(Color.White.copy(alpha = 0.15f), RoundedCornerShape(4.dp))
+                        .background(IosSettingsColors.separator, RoundedCornerShape(4.dp))
                 )
                 Box(
                     modifier = Modifier
                         .fillMaxWidth(0.5f)
                         .height(14.dp)
-                        .background(Color.White.copy(alpha = 0.15f), RoundedCornerShape(4.dp))
+                        .background(IosSettingsColors.separator, RoundedCornerShape(4.dp))
                 )
             }
         }
@@ -2828,7 +2828,7 @@ fun ReelsErrorView(
                 .fillMaxSize()
                 .background(
                     Brush.verticalGradient(
-                        colors = listOf(Color(0xFF1E0A0A), Color.Black)
+                        colors = listOf(IosSettingsColors.red.copy(alpha = 0.12f), IosSettingsColors.groupBackground)
                     )
                 )
         )
@@ -2842,13 +2842,13 @@ fun ReelsErrorView(
             Box(
                 modifier = Modifier
                     .size(64.dp)
-                    .background(Color(0xFFFF3355).copy(alpha = 0.15f), CircleShape),
+                    .background(IosSettingsColors.red.copy(alpha = 0.15f), CircleShape),
                 contentAlignment = Alignment.Center
             ) {
                 Icon(
                     imageVector = Icons.Default.Close,
                     contentDescription = "Error",
-                    tint = Color(0xFFFF3355),
+                    tint = IosSettingsColors.red,
                     modifier = Modifier.size(32.dp)
                 )
             }
@@ -2873,7 +2873,7 @@ fun ReelsErrorView(
                 onClick = onRetry,
                 colors = ButtonDefaults.buttonColors(
                     containerColor = IosSettingsColors.green,
-                    contentColor = Color.Black
+                    contentColor = IosSettingsColors.onAccent
                 ),
                 shape = RoundedCornerShape(24.dp),
                 contentPadding = PaddingValues(horizontal = 24.dp, vertical = 12.dp)
