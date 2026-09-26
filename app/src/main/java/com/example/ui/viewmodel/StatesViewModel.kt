@@ -190,7 +190,12 @@ fun deleteState(stateId: String, onSuccess: () -> Unit) { viewModelScope.launch(
             onSuccess()
         }
     } }    fun deleteComment(stateId: String, commentId: String) { viewModelScope.launch(errorHandler + Dispatchers.IO) { val currentState = findState(stateId) ?: return@launch; statesRepository.deleteComment(commentId, isReelState(currentState.state)).onSuccess { loadComments(stateId); loadActiveStates(false) } } }
-    fun registerView(stateId: String) { viewModelScope.launch(errorHandler + Dispatchers.IO) { val currentState = findState(stateId) ?: return@launch; val isReel = isReelState(currentState.state); val authorId = currentState.state.userId; statesRepository.registerView(stateId, isReel).onSuccess { if (authorId.isNotEmpty()) com.example.data.repository.NotificationsRepository().createNotification(authorId, "view", stateId); statesRepository.saveStateLocally(currentState.copy(state = currentState.state.copy(viewedByMe = true))) } } }
+    fun registerView(stateId: String) { viewModelScope.launch(errorHandler + Dispatchers.IO) { val currentState = findState(stateId) ?: return@launch; val isReel = isReelState(currentState.state); val authorId = currentState.state.userId
+        // Mark locally first: the ring turns grey immediately and stays grey even
+        // if the network call fails (story_views only allows INSERT remotely, so
+        // the server can never confirm a view back to us).
+        statesRepository.saveStateLocally(currentState.copy(state = currentState.state.copy(viewedByMe = true)))
+        statesRepository.registerView(stateId, isReel).onSuccess { if (authorId.isNotEmpty()) com.example.data.repository.NotificationsRepository().createNotification(authorId, "view", stateId) } } }
     fun publishTextState(caption: String, isReel: Boolean = false, audioUrl: String? = null) { if (caption.isBlank()) return; _createStateFlow.value = CreateStateUiState.Loading("Preparando estado..."); viewModelScope.launch(errorHandler) { statesRepository.createState("text", caption, null, null, isReel = isReel, audioUrl = audioUrl).onSuccess { _createStateFlow.value = CreateStateUiState.Success; clearStoryDraft(); loadActiveStates() }.onFailure { _createStateFlow.value = CreateStateUiState.Error(it.localizedMessage ?: "Error publicando estado") } } }
     fun publishStoryBackground(context: android.content.Context, uri: android.net.Uri?, mimeType: String, caption: String?, audioUrl: String? = null, mediaFile: java.io.File? = null) {
         viewModelScope.launch(errorHandler + Dispatchers.IO) {

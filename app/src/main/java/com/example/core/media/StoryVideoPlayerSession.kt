@@ -62,6 +62,11 @@ class StoryVideoPlayerSession(private val context: Context) {
     private var retryCount = 0
     private var isReleased = AtomicBoolean(false)
     private var lastVideoUrl: String = ""
+    /** Ultimo stateId que ya emitio "fin de media": guarda de idempotencia. */
+    private var lastEndedStateId: String? = null
+    /** stateId cargado actualmente en el player: distingue "misma story reanudada"
+     *  de "otra story que casualmente resuelve a la misma URL firmada". */
+    private var currentMediaStateId: String? = null
     /** Puntero estable (`vcdn://{id}` o URL convencional) usado para re-resolver
      *  la URL firmada cuando caduca (HTTP 401). Para VCDN, [lastVideoUrl] es
      *  una URL firmada efímera; re-resolverla a ciegas repetía el mismo token. */
@@ -110,6 +115,14 @@ class StoryVideoPlayerSession(private val context: Context) {
 
                             if (isActuallyPlaying && current >= actualEndMs) {
                                 onPositionChanged?.invoke(effectiveDuration)
+                                // Antes solo se hacia seekTo(startMs): el clip recortado
+                                // se repetia en bucle y la historia NUNCA avanzaba (el
+                                // fallback de tiempo la sacaba a los ~30s). Se emite el
+                                // fin UNA vez (guardado) y se reposiciona al inicio.
+                                if (stateId != lastEndedStateId) {
+                                    lastEndedStateId = stateId
+                                    onMediaEnded?.invoke()
+                                }
                                 p.seekTo(startMs)
                             } else if (isActuallyPlaying) {
                                 val relativePosition = (current - startMs)
@@ -127,10 +140,12 @@ class StoryVideoPlayerSession(private val context: Context) {
                         if (isActuallyPlaying) {
                             val boundedCurrent = current.coerceIn(0L, effectiveDuration.takeIf { it > 0L } ?: Long.MAX_VALUE)
                             onPositionChanged?.invoke(boundedCurrent)
-                            if (effectiveDuration > 0L && boundedCurrent >= effectiveDuration) {
-                                p.seekTo(0L)
-                                onMediaEnded?.invoke()
-                            }
+                            // El fin de un clip SIN recorte lo emite el listener
+                            // STATE_ENDED (una sola vez, con guarda de idempotencia).
+                            // Antes aqui se hacia seekTo(0)+onMediaEnded: el video se
+                            // reiniciaba y volvia a terminar mientras la UI avanzaba,
+                            // disparando varios "fin" seguidos -> saltaba historias y
+                            // aterrizaba en una sin URL resuelta ("no se pudo reproducir").
                         }
                     }
                 } catch (_: Exception) {
@@ -160,12 +175,16 @@ class StoryVideoPlayerSession(private val context: Context) {
             .setBackBuffer(4_000, true)
             .setPrioritizeTimeOverSizeThresholds(true)
             .build()
+        val metrics = context.resources.displayMetrics
+        val longEdge = maxOf(metrics.widthPixels, metrics.heightPixels)
+        val capped = (longEdge * 1.2f).toInt().coerceAtLeast(1_280)
         val trackSelector = DefaultTrackSelector(context).apply {
+            // Igual que en los reels: no decodificar mas pixeles de los que la
+            // pantalla puede mostrar (4K en panel 1080p solo causa tirones).
             setParameters(
                 buildUponParameters()
-                    .clearVideoSizeConstraints()
-                    .setMaxVideoSize(Int.MAX_VALUE, Int.MAX_VALUE)
-                    .setMaxVideoBitrate(Int.MAX_VALUE)
+                    .setMaxVideoSize(capped, capped)
+                    .setMaxVideoBitrate(20_000_000)
             )
         }
         val player = ExoPlayer.Builder(context, PanaRenderersFactory.create(context))
@@ -231,7 +250,13 @@ class StoryVideoPlayerSession(private val context: Context) {
                     // The trim loop boundary is handled in trimRunnable (emits 100%
                     // then seeks back to start BEFORE the player ever enters ENDED),
                     // so the only genuine ENDED here is the natural clip end.
-                    onMediaEnded?.invoke()
+                    // Idempotente: un mismo clip no debe emitir "fin" mas de una vez
+                    // (evita avanzar dos historias de un solo golpe).
+                    val endedFor = stateId
+                    if (endedFor != lastEndedStateId) {
+                        lastEndedStateId = endedFor
+                        onMediaEnded?.invoke()
+                    }
                 }
 
                 onStateChanged?.invoke(
@@ -380,13 +405,20 @@ class StoryVideoPlayerSession(private val context: Context) {
     ) {
         stateId = newStateId
         retryCount = 0
+        lastEndedStateId = null
         lastVideoUrl = videoUrl
         lastStableVideoUrl = stableVideoUrl?.takeIf { it.isNotBlank() } ?: videoUrl
         lastIsMuted = isMuted
         lastTrim = videoTrim
         player.volume = if (isMuted) 0f else 1f
         val currentUri = player.currentMediaItem?.localConfiguration?.uri?.toString()
-        val isSwap = player.currentMediaItem == null || currentUri != videoUrl
+        // Un cambio de HISTORIA siempre exige re-preparar, aunque la URL firmada
+        // coincida (dos clips distintos pueden resolver a la misma cadena si el
+        // token es identico, y antes eso dejaba la segunda historia congelada en
+        // la posicion/estado de la primera). Solo reanudamos si es la MISMA story.
+        val isSameStory = currentMediaStateId == newStateId
+        val isSwap = player.currentMediaItem == null || currentUri != videoUrl || !isSameStory
+        currentMediaStateId = newStateId
         val playHost = try { java.net.URI(videoUrl).host } catch (_: Exception) { "" }
         com.example.feature.diagnostics.StoryDiagnostics.event(
             if (isSwap) "Play iniciado" else "Play reanudado",

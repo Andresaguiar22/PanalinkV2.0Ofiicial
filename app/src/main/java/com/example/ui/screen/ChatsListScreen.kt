@@ -30,6 +30,9 @@ import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.*
 import androidx.compose.material.icons.automirrored.filled.ExitToApp
+import androidx.compose.material.icons.automirrored.filled.ArrowBack
+import androidx.compose.material.icons.automirrored.filled.KeyboardArrowRight
+import androidx.compose.material.icons.automirrored.filled.List
 import androidx.compose.material3.*
 import androidx.compose.material3.TabRowDefaults.tabIndicatorOffset
 import androidx.compose.runtime.*
@@ -121,7 +124,7 @@ fun SelectionTopAppBar(
     ) {
         IconButton(onClick = onClearSelection) {
             Icon(
-                imageVector = Icons.Default.ArrowBack,
+                imageVector = Icons.AutoMirrored.Filled.ArrowBack,
                 contentDescription = "Cancelar selección",
                 tint = IosSettingsColors.label
             )
@@ -1062,7 +1065,7 @@ fun ChatsListScreen(
                             Text("Music Studio", color = IosSettingsColors.label, fontWeight = FontWeight.Bold, fontSize = 15.sp)
                             Text("Administra tus playlists y biblioteca musical.", color = Color.Gray, fontSize = 12.sp)
                         }
-                        Icon(Icons.Default.KeyboardArrowRight, contentDescription = null, tint = Color.Gray)
+                        Icon(Icons.AutoMirrored.Filled.KeyboardArrowRight, contentDescription = null, tint = Color.Gray)
                     }
 
                     // PanaTV (Premium 2.0 — beneficio aditivo)
@@ -1132,7 +1135,7 @@ fun ChatsListScreen(
                             Text("Buscar Panas", color = IosSettingsColors.label, fontWeight = FontWeight.Bold, fontSize = 15.sp)
                             Text("Busca otros usuarios de Panalink por nombre.", color = Color.Gray, fontSize = 12.sp, lineHeight = 14.sp)
                         }
-                        Icon(Icons.Default.KeyboardArrowRight, contentDescription = null, tint = Color.Gray)
+                        Icon(Icons.AutoMirrored.Filled.KeyboardArrowRight, contentDescription = null, tint = Color.Gray)
                     }
 
                     // Directorio de Panas
@@ -1159,7 +1162,7 @@ fun ChatsListScreen(
                             Text("Directorio de Panas", color = IosSettingsColors.label, fontWeight = FontWeight.Bold, fontSize = 15.sp)
                             Text("Mira tu lista completa de contactos enlazados.", color = Color.Gray, fontSize = 12.sp, lineHeight = 14.sp)
                         }
-                        Icon(Icons.Default.KeyboardArrowRight, contentDescription = null, tint = Color.Gray)
+                        Icon(Icons.AutoMirrored.Filled.KeyboardArrowRight, contentDescription = null, tint = Color.Gray)
                     }
 
                     // Canal (próximamente: aún no hay backend de canales)
@@ -1208,7 +1211,7 @@ fun ChatsListScreen(
                         Box(
                             modifier = Modifier
                                 .size(40.dp)
-                                .background(Color(0xFF7C4DFF), RoundedCornerShape(10.dp)),
+                                .background(IosSettingsColors.indigo, RoundedCornerShape(10.dp)),
                             contentAlignment = Alignment.Center
                         ) {
                             Icon(Icons.Default.Mic, contentDescription = null, tint = IosSettingsColors.label, modifier = Modifier.size(20.dp))
@@ -1485,7 +1488,7 @@ fun ChatsListScreen(
 
                     // Menu Item: Cerrar sesión
                     QuickProfileMenuItem(
-                        icon = Icons.Default.ExitToApp,
+                        icon = Icons.AutoMirrored.Filled.ExitToApp,
                         label = "Cerrar sesión",
                         tint = Color.Red
                     ) {
@@ -1667,7 +1670,7 @@ fun ChatsListScreen(
                 CerebroCommand("/theme nordic_ice", "Nórdico Glacial", "Fresco, limpio, con tonos azul ártico", Icons.Default.Info),
                 CerebroCommand("/theme minimal_white", "Blanco Minimal", "Diseño ultra limpio de alto contraste claro", Icons.Default.Home),
                 CerebroCommand("/minimal", "Activar Mínimo", "Oculta paneles extras para una interfaz limpia", Icons.Default.Check),
-                CerebroCommand("/full", "Apariencia Completa", "Muestra todos los paneles, estadísticas y widgets", Icons.Default.List),
+                CerebroCommand("/full", "Apariencia Completa", "Muestra todos los paneles, estadísticas y widgets", Icons.AutoMirrored.Filled.List),
                 CerebroCommand("/nuevo-chat", "Nuevo Chat", "Abre directamente el buscador universal de panas", Icons.Default.Add)
             )
         }

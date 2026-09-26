@@ -32,6 +32,9 @@ import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.*
 import androidx.compose.material.icons.automirrored.filled.ExitToApp
+import androidx.compose.material.icons.automirrored.filled.Send
+import androidx.compose.material.icons.automirrored.filled.VolumeMute
+import androidx.compose.material.icons.automirrored.filled.VolumeUp
 import androidx.compose.material3.*
 import androidx.compose.material3.TabRowDefaults.tabIndicatorOffset
 import androidx.compose.runtime.*
@@ -433,7 +436,7 @@ fun TuTabContent(
                         shape = RoundedCornerShape(8.dp),
                         modifier = Modifier.fillMaxWidth()
                     ) {
-                        Icon(Icons.Default.ExitToApp, contentDescription = null, tint = IosSettingsColors.label)
+                        Icon(Icons.AutoMirrored.Filled.ExitToApp, contentDescription = null, tint = IosSettingsColors.label)
                         Spacer(modifier = Modifier.width(8.dp))
                         Text("Cerrar Sesión de Pana", color = IosSettingsColors.label, fontWeight = FontWeight.Bold)
                     }
@@ -931,18 +934,6 @@ fun InicioTabContent(
                 }
             }
         }
-
-        // Floating Action Button to create a post on El Muro
-        FloatingActionButton(
-            onClick = { showCreatePostSheet = true },
-            modifier = Modifier
-                .align(Alignment.BottomEnd)
-                .padding(bottom = 24.dp, end = 16.dp),
-            containerColor = IosSettingsColors.blue,
-            contentColor = Color.Black
-        ) {
-            Icon(Icons.Default.Add, contentDescription = "Crear Publicación")
-        }
     }
 
     if (showCreatePostSheet) {
@@ -1092,9 +1083,9 @@ fun InicioTabContent(
                                 keyboardController?.hide()
                             }
                         },
-                        modifier = Modifier.size(48.dp).background(Color(0xFFB026FF), CircleShape)
+                        modifier = Modifier.size(48.dp).background(IosSettingsColors.blue, CircleShape)
                     ) {
-                        Icon(Icons.Default.Send, contentDescription = "Enviar", tint = IosSettingsColors.label, modifier = Modifier.size(20.dp))
+                        Icon(Icons.AutoMirrored.Filled.Send, contentDescription = "Enviar", tint = IosSettingsColors.label, modifier = Modifier.size(20.dp))
                     }
                 }
                 if (showGifPicker) {
@@ -1329,7 +1320,7 @@ fun InicioTabContent(
                         modifier = Modifier.background(Color.Black.copy(alpha = 0.5f), CircleShape)
                     ) {
                         Icon(
-                            imageVector = if (backgroundAudioMuted) Icons.Default.VolumeMute else Icons.Default.VolumeUp,
+                            imageVector = if (backgroundAudioMuted) Icons.AutoMirrored.Filled.VolumeMute else Icons.AutoMirrored.Filled.VolumeUp,
                             contentDescription = if (backgroundAudioMuted) "Activar audio" else "Silenciar audio",
                             tint = IosSettingsColors.label,
                             modifier = Modifier.size(20.dp)
@@ -1952,6 +1943,7 @@ private fun FacebookFriendStoryCard(
         // Avatar Arriba Izquierda con anillo
         Box(
             modifier = Modifier
+                .align(Alignment.TopStart)
                 .padding(12.dp)
                 .size(36.dp)
                 .background(
@@ -1971,7 +1963,7 @@ private fun FacebookFriendStoryCard(
             )
         }
 
-        // Nombre Abajo
+        // Nombre Abajo (debe anclarse al fondo: sin el align caia sobre el avatar)
         Text(
             text = safeDisplayName?.take(15) ?: "",
             color = Color.White,
@@ -1980,6 +1972,7 @@ private fun FacebookFriendStoryCard(
             maxLines =  1,
             overflow = TextOverflow.Ellipsis,
             modifier = Modifier
+                .align(Alignment.BottomStart)
                 .padding(12.dp)
         )
     }

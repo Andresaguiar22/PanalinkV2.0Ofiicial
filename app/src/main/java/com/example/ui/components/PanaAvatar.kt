@@ -127,7 +127,7 @@ fun PanaAvatar(
                     .fillMaxSize()
                     .background(
                         Brush.linearGradient(
-                            colors = listOf(Color(0xFFB026FF), IosSettingsColors.green)
+                            colors = listOf(IosSettingsColors.indigo, IosSettingsColors.green)
                         )
                     ),
                 contentAlignment = Alignment.Center

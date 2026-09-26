@@ -794,7 +794,6 @@ private fun ReelFeedOverlay(
             Box(
                 modifier = Modifier
                     .size(44.dp)
-                    .clip(CircleShape)
                     .clickable(onClick = onProfile),
                 contentAlignment = Alignment.Center
             ) {
@@ -809,11 +808,11 @@ private fun ReelFeedOverlay(
                     Box(
                         modifier = Modifier
                             .align(Alignment.BottomCenter)
-                            .offset(y = 11.dp)
-                            .size(21.dp)
+                            .offset(y = 12.dp)
+                            .size(22.dp)
                             .clip(CircleShape)
                             .background(if (isFollowing) Color(0xFF2B2B2B) else IosSettingsColors.green)
-                            .border(1.5.dp, Color.Black, CircleShape)
+                            .border(2.dp, Color.Black, CircleShape)
                             .clickable {
                                 if (currentUid.isNullOrBlank()) return@clickable
                                 overlayScope.launch {

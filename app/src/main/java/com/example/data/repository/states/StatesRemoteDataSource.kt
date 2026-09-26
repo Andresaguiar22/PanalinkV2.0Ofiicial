@@ -314,13 +314,21 @@ class StatesRemoteDataSource {
                         val existingEntity = statesDao.getStateById(newEntity.id)
                         val stabilized = StateUrlResolver.stabilizeEntityForRoom(newEntity, existingEntity)
 
+                        // "Viewed" is monotonic: once a story/reel has been seen it stays
+                        // seen. The remote snapshot cannot be trusted for this flag because
+                        // `social.story_views` only grants INSERT (no SELECT policy), so a
+                        // refetch always reports viewedByMe=false and would flip the ring
+                        // back to "unseen" a moment after the user watched it.
+                        val finalViewed = newEntity.viewedByMe || (existingEntity?.viewedByMe == true)
+
                         stabilized.copy(
                             likedByMe = finalLiked,
                             likesCount = finalLikesCount,
                             favoritedByMe = finalFavorited,
                             favoritesCount = finalFavsCount,
                             commentsCount = finalCommentsCount,
-                            sharesCount = finalSharesCount
+                            sharesCount = finalSharesCount,
+                            viewedByMe = finalViewed
                         )
                     }
                     statesDao.insertStates(finalEntities)

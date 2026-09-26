@@ -1,6 +1,7 @@
 package com.example.ui.components
 
 import androidx.compose.foundation.background
+import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
@@ -142,16 +143,21 @@ val glowAlpha by animateFloatAsState(
             Box(
                 modifier = Modifier
                     .align(Alignment.Center)
-                    .width(42.dp)
+                    .width(46.dp)
                     .height(34.dp)
-                    .clip(RoundedCornerShape(10.dp))
+                    .clip(RoundedCornerShape(12.dp))
                     .background(
                         Brush.verticalGradient(
                             listOf(
-                                Color.Transparent,
-                                PanalinkTabTint.copy(alpha = 0.16f)
+                                PanalinkTabTint.copy(alpha = 0.10f),
+                                PanalinkTabTint.copy(alpha = 0.30f)
                             )
                         )
+                    )
+                    .border(
+                        1.dp,
+                        PanalinkTabTint.copy(alpha = 0.38f),
+                        RoundedCornerShape(12.dp)
                     )
                     .graphicsLayer { alpha = glowAlpha }
             )

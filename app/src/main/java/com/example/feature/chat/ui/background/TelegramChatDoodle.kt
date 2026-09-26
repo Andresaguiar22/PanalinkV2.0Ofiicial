@@ -16,12 +16,13 @@ import androidx.compose.ui.unit.Density
 import kotlin.math.cos
 import kotlin.math.sin
 
-/** Fondo base: negro azulado profundo, mas claro que el negro puro para que el patron se lea. */
-val DoodleBaseColor = Color(0xFF12161C)
+/** Fondo base: oscuro profundo con una pizca de azul, casi negro, para que el
+ *  patron se lea sin competir con las burbujas de mensaje. */
+val DoodleBaseColor = Color(0xFF0B0E13)
 
-private const val TILE_DP = 148f
-private const val GLYPH_DP = 30f
-private const val INK_ALPHA = 26 // ~0.10 sobre el blanco del trazo
+private const val TILE_DP = 104f
+private const val GLYPH_DP = 22f
+private const val INK_ALPHA = 22 // ~0.09 sobre el blanco del trazo
 
 /**
  * Fondo de chat estilo Telegram: patron repetido de garabatos en trazo fino
@@ -73,13 +74,16 @@ private fun createDoodleTile(density: Density): Bitmap {
     }
 
     // Garabatos desfasados por el mosaico, como el patron de Telegram.
+    // Mas densidad: al reducir el mosaico cada glifo se repite mas veces.
     val slots = listOf(
-        GlyphSlot(0.20f, 0.24f, -14f, Glyph.HEART),
-        GlyphSlot(0.72f, 0.16f, 10f, Glyph.STAR),
-        GlyphSlot(0.30f, 0.68f, 12f, Glyph.PLANE),
-        GlyphSlot(0.80f, 0.74f, -8f, Glyph.NOTE),
-        GlyphSlot(0.52f, 0.46f, 4f, Glyph.BUBBLE),
-        GlyphSlot(0.06f, 0.52f, -6f, Glyph.SMILE),
+        GlyphSlot(0.20f, 0.20f, -14f, Glyph.HEART),
+        GlyphSlot(0.72f, 0.14f, 10f, Glyph.STAR),
+        GlyphSlot(0.44f, 0.42f, 4f, Glyph.BUBBLE),
+        GlyphSlot(0.88f, 0.44f, -8f, Glyph.NOTE),
+        GlyphSlot(0.14f, 0.62f, 12f, Glyph.PLANE),
+        GlyphSlot(0.60f, 0.72f, -6f, Glyph.SMILE),
+        GlyphSlot(0.34f, 0.90f, 8f, Glyph.STAR),
+        GlyphSlot(0.90f, 0.84f, -12f, Glyph.HEART),
     )
     slots.forEach { slot ->
         val cx = slot.x * tilePx

@@ -201,10 +201,11 @@ fun ChatTopBar(
                             Box(
                                 modifier = Modifier
                                     .align(Alignment.BottomEnd)
-                                    .size(11.dp)
+                                    .offset(x = 1.dp, y = 1.dp)
+                                    .size(13.dp)
                                     .clip(CircleShape)
                                     .background(if (isOnlineReal) Color(0xFF4ADE80) else IosSettingsColors.secondaryLabel)
-                                    .border(2.dp, Color(0xFF3A4759), CircleShape)
+                                    .border(2.dp, Color(0xFF1C1C1E), CircleShape)
                             )
                         }
 

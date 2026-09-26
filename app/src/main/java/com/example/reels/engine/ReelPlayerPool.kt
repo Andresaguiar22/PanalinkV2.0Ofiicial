@@ -52,6 +52,10 @@ class ReelPlayerPool(private val context: Context) {
         private const val BUFFER_FOR_PLAYBACK_MS = 300
         private const val BUFFER_FOR_PLAYBACK_AFTER_REBUFFER_MS = 6_000
 
+        /** Techo de bitrate (~20 Mbps) para no descartar fuentes de alta calidad
+         *  que si caben en pantalla, pero sin dejar entrar picos absurdos. */
+        private const val MAX_VIDEO_BITRATE = 20_000_000
+
         // VCDN signed URLs expire ~60s (BFF TTL). Any cached URL older than this
         // is force-refreshed BEFORE playback starts to avoid a mid-playback 401.
         // Media3 error 2004 is also treated as expired-token and triggers refresh.
@@ -159,12 +163,18 @@ class ReelPlayerPool(private val context: Context) {
             .setPrioritizeTimeOverSizeThresholds(true)
             .build()
 
+        val metrics = context.resources.displayMetrics
+        val longEdge = maxOf(metrics.widthPixels, metrics.heightPixels)
+        val capped = (longEdge * 1.2f).toInt().coerceAtLeast(1_280)
         val trackSelector = DefaultTrackSelector(context).apply {
+            // Cap decoding at what the panel can actually show. Forcing
+            // Int.MAX_VALUE made a 4K/HDR source decode 4K on a 1080p screen,
+            // which stalls high-resolution reels even though the extra pixels
+            // are invisible. The long edge keeps a small headroom for rotation.
             setParameters(
                 buildUponParameters()
-                    .clearVideoSizeConstraints()
-                    .setMaxVideoSize(Int.MAX_VALUE, Int.MAX_VALUE)
-                    .setMaxVideoBitrate(Int.MAX_VALUE)
+                    .setMaxVideoSize(capped, capped)
+                    .setMaxVideoBitrate(MAX_VIDEO_BITRATE)
             )
         }
 
