@@ -1,5 +1,15 @@
 # Rules for Panalink Development
 
+## 🗣️ Regla 0 (OBLIGATORIA): los agentes piensan y hablan SIEMPRE en español
+
+**Terminantemente prohibido que un agente se exprese o razone en inglés en este proyecto.** Desde ahora, **todas** las conversaciones y **todos** los pensamientos internos de los agentes son **netamente en castellano**.
+
+* Aplica a: mensajes al usuario, razonamiento interno (thinking), planes, resúmenes, mensajes de commit, documentación, comentarios de código y respuestas de subagentes.
+* El motivo es de trabajo en equipo: el desarrollador habla y escribe en castellano y necesita **seguir y entender el diálogo y el razonamiento del agente**. Un agente que piensa en inglés lo deja fuera de la conversación.
+* Los identificadores de código (nombres de clases, funciones y variables) y los términos técnicos consolidados (`Scaffold`, `ExoPlayer`, `fast-forward`) se mantienen tal cual: lo que se traduce es el **discurso**, no el código.
+* Los mensajes de commit también van en castellano (el repo ya tiene todo el historial en español).
+* No es una preferencia de estilo: es una regla dura, al mismo nivel que la Regla 1.
+
 ## 🚫 Regla 1: Prohibido el uso de Code Explorer / code-explorer
 
 **Terminantemente prohibido** usar el agente `code-explorer` (codeexplorer) para explorar o entender este codebase. En su lugar, explorar el código directamente con herramientas propias (terminal con `grep`/`find`/`sed`/`awk`, y `file_editor` en modo `view`).
@@ -94,8 +104,8 @@ VERSION_NAME=vX.Y.Z VERSION_CODE=N ./gradlew :app:assembleRelease   # release
 ### Canal OTA (Andresaguiar22/panalink-ota)
 * Repo público de distribución: `https://github.com/Andresaguiar22/panalink-ota` (rama `main`).
 * `manifest.json` en `main` es la fuente de verdad para la app; vivir también se adjunta como asset del release.
-* Convención de versiones: `versionCode` incrementa de 1 en 1;; `versionName` es la tag (`v1.3.x`). Actual: **v1.3.58 / code  85** (publicada 2026-09-23).
-* `minimumSupportedVersionCode` = versionCode de la versión anterior publicada ( 77 para v1.3.58);`mandatory` casi siempre `false`.
+* Convención de versiones: `versionCode` incrementa de 1 en 1; `versionName` es la tag (`v1.3.x`). Actual: **v1.3.59 / code 86** (publicada 2026-09-26).
+* `minimumSupportedVersionCode` = versionCode de la versión anterior publicada (85 para v1.3.59); `mandatory` casi siempre `false`.
 * Últimas publicadas(histórico): v1.3.34/code 61 (2026-09-11), v1.3.33/code  60 (2026-09-11), v1.3.32/code 59 (2026-09-10), v1.3.31/code  58 (2026-09-10)y v1.3.30/code  ⁵⁷ (2026-09-10.
 * **Política de build universal (desde v1.3.33):** `app/build.gradle.kts` incluye `packaging { jniLibs { useLegacyPackaging = true } } }` con las 4 ABIs→ el APK sale con `extractNativeLibs=true` (fix de instalación en XOS/Transsion - Infinix/Tecno/itel y ROMs estrictas Android   7-11+) y `Panalink-<versionName>.apk` de ~78 MB. Adjuntar también `manifest.json` al release.
 * `sha256` del APK es obligatorio en el manifest (64 hex).
@@ -1248,8 +1258,35 @@ La refactorizacion iOS esta **cerrada y aprobada** en `kilo/clean-ui-ios` (96 co
 
 ### Estado de la rama
 * `kilo/muro-video-engine` desde `e0d6344`; commits `81f38bc` (motor de video), `16d3d66` (visores + navegacion + interacciones), `55d3904` (fake de test).
-* **NO pusheada** y **sin OTA**: el encargo de release sigue pendiente de la confirmacion del mantenedor.
-* Trabajo pendiente del encargo: unificar las 26 barras a `IosSettingsScaffold`, migrar iconos a Rounded, normalizar fondos de Scaffold, y preparar release/OTA.
+* **RESUELTO en la sesión 2026-09-26**: rama pusheada, mergeada a `main` por fast-forward y publicada por OTA como **v1.3.59 / code 86** (ver la sección del release más abajo).
+* De los 3 pendientes de apariencia, la medición posterior demostró que **solo los iconos quedaban de verdad**: barras y fondos ya estaban tokenizados. Ver la sección del release para el detalle medido.
+
+### 🚀 Release v1.3.59 / code 86 publicada por OTA (sesión 2026-09-26)
+
+Primer release OTA desde que se retomó el canal. Cierra el encargo de apariencia iOS + Muro/vídeo.
+
+**Consolidación en `main` (fast-forward, `8b9a818..94ae113`)**
+* `main 8b9a818 -> kilo/clean-ui-ios (e0d6344, 103 commits) -> kilo/muro-video-engine (94ae113)`: cada rama era **ancestro** de la siguiente, así que `git merge --ff-only kilo/muro-video-engine` desde `main` trajo **las dos** en un solo salto, sin conflictos.
+* Verificado antes de mergear: `git merge-base --is-ancestor` para cada par.
+* **`kilo/clean-ui-compact` DESCARTADA por indicación expresa del mantenedor** ("esa rama descártala del merge a main"). Era la única rama **divergente** (1 commit sobre `8b9a818`, no ancestro). Motivo técnico que lo respalda: tocaba 4 archivos que `clean-ui-ios` rehizo después muchas veces (`PanaLinkCyberpunkUi.kt` 19 commits, `PanaLinkFloatingBottomBar.kt` 11, `ChatsTabContent.kt` 5, `Theme.kt` 2) → su versión estaba superada y mergearla habría reintroducido la barra vieja. Sigue existiendo en origin, simplemente **no** entra en main.
+
+**Apariencia iOS — qué quedaba de verdad (medido, no supuesto)**
+* **Iconos**: 849 usos de `Icons.Default/Filled` (lenguaje Android) frente a solo 43 `Rounded`. Migrados **todos** a `Icons.Rounded` en 123 archivos, y 5 más a `Icons.AutoMirrored.Rounded` (`ArrowBack`, `Message`, `CallMade`, `CallReceived`, `PhoneMissed` — `Rounded` a secas está deprecado para ellos).
+  * **Cómo saber qué Rounded existe sin adivinar**: los 188 iconos distintos que usa la app **todos** tienen variante Rounded. Los 49 que parecían faltar viven en **`material-icons-core`**, no en `material-icons-extended`. Se comprobó extrayendo las clases de **ambos** AAR con `zipfile` (`/icons/rounded/*Kt.class`), no por suposición.
+  * `material-icons-extended` ya estaba en el proyecto: los Rounded salen gratis.
+* **Barras**: **0 archivos** con `TopAppBar` sin tokens iOS. No había nada que migrar; las 29 pantallas ya usan `IosSettingsColors`/`IosSettingsKit`.
+* **Fondos**: **0 hardcodes** de color en `Scaffold`/`Surface`. Los 531 `Color(0xFF...)` restantes son legítimos: definición de paletas (`Theme.kt`), arte de efectos (`AvatarFrameSpec`, `PremiumEffectsCatalog`, `LiveGiftEffects`), los propios tokens (`IosSettingsKit`) y sliders de personalización.
+* **Lección de método**: las notas decían "26 barras pendientes de migrar a `IosSettingsScaffold`". Al medir, no quedaba ninguna sin tokenizar. **Auditar con conteos antes de refactorizar**: una nota vieja no es evidencia del estado actual.
+
+**Release**
+* `APP_URL` era **obligatoria** para compilar release (fail-fast en `build.gradle.kts`) y no estaba en los secretos. Dato clave: `BuildConfig.BACKEND_URL` **no se consume en ningún sitio** del código (la app habla directo con Supabase); se usó la URL del proyecto Supabase. Si un día se necesita de verdad, definir `APP_URL`/`BACKEND_URL` en el entorno.
+* `google-services.json`: el del repo era el **dummy** (`panalink-dummy`); se materializó el real (`panalinkoficial`) desde el secreto `GOOGLE_SERVICES_JSON` antes de compilar. Está gitignoreado.
+* Firma: **`CN=Panalink`** (producción), no la beta `CN=Panalink Beta`. `apksigner` v1+v2, `zipalign` OK, `extractNativeLibs=0xffffffff`, 4 ABIs (arm64-v8a, armeabi-v7a, x86, x86_64). R8 activo (minify + shrink).
+* APK: 70.856.000 bytes, SHA-256 `0fc077c08b4a1414a9378dc90e89731f8ed5e2605715dcfeb299f7ebfd60aaf8`.
+* **⚠️ El canal OTA estaba ROTO antes de publicar**: el `manifest.json` en vivo apuntaba a `releases/download/v1.3.58/Panalink-v1.3.58.apk` y ese asset daba **404**; la API de releases devolvía **array vacío** (los releases habían sido borrados para re-firmar). Al publicar `v1.3.59` el canal quedó **restaurado**: la URL responde 302 → 200.
+* Verificación end-to-end: descarga desde la URL pública == SHA local byte a byte, `zip.testzip()=None`.
+* `manifest.json` actualizado en `main` (commit `a8c4c84`) y adjuntado como asset del release. `minimumSupportedVersionCode` = 85 (la anterior publicada).
+* **Nota operativa**: el sandbox se reinició a mitad del `assembleRelease` (se perdió el log) pero el APK ya estaba escrito en `app/build/outputs/apk/release/`; se verificó con `aapt`/`apksigner`/`sha256sum` antes de publicar. Ante un corte así, **no recompilar a ciegas: verificar el artefacto**.
 
 ### 🎧 Visor de historias: el audio del video sonaba sobre la foto siguiente (sesion 2026-09-25, commit `802869d`)
 
