@@ -1251,3 +1251,24 @@ La refactorizacion iOS esta **cerrada y aprobada** en `kilo/clean-ui-ios` (96 co
 * **NO pusheada** y **sin OTA**: el encargo de release sigue pendiente de la confirmacion del mantenedor.
 * Trabajo pendiente del encargo: unificar las 26 barras a `IosSettingsScaffold`, migrar iconos a Rounded, normalizar fondos de Scaffold, y preparar release/OTA.
 
+### ⚠️ Correccion: el fix del cap NO estaba aplicado en 5 reproductores (sesion 2026-09-25, commits `350db6e`/`6765831`)
+
+`VideoPlaybackEngine` (commit `81f38bc`) define el cap correcto, pero **solo 3 call sites lo usaban**. Al auditar TODOS los `ExoPlayer.Builder(` del repo aparecieron **5 players de video que lo esquivaban** y seguian decodificando a resolucion de origen:
+
+| Player | Problema | Fix |
+|---|---|---|
+| `util/ReelDualPlayerManager.kt` | `clearVideoSizeConstraints()` explicito | cap `REELS` |
+| `util/AppFloatingPlayerManager.kt` | `clearVideoSizeConstraints()` explicito | cap `VIEWER` |
+| `ui/components/chat/media/SmartVideoPlayer.kt` | **sin** `TrackSelector` | cap `PREVIEW` |
+| `ui/components/chat/media/FullScreenMediaViewer.kt` | **sin** `TrackSelector` | cap `VIEWER` |
+| `core/media/StoryVideoPlayerSession.kt` | copia propia del calculo (deriva del motor) | deriva del motor |
+
+* **`clearVideoSizeConstraints()` es el antipatron del fix**: literalmente desactiva el cap y decodifica 1080p/4K al tamano del source. Estaba en los DOS managers de reels/player flotante.
+* **REGLA**: al tocar reproduccion, auditar con `grep -rn "ExoPlayer.Builder("` y verificar que cada player **de video** tenga `setMaxVideoSize`. Un motor "unico" que solo usan 3 de 8 players no es un motor unico.
+* Los players de **audio** (`media/audio/AudioPlayerEngine.kt`, y el de musica de fondo en `InicioTabContent`/`PostDetailScreen`/`CameraCaptureView`) se dejan **sin** cap a proposito: son solo audio.
+* Se expusieron `VideoPlaybackEngine.maxDecodeEdge(context, profile)` y `maxBitrate(profile)` para que los players que deben conservar su propio data source (headers dinamicos, HLS directo de VCDN sin cache, IPTV) capen sin recurrir a `clearVideoSizeConstraints()`.
+* **Test real** `app/src/test/java/com/example/core/media/VideoPlaybackEngineCapTest.kt` (4 casos): construye el player con Robolectric y lee el `DefaultTrackSelector.parameters` resultante, asi que verifica el **cableado** y no solo la formula. `builtPlayerCarriesTheDecodeCap` falla si alguien vuelve a quitar el cap (maxVideoWidth null = sin limite). Suite completa: **332 tests, BUILD SUCCESSFUL**.
+* **Ojo Robolectric**: un caso que creaba un `Context` con otra densidad (`createConfigurationContext`) pasaba aislado pero reventaba en la suite con `FileSystemAlreadyExistsException`. No meter contexts alternativos en tests Robolectric de este repo.
+* Leccion de metodo: la sesion habia reportado "el fix del cap esta aplicado" basandose en que el motor existia. **Existir != estar cableado**: hay que contar los call sites.
+
+
