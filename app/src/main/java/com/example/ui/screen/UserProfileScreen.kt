@@ -183,7 +183,7 @@ fun UserProfileScreen(
                     .padding(innerPadding),
                 contentAlignment = Alignment.Center
             ) {
-                CircularProgressIndicator(color = MaterialTheme.colorScheme.primary)
+                CircularProgressIndicator(color = IosSettingsColors.blue)
             }
         } else if (profileError != null && userProfile == null) {
             Box(
@@ -210,7 +210,7 @@ fun UserProfileScreen(
                     )
                     Button(
                         onClick = { loadUserProfileData() },
-                        colors = ButtonDefaults.buttonColors(containerColor = MaterialTheme.colorScheme.primary)
+                        colors = ButtonDefaults.buttonColors(containerColor = IosSettingsColors.blue)
                     ) {
                         Text("Reintentar")
                     }
@@ -408,7 +408,7 @@ fun UserProfileScreen(
                                     containerColor = if (isFollowingUser) {
                                         MaterialTheme.colorScheme.surfaceVariant
                                     } else {
-                                        MaterialTheme.colorScheme.primary
+                                        IosSettingsColors.blue
                                     },
                                     contentColor = if (isFollowingUser) {
                                         MaterialTheme.colorScheme.onSurfaceVariant
@@ -469,7 +469,7 @@ fun UserProfileScreen(
                 TabRow(
                     selectedTabIndex = selectedTab,
                     containerColor = Color.Transparent,
-                    contentColor = MaterialTheme.colorScheme.primary,
+                    contentColor = IosSettingsColors.blue,
                     modifier = Modifier.offset(y = (-20).dp)
                 ) {
                     Tab(
@@ -627,7 +627,7 @@ fun UserProfileScreen(
                                         text = "Sobre mí",
                                         style = MaterialTheme.typography.titleSmall,
                                         fontWeight = FontWeight.Bold,
-                                        color = MaterialTheme.colorScheme.primary
+                                        color = IosSettingsColors.blue
                                     )
                                     Text(
                                         text = "¡Qué más de pana! Bienvenido a mi perfil oficial en Panalink. Aquí comparto mis mejores momentos y contenido real directo desde Venezuela 🇻🇪.",
@@ -650,7 +650,7 @@ fun UserProfileScreen(
                                         text = "Información de la Cuenta",
                                         style = MaterialTheme.typography.titleSmall,
                                         fontWeight = FontWeight.Bold,
-                                        color = MaterialTheme.colorScheme.primary
+                                        color = IosSettingsColors.blue
                                     )
 
                                     DetailRow(icon = Icons.Default.DateRange, label = "Miembro desde", value = "Julio 2026")

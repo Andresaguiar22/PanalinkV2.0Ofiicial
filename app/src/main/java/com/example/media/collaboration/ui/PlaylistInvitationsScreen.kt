@@ -20,6 +20,7 @@ import com.example.media.playlist.PlaylistInvitationRepository
 import com.example.data.database.PanalinkDatabase
 import com.example.data.supabase.SupabaseClient
 import com.example.data.supabase.SessionManager
+import com.example.ui.settings.ios.IosSettingsColors
 import kotlinx.coroutines.launch
 
 @OptIn(ExperimentalMaterial3Api::class)
@@ -90,7 +91,7 @@ fun ReceivedInvitationItem(
             Spacer(modifier = Modifier.height(4.dp))
             Text(text = "De: ${invitation.senderId}", style = MaterialTheme.typography.bodyMedium)
             Text(text = "Playlist: ${invitation.playlistId}", style = MaterialTheme.typography.bodySmall)
-            Text(text = "Rol: ${invitation.role}", style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.primary)
+            Text(text = "Rol: ${invitation.role}", style = MaterialTheme.typography.bodySmall, color = IosSettingsColors.blue)
             
             Spacer(modifier = Modifier.height(16.dp))
             

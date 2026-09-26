@@ -145,7 +145,7 @@ fun CollaboratorItem(
         ) {
             Column {
                 Text(text = name, style = MaterialTheme.typography.bodyLarge, fontWeight = FontWeight.Medium)
-                Text(text = role, style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.primary)
+                Text(text = role, style = MaterialTheme.typography.bodySmall, color = IosSettingsColors.blue)
             }
 
             if (canManage && role != "OWNER") {
