@@ -36,7 +36,7 @@ fun FeedCommentsBottomSheet(
     ModalBottomSheet(
         onDismissRequest = onDismissRequest,
         sheetState = sheetState,
-        containerColor = Color(0xFF0F171A)
+        containerColor = IosSettingsColors.groupBackground
     ) {
         Column(
             modifier = Modifier
@@ -104,7 +104,7 @@ fun FeedCommentsBottomSheet(
                         }
                     },
                     modifier = Modifier
-                        .background(Color(0xFF0088CC), CircleShape)
+                        .background(IosSettingsColors.blue, CircleShape)
                         .size(48.dp)
                 ) {
                     Icon(

@@ -18,6 +18,7 @@ import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.*
+import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.Text
@@ -33,7 +34,7 @@ import androidx.compose.ui.unit.sp
 import com.example.ui.settings.ios.IosSettingsColors
 
 private data class ToolboxCategory(val id: String, val title: String, val subtitle: String, val icon: androidx.compose.ui.graphics.vector.ImageVector)
-private data class ToolboxItem(val id: String, val title: String, val description: String, val category: String, val icon: androidx.compose.ui.graphics.vector.ImageVector, val accent: Color = Color(0xFF0A84FF))
+private data class ToolboxItem(val id: String, val title: String, val description: String, val category: String, val icon: androidx.compose.ui.graphics.vector.ImageVector, val accent: Color = IosSettingsColors.blue)
 
 private val categories = listOf(
     ToolboxCategory("all", "Todas", "Todo tu arsenal", Icons.Default.GridView),
@@ -91,16 +92,16 @@ fun ToolboxScreen(onBack: () -> Unit) {
         if (selectedCategory != "all") visibleItems.firstOrNull()?.let { selectedItem = it }
     }
 
-    Column(Modifier.fillMaxSize().background(Color.Black).statusBarsPadding()) {
+    Column(Modifier.fillMaxSize().background(IosSettingsColors.groupBackground).statusBarsPadding()) {
         Row(Modifier.fillMaxWidth().padding(horizontal = 10.dp, vertical = 8.dp), verticalAlignment = Alignment.CenterVertically) {
-            IconButton(onClick = onBack) { Icon(Icons.Default.ArrowBack, "Atrás", tint = Color(0xFF0A84FF)) }
+            IconButton(onClick = onBack) { Icon(Icons.AutoMirrored.Filled.ArrowBack, "Atrás", tint = IosSettingsColors.blue) }
             Column(Modifier.weight(1f)) {
-                Text("Caja de herramientas", color = Color.White, fontSize = 22.sp, fontWeight = FontWeight.Bold)
-                Text("Herramientas para tu experiencia PanaLink", color = Color(0xFF8E8E93), fontSize = 13.sp)
+                Text("Caja de herramientas", color = IosSettingsColors.label, fontSize = 22.sp, fontWeight = FontWeight.Bold)
+                Text("Herramientas para tu experiencia PanaLink", color = IosSettingsColors.secondaryLabel, fontSize = 13.sp)
             }
-            Box(Modifier.clip(RoundedCornerShape(14.dp)).background(Color(0xFF1C1C1E)).border(1.dp, Color(0x22FFFFFF), RoundedCornerShape(14.dp)).padding(horizontal = 12.dp, vertical = 8.dp)) {
+            Box(Modifier.clip(RoundedCornerShape(14.dp)).background(IosSettingsColors.cell).border(1.dp, IosSettingsColors.separator, RoundedCornerShape(14.dp)).padding(horizontal = 12.dp, vertical = 8.dp)) {
                 Row(verticalAlignment = Alignment.CenterVertically) {
-                    Text("0", color = Color.White, fontSize = 14.sp, fontWeight = FontWeight.Bold)
+                    Text("0", color = IosSettingsColors.label, fontSize = 14.sp, fontWeight = FontWeight.Bold)
                     Spacer(Modifier.width(5.dp))
                     Text("●", color = IosSettingsColors.yellow, fontSize = 12.sp)
                 }
@@ -109,14 +110,14 @@ fun ToolboxScreen(onBack: () -> Unit) {
 
         LazyColumn(Modifier.fillMaxSize(), contentPadding = PaddingValues(16.dp, 4.dp, 16.dp, 30.dp), verticalArrangement = Arrangement.spacedBy(12.dp)) {
             item {
-                Box(Modifier.fillMaxWidth().clip(RoundedCornerShape(26.dp)).background(Color(0xFF1C1C1E)).border(1.dp, Color(0x22FFFFFF), RoundedCornerShape(26.dp)).padding(20.dp)) {
+                Box(Modifier.fillMaxWidth().clip(RoundedCornerShape(26.dp)).background(IosSettingsColors.cell).border(1.dp, IosSettingsColors.separator, RoundedCornerShape(26.dp)).padding(20.dp)) {
                     Row(verticalAlignment = Alignment.CenterVertically) {
-                        Box(Modifier.size(56.dp).background(Color(0xFF0A84FF).copy(alpha = .12f), CircleShape), contentAlignment = Alignment.Center) {
-                            Icon(Icons.Default.Build, null, tint = Color(0xFF0A84FF), modifier = Modifier.size(29.dp))
+                        Box(Modifier.size(56.dp).background(IosSettingsColors.blue.copy(alpha = .12f), CircleShape), contentAlignment = Alignment.Center) {
+                            Icon(Icons.Default.Build, null, tint = IosSettingsColors.blue, modifier = Modifier.size(29.dp))
                         }
                         Spacer(Modifier.width(14.dp))
                         Column(Modifier.weight(1f)) {
-                            Text("Tu arsenal personal", color = Color.White, fontSize = 18.sp, fontWeight = FontWeight.SemiBold)
+                            Text("Tu arsenal personal", color = IosSettingsColors.label, fontSize = 18.sp, fontWeight = FontWeight.SemiBold)
                             Text("Activa herramientas temporales y personaliza cómo vives PanaLink.", color = IosSettingsColors.secondaryLabel, fontSize = 13.sp, lineHeight = 18.sp)
                         }
                     }
@@ -127,11 +128,11 @@ fun ToolboxScreen(onBack: () -> Unit) {
                 Row(Modifier.fillMaxWidth().padding(vertical = 2.dp), horizontalArrangement = Arrangement.spacedBy(8.dp)) {
                     categories.take(5).forEach { category ->
                         val selected = selectedCategory == category.id
-                        Box(Modifier.weight(1f).clip(RoundedCornerShape(14.dp)).background(if (selected) Color(0xFF0A84FF) else Color(0xFF1C1C1E)).border(1.dp, if (selected) Color(0xFF0A84FF) else Color(0x22FFFFFF), RoundedCornerShape(14.dp)).clickable { selectedCategory = category.id }.padding(vertical = 10.dp), contentAlignment = Alignment.Center) {
+                        Box(Modifier.weight(1f).clip(RoundedCornerShape(14.dp)).background(if (selected) IosSettingsColors.blue else IosSettingsColors.cell).border(1.dp, if (selected) IosSettingsColors.blue else IosSettingsColors.separator, RoundedCornerShape(14.dp)).clickable { selectedCategory = category.id }.padding(vertical = 10.dp), contentAlignment = Alignment.Center) {
                             Column(horizontalAlignment = Alignment.CenterHorizontally) {
-                                Icon(category.icon, null, tint = if (selected) Color.White else IosSettingsColors.secondaryLabel, modifier = Modifier.size(17.dp))
+                                Icon(category.icon, null, tint = if (selected) IosSettingsColors.label else IosSettingsColors.secondaryLabel, modifier = Modifier.size(17.dp))
                                 Spacer(Modifier.height(3.dp))
-                                Text(category.title, color = if (selected) Color.White else IosSettingsColors.secondaryLabel, fontSize = 9.sp, fontWeight = FontWeight.SemiBold)
+                                Text(category.title, color = if (selected) IosSettingsColors.label else IosSettingsColors.secondaryLabel, fontSize = 9.sp, fontWeight = FontWeight.SemiBold)
                             }
                         }
                     }
@@ -141,26 +142,26 @@ fun ToolboxScreen(onBack: () -> Unit) {
             item {
                 Row(Modifier.fillMaxWidth(), verticalAlignment = Alignment.Bottom) {
                     Column(Modifier.weight(1f)) {
-                        Text(if (selectedCategory == "all") "Todas las herramientas" else categories.first { it.id == selectedCategory }.title, color = Color.White, fontSize = 19.sp, fontWeight = FontWeight.Bold)
-                        Text("${visibleItems.size} herramientas disponibles", color = Color(0xFF8E8E93), fontSize = 12.sp)
+                        Text(if (selectedCategory == "all") "Todas las herramientas" else categories.first { it.id == selectedCategory }.title, color = IosSettingsColors.label, fontSize = 19.sp, fontWeight = FontWeight.Bold)
+                        Text("${visibleItems.size} herramientas disponibles", color = IosSettingsColors.secondaryLabel, fontSize = 12.sp)
                     }
-                    Text("TEMPORALES", color = Color(0xFF0A84FF), fontSize = 10.sp, fontWeight = FontWeight.Bold)
+                    Text("TEMPORALES", color = IosSettingsColors.blue, fontSize = 10.sp, fontWeight = FontWeight.Bold)
                 }
             }
 
             items(visibleItems, key = { it.id }) { item ->
                 val selected = item.id == selectedItem.id
                 val scale by animateFloatAsState(if (selected) 1f else .985f, tween(180, easing = FastOutSlowInEasing), label = "toolboxScale")
-                Row(Modifier.fillMaxWidth().scale(scale).clip(RoundedCornerShape(20.dp)).background(if (selected) Color(0xFF1C1C1E) else Color(0xFF111113)).border(1.dp, if (selected) item.accent.copy(alpha = .38f) else Color(0x1FFFFFFF), RoundedCornerShape(20.dp)).clickable { selectedItem = item }.padding(16.dp), verticalAlignment = Alignment.CenterVertically) {
+                Row(Modifier.fillMaxWidth().scale(scale).clip(RoundedCornerShape(20.dp)).background(if (selected) IosSettingsColors.cell else IosSettingsColors.cellElevated).border(1.dp, if (selected) item.accent.copy(alpha = .38f) else IosSettingsColors.separator.copy(alpha = 0.6f), RoundedCornerShape(20.dp)).clickable { selectedItem = item }.padding(16.dp), verticalAlignment = Alignment.CenterVertically) {
                     Box(Modifier.size(46.dp).background(item.accent.copy(alpha = if (selected) .14f else .08f), CircleShape), contentAlignment = Alignment.Center) {
                         Icon(item.icon, null, tint = if (selected) item.accent else IosSettingsColors.secondaryLabel, modifier = Modifier.size(22.dp))
                     }
                     Spacer(Modifier.width(14.dp))
                     Column(Modifier.weight(1f)) {
-                        Text(item.title, color = Color.White, fontSize = 16.sp, fontWeight = FontWeight.SemiBold)
-                        Text(item.description, color = Color(0xFF8E8E93), fontSize = 12.sp, lineHeight = 17.sp)
+                        Text(item.title, color = IosSettingsColors.label, fontSize = 16.sp, fontWeight = FontWeight.SemiBold)
+                        Text(item.description, color = IosSettingsColors.secondaryLabel, fontSize = 12.sp, lineHeight = 17.sp)
                     }
-                    Box(Modifier.size(7.dp).background(if (selected) item.accent else Color(0xFF48484A), CircleShape))
+                    Box(Modifier.size(7.dp).background(if (selected) item.accent else IosSettingsColors.tertiaryLabel, CircleShape))
                 }
             }
 
@@ -168,28 +169,28 @@ fun ToolboxScreen(onBack: () -> Unit) {
                 AnimatedContent(targetState = selectedItem.id, transitionSpec = {
                     (fadeIn(tween(180)) + scaleIn(tween(180), initialScale = .985f)) togetherWith fadeOut(tween(120))
                 }, label = "toolboxDetail") {
-                    Column(Modifier.fillMaxWidth().clip(RoundedCornerShape(25.dp)).background(Color(0xFF1C1C1E)).border(1.dp, selectedItem.accent.copy(alpha = .25f), RoundedCornerShape(25.dp)).padding(18.dp)) {
+                    Column(Modifier.fillMaxWidth().clip(RoundedCornerShape(25.dp)).background(IosSettingsColors.cell).border(1.dp, selectedItem.accent.copy(alpha = .25f), RoundedCornerShape(25.dp)).padding(18.dp)) {
                         Row(verticalAlignment = Alignment.CenterVertically) {
                             Box(Modifier.size(44.dp).background(selectedItem.accent.copy(alpha = .12f), CircleShape), contentAlignment = Alignment.Center) {
                                 Icon(selectedItem.icon, null, tint = selectedItem.accent, modifier = Modifier.size(22.dp))
                             }
                             Spacer(Modifier.width(12.dp))
                             Column(Modifier.weight(1f)) {
-                                Text(selectedItem.title, color = Color.White, fontSize = 17.sp, fontWeight = FontWeight.SemiBold)
-                                Text("Herramienta temporal", color = Color(0xFF8E8E93), fontSize = 12.sp)
+                                Text(selectedItem.title, color = IosSettingsColors.label, fontSize = 17.sp, fontWeight = FontWeight.SemiBold)
+                                Text("Herramienta temporal", color = IosSettingsColors.secondaryLabel, fontSize = 12.sp)
                             }
-                            Text("PREVIEW", color = Color(0xFF8E8E93), fontSize = 9.sp, fontWeight = FontWeight.Bold)
+                            Text("PREVIEW", color = IosSettingsColors.secondaryLabel, fontSize = 9.sp, fontWeight = FontWeight.Bold)
                         }
                         Spacer(Modifier.height(16.dp))
-                        Text("Duración", color = Color.White, fontSize = 16.sp, fontWeight = FontWeight.SemiBold)
+                        Text("Duración", color = IosSettingsColors.label, fontSize = 16.sp, fontWeight = FontWeight.SemiBold)
                         Spacer(Modifier.height(9.dp))
-                        Row(Modifier.fillMaxWidth().clip(RoundedCornerShape(14.dp)).background(Color(0xFF2C2C2E)).padding(3.dp), horizontalArrangement = Arrangement.spacedBy(3.dp)) {
+                        Row(Modifier.fillMaxWidth().clip(RoundedCornerShape(14.dp)).background(IosSettingsColors.cellElevated).padding(3.dp), horizontalArrangement = Arrangement.spacedBy(3.dp)) {
                             durations.forEach { duration ->
                                 val selected = selectedDuration == duration
                                 Box(Modifier.weight(1f).clip(RoundedCornerShape(11.dp)).background(if (selected) selectedItem.accent else Color.Transparent).clickable { selectedDuration = duration }.padding(vertical = 10.dp), contentAlignment = Alignment.Center) {
                                     Column(horizontalAlignment = Alignment.CenterHorizontally) {
-                                        Text("${duration.first} días", color = if (selected) Color.White else IosSettingsColors.secondaryLabel, fontSize = 13.sp, fontWeight = FontWeight.SemiBold)
-                                        Text("${duration.second} monedas", color = if (selected) Color.White else Color(0xFF8E8E93), fontSize = 10.sp)
+                                        Text("${duration.first} días", color = if (selected) IosSettingsColors.label else IosSettingsColors.secondaryLabel, fontSize = 13.sp, fontWeight = FontWeight.SemiBold)
+                                        Text("${duration.second} monedas", color = if (selected) IosSettingsColors.label else IosSettingsColors.secondaryLabel, fontSize = 10.sp)
                                     }
                                 }
                             }
@@ -197,15 +198,15 @@ fun ToolboxScreen(onBack: () -> Unit) {
                         Spacer(Modifier.height(15.dp))
                         Row(verticalAlignment = Alignment.CenterVertically) {
                             Column(Modifier.weight(1f)) {
-                                Text("Precio seleccionado", color = Color(0xFF8E8E93), fontSize = 11.sp)
+                                Text("Precio seleccionado", color = IosSettingsColors.secondaryLabel, fontSize = 11.sp)
                                 Text("${selectedDuration.second} monedas", color = IosSettingsColors.yellow, fontSize = 21.sp, fontWeight = FontWeight.Bold)
                             }
-                            Box(Modifier.clip(RoundedCornerShape(14.dp)).background(Color(0xFF0A84FF)).padding(horizontal = 17.dp, vertical = 11.dp)) {
-                                Text("Vista previa", color = Color.White, fontSize = 13.sp, fontWeight = FontWeight.SemiBold)
+                            Box(Modifier.clip(RoundedCornerShape(14.dp)).background(IosSettingsColors.blue).padding(horizontal = 17.dp, vertical = 11.dp)) {
+                                Text("Vista previa", color = IosSettingsColors.label, fontSize = 13.sp, fontWeight = FontWeight.SemiBold)
                             }
                         }
                         Spacer(Modifier.height(9.dp))
-                        Text("Maqueta visual · las compras y activaciones se conectarán en una fase posterior.", color = Color(0xFF636366), fontSize = 10.sp, lineHeight = 14.sp)
+                        Text("Maqueta visual · las compras y activaciones se conectarán en una fase posterior.", color = IosSettingsColors.tertiaryLabel, fontSize = 10.sp, lineHeight = 14.sp)
                     }
                 }
             }

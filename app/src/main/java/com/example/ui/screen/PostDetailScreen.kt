@@ -19,9 +19,9 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material.icons.filled.ArrowDownward
 import androidx.compose.material.icons.filled.Close
-import androidx.compose.material.icons.filled.Send
-import androidx.compose.material.icons.filled.VolumeMute
-import androidx.compose.material.icons.filled.VolumeUp
+import androidx.compose.material.icons.automirrored.filled.Send
+import androidx.compose.material.icons.automirrored.filled.VolumeMute
+import androidx.compose.material.icons.automirrored.filled.VolumeUp
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
@@ -75,7 +75,7 @@ fun PostDetailScreen(
 
     Scaffold(
         modifier = modifier.fillMaxSize(),
-        containerColor = Color(0xFF0E1621), // Telegram Deep Chat Dark
+        containerColor = IosSettingsColors.groupBackground,
         topBar = {
             TopAppBar(
                 title = {
@@ -198,7 +198,7 @@ fun PostDetailScreen(
                                     )
                                 } else {
                                     Icon(
-                                        imageVector = Icons.Default.Send,
+                                        imageVector = Icons.AutoMirrored.Filled.Send,
                                         contentDescription = "Enviar",
                                         tint = if (commentText.isNotBlank()) Color.Black else Color.Gray,
                                         modifier = Modifier.size(18.dp)
@@ -478,7 +478,7 @@ fun PostDetailScreen(
                         modifier = Modifier.background(Color.Black.copy(alpha = 0.5f), CircleShape)
                     ) {
                         Icon(
-                            imageVector = if (backgroundAudioMuted) Icons.Default.VolumeMute else Icons.Default.VolumeUp,
+                            imageVector = if (backgroundAudioMuted) Icons.AutoMirrored.Filled.VolumeMute else Icons.AutoMirrored.Filled.VolumeUp,
                             contentDescription = if (backgroundAudioMuted) "Activar audio" else "Silenciar audio",
                             tint = IosSettingsColors.label,
                             modifier = Modifier.size(20.dp)

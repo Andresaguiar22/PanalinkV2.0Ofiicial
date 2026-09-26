@@ -39,7 +39,7 @@ fun ContactRequestPreviewDialog(
 ) {
     AlertDialog(
         onDismissRequest = onDismiss,
-        containerColor = Color(0xFF0F1419),
+        containerColor = IosSettingsColors.groupBackground,
         title = {
             Text("¿Quieres agregar a este contacto?", color = IosSettingsColors.label)
         },

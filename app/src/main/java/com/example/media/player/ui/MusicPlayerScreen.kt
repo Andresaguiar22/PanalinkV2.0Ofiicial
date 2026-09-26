@@ -16,6 +16,7 @@ import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.*
 import androidx.compose.material.icons.rounded.*
+import androidx.compose.material.icons.automirrored.rounded.QueueMusic
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
@@ -319,7 +320,7 @@ fun MusicPlayerScreen(
                     }
 
                     IconButton(onClick = { showQueue = true }) {
-                        Icon(Icons.Rounded.QueueMusic, contentDescription = "Cola", tint = IosSettingsColors.label.copy(alpha = 0.8f))
+                        Icon(Icons.AutoMirrored.Rounded.QueueMusic, contentDescription = "Cola", tint = IosSettingsColors.label.copy(alpha = 0.8f))
                     }
                 }
 
@@ -331,8 +332,8 @@ fun MusicPlayerScreen(
     if (showQueue) {
         ModalBottomSheet(
             onDismissRequest = { showQueue = false },
-            containerColor = Color(0xFF1C1C1E),
-            dragHandle = { BottomSheetDefaults.DragHandle(color = Color.White.copy(alpha = 0.35f)) }
+            containerColor = IosSettingsColors.cell,
+            dragHandle = { BottomSheetDefaults.DragHandle(color = IosSettingsColors.label.copy(alpha = 0.35f)) }
         ) {
             PlayerQueueSheet(
                 queue = state.queue,

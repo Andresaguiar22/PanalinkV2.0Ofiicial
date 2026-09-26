@@ -14,6 +14,9 @@ import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.*
+import androidx.compose.material.icons.automirrored.filled.ArrowBack
+import androidx.compose.material.icons.automirrored.filled.Undo
+import androidx.compose.material.icons.automirrored.filled.Redo
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
@@ -98,7 +101,7 @@ fun PostStudioScreen(
     val selectedLayer = currentPage.layers.firstOrNull { it.id == uiState.selectedLayerId }
 
     Scaffold(
-        containerColor = Color(0xFF030712),
+        containerColor = IosSettingsColors.groupBackground,
         topBar = {
             TopAppBar(
                 title = {
@@ -127,7 +130,7 @@ fun PostStudioScreen(
                 },
                 navigationIcon = {
                     IconButton(onClick = onDismiss) {
-                        Icon(Icons.Default.ArrowBack, contentDescription = "Regresar", tint = IosSettingsColors.label)
+                        Icon(Icons.AutoMirrored.Filled.ArrowBack, contentDescription = "Regresar", tint = IosSettingsColors.label)
                     }
                 },
                 actions = {
@@ -136,7 +139,7 @@ fun PostStudioScreen(
                         enabled = viewModel.canUndo()
                     ) {
                         Icon(
-                            Icons.Default.Undo,
+                            Icons.AutoMirrored.Filled.Undo,
                             contentDescription = "Deshacer",
                             tint = if (viewModel.canUndo()) Color.White else Color.DarkGray
                         )
@@ -146,7 +149,7 @@ fun PostStudioScreen(
                         enabled = viewModel.canRedo()
                     ) {
                         Icon(
-                            Icons.Default.Redo,
+                            Icons.AutoMirrored.Filled.Redo,
                             contentDescription = "Rehacer",
                             tint = if (viewModel.canRedo()) Color.White else Color.DarkGray
                         )
@@ -171,7 +174,7 @@ fun PostStudioScreen(
             )
         },
         bottomBar = {
-            Column(modifier = Modifier.background(Color(0xFF090D16))) {
+            Column(modifier = Modifier.background(IosSettingsColors.groupBackground)) {
                 // Carousel Page Navigator
                 PostCarouselNavigator(
                     pages = pages,
@@ -206,7 +209,7 @@ fun PostStudioScreen(
             modifier = Modifier
                 .fillMaxSize()
                 .padding(innerPadding)
-                .background(Color(0xFF030712)),
+                .background(IosSettingsColors.groupBackground),
             contentAlignment = Alignment.Center
         ) {
             // Main Canvas

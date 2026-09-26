@@ -10,6 +10,7 @@ import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.*
+import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
@@ -107,7 +108,7 @@ fun MusicHomeScreen(
                     },
                     navigationIcon = {
                         IconButton(onClick = onBackClick) {
-                            Icon(Icons.Default.ArrowBack, contentDescription = "Atrás", tint = IosSettingsColors.label)
+                            Icon(Icons.AutoMirrored.Filled.ArrowBack, contentDescription = "Atrás", tint = IosSettingsColors.label)
                         }
                     },
                     actions = {
@@ -129,7 +130,7 @@ fun MusicHomeScreen(
                             Icon(Icons.Default.AddCircleOutline, contentDescription = "Nueva Playlist", tint = IosSettingsColors.blue)
                         }
                     },
-                    colors = TopAppBarDefaults.topAppBarColors(containerColor = Color.Black.copy(alpha = 0.92f))
+                    colors = TopAppBarDefaults.topAppBarColors(containerColor = IosSettingsColors.groupBackground.copy(alpha = 0.92f))
                 )
                 
                 // Professional Search Bar
@@ -143,7 +144,7 @@ fun MusicHomeScreen(
                     leadingIcon = { Icon(Icons.Default.Search, contentDescription = null, tint = Color.Gray) },
                     shape = RoundedCornerShape(14.dp),
                     colors = OutlinedTextFieldDefaults.colors(
-                        focusedContainerColor = Color(0xFF1C1C1E),
+                        focusedContainerColor = IosSettingsColors.cellElevated,
                         unfocusedContainerColor = IosSettingsColors.cell,
                         focusedBorderColor = IosSettingsColors.blue,
                         unfocusedBorderColor = Color.Transparent,
@@ -458,7 +459,7 @@ fun PlaylistCard(playlist: PlaylistEntity, onClick: () -> Unit) {
     ) {
         Column(modifier = Modifier.padding(10.dp)) {
             Box(
-                modifier = Modifier.size(120.dp).clip(RoundedCornerShape(8.dp)).background(Color(0xFF2C2C2E))
+                modifier = Modifier.size(120.dp).clip(RoundedCornerShape(8.dp)).background(IosSettingsColors.cellElevated)
             ) {
                 if (!playlist.coverPath.isNullOrEmpty()) {
                     AsyncImage(model = playlist.coverPath, contentDescription = null, contentScale = ContentScale.Crop, modifier = Modifier.fillMaxSize())

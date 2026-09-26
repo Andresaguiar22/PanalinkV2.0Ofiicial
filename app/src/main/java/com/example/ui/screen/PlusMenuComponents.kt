@@ -106,8 +106,8 @@ fun PlusOptionCard(
             .height(72.dp)
             .clickable { onClick() },
         shape = RoundedCornerShape(12.dp),
-        colors = CardDefaults.cardColors(containerColor = Color(0xFF1C1C1E)),
-        border = BorderStroke(1.dp, Color(0xFF262629))
+        colors = CardDefaults.cardColors(containerColor = IosSettingsColors.cell),
+        border = BorderStroke(1.dp, IosSettingsColors.separator)
     ) {
         Row(
             modifier = Modifier
@@ -142,7 +142,7 @@ fun DisabledPlusOptionBadge(
         modifier = modifier
             .height(36.dp)
             .background(IosSettingsColors.cell, RoundedCornerShape(10.dp))
-            .border(1.dp, Color(0xFF262629), RoundedCornerShape(10.dp)),
+            .border(1.dp, IosSettingsColors.separator, RoundedCornerShape(10.dp)),
         contentAlignment = Alignment.Center
     ) {
         Column(horizontalAlignment = Alignment.CenterHorizontally, verticalArrangement = Arrangement.Center) {

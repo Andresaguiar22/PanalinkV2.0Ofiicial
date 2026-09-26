@@ -74,7 +74,7 @@ fun CreatePostBottomSheet(
 
     ModalBottomSheet(
         onDismissRequest = onDismiss,
-        containerColor = Color(0xFF020617),
+        containerColor = IosSettingsColors.groupBackground,
         dragHandle = { BottomSheetDefaults.DragHandle(color = Color.Gray) },
         shape = RoundedCornerShape(topStart = 32.dp, topEnd = 32.dp),
         modifier = Modifier.imePadding()
@@ -244,7 +244,7 @@ fun CreatePostBottomSheet(
                                 Box(
                                     modifier = Modifier
                                         .fillMaxSize()
-                                        .background(Color(0xFF262629)),
+                                        .background(IosSettingsColors.cellElevated),
                                     contentAlignment = Alignment.Center
                                 ) {
                                     Icon(Icons.Default.Mic, contentDescription = "Audio", tint = IosSettingsColors.blue, modifier = Modifier.size(32.dp))
@@ -303,7 +303,7 @@ fun CreatePostBottomSheet(
             uiState.preview?.let { preview ->
                 Card(
                     modifier = Modifier.fillMaxWidth().padding(bottom = 12.dp),
-                    colors = CardDefaults.cardColors(containerColor = Color.White.copy(alpha = 0.05f)),
+                    colors = CardDefaults.cardColors(containerColor = IosSettingsColors.cell),
                     shape = RoundedCornerShape(12.dp)
                 ) {
                     Row(modifier = Modifier.padding(8.dp), verticalAlignment = Alignment.CenterVertically) {
