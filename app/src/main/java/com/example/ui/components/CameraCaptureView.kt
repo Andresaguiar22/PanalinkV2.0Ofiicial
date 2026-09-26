@@ -30,7 +30,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalContext
-import androidx.compose.ui.platform.LocalLifecycleOwner
+import androidx.lifecycle.compose.LocalLifecycleOwner
 import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
@@ -108,7 +108,7 @@ fun CameraCaptureView(
                 Icon(
                     imageVector = Icons.Default.PhotoCamera,
                     contentDescription = null,
-                    tint = Color.Gray,
+                    tint = IosSettingsColors.secondaryLabel,
                     modifier = Modifier.size(64.dp)
                 )
                 Spacer(modifier = Modifier.height(16.dp))
@@ -131,7 +131,7 @@ fun CameraCaptureView(
                     onClick = { launcher.launch(requiredPermissions.toTypedArray()) },
                     colors = ButtonDefaults.buttonColors(containerColor = IosSettingsColors.green)
                 ) {
-                    Text("Conceder Permisos 📸", color = Color.Black, fontWeight = FontWeight.Bold)
+                    Text("Conceder Permisos 📸", color = IosSettingsColors.onAccent, fontWeight = FontWeight.Bold)
                 }
                 Spacer(modifier = Modifier.height(16.dp))
                 TextButton(onClick = onDismiss) {
@@ -336,7 +336,7 @@ fun CameraPreviewAndControls(
                         onClick = { showEffectsMenu = !showEffectsMenu },
                         modifier = Modifier.background(Color.Black.copy(alpha = 0.5f), CircleShape)
                     ) {
-                        Icon(Icons.Default.FaceRetouchingNatural, contentDescription = "Efectos", tint = if (selectedEffect != "Ninguno") IosSettingsColors.blue else Color.White)
+                        Icon(Icons.Default.FaceRetouchingNatural, contentDescription = "Efectos", tint = if (selectedEffect != "Ninguno") IosSettingsColors.blue else IosSettingsColors.label)
                     }
                     Text("Efectos", color = IosSettingsColors.label, fontSize = 10.sp, fontWeight = FontWeight.Bold)
                 }
@@ -347,7 +347,7 @@ fun CameraPreviewAndControls(
                         onClick = { showMusicMenu = !showMusicMenu },
                         modifier = Modifier.background(Color.Black.copy(alpha = 0.5f), CircleShape)
                     ) {
-                        Icon(Icons.Default.MusicNote, contentDescription = "Música", tint = if (selectedMusic != null && selectedMusic != "Sin Música") IosSettingsColors.green else Color.White)
+                        Icon(Icons.Default.MusicNote, contentDescription = "Música", tint = if (selectedMusic != null && selectedMusic != "Sin Música") IosSettingsColors.green else IosSettingsColors.label)
                     }
                     Text("Música", color = IosSettingsColors.label, fontSize = 10.sp, fontWeight = FontWeight.Bold)
                 }
@@ -361,7 +361,7 @@ fun CameraPreviewAndControls(
                         },
                         modifier = Modifier.background(Color.Black.copy(alpha = 0.5f), CircleShape)
                     ) {
-                        Text("${selectedSpeed}x", color = if (selectedSpeed != 1.0f) IosSettingsColors.yellow else Color.White, fontSize = 12.sp, fontWeight = FontWeight.Bold)
+                        Text("${selectedSpeed}x", color = if (selectedSpeed != 1.0f) IosSettingsColors.yellow else IosSettingsColors.label, fontSize = 12.sp, fontWeight = FontWeight.Bold)
                     }
                     Text("Velocidad", color = IosSettingsColors.label, fontSize = 10.sp, fontWeight = FontWeight.Bold)
                 }
@@ -422,7 +422,7 @@ fun CameraPreviewAndControls(
                                     .clickable { selectedMusic = track }
                                     .padding(horizontal = 16.dp, vertical = 8.dp)
                             ) {
-                                Text(track, color = if (active) Color.Black else Color.White, fontSize = 12.sp, fontWeight = FontWeight.Bold)
+                                Text(track, color = if (active) IosSettingsColors.onAccent else IosSettingsColors.label, fontSize = 12.sp, fontWeight = FontWeight.Bold)
                             }
                         }
                     }

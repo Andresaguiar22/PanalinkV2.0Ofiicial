@@ -146,7 +146,7 @@ fun ChatComposer(
             )
             .border(
                 width = 0.5.dp,
-                color = androidx.compose.ui.graphics.Color.White.copy(alpha = 0.10f)
+                color = IosSettingsColors.separator
             )
     ) {
         // Acción 7: Slide-to-delete DENTRO de la píldora. Al deslizar el mic
@@ -312,7 +312,7 @@ fun ChatComposer(
                                 .testTag("chat_input_field")
                                 .focusRequester(inputFocusRequester)
                                 .padding(vertical = 12.dp, horizontal = 4.dp),
-                            textStyle = TextStyle(color = androidx.compose.ui.graphics.Color.White, fontSize = 16.sp),
+                            textStyle = TextStyle(color = IosSettingsColors.label, fontSize = 16.sp),
                             cursorBrush = SolidColor(primaryColor),
                             decorationBox = { innerTextField ->
                                 Box(
@@ -374,7 +374,7 @@ fun ChatComposer(
                         Icon(
                             imageVector = Icons.AutoMirrored.Filled.Send,
                             contentDescription = "Enviar mensaje",
-                            tint = androidx.compose.ui.graphics.Color.White,
+                            tint = IosSettingsColors.label,
                             modifier = Modifier.size(22.dp)
                         )
                     }
@@ -409,7 +409,7 @@ fun ChatComposer(
                         )
                         .border(
                             width = if (recordState == RecordState.RECORDING || recordState == RecordState.LOCKED_RECORDING) 2.dp else 0.dp,
-                            color = androidx.compose.ui.graphics.Color.White.copy(alpha = 0.2f),
+                            color = IosSettingsColors.separator,
                             shape = CircleShape
                         )
                         .voiceGestureDetector(
@@ -516,7 +516,7 @@ fun ChatComposer(
 
                     Text(
                         text = String.format("%02d:%02d", recordDurationSeconds / 60, recordDurationSeconds % 60),
-                        color = androidx.compose.ui.graphics.Color.White,
+                        color = IosSettingsColors.label,
                         fontSize = 14.sp,
                         fontWeight = FontWeight.Bold
                     )
@@ -549,7 +549,7 @@ fun ChatComposer(
                         Icon(
                             imageVector = Icons.AutoMirrored.Filled.Send,
                             contentDescription = "Enviar grabación",
-                            tint = androidx.compose.ui.graphics.Color.White,
+                            tint = IosSettingsColors.label,
                             modifier = Modifier.size(20.dp)
                         )
                     }
@@ -618,7 +618,7 @@ fun ChatComposer(
                         Icon(
                             imageVector = if (previewPlayerState.isPlaying) Icons.Default.Pause else Icons.Default.PlayArrow,
                             contentDescription = "Reproducir / Pausar",
-                            tint = androidx.compose.ui.graphics.Color.White,
+                            tint = IosSettingsColors.label,
                             modifier = Modifier.size(22.dp)
                         )
                     }
@@ -643,7 +643,7 @@ fun ChatComposer(
                             }
                             Text(
                                 text = String.format("%02d:%02d", currentSecs / 60, currentSecs % 60),
-                                color = androidx.compose.ui.graphics.Color.White,
+                                color = IosSettingsColors.label,
                                 fontSize = 11.sp,
                                 fontWeight = FontWeight.Bold
                             )
@@ -717,14 +717,14 @@ fun ChatComposer(
                     if (isSending) {
                         CircularProgressIndicator(
                             modifier = Modifier.size(20.dp),
-                            color = androidx.compose.ui.graphics.Color.White,
+                            color = IosSettingsColors.label,
                             strokeWidth = 2.dp
                         )
                     } else {
                         Icon(
                             imageVector = Icons.AutoMirrored.Filled.Send,
                             contentDescription = "Enviar Nota",
-                            tint = androidx.compose.ui.graphics.Color.White,
+                            tint = IosSettingsColors.label,
                             modifier = Modifier.size(22.dp)
                         )
                     }
@@ -759,7 +759,7 @@ fun ChatComposer(
                     Spacer(modifier = Modifier.width(10.dp))
                     Text(
                         text = "Enviando nota...",
-                        color = androidx.compose.ui.graphics.Color.White,
+                        color = IosSettingsColors.label,
                         fontSize = 14.sp,
                         fontWeight = FontWeight.Medium
                     )

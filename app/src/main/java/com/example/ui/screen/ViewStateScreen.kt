@@ -989,7 +989,7 @@ var showGifPicker by remember { mutableStateOf(false) }
                                 colors = ButtonDefaults.buttonColors(containerColor = IosSettingsColors.green),
                                 modifier = Modifier.align(Alignment.BottomCenter).padding(bottom = 24.dp)
                             ) {
-                                Text("Reintentar", color = Color.Black)
+                                Text("Reintentar", color = IosSettingsColors.onAccent)
                             }
                         }
                     } else {
@@ -1147,7 +1147,7 @@ var showGifPicker by remember { mutableStateOf(false) }
                             .fillMaxSize()
                             .background(
                                 Brush.radialGradient(
-                                    colors = listOf(Color(0xFFEC407A).copy(alpha = 0.35f), IosSettingsColors.blue.copy(alpha = 0.20f), Color.Transparent)
+                                    colors = listOf(IosSettingsColors.pink.copy(alpha = 0.35f), IosSettingsColors.blue.copy(alpha = 0.20f), Color.Transparent)
                                 )
                             )
                     )
@@ -1580,7 +1580,7 @@ var showGifPicker by remember { mutableStateOf(false) }
                         badge = {
                             if (commentsList.isNotEmpty()) {
                                 Badge(containerColor = IosSettingsColors.green) {
-                                    Text("${commentsList.size}", color = Color.Black, fontSize = 9.sp)
+                                    Text("${commentsList.size}", color = IosSettingsColors.onAccent, fontSize = 9.sp)
                                 }
                             }
                         }
@@ -1744,7 +1744,7 @@ var showGifPicker by remember { mutableStateOf(false) }
                         .background(IosSettingsColors.green, RoundedCornerShape(20.dp))
                         .padding(horizontal = 18.dp, vertical = 10.dp)
                 ) {
-                    Text(msg, color = Color.Black, fontWeight = FontWeight.Bold, fontSize = 13.sp)
+                    Text(msg, color = IosSettingsColors.onAccent, fontWeight = FontWeight.Bold, fontSize = 13.sp)
                 }
             }
             LaunchedEffect(msg) {
@@ -1771,7 +1771,7 @@ var showGifPicker by remember { mutableStateOf(false) }
                         .fillMaxHeight(0.85f) // Full standard bottom sheet height
                         .align(Alignment.BottomCenter)
                         .clip(RoundedCornerShape(topStart = 24.dp, topEnd = 24.dp))
-                        .background(Color(0xFF151821))
+                        .background(IosSettingsColors.cell)
                         .border(1.dp, Color.White.copy(alpha = 0.08f), RoundedCornerShape(topStart = 24.dp, topEnd = 24.dp))
                         .clickable(enabled = false) {}
                         .imePadding()
@@ -2022,7 +2022,7 @@ if (showGifPicker) {
                         .fillMaxHeight(0.60f)
                         .align(Alignment.BottomCenter)
                         .clip(RoundedCornerShape(topStart = 24.dp, topEnd = 24.dp))
-                        .background(Color(0xFF151821))
+                        .background(IosSettingsColors.cell)
                         .border(1.dp, Color.White.copy(alpha = 0.08f), RoundedCornerShape(topStart = 24.dp, topEnd = 24.dp))
                         .clickable(enabled = false) {}
                         .padding(bottom = WindowInsets.navigationBars.asPaddingValues().calculateBottomPadding())
@@ -2448,7 +2448,7 @@ fun VideoPlayer(
                         Toast.makeText(ctx, "No hay conexión a Internet", Toast.LENGTH_SHORT).show()
                     }
                 }, colors = ButtonDefaults.buttonColors(containerColor = IosSettingsColors.green)) {
-                    Text("Reintentar", color = Color.Black)
+                    Text("Reintentar", color = IosSettingsColors.onAccent)
                 }
             }
         }

@@ -297,12 +297,12 @@ fun FeedPostCard(
                         }
                     }
                     Row(verticalAlignment = Alignment.CenterVertically) {
-                        Text(text = timeStr, color = Color.Gray, fontSize = 12.sp)
-                        Text(text = "  ·  ", color = Color.Gray, fontSize = 12.sp)
+                        Text(text = timeStr, color = IosSettingsColors.secondaryLabel, fontSize = 12.sp)
+                        Text(text = "  ·  ", color = IosSettingsColors.secondaryLabel, fontSize = 12.sp)
                         Icon(
                             imageVector = Icons.Default.Public,
                             contentDescription = "Público",
-                            tint = Color.Gray,
+                            tint = IosSettingsColors.secondaryLabel,
                             modifier = Modifier.size(12.dp)
                         )
                     }
@@ -310,7 +310,7 @@ fun FeedPostCard(
 
                 Box {
                     IconButton(onClick = { showMenu = true }, modifier = Modifier.size(36.dp)) {
-                        Icon(Icons.Default.MoreVert, contentDescription = "Opciones", tint = Color.Gray)
+                        Icon(Icons.Default.MoreVert, contentDescription = "Opciones", tint = IosSettingsColors.secondaryLabel)
                     }
                     DropdownMenu(
                         expanded = showMenu,
@@ -336,8 +336,8 @@ fun FeedPostCard(
                             )
                         } else {
                             DropdownMenuItem(
-                                text = { Text("Reportar", color = Color.Gray) },
-                                leadingIcon = { Icon(Icons.Default.Report, contentDescription = null, tint = Color.Gray) },
+                                text = { Text("Reportar", color = IosSettingsColors.secondaryLabel) },
+                                leadingIcon = { Icon(Icons.Default.Report, contentDescription = null, tint = IosSettingsColors.secondaryLabel) },
                                 onClick = {
                                     showMenu = false
                                     Toast.makeText(context, "Publicación reportada", Toast.LENGTH_SHORT).show()
@@ -647,7 +647,7 @@ fun FeedPostCard(
                             modifier = Modifier.size(14.dp)
                         )
                         Spacer(modifier = Modifier.width(4.dp))
-                        Text(text = "${post.likesCount}", color = Color.Gray, fontSize = 13.sp)
+                        Text(text = "${post.likesCount}", color = IosSettingsColors.secondaryLabel, fontSize = 13.sp)
                     }
                     Spacer(modifier = Modifier.weight(1f))
                     val tail = buildString {
@@ -657,7 +657,7 @@ fun FeedPostCard(
                         append(parts.joinToString("  ·  "))
                     }
                     if (tail.isNotEmpty()) {
-                        Text(text = tail, color = Color.Gray, fontSize = 13.sp, modifier = Modifier.clickable { onCommentClick() })
+                        Text(text = tail, color = IosSettingsColors.secondaryLabel, fontSize = 13.sp, modifier = Modifier.clickable { onCommentClick() })
                     }
                 }
                 HorizontalDivider(color = IosSettingsColors.label.copy(alpha = 0.06f), thickness = 0.5.dp, modifier = Modifier.padding(horizontal = 12.dp))
@@ -679,7 +679,7 @@ fun FeedPostCard(
                 ) {
                     Icon(
                         imageVector = if (postIsLiked) Icons.Default.ThumbUp else Icons.Outlined.ThumbUp,
-                        tint = if (postIsLiked) IosSettingsColors.blue else Color.Gray,
+                        tint = if (postIsLiked) IosSettingsColors.blue else IosSettingsColors.secondaryLabel,
                         contentDescription = "Me gusta",
                         modifier = Modifier
                             .size(20.dp)
@@ -688,7 +688,7 @@ fun FeedPostCard(
                     Spacer(modifier = Modifier.width(6.dp))
                     Text(
                         text = "Me gusta",
-                        color = if (postIsLiked) IosSettingsColors.blue else Color.Gray,
+                        color = if (postIsLiked) IosSettingsColors.blue else IosSettingsColors.secondaryLabel,
                         fontSize = 13.sp,
                         fontWeight = FontWeight.SemiBold
                     )
@@ -709,14 +709,14 @@ fun FeedPostCard(
                 ) {
                     Icon(
                         imageVector = Icons.Outlined.ChatBubbleOutline,
-                        tint = Color.Gray,
+                        tint = IosSettingsColors.secondaryLabel,
                         contentDescription = "Comentar",
                         modifier = Modifier.size(20.dp)
                     )
                     Spacer(modifier = Modifier.width(6.dp))
                     Text(
                         text = "Comentar",
-                        color = Color.Gray,
+                        color = IosSettingsColors.secondaryLabel,
                         fontSize = 13.sp,
                         fontWeight = FontWeight.SemiBold
                     )
@@ -745,14 +745,14 @@ fun FeedPostCard(
                 ) {
                     Icon(
                         imageVector = Icons.Outlined.Share,
-                        tint = Color.Gray,
+                        tint = IosSettingsColors.secondaryLabel,
                         contentDescription = "Compartir",
                         modifier = Modifier.size(20.dp)
                     )
                     Spacer(modifier = Modifier.width(6.dp))
                     Text(
                         text = "Compartir",
-                        color = Color.Gray,
+                        color = IosSettingsColors.secondaryLabel,
                         fontSize = 13.sp,
                         fontWeight = FontWeight.SemiBold
                     )

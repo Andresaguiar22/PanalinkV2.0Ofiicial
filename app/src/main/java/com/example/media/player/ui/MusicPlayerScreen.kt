@@ -120,7 +120,7 @@ fun MusicPlayerScreen(
                         Icon(
                             Icons.Rounded.Bedtime,
                             contentDescription = "Temporizador",
-                            tint = if (sleepTimerMs != null) IosSettingsColors.blue else Color.White
+                            tint = if (sleepTimerMs != null) IosSettingsColors.blue else IosSettingsColors.label
                         )
                     }
                 },
@@ -296,7 +296,7 @@ fun MusicPlayerScreen(
                         Icon(
                             if (track?.isFavorite == true) Icons.Default.Favorite else Icons.Default.FavoriteBorder,
                             contentDescription = "Favorito",
-                            tint = if (track?.isFavorite == true) IosSettingsColors.pink else Color.White.copy(alpha = 0.8f)
+                            tint = if (track?.isFavorite == true) IosSettingsColors.pink else IosSettingsColors.label.copy(alpha = 0.8f)
                         )
                     }
 
@@ -304,7 +304,7 @@ fun MusicPlayerScreen(
                         Icon(
                             Icons.Rounded.Equalizer,
                             contentDescription = "Ecualizador",
-                            tint = if (eqPreset != "Normal") IosSettingsColors.blue else Color.White.copy(alpha = 0.8f)
+                            tint = if (eqPreset != "Normal") IosSettingsColors.blue else IosSettingsColors.label.copy(alpha = 0.8f)
                         )
                     }
 
@@ -314,7 +314,7 @@ fun MusicPlayerScreen(
                     }) {
                         Text(
                             "${state.playbackSpeed}x",
-                            color = if (state.playbackSpeed != 1f) IosSettingsColors.blue else Color.White.copy(alpha = 0.8f),
+                            color = if (state.playbackSpeed != 1f) IosSettingsColors.blue else IosSettingsColors.label.copy(alpha = 0.8f),
                             fontWeight = FontWeight.Bold
                         )
                     }
@@ -353,7 +353,7 @@ fun MusicPlayerScreen(
         ModalBottomSheet(
             onDismissRequest = { showEqSheet = false },
             containerColor = IosSettingsColors.groupBackground,
-            dragHandle = { BottomSheetDefaults.DragHandle(color = Color.Gray) }
+            dragHandle = { BottomSheetDefaults.DragHandle(color = IosSettingsColors.secondaryLabel) }
         ) {
             EqPresetSheet(
                 currentPreset = eqPreset,
@@ -369,7 +369,7 @@ fun MusicPlayerScreen(
         ModalBottomSheet(
             onDismissRequest = { showSleepSheet = false },
             containerColor = IosSettingsColors.groupBackground,
-            dragHandle = { BottomSheetDefaults.DragHandle(color = Color.Gray) }
+            dragHandle = { BottomSheetDefaults.DragHandle(color = IosSettingsColors.secondaryLabel) }
         ) {
             SleepTimerSheet(
                 isActive = sleepTimerMs != null,
@@ -403,7 +403,7 @@ private fun EqPresetSheet(currentPreset: String, onSelect: (String) -> Unit) {
                     ) {
                         Text(
                             preset,
-                            color = if (selected) Color(0xFF0B0F19) else Color.White,
+                            color = if (selected) IosSettingsColors.groupBackground else IosSettingsColors.label,
                             fontSize = 12.sp,
                             fontWeight = if (selected) FontWeight.Bold else FontWeight.Normal,
                             maxLines = 1,

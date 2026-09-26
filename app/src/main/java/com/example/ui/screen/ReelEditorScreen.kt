@@ -694,12 +694,12 @@ fun ReelEditorScreen(
                             IconButton(
                                 onClick = { showTimeline = !showTimeline },
                                 modifier = Modifier.background(if (showTimeline) IosSettingsColors.blue else Color.Black.copy(alpha = 0.5f), CircleShape)
-                            ) { Icon(Icons.Default.Timeline, contentDescription = "Timeline Multipista", tint = if (showTimeline) Color.Black else Color.White) }
+                            ) { Icon(Icons.Default.Timeline, contentDescription = "Timeline Multipista", tint = if (showTimeline) IosSettingsColors.onAccent else IosSettingsColors.label) }
 
                             IconButton(
                                 onClick = { showInspector = !showInspector },
                                 modifier = Modifier.background(if (showInspector) IosSettingsColors.blue else Color.Black.copy(alpha = 0.5f), CircleShape)
-                            ) { Icon(Icons.Default.Tune, contentDescription = "Inspector de Propiedades", tint = if (showInspector) Color.Black else Color.White) }
+                            ) { Icon(Icons.Default.Tune, contentDescription = "Inspector de Propiedades", tint = if (showInspector) IosSettingsColors.onAccent else IosSettingsColors.label) }
 
                             IconButton(
                                 onClick = { showAudioPro = !showAudioPro; showFilters = false; showTransitions = false },
@@ -723,7 +723,7 @@ fun ReelEditorScreen(
                                 .padding(16.dp),
                             colors = ButtonDefaults.buttonColors(containerColor = IosSettingsColors.blue)
                         ) {
-                            Text("Siguiente 🚀", color = Color.Black, fontWeight = FontWeight.Bold)
+                            Text("Siguiente 🚀", color = IosSettingsColors.onAccent, fontWeight = FontWeight.Bold)
                         }
 
                         // --- Submenus & Overlays ---
@@ -742,7 +742,7 @@ fun ReelEditorScreen(
                                     OutlinedTextField(
                                         value = textInput,
                                         onValueChange = { textInput = it },
-                                        placeholder = { Text("Escribe algo creativo...", color = Color.Gray) },
+                                        placeholder = { Text("Escribe algo creativo...", color = IosSettingsColors.secondaryLabel) },
                                         colors = OutlinedTextFieldDefaults.colors(
                                             focusedTextColor = selectedColor,
                                             unfocusedTextColor = selectedColor,
@@ -764,7 +764,7 @@ fun ReelEditorScreen(
                                         items(fonts) { f ->
                                             OutlinedButton(
                                                 onClick = { tempFont = f },
-                                                border = BorderStroke(1.dp, if(tempFont == f) IosSettingsColors.blue else Color.Gray)
+                                                border = BorderStroke(1.dp, if(tempFont == f) IosSettingsColors.blue else IosSettingsColors.secondaryLabel)
                                             ) { Text(f, color = IosSettingsColors.label) }
                                         }
                                     }
@@ -802,7 +802,7 @@ fun ReelEditorScreen(
                                     },
                                     modifier = Modifier.align(Alignment.TopEnd).padding(16.dp).statusBarsPadding(),
                                     colors = ButtonDefaults.buttonColors(containerColor = IosSettingsColors.blue)
-                                ) { Text("Listo", color = Color.Black) }
+                                ) { Text("Listo", color = IosSettingsColors.onAccent) }
                             }
                         }
 
@@ -932,7 +932,7 @@ fun ReelEditorScreen(
                                     items(transitions) { t ->
                                         Box(
                                             modifier = Modifier.clip(RoundedCornerShape(8.dp)).background(if (selectedTransition == t) IosSettingsColors.blue else IosSettingsColors.groupBackground).clickable { selectedTransition = t }.padding(horizontal = 16.dp, vertical = 8.dp)
-                                        ) { Text(t, color = if(selectedTransition==t) Color.Black else Color.White) }
+                                        ) { Text(t, color = if(selectedTransition==t) IosSettingsColors.onAccent else IosSettingsColors.label) }
                                     }
                                 }
                             }
@@ -947,10 +947,10 @@ fun ReelEditorScreen(
                                 Column(modifier = Modifier.padding(16.dp).navigationBarsPadding()) {
                                     Row(horizontalArrangement = Arrangement.SpaceBetween, modifier = Modifier.fillMaxWidth()) {
                                         Text("Edición de Audio Pro 🎙️", color = IosSettingsColors.label, fontWeight = FontWeight.Bold)
-                                        Icon(Icons.Default.Close, contentDescription = null, tint = Color.Gray, modifier = Modifier.clickable { showAudioPro = false })
+                                        Icon(Icons.Default.Close, contentDescription = null, tint = IosSettingsColors.secondaryLabel, modifier = Modifier.clickable { showAudioPro = false })
                                     }
                                     Spacer(modifier = Modifier.height(16.dp))
-                                    Text("Waveform Musical", color = Color.Gray, fontSize = 12.sp)
+                                    Text("Waveform Musical", color = IosSettingsColors.secondaryLabel, fontSize = 12.sp)
                                     // Interactive Audio Waveform Canvas
                                     Box(modifier = Modifier.fillMaxWidth().height(60.dp).background(IosSettingsColors.groupBackground, RoundedCornerShape(8.dp)).padding(vertical = 8.dp)) {
                                         Canvas(modifier = Modifier.fillMaxSize()) {
@@ -972,7 +972,7 @@ fun ReelEditorScreen(
                                         )
                                     }
                                     Spacer(modifier = Modifier.height(16.dp))
-                                    Text("Mezclador (Mixer)", color = Color.Gray, fontSize = 12.sp)
+                                    Text("Mezclador (Mixer)", color = IosSettingsColors.secondaryLabel, fontSize = 12.sp)
                                     Row(verticalAlignment = Alignment.CenterVertically) {
                                         Icon(Icons.Default.Mic, contentDescription = null, tint = IosSettingsColors.label, modifier = Modifier.size(16.dp))
                                         Slider(value = originalVideoVolume, onValueChange = { originalVideoVolume = it }, valueRange = 0f..100f, modifier = Modifier.weight(1f).padding(horizontal = 8.dp), colors = SliderDefaults.colors(activeTrackColor = Color.White))
@@ -992,11 +992,11 @@ fun ReelEditorScreen(
                                 Column(modifier = Modifier.padding(16.dp).navigationBarsPadding()) {
                                     Row(horizontalArrangement = Arrangement.SpaceBetween, modifier = Modifier.fillMaxWidth()) {
                                         Text("Ajustes Técnicos", color = IosSettingsColors.label, fontWeight = FontWeight.Bold)
-                                        Icon(Icons.Default.Close, contentDescription = null, tint = Color.Gray, modifier = Modifier.clickable { showAdjustments = false })
+                                        Icon(Icons.Default.Close, contentDescription = null, tint = IosSettingsColors.secondaryLabel, modifier = Modifier.clickable { showAdjustments = false })
                                     }
-                                    Text("Brillo", color = Color.Gray, fontSize = 12.sp)
+                                    Text("Brillo", color = IosSettingsColors.secondaryLabel, fontSize = 12.sp)
                                     Slider(value = brightnessValue, onValueChange = { brightnessValue = it }, valueRange = 0.5f..1.5f)
-                                    Text("Contraste", color = Color.Gray, fontSize = 12.sp)
+                                    Text("Contraste", color = IosSettingsColors.secondaryLabel, fontSize = 12.sp)
                                     Slider(value = contrastValue, onValueChange = { contrastValue = it }, valueRange = 0.5f..1.5f)
                                 }
                             }
@@ -1101,7 +1101,7 @@ fun ReelEditorScreen(
                                     Spacer(modifier = Modifier.height(24.dp))
                                     Text("Procesando edición...", color = IosSettingsColors.label, fontWeight = FontWeight.Bold, fontSize = 20.sp)
                                     Spacer(modifier = Modifier.height(8.dp))
-                                    Text("Motor FFmpeg combinando capas, audio y efectos cinemáticos", color = Color.Gray, fontSize = 12.sp, textAlign = TextAlign.Center)
+                                    Text("Motor FFmpeg combinando capas, audio y efectos cinemáticos", color = IosSettingsColors.secondaryLabel, fontSize = 12.sp, textAlign = TextAlign.Center)
                                     Spacer(modifier = Modifier.height(16.dp))
                                     LinearProgressIndicator(progress = { renderProgress }, modifier = Modifier.fillMaxWidth().height(8.dp).clip(RoundedCornerShape(4.dp)), color = IosSettingsColors.blue, trackColor = Color.DarkGray)
                                 }
@@ -1132,7 +1132,7 @@ fun ReelEditorScreen(
                         // Reel Description (Mandatory)
                         Row(verticalAlignment = Alignment.CenterVertically) {
                             Text("Descripción del Reel", color = IosSettingsColors.label, fontWeight = FontWeight.Bold)
-                            Text(" *Obligatorio", color = Color.Red, fontSize = 11.sp, modifier = Modifier.padding(start = 8.dp))
+                            Text(" *Obligatorio", color = IosSettingsColors.red, fontSize = 11.sp, modifier = Modifier.padding(start = 8.dp))
                         }
                         OutlinedTextField(
                             value = reelDescription,
@@ -1140,17 +1140,17 @@ fun ReelEditorScreen(
                             placeholder = { Text("Escribe una descripción premium...") },
                             modifier = Modifier.fillMaxWidth().testTag("reel_description_input"),
                             colors = OutlinedTextFieldDefaults.colors(
-                                focusedTextColor = Color.White,
-                                unfocusedTextColor = Color.White,
+                                focusedTextColor = IosSettingsColors.label,
+                                unfocusedTextColor = IosSettingsColors.label,
                                 focusedBorderColor = IosSettingsColors.blue,
-                                unfocusedBorderColor = Color.Gray
+                                unfocusedBorderColor = IosSettingsColors.separator
                             )
                         )
 
                         // Hashtags input (Mandatory: Min 1)
                         Row(verticalAlignment = Alignment.CenterVertically) {
                             Text("Hashtags", color = IosSettingsColors.label, fontWeight = FontWeight.Bold)
-                            Text(" *Obligatorio (mínimo 1)", color = Color.Red, fontSize = 11.sp, modifier = Modifier.padding(start = 8.dp))
+                            Text(" *Obligatorio (mínimo 1)", color = IosSettingsColors.red, fontSize = 11.sp, modifier = Modifier.padding(start = 8.dp))
                         }
                         OutlinedTextField(
                             value = reelHashtagInput,
@@ -1159,9 +1159,9 @@ fun ReelEditorScreen(
                             modifier = Modifier.fillMaxWidth().testTag("reel_hashtags_input"),
                             colors = OutlinedTextFieldDefaults.colors(
                                 focusedTextColor = IosSettingsColors.pink,
-                                unfocusedTextColor = Color.White,
+                                unfocusedTextColor = IosSettingsColors.label,
                                 focusedBorderColor = IosSettingsColors.pink,
-                                unfocusedBorderColor = Color.Gray
+                                unfocusedBorderColor = IosSettingsColors.separator
                             )
                         )
 
@@ -1175,7 +1175,7 @@ fun ReelEditorScreen(
                                 modifier = Modifier
                                     .weight(1f)
                                     .clickable { isReelSelected = true },
-                                border = BorderStroke(1.dp, if (isReelSelected) IosSettingsColors.blue else Color.Gray.copy(alpha = 0.3f)),
+                                border = BorderStroke(1.dp, if (isReelSelected) IosSettingsColors.blue else IosSettingsColors.separator),
                                 colors = CardDefaults.cardColors(containerColor = if (isReelSelected) IosSettingsColors.blue.copy(alpha = 0.1f) else Color.Transparent)
                             ) {
                                 Column(
@@ -1185,17 +1185,17 @@ fun ReelEditorScreen(
                                     Icon(
                                         imageVector = Icons.Default.PlayCircle,
                                         contentDescription = null,
-                                        tint = if (isReelSelected) IosSettingsColors.blue else Color.Gray
+                                        tint = if (isReelSelected) IosSettingsColors.blue else IosSettingsColors.secondaryLabel
                                     )
-                                    Text("Reel", color = if (isReelSelected) IosSettingsColors.blue else Color.Gray, fontSize = 12.sp, fontWeight = FontWeight.Bold)
-                                    Text("Público y permanente", color = Color.Gray, fontSize = 9.sp)
+                                    Text("Reel", color = if (isReelSelected) IosSettingsColors.blue else IosSettingsColors.secondaryLabel, fontSize = 12.sp, fontWeight = FontWeight.Bold)
+                                    Text("Público y permanente", color = IosSettingsColors.secondaryLabel, fontSize = 9.sp)
                                 }
                             }
                             Card(
                                 modifier = Modifier
                                     .weight(1f)
                                     .clickable { isReelSelected = false },
-                                border = BorderStroke(1.dp, if (!isReelSelected) IosSettingsColors.blue else Color.Gray.copy(alpha = 0.3f)),
+                                border = BorderStroke(1.dp, if (!isReelSelected) IosSettingsColors.blue else IosSettingsColors.separator),
                                 colors = CardDefaults.cardColors(containerColor = if (!isReelSelected) IosSettingsColors.blue.copy(alpha = 0.1f) else Color.Transparent)
                             ) {
                                 Column(
@@ -1205,10 +1205,10 @@ fun ReelEditorScreen(
                                     Icon(
                                         imageVector = Icons.Default.History,
                                         contentDescription = null,
-                                        tint = if (!isReelSelected) IosSettingsColors.blue else Color.Gray
+                                        tint = if (!isReelSelected) IosSettingsColors.blue else IosSettingsColors.secondaryLabel
                                     )
-                                    Text("Historia", color = if (!isReelSelected) IosSettingsColors.blue else Color.Gray, fontSize = 12.sp, fontWeight = FontWeight.Bold)
-                                    Text("Contactos, 24h", color = Color.Gray, fontSize = 9.sp)
+                                    Text("Historia", color = if (!isReelSelected) IosSettingsColors.blue else IosSettingsColors.secondaryLabel, fontSize = 12.sp, fontWeight = FontWeight.Bold)
+                                    Text("Contactos, 24h", color = IosSettingsColors.secondaryLabel, fontSize = 9.sp)
                                 }
                             }
                         }
@@ -1218,7 +1218,7 @@ fun ReelEditorScreen(
                             modifier = Modifier.fillMaxWidth(),
                             shape = RoundedCornerShape(12.dp),
                             colors = CardDefaults.cardColors(containerColor = IosSettingsColors.groupBackground),
-                            border = BorderStroke(1.dp, Color.White.copy(alpha = 0.1f))
+                            border = BorderStroke(1.dp, IosSettingsColors.separator)
                         ) {
                             Row(
                                 modifier = Modifier
@@ -1237,7 +1237,7 @@ fun ReelEditorScreen(
                                 }
                                 Button(
                                     onClick = { showSchedulingSheet = true },
-                                    colors = ButtonDefaults.buttonColors(containerColor = Color.White.copy(alpha = 0.1f)),
+                                    colors = ButtonDefaults.buttonColors(containerColor = IosSettingsColors.separator),
                                     contentPadding = PaddingValues(horizontal = 12.dp, vertical = 6.dp)
                                 ) {
                                     Text(if (scheduledDateTimeString.isEmpty()) "Definir" else "Cambiar", color = IosSettingsColors.label, fontSize = 12.sp)
@@ -1249,8 +1249,8 @@ fun ReelEditorScreen(
                         OutlinedButton(
                             onClick = { showDraftSuccessDialog = true },
                             modifier = Modifier.fillMaxWidth(),
-                            colors = ButtonDefaults.outlinedButtonColors(contentColor = Color.White),
-                            border = BorderStroke(1.dp, Color.Gray)
+                            colors = ButtonDefaults.outlinedButtonColors(contentColor = IosSettingsColors.label),
+                            border = BorderStroke(1.dp, IosSettingsColors.separator)
                         ) {
                             Icon(Icons.Default.Drafts, contentDescription = null, modifier = Modifier.size(18.dp))
                             Spacer(modifier = Modifier.width(8.dp))
@@ -1266,11 +1266,11 @@ fun ReelEditorScreen(
                             modifier = Modifier.fillMaxWidth().testTag("reel_editor_publish_button"),
                             colors = ButtonDefaults.buttonColors(
                                 containerColor = IosSettingsColors.blue,
-                                disabledContainerColor = Color.White.copy(alpha = 0.1f)
+                                disabledContainerColor = IosSettingsColors.separator
                             ),
                             shape = RoundedCornerShape(12.dp)
                         ) {
-                            Text(if (isReelSelected) "Publicar Reel 🚀" else "Añadir a Historia ✨", color = if (isPublishAllowed) Color.Black else Color.Gray, fontWeight = FontWeight.Bold)
+                            Text(if (isReelSelected) "Publicar Reel 🚀" else "Añadir a Historia ✨", color = if (isPublishAllowed) IosSettingsColors.onAccent else IosSettingsColors.secondaryLabel, fontWeight = FontWeight.Bold)
                         }
                     }
                 }
@@ -1304,7 +1304,7 @@ fun ReelEditorScreen(
                                     modifier = Modifier
                                         .fillMaxWidth()
                                         .clip(RoundedCornerShape(8.dp))
-                                        .background(Color.White.copy(alpha = 0.05f))
+                                        .background(IosSettingsColors.separator)
                                         .clickable {
                                             scheduledDateTimeString = opt
                                             showSchedulingSheet = false
@@ -1317,7 +1317,7 @@ fun ReelEditorScreen(
                             }
 
                             TextButton(onClick = { showSchedulingSheet = false }) {
-                                Text("Cancelar", color = Color.Red)
+                                Text("Cancelar", color = IosSettingsColors.red)
                             }
                         }
                     }
@@ -1350,12 +1350,12 @@ fun ReelEditorScreen(
                                     .background(IosSettingsColors.blue, CircleShape),
                                 contentAlignment = Alignment.Center
                             ) {
-                                Icon(Icons.Default.Public, contentDescription = null, tint = Color.Black, modifier = Modifier.size(28.dp))
+                                Icon(Icons.Default.Public, contentDescription = null, tint = IosSettingsColors.onAccent, modifier = Modifier.size(28.dp))
                             }
                             Text("Importar Vídeo 🌐", color = IosSettingsColors.label, fontWeight = FontWeight.Bold, fontSize = 18.sp)
                             Text(
                                 "Pega el enlace del vídeo que quieres publicar. Lo importaremos limpio (sin la marca de la app de origen).",
-                                color = Color.Gray, fontSize =  12.sp, textAlign = TextAlign.Center
+                                color = IosSettingsColors.secondaryLabel, fontSize =  12.sp, textAlign = TextAlign.Center
                             )
 
                             androidx.compose.material3.OutlinedTextField(
@@ -1375,18 +1375,18 @@ fun ReelEditorScreen(
                                     }
                                 ),
                                 colors = androidx.compose.material3.OutlinedTextFieldDefaults.colors(
-                                    focusedTextColor = Color.White,
-                                    unfocusedTextColor = Color.White,
+                                    focusedTextColor = IosSettingsColors.label,
+                                    unfocusedTextColor = IosSettingsColors.label,
                                     focusedBorderColor = IosSettingsColors.blue,
-                                    unfocusedBorderColor = Color.Gray,
-                                    focusedPlaceholderColor = Color.Gray
+                                    unfocusedBorderColor = IosSettingsColors.separator,
+                                    focusedPlaceholderColor = IosSettingsColors.secondaryLabel
                                 )
                             )
 
                             if (importUrlError != null) {
                                 Text(
                                     importUrlError ?: "",
-                                    color = Color(0xFFFF6B6B),
+                                    color = IosSettingsColors.red,
                                     fontSize =  12.sp,
                                     textAlign = TextAlign.Center
                                 )
@@ -1397,14 +1397,14 @@ fun ReelEditorScreen(
                                     color = IosSettingsColors.blue,
                                     modifier = Modifier.size(28.dp)
                                 )
-                                Text("Descargando vídeo limpio desde la plataforma...", color = Color.Gray, fontSize =  12.sp, textAlign = TextAlign.Center)
+                                Text("Descargando vídeo limpio desde la plataforma...", color = IosSettingsColors.secondaryLabel, fontSize =  12.sp, textAlign = TextAlign.Center)
                             }
 
                             Row(horizontalArrangement = Arrangement.spacedBy(12.dp)) {
                                 OutlinedButton(
                                     onClick = { showImportUrlDialog = false; importUrlError = null; importUrlInput = "" },
                                     enabled = !isImportingUrl,
-                                    colors = ButtonDefaults.outlinedButtonColors(contentColor = Color.Gray)
+                                    colors = ButtonDefaults.outlinedButtonColors(contentColor = IosSettingsColors.secondaryLabel)
                                 ) {
                                     Text("Cancelar")
                                 }
@@ -1413,7 +1413,7 @@ fun ReelEditorScreen(
                                     enabled = !isImportingUrl,
                                     colors = ButtonDefaults.buttonColors(containerColor = IosSettingsColors.blue)
                                 ) {
-                                    Text("Importar", color = Color.Black, fontWeight = FontWeight.Bold)
+                                    Text("Importar", color = IosSettingsColors.onAccent, fontWeight = FontWeight.Bold)
                                 }
                             }
                         }
@@ -1447,10 +1447,10 @@ fun ReelEditorScreen(
                                     .background(IosSettingsColors.pink, CircleShape),
                                 contentAlignment = Alignment.Center
                             ) {
-                                Icon(Icons.Default.Drafts, contentDescription = null, tint = Color.Black, modifier = Modifier.size(32.dp))
+                                Icon(Icons.Default.Drafts, contentDescription = null, tint = IosSettingsColors.onAccent, modifier = Modifier.size(32.dp))
                             }
                             Text("Borrador Guardado 📝", color = IosSettingsColors.label, fontWeight = FontWeight.Bold, fontSize = 18.sp)
-                            Text("Tu borrador se ha guardado localmente en tu dispositivo.", color = Color.Gray, fontSize = 12.sp, textAlign = TextAlign.Center)
+                            Text("Tu borrador se ha guardado localmente en tu dispositivo.", color = IosSettingsColors.secondaryLabel, fontSize = 12.sp, textAlign = TextAlign.Center)
                             Button(
                                 onClick = {
                                     showDraftSuccessDialog = false
@@ -1458,7 +1458,7 @@ fun ReelEditorScreen(
                                 },
                                 colors = ButtonDefaults.buttonColors(containerColor = IosSettingsColors.pink)
                             ) {
-                                Text("Entendido", color = Color.Black, fontWeight = FontWeight.Bold)
+                                Text("Entendido", color = IosSettingsColors.onAccent, fontWeight = FontWeight.Bold)
                             }
                         }
                     }

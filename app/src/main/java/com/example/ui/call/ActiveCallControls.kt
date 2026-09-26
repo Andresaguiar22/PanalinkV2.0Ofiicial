@@ -4,6 +4,7 @@ import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.*
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.*
+import androidx.compose.material.icons.automirrored.filled.*
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
@@ -38,7 +39,7 @@ fun ActiveCallControls(
             .fillMaxWidth()
             .background(
                 brush = Brush.verticalGradient(
-                    colors = listOf(Color.Transparent, Color.Black.copy(alpha = 0.85f))
+                    colors = listOf(Color.Transparent, IosSettingsColors.mediaScrim)
                 )
             )
             .padding(horizontal = 16.dp, vertical = 28.dp)
@@ -62,7 +63,7 @@ fun ActiveCallControls(
             // 2. Speaker Output Toggle
             CallActionButton(
                 onClick = onSpeakerToggle,
-                icon = if (isSpeakerOn) Icons.Default.VolumeUp else Icons.Default.VolumeMute,
+                icon = if (isSpeakerOn) Icons.AutoMirrored.Filled.VolumeUp else Icons.AutoMirrored.Filled.VolumeMute,
                 contentDescription = "Toggle Speaker",
                 containerColor = if (isSpeakerOn) Color.White else Color.White.copy(alpha = 0.15f),
                 contentColor = if (isSpeakerOn) Color.Black else Color.White,
@@ -132,7 +133,7 @@ fun ActiveCallControls(
                                 showMoreMenu = false
                                 onMoreOptionSelected("send_message")
                             },
-                            leadingIcon = { Icon(Icons.Default.Message, contentDescription = null, tint = IosSettingsColors.label) }
+                            leadingIcon = { Icon(Icons.AutoMirrored.Filled.Message, contentDescription = null, tint = IosSettingsColors.label) }
                         )
                     }
                 }
