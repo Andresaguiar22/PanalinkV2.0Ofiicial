@@ -1152,4 +1152,49 @@ Hub `ControlCenterScreen` (cabecera de perfil con anillo + badges + grupos), `St
   ```
   El blob del keystore se localiza con `git rev-list --all --objects | grep -i beta.keystore`; la contraseña histórica (`panalinkbeta`) se ve en `git show 335ddad:scripts/build_beta.sh`.
 
+---
+
+## 🍎 Extensión de la apariencia iOS al resto de la app (sesión 2026-09-25/26, rama `kilo/clean-ui-ios`)
+
+**Pedido**: terminar la migración iOS que quedaba a medias (~30%); colores elegantes tipo Apple sin caer en "carnaval".
+
+### Regla de clasificación (la clave de esta sesión)
+Un literal de color NO siempre debe pasar a token. Antes de sustituir, decidir en qué "capa" vive:
+
+| Capa | Ejemplos | Tratamiento |
+|---|---|---|
+| **Chrome de pantalla** | fondos de `Scaffold`/`Box` de página, celdas, textos, botones, chips, separadores, sliders, iconos de UI | → token `IosSettingsColors.*` |
+| **Contenido / arte** | `AvatarFrameSpec`/`AvatarFrameView` (colgantes), `PremiumEffectsCatalog`, `LiveGiftEffects`, `PanaAvatar` (gradientes de fallback), paletas de story/reel, `CanvasRenderers` (`parseColor` del usuario) | **NO tocar** — el color ES el dato |
+| **Sobre video/cámara/foto** | texto y controles encima de reels, stories, visor a pantalla completa, QR scanner, cámara, reproductor de video | **Dejar blanco/negro literal** — el lenguaje iOS mantiene blanco sobre media en ambos temas; tokenizarlo rompe el tema claro |
+| **Definiciones de tema** | `Theme.kt`, `Color.kt`, `PanalinkPrestigeSkin.kt`, `IosSettingsKit.kt` | **NO tocar** — son la fuente de los tokens |
+
+### Falsos positivos que NO hay que migrar
+* `LiveVideoSurface.backgroundColor: Color = Color.Black` — default de parámetro para el renderer de LiveKit, no chrome.
+* `MainActivity` PiP `background(Color.Black)` — letterbox real del video.
+* `QrCodeView.background(Color.White)` — el QR **debe** ser blanco puro para escanear.
+* `PanaLinkNotificationManager.setColor(0xFF0A84FF)` — color de la notificación del sistema (no Compose).
+* `Color(0xFFF9C74F)`/`Color(0xFF69F0AE)` de hashtags y corazones **sobre video**.
+
+### Regresión evitada (importante)
+La primera pasada tokenizó por error los chips/labels/textos de `TikTokVideoFeedScreen` y `ReelsFeedScreen` **sobre el video**. Con `IosSettingsColors.label` (= tinta casi negra en tema claro) el texto habría quedado ilegible sobre el video. **Revertido** en el commit `a164bde` ("conservar blanco sobre video para no romper el tema claro"). Lección: en reels/stories el scrim y el chrome van en blanco/negro fijo, solo el fondo de la pantalla y las hojas (sheets) usan tokens.
+
+### Trabajo aplicado (commits sobre `kilo/clean-ui-ios`)
+`49d2fb0`, `59b85a7`, `a164bde`, `07476ee`, `0697a9f`:
+* `TikTokVideoFeedScreen`, `ReelsFeedScreen`, `FeedPostCard`, `CameraXQrScanner`, `MusicPlayerScreen`, `CleanStoryEditorScreen` (chrome de las hojas y estados de error/carga; scrim sobre media intacto).
+* `PanaTVModernScreen`, `MainActivity` (paleta de tema custom), `VideoTimeline`, `PostCarouselNavigator`, `CallErrorScreen`, `CallActionButton`, `UserProfileScreen` (acentos `MaterialTheme.colorScheme.primary` → `IosSettingsColors.blue`), `ChatBackgroundDialog`.
+* `PlaylistInvitationsScreen`/`PlaylistCollaboratorsScreen` (roles en azul iOS), `ReelEditorScreen` (contraste del estado "Publicación inmediata").
+* Iconos deprecados → `Icons.AutoMirrored.Filled.*` en `FeedPostCard` y `CallErrorScreen` (queda `w:0`).
+
+### Estado final del recuento
+Tras la migración quedan **32 archivos** con literales de color, y **todos son intencionales** (tema, kit de tokens, catálogos de arte, o capas sobre media). El script de recuento por grep ya no es un indicador útil: hay que clasificar por capa, no por número.
+
+### Validación
+* `./gradlew --no-daemon :app:compileDebugKotlin` → **BUILD SUCCESSFUL**, `w:0`, `sanitize_invisible.sh` limpio tras cada commit.
+* Beta `v1.3.64-beta`, code **91** (siempre > code instalado; Android 14+ rechaza downgrades como "paquete inválido"), SHA-256 `edbd58fa3f76b28867267f2fb2839eed17cfac79c72b87e5f1afd7864998b4ab` (69.975.026 bytes), package `com.panalink.app.beta`, firma estable `CN=Panalink Beta`, ABIs `arm64-v8a`+`armeabi-v7a`, `extractNativeLibs=0xffffffff`, `zipalign` OK, zip íntegro, descarga pública == SHA local byte a byte.
+* URL (host de esta sesión; verificar siempre con `curl -sI`): `https://work-2-kzctadcbxbkovvbf.prod-runtime.all-hands.dev/Panalink-BETA-v1.3.64-code91.apk` (puerto 12001; el `work-1` de esta sesión da **502**).
+* Nota de servidor: el APK debe copiarse a `.toolchain/serve_apk/` (volumen persistente); `/tmp` se vacía al reciclar el sandbox.
+
+### Pendiente para el mantenedor
+* **Publicar OTA del build actual** cuando el equipo valide la beta en dispositivo (la rama `kilo/clean-ui-ios` tiene 96 commits sobre `main` y `main` todavía NO tiene `IosSettingsKit.kt`; el merge a `main` + release OTA es el paso final).
+
 
