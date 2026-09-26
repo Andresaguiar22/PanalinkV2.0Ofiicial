@@ -612,7 +612,7 @@ fun PanaTVModernScreen(viewModel: PanaTVViewModel = viewModel()) {
                             Icon(
                                 if (fav) Icons.Default.Favorite else Icons.Default.FavoriteBorder,
                                 "Favorito",
-                                tint = if (fav) PanaTvAccent else Color.White,
+                                tint = if (fav) PanaTvAccent else IosSettingsColors.label,
                                 modifier = Modifier.size(20.dp)
                             )
                         }
@@ -680,7 +680,7 @@ fun PanaTVModernScreen(viewModel: PanaTVViewModel = viewModel()) {
                     }
                     IconButton(onClick = { currentChannel?.let { viewModel.toggleFavorite(it.id) } }) {
                         val fav = currentChannel?.let { favorites.contains(it.id) } == true
-                        Icon(if (fav) Icons.Default.Favorite else Icons.Default.FavoriteBorder, "Favorito", tint = if (fav) PanaTvAccent else Color.White, modifier = Modifier.size(22.dp))
+                        Icon(if (fav) Icons.Default.Favorite else Icons.Default.FavoriteBorder, "Favorito", tint = if (fav) PanaTvAccent else IosSettingsColors.label, modifier = Modifier.size(22.dp))
                     }
                 }
 
@@ -1230,7 +1230,7 @@ private fun VerticalSlider(
                     .width(3.dp)
                     .fillMaxHeight()
                     .clip(RoundedCornerShape(2.dp))
-                    .background(Color.White.copy(alpha = 0.35f))
+                    .background(IosSettingsColors.separator)
             )
             if (v > 0f) {
                 Box(
@@ -1239,7 +1239,7 @@ private fun VerticalSlider(
                         .fillMaxHeight(v)
                         .align(Alignment.BottomCenter)
                         .clip(RoundedCornerShape(2.dp))
-                        .background(Color.White)
+                        .background(IosSettingsColors.label)
                 )
             }
             Box(
@@ -1248,7 +1248,7 @@ private fun VerticalSlider(
                     .offset(y = ((1f - v) * 140f).dp)
                     .size(14.dp)
                     .clip(CircleShape)
-                    .background(Color.White)
+                    .background(IosSettingsColors.label)
             )
         }
     }

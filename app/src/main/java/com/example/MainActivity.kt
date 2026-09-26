@@ -260,10 +260,10 @@ class MainActivity : androidx.fragment.app.FragmentActivity() {
                     bottomBar = customSecondary,
                     accent = customAccent,
                     isDark = activeThemeKey != "minimal_white" && activeThemeKey != "halo_light" && activeThemeKey != "whatsapp_light",
-                    onPrimary = Color.White,
-                    onSecondary = Color.Black,
-                    onBackground = Color.Black,
-                    onSurface = Color.Black
+                    onPrimary = IosSettingsColors.label,
+                    onSecondary = IosSettingsColors.groupBackground,
+                    onBackground = IosSettingsColors.groupBackground,
+                    onSurface = IosSettingsColors.groupBackground
                 )
             }
 

@@ -175,7 +175,7 @@ private fun WallpaperCard(
                             .fillMaxSize()
                             .background(
                                 Brush.verticalGradient(
-                                    listOf(Color(0xFF8B5CF6), IosSettingsColors.groupBackground)
+                                    listOf(IosSettingsColors.purple, IosSettingsColors.groupBackground)
                                 )
                             ),
                         contentAlignment = Alignment.Center

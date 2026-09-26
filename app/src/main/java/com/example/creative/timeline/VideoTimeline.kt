@@ -52,7 +52,7 @@ fun VideoTimeline(
     Column(
         modifier = modifier
             .fillMaxWidth()
-            .background(Color(0xFF141418), RoundedCornerShape(12.dp))
+            .background(IosSettingsColors.cell, RoundedCornerShape(12.dp))
             .padding(12.dp)
     ) {
         Row(
@@ -62,7 +62,7 @@ fun VideoTimeline(
             Text("Timeline", color = IosSettingsColors.label, fontSize = 12.sp, fontWeight = FontWeight.Bold)
             Text(
                 "${currentPositionMs / 1000}s / ${totalDurationMs / 1000}s",
-                color = Color.Gray,
+                color = IosSettingsColors.secondaryLabel,
                 fontSize = 12.sp
             )
         }
@@ -73,8 +73,8 @@ fun VideoTimeline(
             modifier = Modifier
                 .fillMaxWidth()
                 .height(48.dp)
-                .background(Color(0xFF22222B), RoundedCornerShape(8.dp))
-                .border(1.dp, Color(0xFF333342), RoundedCornerShape(8.dp)),
+                .background(IosSettingsColors.cellElevated, RoundedCornerShape(8.dp))
+                .border(1.dp, IosSettingsColors.separator, RoundedCornerShape(8.dp)),
             verticalAlignment = Alignment.CenterVertically
         ) {
             clips.forEachIndexed { index, clip ->

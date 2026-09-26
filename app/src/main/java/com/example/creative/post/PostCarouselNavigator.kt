@@ -87,7 +87,7 @@ fun PostCarouselNavigator(
                             Icon(
                                 imageVector = Icons.Default.Delete,
                                 contentDescription = "Eliminar Página",
-                                tint = Color(0xFFEF4444),
+                                tint = IosSettingsColors.red,
                                 modifier = Modifier.size(18.dp)
                             )
                         }
@@ -127,7 +127,7 @@ fun PostCarouselNavigator(
                             Box(
                                 modifier = Modifier
                                     .fillMaxSize()
-                                    .background(Color.Black),
+                                    .background(IosSettingsColors.groupBackground),
                                 contentAlignment = Alignment.Center
                             ) {
                                 Icon(
@@ -145,7 +145,7 @@ fun PostCarouselNavigator(
                                 Icon(
                                     imageVector = Icons.Default.TextFields,
                                     contentDescription = "Texto",
-                                    tint = Color.Gray,
+                                    tint = IosSettingsColors.secondaryLabel,
                                     modifier = Modifier.size(20.dp)
                                 )
                             }
@@ -163,7 +163,7 @@ fun PostCarouselNavigator(
                         ) {
                             Text(
                                 text = "${index + 1}",
-                                color = if (isSelected) Color.Black else Color.White,
+                                color = if (isSelected) IosSettingsColors.onAccent else IosSettingsColors.label,
                                 fontSize = 10.sp,
                                 fontWeight = FontWeight.Bold
                             )

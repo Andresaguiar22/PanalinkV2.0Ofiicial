@@ -239,8 +239,8 @@ fun UserProfileScreen(
                             .background(
                                 Brush.linearGradient(
                                     colors = listOf(
-                                        Color(0xFF00695C),
-                                        Color(0xFF004D40)
+                                        IosSettingsColors.teal.copy(alpha = 0.85f),
+                                        IosSettingsColors.cellElevated
                                     )
                                 )
                             )
