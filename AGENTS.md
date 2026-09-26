@@ -1454,3 +1454,37 @@ Reglas añadidas (tras la sección de enums):
 * **Lección de la sesión**: AL COMPILAR UNA RELEASE, **cada secret debe aparecer literal en el comando** (regla ya documentada): si se lanza `./gradlew assembleRelease` desde un `nohup bash -c` sin `KLIPY_API_KEY=` en el comando, la app de producción saldría SIN GIFs. Antes de publicar, verificar el `BuildConfig.java` generado (`app/build/generated/source/buildConfig/release/...`) que `KLIPY_API_KEY` no esté vacío.
 * **Verificación R8 en release**: tras compilar, extraer los 4 dex y contar las clases críticas: `dexdump -d classes*.dex | grep -Fc "Lkotlin/reflect/jvm/internal"` debe dar miles (no 0), y `KotlinJsonAdapterFactory`, `NotificationHelper`, `PanaNotificationImageLoader` presentes. También `zipalign -c -v 4` → "Verification successful" y `apksigner verify --print-certs` → `CN=Panalink`.
 * **Release v1.3.61**: SHA-256 `4faf2f32ca9ffbe98bb1544ef31c09f4ba9720da5bdfc1f2047de972e73309c6`, code 88, `mandatory: false`, `minimumSupportedVersionCode: 87`. Verificado end-to-end: descarga pública == SHA local, manifest vivo en raw sirve code 88.
+
+---
+
+## 🎬 Vídeo en Historias y Muro: VCDN fuera (solo REEL) + tarjetas estáticas (sesión 2026-09-26, rama `kilo/video-cdn-historias-muro`)
+
+**Encargo**: las Historias de vídeo fallaban para los demás usuarios (el autor sí las veía), el reproductor del Muro se atascaba en vídeos largos/HD, y las tarjetas del Muro no debían autoreproducir. Regla dura: **no crear un segundo sistema de streaming**; reutilizar el de Reels.
+
+### Hallazgo central: el motor de vídeo YA es único
+`VideoPlaybackEngine` (`core/media/VideoPlaybackEngine.kt`) es la fuente única y ya la usaban **Reels** (`ReelPlayerPool`), **Historias** (`StoryVideoPlayerSession`, `Profile.STORY`), **Muro** (`MuroVideoPlayerPool`, `Profile.VIEWER`) y los previews. Incluye: `DefaultTrackSelector` con cap de resolución/bitrate por perfil (evita decodificar 4K en CPU), `DefaultLoadControl` fast-start por perfil, `CacheDataSourceFactory` compartida (HTTP Range + cache en disco), y recovery reactivo de 401 (`errorCode 2004`) con `CdnManager.resolveMediaUrlFresh` preservando posición. **No había que tocar la reproducción: el problema era el pipeline de SUBIDA (URL que se persistía).**
+
+### Causa raíz de Historias: la subida iba por VCDN
+`SocialMediaUploadWorker` enrutaba **STATE (historias) y REEL** a `VideoRouter.uploadPublicVideo` (vCDN, edge function con `stable_id` + token ~60 s). Para historias eso producía el fallo "el autor ve su vídeo, los demás no" (URL/token de vCDN no reproducible para terceros). **Fix**: `isPublicVideo = mimeType.startsWith("video/") && entity.uploadType == "REEL"` → **VCDN queda SOLO para REEL**; historias, muro, imágenes, audio y thumbnails van por `UploadFailoverRouter` (**CDN convencional de PanaLink (cloudflare) → B2**), que no tiene expiración de token por reproducción.
+* **`PostUploadWorker`**: eliminada la rama `VideoRouter.uploadPublicVideo`; todo el media del post pasa por `UploadFailoverRouter.uploadWithFailover { UploadRepository().uploadVideo(...) }`.
+* ⚠️ **Gotcha de edición**: al colapsar un `if/else` de 12 líneas, el canal se comió llaves y paréntesis dos veces (`Function invocation 'context(...)' expected`). Solución fiable: **script Python por índices de línea** que borra el bloque `if` y añade `return ` a la llamada del `else`, seguido de conteo de llaves (`{` vs `}`) contra `git show HEAD:<archivo>` — si el delta no es 0/0, falta o sobra una llave (aquí sobraba el `}` del `else`). Compilar después.
+
+### Muro: tarjeta 100% estática + miniatura real
+* `FeedPostCard` ya **no reproduce** el vídeo en el feed (sin ExoPlayer por tarjeta) → elimina tarjetas negras, consumo de RAM/CPU y conflictos de lifecycle. El tap abre el visor (Mini-Reels del Muro).
+* `rememberFeedVideoThumbnail(rawMediaUrl, resolvedMediaUrl)` soporta **las dos rutas**: VCDN → poster del BFF (`resolvePoster`, estable/cacheado); **CDN convencional → la URL del vídeo como fuente de imagen**, porque el `VideoFrameDecoder` de Coil (ya registrado en `PanaApplication`) extrae el **primer frame real** y Coil lo cachea por URL (memory+disk) → el scroll no regenera nada, sin backend ni ExoPlayer. Se pasa la URL **ya re-anchada** (`resolvedUrl`).
+* El fondo degradado (`videoThumbFallbackBrush`) se pinta **siempre** bajo el frame → la tarjeta nunca queda negra/vacía mientras carga; el círculo Play + etiqueta "Vídeo" la diferencian de una imagen.
+* **Sincronización**: la tarjeta y el Mini-Reels usan el mismo `feedViewModel.toggleLike`/`sharePost`/`selectedPostForComments` → **una sola fuente de verdad** (no hay contador independiente). El visor filtra `videoPosts` con `isVideoPost` y aterriza en el post tocado (`LaunchedEffect(posts, initialPostId) { scrollToPage(target) }`).
+* El visor del Muro ya tenía `MuroErrorOverlay` ("No se pudo reproducir el vídeo" + Reintentar), buffering indicator, pausa por lifecycle y `retry()` que re-firma la URL.
+
+### Fixes de UI de la misma sesión
+* **Puntos de estado del chat** (enviado/entregado/leído): `4dp` → **`12dp`** con gap `3dp` en `MessageStatusIndicator.kt`, `ChatPreviewCard.kt` y `ChatsTabContent.kt` (los tres sitios deben ir juntos).
+* **GIFs del live**: `CommentMediaText` compacto `96dp` → **`64dp`** y `Alignment.Center` → **`CenterStart`** (pegado a la esquina izquierda de la caja).
+* **Tope de comentarios del live**: se expande hasta topar/ocultarse con la barra inferior — viewer `bottom 72dp → 4dp`, `heightIn 250dp → 340dp`; broadcaster `bottom 76dp → 4dp`, `heightIn(maxHeight/2) → maxHeight*0.62f`.
+
+### Validación
+* `:app:compileDebugKotlin` + `:app:assembleDebug` → **BUILD SUCCESSFUL**; `sanitize_invisible.sh` limpio.
+* Beta `v1.3.67-beta`, code **94**, SHA-256 `51cf807b9027cf383fed497f45e2109ef00dcbd70028f9111601fd6b16819ef8` (70.060.009 bytes), package `com.panalink.app.beta`, label `PanaLink Beta`, firma estable `CN=Panalink Beta` (`450a76c1...`), ABIs `arm64-v8a`+`armeabi-v7a`, `zipalign` OK, `extractNativeLibs=0xffffffff`.
+* URL (host/puerto de esta sesión; verificar con `curl -sI -r 0-99` antes de entregar): `https://work-2-djdaidjesdrtbexj.prod-runtime.all-hands.dev/Panalink-BETA-v1.3.67-code94.apk` (12001, 200 + `accept-ranges`). El `work-1` de la misma sesión da **502**.
+* Descarga pública == SHA local byte a byte.
+* **El sandbox se reinició a mitad del primer build** (perdió el log y el worktree `/tmp`), pero el keystore y `app/secrets.properties` (en `/workspace`, fuera del repo) **sí sobrevivieron**. Lección: lanzar el build con `nohup ... &` a un log, y verificar el artefacto antes de recompilar.
+* **Commits/rama**: `71da8a0` en `origin/kilo/video-cdn-historias-muro` (1 commit sobre `main 59ceb75`). `main` intacto. La rama queda para QA; el release OTA se hace cuando el equipo confirme.
