@@ -138,16 +138,33 @@ class IdentityRepository(context: Context) {
     }
 
     suspend fun saveProfile(state: IdentityUiState) {
-        // Never persist generic placeholders such as "Pana" as a user's canonical name.
-        if (!isUsableName(state.displayName)) return
-
         val existing = profileDao.getProfileById(state.userId)
+        // Never persist generic placeholders such as "Pana" as a user's canonical
+        // name, but do not throw away a usable avatar just because the incoming
+        // name is generic (that path silently lost avatars).
+        val nameForSave = state.displayName?.takeIf { isUsableName(it) }
+            ?: existing?.displayName?.takeIf { isUsableName(it) }
+        if (nameForSave == null) return
+
         if (existing != null) {
-            profileDao.insertProfile(existing.copy(
-                displayName = state.displayName ?: existing.displayName,
-                avatarUrl = state.avatarUrl ?: existing.avatarUrl,
-                avatarLocalPath = state.avatarLocalPath ?: existing.avatarLocalPath
-            ))
+            // Un avatar vacio ("" no nulo) NO es un avatar: si se guardara tal cual
+            // pisaria el bueno que ya teniamos (el publico), y PanaAvatar caeria a
+            // iniciales. Igual para el nombre y la ruta local.
+            val merged = existing.copy(
+                displayName = state.displayName?.takeIf { isUsableName(it) } ?: existing.displayName,
+                avatarUrl = state.avatarUrl?.takeIf { it.isNotBlank() } ?: existing.avatarUrl,
+                avatarLocalPath = state.avatarLocalPath?.takeIf { it.isNotBlank() } ?: existing.avatarLocalPath
+            )
+            profileDao.insertProfile(merged)
+            // La cache en memoria alimenta PanaAvatar: guardar el estado fusionado
+            // (no el entrante) para que un avatar vacio no deje la inicial.
+            IdentityMemoryCache.profiles[state.userId] = IdentityUiState(
+                userId = merged.id,
+                displayName = merged.displayName,
+                avatarUrl = merged.avatarUrl,
+                avatarLocalPath = merged.avatarLocalPath
+            )
+            return
         }
         IdentityMemoryCache.profiles[state.userId] = state
     }
