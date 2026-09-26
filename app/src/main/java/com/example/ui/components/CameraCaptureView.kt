@@ -334,7 +334,7 @@ fun CameraPreviewAndControls(
                 Column(horizontalAlignment = Alignment.CenterHorizontally) {
                     IconButton(
                         onClick = { showEffectsMenu = !showEffectsMenu },
-                        modifier = Modifier.background(Color.Black.copy(alpha = 0.5f), CircleShape)
+                        modifier = Modifier.background(IosSettingsColors.mediaScrimSoft, CircleShape)
                     ) {
                         Icon(Icons.Default.FaceRetouchingNatural, contentDescription = "Efectos", tint = if (selectedEffect != "Ninguno") IosSettingsColors.blue else IosSettingsColors.label)
                     }
@@ -345,7 +345,7 @@ fun CameraPreviewAndControls(
                 Column(horizontalAlignment = Alignment.CenterHorizontally) {
                     IconButton(
                         onClick = { showMusicMenu = !showMusicMenu },
-                        modifier = Modifier.background(Color.Black.copy(alpha = 0.5f), CircleShape)
+                        modifier = Modifier.background(IosSettingsColors.mediaScrimSoft, CircleShape)
                     ) {
                         Icon(Icons.Default.MusicNote, contentDescription = "Música", tint = if (selectedMusic != null && selectedMusic != "Sin Música") IosSettingsColors.green else IosSettingsColors.label)
                     }
@@ -359,7 +359,7 @@ fun CameraPreviewAndControls(
                             val nextIndex = (speeds.indexOf(selectedSpeed) + 1) % speeds.size
                             selectedSpeed = speeds[nextIndex]
                         },
-                        modifier = Modifier.background(Color.Black.copy(alpha = 0.5f), CircleShape)
+                        modifier = Modifier.background(IosSettingsColors.mediaScrimSoft, CircleShape)
                     ) {
                         Text("${selectedSpeed}x", color = if (selectedSpeed != 1.0f) IosSettingsColors.yellow else IosSettingsColors.label, fontSize = 12.sp, fontWeight = FontWeight.Bold)
                     }
@@ -375,7 +375,7 @@ fun CameraPreviewAndControls(
                     .align(Alignment.BottomCenter)
                     .fillMaxWidth()
                     .padding(bottom = 140.dp)
-                    .background(Color.Black.copy(alpha = 0.7f), RoundedCornerShape(16.dp))
+                    .background(IosSettingsColors.mediaScrim, RoundedCornerShape(16.dp))
                     .padding(16.dp)
             ) {
                 Column {
@@ -387,7 +387,7 @@ fun CameraPreviewAndControls(
                             Box(
                                 modifier = Modifier
                                     .clip(CircleShape)
-                                    .background(if (active) IosSettingsColors.blue else Color.White.copy(alpha = 0.2f))
+                                    .background(if (active) IosSettingsColors.blue else IosSettingsColors.separator)
                                     .clickable { selectedEffect = effect }
                                     .padding(horizontal = 16.dp, vertical = 8.dp)
                             ) {
@@ -406,7 +406,7 @@ fun CameraPreviewAndControls(
                     .align(Alignment.BottomCenter)
                     .fillMaxWidth()
                     .padding(bottom = 140.dp)
-                    .background(Color.Black.copy(alpha = 0.7f), RoundedCornerShape(16.dp))
+                    .background(IosSettingsColors.mediaScrim, RoundedCornerShape(16.dp))
                     .padding(16.dp)
             ) {
                 Column {
@@ -418,7 +418,7 @@ fun CameraPreviewAndControls(
                             Box(
                                 modifier = Modifier
                                     .clip(CircleShape)
-                                    .background(if (active) IosSettingsColors.green else Color.White.copy(alpha = 0.2f))
+                                    .background(if (active) IosSettingsColors.green else IosSettingsColors.separator)
                                     .clickable { selectedMusic = track }
                                     .padding(horizontal = 16.dp, vertical = 8.dp)
                             ) {
@@ -442,7 +442,7 @@ fun CameraPreviewAndControls(
             IconButton(
                 onClick = onDismiss,
                 modifier = Modifier
-                    .background(Color.Black.copy(alpha = 0.5f), CircleShape)
+                    .background(IosSettingsColors.mediaScrimSoft, CircleShape)
                     .testTag("camera_close_button")
             ) {
                 Icon(Icons.Default.Close, contentDescription = "Cerrar", tint = IosSettingsColors.label)
@@ -459,7 +459,7 @@ fun CameraPreviewAndControls(
                     Box(
                         modifier = Modifier
                             .size(8.dp)
-                            .background(Color.White, CircleShape)
+                            .background(IosSettingsColors.label, CircleShape)
                     )
                     Spacer(modifier = Modifier.width(6.dp))
                     Text(
@@ -476,7 +476,7 @@ fun CameraPreviewAndControls(
                     fontWeight = FontWeight.Bold,
                     fontSize = 14.sp,
                     modifier = Modifier
-                        .background(Color.Black.copy(alpha = 0.5f), RoundedCornerShape(12.dp))
+                        .background(IosSettingsColors.mediaScrimSoft, RoundedCornerShape(12.dp))
                         .padding(horizontal = 12.dp, vertical = 6.dp)
                 )
             }
@@ -492,7 +492,7 @@ fun CameraPreviewAndControls(
                     }
                 },
                 modifier = Modifier
-                    .background(Color.Black.copy(alpha = 0.5f), CircleShape)
+                    .background(IosSettingsColors.mediaScrimSoft, CircleShape)
                     .testTag("camera_flip_button")
             ) {
                 Icon(Icons.Default.FlipCameraAndroid, contentDescription = "Cambiar Cámara", tint = IosSettingsColors.label)
@@ -511,7 +511,7 @@ fun CameraPreviewAndControls(
             Box(
                 modifier = Modifier
                     .size(84.dp)
-                    .border(4.dp, Color.White, CircleShape)
+                    .border(4.dp, IosSettingsColors.label, CircleShape)
                     .padding(6.dp),
                 contentAlignment = Alignment.Center
             ) {

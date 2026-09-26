@@ -8,6 +8,7 @@ import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.*
+import androidx.compose.material.icons.automirrored.filled.*
 import androidx.compose.material3.Icon
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
@@ -46,13 +47,13 @@ fun PostStudioToolbar(
         PostToolItem("draw", "Dibujar", Icons.Default.Edit, Color(0xFFEC4899)),
         PostToolItem("ratio", "Aspecto", Icons.Default.AspectRatio, Color(0xFF6366F1)),
         PostToolItem("inspector", "Inspector", Icons.Default.Tune, IosSettingsColors.blue),
-        PostToolItem("caption", "Texto Post", Icons.Default.Article, Color(0xFF14B8A6))
+        PostToolItem("caption", "Texto Post", Icons.AutoMirrored.Filled.Article, Color(0xFF14B8A6))
     )
 
     Box(
         modifier = modifier
             .fillMaxWidth()
-            .background(Color(0xFF090D16))
+            .background(IosSettingsColors.groupBackground)
             .padding(vertical = 8.dp)
     ) {
         LazyRow(

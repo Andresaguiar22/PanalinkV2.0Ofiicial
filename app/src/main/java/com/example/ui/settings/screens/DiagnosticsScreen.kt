@@ -128,7 +128,7 @@ fun DiagnosticsScreen(
                             checked = captureState == DiagnosticCaptureState.CAPTURING,
                             onCheckedChange = viewModel::setCapture,
                             colors = SwitchDefaults.colors(
-                                checkedThumbColor = Color.White,
+                                checkedThumbColor = IosSettingsColors.label,
                                 checkedTrackColor = IosSettingsColors.green,
                                 uncheckedThumbColor = IosSettingsColors.secondaryLabel,
                                 uncheckedTrackColor = IosSettingsColors.cellElevated
@@ -153,7 +153,7 @@ fun DiagnosticsScreen(
                         modifier = Modifier.weight(1f),
                         colors = ButtonDefaults.buttonColors(
                             containerColor = IosSettingsColors.blue,
-                            contentColor = Color.White
+                            contentColor = IosSettingsColors.label
                         )
                     ) {
                         Icon(Icons.Default.Share, contentDescription = null, modifier = Modifier.size(18.dp))
@@ -179,7 +179,7 @@ fun DiagnosticsScreen(
                             label = { Text(category.label, fontFamily = IosFont) },
                             colors = FilterChipDefaults.filterChipColors(
                                 selectedContainerColor = IosSettingsColors.blue,
-                                selectedLabelColor = Color.White,
+                                selectedLabelColor = IosSettingsColors.label,
                                 containerColor = IosSettingsColors.cell,
                                 labelColor = IosSettingsColors.label
                             ),

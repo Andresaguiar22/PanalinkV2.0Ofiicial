@@ -53,7 +53,7 @@ fun ChatContactDetailSheet(
     Box(
     modifier = Modifier
     .fillMaxSize()
-    .background(Color.Black.copy(alpha = 0.6f))
+    .background(IosSettingsColors.mediaScrim)
     .clickable(onClick = onDismiss),
     contentAlignment = Alignment.BottomCenter
     ) {
@@ -75,7 +75,7 @@ fun ChatContactDetailSheet(
     modifier = Modifier
     .width(40.dp)
     .height(4.dp)
-    .background(Color.Gray.copy(alpha = 0.4f), RoundedCornerShape(2.dp))
+    .background(IosSettingsColors.separator, RoundedCornerShape(2.dp))
     )
     
     Spacer(modifier = Modifier.height(20.dp))
@@ -154,7 +154,7 @@ fun ChatContactDetailSheet(
     },
     colors = ButtonDefaults.filledTonalButtonColors(
     containerColor = IosSettingsColors.blue,
-    contentColor = Color.White
+    contentColor = IosSettingsColors.onAccent
     ),
     modifier = Modifier
     .weight(1f)
@@ -171,7 +171,7 @@ fun ChatContactDetailSheet(
     onClick = onDismiss,
     colors = ButtonDefaults.buttonColors(
     containerColor = IosSettingsColors.cellElevated,
-    contentColor = Color.White
+    contentColor = IosSettingsColors.label
     ),
     modifier = Modifier
     .weight(1f)

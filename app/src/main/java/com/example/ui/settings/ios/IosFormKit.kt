@@ -29,6 +29,7 @@ import androidx.compose.foundation.clickable
 import androidx.compose.foundation.interaction.MutableInteractionSource
 import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.ui.text.font.FontWeight
+import com.example.ui.settings.ios.IosSettingsColors
 
 /** Campo de texto con la apariencia de iOS: relleno gris, foco azul del sistema. */
 @Composable
@@ -96,16 +97,16 @@ fun IosPrimaryButton(
         contentAlignment = Alignment.Center
     ) {
         if (isLoading) {
-            CircularProgressIndicator(color = Color.White, modifier = Modifier.size(22.dp), strokeWidth = 2.dp)
+            CircularProgressIndicator(color = IosSettingsColors.onAccent, modifier = Modifier.size(22.dp), strokeWidth = 2.dp)
         } else {
             Row(verticalAlignment = Alignment.CenterVertically) {
                 if (icon != null) {
-                    Icon(icon, contentDescription = null, tint = Color.White, modifier = Modifier.size(20.dp))
+                    Icon(icon, contentDescription = null, tint = IosSettingsColors.onAccent, modifier = Modifier.size(20.dp))
                     Spacer(modifier = Modifier.width(8.dp))
                 }
                 Text(
                     text = text,
-                    color = Color.White,
+                    color = IosSettingsColors.onAccent,
                     fontFamily = IosFont,
                     fontWeight = FontWeight.SemiBold,
                     fontSize = 16.sp

@@ -82,7 +82,7 @@ fun ChatsCenterScreen(
                             valueRange = 12f..24f,
                             steps = 5,
                             colors = SliderDefaults.colors(
-                                thumbColor = Color.White,
+                                thumbColor = IosSettingsColors.label,
                                 activeTrackColor = IosSettingsColors.green,
                                 inactiveTrackColor = IosSettingsColors.cellElevated
                             )
@@ -114,7 +114,7 @@ fun ChatsCenterScreen(
                                     .background(
                                         color = when (wpKey) {
                                             "classic_teal" -> IosSettingsColors.groupBackground
-                                            "midnight_blue" -> Color(0xFF0A0E17)
+                                            "midnight_blue" -> IosSettingsColors.cellElevated.copy(alpha = 0.9f)
                                             else -> IosSettingsColors.groupBackground
                                         },
                                         shape = RoundedCornerShape(10.dp)
@@ -167,7 +167,7 @@ private fun ChatPreview(wallpaper: String, textSize: Float) {
             .background(
                 color = when (wallpaper) {
                     "classic_teal" -> IosSettingsColors.groupBackground
-                    "midnight_blue" -> Color(0xFF0A0E17)
+                    "midnight_blue" -> IosSettingsColors.cellElevated.copy(alpha = 0.9f)
                     else -> IosSettingsColors.groupBackground
                 },
                 shape = RoundedCornerShape(12.dp)

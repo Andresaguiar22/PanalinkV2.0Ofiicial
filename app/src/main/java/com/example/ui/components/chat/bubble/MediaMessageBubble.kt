@@ -159,14 +159,14 @@ private fun SingleMediaView(
             Box(
                 modifier = Modifier
                     .fillMaxSize()
-                    .background(Color.Black.copy(alpha = 0.2f))
+                    .background(IosSettingsColors.mediaScrimSoft.copy(alpha = 0.2f))
             )
 
             Box(
                 modifier = Modifier
                     .size(56.dp)
                     .clip(CircleShape)
-                    .background(Color.Black.copy(alpha = 0.55f)),
+                    .background(IosSettingsColors.mediaScrimSoft.copy(alpha = 0.55f)),
                 contentAlignment = Alignment.Center
             ) {
                 Icon(
@@ -183,7 +183,7 @@ private fun SingleMediaView(
                         .align(Alignment.BottomStart)
                         .padding(8.dp)
                         .clip(RoundedCornerShape(6.dp))
-                        .background(Color.Black.copy(alpha = 0.7f))
+                        .background(IosSettingsColors.mediaScrim)
                         .padding(horizontal = 6.dp, vertical = 3.dp)
                 ) {
                     Row(
@@ -357,7 +357,7 @@ private fun GridImageItem(
             Box(
                 modifier = Modifier
                     .fillMaxSize()
-                    .background(Color.Black.copy(alpha = 0.65f)),
+                    .background(IosSettingsColors.mediaScrim),
                 contentAlignment = Alignment.Center
             ) {
                 Text(

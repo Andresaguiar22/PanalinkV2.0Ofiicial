@@ -185,7 +185,7 @@ fun PendingPostCard(post: com.example.data.database.PendingPostEntity) {
             .padding(vertical = 4.dp),
         shape = RoundedCornerShape(12.dp),
         colors = CardDefaults.cardColors(containerColor = IosSettingsColors.cell),
-        border = BorderStroke(1.dp, Color.White.copy(alpha = 0.12f))
+        border = BorderStroke(1.dp, IosSettingsColors.separator)
     ) {
         Column(modifier = Modifier.padding(12.dp)) {
             Row(verticalAlignment = Alignment.CenterVertically) {
@@ -193,7 +193,7 @@ fun PendingPostCard(post: com.example.data.database.PendingPostEntity) {
                     modifier = Modifier
                         .size(32.dp)
                         .clip(CircleShape)
-                        .background(Color.Gray.copy(alpha = 0.2f)),
+                        .background(IosSettingsColors.separator.copy(alpha = 0.2f)),
                     contentAlignment = Alignment.Center
                 ) {
                     Text("P", color = IosSettingsColors.label, fontSize = 12.sp, fontWeight = FontWeight.Bold)
@@ -201,7 +201,7 @@ fun PendingPostCard(post: com.example.data.database.PendingPostEntity) {
                 Spacer(modifier = Modifier.width(8.dp))
                 Column {
                     Text("Subiendo publicación...", color = IosSettingsColors.label, fontSize = 13.sp, fontWeight = FontWeight.Bold)
-                    Text("En cola local", color = Color.Gray, fontSize = 11.sp)
+                    Text("En cola local", color = IosSettingsColors.secondaryLabel, fontSize = 11.sp)
                 }
             }
             if (!post.content.isNullOrBlank()) {

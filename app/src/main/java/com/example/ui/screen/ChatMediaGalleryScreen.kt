@@ -56,8 +56,8 @@ fun ChatMediaGalleryScreen(
                 },
                 colors = TopAppBarDefaults.topAppBarColors(
                     containerColor = IosSettingsColors.cellElevated,
-                    titleContentColor = Color.White,
-                    navigationIconContentColor = Color.White
+                    titleContentColor = IosSettingsColors.label,
+                    navigationIconContentColor = IosSettingsColors.label
                 )
             )
         },
@@ -82,7 +82,7 @@ fun ChatMediaGalleryScreen(
                         text = { 
                             Text(
                                 title,
-                                color = if (selectedTab == index) IosSettingsColors.blue else Color.White.copy(alpha = 0.6f),
+                                color = if (selectedTab == index) IosSettingsColors.blue else IosSettingsColors.label.copy(alpha = 0.6f),
                                 fontSize = 14.sp
                             ) 
                         }

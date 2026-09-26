@@ -75,7 +75,7 @@ fun FloatingVideoOverlay(
                 modifier = Modifier
                     .size(64.dp)
                     .background(
-                        if (isOverTrash) Color.Red.copy(alpha = 0.8f) else Color.Black.copy(alpha = 0.5f),
+                        if (isOverTrash) Color.Red.copy(alpha = 0.8f) else IosSettingsColors.mediaScrimSoft,
                         CircleShape
                     ),
                 contentAlignment = Alignment.Center
@@ -95,8 +95,8 @@ fun FloatingVideoOverlay(
                 .offset { IntOffset(offsetX.roundToInt(), offsetY.roundToInt()) }
                 .size(120.dp, 200.dp)
                 .clip(RoundedCornerShape(16.dp))
-                .background(Color.Black)
-                .border(2.dp, if (isOverTrash) Color.Red else Color.White, RoundedCornerShape(16.dp))
+                .background(IosSettingsColors.groupBackground)
+                .border(2.dp, if (isOverTrash) Color.Red else IosSettingsColors.label, RoundedCornerShape(16.dp))
                 .pointerInput(Unit) {
                     detectDragGestures(
                         onDragStart = { isDragging = true },
@@ -149,7 +149,7 @@ fun FloatingVideoOverlay(
                     .align(Alignment.TopEnd)
                     .size(24.dp)
                     .padding(4.dp)
-                    .background(Color.Black.copy(alpha = 0.5f), CircleShape)
+                    .background(IosSettingsColors.mediaScrimSoft, CircleShape)
             ) {
                 Icon(Icons.Default.Close, contentDescription = "Close", tint = IosSettingsColors.label, modifier = Modifier.size(16.dp))
             }

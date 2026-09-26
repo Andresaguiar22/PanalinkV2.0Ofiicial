@@ -570,7 +570,7 @@ fun UserProfileScreen(
                                                             Brush.verticalGradient(
                                                                 colors = listOf(
                                                                     Color.Transparent,
-                                                                    Color.Black.copy(alpha = 0.6f)
+                                                                    IosSettingsColors.mediaScrim
                                                                 )
                                                             )
                                                         )

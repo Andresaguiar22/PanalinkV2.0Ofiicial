@@ -31,8 +31,8 @@ import androidx.compose.ui.unit.sp
 import com.example.ui.settings.ios.IosSettingsColors
 
 /** Fondo translúcido común a todos los elementos flotantes del directo. */
-private val LiveGlassFill = Color(0xFF111113).copy(alpha = 0.55f)
-private val LiveGlassBorder = Color.White.copy(alpha = 0.15f)
+private val LiveGlassFill = IosSettingsColors.mediaScrim
+private val LiveGlassBorder = IosSettingsColors.separator
 
 /**
  * Panel de estado flotante del directo: indicador rojo pulsante, tiempo y
@@ -107,7 +107,7 @@ fun LiveGlassIconButton(
             .clip(CircleShape)
             .background(if (isAlert) IosSettingsColors.red.copy(alpha = 0.85f) else LiveGlassFill)
             .border(1.dp, LiveGlassBorder, CircleShape),
-        colors = IconButtonDefaults.iconButtonColors(contentColor = Color.White),
+        colors = IconButtonDefaults.iconButtonColors(contentColor = IosSettingsColors.label),
     ) {
         Icon(
             imageVector = icon,
@@ -132,10 +132,10 @@ fun LiveEndPill(
             .clip(CircleShape)
             .background(
                 Brush.horizontalGradient(
-                    listOf(IosSettingsColors.red, Color(0xFFD32F2F))
+                    listOf(IosSettingsColors.red, IosSettingsColors.red.copy(alpha = 0.75f))
                 )
             )
-            .border(1.dp, Color.White.copy(alpha = 0.18f), CircleShape)
+            .border(1.dp, IosSettingsColors.label.copy(alpha = 0.18f), CircleShape)
             .clickable(onClick = onClick)
             .padding(horizontal = 22.dp),
         contentAlignment = Alignment.Center,

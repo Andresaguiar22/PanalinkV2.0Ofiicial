@@ -125,7 +125,7 @@ fun StudioLayout(
                     contentPadding = PaddingValues(horizontal = 16.dp, vertical = 6.dp),
                     modifier = Modifier.testTag("btn_export_studio")
                 ) {
-                    Text("Exportar", color = Color(0xFF071014), fontWeight = FontWeight.Bold, fontSize = 13.sp)
+                    Text("Exportar", color = IosSettingsColors.onAccent, fontWeight = FontWeight.Bold, fontSize = 13.sp)
                 }
             }
         }
@@ -143,7 +143,7 @@ fun StudioLayout(
                     .fillMaxHeight()
                     .padding(8.dp)
                     .clip(RoundedCornerShape(16.dp))
-                    .background(Color.Black),
+                    .background(IosSettingsColors.groupBackground),
                 contentAlignment = Alignment.Center
             ) {
                 previewContent()
@@ -155,7 +155,7 @@ fun StudioLayout(
                             .align(Alignment.BottomCenter)
                             .fillMaxWidth()
                             .wrapContentHeight()
-                             .background(Color(0xEE131A22), RoundedCornerShape(topStart = 20.dp, topEnd = 20.dp))
+                             .background(IosSettingsColors.cellElevated.copy(alpha = 0.93f), RoundedCornerShape(topStart = 20.dp, topEnd = 20.dp))
                             .padding(16.dp)
                     ) {
                         activeToolDrawer(activeToolTab)
@@ -245,7 +245,7 @@ private fun StudioToolIconButton(
     onClick: () -> Unit
 ) {
     val bgColor = if (isSelected) IosSettingsColors.blue else Color.Transparent
-    val contentColor = if (isSelected) Color.Black else Color.White
+    val contentColor = if (isSelected) IosSettingsColors.onAccent else IosSettingsColors.label
 
     Column(
         horizontalAlignment = Alignment.CenterHorizontally,
@@ -269,7 +269,7 @@ private fun StudioToolIconButton(
         }
         Text(
             text = label,
-            color = if (isSelected) IosSettingsColors.blue else Color.Gray,
+            color = if (isSelected) IosSettingsColors.blue else IosSettingsColors.secondaryLabel,
             fontSize = 9.sp,
             fontWeight = if (isSelected) FontWeight.Bold else FontWeight.Normal
         )

@@ -136,7 +136,7 @@ fun UpdateDialog(
                             Text("- Mejoras de estabilidad y rendimiento general.", color = IosSettingsColors.secondaryLabel, fontSize = 14.sp)
                         } else {
                             versionInfo.changelog.forEach { log ->
-                                Text("• $log", color = Color(0xFFE0E0E0), fontSize = 14.sp, modifier = Modifier.padding(vertical = 3.dp))
+                                Text("• $log", color = IosSettingsColors.secondaryLabel, fontSize = 14.sp, modifier = Modifier.padding(vertical = 3.dp))
                             }
                         }
                     }
@@ -197,7 +197,7 @@ fun UpdateDialog(
                             verticalAlignment = Alignment.CenterVertically,
                             modifier = Modifier
                                 .fillMaxWidth()
-                                .background(Color(0xFFE57373).copy(alpha = 0.15f), RoundedCornerShape(12.dp))
+                                .background(IosSettingsColors.red.copy(alpha = 0.15f), RoundedCornerShape(12.dp))
                                 .padding(12.dp)
                         ) {
                             Icon(Icons.Default.ErrorOutline, contentDescription = null, tint = IosSettingsColors.red)
@@ -222,7 +222,7 @@ fun UpdateDialog(
                         verticalAlignment = Alignment.CenterVertically,
                         modifier = Modifier
                             .fillMaxWidth()
-                            .background(Color(0xFFE57373).copy(alpha = 0.15f), RoundedCornerShape(12.dp))
+                            .background(IosSettingsColors.red.copy(alpha = 0.15f), RoundedCornerShape(12.dp))
                             .padding(12.dp)
                     ) {
                         Icon(Icons.Default.ErrorOutline, contentDescription = null, tint = IosSettingsColors.red)
@@ -270,7 +270,7 @@ fun UpdateDialog(
                             },
                             colors = ButtonDefaults.buttonColors(
                                 containerColor = IosSettingsColors.blue,
-                                contentColor = Color.Black
+                                contentColor = IosSettingsColors.onAccent
                             ),
                             shape = RoundedCornerShape(50.dp),
                             modifier = Modifier.testTag("update_now_button")

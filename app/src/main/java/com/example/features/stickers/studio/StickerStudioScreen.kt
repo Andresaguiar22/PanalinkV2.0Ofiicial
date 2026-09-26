@@ -361,7 +361,7 @@ fun StickerStudioScreen(
                 },
                 colors = TopAppBarDefaults.topAppBarColors(
                     containerColor = PANEL_BG,
-                    titleContentColor = Color.White
+                    titleContentColor = IosSettingsColors.label
                 )
             )
         },
@@ -425,9 +425,9 @@ fun StickerStudioScreen(
                                         onClick = { pickImage.launch(PickVisualMediaRequest(ActivityResultContracts.PickVisualMedia.ImageOnly)) },
                                         colors = ButtonDefaults.buttonColors(containerColor = PANA_GREEN)
                                     ) {
-                                        Icon(Icons.Filled.Image, null, tint = Color.Black)
+                                        Icon(Icons.Filled.Image, null, tint = IosSettingsColors.onAccent)
                                         Spacer(Modifier.width(6.dp))
-                                        Text("Galería", color = Color.Black)
+                                        Text("Galería", color = IosSettingsColors.onAccent)
                                     }
                                     Button(
                                         onClick = { cameraPermissionState.requestPermissions() },
@@ -470,9 +470,9 @@ fun StickerStudioScreen(
                                     onClick = { pickVideo.launch(PickVisualMediaRequest(ActivityResultContracts.PickVisualMedia.VideoOnly)) },
                                     colors = ButtonDefaults.buttonColors(containerColor = PANA_GREEN)
                                 ) {
-                                    Icon(Icons.Filled.Videocam, null, tint = Color.Black)
+                                    Icon(Icons.Filled.Videocam, null, tint = IosSettingsColors.onAccent)
                                     Spacer(Modifier.width(6.dp))
-                                    Text("Elegir video", color = Color.Black)
+                                    Text("Elegir video", color = IosSettingsColors.onAccent)
                                 }
                             }
                         }
@@ -483,7 +483,7 @@ fun StickerStudioScreen(
                     Box(
                         Modifier
                             .fillMaxSize()
-                            .background(Color.Black.copy(alpha = 0.55f)),
+                            .background(IosSettingsColors.mediaScrimSoft),
                         contentAlignment = Alignment.Center
                     ) {
                         Column(horizontalAlignment = Alignment.CenterHorizontally) {
@@ -554,7 +554,7 @@ fun StickerStudioScreen(
                                         .clickable { fontIndex = i }
                                         .padding(horizontal = 12.dp, vertical = 8.dp)
                                 ) {
-                                    Text(FONT_STYLES[i].name, color = if (selected) Color.Black else Color.White, fontSize = 12.sp, fontWeight = FontWeight.Bold)
+                                    Text(FONT_STYLES[i].name, color = if (selected) IosSettingsColors.onAccent else IosSettingsColors.label, fontSize = 12.sp, fontWeight = FontWeight.Bold)
                                 }
                             }
                         }
@@ -591,9 +591,9 @@ fun StickerStudioScreen(
                         .height(50.dp),
                     colors = ButtonDefaults.buttonColors(containerColor = PANA_GREEN)
                 ) {
-                    Icon(Icons.Filled.Check, null, tint = Color.Black)
+                    Icon(Icons.Filled.Check, null, tint = IosSettingsColors.onAccent)
                     Spacer(Modifier.width(8.dp))
-                    Text("Guardar sticker", color = Color.Black, fontWeight = FontWeight.Bold)
+                    Text("Guardar sticker", color = IosSettingsColors.onAccent, fontWeight = FontWeight.Bold)
                 }
                 Spacer(Modifier.height(16.dp))
             }
@@ -607,8 +607,8 @@ private fun Color.toArgbInt(): Int = android.graphics.Color.argb(
 
 @Composable
 private fun studioTextFieldColors() = OutlinedTextFieldDefaults.colors(
-    focusedTextColor = Color.White,
-    unfocusedTextColor = Color.White,
+    focusedTextColor = IosSettingsColors.label,
+    unfocusedTextColor = IosSettingsColors.label,
     focusedBorderColor = PANA_GREEN,
     unfocusedBorderColor = IosSettingsColors.cellElevated
 )
@@ -662,9 +662,9 @@ private fun StudioModeChip(
             .background(if (selected) PANA_GREEN else CARD_BG)
             .padding(vertical = 10.dp)
     ) {
-        Icon(icon, null, tint = if (selected) Color.Black else Color.White, modifier = Modifier.size(15.dp))
+        Icon(icon, null, tint = if (selected) IosSettingsColors.onAccent else IosSettingsColors.label, modifier = Modifier.size(15.dp))
         Spacer(Modifier.width(5.dp))
-        Text(label, color = if (selected) Color.Black else Color.White, fontSize = 12.sp, fontWeight = FontWeight.Bold)
+        Text(label, color = if (selected) IosSettingsColors.onAccent else IosSettingsColors.label, fontSize = 12.sp, fontWeight = FontWeight.Bold)
     }
 }
 
@@ -673,7 +673,7 @@ private fun StudioModeChip(
 private fun TransparencyGrid(modifier: Modifier = Modifier) {
     Canvas(modifier = modifier) {
         val cell = 20.dp.toPx()
-        val paintColor = Color.White.copy(alpha = 0.05f)
+        val paintColor = IosSettingsColors.separator
         var row = 0
         var y = 0f
         while (y < size.height) {

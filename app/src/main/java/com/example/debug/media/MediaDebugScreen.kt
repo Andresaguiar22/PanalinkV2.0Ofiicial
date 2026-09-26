@@ -6,6 +6,7 @@ import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.*
+import androidx.compose.material.icons.automirrored.filled.*
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
@@ -32,13 +33,13 @@ fun MediaDebugScreen(
                 title = { Text("Media Engine Diagnostic", color = IosSettingsColors.label) },
                 navigationIcon = {
                     IconButton(onClick = onBack) {
-                        Icon(Icons.Default.ArrowBack, contentDescription = "Regresar", tint = IosSettingsColors.label)
+                        Icon(Icons.AutoMirrored.Filled.ArrowBack, contentDescription = "Regresar", tint = IosSettingsColors.label)
                     }
                 },
                 colors = TopAppBarDefaults.topAppBarColors(containerColor = IosSettingsColors.groupBackground)
             )
         },
-        containerColor = Color(0xFF0D0D0F)
+        containerColor = IosSettingsColors.groupBackground
     ) { padding ->
         LazyColumn(
             modifier = Modifier
@@ -103,7 +104,7 @@ fun MediaDebugScreen(
                     shape = RoundedCornerShape(12.dp)
                 ) {
                     Column(modifier = Modifier.padding(16.dp)) {
-                        Text("Detalles de Solicitudes", color = Color.Gray, fontSize = 13.sp)
+                        Text("Detalles de Solicitudes", color = IosSettingsColors.secondaryLabel, fontSize = 13.sp)
                         Spacer(modifier = Modifier.height(8.dp))
                         Text("Cache Hits: ${state.report?.cacheHitCount ?: 0}", color = IosSettingsColors.label, fontSize = 14.sp)
                         Text("Cache Misses: ${state.report?.cacheMissCount ?: 0}", color = IosSettingsColors.label, fontSize = 14.sp)
@@ -118,10 +119,10 @@ fun MediaDebugScreen(
                     onClick = { viewModel.purgeExpiredCache() },
                     enabled = !state.isCleaning,
                     modifier = Modifier.fillMaxWidth(),
-                    colors = ButtonDefaults.buttonColors(containerColor = IosSettingsColors.blue, contentColor = Color.Black)
+                    colors = ButtonDefaults.buttonColors(containerColor = IosSettingsColors.blue, contentColor = IosSettingsColors.onAccent)
                 ) {
                     if (state.isCleaning) {
-                        CircularProgressIndicator(modifier = Modifier.size(20.dp), strokeWidth = 2.dp, color = Color.Black)
+                        CircularProgressIndicator(modifier = Modifier.size(20.dp), strokeWidth = 2.dp, color = IosSettingsColors.onAccent)
                         Spacer(modifier = Modifier.width(8.dp))
                         Text("Purgando cache...")
                     } else {
@@ -163,7 +164,7 @@ private fun MetricCard(
         ) {
             Icon(imageVector = icon, contentDescription = null, tint = IosSettingsColors.blue, modifier = Modifier.size(24.dp))
             Spacer(modifier = Modifier.height(8.dp))
-            Text(text = title, color = Color.Gray, fontSize = 12.sp)
+            Text(text = title, color = IosSettingsColors.secondaryLabel, fontSize = 12.sp)
             Text(text = value, color = IosSettingsColors.label, fontSize = 18.sp, fontWeight = FontWeight.Bold)
         }
     }

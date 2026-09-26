@@ -287,7 +287,7 @@ fun LiveBroadcastScreen(
                     Box(
                         modifier = Modifier
                             .fillMaxSize()
-                            .background(Color.Black.copy(alpha = 0.4f))
+                            .background(IosSettingsColors.mediaScrimSoft)
                     )
 
                     LivePreliveTopBar(
@@ -480,8 +480,8 @@ fun LiveBroadcastScreen(
                                     .width(120.dp)
                                     .height(160.dp),
                                 shape = RoundedCornerShape(16.dp),
-                                color = Color.Black.copy(alpha = 0.5f),
-                                border = BorderStroke(1.dp, Color.White.copy(alpha = 0.15f))
+                                color = IosSettingsColors.mediaScrimSoft,
+                                border = BorderStroke(1.dp, IosSettingsColors.separator)
                             ) {
                                 Box(modifier = Modifier.fillMaxSize()) {
                                     LiveVideoSurface(
@@ -491,7 +491,7 @@ fun LiveBroadcastScreen(
                                     )
                                     Surface(
                                         shape = RoundedCornerShape(6.dp),
-                                        color = Color.Black.copy(alpha = 0.6f),
+                                        color = IosSettingsColors.mediaScrim,
                                         modifier = Modifier
                                             .align(Alignment.BottomStart)
                                             .padding(6.dp)

@@ -9,7 +9,7 @@ import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.Backspace
+import androidx.compose.material.icons.automirrored.filled.Backspace
 import androidx.compose.material.icons.filled.Fingerprint
 import androidx.compose.material.icons.filled.Lock
 import androidx.compose.material3.Icon
@@ -144,7 +144,7 @@ private fun PinLockSection(onError: (String?) -> Unit) {
                 modifier = Modifier
                     .size(if (filled) 14.dp else 12.dp)
                     .background(
-                        if (filled) IosSettingsColors.blue else Color.White.copy(alpha = 0.2f),
+                        if (filled) IosSettingsColors.blue else IosSettingsColors.separator,
                         CircleShape
                     )
             )
@@ -167,18 +167,18 @@ private fun PinLockSection(onError: (String?) -> Unit) {
                         key == "DEL" -> Box(
                             modifier = Modifier
                                 .size(64.dp)
-                                .background(Color.White.copy(alpha = 0.05f), CircleShape)
+                                .background(IosSettingsColors.separator, CircleShape)
                                 .clickable(enabled = entered.isNotEmpty()) {
                                     entered = entered.dropLast(1)
                                 },
                             contentAlignment = Alignment.Center
                         ) {
-                            Icon(Icons.Default.Backspace, contentDescription = "Borrar", tint = IosSettingsColors.label)
+                            Icon(Icons.AutoMirrored.Filled.Backspace, contentDescription = "Borrar", tint = IosSettingsColors.label)
                         }
                         else -> Box(
                             modifier = Modifier
                                 .size(64.dp)
-                                .background(Color.White.copy(alpha = 0.08f), CircleShape)
+                                .background(IosSettingsColors.separator, CircleShape)
                                 .clickable(enabled = entered.length < 8) {
                                     entered += key
                                     // Auto-verify from 4 digits up: matches any valid PIN length.

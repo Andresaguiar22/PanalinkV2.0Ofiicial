@@ -4,7 +4,7 @@ import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.ArrowBack
+import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material.icons.filled.Mic
 import androidx.compose.material.icons.filled.MicOff
 import androidx.compose.material.icons.filled.Videocam
@@ -82,12 +82,12 @@ fun LiveGuestScreen(
                 title = { Text("Co-Host Invitado", fontWeight = FontWeight.Bold) },
                 navigationIcon = {
                     IconButton(onClick = { leaveCoHost() }) {
-                        Icon(Icons.Default.ArrowBack, contentDescription = "Regresar", tint = IosSettingsColors.label)
+                        Icon(Icons.AutoMirrored.Filled.ArrowBack, contentDescription = "Regresar", tint = IosSettingsColors.label)
                     }
                 },
                 colors = TopAppBarDefaults.topAppBarColors(
                     containerColor = IosSettingsColors.cell,
-                    titleContentColor = Color.White
+                    titleContentColor = IosSettingsColors.label
                 )
             )
         },
@@ -161,7 +161,7 @@ fun LiveGuestScreen(
                 Box(
                     modifier = Modifier
                         .fillMaxSize()
-                        .background(Color.Black),
+                        .background(IosSettingsColors.groupBackground),
                     contentAlignment = Alignment.Center
                 ) {
                     LiveVideoSurface(
@@ -199,7 +199,7 @@ fun LiveGuestScreen(
                                 isMicMuted = !isMicMuted
                                 scope.launch { roomRepository.setMicrophoneEnabled(!isMicMuted) }
                             },
-                            colors = IconButtonDefaults.iconButtonColors(containerColor = if (isMicMuted) IosSettingsColors.red else Color.Black.copy(alpha = 0.5f))
+                            colors = IconButtonDefaults.iconButtonColors(containerColor = if (isMicMuted) IosSettingsColors.red else IosSettingsColors.mediaScrimSoft)
                         ) {
                             Icon(
                                 imageVector = if (isMicMuted) Icons.Default.MicOff else Icons.Default.Mic,
@@ -213,7 +213,7 @@ fun LiveGuestScreen(
                                 isCameraOff = !isCameraOff
                                 scope.launch { roomRepository.setCameraEnabled(!isCameraOff) }
                             },
-                            colors = IconButtonDefaults.iconButtonColors(containerColor = if (isCameraOff) IosSettingsColors.red else Color.Black.copy(alpha = 0.5f))
+                            colors = IconButtonDefaults.iconButtonColors(containerColor = if (isCameraOff) IosSettingsColors.red else IosSettingsColors.mediaScrimSoft)
                         ) {
                             Icon(
                                 imageVector = if (isCameraOff) Icons.Default.VideocamOff else Icons.Default.Videocam,
