@@ -48,6 +48,11 @@ import kotlinx.coroutines.delay
 import java.io.File
 import java.util.concurrent.TimeUnit
 import com.example.ui.settings.ios.IosSettingsColors
+import androidx.compose.material.icons.rounded.FaceRetouchingNatural
+import androidx.compose.material.icons.rounded.FlipCameraAndroid
+import androidx.compose.material.icons.rounded.MusicNote
+import androidx.compose.material.icons.rounded.PhotoCamera
+import androidx.compose.material.icons.rounded.Close
 
 @Composable
 fun CameraCaptureView(
@@ -106,7 +111,7 @@ fun CameraCaptureView(
                 horizontalAlignment = Alignment.CenterHorizontally
             ) {
                 Icon(
-                    imageVector = Icons.Default.PhotoCamera,
+                    imageVector = Icons.Rounded.PhotoCamera,
                     contentDescription = null,
                     tint = IosSettingsColors.secondaryLabel,
                     modifier = Modifier.size(64.dp)
@@ -336,7 +341,7 @@ fun CameraPreviewAndControls(
                         onClick = { showEffectsMenu = !showEffectsMenu },
                         modifier = Modifier.background(IosSettingsColors.mediaScrimSoft, CircleShape)
                     ) {
-                        Icon(Icons.Default.FaceRetouchingNatural, contentDescription = "Efectos", tint = if (selectedEffect != "Ninguno") IosSettingsColors.blue else IosSettingsColors.label)
+                        Icon(Icons.Rounded.FaceRetouchingNatural, contentDescription = "Efectos", tint = if (selectedEffect != "Ninguno") IosSettingsColors.blue else IosSettingsColors.label)
                     }
                     Text("Efectos", color = IosSettingsColors.label, fontSize = 10.sp, fontWeight = FontWeight.Bold)
                 }
@@ -347,7 +352,7 @@ fun CameraPreviewAndControls(
                         onClick = { showMusicMenu = !showMusicMenu },
                         modifier = Modifier.background(IosSettingsColors.mediaScrimSoft, CircleShape)
                     ) {
-                        Icon(Icons.Default.MusicNote, contentDescription = "Música", tint = if (selectedMusic != null && selectedMusic != "Sin Música") IosSettingsColors.green else IosSettingsColors.label)
+                        Icon(Icons.Rounded.MusicNote, contentDescription = "Música", tint = if (selectedMusic != null && selectedMusic != "Sin Música") IosSettingsColors.green else IosSettingsColors.label)
                     }
                     Text("Música", color = IosSettingsColors.label, fontSize = 10.sp, fontWeight = FontWeight.Bold)
                 }
@@ -445,7 +450,7 @@ fun CameraPreviewAndControls(
                     .background(IosSettingsColors.mediaScrimSoft, CircleShape)
                     .testTag("camera_close_button")
             ) {
-                Icon(Icons.Default.Close, contentDescription = "Cerrar", tint = IosSettingsColors.label)
+                Icon(Icons.Rounded.Close, contentDescription = "Cerrar", tint = IosSettingsColors.label)
             }
 
             if (isRecording) {
@@ -495,7 +500,7 @@ fun CameraPreviewAndControls(
                     .background(IosSettingsColors.mediaScrimSoft, CircleShape)
                     .testTag("camera_flip_button")
             ) {
-                Icon(Icons.Default.FlipCameraAndroid, contentDescription = "Cambiar Cámara", tint = IosSettingsColors.label)
+                Icon(Icons.Rounded.FlipCameraAndroid, contentDescription = "Cambiar Cámara", tint = IosSettingsColors.label)
             }
         }
 

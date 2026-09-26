@@ -4,7 +4,7 @@ import androidx.compose.animation.core.*
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.*
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.CallEnd
+import androidx.compose.material.icons.rounded.CallEnd
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
@@ -62,7 +62,7 @@ fun OutgoingCallScreen(
             ) {
                 CallActionButton(
                     onClick = onCancel,
-                    icon = Icons.Default.CallEnd,
+                    icon = Icons.Rounded.CallEnd,
                     contentDescription = "Cancelar Llamada",
                     containerColor = IosSettingsColors.red, // Red 500
                     contentColor = IosSettingsColors.onAccent,

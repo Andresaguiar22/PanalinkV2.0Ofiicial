@@ -17,9 +17,8 @@ import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.Comment
 import androidx.compose.material.icons.automirrored.filled.Reply
-import androidx.compose.material.icons.filled.Download
-import androidx.compose.material.icons.filled.InsertDriveFile
-import androidx.compose.material.icons.filled.RemoveRedEye
+import androidx.compose.material.icons.rounded.Download
+import androidx.compose.material.icons.rounded.RemoveRedEye
 import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
@@ -232,7 +231,7 @@ fun ChannelPostBubble(
                         verticalAlignment = Alignment.CenterVertically
                     ) {
                         Icon(
-                            imageVector = Icons.Default.RemoveRedEye,
+                            imageVector = Icons.Rounded.RemoveRedEye,
                             contentDescription = "Vistas",
                             tint = secondaryText,
                             modifier = Modifier.size(14.dp)
@@ -304,7 +303,7 @@ private fun ChannelFileCard(
                 )
             } else {
                 Icon(
-                    imageVector = Icons.Default.Download,
+                    imageVector = Icons.Rounded.Download,
                     contentDescription = "Descargar archivo",
                     tint = IosSettingsColors.label,
                     modifier = Modifier.size(22.dp)

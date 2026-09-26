@@ -30,6 +30,9 @@ import androidx.activity.result.contract.ActivityResultContracts
 import androidx.activity.compose.rememberLauncherForActivityResult
 import coil.compose.AsyncImage
 import com.example.ui.settings.ios.IosSettingsColors
+import androidx.compose.material.icons.rounded.AddAPhoto
+import androidx.compose.material.icons.rounded.Image
+import androidx.compose.material.icons.rounded.Edit
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -265,12 +268,12 @@ fun CreateChannelDialog(
                                         contentScale = ContentScale.Crop
                                     )
                                     Box(modifier = Modifier.fillMaxSize().background(IosSettingsColors.mediaScrimSoft.copy(alpha = 0.3f)))
-                                    Icon(Icons.Default.Edit, contentDescription = null, tint = IosSettingsColors.label, modifier = Modifier.align(Alignment.TopEnd).padding(8.dp))
+                                    Icon(Icons.Rounded.Edit, contentDescription = null, tint = IosSettingsColors.label, modifier = Modifier.align(Alignment.TopEnd).padding(8.dp))
                                 } else if (isUploadingCover) {
                                     CircularProgressIndicator(color = IosSettingsColors.blue)
                                 } else {
                                     Column(horizontalAlignment = Alignment.CenterHorizontally) {
-                                        Icon(Icons.Default.Image, contentDescription = null, tint = IosSettingsColors.secondaryLabel)
+                                        Icon(Icons.Rounded.Image, contentDescription = null, tint = IosSettingsColors.secondaryLabel)
                                         Spacer(modifier = Modifier.height(4.dp))
                                         Text("Añadir Portada", color = IosSettingsColors.secondaryLabel, fontSize = 12.sp)
                                     }
@@ -301,7 +304,7 @@ fun CreateChannelDialog(
                                     } else if (isUploadingAvatar) {
                                         CircularProgressIndicator(color = IosSettingsColors.blue, modifier = Modifier.size(24.dp))
                                     } else {
-                                        Icon(Icons.Default.AddAPhoto, contentDescription = null, tint = IosSettingsColors.secondaryLabel)
+                                        Icon(Icons.Rounded.AddAPhoto, contentDescription = null, tint = IosSettingsColors.secondaryLabel)
                                     }
                                 }
                                 Spacer(modifier = Modifier.width(16.dp))

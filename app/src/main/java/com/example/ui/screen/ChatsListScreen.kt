@@ -93,6 +93,34 @@ import java.util.*
 
 import com.example.ui.viewmodel.NotificationsViewModel
 import com.example.ui.settings.ios.IosSettingsColors
+import androidx.compose.material.icons.rounded.Archive
+import androidx.compose.material.icons.rounded.Campaign
+import androidx.compose.material.icons.rounded.ContactPage
+import androidx.compose.material.icons.rounded.LiveTv
+import androidx.compose.material.icons.rounded.Mic
+import androidx.compose.material.icons.rounded.MusicNote
+import androidx.compose.material.icons.rounded.NotificationsOff
+import androidx.compose.material.icons.rounded.PersonAdd
+import androidx.compose.material.icons.rounded.PushPin
+import androidx.compose.material.icons.rounded.QrCodeScanner
+import androidx.compose.material.icons.rounded.Tv
+import androidx.compose.material.icons.rounded.Add
+import androidx.compose.material.icons.rounded.Build
+import androidx.compose.material.icons.rounded.Call
+import androidx.compose.material.icons.rounded.Check
+import androidx.compose.material.icons.rounded.Close
+import androidx.compose.material.icons.rounded.Delete
+import androidx.compose.material.icons.rounded.Favorite
+import androidx.compose.material.icons.rounded.Home
+import androidx.compose.material.icons.rounded.Info
+import androidx.compose.material.icons.rounded.MoreVert
+import androidx.compose.material.icons.rounded.Person
+import androidx.compose.material.icons.rounded.PlayArrow
+import androidx.compose.material.icons.rounded.Refresh
+import androidx.compose.material.icons.rounded.Search
+import androidx.compose.material.icons.rounded.Settings
+import androidx.compose.material.icons.rounded.Star
+import androidx.compose.material.icons.rounded.Warning
 
 @OptIn(ExperimentalMaterial3Api::class)
 
@@ -142,7 +170,7 @@ fun SelectionTopAppBar(
         
         IconButton(onClick = onPinClicked) {
             Icon(
-                imageVector = Icons.Default.PushPin,
+                imageVector = Icons.Rounded.PushPin,
                 contentDescription = "Fijar chat",
                 tint = IosSettingsColors.label
             )
@@ -150,7 +178,7 @@ fun SelectionTopAppBar(
         
         IconButton(onClick = onDeleteClicked) {
             Icon(
-                imageVector = Icons.Default.Delete,
+                imageVector = Icons.Rounded.Delete,
                 contentDescription = "Eliminar chat",
                 tint = IosSettingsColors.label
             )
@@ -158,7 +186,7 @@ fun SelectionTopAppBar(
         
         IconButton(onClick = onMuteClicked) {
             Icon(
-                imageVector = Icons.Default.NotificationsOff,
+                imageVector = Icons.Rounded.NotificationsOff,
                 contentDescription = "Silenciar chat",
                 tint = IosSettingsColors.label
             )
@@ -166,7 +194,7 @@ fun SelectionTopAppBar(
         
         IconButton(onClick = onArchiveClicked) {
             Icon(
-                imageVector = Icons.Default.Archive,
+                imageVector = Icons.Rounded.Archive,
                 contentDescription = "Archivar chat",
                 tint = IosSettingsColors.label
             )
@@ -175,7 +203,7 @@ fun SelectionTopAppBar(
         Box {
             IconButton(onClick = { showMenu = true }) {
                 Icon(
-                    imageVector = Icons.Default.MoreVert,
+                    imageVector = Icons.Rounded.MoreVert,
                     contentDescription = "Opciones avanzadas",
                     tint = IosSettingsColors.label
                 )
@@ -931,7 +959,7 @@ fun ChatsListScreen(
                             onClick = { showPlusBottomSheet = false },
                             modifier = Modifier.align(Alignment.CenterStart)
                         ) {
-                            Icon(Icons.Default.Close, contentDescription = "Cerrar", tint = IosSettingsColors.label)
+                            Icon(Icons.Rounded.Close, contentDescription = "Cerrar", tint = IosSettingsColors.label)
                         }
                         Text(
                             text = "Crear",
@@ -988,7 +1016,7 @@ fun ChatsListScreen(
                                         ),
                                     contentAlignment = Alignment.Center
                                 ) {
-                                    Icon(Icons.Default.Add, contentDescription = null, tint = IosSettingsColors.label, modifier = Modifier.size(32.dp))
+                                    Icon(Icons.Rounded.Add, contentDescription = null, tint = IosSettingsColors.label, modifier = Modifier.size(32.dp))
                                 }
                                 Spacer(modifier = Modifier.height(12.dp))
                                 Text("Historia", color = IosSettingsColors.label, fontWeight = FontWeight.Bold, fontSize = 16.sp)
@@ -1026,7 +1054,7 @@ fun ChatsListScreen(
                                         ),
                                     contentAlignment = Alignment.Center
                                 ) {
-                                    Icon(Icons.Default.PlayArrow, contentDescription = null, tint = IosSettingsColors.label, modifier = Modifier.size(32.dp))
+                                    Icon(Icons.Rounded.PlayArrow, contentDescription = null, tint = IosSettingsColors.label, modifier = Modifier.size(32.dp))
                                 }
                                 Spacer(modifier = Modifier.height(12.dp))
                                 Text("Reel", color = IosSettingsColors.label, fontWeight = FontWeight.Bold, fontSize = 16.sp)
@@ -1058,7 +1086,7 @@ fun ChatsListScreen(
                                 .background(IosSettingsColors.blue, RoundedCornerShape(10.dp)),
                             contentAlignment = Alignment.Center
                         ) {
-                            Icon(Icons.Default.MusicNote, contentDescription = null, tint = IosSettingsColors.label, modifier = Modifier.size(20.dp))
+                            Icon(Icons.Rounded.MusicNote, contentDescription = null, tint = IosSettingsColors.label, modifier = Modifier.size(20.dp))
                         }
                         Spacer(modifier = Modifier.width(16.dp))
                         Column(modifier = Modifier.weight(1f)) {
@@ -1088,7 +1116,7 @@ fun ChatsListScreen(
                                 .background(IosSettingsColors.pink, RoundedCornerShape(10.dp)),
                             contentAlignment = Alignment.Center
                         ) {
-                            Icon(Icons.Default.Tv, contentDescription = null, tint = IosSettingsColors.label, modifier = Modifier.size(20.dp))
+                            Icon(Icons.Rounded.Tv, contentDescription = null, tint = IosSettingsColors.label, modifier = Modifier.size(20.dp))
                         }
                         Spacer(modifier = Modifier.width(16.dp))
                         Column(modifier = Modifier.weight(1f)) {
@@ -1128,7 +1156,7 @@ fun ChatsListScreen(
                                 .background(IosSettingsColors.purple, RoundedCornerShape(10.dp)),
                             contentAlignment = Alignment.Center
                         ) {
-                            Icon(Icons.Default.Search, contentDescription = null, tint = IosSettingsColors.label, modifier = Modifier.size(20.dp))
+                            Icon(Icons.Rounded.Search, contentDescription = null, tint = IosSettingsColors.label, modifier = Modifier.size(20.dp))
                         }
                         Spacer(modifier = Modifier.width(16.dp))
                         Column(modifier = Modifier.weight(1f)) {
@@ -1155,7 +1183,7 @@ fun ChatsListScreen(
                                 .background(IosSettingsColors.red, RoundedCornerShape(10.dp)),
                             contentAlignment = Alignment.Center
                         ) {
-                            Icon(Icons.Default.ContactPage, contentDescription = null, tint = IosSettingsColors.label, modifier = Modifier.size(20.dp))
+                            Icon(Icons.Rounded.ContactPage, contentDescription = null, tint = IosSettingsColors.label, modifier = Modifier.size(20.dp))
                         }
                         Spacer(modifier = Modifier.width(16.dp))
                         Column(modifier = Modifier.weight(1f)) {
@@ -1181,7 +1209,7 @@ fun ChatsListScreen(
                                 .background(IosSettingsColors.teal, RoundedCornerShape(10.dp)),
                             contentAlignment = Alignment.Center
                         ) {
-                            Icon(Icons.Default.Campaign, contentDescription = null, tint = IosSettingsColors.label, modifier = Modifier.size(20.dp))
+                            Icon(Icons.Rounded.Campaign, contentDescription = null, tint = IosSettingsColors.label, modifier = Modifier.size(20.dp))
                         }
                         Spacer(modifier = Modifier.width(16.dp))
                         Column(modifier = Modifier.weight(1f)) {
@@ -1214,7 +1242,7 @@ fun ChatsListScreen(
                                 .background(IosSettingsColors.indigo, RoundedCornerShape(10.dp)),
                             contentAlignment = Alignment.Center
                         ) {
-                            Icon(Icons.Default.Mic, contentDescription = null, tint = IosSettingsColors.label, modifier = Modifier.size(20.dp))
+                            Icon(Icons.Rounded.Mic, contentDescription = null, tint = IosSettingsColors.label, modifier = Modifier.size(20.dp))
                         }
                         Spacer(modifier = Modifier.width(16.dp))
                         Column(modifier = Modifier.weight(1f)) {
@@ -1247,7 +1275,7 @@ fun ChatsListScreen(
                                 .background(IosSettingsColors.red, RoundedCornerShape(10.dp)),
                             contentAlignment = Alignment.Center
                         ) {
-                            Icon(Icons.Default.LiveTv, contentDescription = null, tint = IosSettingsColors.label, modifier = Modifier.size(20.dp))
+                            Icon(Icons.Rounded.LiveTv, contentDescription = null, tint = IosSettingsColors.label, modifier = Modifier.size(20.dp))
                         }
                         Spacer(modifier = Modifier.width(16.dp))
                         Column(modifier = Modifier.weight(1f)) {
@@ -1290,7 +1318,7 @@ fun ChatsListScreen(
                                 horizontalArrangement = Arrangement.Center,
                                 verticalAlignment = Alignment.CenterVertically
                             ) {
-                                Icon(Icons.Default.Call, contentDescription = null, tint = IosSettingsColors.label, modifier = Modifier.size(18.dp))
+                                Icon(Icons.Rounded.Call, contentDescription = null, tint = IosSettingsColors.label, modifier = Modifier.size(18.dp))
                                 Spacer(modifier = Modifier.width(8.dp))
                                 Text("Llamadas", color = IosSettingsColors.label, fontSize = 14.sp, fontWeight = FontWeight.Medium)
                             }
@@ -1314,7 +1342,7 @@ fun ChatsListScreen(
                                 horizontalArrangement = Arrangement.Center,
                                 verticalAlignment = Alignment.CenterVertically
                             ) {
-                                Icon(Icons.Default.QrCodeScanner, contentDescription = null, tint = IosSettingsColors.label, modifier = Modifier.size(18.dp))
+                                Icon(Icons.Rounded.QrCodeScanner, contentDescription = null, tint = IosSettingsColors.label, modifier = Modifier.size(18.dp))
                                 Spacer(modifier = Modifier.width(8.dp))
                                 Text("Escanear QR", color = IosSettingsColors.label, fontSize = 14.sp, fontWeight = FontWeight.Medium)
                             }
@@ -1337,15 +1365,15 @@ fun ChatsListScreen(
                         title = { Text("Directorio de Panas 👥", color = IosSettingsColors.label, fontWeight = FontWeight.Bold, fontSize = 18.sp) },
                         navigationIcon = {
                             IconButton(onClick = { showContactsDialog = false }) {
-                                Icon(Icons.Default.Close, contentDescription = "Cerrar", tint = IosSettingsColors.label)
+                                Icon(Icons.Rounded.Close, contentDescription = "Cerrar", tint = IosSettingsColors.label)
                             }
                         },
                         actions = {
                             IconButton(onClick = { showRealQrScanner = true }) {
-                                Icon(Icons.Default.QrCodeScanner, contentDescription = "Escanear QR", tint = IosSettingsColors.label)
+                                Icon(Icons.Rounded.QrCodeScanner, contentDescription = "Escanear QR", tint = IosSettingsColors.label)
                             }
                             IconButton(onClick = { showAddContactDialog = true }) {
-                                Icon(Icons.Default.PersonAdd, contentDescription = "Agregar Pana", tint = IosSettingsColors.label)
+                                Icon(Icons.Rounded.PersonAdd, contentDescription = "Agregar Pana", tint = IosSettingsColors.label)
                             }
                         },
                         colors = TopAppBarDefaults.topAppBarColors(containerColor = IosSettingsColors.groupBackground)
@@ -1386,7 +1414,7 @@ fun ChatsListScreen(
                         title = { Text("Historial de Llamadas 📞", color = IosSettingsColors.label, fontWeight = FontWeight.Bold, fontSize = 18.sp) },
                         navigationIcon = {
                             IconButton(onClick = { showCallsDialog = false }) {
-                                Icon(Icons.Default.Close, contentDescription = "Cerrar", tint = IosSettingsColors.label)
+                                Icon(Icons.Rounded.Close, contentDescription = "Cerrar", tint = IosSettingsColors.label)
                             }
                         },
                         colors = TopAppBarDefaults.topAppBarColors(containerColor = IosSettingsColors.groupBackground)
@@ -1455,7 +1483,7 @@ fun ChatsListScreen(
 
                     // Menu Item: Editar Perfil
                     QuickProfileMenuItem(
-                        icon = Icons.Default.Person,
+                        icon = Icons.Rounded.Person,
                         label = "Editar perfil",
                         tint = IosSettingsColors.label
                     ) {
@@ -1465,7 +1493,7 @@ fun ChatsListScreen(
 
                     // Menu Item: Configuración
                     QuickProfileMenuItem(
-                        icon = Icons.Default.Settings,
+                        icon = Icons.Rounded.Settings,
                         label = "Configuración",
                         tint = colors.accent
                     ) {
@@ -1476,7 +1504,7 @@ fun ChatsListScreen(
                     // Menu Item: Modo oscuro
                     val isMinimal by com.example.ui.theme.ThemeManager.isMinimalistMode.collectAsState()
                     QuickProfileMenuItem(
-                        icon = if (isMinimal) Icons.Default.Check else Icons.Default.Close,
+                        icon = if (isMinimal) Icons.Rounded.Check else Icons.Rounded.Close,
                         label = "Modo minimalista",
                         tint = IosSettingsColors.green
                     ) {
@@ -1548,7 +1576,7 @@ fun ChatsListScreen(
             },
             title = {
                 Row(verticalAlignment = Alignment.CenterVertically) {
-                    Icon(Icons.Default.Add, contentDescription = null, tint = IosSettingsColors.label)
+                    Icon(Icons.Rounded.Add, contentDescription = null, tint = IosSettingsColors.label)
                     Spacer(modifier = Modifier.width(8.dp))
                     Text("Agregar Contacto de Pana 🇻🇪", color = IosSettingsColors.label, fontWeight = FontWeight.Bold, fontSize = 18.sp)
                 }
@@ -1598,7 +1626,7 @@ fun ChatsListScreen(
                         colors = ButtonDefaults.buttonColors(containerColor = colors.primary),
                         modifier = Modifier.fillMaxWidth()
                     ) {
-                        Icon(Icons.Default.Refresh, contentDescription = null, tint = IosSettingsColors.onAccent)
+                        Icon(Icons.Rounded.Refresh, contentDescription = null, tint = IosSettingsColors.onAccent)
                         Spacer(modifier = Modifier.width(8.dp))
                         Text("Escanear Código QR Real 📸", color = IosSettingsColors.onAccent, fontWeight = FontWeight.Bold, fontSize = 13.sp)
                     }
@@ -1662,16 +1690,16 @@ fun ChatsListScreen(
         // Define system command items for Cerebro
         val cerebroCommands = remember {
             listOf(
-                CerebroCommand("/theme dark_teal", "Verde Pana", "Vuelve al clásico tema verde oscuro de Panalink", Icons.Default.Settings),
-                CerebroCommand("/theme cyberpunk", "Cyberpunk", "Estilo neon retro con acentos rosados y azules", Icons.Default.Star),
-                CerebroCommand("/theme neon", "Vibe Eléctrico", "Rosado intenso con fondo profundo espacial", Icons.Default.Favorite),
-                CerebroCommand("/theme royal_purple", "Púrpura Real", "Elegante tono violeta y amatista sofisticado", Icons.Default.Build),
-                CerebroCommand("/theme neon_orange", "Naranja Neon", "Apariencia audaz y ardiente de alta visibilidad", Icons.Default.Warning),
-                CerebroCommand("/theme nordic_ice", "Nórdico Glacial", "Fresco, limpio, con tonos azul ártico", Icons.Default.Info),
-                CerebroCommand("/theme minimal_white", "Blanco Minimal", "Diseño ultra limpio de alto contraste claro", Icons.Default.Home),
-                CerebroCommand("/minimal", "Activar Mínimo", "Oculta paneles extras para una interfaz limpia", Icons.Default.Check),
+                CerebroCommand("/theme dark_teal", "Verde Pana", "Vuelve al clásico tema verde oscuro de Panalink", Icons.Rounded.Settings),
+                CerebroCommand("/theme cyberpunk", "Cyberpunk", "Estilo neon retro con acentos rosados y azules", Icons.Rounded.Star),
+                CerebroCommand("/theme neon", "Vibe Eléctrico", "Rosado intenso con fondo profundo espacial", Icons.Rounded.Favorite),
+                CerebroCommand("/theme royal_purple", "Púrpura Real", "Elegante tono violeta y amatista sofisticado", Icons.Rounded.Build),
+                CerebroCommand("/theme neon_orange", "Naranja Neon", "Apariencia audaz y ardiente de alta visibilidad", Icons.Rounded.Warning),
+                CerebroCommand("/theme nordic_ice", "Nórdico Glacial", "Fresco, limpio, con tonos azul ártico", Icons.Rounded.Info),
+                CerebroCommand("/theme minimal_white", "Blanco Minimal", "Diseño ultra limpio de alto contraste claro", Icons.Rounded.Home),
+                CerebroCommand("/minimal", "Activar Mínimo", "Oculta paneles extras para una interfaz limpia", Icons.Rounded.Check),
                 CerebroCommand("/full", "Apariencia Completa", "Muestra todos los paneles, estadísticas y widgets", Icons.AutoMirrored.Filled.List),
-                CerebroCommand("/nuevo-chat", "Nuevo Chat", "Abre directamente el buscador universal de panas", Icons.Default.Add)
+                CerebroCommand("/nuevo-chat", "Nuevo Chat", "Abre directamente el buscador universal de panas", Icons.Rounded.Add)
             )
         }
 
@@ -1708,7 +1736,7 @@ fun ChatsListScreen(
                              .background(IosSettingsColors.separator, CircleShape),
                          contentAlignment = Alignment.Center
                      ) {
-                         Icon(Icons.Default.Star, contentDescription = null, tint = IosSettingsColors.label, modifier = Modifier.size(20.dp))
+                         Icon(Icons.Rounded.Star, contentDescription = null, tint = IosSettingsColors.label, modifier = Modifier.size(20.dp))
                      }
                      Column {
                          Text("Cerebro Spotlight ⚡", fontWeight = FontWeight.Bold, fontSize = 18.sp, color = IosSettingsColors.label)
@@ -1760,7 +1788,7 @@ fun ChatsListScreen(
                             focusedTextColor = IosSettingsColors.label,
                             unfocusedTextColor = IosSettingsColors.label
                         ),
-                        leadingIcon = { Icon(Icons.Default.Search, contentDescription = null, tint = IosSettingsColors.label) },
+                        leadingIcon = { Icon(Icons.Rounded.Search, contentDescription = null, tint = IosSettingsColors.label) },
                         shape = RoundedCornerShape(12.dp),
                         singleLine = true
                     )

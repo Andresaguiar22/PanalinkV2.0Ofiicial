@@ -34,6 +34,11 @@ import androidx.compose.foundation.lazy.grid.LazyVerticalGrid
 import androidx.compose.foundation.lazy.grid.GridCells
 import androidx.compose.foundation.lazy.grid.items
 import com.example.ui.settings.ios.IosSettingsColors
+import androidx.compose.material.icons.rounded.SentimentSatisfied
+import androidx.compose.material.icons.rounded.Visibility
+import androidx.compose.material.icons.rounded.VisibilityOff
+import androidx.compose.material.icons.rounded.Close
+import androidx.compose.material.icons.rounded.Search
 
 data class EmojiCategory(val name: String, val icon: String, val emojis: List<String>)
 
@@ -200,7 +205,7 @@ fun EmojiAndMediaSheet(
 
                 if (searchQuery.isNotEmpty()) {
                     IconButton(onClick = { onSearchQueryChange("") }) {
-                        Icon(Icons.Default.Close, contentDescription = "Limpiar", tint = IosSettingsColors.secondaryLabel)
+                        Icon(Icons.Rounded.Close, contentDescription = "Limpiar", tint = IosSettingsColors.secondaryLabel)
                     }
                 }
             }
@@ -214,7 +219,7 @@ fun EmojiAndMediaSheet(
             ) {
                 // Left: Search Button
                 IconButton(onClick = { onSearchActiveChange(true) }) {
-                    Icon(Icons.Default.Search, contentDescription = "Buscar", tint = IosSettingsColors.secondaryLabel)
+                    Icon(Icons.Rounded.Search, contentDescription = "Buscar", tint = IosSettingsColors.secondaryLabel)
                 }
 
                 // Center: Unified selector of 3 tabs (Emoji, GIF, Sticker)
@@ -242,7 +247,7 @@ fun EmojiAndMediaSheet(
                             ) {
                                 if (index == 0) {
                                     Icon(
-                                        imageVector = Icons.Default.SentimentSatisfied,
+                                        imageVector = Icons.Rounded.SentimentSatisfied,
                                         contentDescription = "Emojis",
                                         tint = if (isSelected) IosSettingsColors.label else IosSettingsColors.secondaryLabel,
                                         modifier = Modifier.size(20.dp)
@@ -270,7 +275,7 @@ fun EmojiAndMediaSheet(
                 // Botón Modo Fantasma (mensaje de una vista) — despeja el campo de escritura
                 IconButton(onClick = onToggleGhostMode) {
                     Icon(
-                        imageVector = if (isGhostMode) Icons.Default.VisibilityOff else Icons.Default.Visibility,
+                        imageVector = if (isGhostMode) Icons.Rounded.VisibilityOff else Icons.Rounded.Visibility,
                         contentDescription = "Mensaje de una vista",
                         tint = if (isGhostMode) IosSettingsColors.blue else IosSettingsColors.secondaryLabel,
                         modifier = Modifier.size(22.dp)

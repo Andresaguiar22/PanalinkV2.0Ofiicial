@@ -19,9 +19,9 @@ import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.text.BasicTextField
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.Send
-import androidx.compose.material.icons.filled.Close
-import androidx.compose.material.icons.filled.Lock
-import androidx.compose.material.icons.filled.PersonAdd
+import androidx.compose.material.icons.rounded.Close
+import androidx.compose.material.icons.rounded.Lock
+import androidx.compose.material.icons.rounded.PersonAdd
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.Icon
@@ -114,7 +114,7 @@ fun CommentInputBar(
                             }
                             IconButton(onClick = onCancelReplyClick) {
                                 Icon(
-                                    imageVector = Icons.Default.Close,
+                                    imageVector = Icons.Rounded.Close,
                                     contentDescription = "Cancelar respuesta",
                                     tint = secondaryText,
                                     modifier = Modifier.size(18.dp)
@@ -192,7 +192,7 @@ fun CommentInputBar(
                     verticalAlignment = Alignment.CenterVertically
                 ) {
                     Icon(
-                        imageVector = Icons.Default.Lock,
+                        imageVector = Icons.Rounded.Lock,
                         contentDescription = "Canal restringido",
                         tint = secondaryText,
                         modifier = Modifier.size(20.dp)
@@ -222,7 +222,7 @@ fun CommentInputBar(
                     ) {
                         Row(verticalAlignment = Alignment.CenterVertically) {
                             Icon(
-                                imageVector = Icons.Default.PersonAdd,
+                                imageVector = Icons.Rounded.PersonAdd,
                                 contentDescription = null,
                                 modifier = Modifier.size(16.dp)
                             )

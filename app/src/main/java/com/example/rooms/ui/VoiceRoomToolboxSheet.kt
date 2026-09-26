@@ -23,10 +23,8 @@ import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.Check
-import androidx.compose.material.icons.filled.Close
-import androidx.compose.material.icons.filled.Diamond
-import androidx.compose.material.icons.filled.Stars
+import androidx.compose.material.icons.rounded.Check
+import androidx.compose.material.icons.rounded.Close
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
@@ -96,7 +94,7 @@ fun VoiceRoomToolboxSheet(
                     modifier = Modifier.weight(1f)
                 )
                 Icon(
-                    imageVector = Icons.Default.Close,
+                    imageVector = Icons.Rounded.Close,
                     contentDescription = "Cerrar",
                     tint = IosSettingsColors.secondaryLabel,
                     modifier = Modifier
@@ -194,7 +192,7 @@ fun VoiceRoomToolboxSheet(
                             )
                             if (selected) {
                                 Icon(
-                                    imageVector = Icons.Default.Check,
+                                    imageVector = Icons.Rounded.Check,
                                     contentDescription = "Seleccionada",
                                     tint = IosSettingsColors.blue,
                                     modifier = Modifier.size(16.dp)
@@ -293,7 +291,7 @@ fun VoiceRoomToolboxSheet(
                             }
                             if (selected) {
                                 Icon(
-                                    imageVector = Icons.Default.Check,
+                                    imageVector = Icons.Rounded.Check,
                                     contentDescription = "Seleccionado",
                                     tint = IosSettingsColors.blue,
                                     modifier = Modifier.size(16.dp)
@@ -345,7 +343,7 @@ fun VoiceRoomMyPendantSheet(
                     modifier = Modifier.weight(1f)
                 )
                 Icon(
-                    imageVector = Icons.Default.Close,
+                    imageVector = Icons.Rounded.Close,
                     contentDescription = "Cerrar",
                     tint = IosSettingsColors.secondaryLabel,
                     modifier = Modifier
@@ -447,7 +445,7 @@ fun VoiceRoomMyPendantSheet(
                         }
                         if (selected) {
                             Icon(
-                                imageVector = Icons.Default.Check,
+                                imageVector = Icons.Rounded.Check,
                                 contentDescription = "Seleccionado",
                                 tint = IosSettingsColors.blue,
                                 modifier = Modifier.size(16.dp)

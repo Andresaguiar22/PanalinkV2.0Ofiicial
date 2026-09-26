@@ -25,14 +25,12 @@ import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.graphics.drawscope.withTransform
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.Close
-import androidx.compose.material.icons.filled.Favorite
-import androidx.compose.material.icons.filled.Visibility
-import androidx.compose.material.icons.filled.VisibilityOff
-import androidx.compose.material.icons.filled.KeyboardArrowUp
-import androidx.compose.material.icons.filled.MoreVert
+import androidx.compose.material.icons.rounded.Close
+import androidx.compose.material.icons.rounded.Favorite
+import androidx.compose.material.icons.rounded.Visibility
+import androidx.compose.material.icons.rounded.MoreVert
 import androidx.compose.material.icons.automirrored.filled.Send
-import androidx.compose.material.icons.filled.Star
+import androidx.compose.material.icons.rounded.Star
 import androidx.compose.material.icons.outlined.Delete
 import androidx.compose.material.icons.rounded.Favorite
 import androidx.compose.material.icons.rounded.FavoriteBorder
@@ -1324,7 +1322,7 @@ var showGifPicker by remember { mutableStateOf(false) }
                             modifier = Modifier.background(Color.Black.copy(alpha = 0.4f), CircleShape)
                         ) {
                             Icon(
-                                imageVector = Icons.Default.MoreVert,
+                                imageVector = Icons.Rounded.MoreVert,
                                 contentDescription = "Opciones",
                                 tint = IosSettingsColors.label
                             )
@@ -1338,7 +1336,7 @@ var showGifPicker by remember { mutableStateOf(false) }
                             if (isOwner) {
                                 DropdownMenuItem(
                                     text = { Text("Eliminar estado para todos", color = IosSettingsColors.red) },
-                                    leadingIcon = { Icon(Icons.Default.Close, contentDescription = null, tint = IosSettingsColors.red) },
+                                    leadingIcon = { Icon(Icons.Rounded.Close, contentDescription = null, tint = IosSettingsColors.red) },
                                     onClick = {
                                         showOwnerMenu = false
                                         viewModel.deleteState(state.id) {
@@ -1367,7 +1365,7 @@ var showGifPicker by remember { mutableStateOf(false) }
                                 )
                                 DropdownMenuItem(
                                     text = { Text("Silenciar historias", color = IosSettingsColors.label) },
-                                    leadingIcon = { Icon(Icons.Default.MoreVert, contentDescription = null, tint = IosSettingsColors.label) },
+                                    leadingIcon = { Icon(Icons.Rounded.MoreVert, contentDescription = null, tint = IosSettingsColors.label) },
                                     onClick = {
                                         showOwnerMenu = false
                                         Toast.makeText(context, "Historias de ${(identityState?.displayName ?: profile.displayName)} silenciadas", Toast.LENGTH_SHORT).show()
@@ -1393,7 +1391,7 @@ var showGifPicker by remember { mutableStateOf(false) }
                         onClick = onClose,
                         modifier = Modifier.background(Color.Black.copy(alpha = 0.4f), CircleShape)
                     ) {
-                        Icon(Icons.Default.Close, contentDescription = "Cerrar", tint = IosSettingsColors.label)
+                        Icon(Icons.Rounded.Close, contentDescription = "Cerrar", tint = IosSettingsColors.label)
                     }
                 }
                 } // closes outer Row (inside Box)
@@ -1418,7 +1416,7 @@ var showGifPicker by remember { mutableStateOf(false) }
             modifier = Modifier.align(Alignment.Center)
         ) {
             Icon(
-                imageVector = Icons.Filled.Favorite,
+                imageVector = Icons.Rounded.Favorite,
                 contentDescription = null,
                 tint = IosSettingsColors.pink,
                 modifier = Modifier.size(110.dp)
@@ -1480,7 +1478,7 @@ var showGifPicker by remember { mutableStateOf(false) }
                             modifier = Modifier.padding(horizontal = 9.dp, vertical = 5.dp)
                         ) {
                             Icon(
-                                imageVector = Icons.Default.Visibility,
+                                imageVector = Icons.Rounded.Visibility,
                                 contentDescription = "Ver espectadores",
                                 tint = IosSettingsColors.label,
                                 modifier = Modifier.size(18.dp)
@@ -1818,7 +1816,7 @@ var showGifPicker by remember { mutableStateOf(false) }
                         IconButton(
                             onClick = { showCommentsSheet = false }
                         ) {
-                            Icon(Icons.Default.Close, contentDescription = "Cerrar", tint = IosSettingsColors.label)
+                            Icon(Icons.Rounded.Close, contentDescription = "Cerrar", tint = IosSettingsColors.label)
                         }
                     }
 
@@ -2067,7 +2065,7 @@ if (showGifPicker) {
                         IconButton(
                             onClick = { showSpectatorsSheet = false }
                         ) {
-                            Icon(Icons.Default.Close, contentDescription = "Cerrar", tint = IosSettingsColors.label)
+                            Icon(Icons.Rounded.Close, contentDescription = "Cerrar", tint = IosSettingsColors.label)
                         }
                     }
 
@@ -2428,7 +2426,7 @@ fun VideoPlayer(
                     .padding(16.dp),
                 horizontalAlignment = Alignment.CenterHorizontally
             ) {
-                Icon(Icons.Default.Close, contentDescription = null, tint = IosSettingsColors.label, modifier = Modifier.size(48.dp))
+                Icon(Icons.Rounded.Close, contentDescription = null, tint = IosSettingsColors.label, modifier = Modifier.size(48.dp))
                 Spacer(modifier = Modifier.height(8.dp))
                 Text("Error al reproducir video", color = IosSettingsColors.label, fontWeight = FontWeight.Bold)
                 Spacer(modifier = Modifier.height(8.dp))

@@ -19,15 +19,15 @@ import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.Description
-import androidx.compose.material.icons.filled.Image
-import androidx.compose.material.icons.filled.MusicNote
-import androidx.compose.material.icons.filled.PhotoCamera
+import androidx.compose.material.icons.rounded.Description
+import androidx.compose.material.icons.rounded.Image
+import androidx.compose.material.icons.rounded.MusicNote
+import androidx.compose.material.icons.rounded.PhotoCamera
 import androidx.compose.material.icons.automirrored.filled.QueueMusic
-import androidx.compose.material.icons.filled.Videocam
-import androidx.compose.material.icons.filled.Visibility
-import androidx.compose.material.icons.filled.VisibilityOff
-import androidx.compose.material.icons.filled.Gif
+import androidx.compose.material.icons.rounded.Videocam
+import androidx.compose.material.icons.rounded.Visibility
+import androidx.compose.material.icons.rounded.VisibilityOff
+import androidx.compose.material.icons.rounded.Gif
 import androidx.compose.material.icons.automirrored.filled.StickyNote2
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
@@ -82,32 +82,32 @@ fun ChatAttachmentSheet(
                         .horizontalScroll(rememberScrollState()),
                     horizontalArrangement = Arrangement.spacedBy(4.dp)
                 ) {
-                    AttachmentItem(icon = Icons.Default.PhotoCamera, label = "Cámara", color = IosSettingsColors.pink) {
+                    AttachmentItem(icon = Icons.Rounded.PhotoCamera, label = "Cámara", color = IosSettingsColors.pink) {
                         onCamera()
                     }
-                    AttachmentItem(icon = Icons.Default.Image, label = "Imagen", color = IosSettingsColors.blue) {
+                    AttachmentItem(icon = Icons.Rounded.Image, label = "Imagen", color = IosSettingsColors.blue) {
                         onImage()
                     }
-                    AttachmentItem(icon = Icons.Default.Videocam, label = "Video", color = IosSettingsColors.purple) {
+                    AttachmentItem(icon = Icons.Rounded.Videocam, label = "Video", color = IosSettingsColors.purple) {
                         onVideo()
                     }
-                    AttachmentItem(icon = Icons.Default.Description, label = "Doc", color = IosSettingsColors.green) {
+                    AttachmentItem(icon = Icons.Rounded.Description, label = "Doc", color = IosSettingsColors.green) {
                         onDocument()
                     }
-                    AttachmentItem(icon = Icons.Default.MusicNote, label = "Audio", color = IosSettingsColors.orange) {
+                    AttachmentItem(icon = Icons.Rounded.MusicNote, label = "Audio", color = IosSettingsColors.orange) {
                         onAudio()
                     }
                     AttachmentItem(icon = Icons.AutoMirrored.Filled.QueueMusic, label = "Playlist", color = IosSettingsColors.blue) {
                         onPlaylist()
                     }
-                    AttachmentItem(icon = Icons.Default.Gif, label = "GIF", color = IosSettingsColors.orange) {
+                    AttachmentItem(icon = Icons.Rounded.Gif, label = "GIF", color = IosSettingsColors.orange) {
                         onGif()
                     }
                     AttachmentItem(icon = Icons.AutoMirrored.Filled.StickyNote2, label = "Stickers", color = IosSettingsColors.pink) {
                         onSticker()
                     }
                     AttachmentItem(
-                        icon = if (isGhostMode) Icons.Default.VisibilityOff else Icons.Default.Visibility,
+                        icon = if (isGhostMode) Icons.Rounded.VisibilityOff else Icons.Rounded.Visibility,
                         label = "Ghost",
                         color = if (isGhostMode) IosSettingsColors.blue else IosSettingsColors.secondaryLabel
                     ) {

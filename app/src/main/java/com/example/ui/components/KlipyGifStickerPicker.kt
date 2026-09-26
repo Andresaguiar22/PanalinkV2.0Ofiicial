@@ -10,7 +10,7 @@ import androidx.compose.foundation.lazy.grid.items
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.Close
+import androidx.compose.material.icons.rounded.Close
 import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
@@ -136,7 +136,7 @@ fun KlipyGifStickerPicker(
                     fontWeight = FontWeight.Bold
                 )
                 IconButton(onClick = onDismiss) {
-                    Icon(Icons.Default.Close, contentDescription = "Cerrar", tint = IosSettingsColors.label)
+                    Icon(Icons.Rounded.Close, contentDescription = "Cerrar", tint = IosSettingsColors.label)
  }
                 }
             }
@@ -203,7 +203,7 @@ fun KlipyGifStickerPicker(
                         },
                         modifier = Modifier.size(24.dp)
                     ) {
-                        Icon(Icons.Default.Close, contentDescription = "Limpiar", tint = IosSettingsColors.secondaryLabel, modifier = Modifier.size(14.dp))
+                        Icon(Icons.Rounded.Close, contentDescription = "Limpiar", tint = IosSettingsColors.secondaryLabel, modifier = Modifier.size(14.dp))
                     }
                 } else {
                     Box(modifier = Modifier.size(24.dp))

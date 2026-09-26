@@ -72,6 +72,22 @@ import androidx.compose.ui.hapticfeedback.HapticFeedbackType
 import androidx.compose.ui.platform.LocalHapticFeedback
 import androidx.compose.animation.core.*
 import com.example.ui.settings.ios.IosSettingsColors
+import androidx.compose.material.icons.rounded.Fullscreen
+import androidx.compose.material.icons.rounded.FullscreenExit
+import androidx.compose.material.icons.rounded.LiveTv
+import androidx.compose.material.icons.rounded.Numbers
+import androidx.compose.material.icons.rounded.Pause
+import androidx.compose.material.icons.rounded.Public
+import androidx.compose.material.icons.rounded.ScreenRotation
+import androidx.compose.material.icons.rounded.Tv
+import androidx.compose.material.icons.rounded.TvOff
+import androidx.compose.material.icons.rounded.WifiOff
+import androidx.compose.material.icons.rounded.Favorite
+import androidx.compose.material.icons.rounded.FavoriteBorder
+import androidx.compose.material.icons.rounded.Lock
+import androidx.compose.material.icons.rounded.PlayArrow
+import androidx.compose.material.icons.rounded.Refresh
+import androidx.compose.material.icons.rounded.Search
 
 // ── Xuper TV style palette ──────────────────────────────────────────────
 private val TvBg: Color get() = IosSettingsColors.groupBackground
@@ -477,7 +493,7 @@ fun PanaTVScreen(viewModel: PanaTVViewModel = viewModel()) {
                         contentAlignment = Alignment.Center
                     ) {
                         Icon(
-                            Icons.Default.LiveTv,
+                            Icons.Rounded.LiveTv,
                             contentDescription = null,
                             tint = IosSettingsColors.label,
                             modifier = Modifier.size(20.dp)
@@ -506,7 +522,7 @@ fun PanaTVScreen(viewModel: PanaTVViewModel = viewModel()) {
                                 .clickable { showCountryDropdown = true }
                                 .padding(horizontal = 10.dp, vertical = 6.dp)
                         ) {
-                            Icon(Icons.Default.Public, contentDescription = null, tint = TvAccent, modifier = Modifier.size(16.dp))
+                            Icon(Icons.Rounded.Public, contentDescription = null, tint = TvAccent, modifier = Modifier.size(16.dp))
                             Spacer(modifier = Modifier.width(6.dp))
                             Text(
                                 selectedCountry.ifEmpty { "Todos" },
@@ -516,7 +532,7 @@ fun PanaTVScreen(viewModel: PanaTVViewModel = viewModel()) {
                         }
                     }
                     IconButton(onClick = { showChannelInput = true }) {
-                        Icon(Icons.Default.Numbers, contentDescription = "Número de canal", tint = TvTextSecondary, modifier = Modifier.size(18.dp))
+                        Icon(Icons.Rounded.Numbers, contentDescription = "Número de canal", tint = TvTextSecondary, modifier = Modifier.size(18.dp))
                     }
                         DropdownMenu(
                             expanded = showCountryDropdown,
@@ -555,7 +571,7 @@ fun PanaTVScreen(viewModel: PanaTVViewModel = viewModel()) {
                 ) {
                     Row(verticalAlignment = Alignment.CenterVertically) {
                         Icon(
-                            Icons.Default.Search,
+                            Icons.Rounded.Search,
                             contentDescription = null,
                             tint = TvTextSecondary,
                             modifier = Modifier.size(20.dp)
@@ -739,7 +755,7 @@ fun PanaTVScreen(viewModel: PanaTVViewModel = viewModel()) {
                                     if (p?.isPlaying == true) p.pause() else p?.play()
                                 }) {
                                     Icon(
-                                        if (isPlayingState) Icons.Default.Pause else Icons.Default.PlayArrow,
+                                        if (isPlayingState) Icons.Rounded.Pause else Icons.Rounded.PlayArrow,
                                         contentDescription = null,
                                         tint = IosSettingsColors.label
                                     )
@@ -779,7 +795,7 @@ fun PanaTVScreen(viewModel: PanaTVViewModel = viewModel()) {
                                         .padding(horizontal = 8.dp, vertical = 6.dp)
                                 )
                                     IconButton(onClick = { isFullscreen = true }) {
-                                        Icon(Icons.Default.Fullscreen, contentDescription = "Pantalla completa", tint = IosSettingsColors.label)
+                                        Icon(Icons.Rounded.Fullscreen, contentDescription = "Pantalla completa", tint = IosSettingsColors.label)
                                     }
                                     // PiP entry removed for PanaTV: leaving the screen must stop
                                     // playback outright (see lifecycle). Reels PiP is unaffected.
@@ -817,7 +833,7 @@ fun PanaTVScreen(viewModel: PanaTVViewModel = viewModel()) {
                             horizontalAlignment = Alignment.CenterHorizontally
                         ) {
                             Icon(
-                                Icons.Default.LiveTv,
+                                Icons.Rounded.LiveTv,
                                 contentDescription = null,
                                 tint = TvAccent.copy(alpha = 0.4f),
                                 modifier = Modifier.size(52.dp)
@@ -895,7 +911,7 @@ fun PanaTVScreen(viewModel: PanaTVViewModel = viewModel()) {
                             }
                         } else {
                             Column(horizontalAlignment = Alignment.CenterHorizontally) {
-                                Icon(Icons.Default.TvOff, contentDescription = null, tint = TvTextSecondary, modifier = Modifier.size(40.dp))
+                                Icon(Icons.Rounded.TvOff, contentDescription = null, tint = TvTextSecondary, modifier = Modifier.size(40.dp))
                                 Spacer(modifier = Modifier.height(8.dp))
                                 Text("No se encontraron canales", color = TvTextSecondary, fontSize = 15.sp)
                             }
@@ -982,7 +998,7 @@ fun PanaTVScreen(viewModel: PanaTVViewModel = viewModel()) {
                                 ) {
                                     Column(horizontalAlignment = Alignment.CenterHorizontally) {
                                         Icon(
-                                            Icons.Default.WifiOff,
+                                            Icons.Rounded.WifiOff,
                                             contentDescription = null,
                                             tint = IosSettingsColors.red,
                                             modifier = Modifier.size(40.dp)
@@ -1009,7 +1025,7 @@ fun PanaTVScreen(viewModel: PanaTVViewModel = viewModel()) {
                                                 verticalAlignment = Alignment.CenterVertically,
                                                 horizontalArrangement = Arrangement.spacedBy(6.dp)
                                             ) {
-                                                Icon(Icons.Default.Refresh, contentDescription = null, tint = IosSettingsColors.label, modifier = Modifier.size(16.dp))
+                                                Icon(Icons.Rounded.Refresh, contentDescription = null, tint = IosSettingsColors.label, modifier = Modifier.size(16.dp))
                                                 Text("Reintentar", color = IosSettingsColors.label, fontWeight = FontWeight.Bold, fontSize = 12.sp)
                                             }
                                         }
@@ -1194,7 +1210,7 @@ fun PanaTVScreen(viewModel: PanaTVViewModel = viewModel()) {
                                     if (p?.isPlaying == true) p.pause() else p?.play()
                                     }) {
                                         Icon(
-                                            if (isPlayingState) Icons.Default.Pause else Icons.Default.PlayArrow,
+                                            if (isPlayingState) Icons.Rounded.Pause else Icons.Rounded.PlayArrow,
                                             contentDescription = null,
                                             tint = IosSettingsColors.label,
                                             modifier = Modifier.size(30.dp)
@@ -1215,7 +1231,7 @@ fun PanaTVScreen(viewModel: PanaTVViewModel = viewModel()) {
                                         controlsVisible = false
                                         lockTapVisible = false
                                     }) {
-                                        Icon(Icons.Default.Lock, contentDescription = "Bloquear pantalla", tint = IosSettingsColors.label)
+                                        Icon(Icons.Rounded.Lock, contentDescription = "Bloquear pantalla", tint = IosSettingsColors.label)
                                     }
                                 }
                                 Row(verticalAlignment = Alignment.CenterVertically) {
@@ -1233,13 +1249,13 @@ fun PanaTVScreen(viewModel: PanaTVViewModel = viewModel()) {
                                     )
                                     // Rotate screen
                                     IconButton(onClick = toggleOrientation) {
-                                        Icon(Icons.Default.ScreenRotation, contentDescription = "Voltear pantalla", tint = IosSettingsColors.label)
+                                        Icon(Icons.Rounded.ScreenRotation, contentDescription = "Voltear pantalla", tint = IosSettingsColors.label)
                                     }
                                     // PiP entry removed for PanaTV: leaving the screen must stop
                                     // playback outright (see lifecycle). Reels PiP is unaffected.
                                     // Exit fullscreen
                                     IconButton(onClick = { isFullscreen = false }) {
-                                        Icon(Icons.Default.FullscreenExit, contentDescription = "Salir", tint = IosSettingsColors.label)
+                                        Icon(Icons.Rounded.FullscreenExit, contentDescription = "Salir", tint = IosSettingsColors.label)
                                     }
                                 }
                             }
@@ -1299,12 +1315,12 @@ fun PanaTVScreen(viewModel: PanaTVViewModel = viewModel()) {
                                                     contentDescription = null,
                                                     modifier = Modifier.fillMaxSize().padding(4.dp),
                                                     contentScale = ContentScale.Fit,
-                                                    error = rememberVectorPainter(image = Icons.Default.Tv),
-                                                    placeholder = rememberVectorPainter(image = Icons.Default.Tv)
+                                                    error = rememberVectorPainter(image = Icons.Rounded.Tv),
+                                                    placeholder = rememberVectorPainter(image = Icons.Rounded.Tv)
                                                 )
                                             } else {
                                                 Icon(
-                                                    Icons.Default.Tv,
+                                                    Icons.Rounded.Tv,
                                                     contentDescription = null,
                                                     tint = TvTextSecondary,
                                                     modifier = Modifier.size(20.dp)
@@ -1352,7 +1368,7 @@ fun PanaTVScreen(viewModel: PanaTVViewModel = viewModel()) {
                                 .background(IosSettingsColors.mediaScrimSoft, CircleShape)
                         ) {
                             Icon(
-                                Icons.Default.Lock,
+                                Icons.Rounded.Lock,
                                 contentDescription = "Desbloquear pantalla",
                                 tint = IosSettingsColors.label
                             )
@@ -1475,12 +1491,12 @@ private fun ChannelCard(
                     contentDescription = null,
                     modifier = Modifier.fillMaxSize(),
                     contentScale = ContentScale.Fit,
-                    error = rememberVectorPainter(image = Icons.Default.Tv),
-                    placeholder = rememberVectorPainter(image = Icons.Default.Tv)
+                    error = rememberVectorPainter(image = Icons.Rounded.Tv),
+                    placeholder = rememberVectorPainter(image = Icons.Rounded.Tv)
                 )
             } else {
                 Icon(
-                    Icons.Default.Tv,
+                    Icons.Rounded.Tv,
                     contentDescription = null,
                     tint = TvTextSecondary,
                     modifier = Modifier.size(32.dp)
@@ -1511,7 +1527,7 @@ private fun ChannelCard(
                 contentAlignment = Alignment.Center
             ) {
                 Icon(
-                    if (isFavorite) Icons.Default.Favorite else Icons.Default.FavoriteBorder,
+                    if (isFavorite) Icons.Rounded.Favorite else Icons.Rounded.FavoriteBorder,
                     contentDescription = "Favorito",
                     tint = if (isFavorite) TvAccent else IosSettingsColors.label.copy(alpha = 0.7f),
                     modifier = Modifier.size(14.dp)

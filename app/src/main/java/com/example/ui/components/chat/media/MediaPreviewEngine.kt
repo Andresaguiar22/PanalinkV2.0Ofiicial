@@ -6,8 +6,8 @@ import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.Image
-import androidx.compose.material.icons.filled.Videocam
+import androidx.compose.material.icons.rounded.Image
+import androidx.compose.material.icons.rounded.Videocam
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
@@ -57,7 +57,7 @@ fun MediaPreviewEngine(
                 isUploading = isUploading,
                 bytesWritten = uploadBytesWritten,
                 totalBytes = uploadTotalBytes,
-                mediaTypeIcon = androidx.compose.material.icons.Icons.Default.Image,
+                mediaTypeIcon = androidx.compose.material.icons.Icons.Rounded.Image,
                 onMediaClick = { _, selectedUrl -> onImageClick(selectedUrl) },
                 modifier = modifier
             )
@@ -73,7 +73,7 @@ fun MediaPreviewEngine(
                 isUploading = isUploading,
                 bytesWritten = uploadBytesWritten,
                 totalBytes = uploadTotalBytes,
-                mediaTypeIcon = androidx.compose.material.icons.Icons.Default.Videocam,
+                mediaTypeIcon = androidx.compose.material.icons.Icons.Rounded.Videocam,
                 onMediaClick = { _, url -> onImageClick(url) },
                 modifier = modifier
             )

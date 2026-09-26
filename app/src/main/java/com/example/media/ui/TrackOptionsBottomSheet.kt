@@ -15,6 +15,12 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.example.media.audio.AudioTrackEntity
 import com.example.ui.settings.ios.IosSettingsColors
+import androidx.compose.material.icons.rounded.Delete
+import androidx.compose.material.icons.rounded.Edit
+import androidx.compose.material.icons.rounded.Favorite
+import androidx.compose.material.icons.rounded.FavoriteBorder
+import androidx.compose.material.icons.rounded.PlayArrow
+import androidx.compose.material.icons.rounded.Share
 
 @Composable
 fun TrackOptionsBottomSheet(
@@ -31,21 +37,21 @@ fun TrackOptionsBottomSheet(
     Column(modifier = Modifier.fillMaxWidth().padding(16.dp)) {
         Text(track.title, color = IosSettingsColors.label, fontSize = 18.sp, modifier = Modifier.padding(bottom = 16.dp))
         
-        OptionItem(Icons.Default.PlayArrow, "Reproducir siguiente", onClick = { onPlayNext(); onDismiss() })
+        OptionItem(Icons.Rounded.PlayArrow, "Reproducir siguiente", onClick = { onPlayNext(); onDismiss() })
         
         // Todos pueden agregar a SUS propias playlists
         OptionItem(Icons.AutoMirrored.Filled.PlaylistAdd, "Agregar a mis playlists", onClick = { onAddToPlaylist(); onDismiss() })
         
-        OptionItem(if (track.isFavorite) Icons.Default.Favorite else Icons.Default.FavoriteBorder, "Favorito", onClick = { onFavorite(); onDismiss() })
+        OptionItem(if (track.isFavorite) Icons.Rounded.Favorite else Icons.Rounded.FavoriteBorder, "Favorito", onClick = { onFavorite(); onDismiss() })
         
         if (userRole.canEditMetadata()) {
-            OptionItem(Icons.Default.Edit, "Editar metadatos de pista", onClick = { onEditMetadata(); onDismiss() })
+            OptionItem(Icons.Rounded.Edit, "Editar metadatos de pista", onClick = { onEditMetadata(); onDismiss() })
         }
         
-        OptionItem(Icons.Default.Share, "Compartir pista", onClick = { onShare(); onDismiss() })
+        OptionItem(Icons.Rounded.Share, "Compartir pista", onClick = { onShare(); onDismiss() })
         
         if (userRole.canManageTracks()) {
-            OptionItem(Icons.Default.Delete, "Quitar de esta playlist", color = Color.Red, onClick = { onDelete(); onDismiss() })
+            OptionItem(Icons.Rounded.Delete, "Quitar de esta playlist", color = Color.Red, onClick = { onDelete(); onDismiss() })
         }
     }
 }

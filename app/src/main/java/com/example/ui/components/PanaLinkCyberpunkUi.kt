@@ -12,10 +12,10 @@ import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.Add
-import androidx.compose.material.icons.filled.Folder
-import androidx.compose.material.icons.filled.Notifications
-import androidx.compose.material.icons.filled.Search
+import androidx.compose.material.icons.rounded.Add
+import androidx.compose.material.icons.rounded.Folder
+import androidx.compose.material.icons.rounded.Notifications
+import androidx.compose.material.icons.rounded.Search
 import androidx.compose.material.icons.rounded.PhotoCamera
 import androidx.compose.material.icons.automirrored.filled.Send
 import androidx.compose.material.icons.rounded.Edit
@@ -314,13 +314,13 @@ fun PanaLinkCyberpunkTopBar(
                 horizontalArrangement = Arrangement.spacedBy(1.dp)
             ) {
                 IconButton(onClick = onAdd, modifier = Modifier.size(42.dp)) {
-                    Icon(Icons.Default.Add, contentDescription = "Crear", tint = IosSettingsColors.label)
+                    Icon(Icons.Rounded.Add, contentDescription = "Crear", tint = IosSettingsColors.label)
                 }
                 IconButton(onClick = onSearch, modifier = Modifier.size(42.dp)) {
-                    Icon(Icons.Default.Search, contentDescription = "Buscar", tint = IosSettingsColors.label)
+                    Icon(Icons.Rounded.Search, contentDescription = "Buscar", tint = IosSettingsColors.label)
                 }
                 IconButton(onClick = onFolder, modifier = Modifier.size(42.dp)) {
-                    Icon(Icons.Default.Folder, contentDescription = "Favoritos", tint = IosSettingsColors.label)
+                    Icon(Icons.Rounded.Folder, contentDescription = "Favoritos", tint = IosSettingsColors.label)
                 }
                 Box(
                     modifier = Modifier
@@ -368,7 +368,7 @@ fun PaniOSSearchBar(
         verticalAlignment = Alignment.CenterVertically
     ) {
         Icon(
-            imageVector = Icons.Default.Search,
+            imageVector = Icons.Rounded.Search,
             contentDescription = "Buscar",
             tint = IosSettingsColors.secondaryLabel,
             modifier = Modifier.size(18.dp)
@@ -544,23 +544,23 @@ fun PaniOSUnifiedTopBar(
                         }
                         if (onCompose != {}) {
                             IconButton(onClick = onCompose, modifier = Modifier.size(40.dp)) {
-                                Icon(Icons.Filled.Add, contentDescription = "Crear", tint = tint, modifier = Modifier.size(22.dp))
+                                Icon(Icons.Rounded.Add, contentDescription = "Crear", tint = tint, modifier = Modifier.size(22.dp))
                             }
                         }
                         if (onSearch != null) {
                             IconButton(onClick = onSearch, modifier = Modifier.size(40.dp)) {
-                                Icon(Icons.Filled.Search, contentDescription = "Buscar", tint = tint, modifier = Modifier.size(22.dp))
+                                Icon(Icons.Rounded.Search, contentDescription = "Buscar", tint = tint, modifier = Modifier.size(22.dp))
                             }
                         }
                         if (onFolder != null) {
                             IconButton(onClick = onFolder, modifier = Modifier.size(40.dp)) {
-                                Icon(Icons.Filled.Folder, contentDescription = "Favoritos", tint = tint, modifier = Modifier.size(22.dp))
+                                Icon(Icons.Rounded.Folder, contentDescription = "Favoritos", tint = tint, modifier = Modifier.size(22.dp))
                             }
                         }
                         if (onNotifications != null) {
                             Box {
                                 IconButton(onClick = onNotifications, modifier = Modifier.size(40.dp)) {
-                                    Icon(Icons.Filled.Notifications, contentDescription = "Notificaciones", tint = tint, modifier = Modifier.size(22.dp))
+                                    Icon(Icons.Rounded.Notifications, contentDescription = "Notificaciones", tint = tint, modifier = Modifier.size(22.dp))
                                 }
                                 if (unreadNotificationCount > 0) {
                                     Box(

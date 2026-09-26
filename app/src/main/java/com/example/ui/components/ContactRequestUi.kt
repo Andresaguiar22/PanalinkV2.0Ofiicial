@@ -4,8 +4,7 @@ import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.CheckCircle
-import androidx.compose.material.icons.filled.QrCode
+import androidx.compose.material.icons.rounded.CheckCircle
 import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
@@ -136,7 +135,7 @@ fun ContactRequestRow(
                 colors = ButtonDefaults.buttonColors(containerColor = IosSettingsColors.blue),
                 modifier = Modifier.height(36.dp)
             ) {
-                Icon(Icons.Default.CheckCircle, null, tint = IosSettingsColors.onAccent, modifier = Modifier.size(16.dp))
+                Icon(Icons.Rounded.CheckCircle, null, tint = IosSettingsColors.onAccent, modifier = Modifier.size(16.dp))
                 Spacer(Modifier.width(4.dp))
                 Text("Aceptar", color = IosSettingsColors.onAccent, fontSize = 12.sp)
             }

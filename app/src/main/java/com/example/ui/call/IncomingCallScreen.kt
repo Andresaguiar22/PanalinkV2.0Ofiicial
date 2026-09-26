@@ -20,9 +20,9 @@ import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.Call
-import androidx.compose.material.icons.filled.CallEnd
-import androidx.compose.material.icons.filled.Videocam
+import androidx.compose.material.icons.rounded.Call
+import androidx.compose.material.icons.rounded.CallEnd
+import androidx.compose.material.icons.rounded.Videocam
 
 import androidx.compose.material3.Icon
 import androidx.compose.material3.Surface
@@ -168,7 +168,7 @@ fun IncomingCallScreen(
                         shadowElevation = 8.dp
                     ) {
                         Icon(
-                            imageVector = Icons.Default.CallEnd,
+                            imageVector = Icons.Rounded.CallEnd,
                             contentDescription = "Rechazar",
                             tint = IosSettingsColors.label,
                             modifier = Modifier.padding(20.dp)
@@ -193,7 +193,7 @@ fun IncomingCallScreen(
                         shadowElevation = 8.dp
                     ) {
                         Icon(
-                            imageVector = if (isVideo) Icons.Default.Videocam else Icons.Default.Call,
+                            imageVector = if (isVideo) Icons.Rounded.Videocam else Icons.Rounded.Call,
                             contentDescription = "Aceptar",
                             tint = IosSettingsColors.label,
                             modifier = Modifier.padding(20.dp)

@@ -18,8 +18,8 @@ import androidx.compose.foundation.border
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.Close
-import androidx.compose.material.icons.filled.Refresh
+import androidx.compose.material.icons.rounded.Close
+import androidx.compose.material.icons.rounded.Refresh
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
@@ -273,7 +273,7 @@ fun CameraXPreviewContainer(
                     .background(IosSettingsColors.mediaScrimSoft, androidx.compose.foundation.shape.CircleShape)
             ) {
                 Icon(
-                    imageVector = Icons.Default.Refresh,
+                    imageVector = Icons.Rounded.Refresh,
                     contentDescription = "Flash",
                     tint = if (isTorchEnabled) colors.accent else IosSettingsColors.label
                 )
@@ -287,7 +287,7 @@ fun CameraXPreviewContainer(
                     .background(IosSettingsColors.mediaScrimSoft, androidx.compose.foundation.shape.CircleShape)
             ) {
                 Icon(
-                    imageVector = Icons.Default.Close,
+                    imageVector = Icons.Rounded.Close,
                     contentDescription = "Cerrar",
                     tint = IosSettingsColors.label
                 )

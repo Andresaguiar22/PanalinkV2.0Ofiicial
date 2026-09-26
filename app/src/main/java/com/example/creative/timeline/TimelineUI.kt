@@ -20,6 +20,8 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.example.creative.core.CreativeLayer
 import com.example.ui.settings.ios.IosSettingsColors
+import androidx.compose.material.icons.rounded.Layers
+import androidx.compose.material.icons.rounded.Timeline
 
 /**
  * P6.5A - Professional Multi-Track Timeline UI Composable
@@ -57,7 +59,7 @@ fun MultiTrackTimelineUI(
                 verticalAlignment = Alignment.CenterVertically
             ) {
                 Row(verticalAlignment = Alignment.CenterVertically) {
-                    Icon(Icons.Default.Timeline, contentDescription = null, tint = IosSettingsColors.blue, modifier = Modifier.size(18.dp))
+                    Icon(Icons.Rounded.Timeline, contentDescription = null, tint = IosSettingsColors.blue, modifier = Modifier.size(18.dp))
                     Spacer(modifier = Modifier.width(6.dp))
                     Text(
                         text = "Timeline Multipista (${currentTimeMs / 1000f}s / ${totalDurationMs / 1000f}s)",
@@ -181,7 +183,7 @@ fun MultiTrackTimelineUI(
                             .padding(6.dp),
                         verticalAlignment = Alignment.CenterVertically
                     ) {
-                        Icon(Icons.Default.Layers, contentDescription = null, tint = IosSettingsColors.secondaryLabel, modifier = Modifier.size(16.dp))
+                        Icon(Icons.Rounded.Layers, contentDescription = null, tint = IosSettingsColors.secondaryLabel, modifier = Modifier.size(16.dp))
                         Spacer(modifier = Modifier.width(6.dp))
 
                         Text(

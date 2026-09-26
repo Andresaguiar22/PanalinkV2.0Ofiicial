@@ -3,7 +3,7 @@ package com.example.live.ui.components
 import androidx.compose.animation.core.*
 import androidx.compose.foundation.layout.*
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.Favorite
+import androidx.compose.material.icons.rounded.Favorite
 import androidx.compose.material3.Icon
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
@@ -57,7 +57,7 @@ fun LiveFloatingHeartsOverlay(
                         .alpha(alpha)
                 ) {
                     Icon(
-                        imageVector = Icons.Default.Favorite,
+                        imageVector = Icons.Rounded.Favorite,
                         contentDescription = null,
                         tint = listOf(IosSettingsColors.red, IosSettingsColors.pink, Color(0xFFFFEB3B), IosSettingsColors.blue).random(),
                         modifier = Modifier.size(32.dp)

@@ -7,7 +7,7 @@ import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.KeyboardDoubleArrowDown
+import androidx.compose.material.icons.rounded.KeyboardDoubleArrowDown
 import androidx.compose.material3.*
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
@@ -45,7 +45,7 @@ fun ScrollToLatestButton(
                     .bounceClick()
             ) {
                 Icon(
-                    imageVector = Icons.Default.KeyboardDoubleArrowDown,
+                    imageVector = Icons.Rounded.KeyboardDoubleArrowDown,
                     contentDescription = "Scroll to bottom",
                     tint = IosSettingsColors.secondaryLabel,
                     modifier = Modifier.size(24.dp)

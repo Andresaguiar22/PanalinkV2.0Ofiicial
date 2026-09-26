@@ -8,8 +8,8 @@ import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.Close
-import androidx.compose.material.icons.filled.Refresh
+import androidx.compose.material.icons.rounded.Close
+import androidx.compose.material.icons.rounded.Refresh
 import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.Icon
 import androidx.compose.material3.Text
@@ -91,7 +91,7 @@ fun DownloadProgressOverlay(
                             )
                         } else {
                             Icon(
-                                imageVector = Icons.Default.Close,
+                                imageVector = Icons.Rounded.Close,
                                 contentDescription = if (isUploading) "Cancelar subida" else "Cancelar descarga",
                                 tint = IosSettingsColors.label,
                                 modifier = Modifier.size(22.dp)
@@ -99,7 +99,7 @@ fun DownloadProgressOverlay(
                         }
                     } else {
                         Icon(
-                            imageVector = Icons.Default.Refresh,
+                            imageVector = Icons.Rounded.Refresh,
                             contentDescription = "Reintentar",
                             tint = IosSettingsColors.red,
                             modifier = Modifier.size(28.dp)

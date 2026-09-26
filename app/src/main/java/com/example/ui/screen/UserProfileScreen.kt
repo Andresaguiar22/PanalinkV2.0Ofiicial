@@ -37,6 +37,16 @@ import com.example.ui.viewmodel.StatesUiState
 import com.example.ui.viewmodel.StatesViewModel
 import kotlinx.coroutines.launch
 import com.example.ui.settings.ios.IosSettingsColors
+import androidx.compose.material.icons.rounded.Add
+import androidx.compose.material.icons.rounded.Check
+import androidx.compose.material.icons.rounded.DateRange
+import androidx.compose.material.icons.rounded.Email
+import androidx.compose.material.icons.rounded.Info
+import androidx.compose.material.icons.rounded.LocationOn
+import androidx.compose.material.icons.rounded.Lock
+import androidx.compose.material.icons.rounded.PlayArrow
+import androidx.compose.material.icons.rounded.Star
+import androidx.compose.material.icons.rounded.Warning
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -198,7 +208,7 @@ fun UserProfileScreen(
                     verticalArrangement = Arrangement.spacedBy(16.dp)
                 ) {
                     Icon(
-                        imageVector = Icons.Default.Warning,
+                        imageVector = Icons.Rounded.Warning,
                         contentDescription = "Error",
                         tint = MaterialTheme.colorScheme.error,
                         modifier = Modifier.size(64.dp)
@@ -348,7 +358,7 @@ fun UserProfileScreen(
                                                 modifier = Modifier.padding(horizontal = 6.dp, vertical = 2.dp),
                                                 verticalAlignment = Alignment.CenterVertically
                                             ) {
-                                                Icon(Icons.Default.Star, contentDescription = null, tint = IosSettingsColors.yellow, modifier = Modifier.size(10.dp))
+                                                Icon(Icons.Rounded.Star, contentDescription = null, tint = IosSettingsColors.yellow, modifier = Modifier.size(10.dp))
                                                 Spacer(modifier = Modifier.width(2.dp))
                                                 Text(
                                                     text = "Fundador",
@@ -419,7 +429,7 @@ fun UserProfileScreen(
                                 shape = RoundedCornerShape(24.dp)
                             ) {
                                 Icon(
-                                    imageVector = if (isFollowingUser) Icons.Default.Check else Icons.Default.Add,
+                                    imageVector = if (isFollowingUser) Icons.Rounded.Check else Icons.Rounded.Add,
                                     contentDescription = null,
                                     modifier = Modifier.size(18.dp)
                                 )
@@ -452,7 +462,7 @@ fun UserProfileScreen(
                                 border = BorderStroke(1.5.dp, MaterialTheme.colorScheme.outline)
                             ) {
                                 Icon(
-                                    imageVector = Icons.Default.Email,
+                                    imageVector = Icons.Rounded.Email,
                                     contentDescription = null,
                                     modifier = Modifier.size(18.dp)
                                 )
@@ -480,7 +490,7 @@ fun UserProfileScreen(
                                 verticalAlignment = Alignment.CenterVertically,
                                 horizontalArrangement = Arrangement.spacedBy(8.dp)
                             ) {
-                                Icon(Icons.Default.PlayArrow, contentDescription = null, modifier = Modifier.size(18.dp))
+                                Icon(Icons.Rounded.PlayArrow, contentDescription = null, modifier = Modifier.size(18.dp))
                                 Text("Videos (${userReels.size})", fontWeight = FontWeight.Bold)
                             }
                         }
@@ -493,7 +503,7 @@ fun UserProfileScreen(
                                 verticalAlignment = Alignment.CenterVertically,
                                 horizontalArrangement = Arrangement.spacedBy(8.dp)
                             ) {
-                                Icon(Icons.Default.Info, contentDescription = null, modifier = Modifier.size(18.dp))
+                                Icon(Icons.Rounded.Info, contentDescription = null, modifier = Modifier.size(18.dp))
                                 Text("Información", fontWeight = FontWeight.Bold)
                             }
                         }
@@ -522,7 +532,7 @@ fun UserProfileScreen(
                                     verticalArrangement = Arrangement.spacedBy(8.dp)
                                 ) {
                                     Icon(
-                                        imageVector = Icons.Default.PlayArrow,
+                                        imageVector = Icons.Rounded.PlayArrow,
                                         contentDescription = null,
                                         tint = MaterialTheme.colorScheme.onBackground.copy(alpha = 0.3f),
                                         modifier = Modifier.size(48.dp)
@@ -585,7 +595,7 @@ fun UserProfileScreen(
                                                     horizontalArrangement = Arrangement.spacedBy(4.dp)
                                                 ) {
                                                     Icon(
-                                                        imageVector = Icons.Default.PlayArrow,
+                                                        imageVector = Icons.Rounded.PlayArrow,
                                                         contentDescription = null,
                                                         tint = IosSettingsColors.label,
                                                         modifier = Modifier.size(12.dp)
@@ -653,9 +663,9 @@ fun UserProfileScreen(
                                         color = IosSettingsColors.blue
                                     )
 
-                                    DetailRow(icon = Icons.Default.DateRange, label = "Miembro desde", value = "Julio 2026")
-                                    DetailRow(icon = Icons.Default.Lock, label = "Estatus de Seguridad", value = "Cifrado de Pana")
-                                    DetailRow(icon = Icons.Default.LocationOn, label = "Ubicación", value = "Caracas, Venezuela")
+                                    DetailRow(icon = Icons.Rounded.DateRange, label = "Miembro desde", value = "Julio 2026")
+                                    DetailRow(icon = Icons.Rounded.Lock, label = "Estatus de Seguridad", value = "Cifrado de Pana")
+                                    DetailRow(icon = Icons.Rounded.LocationOn, label = "Ubicación", value = "Caracas, Venezuela")
                                 }
                             }
                         }

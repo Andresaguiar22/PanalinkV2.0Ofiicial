@@ -12,9 +12,9 @@ import androidx.compose.foundation.lazy.itemsIndexed
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.Close
-import androidx.compose.material.icons.filled.Favorite
-import androidx.compose.material.icons.filled.FavoriteBorder
+import androidx.compose.material.icons.rounded.Close
+import androidx.compose.material.icons.rounded.Favorite
+import androidx.compose.material.icons.rounded.FavoriteBorder
 import androidx.compose.material.icons.automirrored.filled.Send
 import androidx.compose.material.icons.outlined.ThumbDown
 import androidx.compose.material3.*
@@ -107,7 +107,7 @@ fun FeedCommentsBottomSheet(
                         onClick = onDismiss,
                         modifier = Modifier.size(28.dp)
                     ) {
-                        Icon(Icons.Default.Close, contentDescription = "Cerrar", tint = IosSettingsColors.label)
+                        Icon(Icons.Rounded.Close, contentDescription = "Cerrar", tint = IosSettingsColors.label)
                     }
                 }
             }
@@ -391,7 +391,7 @@ fun TikTokCommentRow(
                 modifier = Modifier.size(24.dp)
             ) {
                 Icon(
-                    imageVector = if (isLiked) Icons.Default.Favorite else Icons.Default.FavoriteBorder,
+                    imageVector = if (isLiked) Icons.Rounded.Favorite else Icons.Rounded.FavoriteBorder,
                     contentDescription = "Me gusta",
                     tint = if (isLiked) IosSettingsColors.pink else IosSettingsColors.secondaryLabel,
                     modifier = Modifier.size(18.dp)

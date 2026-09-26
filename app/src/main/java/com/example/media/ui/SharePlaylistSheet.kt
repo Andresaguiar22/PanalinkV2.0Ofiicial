@@ -8,10 +8,10 @@ import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.Group
-import androidx.compose.material.icons.filled.MusicNote
-import androidx.compose.material.icons.filled.Person
-import androidx.compose.material.icons.filled.Search
+import androidx.compose.material.icons.rounded.Group
+import androidx.compose.material.icons.rounded.MusicNote
+import androidx.compose.material.icons.rounded.Person
+import androidx.compose.material.icons.rounded.Search
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
@@ -49,7 +49,7 @@ fun SharePlaylistSheet(
 
     Column(modifier = Modifier.fillMaxWidth().padding(horizontal = 20.dp)) {
         Row(verticalAlignment = Alignment.CenterVertically) {
-            Icon(Icons.Default.MusicNote, contentDescription = null, tint = IosSettingsColors.blue)
+            Icon(Icons.Rounded.MusicNote, contentDescription = null, tint = IosSettingsColors.blue)
             Spacer(modifier = Modifier.width(10.dp))
             Column {
                 Text("Compartir playlist", color = IosSettingsColors.label, fontSize = 18.sp, fontWeight = FontWeight.Bold)
@@ -70,7 +70,7 @@ fun SharePlaylistSheet(
             onValueChange = { query = it },
             modifier = Modifier.fillMaxWidth(),
             placeholder = { Text("Buscar contacto...", color = IosSettingsColors.secondaryLabel) },
-            leadingIcon = { Icon(Icons.Default.Search, contentDescription = null, tint = IosSettingsColors.secondaryLabel) },
+            leadingIcon = { Icon(Icons.Rounded.Search, contentDescription = null, tint = IosSettingsColors.secondaryLabel) },
             shape = RoundedCornerShape(24.dp),
             colors = OutlinedTextFieldDefaults.colors(
                 focusedContainerColor = IosSettingsColors.cell,
@@ -137,7 +137,7 @@ fun SharePlaylistSheet(
                                     )
                                 } else {
                                     Icon(
-                                        if (isGroup) Icons.Default.Group else Icons.Default.Person,
+                                        if (isGroup) Icons.Rounded.Group else Icons.Rounded.Person,
                                         contentDescription = null,
                                         tint = IosSettingsColors.blue
                                     )

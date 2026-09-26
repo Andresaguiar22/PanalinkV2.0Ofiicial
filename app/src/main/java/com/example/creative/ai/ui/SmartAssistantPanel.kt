@@ -29,6 +29,9 @@ import com.example.creative.templates.PostTemplate
 import com.example.creative.templates.PostTemplateEngine
 import com.example.creative.templates.TemplateVariable
 import com.example.ui.settings.ios.IosSettingsColors
+import androidx.compose.material.icons.rounded.AutoAwesome
+import androidx.compose.material.icons.rounded.Close
+import androidx.compose.material.icons.rounded.PlayArrow
 
 /**
  * P6.6.5 - Smart Assistant Panel V2 ("✨ Asistente Pana AI Brain")
@@ -67,7 +70,7 @@ fun SmartAssistantPanel(
             ) {
                 Row(verticalAlignment = Alignment.CenterVertically) {
                     Icon(
-                        imageVector = Icons.Default.AutoAwesome,
+                        imageVector = Icons.Rounded.AutoAwesome,
                         contentDescription = "Asistente Pana AI",
                         tint = IosSettingsColors.pink,
                         modifier = Modifier.size(26.dp)
@@ -89,7 +92,7 @@ fun SmartAssistantPanel(
                 }
 
                 IconButton(onClick = onDismiss) {
-                    Icon(Icons.Default.Close, contentDescription = "Cerrar", tint = IosSettingsColors.secondaryLabel)
+                    Icon(Icons.Rounded.Close, contentDescription = "Cerrar", tint = IosSettingsColors.secondaryLabel)
                 }
             }
 
@@ -345,7 +348,7 @@ fun SmartAssistantPanel(
                                         Text(text = animType.name.replace("_", " "), color = IosSettingsColors.label, fontWeight = FontWeight.Bold, fontSize = 14.sp)
                                         Text(text = "Efecto de movimiento dinámico para esta página", color = IosSettingsColors.secondaryLabel, fontSize = 11.sp)
                                     }
-                                    Icon(Icons.Default.PlayArrow, contentDescription = null, tint = IosSettingsColors.blue)
+                                    Icon(Icons.Rounded.PlayArrow, contentDescription = null, tint = IosSettingsColors.blue)
                                 }
                             }
                         }
@@ -381,7 +384,7 @@ fun SmartAssistantPanel(
 
                         items(brainResult.viralReport.recommendations) { rec ->
                             Row(verticalAlignment = Alignment.CenterVertically) {
-                                Icon(Icons.Default.AutoAwesome, contentDescription = null, tint = IosSettingsColors.orange, modifier = Modifier.size(16.dp))
+                                Icon(Icons.Rounded.AutoAwesome, contentDescription = null, tint = IosSettingsColors.orange, modifier = Modifier.size(16.dp))
                                 Spacer(modifier = Modifier.width(8.dp))
                                 Text(text = rec, color = IosSettingsColors.label, fontSize = 12.sp)
                             }

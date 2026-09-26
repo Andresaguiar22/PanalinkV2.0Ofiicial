@@ -40,6 +40,18 @@ import com.example.ui.settings.ios.IosSettingsScaffold
 import com.example.ui.settings.ios.IosFont
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material.icons.automirrored.filled.TrendingUp
+import androidx.compose.material.icons.rounded.ChatBubble
+import androidx.compose.material.icons.rounded.ClearAll
+import androidx.compose.material.icons.rounded.DoneAll
+import androidx.compose.material.icons.rounded.NotificationsOff
+import androidx.compose.material.icons.rounded.Visibility
+import androidx.compose.material.icons.rounded.Call
+import androidx.compose.material.icons.rounded.Email
+import androidx.compose.material.icons.rounded.Favorite
+import androidx.compose.material.icons.rounded.Notifications
+import androidx.compose.material.icons.rounded.Person
+import androidx.compose.material.icons.rounded.Share
+import androidx.compose.material.icons.rounded.Star
 
 @OptIn(ExperimentalMaterial3Api::class, ExperimentalFoundationApi::class)
 @Composable
@@ -61,13 +73,13 @@ fun NotificationsScreen(
         onBack = onNavigateBack,
         actions = {
             IconButton(onClick = { showMuteMenu = true }) {
-                Icon(Icons.Default.NotificationsOff, contentDescription = "Silenciar categorías", tint = IosSettingsColors.blue)
+                Icon(Icons.Rounded.NotificationsOff, contentDescription = "Silenciar categorías", tint = IosSettingsColors.blue)
             }
             IconButton(onClick = { viewModel.clearAllNotifications() }) {
-                Icon(Icons.Default.ClearAll, contentDescription = "Borrar todas", tint = IosSettingsColors.blue)
+                Icon(Icons.Rounded.ClearAll, contentDescription = "Borrar todas", tint = IosSettingsColors.blue)
             }
             IconButton(onClick = { viewModel.markAllRead() }) {
-                Icon(Icons.Default.DoneAll, contentDescription = "Marcar leídas todas", tint = IosSettingsColors.blue)
+                Icon(Icons.Rounded.DoneAll, contentDescription = "Marcar leídas todas", tint = IosSettingsColors.blue)
             }
         }
     ) { paddingValues ->
@@ -86,7 +98,7 @@ fun NotificationsScreen(
                             Row(verticalAlignment = Alignment.CenterVertically) {
                                 val muted = viewModel.getMutedCategories().contains(type)
                                 Icon(
-                                    imageVector = if (muted) Icons.Default.NotificationsOff else Icons.Default.Notifications,
+                                    imageVector = if (muted) Icons.Rounded.NotificationsOff else Icons.Rounded.Notifications,
                                     contentDescription = null,
                                     tint = if (muted) IosSettingsColors.secondaryLabel else IosSettingsColors.blue
                                 )
@@ -321,7 +333,7 @@ fun EmptyNotificationView(message: String) {
         verticalArrangement = Arrangement.Center
     ) {
         Icon(
-            imageVector = Icons.Default.Notifications,
+            imageVector = Icons.Rounded.Notifications,
             contentDescription = null,
             tint = IosSettingsColors.secondaryLabel.copy(alpha = 0.5f),
             modifier = Modifier.size(72.dp)
@@ -426,16 +438,16 @@ fun handleNotificationNavigation(
 }
 fun getNotificationIcon(type: NotificationType): Pair<ImageVector, Color> {
     return when (type) {
-        NotificationType.LIKE -> Pair(Icons.Default.Favorite, IosSettingsColors.red)
-        NotificationType.COMMENT -> Pair(Icons.Default.ChatBubble, IosSettingsColors.green)
-        NotificationType.FOLLOWER -> Pair(Icons.Default.Person, IosSettingsColors.blue)
-        NotificationType.MESSAGE -> Pair(Icons.Default.Email, IosSettingsColors.orange)
-        NotificationType.CALL -> Pair(Icons.Default.Call, IosSettingsColors.red)
-        NotificationType.FAVORITE -> Pair(Icons.Default.Star, IosSettingsColors.yellow)
-        NotificationType.SHARE -> Pair(Icons.Default.Share, IosSettingsColors.blue)
-        NotificationType.VIEW -> Pair(Icons.Default.Visibility, IosSettingsColors.green)
+        NotificationType.LIKE -> Pair(Icons.Rounded.Favorite, IosSettingsColors.red)
+        NotificationType.COMMENT -> Pair(Icons.Rounded.ChatBubble, IosSettingsColors.green)
+        NotificationType.FOLLOWER -> Pair(Icons.Rounded.Person, IosSettingsColors.blue)
+        NotificationType.MESSAGE -> Pair(Icons.Rounded.Email, IosSettingsColors.orange)
+        NotificationType.CALL -> Pair(Icons.Rounded.Call, IosSettingsColors.red)
+        NotificationType.FAVORITE -> Pair(Icons.Rounded.Star, IosSettingsColors.yellow)
+        NotificationType.SHARE -> Pair(Icons.Rounded.Share, IosSettingsColors.blue)
+        NotificationType.VIEW -> Pair(Icons.Rounded.Visibility, IosSettingsColors.green)
         NotificationType.TRENDING -> Pair(Icons.AutoMirrored.Filled.TrendingUp, IosSettingsColors.orange)
-        else -> Pair(Icons.Default.Notifications, IosSettingsColors.gray)
+        else -> Pair(Icons.Rounded.Notifications, IosSettingsColors.gray)
     }
 }
 

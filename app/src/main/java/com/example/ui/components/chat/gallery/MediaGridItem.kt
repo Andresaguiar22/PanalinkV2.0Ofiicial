@@ -26,6 +26,9 @@ import com.example.data.repository.CdnManager
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
 import com.example.ui.settings.ios.IosSettingsColors
+import androidx.compose.material.icons.rounded.Description
+import androidx.compose.material.icons.rounded.Mic
+import androidx.compose.material.icons.rounded.PlayCircle
 
 @Composable
 fun MediaGridItem(
@@ -72,7 +75,7 @@ fun MediaGridItem(
                     contentAlignment = Alignment.Center
                 ) {
                     Icon(
-                        imageVector = Icons.Default.PlayCircle,
+                        imageVector = Icons.Rounded.PlayCircle,
                         contentDescription = "Video",
                         tint = IosSettingsColors.label,
                         modifier = Modifier.size(32.dp)
@@ -89,7 +92,7 @@ fun MediaGridItem(
                 ) {
                     val extension = item.url.split(".").lastOrNull()?.uppercase() ?: "FILE"
                     Icon(
-                        imageVector = Icons.Default.Description,
+                        imageVector = Icons.Rounded.Description,
                         contentDescription = null,
                         tint = IosSettingsColors.blue,
                         modifier = Modifier.size(40.dp)
@@ -119,7 +122,7 @@ fun MediaGridItem(
                     verticalArrangement = Arrangement.Center
                 ) {
                     Icon(
-                        imageVector = Icons.Default.Mic,
+                        imageVector = Icons.Rounded.Mic,
                         contentDescription = null,
                         tint = IosSettingsColors.blue,
                         modifier = Modifier.size(40.dp)

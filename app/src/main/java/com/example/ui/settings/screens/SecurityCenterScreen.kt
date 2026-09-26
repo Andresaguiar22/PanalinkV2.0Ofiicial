@@ -22,15 +22,13 @@ import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.ContentCopy
-import androidx.compose.material.icons.filled.Fingerprint
-import androidx.compose.material.icons.filled.Lock
-import androidx.compose.material.icons.filled.Pattern
-import androidx.compose.material.icons.filled.QrCode
-import androidx.compose.material.icons.filled.QrCodeScanner
-import androidx.compose.material.icons.filled.Security
-import androidx.compose.material.icons.filled.Shield
-import androidx.compose.material.icons.filled.Timer
+import androidx.compose.material.icons.rounded.ContentCopy
+import androidx.compose.material.icons.rounded.Fingerprint
+import androidx.compose.material.icons.rounded.Lock
+import androidx.compose.material.icons.rounded.Pattern
+import androidx.compose.material.icons.rounded.Security
+import androidx.compose.material.icons.rounded.Shield
+import androidx.compose.material.icons.rounded.Timer
 import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.Icon
@@ -122,7 +120,7 @@ fun SecurityCenterScreen(
                         IosValueRow(
                             title = "PIN de seguridad",
                             value = if (uiState.hasPin) "Configurado" else "Sin configurar",
-                            icon = Icons.Default.Lock,
+                            icon = Icons.Rounded.Lock,
                             iconTint = IosSettingsColors.green
                         )
                         IosDivider()
@@ -147,7 +145,7 @@ fun SecurityCenterScreen(
                         IosValueRow(
                             title = "Patrón de desbloqueo",
                             value = if (uiState.hasPattern) "Activo" else "Inactivo",
-                            icon = Icons.Default.Pattern,
+                            icon = Icons.Rounded.Pattern,
                             iconTint = IosSettingsColors.blue
                         )
                         IosDivider()
@@ -198,7 +196,7 @@ fun SecurityCenterScreen(
                                 clipboard.setPrimaryClip(ClipData.newPlainText("Pana PIN", uiState.userPinCode))
                                 Toast.makeText(context, "PIN copiado", Toast.LENGTH_SHORT).show()
                             }) {
-                                Icon(Icons.Default.ContentCopy, contentDescription = "Copiar PIN", tint = IosSettingsColors.blue)
+                                Icon(Icons.Rounded.ContentCopy, contentDescription = "Copiar PIN", tint = IosSettingsColors.blue)
                             }
                         }
                         IosDivider(startIndent = 16.dp)
@@ -228,7 +226,7 @@ fun SecurityCenterScreen(
                                 "No disponible: el dispositivo no tiene biometría configurada.",
                             checked = uiState.isBiometricsEnabled,
                             onCheckedChange = { viewModel.dispatch(SecurityAction.ToggleBiometrics(it)) },
-                            icon = Icons.Default.Fingerprint,
+                            icon = Icons.Rounded.Fingerprint,
                             iconTint = IosSettingsColors.green
                         )
                         IosDivider()
@@ -508,7 +506,7 @@ private fun ProtectionHeaderGroup(uiState: com.example.feature.settings.model.Se
                 contentAlignment = Alignment.Center
             ) {
                 Icon(
-                    imageVector = if (isProtected) Icons.Default.Shield else Icons.Default.Security,
+                    imageVector = if (isProtected) Icons.Rounded.Shield else Icons.Rounded.Security,
                     contentDescription = null,
                     tint = if (isProtected) IosSettingsColors.green else IosSettingsColors.orange,
                     modifier = Modifier.size(26.dp)
@@ -553,7 +551,7 @@ private fun AutoLockGroup(
             verticalArrangement = Arrangement.spacedBy(12.dp)
         ) {
             Row(verticalAlignment = Alignment.CenterVertically) {
-                Icon(Icons.Default.Timer, contentDescription = null, tint = IosSettingsColors.orange, modifier = Modifier.size(18.dp))
+                Icon(Icons.Rounded.Timer, contentDescription = null, tint = IosSettingsColors.orange, modifier = Modifier.size(18.dp))
                 Spacer(Modifier.width(8.dp))
                 Text("Pedir código tras", color = IosSettingsColors.label, fontFamily = IosFont, fontSize = 16.sp)
             }

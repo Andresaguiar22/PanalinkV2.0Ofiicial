@@ -8,10 +8,10 @@ import androidx.compose.foundation.lazy.grid.LazyVerticalGrid
 import androidx.compose.foundation.lazy.grid.items
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.Add
+import androidx.compose.material.icons.rounded.Add
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
-import androidx.compose.material.icons.filled.Lock
-import androidx.compose.material.icons.filled.Person
+import androidx.compose.material.icons.rounded.Lock
+import androidx.compose.material.icons.rounded.Person
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
@@ -46,7 +46,7 @@ fun VoiceRoomBrowserScreen(onBack:()->Unit,onEnterRoom:(String)->Unit,viewModel:
             FloatingActionButton(onClick={
                 // Premium 2.0: beneficios aditivos — crear sala NUNCA se bloquea.
                 showCreate = true
-            },modifier=Modifier.align(Alignment.BottomEnd).padding(20.dp),containerColor=IosSettingsColors.blue){Icon(Icons.Default.Add,"Crear sala",tint=IosSettingsColors.groupBackground)}
+            },modifier=Modifier.align(Alignment.BottomEnd).padding(20.dp),containerColor=IosSettingsColors.blue){Icon(Icons.Rounded.Add,"Crear sala",tint=IosSettingsColors.groupBackground)}
             if(showCreate) VoiceRoomCreateDialog(onDismiss={showCreate=false},onCreate={showCreate=false;viewModel.createRoom(it)})
         }
     }
@@ -58,14 +58,14 @@ private fun RoomCard(room:VoiceRoom,members:Int,onClick:()->Unit){
         Column {
             Box(Modifier.fillMaxWidth().height(88.dp).clip(RoundedCornerShape(topStart=16.dp,topEnd=16.dp)).background(Brush.horizontalGradient(listOf(IosSettingsColors.blue,IosSettingsColors.cellElevated)))){
                 if(!room.coverUrl.isNullOrBlank()) AsyncImage(model=room.coverUrl,contentDescription=room.name,contentScale=ContentScale.Crop,modifier=Modifier.fillMaxSize())
-                if(room.isPrivate) Surface(color=IosSettingsColors.cell,shape=RoundedCornerShape(bottomEnd=10.dp)){Row(Modifier.padding(horizontal=8.dp,vertical=5.dp),verticalAlignment=Alignment.CenterVertically){Icon(Icons.Default.Lock,null,tint=IosSettingsColors.label,modifier=Modifier.size(12.dp));Spacer(Modifier.width(4.dp));Text("Privada",color=IosSettingsColors.label,fontSize=10.sp)}}
+                if(room.isPrivate) Surface(color=IosSettingsColors.cell,shape=RoundedCornerShape(bottomEnd=10.dp)){Row(Modifier.padding(horizontal=8.dp,vertical=5.dp),verticalAlignment=Alignment.CenterVertically){Icon(Icons.Rounded.Lock,null,tint=IosSettingsColors.label,modifier=Modifier.size(12.dp));Spacer(Modifier.width(4.dp));Text("Privada",color=IosSettingsColors.label,fontSize=10.sp)}}
             }
             Column(Modifier.padding(10.dp)){
                 Text(room.name,color=IosSettingsColors.label,fontWeight=FontWeight.Bold,fontSize=14.sp,maxLines=1,overflow=TextOverflow.Ellipsis)
                 Text(room.category.replaceFirstChar{it.uppercase()},color=IosSettingsColors.secondaryLabel,fontSize=10.sp)
                 if(room.description.isNotBlank()) Text(room.description,color=IosSettingsColors.secondaryLabel,fontSize=11.sp,maxLines=2,overflow=TextOverflow.Ellipsis,modifier=Modifier.padding(top=4.dp))
                 Spacer(Modifier.height(7.dp))
-                Row(verticalAlignment=Alignment.CenterVertically){Icon(Icons.Default.Person,null,tint=IosSettingsColors.green,modifier=Modifier.size(13.dp));Spacer(Modifier.width(3.dp));Text("$members",color=IosSettingsColors.label,fontSize=11.sp,fontWeight=FontWeight.SemiBold);Spacer(Modifier.width(8.dp));Text("${room.maxSeats} sillones",color=IosSettingsColors.secondaryLabel,fontSize=10.sp)}
+                Row(verticalAlignment=Alignment.CenterVertically){Icon(Icons.Rounded.Person,null,tint=IosSettingsColors.green,modifier=Modifier.size(13.dp));Spacer(Modifier.width(3.dp));Text("$members",color=IosSettingsColors.label,fontSize=11.sp,fontWeight=FontWeight.SemiBold);Spacer(Modifier.width(8.dp));Text("${room.maxSeats} sillones",color=IosSettingsColors.secondaryLabel,fontSize=10.sp)}
             }
         }
     }

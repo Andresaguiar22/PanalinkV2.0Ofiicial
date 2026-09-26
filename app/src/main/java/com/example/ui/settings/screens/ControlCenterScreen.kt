@@ -21,17 +21,17 @@ import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.KeyboardArrowRight
-import androidx.compose.material.icons.filled.AccountCircle
+import androidx.compose.material.icons.rounded.AccountCircle
 import androidx.compose.material.icons.automirrored.filled.Chat
-import androidx.compose.material.icons.filled.ColorLens
-import androidx.compose.material.icons.filled.Info
-import androidx.compose.material.icons.filled.Lock
-import androidx.compose.material.icons.filled.Notifications
-import androidx.compose.material.icons.filled.Person
-import androidx.compose.material.icons.filled.Refresh
-import androidx.compose.material.icons.filled.Restore
-import androidx.compose.material.icons.filled.Security
-import androidx.compose.material.icons.filled.Storage
+import androidx.compose.material.icons.rounded.ColorLens
+import androidx.compose.material.icons.rounded.Info
+import androidx.compose.material.icons.rounded.Lock
+import androidx.compose.material.icons.rounded.Notifications
+import androidx.compose.material.icons.rounded.Person
+import androidx.compose.material.icons.rounded.Refresh
+import androidx.compose.material.icons.rounded.Restore
+import androidx.compose.material.icons.rounded.Security
+import androidx.compose.material.icons.rounded.Storage
 import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.Icon
@@ -107,7 +107,7 @@ fun ControlCenterScreen(
         onBack = onBack,
         actions = {
             IconButton(onClick = { viewModel.dispatch(DashboardAction.RefreshDashboard) }) {
-                Icon(Icons.Default.Refresh, contentDescription = "Actualizar")
+                Icon(Icons.Rounded.Refresh, contentDescription = "Actualizar")
             }
         }
     ) { padding ->
@@ -138,21 +138,21 @@ fun ControlCenterScreen(
                             IosValueRow(
                                 title = "Dispositivos activos",
                                 value = uiState.activeDevicesCount.toString(),
-                                icon = Icons.Default.Person,
+                                icon = Icons.Rounded.Person,
                                 iconTint = IosSettingsColors.teal
                             )
                             IosDivider()
                             IosValueRow(
                                 title = "Almacenamiento",
                                 value = uiState.storageUsedSummary,
-                                icon = Icons.Default.Storage,
+                                icon = Icons.Rounded.Storage,
                                 iconTint = IosSettingsColors.orange
                             )
                             IosDivider()
                             IosValueRow(
                                 title = "Última sincronización",
                                 value = uiState.lastSynchronization,
-                                icon = Icons.Default.Refresh,
+                                icon = Icons.Rounded.Refresh,
                                 iconTint = IosSettingsColors.indigo
                             )
                         }
@@ -164,7 +164,7 @@ fun ControlCenterScreen(
                             IosRow(
                                 title = "Seguridad y acceso",
                                 subtitle = uiState.securitySummary,
-                                icon = Icons.Default.Security,
+                                icon = Icons.Rounded.Security,
                                 iconTint = IosSettingsColors.red,
                                 trailingText = if (uiState.hasPin && uiState.is2FaEnabled) "Máxima" else if (uiState.hasPin) "PIN" else "Básica",
                                 onClick = onNavigateToSecurity
@@ -173,7 +173,7 @@ fun ControlCenterScreen(
                             IosRow(
                                 title = "Actividad y sistema",
                                 subtitle = uiState.activitySummary,
-                                icon = Icons.Default.Restore,
+                                icon = Icons.Rounded.Restore,
                                 iconTint = IosSettingsColors.blue,
                                 trailingText = "${uiState.messagesCount} msj",
                                 onClick = onNavigateToActivity
@@ -182,7 +182,7 @@ fun ControlCenterScreen(
                             IosRow(
                                 title = "Presencia",
                                 subtitle = uiState.presenceSummary,
-                                icon = Icons.Default.AccountCircle,
+                                icon = Icons.Rounded.AccountCircle,
                                 iconTint = IosSettingsColors.green,
                                 onClick = onNavigateToPresence
                             )
@@ -192,28 +192,28 @@ fun ControlCenterScreen(
                     item { IosSectionHeader("Ajustes") }
                     item {
                         IosGroup {
-                            IosRow("Perfil", onNavigateToProfile, Icons.Default.Person, IosSettingsColors.blue, uiState.profileSummary)
+                            IosRow("Perfil", onNavigateToProfile, Icons.Rounded.Person, IosSettingsColors.blue, uiState.profileSummary)
                             IosDivider()
-                            IosRow("Presencia", onNavigateToPresence, Icons.Default.AccountCircle, IosSettingsColors.green, uiState.presenceSummary)
+                            IosRow("Presencia", onNavigateToPresence, Icons.Rounded.AccountCircle, IosSettingsColors.green, uiState.presenceSummary)
                             IosDivider()
-                            IosRow("Privacidad", onNavigateToPrivacy, Icons.Default.Lock, IosSettingsColors.purple, uiState.privacySummary)
+                            IosRow("Privacidad", onNavigateToPrivacy, Icons.Rounded.Lock, IosSettingsColors.purple, uiState.privacySummary)
                             IosDivider()
-                            IosRow("Seguridad", onNavigateToSecurity, Icons.Default.Security, IosSettingsColors.red, uiState.securitySummary)
+                            IosRow("Seguridad", onNavigateToSecurity, Icons.Rounded.Security, IosSettingsColors.red, uiState.securitySummary)
                             IosDivider()
                             IosRow("Chats", onNavigateToChats, Icons.AutoMirrored.Filled.Chat, IosSettingsColors.teal, uiState.chatsSummary)
                             IosDivider()
-                            IosRow("Notificaciones", onNavigateToNotifications, Icons.Default.Notifications, IosSettingsColors.orange, uiState.notificationsSummary)
+                            IosRow("Notificaciones", onNavigateToNotifications, Icons.Rounded.Notifications, IosSettingsColors.orange, uiState.notificationsSummary)
                             IosDivider()
-                            IosRow("Personalización", onNavigateToCustomization, Icons.Default.ColorLens, IosSettingsColors.pink, uiState.customizationSummary)
+                            IosRow("Personalización", onNavigateToCustomization, Icons.Rounded.ColorLens, IosSettingsColors.pink, uiState.customizationSummary)
                             IosDivider()
-                            IosRow("Almacenamiento", onNavigateToStorage, Icons.Default.Storage, IosSettingsColors.orange, uiState.storageSummary)
+                            IosRow("Almacenamiento", onNavigateToStorage, Icons.Rounded.Storage, IosSettingsColors.orange, uiState.storageSummary)
                             IosDivider()
-                            IosRow("Actividad", onNavigateToActivity, Icons.Default.Restore, IosSettingsColors.indigo, uiState.activitySummary)
+                            IosRow("Actividad", onNavigateToActivity, Icons.Rounded.Restore, IosSettingsColors.indigo, uiState.activitySummary)
                             IosDivider()
                             IosRow(
                                 title = "Información",
                                 onClick = onNavigateToAbout,
-                                icon = Icons.Default.Info,
+                                icon = Icons.Rounded.Info,
                                 iconTint = IosSettingsColors.gray,
                                 subtitle = "Versión ${uiState.appVersion} • Ayuda y soporte"
                             )
@@ -333,7 +333,7 @@ private fun ProfileHeaderGroup(
                     )
                 } else {
                     Icon(
-                        imageVector = Icons.Default.Person,
+                        imageVector = Icons.Rounded.Person,
                         contentDescription = null,
                         tint = IosSettingsColors.secondaryLabel,
                         modifier = Modifier.size(34.dp)

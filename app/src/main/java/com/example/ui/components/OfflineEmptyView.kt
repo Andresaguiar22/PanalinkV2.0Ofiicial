@@ -2,7 +2,7 @@ package com.example.ui.components
 
 import androidx.compose.foundation.layout.*
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.WifiOff
+import androidx.compose.material.icons.rounded.WifiOff
 import androidx.compose.material3.Button
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
@@ -33,7 +33,7 @@ fun OfflineEmptyView(
         verticalArrangement = Arrangement.Center
     ) {
         Icon(
-            Icons.Default.WifiOff,
+            Icons.Rounded.WifiOff,
             contentDescription = "Sin conexión",
             tint = MaterialTheme.colorScheme.outline,
             modifier = Modifier.size(48.dp)

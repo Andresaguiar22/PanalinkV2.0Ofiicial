@@ -10,9 +10,8 @@ import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.DataUsage
-import androidx.compose.material.icons.filled.Folder
-import androidx.compose.material.icons.filled.PhotoCamera
+import androidx.compose.material.icons.rounded.DataUsage
+import androidx.compose.material.icons.rounded.Folder
 import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
@@ -79,7 +78,7 @@ fun StorageCenterScreen(
                     IosRow(
                         title = "Administrar almacenamiento",
                         subtitle = "${uiState.storageUsed} • DB ${uiState.databaseSize} • Medios ${uiState.mediaSize}",
-                        icon = Icons.Default.Folder,
+                        icon = Icons.Rounded.Folder,
                         iconTint = IosSettingsColors.blue,
                         onClick = { showStorageDialog = true }
                     )
@@ -87,7 +86,7 @@ fun StorageCenterScreen(
                     IosValueRow(
                         title = "Uso de datos (esta app)",
                         value = uiState.dataUsageToday,
-                        icon = Icons.Default.DataUsage,
+                        icon = Icons.Rounded.DataUsage,
                         iconTint = IosSettingsColors.green,
                         subtitle = "Desde el último reinicio"
                     )

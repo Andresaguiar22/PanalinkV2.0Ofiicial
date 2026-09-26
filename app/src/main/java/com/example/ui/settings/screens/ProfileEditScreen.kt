@@ -14,8 +14,8 @@ import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
-import androidx.compose.material.icons.filled.Info
-import androidx.compose.material.icons.filled.Person
+import androidx.compose.material.icons.rounded.Info
+import androidx.compose.material.icons.rounded.Person
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
@@ -269,7 +269,7 @@ fun ProfileEditScreen(
                                 value = displayName,
                                 onValueChange = { displayName = it },
                                 label = "Tu Nombre Público (Apodo)",
-                                leadingIcon = Icons.Default.Person,
+                                leadingIcon = Icons.Rounded.Person,
                                 testTag = "profile_display_name_input",
                                 modifier = Modifier.fillMaxWidth()
                             )
@@ -298,7 +298,7 @@ fun ProfileEditScreen(
                                 value = statusText,
                                 onValueChange = { statusText = it },
                                 label = "Tu Frase de Estado 💬",
-                                leadingIcon = Icons.Default.Info,
+                                leadingIcon = Icons.Rounded.Info,
                                 modifier = Modifier.fillMaxWidth()
                             )
 

@@ -35,10 +35,10 @@ import androidx.compose.material.icons.rounded.FavoriteBorder
 import androidx.compose.material.icons.rounded.FastForward
 import androidx.compose.material.icons.rounded.FastRewind
 import androidx.compose.material.icons.rounded.MoreHoriz
-import androidx.compose.material.icons.filled.PlayArrow
-import androidx.compose.material.icons.filled.Search
-import androidx.compose.material.icons.filled.Add
-import androidx.compose.material.icons.filled.LiveTv
+import androidx.compose.material.icons.rounded.PlayArrow
+import androidx.compose.material.icons.rounded.Search
+import androidx.compose.material.icons.rounded.Add
+import androidx.compose.material.icons.rounded.LiveTv
 import androidx.compose.material.icons.automirrored.rounded.VolumeOff
 import androidx.compose.material.icons.automirrored.rounded.VolumeUp
 import androidx.compose.material3.*
@@ -71,12 +71,9 @@ import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.lazy.grid.items as gridItems
 import androidx.compose.foundation.horizontalScroll
 import androidx.compose.foundation.rememberScrollState
-import androidx.compose.material.icons.filled.Close
-import androidx.compose.material.icons.filled.KeyboardArrowDown
+import androidx.compose.material.icons.rounded.Close
 import androidx.compose.material.icons.automirrored.rounded.Send
-import androidx.compose.material.icons.filled.PhotoCamera
-import androidx.compose.material.icons.filled.PersonAdd
-import androidx.compose.material.icons.filled.Refresh
+import androidx.compose.material.icons.rounded.Refresh
 import com.example.ui.viewmodel.StatesUiState
 import com.example.ui.viewmodel.StatesViewModel
 import com.example.ui.viewmodel.SocialViewModel
@@ -335,7 +332,7 @@ fun TikTokVideoFeedScreen(
                                     modifier = Modifier.align(Alignment.BottomStart).padding(4.dp).background(IosSettingsColors.mediaScrimSoft, RoundedCornerShape(4.dp)).padding(horizontal = 4.dp),
                                     verticalAlignment = Alignment.CenterVertically
                                 ) {
-                                    Icon(Icons.Default.PlayArrow, null, tint = IosSettingsColors.label, modifier = Modifier.size(10.dp))
+                                    Icon(Icons.Rounded.PlayArrow, null, tint = IosSettingsColors.label, modifier = Modifier.size(10.dp))
                                     Text("${item.state.viewsCount ?: 0}", color = IosSettingsColors.label, fontSize = 10.sp, fontWeight = FontWeight.Bold)
                                 }
                             }
@@ -525,7 +522,7 @@ fun TikTokVideoFeedScreen(
                                 horizontalArrangement = Arrangement.spacedBy(5.dp)
                             ) {
                                 Icon(
-                                    imageVector = Icons.Default.LiveTv,
+                                    imageVector = Icons.Rounded.LiveTv,
                                     contentDescription = "Entrar a Panalink Live",
                                     tint = IosSettingsColors.pink,
                                     modifier = Modifier.size(16.dp)
@@ -579,13 +576,13 @@ fun TikTokVideoFeedScreen(
                                 .padding(end =  8.dp)
                                 .height(48.dp),
                             textStyle = TextStyle(color = IosSettingsColors.label, fontSize = 13.sp),
-                            leadingIcon = { Icon(Icons.Default.Search, contentDescription = null, tint = Color.LightGray, modifier = Modifier.size(18.dp)) },
+                            leadingIcon = { Icon(Icons.Rounded.Search, contentDescription = null, tint = Color.LightGray, modifier = Modifier.size(18.dp)) },
                             trailingIcon = {
                                 IconButton(onClick = {
                                     searchQuery = ""
                                     showSearchInput = false
                                 }, modifier = Modifier.size(24.dp)) {
-                                    Icon(Icons.Default.Close, contentDescription = "Cerrar", tint = IosSettingsColors.label, modifier = Modifier.size(16.dp))
+                                    Icon(Icons.Rounded.Close, contentDescription = "Cerrar", tint = IosSettingsColors.label, modifier = Modifier.size(16.dp))
                                 }
                             },
                             colors = OutlinedTextFieldDefaults.colors(
@@ -613,7 +610,7 @@ fun TikTokVideoFeedScreen(
                             modifier = Modifier.size(40.dp)
                         ) {
                             Icon(
-                                imageVector = Icons.Default.Refresh,
+                                imageVector = Icons.Rounded.Refresh,
                                 contentDescription = "Refrescar feed",
                                 tint = IosSettingsColors.label,
                                 modifier = Modifier.size(22.dp)
@@ -624,7 +621,7 @@ fun TikTokVideoFeedScreen(
                             modifier = Modifier.size(40.dp)
                         ) {
                             Icon(
-                                imageVector = Icons.Default.Search,
+                                imageVector = Icons.Rounded.Search,
                                 contentDescription = "Buscar",
                                 tint = IosSettingsColors.label,
                                 modifier = Modifier.size(24.dp)
@@ -1944,7 +1941,7 @@ fun TikTokPageItem(
                 contentAlignment = Alignment.Center
             ) {
                 Icon(
-                    imageVector = Icons.Default.PlayArrow,
+                    imageVector = Icons.Rounded.PlayArrow,
                     contentDescription = "Pausado",
                     tint = IosSettingsColors.label,
                     modifier = Modifier.size(48.dp)
@@ -2055,7 +2052,7 @@ fun TikTokPageItem(
                         contentAlignment = Alignment.Center
                     ) {
                         Icon(
-                            imageVector = Icons.Default.Add,
+                            imageVector = Icons.Rounded.Add,
                             contentDescription = "Seguir",
                             tint = IosSettingsColors.label,
                             modifier = Modifier.size(14.dp)
@@ -2385,7 +2382,7 @@ fun TikTokPageItem(
                             fontSize = 16.sp
                         )
                         IconButton(onClick = { showCommentDialog = false }) {
-                            Icon(Icons.Default.Close, contentDescription = "Cerrar", tint = IosSettingsColors.label)
+                            Icon(Icons.Rounded.Close, contentDescription = "Cerrar", tint = IosSettingsColors.label)
                         }
                     }
 
@@ -2530,7 +2527,7 @@ fun TikTokPageItem(
                                 modifier = Modifier.size(18.dp)
                             ) {
                                 Icon(
-                                    imageVector = Icons.Default.Close,
+                                    imageVector = Icons.Rounded.Close,
                                     contentDescription = "Cancelar respuesta",
                                     tint = Color.LightGray,
                                     modifier = Modifier.size(14.dp)
@@ -2846,7 +2843,7 @@ fun ReelsErrorView(
                 contentAlignment = Alignment.Center
             ) {
                 Icon(
-                    imageVector = Icons.Default.Close,
+                    imageVector = Icons.Rounded.Close,
                     contentDescription = "Error",
                     tint = IosSettingsColors.red,
                     modifier = Modifier.size(32.dp)

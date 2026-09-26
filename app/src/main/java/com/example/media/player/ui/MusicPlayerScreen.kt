@@ -294,7 +294,7 @@ fun MusicPlayerScreen(
                 ) {
                     IconButton(onClick = { track?.let { viewModel.toggleFavorite(it) } }) {
                         Icon(
-                            if (track?.isFavorite == true) Icons.Default.Favorite else Icons.Default.FavoriteBorder,
+                            if (track?.isFavorite == true) Icons.Rounded.Favorite else Icons.Rounded.FavoriteBorder,
                             contentDescription = "Favorito",
                             tint = if (track?.isFavorite == true) IosSettingsColors.pink else IosSettingsColors.label.copy(alpha = 0.8f)
                         )

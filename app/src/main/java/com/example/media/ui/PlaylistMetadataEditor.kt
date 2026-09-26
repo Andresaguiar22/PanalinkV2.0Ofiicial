@@ -18,6 +18,8 @@ import androidx.compose.ui.unit.sp
 import coil.compose.AsyncImage
 import com.example.media.playlist.PlaylistEntity
 import com.example.ui.settings.ios.IosSettingsColors
+import androidx.compose.material.icons.rounded.Close
+import androidx.compose.material.icons.rounded.Edit
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -35,7 +37,7 @@ fun PlaylistMetadataEditor(
         topBar = {
             TopAppBar(
                 title = { Text("Editar Playlist") },
-                navigationIcon = { IconButton(onClick = onBack) { Icon(Icons.Default.Close, contentDescription = null) } },
+                navigationIcon = { IconButton(onClick = onBack) { Icon(Icons.Rounded.Close, contentDescription = null) } },
                 actions = { Button(onClick = { onSave(name, description, coverPath) }) { Text("Guardar") } }
             )
         }
@@ -52,7 +54,7 @@ fun PlaylistMetadataEditor(
                 if (coverPath != null) {
                     AsyncImage(model = coverPath, contentDescription = null, contentScale = ContentScale.Crop, modifier = Modifier.fillMaxSize())
                 } else {
-                    Icon(Icons.Default.Edit, contentDescription = null, modifier = Modifier.align(Alignment.Center))
+                    Icon(Icons.Rounded.Edit, contentDescription = null, modifier = Modifier.align(Alignment.Center))
                 }
                 Text("Cambiar Portada", color = IosSettingsColors.label, fontSize = 12.sp, modifier = Modifier.align(Alignment.BottomCenter).background(IosSettingsColors.mediaScrimSoft).fillMaxWidth().padding(4.dp))
             }

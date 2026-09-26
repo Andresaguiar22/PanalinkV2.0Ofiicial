@@ -5,9 +5,8 @@ import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.Check
-import androidx.compose.material.icons.filled.Person
-import androidx.compose.material.icons.filled.Search
+import androidx.compose.material.icons.rounded.Person
+import androidx.compose.material.icons.rounded.Search
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
@@ -60,7 +59,7 @@ fun InviteCollaboratorDialog(
                         onValueChange = { searchQuery = it },
                         modifier = Modifier.fillMaxWidth(),
                         placeholder = { Text("Buscar contacto...") },
-                        leadingIcon = { Icon(Icons.Default.Search, contentDescription = null) },
+                        leadingIcon = { Icon(Icons.Rounded.Search, contentDescription = null) },
                         singleLine = true
                     )
                     
@@ -76,7 +75,7 @@ fun InviteCollaboratorDialog(
                                 ListItem(
                                     headlineContent = { Text(profile.displayName) },
                                     supportingContent = { Text("@${profile.id}") },
-                                    leadingContent = { Icon(Icons.Default.Person, contentDescription = null) },
+                                    leadingContent = { Icon(Icons.Rounded.Person, contentDescription = null) },
                                     modifier = Modifier.clickable { selectedContact = profile }
                                 )
                             }

@@ -66,6 +66,27 @@ import coil.compose.AsyncImage
 import coil.request.ImageRequest
 import kotlinx.coroutines.delay
 import com.example.ui.settings.ios.IosSettingsColors
+import androidx.compose.material.icons.rounded.BrightnessHigh
+import androidx.compose.material.icons.rounded.Fullscreen
+import androidx.compose.material.icons.rounded.LiveTv
+import androidx.compose.material.icons.rounded.LockOpen
+import androidx.compose.material.icons.rounded.Pause
+import androidx.compose.material.icons.rounded.Public
+import androidx.compose.material.icons.rounded.SkipNext
+import androidx.compose.material.icons.rounded.SkipPrevious
+import androidx.compose.material.icons.rounded.Subtitles
+import androidx.compose.material.icons.rounded.Tv
+import androidx.compose.material.icons.rounded.TvOff
+import androidx.compose.material.icons.rounded.WifiOff
+import androidx.compose.material.icons.rounded.CheckCircle
+import androidx.compose.material.icons.rounded.Close
+import androidx.compose.material.icons.rounded.Favorite
+import androidx.compose.material.icons.rounded.FavoriteBorder
+import androidx.compose.material.icons.rounded.Lock
+import androidx.compose.material.icons.rounded.PlayArrow
+import androidx.compose.material.icons.rounded.Refresh
+import androidx.compose.material.icons.rounded.Search
+import androidx.compose.material.icons.rounded.Share
 
 private val PanaTvBackground: Color get() = IosSettingsColors.groupBackground
 private val PanaTvSurface: Color get() = IosSettingsColors.groupBackground
@@ -467,7 +488,7 @@ fun PanaTVModernScreen(viewModel: PanaTVViewModel = viewModel()) {
                     modifier = Modifier.align(Alignment.Center),
                     horizontalAlignment = Alignment.CenterHorizontally
                 ) {
-                    Icon(Icons.Default.LiveTv, null, tint = PanaTvAccent.copy(alpha = 0.7f), modifier = Modifier.size(44.dp))
+                    Icon(Icons.Rounded.LiveTv, null, tint = PanaTvAccent.copy(alpha = 0.7f), modifier = Modifier.size(44.dp))
                     Spacer(Modifier.height(8.dp))
                     Text("Selecciona un canal para comenzar", color = PanaTvMuted, fontSize = 13.sp)
                 }
@@ -523,7 +544,7 @@ fun PanaTVModernScreen(viewModel: PanaTVViewModel = viewModel()) {
                 if (playerError != null) {
                     Box(Modifier.fillMaxSize().background(IosSettingsColors.mediaScrim), contentAlignment = Alignment.Center) {
                         Column(horizontalAlignment = Alignment.CenterHorizontally) {
-                            Icon(Icons.Default.WifiOff, null, tint = IosSettingsColors.pink, modifier = Modifier.size(34.dp))
+                            Icon(Icons.Rounded.WifiOff, null, tint = IosSettingsColors.pink, modifier = Modifier.size(34.dp))
                             Spacer(Modifier.height(8.dp))
                             Text("No se pudo cargar el canal", color = PanaTvText, fontWeight = FontWeight.Bold, fontSize = 14.sp)
                             Spacer(Modifier.height(4.dp))
@@ -555,7 +576,7 @@ fun PanaTVModernScreen(viewModel: PanaTVViewModel = viewModel()) {
                                 colors = ButtonDefaults.buttonColors(containerColor = PanaTvAccent),
                                 contentPadding = PaddingValues(horizontal = 16.dp, vertical = 8.dp)
                             ) {
-                                Icon(Icons.Default.Refresh, null, modifier = Modifier.size(16.dp))
+                                Icon(Icons.Rounded.Refresh, null, modifier = Modifier.size(16.dp))
                                 Spacer(Modifier.width(6.dp))
                                 Text("Reintentar", fontSize = 12.sp, fontWeight = FontWeight.Bold)
                             }
@@ -588,7 +609,7 @@ fun PanaTVModernScreen(viewModel: PanaTVViewModel = viewModel()) {
                         verticalAlignment = Alignment.CenterVertically
                     ) {
                         IconButton(onClick = { player?.let { if (it.isPlaying) it.pause() else it.play() } }, modifier = Modifier.size(38.dp)) {
-                            Icon(if (isPlaying) Icons.Default.Pause else Icons.Default.PlayArrow, "Reproducir", tint = IosSettingsColors.label, modifier = Modifier.size(22.dp))
+                            Icon(if (isPlaying) Icons.Rounded.Pause else Icons.Rounded.PlayArrow, "Reproducir", tint = IosSettingsColors.label, modifier = Modifier.size(22.dp))
                         }
                         IconButton(onClick = { isMuted = !isMuted }, modifier = Modifier.size(38.dp)) {
                             Icon(if (isMuted) Icons.AutoMirrored.Filled.VolumeOff else Icons.AutoMirrored.Filled.VolumeUp, "Volumen", tint = IosSettingsColors.label, modifier = Modifier.size(20.dp))
@@ -610,14 +631,14 @@ fun PanaTVModernScreen(viewModel: PanaTVViewModel = viewModel()) {
                         ) {
                             val fav = currentChannel?.let { favorites.contains(it.id) } == true
                             Icon(
-                                if (fav) Icons.Default.Favorite else Icons.Default.FavoriteBorder,
+                                if (fav) Icons.Rounded.Favorite else Icons.Rounded.FavoriteBorder,
                                 "Favorito",
                                 tint = if (fav) PanaTvAccent else IosSettingsColors.label,
                                 modifier = Modifier.size(20.dp)
                             )
                         }
                         IconButton(onClick = { enterFullscreen() }, modifier = Modifier.size(38.dp)) {
-                            Icon(Icons.Default.Fullscreen, "Pantalla completa", tint = IosSettingsColors.label, modifier = Modifier.size(20.dp))
+                            Icon(Icons.Rounded.Fullscreen, "Pantalla completa", tint = IosSettingsColors.label, modifier = Modifier.size(20.dp))
                         }
                     }
                 }
@@ -673,14 +694,14 @@ fun PanaTVModernScreen(viewModel: PanaTVViewModel = viewModel()) {
                         modifier = Modifier.weight(1f)
                     )
                     IconButton(onClick = shareChannel) {
-                        Icon(Icons.Default.Share, "Compartir", tint = IosSettingsColors.label, modifier = Modifier.size(22.dp))
+                        Icon(Icons.Rounded.Share, "Compartir", tint = IosSettingsColors.label, modifier = Modifier.size(22.dp))
                     }
                     IconButton(onClick = showHelp) {
                         Icon(Icons.AutoMirrored.Filled.HelpOutline, "Ayuda", tint = IosSettingsColors.label, modifier = Modifier.size(22.dp))
                     }
                     IconButton(onClick = { currentChannel?.let { viewModel.toggleFavorite(it.id) } }) {
                         val fav = currentChannel?.let { favorites.contains(it.id) } == true
-                        Icon(if (fav) Icons.Default.Favorite else Icons.Default.FavoriteBorder, "Favorito", tint = if (fav) PanaTvAccent else IosSettingsColors.label, modifier = Modifier.size(22.dp))
+                        Icon(if (fav) Icons.Rounded.Favorite else Icons.Rounded.FavoriteBorder, "Favorito", tint = if (fav) PanaTvAccent else IosSettingsColors.label, modifier = Modifier.size(22.dp))
                     }
                 }
 
@@ -688,7 +709,7 @@ fun PanaTVModernScreen(viewModel: PanaTVViewModel = viewModel()) {
                 VerticalSlider(
                     value = brightness,
                     onValueChange = { applyBrightness(it) },
-                    icon = Icons.Default.BrightnessHigh,
+                    icon = Icons.Rounded.BrightnessHigh,
                     modifier = Modifier.align(Alignment.CenterStart).padding(start = 12.dp)
                 )
 
@@ -709,15 +730,15 @@ fun PanaTVModernScreen(viewModel: PanaTVViewModel = viewModel()) {
                     verticalAlignment = Alignment.CenterVertically
                 ) {
                     LandscapeAction(Icons.AutoMirrored.Filled.List, "Categoría") { drawerOpen = true }
-                    LandscapeAction(Icons.Default.SkipPrevious, "Anterior") { playPrevious() }
-                    LandscapeAction(Icons.Default.SkipNext, "Siguiente") { playNext() }
+                    LandscapeAction(Icons.Rounded.SkipPrevious, "Anterior") { playPrevious() }
+                    LandscapeAction(Icons.Rounded.SkipNext, "Siguiente") { playNext() }
                     if (hasSubtitleTracks) {
                         LandscapeAction(
-                            if (subtitlesEnabled) Icons.Default.CheckCircle else Icons.Default.Subtitles,
+                            if (subtitlesEnabled) Icons.Rounded.CheckCircle else Icons.Rounded.Subtitles,
                             if (subtitlesEnabled) "Subtítulos: ON" else "Subtítulos: OFF"
                         ) { toggleSubtitles() }
                     }
-                    LandscapeAction(Icons.Default.Lock, "Bloquear") {
+                    LandscapeAction(Icons.Rounded.Lock, "Bloquear") {
                         // Lock clears every control so the video plays perfectly clean.
                         // Tapping the screen briefly reveals the unlock button again.
                         drawerOpen = false
@@ -745,7 +766,7 @@ fun PanaTVModernScreen(viewModel: PanaTVViewModel = viewModel()) {
                         }
                     ) {
                         Box(contentAlignment = Alignment.Center) {
-                            Icon(Icons.Default.LockOpen, "Desbloquear", tint = IosSettingsColors.label, modifier = Modifier.size(26.dp))
+                            Icon(Icons.Rounded.LockOpen, "Desbloquear", tint = IosSettingsColors.label, modifier = Modifier.size(26.dp))
                         }
                     }
                 }
@@ -861,7 +882,7 @@ fun PanaTVModernScreen(viewModel: PanaTVViewModel = viewModel()) {
                                 .padding(horizontal = 10.dp, vertical = 6.dp),
                             verticalAlignment = Alignment.CenterVertically
                         ) {
-                            Icon(Icons.Default.Public, null, tint = PanaTvAccent, modifier = Modifier.size(15.dp))
+                            Icon(Icons.Rounded.Public, null, tint = PanaTvAccent, modifier = Modifier.size(15.dp))
                             Spacer(Modifier.width(5.dp))
                             Text(selectedCountry.ifBlank { "Todos" }, color = PanaTvMuted, fontSize = 11.sp, maxLines = 1)
                         }
@@ -873,7 +894,7 @@ fun PanaTVModernScreen(viewModel: PanaTVViewModel = viewModel()) {
                         }
                     }
                     IconButton(onClick = { showSearch = !showSearch }) {
-                        Icon(if (showSearch) Icons.Default.Close else Icons.Default.Search, "Buscar", tint = PanaTvText, modifier = Modifier.size(22.dp))
+                        Icon(if (showSearch) Icons.Rounded.Close else Icons.Rounded.Search, "Buscar", tint = PanaTvText, modifier = Modifier.size(22.dp))
                     }
                 }
 
@@ -889,7 +910,7 @@ fun PanaTVModernScreen(viewModel: PanaTVViewModel = viewModel()) {
                         contentAlignment = Alignment.CenterStart
                     ) {
                         Row(verticalAlignment = Alignment.CenterVertically) {
-                            Icon(Icons.Default.Search, null, tint = PanaTvMuted, modifier = Modifier.size(19.dp))
+                            Icon(Icons.Rounded.Search, null, tint = PanaTvMuted, modifier = Modifier.size(19.dp))
                             Spacer(Modifier.width(9.dp))
                             BasicTextField(
                                 value = searchQuery,
@@ -996,7 +1017,7 @@ fun PanaTVModernScreen(viewModel: PanaTVViewModel = viewModel()) {
                             CircularProgressIndicator(color = PanaTvAccent, modifier = Modifier.size(30.dp))
                         } else {
                             Column(horizontalAlignment = Alignment.CenterHorizontally) {
-                                Icon(Icons.Default.TvOff, null, tint = PanaTvMuted, modifier = Modifier.size(34.dp))
+                                Icon(Icons.Rounded.TvOff, null, tint = PanaTvMuted, modifier = Modifier.size(34.dp))
                                 Spacer(Modifier.height(7.dp))
                                 Text(debugMessage.ifBlank { "No se encontraron canales" }, color = PanaTvMuted, fontSize = 12.sp, textAlign = TextAlign.Center)
                             }
@@ -1060,11 +1081,11 @@ private fun ChannelLogo(channel: PanaTVChannelEntity, size: Int, padding: Int) {
                 contentDescription = channel.name,
                 modifier = Modifier.fillMaxSize().padding(padding.dp),
                 contentScale = ContentScale.Fit,
-                error = rememberVectorPainter(image = Icons.Default.Tv),
-                placeholder = rememberVectorPainter(image = Icons.Default.Tv)
+                error = rememberVectorPainter(image = Icons.Rounded.Tv),
+                placeholder = rememberVectorPainter(image = Icons.Rounded.Tv)
             )
         } else {
-            Icon(Icons.Default.Tv, null, tint = PanaTvMuted, modifier = Modifier.size((size - 20).dp))
+            Icon(Icons.Rounded.Tv, null, tint = PanaTvMuted, modifier = Modifier.size((size - 20).dp))
         }
     }
 }
@@ -1114,7 +1135,7 @@ private fun ChannelListRow(
         }
         IconButton(onClick = onFavorite, modifier = Modifier.size(34.dp)) {
             Icon(
-                if (favorite) Icons.Default.Favorite else Icons.Default.FavoriteBorder,
+                if (favorite) Icons.Rounded.Favorite else Icons.Rounded.FavoriteBorder,
                 "Favorito",
                 tint = if (favorite) PanaTvAccent else PanaTvMuted,
                 modifier = Modifier.size(18.dp)

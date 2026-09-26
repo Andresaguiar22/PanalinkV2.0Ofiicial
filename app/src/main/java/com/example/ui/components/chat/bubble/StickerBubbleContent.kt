@@ -9,7 +9,7 @@ import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.size
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.BrokenImage
+import androidx.compose.material.icons.rounded.BrokenImage
 import androidx.compose.material3.Icon
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
@@ -77,7 +77,7 @@ fun StickerBubbleContent(
                 // La fuente local no existe y no hay alternativa: se intentó pero
                 // no hay imagen — usar un icono discreto en vez de romper.
                 Icon(
-                    imageVector = Icons.Default.BrokenImage,
+                    imageVector = Icons.Rounded.BrokenImage,
                     contentDescription = null,
                     tint = IosSettingsColors.secondaryLabel,
                     modifier = Modifier.size(36.dp)

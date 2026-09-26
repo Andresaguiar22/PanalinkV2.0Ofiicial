@@ -7,8 +7,8 @@ import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.Comment
-import androidx.compose.material.icons.filled.Share
-import androidx.compose.material.icons.filled.ThumbUp
+import androidx.compose.material.icons.rounded.Share
+import androidx.compose.material.icons.rounded.ThumbUp
 import androidx.compose.material3.*
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
@@ -83,7 +83,7 @@ fun ChannelPostItem(
                     verticalAlignment = Alignment.CenterVertically
                 ) {
                     Icon(
-                        imageVector = Icons.Default.ThumbUp,
+                        imageVector = Icons.Rounded.ThumbUp,
                         contentDescription = "Reactions",
                         tint = if (reactionsCount > 0) IosSettingsColors.blue else IosSettingsColors.secondaryLabel,
                         modifier = Modifier.size(16.dp)
@@ -138,7 +138,7 @@ fun ChannelPostItem(
                             .background(IosSettingsColors.cellElevated)
                     ) {
                         Icon(
-                            imageVector = Icons.Default.Share,
+                            imageVector = Icons.Rounded.Share,
                             contentDescription = "Share",
                             tint = IosSettingsColors.secondaryLabel,
                             modifier = Modifier.size(16.dp)

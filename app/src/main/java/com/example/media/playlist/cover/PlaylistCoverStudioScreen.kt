@@ -14,6 +14,10 @@ import androidx.compose.ui.unit.dp
 import com.example.creative.canvas.CanvasEditorEngine
 import com.example.creative.ui.StudioLayout
 import com.example.ui.settings.ios.IosSettingsColors
+import androidx.compose.material.icons.rounded.EmojiEmotions
+import androidx.compose.material.icons.rounded.Image
+import androidx.compose.material.icons.rounded.TextFields
+import androidx.compose.material.icons.rounded.Check
 
 /**
  * P6.7.4 - Playlist Cover Studio Screen
@@ -43,7 +47,7 @@ fun PlaylistCoverStudioScreen(
                         CircularProgressIndicator(modifier = Modifier.size(24.dp), strokeWidth = 2.dp)
                     } else {
                         IconButton(onClick = { viewModel.exportAndApply(onFinish) }) {
-                            Icon(Icons.Default.Check, contentDescription = "Listo", tint = IosSettingsColors.blue)
+                            Icon(Icons.Rounded.Check, contentDescription = "Listo", tint = IosSettingsColors.blue)
                         }
                     }
                 },
@@ -103,13 +107,13 @@ fun CoverStudioControls(
             horizontalArrangement = Arrangement.SpaceEvenly
         ) {
             IconButton(onClick = onAddText) {
-                Icon(Icons.Default.TextFields, contentDescription = "Texto", tint = IosSettingsColors.label)
+                Icon(Icons.Rounded.TextFields, contentDescription = "Texto", tint = IosSettingsColors.label)
             }
             IconButton(onClick = onAddImage) {
-                Icon(Icons.Default.Image, contentDescription = "Imagen", tint = IosSettingsColors.label)
+                Icon(Icons.Rounded.Image, contentDescription = "Imagen", tint = IosSettingsColors.label)
             }
             IconButton(onClick = onAddSticker) {
-                Icon(Icons.Default.EmojiEmotions, contentDescription = "Sticker", tint = IosSettingsColors.label)
+                Icon(Icons.Rounded.EmojiEmotions, contentDescription = "Sticker", tint = IosSettingsColors.label)
             }
             IconButton(onClick = onUndo) {
                 Icon(Icons.AutoMirrored.Filled.Undo, contentDescription = "Deshacer", tint = IosSettingsColors.label)

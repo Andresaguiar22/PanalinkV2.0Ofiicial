@@ -20,10 +20,10 @@ import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.Send
 import androidx.compose.material.icons.automirrored.filled.Chat
-import androidx.compose.material.icons.filled.MusicNote
-import androidx.compose.material.icons.filled.Notifications
-import androidx.compose.material.icons.filled.Vibration
-import androidx.compose.material.icons.filled.Warning
+import androidx.compose.material.icons.rounded.MusicNote
+import androidx.compose.material.icons.rounded.Notifications
+import androidx.compose.material.icons.rounded.Vibration
+import androidx.compose.material.icons.rounded.Warning
 import androidx.compose.material3.Icon
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
@@ -94,7 +94,7 @@ fun NotificationCenterScreen(
                             verticalAlignment = Alignment.CenterVertically
                         ) {
                             Icon(
-                                imageVector = Icons.Default.Warning,
+                                imageVector = Icons.Rounded.Warning,
                                 contentDescription = null,
                                 tint = IosSettingsColors.orange,
                                 modifier = Modifier.size(24.dp)
@@ -135,7 +135,7 @@ fun NotificationCenterScreen(
                         subtitle = "Activa o desactiva todas las alertas de la app.",
                         checked = uiState.globalEnabled,
                         onCheckedChange = { viewModel.dispatch(NotificationAction.SetGlobalEnabled(it)) },
-                        icon = Icons.Default.Notifications,
+                        icon = Icons.Rounded.Notifications,
                         iconTint = IosSettingsColors.red
                     )
                 }
@@ -150,7 +150,7 @@ fun NotificationCenterScreen(
                             subtitle = "Reproducir alertas sonoras al recibir mensajes.",
                             checked = uiState.soundEnabled,
                             onCheckedChange = { viewModel.dispatch(NotificationAction.SetSoundEnabled(it)) },
-                            icon = Icons.Default.MusicNote,
+                            icon = Icons.Rounded.MusicNote,
                             iconTint = IosSettingsColors.pink
                         )
                         IosDivider()
@@ -159,7 +159,7 @@ fun NotificationCenterScreen(
                             subtitle = "Hacer vibrar el dispositivo al recibir mensajes.",
                             checked = uiState.vibrationEnabled,
                             onCheckedChange = { viewModel.dispatch(NotificationAction.SetVibrationEnabled(it)) },
-                            icon = Icons.Default.Vibration,
+                            icon = Icons.Rounded.Vibration,
                             iconTint = IosSettingsColors.purple
                         )
                     }

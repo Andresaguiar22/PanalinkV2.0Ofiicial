@@ -10,8 +10,8 @@ import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.Close
-import androidx.compose.material.icons.filled.Delete
+import androidx.compose.material.icons.rounded.Close
+import androidx.compose.material.icons.rounded.Delete
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.Surface
@@ -81,7 +81,7 @@ fun FloatingVideoOverlay(
                 contentAlignment = Alignment.Center
             ) {
                 Icon(
-                    imageVector = Icons.Default.Delete,
+                    imageVector = Icons.Rounded.Delete,
                     contentDescription = "Trash",
                     tint = IosSettingsColors.label,
                     modifier = Modifier.size(if (isOverTrash) 40.dp else 32.dp)
@@ -151,7 +151,7 @@ fun FloatingVideoOverlay(
                     .padding(4.dp)
                     .background(IosSettingsColors.mediaScrimSoft, CircleShape)
             ) {
-                Icon(Icons.Default.Close, contentDescription = "Close", tint = IosSettingsColors.label, modifier = Modifier.size(16.dp))
+                Icon(Icons.Rounded.Close, contentDescription = "Close", tint = IosSettingsColors.label, modifier = Modifier.size(16.dp))
             }
         }
     }

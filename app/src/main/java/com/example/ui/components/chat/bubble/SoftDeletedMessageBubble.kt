@@ -3,7 +3,7 @@ package com.example.ui.components.chat.bubble
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.Delete
+import androidx.compose.material.icons.rounded.Delete
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
@@ -42,7 +42,7 @@ fun SoftDeletedMessageBubble(
                 .padding(horizontal = 12.dp, vertical = 10.dp)
         ) {
             Icon(
-                imageVector = Icons.Default.Delete,
+                imageVector = Icons.Rounded.Delete,
                 contentDescription = null,
                 tint = textColor,
                 modifier = Modifier.size(16.dp)

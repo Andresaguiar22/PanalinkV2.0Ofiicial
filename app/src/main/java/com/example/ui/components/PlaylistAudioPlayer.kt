@@ -30,6 +30,12 @@ import kotlinx.coroutines.isActive
 import java.net.URI
 import java.net.URLDecoder
 import com.example.ui.settings.ios.IosSettingsColors
+import androidx.compose.material.icons.rounded.GraphicEq
+import androidx.compose.material.icons.rounded.MusicNote
+import androidx.compose.material.icons.rounded.Pause
+import androidx.compose.material.icons.rounded.SkipNext
+import androidx.compose.material.icons.rounded.SkipPrevious
+import androidx.compose.material.icons.rounded.PlayArrow
 
 fun extractFilename(url: String): String {
     return try {
@@ -130,7 +136,7 @@ fun PlaylistAudioPlayer(audioUrls: List<String>) {
                 contentAlignment = Alignment.Center
             ) {
                 Icon(
-                    imageVector = Icons.Default.MusicNote,
+                    imageVector = Icons.Rounded.MusicNote,
                     contentDescription = null,
                     tint = IosSettingsColors.label,
                     modifier = Modifier.size(32.dp)
@@ -216,7 +222,7 @@ fun PlaylistAudioPlayer(audioUrls: List<String>) {
                 enabled = currentTrackIndex > 0
             ) {
                 Icon(
-                    imageVector = Icons.Default.SkipPrevious,
+                    imageVector = Icons.Rounded.SkipPrevious,
                     contentDescription = "Anterior",
                     tint = if (currentTrackIndex > 0) IosSettingsColors.label else IosSettingsColors.secondaryLabel,
                     modifier = Modifier.size(32.dp)
@@ -240,7 +246,7 @@ fun PlaylistAudioPlayer(audioUrls: List<String>) {
                 contentAlignment = Alignment.Center
             ) {
                 Icon(
-                    imageVector = if (isPlaying) Icons.Default.Pause else Icons.Default.PlayArrow,
+                    imageVector = if (isPlaying) Icons.Rounded.Pause else Icons.Rounded.PlayArrow,
                     contentDescription = "Play/Pause",
                     tint = IosSettingsColors.onAccent,
                     modifier = Modifier.size(36.dp)
@@ -257,7 +263,7 @@ fun PlaylistAudioPlayer(audioUrls: List<String>) {
                 enabled = currentTrackIndex < audioUrls.size - 1
             ) {
                 Icon(
-                    imageVector = Icons.Default.SkipNext,
+                    imageVector = Icons.Rounded.SkipNext,
                     contentDescription = "Siguiente",
                     tint = if (currentTrackIndex < audioUrls.size - 1) IosSettingsColors.label else IosSettingsColors.secondaryLabel,
                     modifier = Modifier.size(32.dp)
@@ -306,7 +312,7 @@ fun PlaylistAudioPlayer(audioUrls: List<String>) {
                         if (isCurrent && isPlaying) {
                             // Small animation indicator
                             Icon(
-                                imageVector = Icons.Default.GraphicEq,
+                                imageVector = Icons.Rounded.GraphicEq,
                                 contentDescription = null,
                                 tint = IosSettingsColors.green,
                                 modifier = Modifier.size(16.dp)

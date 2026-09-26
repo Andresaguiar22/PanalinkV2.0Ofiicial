@@ -8,8 +8,8 @@ import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
-import androidx.compose.material.icons.filled.Close
-import androidx.compose.material.icons.filled.Person
+import androidx.compose.material.icons.rounded.Close
+import androidx.compose.material.icons.rounded.Person
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
@@ -73,7 +73,7 @@ fun SearchUsersScreen(
                                     query = ""
                                     viewModel.searchUsers("")
                                 }) {
-                                    Icon(Icons.Default.Close, contentDescription = "Limpiar", tint = IosSettingsColors.label)
+                                    Icon(Icons.Rounded.Close, contentDescription = "Limpiar", tint = IosSettingsColors.label)
                                 }
                             }
                         }
@@ -87,7 +87,7 @@ fun SearchUsersScreen(
                 actions = {
                     Box(modifier = Modifier.padding(end = 12.dp)) {
                         Icon(
-                            imageVector = Icons.Default.Person,
+                            imageVector = Icons.Rounded.Person,
                             contentDescription = null,
                             tint = IosSettingsColors.tertiaryLabel,
                             modifier = Modifier.size(32.dp)
@@ -115,7 +115,7 @@ fun SearchUsersScreen(
                         horizontalAlignment = Alignment.CenterHorizontally,
                         verticalArrangement = Arrangement.Center
                     ) {
-                        Icon(Icons.Default.Person, contentDescription = null, tint = IosSettingsColors.cellElevated, modifier = Modifier.size(80.dp))
+                        Icon(Icons.Rounded.Person, contentDescription = null, tint = IosSettingsColors.cellElevated, modifier = Modifier.size(80.dp))
                         Spacer(modifier = Modifier.height(16.dp))
                         Text(
                             text = "Escribe un nombre para buscar",

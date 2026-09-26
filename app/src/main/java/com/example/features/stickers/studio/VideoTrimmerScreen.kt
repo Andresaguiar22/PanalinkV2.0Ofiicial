@@ -9,9 +9,9 @@ import androidx.compose.foundation.gestures.detectDragGestures
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.Check
-import androidx.compose.material.icons.filled.Close
-import androidx.compose.material.icons.filled.PlayArrow
+import androidx.compose.material.icons.rounded.Check
+import androidx.compose.material.icons.rounded.Close
+import androidx.compose.material.icons.rounded.PlayArrow
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
@@ -103,7 +103,7 @@ fun VideoTrimmerScreen(
             horizontalArrangement = Arrangement.SpaceBetween
         ) {
             TextButton(onClick = onDismiss) {
-                Icon(Icons.Default.Close, contentDescription = "Cancelar", tint = IosSettingsColors.label)
+                Icon(Icons.Rounded.Close, contentDescription = "Cancelar", tint = IosSettingsColors.label)
             }
             Text(
                 text = "Recortar video (${(endMs() - startMs()) / 1000f}s)",
@@ -124,7 +124,7 @@ fun VideoTrimmerScreen(
                 },
                 enabled = (endMs() - startMs()) >= 200L
             ) {
-                Icon(Icons.Default.Check, contentDescription = "Confirmar", tint = if ((endMs() - startMs()) >= 200L) PANA_GREEN else IosSettingsColors.secondaryLabel)
+                Icon(Icons.Rounded.Check, contentDescription = "Confirmar", tint = if ((endMs() - startMs()) >= 200L) PANA_GREEN else IosSettingsColors.secondaryLabel)
             }
         }
 
@@ -162,7 +162,7 @@ fun VideoTrimmerScreen(
                     .background(IosSettingsColors.mediaScrimSoft, RoundedCornerShape(50.dp))
             ) {
                 Icon(
-                    imageVector = if (isPlaying) Icons.Default.PlayArrow else Icons.Default.PlayArrow,
+                    imageVector = if (isPlaying) Icons.Rounded.PlayArrow else Icons.Rounded.PlayArrow,
                     contentDescription = if (isPlaying) "Pausar" else "Reproducir",
                     tint = IosSettingsColors.label,
                     modifier = Modifier.size(24.dp)

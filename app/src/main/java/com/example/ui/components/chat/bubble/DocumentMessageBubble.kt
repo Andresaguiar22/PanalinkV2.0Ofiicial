@@ -28,6 +28,14 @@ import com.example.util.PanalinkMediaManager
 import com.example.ui.components.PanaAvatar
 import kotlinx.coroutines.launch
 import com.example.ui.settings.ios.IosSettingsColors
+import androidx.compose.material.icons.rounded.Android
+import androidx.compose.material.icons.rounded.Description
+import androidx.compose.material.icons.rounded.Error
+import androidx.compose.material.icons.rounded.FileDownload
+import androidx.compose.material.icons.rounded.FolderZip
+import androidx.compose.material.icons.rounded.PictureAsPdf
+import androidx.compose.material.icons.rounded.PresentToAll
+import androidx.compose.material.icons.rounded.TableChart
 
 @Composable
 fun DocumentMessageBubble(
@@ -105,7 +113,7 @@ fun DocumentMessageBubble(
                     contentAlignment = Alignment.Center
                 ) {
                     Icon(
-                        imageVector = if (isFailed) Icons.Default.Error else icon,
+                        imageVector = if (isFailed) Icons.Rounded.Error else icon,
                         contentDescription = null,
                         tint = if (isFailed) Color.Red else typeColor,
                         modifier = Modifier.size(26.dp)
@@ -175,7 +183,7 @@ fun DocumentMessageBubble(
                         }
                         else -> {
                             Icon(
-                                imageVector = Icons.Default.FileDownload,
+                                imageVector = Icons.Rounded.FileDownload,
                                 contentDescription = "Descargar",
                                 tint = secondaryColor,
                                 modifier = Modifier.size(20.dp)
@@ -201,12 +209,12 @@ fun DocumentMessageBubble(
 
 private fun getDocumentFileInfo(extension: String): Pair<ImageVector, Color> {
     return when (extension) {
-        "pdf" -> Icons.Default.PictureAsPdf to IosSettingsColors.red
-        "doc", "docx" -> Icons.Default.Description to IosSettingsColors.blue
-        "xls", "xlsx" -> Icons.Default.TableChart to IosSettingsColors.green
-        "ppt", "pptx" -> Icons.Default.PresentToAll to IosSettingsColors.orange
-        "zip", "rar", "7z" -> Icons.Default.FolderZip to IosSettingsColors.yellow
-        "apk" -> Icons.Default.Android to IosSettingsColors.green
+        "pdf" -> Icons.Rounded.PictureAsPdf to IosSettingsColors.red
+        "doc", "docx" -> Icons.Rounded.Description to IosSettingsColors.blue
+        "xls", "xlsx" -> Icons.Rounded.TableChart to IosSettingsColors.green
+        "ppt", "pptx" -> Icons.Rounded.PresentToAll to IosSettingsColors.orange
+        "zip", "rar", "7z" -> Icons.Rounded.FolderZip to IosSettingsColors.yellow
+        "apk" -> Icons.Rounded.Android to IosSettingsColors.green
         "txt" -> Icons.AutoMirrored.Filled.Article to IosSettingsColors.secondaryLabel
         else -> Icons.AutoMirrored.Filled.InsertDriveFile to IosSettingsColors.secondaryLabel
     }

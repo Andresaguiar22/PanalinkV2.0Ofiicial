@@ -13,20 +13,20 @@ import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
-import androidx.compose.material.icons.filled.AutoAwesome
-import androidx.compose.material.icons.filled.Bolt
-import androidx.compose.material.icons.filled.CheckCircle
-import androidx.compose.material.icons.filled.Circle
-import androidx.compose.material.icons.filled.Contrast
-import androidx.compose.material.icons.filled.CropSquare
-import androidx.compose.material.icons.filled.DarkMode
-import androidx.compose.material.icons.filled.Hexagon
-import androidx.compose.material.icons.filled.LightMode
-import androidx.compose.material.icons.filled.Palette
-import androidx.compose.material.icons.filled.Pentagon
-import androidx.compose.material.icons.filled.SettingsBrightness
-import androidx.compose.material.icons.filled.WaterDrop
-import androidx.compose.material.icons.filled.Waves
+import androidx.compose.material.icons.rounded.AutoAwesome
+import androidx.compose.material.icons.rounded.Bolt
+import androidx.compose.material.icons.rounded.CheckCircle
+import androidx.compose.material.icons.rounded.Circle
+import androidx.compose.material.icons.rounded.Contrast
+import androidx.compose.material.icons.rounded.CropSquare
+import androidx.compose.material.icons.rounded.DarkMode
+import androidx.compose.material.icons.rounded.Hexagon
+import androidx.compose.material.icons.rounded.LightMode
+import androidx.compose.material.icons.rounded.Palette
+import androidx.compose.material.icons.rounded.Pentagon
+import androidx.compose.material.icons.rounded.SettingsBrightness
+import androidx.compose.material.icons.rounded.WaterDrop
+import androidx.compose.material.icons.rounded.Waves
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
@@ -76,7 +76,7 @@ val uiState by viewModel.uiState.collectAsStateWithLifecycle()
             // ─── HERO: modo de apariencia (toma el control real de la app)
             item {
                 Column(verticalArrangement = Arrangement.spacedBy(14.dp)) {
-                    SectionHeader(Icons.Filled.Palette, "Modo de Apariencia", "Se aplica al instante en toda la app", pal)
+                    SectionHeader(Icons.Rounded.Palette, "Modo de Apariencia", "Se aplica al instante en toda la app", pal)
                     ModeSelector(uiState.themeMode, pal) { viewModel.dispatch(CustomizationAction.SetThemeMode(it)) }
                 }
             }
@@ -84,7 +84,7 @@ val uiState by viewModel.uiState.collectAsStateWithLifecycle()
             // ─── Identidad visual
             item{
                 Column(verticalArrangement = Arrangement.spacedBy(14.dp)) {
-                    SectionHeader(Icons.Filled.AutoAwesome, "Identidad Visual", "La personalidad cromática de PanaLink", pal)
+                    SectionHeader(Icons.Rounded.AutoAwesome, "Identidad Visual", "La personalidad cromática de PanaLink", pal)
                     ThemeIdentityGrid(uiState.profileThemeChoice, pal) { viewModel.dispatch(CustomizationAction.SetProfileTheme(it)) }
                 }
             }
@@ -92,7 +92,7 @@ val uiState by viewModel.uiState.collectAsStateWithLifecycle()
             // ─── Barra de navegación (preview en vivo)
             item{
                 Column(verticalArrangement = Arrangement.spacedBy(14.dp)) {
-                    SectionHeader(Icons.Filled.Waves, "Barra de Navegación", "Preview real de colores y geometría", pal)
+                    SectionHeader(Icons.Rounded.Waves, "Barra de Navegación", "Preview real de colores y geometría", pal)
                     val colorPresets = listOf(
                         "tropical" to "Menta",
                         "neon_cyber" to "Neón",
@@ -110,11 +110,11 @@ val uiState by viewModel.uiState.collectAsStateWithLifecycle()
                         "sharp" to "Recto"
                     )
                     val shapeIcons = listOf(
-                        Icons.Filled.Circle,
-                        Icons.Filled.Hexagon,
-                        Icons.Filled.Pentagon,
-                        Icons.Filled.Waves,
-                        Icons.Filled.CropSquare
+                        Icons.Rounded.Circle,
+                        Icons.Rounded.Hexagon,
+                        Icons.Rounded.Pentagon,
+                        Icons.Rounded.Waves,
+                        Icons.Rounded.CropSquare
                     )
 
                     Text("Paleta", color = pal.onSub, fontSize = 11.sp, fontWeight = FontWeight.Medium, modifier = Modifier.padding(start = 4.dp))
@@ -151,7 +151,7 @@ ScaleChip(
     onClick = { haptic.performHapticFeedback(HapticFeedbackType.LongPress); viewModel.dispatch(CustomizationAction.SetBottomBarShape(key)) }
 ) {
     Column(horizontalAlignment = Alignment.CenterHorizontally, verticalArrangement = Arrangement.spacedBy(5.dp)) {
-        Icon(shapeIcons.getOrElse(shapePresets.indexOfFirst { it.first == key }) { Icons.Filled.Circle }, contentDescription = null, tint = if (selected) pal.accent else pal.onSub, modifier = Modifier.size(18.dp))
+        Icon(shapeIcons.getOrElse(shapePresets.indexOfFirst { it.first == key }) { Icons.Rounded.Circle }, contentDescription = null, tint = if (selected) pal.accent else pal.onSub, modifier = Modifier.size(18.dp))
         Text(label, color = if (selected) pal.accent else pal.on, fontSize =10.sp, fontWeight = if (selected) FontWeight.Bold else FontWeight.Medium)
                         }
                     }
@@ -181,7 +181,7 @@ ScaleChip(
                                 .background(if (uiState.isMinimalistMode) pal.accent.copy(alpha =0.2f) else pal.inputBg),
                             contentAlignment = Alignment.Center
                         ) {
-                            Icon(Icons.Filled.Contrast, contentDescription = null, tint = if (uiState.isMinimalistMode) pal.accent else pal.onSub)
+                            Icon(Icons.Rounded.Contrast, contentDescription = null, tint = if (uiState.isMinimalistMode) pal.accent else pal.onSub)
                         }
                         Column {
                             Text("Modo Esencial", color = pal.on, fontWeight = FontWeight.Bold, fontSize =14.sp)
@@ -205,7 +205,7 @@ ScaleChip(
             item {
                 if (uiState.profileThemeChoice == "custom") {
                     Column(verticalArrangement = Arrangement.spacedBy(12.dp)) {
-                        SectionHeader(Icons.Filled.Palette, "Studio de Color", "Mezcla primario secundario y acento", pal)
+                        SectionHeader(Icons.Rounded.Palette, "Studio de Color", "Mezcla primario secundario y acento", pal)
                         CustomColorSlider("Primario · Rojo", uiState.customR, Color(0xFFFF5252)) { viewModel.dispatch(CustomizationAction.UpdateCustomPrimary(it, uiState.customG, uiState.customB)) }
                         CustomColorSlider("Primario · Verde", uiState.customG, Color(0xFF69F0AE)) { viewModel.dispatch(CustomizationAction.UpdateCustomPrimary(uiState.customR, it, uiState.customB)) }
                         CustomColorSlider("Primario · Azul", uiState.customB, Color(0xFF4FC3F7)) { viewModel.dispatch(CustomizationAction.UpdateCustomPrimary(uiState.customR, uiState.customG, it)) }
@@ -329,9 +329,9 @@ private fun ModeSelector(
 ) {
     val haptic = LocalHapticFeedback.current
     val modes = listOf(
-        Triple("claro", "Claro", Icons.Filled.LightMode),
-        Triple("oscuro", "Oscuro", Icons.Filled.DarkMode),
-        Triple("system", "Sistema", Icons.Filled.SettingsBrightness)
+        Triple("claro", "Claro", Icons.Rounded.LightMode),
+        Triple("oscuro", "Oscuro", Icons.Rounded.DarkMode),
+        Triple("system", "Sistema", Icons.Rounded.SettingsBrightness)
     )
     Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(10.dp)) {
 
@@ -381,18 +381,18 @@ private fun ThemeIdentityGrid(
     val haptic = LocalHapticFeedback.current
     val themes = listOf(
         listOf(
-            Triple("halo_dark", "Aurora", Icons.Filled.AutoAwesome),
-            Triple("royal_purple", "Royal", Icons.Filled.Bolt),
-            Triple("nordic_ice", "Glaciar", Icons.Filled.WaterDrop),
-            Triple("cyberpunk", "Cyber", Icons.Filled.Hexagon),
-            Triple("neon", "Neón", Icons.Filled.Contrast)
+            Triple("halo_dark", "Aurora", Icons.Rounded.AutoAwesome),
+            Triple("royal_purple", "Royal", Icons.Rounded.Bolt),
+            Triple("nordic_ice", "Glaciar", Icons.Rounded.WaterDrop),
+            Triple("cyberpunk", "Cyber", Icons.Rounded.Hexagon),
+            Triple("neon", "Neón", Icons.Rounded.Contrast)
         ),
         listOf(
-            Triple("minimal_white", "Pure", Icons.Filled.LightMode),
-            Triple("elegant_grey", "Grafito", Icons.Filled.Circle),
-            Triple("classic_dark", "Clásico", Icons.Filled.CropSquare),
-            Triple("whatsapp_dark", "Verde", Icons.Filled.CheckCircle),
-            Triple("custom", "Studio", Icons.Filled.Palette)
+            Triple("minimal_white", "Pure", Icons.Rounded.LightMode),
+            Triple("elegant_grey", "Grafito", Icons.Rounded.Circle),
+            Triple("classic_dark", "Clásico", Icons.Rounded.CropSquare),
+            Triple("whatsapp_dark", "Verde", Icons.Rounded.CheckCircle),
+            Triple("custom", "Studio", Icons.Rounded.Palette)
         )
     )
     Column(verticalArrangement = Arrangement.spacedBy(10.dp), modifier = Modifier.fillMaxWidth()) {
@@ -473,11 +473,11 @@ private fun BottomBarLivePreview(
             verticalAlignment = Alignment.CenterVertically
         ) {
             val items = listOf(
-                Icons.Filled.Circle,
-                Icons.Filled.Bolt,
-                Icons.Filled.Palette,
-                Icons.Filled.Hexagon,
-                Icons.Filled.WaterDrop
+                Icons.Rounded.Circle,
+                Icons.Rounded.Bolt,
+                Icons.Rounded.Palette,
+                Icons.Rounded.Hexagon,
+                Icons.Rounded.WaterDrop
             )
             items.forEachIndexed { index, icon ->
                 val selected = index == 2

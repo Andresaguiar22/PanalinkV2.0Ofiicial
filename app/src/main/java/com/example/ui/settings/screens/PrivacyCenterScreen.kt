@@ -6,11 +6,9 @@ import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.Lock
-import androidx.compose.material.icons.filled.Visibility
-import androidx.compose.material.icons.filled.VisibilityOff
-import androidx.compose.material.icons.filled.Bolt
-import androidx.compose.material.icons.filled.Person
+import androidx.compose.material.icons.rounded.Visibility
+import androidx.compose.material.icons.rounded.VisibilityOff
+import androidx.compose.material.icons.rounded.Bolt
 import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
@@ -89,7 +87,7 @@ fun PrivacyCenterScreen(
                             subtitle = "Al desactivarlo no verás ni enviarás el doble tilde azul.",
                             checked = uiState.readReceiptsEnabled,
                             onCheckedChange = { viewModel.dispatch(PrivacyAction.ToggleReadReceipts(it)) },
-                            icon = Icons.Default.Visibility,
+                            icon = Icons.Rounded.Visibility,
                             iconTint = IosSettingsColors.blue
                         )
                         IosDivider()
@@ -98,7 +96,7 @@ fun PrivacyCenterScreen(
                             subtitle = "Envía la confirmación al abrir la conversación.",
                             checked = uiState.smartReadReceiptsEnabled,
                             onCheckedChange = { viewModel.dispatch(PrivacyAction.ToggleSmartReadReceipts(it)) },
-                            icon = Icons.Default.Bolt,
+                            icon = Icons.Rounded.Bolt,
                             iconTint = IosSettingsColors.orange
                         )
                     }
@@ -112,7 +110,7 @@ fun PrivacyCenterScreen(
                             subtitle = "Navega y lee sin mostrar 'En línea'.",
                             checked = uiState.invisibleModeEnabled,
                             onCheckedChange = { viewModel.dispatch(PrivacyAction.ToggleInvisibleMode(it)) },
-                            icon = if (uiState.invisibleModeEnabled) Icons.Default.VisibilityOff else Icons.Default.Visibility,
+                            icon = if (uiState.invisibleModeEnabled) Icons.Rounded.VisibilityOff else Icons.Rounded.Visibility,
                             iconTint = IosSettingsColors.indigo
                         )
                     }

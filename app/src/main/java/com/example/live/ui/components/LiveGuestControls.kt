@@ -18,9 +18,9 @@ import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.Close
-import androidx.compose.material.icons.filled.PersonAdd
-import androidx.compose.material.icons.filled.Search
+import androidx.compose.material.icons.rounded.Close
+import androidx.compose.material.icons.rounded.PersonAdd
+import androidx.compose.material.icons.rounded.Search
 import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.Icon
@@ -76,7 +76,7 @@ fun LiveGuestControls(
             )
         ) {
             Icon(
-                imageVector = Icons.Default.PersonAdd,
+                imageVector = Icons.Rounded.PersonAdd,
                 contentDescription = null,
                 tint = PanalinkNeonGreen,
                 modifier = Modifier.size(16.dp)
@@ -106,7 +106,7 @@ fun LiveGuestControls(
                             singleLine = true,
                             label = { Text("Buscar por nombre de usuario") },
                             placeholder = { Text("Escribe un nombre...") },
-                            leadingIcon = { Icon(Icons.Default.Search, contentDescription = null, tint = IosSettingsColors.secondaryLabel) },
+                            leadingIcon = { Icon(Icons.Rounded.Search, contentDescription = null, tint = IosSettingsColors.secondaryLabel) },
                             trailingIcon = {
                                 if (query.isNotEmpty()) {
                                     IconButton(onClick = {
@@ -114,7 +114,7 @@ fun LiveGuestControls(
                                         selectedUser = null
                                         onClearSearch?.invoke()
                                     }) {
-                                        Icon(Icons.Default.Close, contentDescription = "Limpiar", tint = IosSettingsColors.secondaryLabel)
+                                        Icon(Icons.Rounded.Close, contentDescription = "Limpiar", tint = IosSettingsColors.secondaryLabel)
                                     }
                                 }
                             },
@@ -149,7 +149,7 @@ fun LiveGuestControls(
                                     selectedUser = null
                                     onClearSearch?.invoke()
                                 }) {
-                                    Icon(Icons.Default.Close, contentDescription = "Quitar seleccion", tint = IosSettingsColors.secondaryLabel)
+                                    Icon(Icons.Rounded.Close, contentDescription = "Quitar seleccion", tint = IosSettingsColors.secondaryLabel)
                                 }
                             }
                         } else if (query.isNotBlank()) {

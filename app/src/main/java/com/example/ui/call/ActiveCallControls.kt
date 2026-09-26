@@ -13,6 +13,14 @@ import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.unit.dp
 import com.example.ui.settings.ios.IosSettingsColors
+import androidx.compose.material.icons.rounded.Bluetooth
+import androidx.compose.material.icons.rounded.CallEnd
+import androidx.compose.material.icons.rounded.FlipCameraAndroid
+import androidx.compose.material.icons.rounded.Mic
+import androidx.compose.material.icons.rounded.MicOff
+import androidx.compose.material.icons.rounded.Videocam
+import androidx.compose.material.icons.rounded.VideocamOff
+import androidx.compose.material.icons.rounded.MoreVert
 
 /**
  * ActiveCallControls displays the primary interactive bottom bar controls during an active call.
@@ -52,7 +60,7 @@ fun ActiveCallControls(
             // 1. Microphone Toggle
             CallActionButton(
                 onClick = onMuteToggle,
-                icon = if (isMuted) Icons.Default.MicOff else Icons.Default.Mic,
+                icon = if (isMuted) Icons.Rounded.MicOff else Icons.Rounded.Mic,
                 contentDescription = "Toggle Mute",
                 containerColor = if (isMuted) IosSettingsColors.label else IosSettingsColors.separator,
                 contentColor = if (isMuted) IosSettingsColors.groupBackground else IosSettingsColors.label,
@@ -75,7 +83,7 @@ fun ActiveCallControls(
                 // 3. Camera Toggle (Video only)
                 CallActionButton(
                     onClick = onCameraToggle,
-                    icon = if (isCameraOn) Icons.Default.Videocam else Icons.Default.VideocamOff,
+                    icon = if (isCameraOn) Icons.Rounded.Videocam else Icons.Rounded.VideocamOff,
                     contentDescription = "Toggle Camera",
                     containerColor = if (isCameraOn) IosSettingsColors.separator else IosSettingsColors.label,
                     contentColor = if (isCameraOn) IosSettingsColors.label else IosSettingsColors.groupBackground,
@@ -86,7 +94,7 @@ fun ActiveCallControls(
                 // 4. Switch Front/Rear Camera (Video only)
                 CallActionButton(
                     onClick = onCameraSwitch,
-                    icon = Icons.Default.FlipCameraAndroid,
+                    icon = Icons.Rounded.FlipCameraAndroid,
                     contentDescription = "Switch Camera",
                     containerColor = IosSettingsColors.separator,
                     contentColor = IosSettingsColors.label,
@@ -98,7 +106,7 @@ fun ActiveCallControls(
                 Box {
                     CallActionButton(
                         onClick = { showMoreMenu = true },
-                        icon = Icons.Default.MoreVert,
+                        icon = Icons.Rounded.MoreVert,
                         contentDescription = "More options",
                         containerColor = IosSettingsColors.separator,
                         contentColor = IosSettingsColors.label,
@@ -117,7 +125,7 @@ fun ActiveCallControls(
                                 showMoreMenu = false
                                 onMoreOptionSelected("change_to_video")
                             },
-                            leadingIcon = { Icon(Icons.Default.Videocam, contentDescription = null, tint = IosSettingsColors.label) }
+                            leadingIcon = { Icon(Icons.Rounded.Videocam, contentDescription = null, tint = IosSettingsColors.label) }
                         )
                         DropdownMenuItem(
                             text = { Text("Dispositivo Bluetooth", color = IosSettingsColors.label) },
@@ -125,7 +133,7 @@ fun ActiveCallControls(
                                 showMoreMenu = false
                                 onMoreOptionSelected("bluetooth")
                             },
-                            leadingIcon = { Icon(Icons.Default.Bluetooth, contentDescription = null, tint = IosSettingsColors.label) }
+                            leadingIcon = { Icon(Icons.Rounded.Bluetooth, contentDescription = null, tint = IosSettingsColors.label) }
                         )
                         DropdownMenuItem(
                             text = { Text("Enviar mensaje", color = IosSettingsColors.label) },
@@ -142,7 +150,7 @@ fun ActiveCallControls(
             // 5. Large Red End Call Button
             CallActionButton(
                 onClick = onEndCall,
-                icon = Icons.Default.CallEnd,
+                icon = Icons.Rounded.CallEnd,
                 contentDescription = "End Call",
                 containerColor = IosSettingsColors.red, // Red 500
                 contentColor = IosSettingsColors.label,

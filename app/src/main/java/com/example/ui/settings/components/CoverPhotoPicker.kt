@@ -4,7 +4,7 @@ import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.Image
+import androidx.compose.material.icons.rounded.Image
 import androidx.compose.material3.*
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
@@ -28,7 +28,7 @@ fun CoverPhotoPicker(
         modifier = modifier
     ) {
         Row(verticalAlignment = Alignment.CenterVertically) {
-            Icon(Icons.Default.Image, contentDescription = null, tint = IosSettingsColors.green, modifier = Modifier.size(16.dp))
+            Icon(Icons.Rounded.Image, contentDescription = null, tint = IosSettingsColors.green, modifier = Modifier.size(16.dp))
             Spacer(modifier = Modifier.width(6.dp))
             Text(if (isUploading) "Subiendo..." else "Cambiar Portada", color = IosSettingsColors.label, fontSize = 11.sp)
         }

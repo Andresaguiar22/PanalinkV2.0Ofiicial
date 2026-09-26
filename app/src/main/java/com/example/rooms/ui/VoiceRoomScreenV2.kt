@@ -9,8 +9,8 @@ import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.rememberLazyListState
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.Check
-import androidx.compose.material.icons.filled.Close
+import androidx.compose.material.icons.rounded.Check
+import androidx.compose.material.icons.rounded.Close
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
@@ -413,10 +413,10 @@ fun SeatRequestsDialog(
                                 )
                             }
                             IconButton(onClick = { onApprove(r.id) }) {
-                                Icon(Icons.Default.Check, contentDescription = "Aprobar", tint = VoiceRoomPalette.ActiveCyan)
+                                Icon(Icons.Rounded.Check, contentDescription = "Aprobar", tint = VoiceRoomPalette.ActiveCyan)
                             }
                             IconButton(onClick = { onDeny(r.id) }) {
-                                Icon(Icons.Default.Close, contentDescription = "Denegar", tint = IosSettingsColors.red)
+                                Icon(Icons.Rounded.Close, contentDescription = "Denegar", tint = IosSettingsColors.red)
                             }
                         }
                     }

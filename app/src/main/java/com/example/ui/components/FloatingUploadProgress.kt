@@ -5,7 +5,7 @@ import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.Close
+import androidx.compose.material.icons.rounded.Close
 import androidx.compose.material3.*
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
@@ -45,7 +45,7 @@ fun FloatingUploadProgress(
             }
             Spacer(modifier = Modifier.width(8.dp))
             IconButton(onClick = onCancel, modifier = Modifier.size(24.dp)) {
-                Icon(Icons.Default.Close, contentDescription = "Cancelar", tint = IosSettingsColors.label)
+                Icon(Icons.Rounded.Close, contentDescription = "Cancelar", tint = IosSettingsColors.label)
             }
         }
     }

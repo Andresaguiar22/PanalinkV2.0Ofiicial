@@ -16,10 +16,10 @@ import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.Description
+import androidx.compose.material.icons.rounded.Description
 import androidx.compose.material.icons.automirrored.filled.HelpOutline
-import androidx.compose.material.icons.filled.Security
-import androidx.compose.material.icons.filled.Sync
+import androidx.compose.material.icons.rounded.Security
+import androidx.compose.material.icons.rounded.Sync
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.Text
@@ -153,11 +153,11 @@ fun AboutScreen(onBack: () -> Unit) {
             item { IosSectionHeader("Acerca de la plataforma") }
             item {
                 IosGroup {
-                    AboutFeatureRow(Icons.Default.Security, "Plataforma y compatibilidad", "Mensajería en tiempo real optimizada para distintos tipos de conexión.")
+                    AboutFeatureRow(Icons.Rounded.Security, "Plataforma y compatibilidad", "Mensajería en tiempo real optimizada para distintos tipos de conexión.")
                     IosDivider()
-                    AboutFeatureRow(Icons.Default.Sync, "Sincronización en la nube", "Rápida, segura y confiable.")
+                    AboutFeatureRow(Icons.Rounded.Sync, "Sincronización en la nube", "Rápida, segura y confiable.")
                     IosDivider()
-                    AboutFeatureRow(Icons.Default.Description, "Multimedia integrada", "Fotos, vídeos, documentos, notas de voz y llamadas.")
+                    AboutFeatureRow(Icons.Rounded.Description, "Multimedia integrada", "Fotos, vídeos, documentos, notas de voz y llamadas.")
                     IosDivider()
                     AboutFeatureRow(Icons.AutoMirrored.Filled.HelpOutline, "Soporte técnico", "Comunícate con el equipo desde la sección de ayuda.")
                 }

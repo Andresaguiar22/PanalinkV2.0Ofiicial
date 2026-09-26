@@ -17,8 +17,8 @@ import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
-import androidx.compose.material.icons.filled.ArrowDownward
-import androidx.compose.material.icons.filled.Close
+import androidx.compose.material.icons.rounded.ArrowDownward
+import androidx.compose.material.icons.rounded.Close
 import androidx.compose.material.icons.automirrored.filled.Send
 import androidx.compose.material.icons.automirrored.filled.VolumeMute
 import androidx.compose.material.icons.automirrored.filled.VolumeUp
@@ -453,7 +453,7 @@ fun PostDetailScreen(
                     },
                     modifier = Modifier.background(IosSettingsColors.mediaScrimSoft, CircleShape)
                 ) {
-                    Icon(Icons.Default.Close, contentDescription = "Cerrar", tint = IosSettingsColors.label)
+                    Icon(Icons.Rounded.Close, contentDescription = "Cerrar", tint = IosSettingsColors.label)
                 }
 
                 if (mediaList.size > 1) {
@@ -508,7 +508,7 @@ fun PostDetailScreen(
                     modifier = Modifier.background(IosSettingsColors.mediaScrimSoft, CircleShape)
                 ) {
                     Icon(
-                        imageVector = Icons.Filled.ArrowDownward,
+                        imageVector = Icons.Rounded.ArrowDownward,
                         contentDescription = "Descargar",
                         tint = IosSettingsColors.label
                     )

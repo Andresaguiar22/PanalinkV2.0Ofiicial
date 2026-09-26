@@ -27,6 +27,8 @@ import com.example.data.model.Profile
 import com.example.ui.components.PanaAvatar
 import com.example.ui.theme.bounceClick
 import com.example.ui.settings.ios.IosSettingsColors
+import androidx.compose.material.icons.rounded.Call
+import androidx.compose.material.icons.rounded.Close
 
 @Composable
 fun ActiveCallOverlay(
@@ -124,7 +126,7 @@ fun ActiveCallOverlay(
         .bounceClick()
         .background(Color.Red, CircleShape)
         ) {
-        Icon(Icons.Default.Close, contentDescription = "Rechazar", tint = IosSettingsColors.label, modifier = Modifier.size(32.dp))
+        Icon(Icons.Rounded.Close, contentDescription = "Rechazar", tint = IosSettingsColors.label, modifier = Modifier.size(32.dp))
         }
         Spacer(modifier = Modifier.height(8.dp))
         Text("Rechazar", color = IosSettingsColors.label, fontSize = 12.sp)
@@ -139,7 +141,7 @@ fun ActiveCallOverlay(
         .bounceClick()
         .background(IosSettingsColors.green, CircleShape)
         ) {
-        Icon(Icons.Default.Call, contentDescription = "Contestar", tint = IosSettingsColors.label, modifier = Modifier.size(32.dp))
+        Icon(Icons.Rounded.Call, contentDescription = "Contestar", tint = IosSettingsColors.label, modifier = Modifier.size(32.dp))
         }
         Spacer(modifier = Modifier.height(8.dp))
         Text("Atender", color = IosSettingsColors.label, fontSize = 12.sp)
@@ -175,7 +177,7 @@ fun ActiveCallOverlay(
         .bounceClick()
         .background(Color.Red, CircleShape)
         ) {
-        Icon(Icons.Default.Close, contentDescription = "Colgar", tint = IosSettingsColors.label, modifier = Modifier.size(32.dp))
+        Icon(Icons.Rounded.Close, contentDescription = "Colgar", tint = IosSettingsColors.label, modifier = Modifier.size(32.dp))
         }
         Spacer(modifier = Modifier.height(8.dp))
         Text("Colgar", color = IosSettingsColors.label, fontSize = 12.sp)

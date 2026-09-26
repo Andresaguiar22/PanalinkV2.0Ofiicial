@@ -22,6 +22,10 @@ import androidx.compose.ui.unit.sp
 import coil.compose.AsyncImage
 import com.example.media.audio.AudioTrackEntity
 import com.example.ui.settings.ios.IosSettingsColors
+import androidx.compose.material.icons.rounded.DragHandle
+import androidx.compose.material.icons.rounded.MusicNote
+import androidx.compose.material.icons.rounded.Close
+import androidx.compose.material.icons.rounded.PlayArrow
 
 /**
  * P6.7.3 - Player Queue Sheet
@@ -103,11 +107,11 @@ fun QueueItem(
             if (!track.coverPath.isNullOrEmpty()) {
                 AsyncImage(model = track.coverPath, contentDescription = null, contentScale = ContentScale.Crop)
             } else {
-                Icon(Icons.Default.MusicNote, contentDescription = null, tint = IosSettingsColors.secondaryLabel)
+                Icon(Icons.Rounded.MusicNote, contentDescription = null, tint = IosSettingsColors.secondaryLabel)
             }
             if (isCurrent) {
                 Box(modifier = Modifier.fillMaxSize().background(IosSettingsColors.mediaScrimSoft), contentAlignment = Alignment.Center) {
-                    Icon(Icons.Default.PlayArrow, contentDescription = null, tint = IosSettingsColors.blue, modifier = Modifier.size(20.dp))
+                    Icon(Icons.Rounded.PlayArrow, contentDescription = null, tint = IosSettingsColors.blue, modifier = Modifier.size(20.dp))
                 }
             }
         }
@@ -133,9 +137,9 @@ fun QueueItem(
         }
         
         IconButton(onClick = onRemove) {
-            Icon(Icons.Default.Close, contentDescription = "Eliminar", tint = IosSettingsColors.secondaryLabel, modifier = Modifier.size(20.dp))
+            Icon(Icons.Rounded.Close, contentDescription = "Eliminar", tint = IosSettingsColors.secondaryLabel, modifier = Modifier.size(20.dp))
         }
 
-        Icon(Icons.Default.DragHandle, contentDescription = "Mover", tint = IosSettingsColors.secondaryLabel)
+        Icon(Icons.Rounded.DragHandle, contentDescription = "Mover", tint = IosSettingsColors.secondaryLabel)
     }
 }

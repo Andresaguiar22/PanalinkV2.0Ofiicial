@@ -7,8 +7,8 @@ import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.lazy.itemsIndexed
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
-import androidx.compose.material.icons.filled.Close
-import androidx.compose.material.icons.filled.Search
+import androidx.compose.material.icons.rounded.Close
+import androidx.compose.material.icons.rounded.Search
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
@@ -60,7 +60,7 @@ fun ChatSearchScreen(
                         trailingIcon = {
                             if (query.isNotBlank()) {
                                 IconButton(onClick = { viewModel.onQueryChange("") }) {
-                                    Icon(Icons.Default.Close, contentDescription = "Limpiar", tint = IosSettingsColors.label)
+                                    Icon(Icons.Rounded.Close, contentDescription = "Limpiar", tint = IosSettingsColors.label)
                                 }
                             }
                         }
@@ -86,7 +86,7 @@ fun ChatSearchScreen(
             when (val state = uiState) {
                 is ChatSearchUiState.Idle -> {
                     SearchEmptyState(
-                        icon = Icons.Default.Search,
+                        icon = Icons.Rounded.Search,
                         message = "Busca mensajes en esta conversación"
                     )
                 }
@@ -98,7 +98,7 @@ fun ChatSearchScreen(
                 }
                 is ChatSearchUiState.Empty -> {
                     SearchEmptyState(
-                        icon = Icons.Default.Search,
+                        icon = Icons.Rounded.Search,
                         message = "No se encontraron resultados para \"$query\""
                     )
                 }

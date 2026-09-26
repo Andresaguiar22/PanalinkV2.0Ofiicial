@@ -12,6 +12,12 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.unit.dp
 import com.example.ui.theme.bounceClick
 import com.example.ui.settings.ios.IosSettingsColors
+import androidx.compose.material.icons.rounded.CallEnd
+import androidx.compose.material.icons.rounded.FlipCameraAndroid
+import androidx.compose.material.icons.rounded.Mic
+import androidx.compose.material.icons.rounded.MicOff
+import androidx.compose.material.icons.rounded.Videocam
+import androidx.compose.material.icons.rounded.VideocamOff
 
 /**
  * CallControls displays call interactions (Mute, Speaker, Video, Flip, End) with Material 3.
@@ -49,7 +55,7 @@ fun CallControls(
                     .bounceClick(onMuteToggle)
             ) {
                 Icon(
-                    imageVector = if (isMuted) Icons.Default.MicOff else Icons.Default.Mic,
+                    imageVector = if (isMuted) Icons.Rounded.MicOff else Icons.Rounded.Mic,
                     contentDescription = "Mute Microphone",
                     tint = if (isMuted) IosSettingsColors.groupBackground else IosSettingsColors.label
                 )
@@ -84,7 +90,7 @@ fun CallControls(
                         .bounceClick(onCameraToggle)
                 ) {
                     Icon(
-                        imageVector = if (isCameraOn) Icons.Default.Videocam else Icons.Default.VideocamOff,
+                        imageVector = if (isCameraOn) Icons.Rounded.Videocam else Icons.Rounded.VideocamOff,
                         contentDescription = "Toggle Video",
                         tint = if (!isCameraOn) IosSettingsColors.groupBackground else IosSettingsColors.label
                     )
@@ -101,7 +107,7 @@ fun CallControls(
                         .bounceClick(onCameraSwitch)
                 ) {
                     Icon(
-                        imageVector = Icons.Default.FlipCameraAndroid,
+                        imageVector = Icons.Rounded.FlipCameraAndroid,
                         contentDescription = "Flip Camera",
                         tint = IosSettingsColors.label
                     )
@@ -120,7 +126,7 @@ fun CallControls(
                 .bounceClick(onEndCall)
         ) {
             Icon(
-                imageVector = Icons.Default.CallEnd,
+                imageVector = Icons.Rounded.CallEnd,
                 contentDescription = "End Call",
                 tint = IosSettingsColors.label,
                 modifier = Modifier.size(32.dp)

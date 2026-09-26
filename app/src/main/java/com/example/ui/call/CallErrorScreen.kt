@@ -5,9 +5,7 @@ import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
-import androidx.compose.material.icons.filled.Error
-import androidx.compose.material.icons.filled.SignalCellularConnectedNoInternet0Bar
-import androidx.compose.material.icons.filled.Warning
+import androidx.compose.material.icons.rounded.Warning
 import androidx.compose.material3.*
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
@@ -33,7 +31,7 @@ fun CallErrorScreen(
     opponentName: String,
     onDismiss: () -> Unit,
     modifier: Modifier = Modifier,
-    icon: ImageVector = Icons.Default.Warning,
+    icon: ImageVector = Icons.Rounded.Warning,
     iconColor: Color = IosSettingsColors.red // Red 500
 ) {
     Box(

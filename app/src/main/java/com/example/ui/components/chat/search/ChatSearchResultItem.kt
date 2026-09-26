@@ -23,6 +23,11 @@ import com.example.data.model.Message
 import java.text.SimpleDateFormat
 import java.util.*
 import com.example.ui.settings.ios.IosSettingsColors
+import androidx.compose.material.icons.rounded.Description
+import androidx.compose.material.icons.rounded.Image
+import androidx.compose.material.icons.automirrored.rounded.Message
+import androidx.compose.material.icons.rounded.Mic
+import androidx.compose.material.icons.rounded.PlayCircle
 
 @Composable
 fun ChatSearchResultItem(
@@ -57,11 +62,11 @@ fun ChatSearchResultItem(
             contentAlignment = Alignment.Center
         ) {
             val icon = when (message.messageType?.lowercase() ?: "text") {
-                "image" -> Icons.Default.Image
-                "video" -> Icons.Default.PlayCircle
-                "audio" -> Icons.Default.Mic
-                "document" -> Icons.Default.Description
-                else -> Icons.Default.Message
+                "image" -> Icons.Rounded.Image
+                "video" -> Icons.Rounded.PlayCircle
+                "audio" -> Icons.Rounded.Mic
+                "document" -> Icons.Rounded.Description
+                else -> Icons.AutoMirrored.Rounded.Message
             }
             Icon(
                 imageVector = icon,

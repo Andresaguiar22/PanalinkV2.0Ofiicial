@@ -11,11 +11,11 @@ import androidx.compose.foundation.text.KeyboardActions
 import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.Send
-import androidx.compose.material.icons.filled.AutoAwesome
-import androidx.compose.material.icons.filled.CardGiftcard
-import androidx.compose.material.icons.filled.ChatBubble
-import androidx.compose.material.icons.filled.MoreHoriz
-import androidx.compose.material.icons.filled.PersonAdd
+import androidx.compose.material.icons.rounded.AutoAwesome
+import androidx.compose.material.icons.rounded.CardGiftcard
+import androidx.compose.material.icons.rounded.ChatBubble
+import androidx.compose.material.icons.rounded.MoreHoriz
+import androidx.compose.material.icons.rounded.PersonAdd
 import androidx.compose.material3.Icon
 import androidx.compose.material3.Text
 import androidx.compose.runtime.*
@@ -69,7 +69,7 @@ fun LiveViewerBottomBar(
         verticalAlignment = Alignment.CenterVertically
     ) {
         BarAction(
-            icon = Icons.Default.AutoAwesome,
+            icon = Icons.Rounded.AutoAwesome,
             label = "Studio",
             iconTint = Color.Unspecified,
             gradientIcon = true,
@@ -146,25 +146,25 @@ fun LiveViewerBottomBar(
         Spacer(modifier = Modifier.width(6.dp))
 
         BarAction(
-            icon = Icons.Default.ChatBubble,
+            icon = Icons.Rounded.ChatBubble,
             label = "Chat",
             onClick = onToggleChat,
             badgeCount = unreadCount
         )
         BarAction(
-            icon = Icons.Default.CardGiftcard,
+            icon = Icons.Rounded.CardGiftcard,
             label = "Regalos",
             iconTint = IosSettingsColors.pink,
             onClick = onOpenGifts
         )
         BarAction(
-            icon = Icons.Default.PersonAdd,
+            icon = Icons.Rounded.PersonAdd,
             label = "Pedidos",
             iconTint = if (requestPending) IosSettingsColors.yellow else IosSettingsColors.label,
             onClick = onOpenRequests
         )
         BarAction(
-            icon = Icons.Default.MoreHoriz,
+            icon = Icons.Rounded.MoreHoriz,
             label = "Más",
             onClick = onOpenMore
         )

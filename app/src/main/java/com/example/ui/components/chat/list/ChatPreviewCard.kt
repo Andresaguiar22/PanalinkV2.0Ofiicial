@@ -6,10 +6,10 @@ import androidx.compose.foundation.ExperimentalFoundationApi
 import androidx.compose.foundation.combinedClickable
 import androidx.compose.foundation.layout.*
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.Done
-import androidx.compose.material.icons.filled.DoneAll
-import androidx.compose.material.icons.filled.NotificationsOff
-import androidx.compose.material.icons.filled.PushPin
+import androidx.compose.material.icons.rounded.Done
+import androidx.compose.material.icons.rounded.DoneAll
+import androidx.compose.material.icons.rounded.NotificationsOff
+import androidx.compose.material.icons.rounded.PushPin
 import androidx.compose.material3.Icon
 import androidx.compose.material3.Text
 import androidx.compose.runtime.*
@@ -178,7 +178,7 @@ fun ChatPreviewCard(
                                     lastMessage.status == "read" || lastMessage.status == "seen"
                                 val delivered = lastMessage.deliveredAt != null || lastMessage.status == "delivered"
                                 Icon(
-                                    imageVector = if (seen || delivered) Icons.Default.DoneAll else Icons.Default.Done,
+                                    imageVector = if (seen || delivered) Icons.Rounded.DoneAll else Icons.Rounded.Done,
                                     contentDescription = "Estado del mensaje",
                                     tint = PanalinkSkin.ReadTick,
                                     modifier = Modifier.size(16.dp)
@@ -188,7 +188,7 @@ fun ChatPreviewCard(
 
                             if (chatDetails.chat.isMuted) {
                                 Icon(
-                                    imageVector = Icons.Default.NotificationsOff,
+                                    imageVector = Icons.Rounded.NotificationsOff,
                                     contentDescription = "Silenciado",
                                     tint = PanalinkSkin.Sub,
                                     modifier = Modifier.size(15.dp)
@@ -198,7 +198,7 @@ fun ChatPreviewCard(
 
                             if (isPinned) {
                                 Icon(
-                                    imageVector = Icons.Default.PushPin,
+                                    imageVector = Icons.Rounded.PushPin,
                                     contentDescription = null,
                                     tint = PanalinkSkin.Gold,
                                     modifier = Modifier.size(14.dp)

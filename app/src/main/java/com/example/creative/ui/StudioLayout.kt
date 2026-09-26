@@ -24,6 +24,15 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.example.ui.settings.ios.IosSettingsColors
+import androidx.compose.material.icons.rounded.AutoAwesome
+import androidx.compose.material.icons.rounded.ContentCut
+import androidx.compose.material.icons.rounded.EmojiEmotions
+import androidx.compose.material.icons.rounded.Filter
+import androidx.compose.material.icons.rounded.MusicNote
+import androidx.compose.material.icons.rounded.Save
+import androidx.compose.material.icons.rounded.Speed
+import androidx.compose.material.icons.rounded.TextFields
+import androidx.compose.material.icons.rounded.Face
 
 enum class StudioToolTab {
     TEXT,
@@ -107,7 +116,7 @@ fun StudioLayout(
                     modifier = Modifier.testTag("btn_save_draft")
                 ) {
                     Icon(
-                        imageVector = Icons.Default.Save,
+                        imageVector = Icons.Rounded.Save,
                         contentDescription = null,
                         tint = IosSettingsColors.blue,
                         modifier = Modifier.size(18.dp)
@@ -174,49 +183,49 @@ fun StudioLayout(
                 verticalArrangement = Arrangement.SpaceEvenly
             ) {
                 StudioToolIconButton(
-                    icon = Icons.Default.TextFields,
+                    icon = Icons.Rounded.TextFields,
                     label = "Texto",
                     isSelected = activeToolTab == StudioToolTab.TEXT,
                     onClick = { onSelectToolTab(if (activeToolTab == StudioToolTab.TEXT) null else StudioToolTab.TEXT) }
                 )
                 StudioToolIconButton(
-                    icon = Icons.Default.EmojiEmotions,
+                    icon = Icons.Rounded.EmojiEmotions,
                     label = "Stickers",
                     isSelected = activeToolTab == StudioToolTab.STICKERS,
                     onClick = { onSelectToolTab(if (activeToolTab == StudioToolTab.STICKERS) null else StudioToolTab.STICKERS) }
                 )
                 StudioToolIconButton(
-                    icon = Icons.Default.MusicNote,
+                    icon = Icons.Rounded.MusicNote,
                     label = "Música",
                     isSelected = activeToolTab == StudioToolTab.MUSIC,
                     onClick = { onSelectToolTab(if (activeToolTab == StudioToolTab.MUSIC) null else StudioToolTab.MUSIC) }
                 )
                 StudioToolIconButton(
-                    icon = Icons.Default.AutoAwesome,
+                    icon = Icons.Rounded.AutoAwesome,
                     label = "IA Studio",
                     isSelected = activeToolTab == StudioToolTab.AI_SUITE,
                     onClick = { onSelectToolTab(if (activeToolTab == StudioToolTab.AI_SUITE) null else StudioToolTab.AI_SUITE) }
                 )
                 StudioToolIconButton(
-                    icon = Icons.Default.Filter,
+                    icon = Icons.Rounded.Filter,
                     label = "Filtros",
                     isSelected = activeToolTab == StudioToolTab.FILTERS,
                     onClick = { onSelectToolTab(if (activeToolTab == StudioToolTab.FILTERS) null else StudioToolTab.FILTERS) }
                 )
                 StudioToolIconButton(
-                    icon = Icons.Default.Face,
+                    icon = Icons.Rounded.Face,
                     label = "Belleza",
                     isSelected = activeToolTab == StudioToolTab.BEAUTY,
                     onClick = { onSelectToolTab(if (activeToolTab == StudioToolTab.BEAUTY) null else StudioToolTab.BEAUTY) }
                 )
                 StudioToolIconButton(
-                    icon = Icons.Default.ContentCut,
+                    icon = Icons.Rounded.ContentCut,
                     label = "Recorte",
                     isSelected = activeToolTab == StudioToolTab.TRIM,
                     onClick = { onSelectToolTab(if (activeToolTab == StudioToolTab.TRIM) null else StudioToolTab.TRIM) }
                 )
                 StudioToolIconButton(
-                    icon = Icons.Default.Speed,
+                    icon = Icons.Rounded.Speed,
                     label = "Velocidad",
                     isSelected = activeToolTab == StudioToolTab.SPEED,
                     onClick = { onSelectToolTab(if (activeToolTab == StudioToolTab.SPEED) null else StudioToolTab.SPEED) }

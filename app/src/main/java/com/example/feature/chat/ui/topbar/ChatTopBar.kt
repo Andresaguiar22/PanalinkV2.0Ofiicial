@@ -31,6 +31,20 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.example.data.model.Profile
 import com.example.ui.settings.ios.IosSettingsColors
+import androidx.compose.material.icons.rounded.Block
+import androidx.compose.material.icons.rounded.DeleteSweep
+import androidx.compose.material.icons.rounded.NotificationsOff
+import androidx.compose.material.icons.rounded.Palette
+import androidx.compose.material.icons.rounded.PermMedia
+import androidx.compose.material.icons.rounded.PushPin
+import androidx.compose.material.icons.rounded.Videocam
+import androidx.compose.material.icons.rounded.Wallpaper
+import androidx.compose.material.icons.rounded.Call
+import androidx.compose.material.icons.rounded.Delete
+import androidx.compose.material.icons.rounded.MoreVert
+import androidx.compose.material.icons.rounded.Notifications
+import androidx.compose.material.icons.rounded.Person
+import androidx.compose.material.icons.rounded.Search
 
 /**
  * Accion 4: Barra superior flotante de cristal (glassmorphism premium), calcada de
@@ -215,12 +229,12 @@ fun ChatTopBar(
                             horizontalArrangement = Arrangement.End,
                             verticalAlignment = Alignment.CenterVertically
                         ) {
-                            TopBarAction(Icons.Default.Videocam, "Videollamada", onVideoCall, iconTint)
-                            TopBarAction(Icons.Default.Call, "Llamada de voz", onAudioCall, iconTint)
+                            TopBarAction(Icons.Rounded.Videocam, "Videollamada", onVideoCall, iconTint)
+                            TopBarAction(Icons.Rounded.Call, "Llamada de voz", onAudioCall, iconTint)
                             Box {
                                 IconButton(onClick = { showChatMenu = true }, modifier = Modifier.size(34.dp)) {
                                     Icon(
-                                        Icons.Default.MoreVert,
+                                        Icons.Rounded.MoreVert,
                                         contentDescription = "Más opciones",
                                         tint = iconTint,
                                         modifier = Modifier.size(22.dp)
@@ -241,7 +255,7 @@ fun ChatTopBar(
                                         },
                                         leadingIcon = {
                                             Icon(
-                                                Icons.Default.Person,
+                                                Icons.Rounded.Person,
                                                 contentDescription = null,
                                                 tint = IosSettingsColors.secondaryLabel
                                             )
@@ -255,7 +269,7 @@ fun ChatTopBar(
                                         },
                                         leadingIcon = {
                                             Icon(
-                                                Icons.Default.Search,
+                                                Icons.Rounded.Search,
                                                 contentDescription = null,
                                                 tint = IosSettingsColors.secondaryLabel
                                             )
@@ -274,7 +288,7 @@ fun ChatTopBar(
                                         },
                                         leadingIcon = {
                                             Icon(
-                                                if (isMuted) Icons.Default.Notifications else Icons.Default.NotificationsOff,
+                                                if (isMuted) Icons.Rounded.Notifications else Icons.Rounded.NotificationsOff,
                                                 contentDescription = null,
                                                 tint = IosSettingsColors.secondaryLabel
                                             )
@@ -293,7 +307,7 @@ fun ChatTopBar(
                                         },
                                         leadingIcon = {
                                             Icon(
-                                                Icons.Default.PushPin,
+                                                Icons.Rounded.PushPin,
                                                 contentDescription = null,
                                                 tint = IosSettingsColors.secondaryLabel
                                             )
@@ -307,7 +321,7 @@ fun ChatTopBar(
                                         },
                                         leadingIcon = {
                                             Icon(
-                                                Icons.Default.PermMedia,
+                                                Icons.Rounded.PermMedia,
                                                 contentDescription = null,
                                                 tint = IosSettingsColors.secondaryLabel
                                             )
@@ -320,7 +334,7 @@ fun ChatTopBar(
                                             onNavigateToSearch()
                                         },
                                         leadingIcon = {
-                                            Icon(Icons.Default.Search, contentDescription = null, tint = IosSettingsColors.secondaryLabel)
+                                            Icon(Icons.Rounded.Search, contentDescription = null, tint = IosSettingsColors.secondaryLabel)
                                         }
                                     )
                                     DropdownMenuItem(
@@ -330,7 +344,7 @@ fun ChatTopBar(
                                             onShowBackgroundDialog()
                                         },
                                         leadingIcon = {
-                                            Icon(Icons.Default.Wallpaper, contentDescription = null, tint = IosSettingsColors.secondaryLabel)
+                                            Icon(Icons.Rounded.Wallpaper, contentDescription = null, tint = IosSettingsColors.secondaryLabel)
                                         }
                                     )
                                     DropdownMenuItem(
@@ -340,7 +354,7 @@ fun ChatTopBar(
                                             onShowBubblePaletteDialog()
                                         },
                                         leadingIcon = {
-                                            Icon(Icons.Default.Palette, contentDescription = null, tint = IosSettingsColors.secondaryLabel)
+                                            Icon(Icons.Rounded.Palette, contentDescription = null, tint = IosSettingsColors.secondaryLabel)
                                         }
                                     )
                                     DropdownMenuItem(
@@ -350,7 +364,7 @@ fun ChatTopBar(
                                             onClearChat()
                                         },
                                         leadingIcon = {
-                                            Icon(Icons.Default.DeleteSweep, contentDescription = null, tint = IosSettingsColors.secondaryLabel)
+                                            Icon(Icons.Rounded.DeleteSweep, contentDescription = null, tint = IosSettingsColors.secondaryLabel)
                                         }
                                     )
                                     DropdownMenuItem(
@@ -360,7 +374,7 @@ fun ChatTopBar(
                                             onDeleteChat()
                                         },
                                         leadingIcon = {
-                                            Icon(Icons.Default.Delete, contentDescription = null, tint = IosSettingsColors.red)
+                                            Icon(Icons.Rounded.Delete, contentDescription = null, tint = IosSettingsColors.red)
                                         }
                                     )
                                     DropdownMenuItem(
@@ -375,7 +389,7 @@ fun ChatTopBar(
                                             onToggleBlockUser()
                                         },
                                         leadingIcon = {
-                                            Icon(Icons.Default.Block, contentDescription = null, tint = IosSettingsColors.red)
+                                            Icon(Icons.Rounded.Block, contentDescription = null, tint = IosSettingsColors.red)
                                         }
                                     )
                                 }

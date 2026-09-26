@@ -35,6 +35,7 @@ import com.example.creative.core.CreativeLayer
 import com.example.creative.inspector.PropertyInspector
 import com.example.creative.post.*
 import com.example.ui.settings.ios.IosSettingsColors
+import androidx.compose.material.icons.rounded.PlayCircle
 
 /**
  * P6.6.3 - PanaLink Post Studio Pro Screen
@@ -259,7 +260,7 @@ fun PostStudioScreen(
                                 contentAlignment = Alignment.Center
                             ) {
                                 Icon(
-                                    Icons.Default.PlayCircle,
+                                    Icons.Rounded.PlayCircle,
                                     contentDescription = "Video",
                                     tint = IosSettingsColors.label,
                                     modifier = Modifier.size(48.dp)

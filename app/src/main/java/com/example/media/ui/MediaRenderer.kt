@@ -4,7 +4,7 @@ import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.BrokenImage
+import androidx.compose.material.icons.rounded.BrokenImage
 import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.Icon
 import androidx.compose.material3.Text
@@ -75,7 +75,7 @@ fun MediaRenderer(
                     verticalArrangement = Arrangement.Center
                 ) {
                     Icon(
-                        imageVector = Icons.Default.BrokenImage,
+                        imageVector = Icons.Rounded.BrokenImage,
                         contentDescription = "Archivo no disponible",
                         tint = IosSettingsColors.secondaryLabel,
                         modifier = Modifier.size(40.dp)

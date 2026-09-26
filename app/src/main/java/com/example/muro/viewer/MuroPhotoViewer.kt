@@ -20,8 +20,8 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material.icons.automirrored.filled.Comment
 import androidx.compose.material.icons.automirrored.filled.Send
-import androidx.compose.material.icons.filled.Favorite
-import androidx.compose.material.icons.filled.FavoriteBorder
+import androidx.compose.material.icons.rounded.Favorite
+import androidx.compose.material.icons.rounded.FavoriteBorder
 import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
@@ -147,7 +147,7 @@ fun MuroPhotoViewer(
                 verticalArrangement = Arrangement.spacedBy(18.dp)
             ) {
                 MuroActionButton(
-                    icon = if (current.post.isLikedByMe) Icons.Default.Favorite else Icons.Default.FavoriteBorder,
+                    icon = if (current.post.isLikedByMe) Icons.Rounded.Favorite else Icons.Rounded.FavoriteBorder,
                     count = compactCount(current.post.likesCount),
                     tint = if (current.post.isLikedByMe) IosSettingsColors.red else Color.White,
                     onClick = {

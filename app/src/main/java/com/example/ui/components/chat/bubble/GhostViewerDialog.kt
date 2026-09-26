@@ -4,8 +4,8 @@ import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.Close
-import androidx.compose.material.icons.filled.Warning
+import androidx.compose.material.icons.rounded.Close
+import androidx.compose.material.icons.rounded.Warning
 import androidx.compose.material3.*
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
@@ -71,7 +71,7 @@ fun GhostViewerDialog(
                         )
                     }
                     IconButton(onClick = onClose) {
-                        Icon(Icons.Default.Close, contentDescription = "Cerrar", tint = IosSettingsColors.label)
+                        Icon(Icons.Rounded.Close, contentDescription = "Cerrar", tint = IosSettingsColors.label)
                     }
                 }
 
@@ -106,7 +106,7 @@ fun GhostViewerDialog(
                                 )
                             } else {
                                 Column(horizontalAlignment = Alignment.CenterHorizontally) {
-                                    Icon(Icons.Default.Warning, contentDescription = null, tint = Color.Yellow, modifier = Modifier.size(48.dp))
+                                    Icon(Icons.Rounded.Warning, contentDescription = null, tint = Color.Yellow, modifier = Modifier.size(48.dp))
                                     Spacer(modifier = Modifier.height(16.dp))
                                     Text("Video de vista única", color = IosSettingsColors.label, textAlign = TextAlign.Center)
                                 }
@@ -118,7 +118,7 @@ fun GhostViewerDialog(
                                 modifier = Modifier.padding(24.dp)
                             ) {
                                 Icon(
-                                    imageVector = androidx.compose.material.icons.Icons.Default.Warning,
+                                    imageVector = androidx.compose.material.icons.Icons.Rounded.Warning,
                                     contentDescription = null,
                                     tint = IosSettingsColors.blue,
                                     modifier = Modifier.size(48.dp)

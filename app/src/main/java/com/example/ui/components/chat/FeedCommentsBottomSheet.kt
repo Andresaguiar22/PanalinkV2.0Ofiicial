@@ -7,7 +7,7 @@ import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.Send
-import androidx.compose.material.icons.filled.Close
+import androidx.compose.material.icons.rounded.Close
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
@@ -57,7 +57,7 @@ fun FeedCommentsBottomSheet(
                     color = IosSettingsColors.label
                 )
                 IconButton(onClick = onDismissRequest) {
-                    Icon(imageVector = Icons.Default.Close, contentDescription = "Cerrar", tint = IosSettingsColors.label)
+                    Icon(imageVector = Icons.Rounded.Close, contentDescription = "Cerrar", tint = IosSettingsColors.label)
                 }
             }
             HorizontalDivider(color = IosSettingsColors.cell)

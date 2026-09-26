@@ -26,6 +26,17 @@ import com.example.media.audio.AudioTrackEntity
 import com.example.media.ui.components.TrackItem
 import com.example.media.playlist.PlaylistEntity
 import com.example.ui.settings.ios.IosSettingsColors
+import androidx.compose.material.icons.rounded.AccessTime
+import androidx.compose.material.icons.rounded.AutoAwesome
+import androidx.compose.material.icons.rounded.Download
+import androidx.compose.material.icons.rounded.Group
+import androidx.compose.material.icons.rounded.MusicNote
+import androidx.compose.material.icons.rounded.Shuffle
+import androidx.compose.material.icons.automirrored.rounded.ArrowBack
+import androidx.compose.material.icons.rounded.FavoriteBorder
+import androidx.compose.material.icons.rounded.Person
+import androidx.compose.material.icons.rounded.PlayArrow
+import androidx.compose.material.icons.rounded.Share
 
 /**
  * P6.7 - Playlist Detail Screen
@@ -58,21 +69,21 @@ fun PlaylistScreen(
                 title = { },
                 navigationIcon = {
                     IconButton(onClick = onBackClick) {
-                        Icon(Icons.Default.ArrowBack, contentDescription = "Atrás", tint = IosSettingsColors.label)
+                        Icon(Icons.AutoMirrored.Rounded.ArrowBack, contentDescription = "Atrás", tint = IosSettingsColors.label)
                     }
                 },
                 actions = {
                     if (userRole.canGenerateAI()) {
                         IconButton(onClick = onGenerateCoverClick) {
-                            Icon(Icons.Default.AutoAwesome, contentDescription = "IA Cover", tint = IosSettingsColors.pink)
+                            Icon(Icons.Rounded.AutoAwesome, contentDescription = "IA Cover", tint = IosSettingsColors.pink)
                         }
                     }
                     IconButton(onClick = onCollaboratorsClick) {
-                        Icon(Icons.Default.Group, contentDescription = "Colaboradores", tint = IosSettingsColors.green)
+                        Icon(Icons.Rounded.Group, contentDescription = "Colaboradores", tint = IosSettingsColors.green)
                     }
                     if (userRole.canShare()) {
                         IconButton(onClick = onSharePlaylistClick) {
-                            Icon(Icons.Default.Share, contentDescription = "Compartir", tint = IosSettingsColors.blue)
+                            Icon(Icons.Rounded.Share, contentDescription = "Compartir", tint = IosSettingsColors.blue)
                         }
                     }
                 },
@@ -111,7 +122,7 @@ fun PlaylistScreen(
                                 modifier = Modifier.fillMaxSize()
                             )
                         } else {
-                            Icon(Icons.Default.MusicNote, contentDescription = null, tint = IosSettingsColors.blue, modifier = Modifier.size(80.dp))
+                            Icon(Icons.Rounded.MusicNote, contentDescription = null, tint = IosSettingsColors.blue, modifier = Modifier.size(80.dp))
                         }
                     }
 
@@ -136,7 +147,7 @@ fun PlaylistScreen(
                         modifier = Modifier.padding(vertical = 8.dp),
                         verticalAlignment = Alignment.CenterVertically
                     ) {
-                        Icon(Icons.Default.Person, contentDescription = null, tint = IosSettingsColors.secondaryLabel, modifier = Modifier.size(16.dp))
+                        Icon(Icons.Rounded.Person, contentDescription = null, tint = IosSettingsColors.secondaryLabel, modifier = Modifier.size(16.dp))
                         Spacer(modifier = Modifier.width(4.dp))
                         Text(
                             text = when(userRole) {
@@ -148,7 +159,7 @@ fun PlaylistScreen(
                             fontSize = 12.sp
                         )
                         Spacer(modifier = Modifier.width(12.dp))
-                        Icon(Icons.Default.AccessTime, contentDescription = null, tint = IosSettingsColors.secondaryLabel, modifier = Modifier.size(16.dp))
+                        Icon(Icons.Rounded.AccessTime, contentDescription = null, tint = IosSettingsColors.secondaryLabel, modifier = Modifier.size(16.dp))
                         Spacer(modifier = Modifier.width(4.dp))
                         Text(text = "${songs.size} canciones", color = IosSettingsColors.secondaryLabel, fontSize = 12.sp)
                     }
@@ -162,16 +173,16 @@ fun PlaylistScreen(
                     ) {
                         Row(horizontalArrangement = Arrangement.spacedBy(16.dp)) {
                             IconButton(onClick = { /* Favorite */ }) {
-                                Icon(Icons.Default.FavoriteBorder, contentDescription = null, tint = IosSettingsColors.label)
+                                Icon(Icons.Rounded.FavoriteBorder, contentDescription = null, tint = IosSettingsColors.label)
                             }
                             IconButton(onClick = { /* Download */ }) {
-                                Icon(Icons.Default.Download, contentDescription = null, tint = IosSettingsColors.label)
+                                Icon(Icons.Rounded.Download, contentDescription = null, tint = IosSettingsColors.label)
                             }
                         }
 
                         Row(verticalAlignment = Alignment.CenterVertically) {
                             IconButton(onClick = onShuffleClick) {
-                                Icon(Icons.Default.Shuffle, contentDescription = "Shuffle", tint = IosSettingsColors.label)
+                                Icon(Icons.Rounded.Shuffle, contentDescription = "Shuffle", tint = IosSettingsColors.label)
                             }
                             FloatingActionButton(
                                 onClick = onPlayAllClick,
@@ -180,7 +191,7 @@ fun PlaylistScreen(
                                 shape = androidx.compose.foundation.shape.CircleShape,
                                 modifier = Modifier.size(56.dp)
                             ) {
-                                Icon(Icons.Default.PlayArrow, contentDescription = "Reproducir Todo", modifier = Modifier.size(32.dp))
+                                Icon(Icons.Rounded.PlayArrow, contentDescription = "Reproducir Todo", modifier = Modifier.size(32.dp))
                             }
                         }
                     }

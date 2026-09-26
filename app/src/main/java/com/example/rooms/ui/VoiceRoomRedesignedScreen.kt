@@ -22,20 +22,20 @@ import androidx.compose.foundation.lazy.rememberLazyListState
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.Add
-import androidx.compose.material.icons.filled.Chair
-import androidx.compose.material.icons.filled.Close
-import androidx.compose.material.icons.filled.Diamond
-import androidx.compose.material.icons.filled.Face
-import androidx.compose.material.icons.filled.Gif
-import androidx.compose.material.icons.filled.Group
-import androidx.compose.material.icons.filled.Mic
-import androidx.compose.material.icons.filled.MicOff
-import androidx.compose.material.icons.filled.Person
+import androidx.compose.material.icons.rounded.Add
+import androidx.compose.material.icons.rounded.Chair
+import androidx.compose.material.icons.rounded.Close
+import androidx.compose.material.icons.rounded.Diamond
+import androidx.compose.material.icons.rounded.Face
+import androidx.compose.material.icons.rounded.Gif
+import androidx.compose.material.icons.rounded.Group
+import androidx.compose.material.icons.rounded.Mic
+import androidx.compose.material.icons.rounded.MicOff
+import androidx.compose.material.icons.rounded.Person
 import androidx.compose.material.icons.automirrored.filled.Send
-import androidx.compose.material.icons.filled.Settings
-import androidx.compose.material.icons.filled.Share
-import androidx.compose.material.icons.filled.Star
+import androidx.compose.material.icons.rounded.Settings
+import androidx.compose.material.icons.rounded.Share
+import androidx.compose.material.icons.rounded.Star
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
@@ -424,7 +424,7 @@ fun VoiceRoomRedesignedHeader(
                 contentAlignment = Alignment.Center
             ) {
                 Icon(
-                    imageVector = Icons.Default.Star,
+                    imageVector = Icons.Rounded.Star,
                     contentDescription = "Nivel $userLevel",
                     tint = VoiceRoomPalette.Gold,
                     modifier = Modifier.size(14.dp)
@@ -465,7 +465,7 @@ fun VoiceRoomRedesignedHeader(
             ) {
                 Row(verticalAlignment = Alignment.CenterVertically) {
                     Icon(
-                        imageVector = Icons.Default.Person,
+                        imageVector = Icons.Rounded.Person,
                         contentDescription = null,
                         tint = VoiceRoomPalette.TextSecondary,
                         modifier = Modifier.size(16.dp)
@@ -483,7 +483,7 @@ fun VoiceRoomRedesignedHeader(
                 IconButton(onClick = onOpenRequests, modifier = Modifier.size(36.dp)) {
                     Box {
                         Icon(
-                            imageVector = Icons.Default.Group,
+                            imageVector = Icons.Rounded.Group,
                             contentDescription = "Solicitudes",
                             tint = VoiceRoomPalette.Pink,
                             modifier = Modifier.size(20.dp)
@@ -504,7 +504,7 @@ fun VoiceRoomRedesignedHeader(
             onOpenShare?.let { share ->
                 IconButton(onClick = share, modifier = Modifier.size(36.dp)) {
                     Icon(
-                        imageVector = Icons.Default.Share,
+                        imageVector = Icons.Rounded.Share,
                         contentDescription = "Compartir",
                         tint = VoiceRoomPalette.TextSecondary,
                         modifier = Modifier.size(18.dp)
@@ -515,7 +515,7 @@ fun VoiceRoomRedesignedHeader(
             onOpenSettings?.let { settings ->
                 IconButton(onClick = settings, modifier = Modifier.size(36.dp)) {
                     Icon(
-                        imageVector = Icons.Default.Settings,
+                        imageVector = Icons.Rounded.Settings,
                         contentDescription = "Configuración",
                         tint = VoiceRoomPalette.TextSecondary,
                         modifier = Modifier.size(18.dp)
@@ -525,7 +525,7 @@ fun VoiceRoomRedesignedHeader(
 
             IconButton(onClick = onClose, modifier = Modifier.size(36.dp)) {
                 Icon(
-                    imageVector = Icons.Default.Close,
+                    imageVector = Icons.Rounded.Close,
                     contentDescription = "Cerrar",
                     tint = VoiceRoomPalette.TextSecondary,
                     modifier = Modifier.size(18.dp)
@@ -897,7 +897,7 @@ fun VoiceRoomRedesignedSeatCircle(
             }
         } else {
             Icon(
-                imageVector = Icons.Default.Chair,
+                imageVector = Icons.Rounded.Chair,
                 contentDescription = if (isHost) "Sillón del anfitrión libre" else "Sillón libre",
                 tint = VoiceRoomPalette.TextSecondary.copy(alpha = 0.7f),
                 modifier = Modifier.size(size * 0.35f)
@@ -915,7 +915,7 @@ fun VoiceRoomRedesignedSeatCircle(
                 contentAlignment = Alignment.Center
             ) {
                 Icon(
-                    imageVector = Icons.Default.MicOff,
+                    imageVector = Icons.Rounded.MicOff,
                     contentDescription = "Silenciado",
                     tint = IosSettingsColors.label,
                     modifier = Modifier.size((size.value * 0.18f).dp)
@@ -935,7 +935,7 @@ fun VoiceRoomRedesignedSeatCircle(
                 contentAlignment = Alignment.Center
             ) {
                 Icon(
-                    imageVector = Icons.Default.Settings,
+                    imageVector = Icons.Rounded.Settings,
                     contentDescription = "Administrar",
                     tint = VoiceRoomPalette.DeepBlue,
                     modifier = Modifier.size((size.value * 0.18f).dp)
@@ -1246,7 +1246,7 @@ fun VoiceRoomRedesignedBottomBar(
             modifier = Modifier.size(36.dp)
         ) {
             Icon(
-                imageVector = Icons.Default.Face,
+                imageVector = Icons.Rounded.Face,
                 contentDescription = "Emojis",
                 tint = VoiceRoomPalette.TextSecondary,
                 modifier = Modifier.size(20.dp)
@@ -1259,7 +1259,7 @@ fun VoiceRoomRedesignedBottomBar(
             modifier = Modifier.size(36.dp)
         ) {
             Icon(
-                imageVector = Icons.Default.Gif,
+                imageVector = Icons.Rounded.Gif,
                 contentDescription = "Stickers",
                 tint = VoiceRoomPalette.TextSecondary,
                 modifier = Modifier.size(20.dp)
@@ -1293,7 +1293,7 @@ fun VoiceRoomRedesignedBottomBar(
                 ),
             contentAlignment = Alignment.Center
         ) {
-            val micIcon = if (isMuted) Icons.Default.MicOff else Icons.Default.Mic
+            val micIcon = if (isMuted) Icons.Rounded.MicOff else Icons.Rounded.Mic
             val micTint = when {
                 needsPermission -> VoiceRoomPalette.ActiveCyan
                 isMuted -> IosSettingsColors.red
@@ -1321,7 +1321,7 @@ fun VoiceRoomRedesignedBottomBar(
                 text = { Text("Unirme a un sillón", color = VoiceRoomPalette.TextPrimary, fontSize = 13.sp) },
                 leadingIcon = {
                     Icon(
-                        imageVector = Icons.Default.Add,
+                        imageVector = Icons.Rounded.Add,
                         contentDescription = null,
                         tint = VoiceRoomPalette.ActiveCyan,
                         modifier = Modifier.size(16.dp)
@@ -1337,7 +1337,7 @@ fun VoiceRoomRedesignedBottomBar(
                     text = { Text("Activar micrófono", color = VoiceRoomPalette.ActiveCyan, fontSize = 13.sp) },
                     leadingIcon = {
                         Icon(
-                            imageVector = Icons.Default.Mic,
+                            imageVector = Icons.Rounded.Mic,
                             contentDescription = null,
                             tint = VoiceRoomPalette.ActiveCyan,
                             modifier = Modifier.size(16.dp)
@@ -1356,7 +1356,7 @@ fun VoiceRoomRedesignedBottomBar(
                     },
                     leadingIcon = {
                         Icon(
-                            imageVector = if (isMuted) Icons.Default.MicOff else Icons.Default.Mic,
+                            imageVector = if (isMuted) Icons.Rounded.MicOff else Icons.Rounded.Mic,
                             contentDescription = null,
                             tint = if (isMuted) IosSettingsColors.red else VoiceRoomPalette.ActiveCyan,
                             modifier = Modifier.size(16.dp)
@@ -1372,7 +1372,7 @@ fun VoiceRoomRedesignedBottomBar(
                 text = { Text("Mi colgante", color = VoiceRoomPalette.TextPrimary, fontSize = 13.sp) },
                 leadingIcon = {
                     Icon(
-                        imageVector = Icons.Default.Diamond,
+                        imageVector = Icons.Rounded.Diamond,
                         contentDescription = null,
                         tint = VoiceRoomPalette.Gold,
                         modifier = Modifier.size(16.dp)
@@ -1387,7 +1387,7 @@ fun VoiceRoomRedesignedBottomBar(
                 text = { Text("Configuración", color = VoiceRoomPalette.TextPrimary, fontSize = 13.sp) },
                 leadingIcon = {
                     Icon(
-                        imageVector = Icons.Default.Settings,
+                        imageVector = Icons.Rounded.Settings,
                         contentDescription = null,
                         tint = VoiceRoomPalette.TextSecondary,
                         modifier = Modifier.size(16.dp)
@@ -1401,7 +1401,7 @@ fun VoiceRoomRedesignedBottomBar(
             text = { Text("Salir de la sala", color = IosSettingsColors.red, fontSize = 13.sp) },
             leadingIcon = {
                 Icon(
-                    imageVector = Icons.Default.Close,
+                    imageVector = Icons.Rounded.Close,
                     contentDescription = null,
                     tint = IosSettingsColors.red,
                     modifier = Modifier.size(16.dp)

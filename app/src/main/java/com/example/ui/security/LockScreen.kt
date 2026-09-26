@@ -10,8 +10,8 @@ import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.Backspace
-import androidx.compose.material.icons.filled.Fingerprint
-import androidx.compose.material.icons.filled.Lock
+import androidx.compose.material.icons.rounded.Fingerprint
+import androidx.compose.material.icons.rounded.Lock
 import androidx.compose.material3.Icon
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
@@ -68,7 +68,7 @@ fun LockScreen() {
                     .background(IosSettingsColors.blue.copy(alpha = 0.15f), CircleShape),
                 contentAlignment = Alignment.Center
             ) {
-                Icon(Icons.Default.Lock, contentDescription = null, tint = IosSettingsColors.blue, modifier = Modifier.size(34.dp))
+                Icon(Icons.Rounded.Lock, contentDescription = null, tint = IosSettingsColors.blue, modifier = Modifier.size(34.dp))
             }
             Spacer(modifier = Modifier.height(16.dp))
             Text(
@@ -96,7 +96,7 @@ fun LockScreen() {
                     horizontalAlignment = Alignment.CenterHorizontally,
                     modifier = Modifier.clickable { biometricTrigger++ }
                 ) {
-                    Icon(Icons.Default.Fingerprint, contentDescription = "Desbloquear con biometría", tint = IosSettingsColors.blue, modifier = Modifier.size(40.dp))
+                    Icon(Icons.Rounded.Fingerprint, contentDescription = "Desbloquear con biometría", tint = IosSettingsColors.blue, modifier = Modifier.size(40.dp))
                     Text("Usar biometría", color = IosSettingsColors.secondaryLabel, fontSize = 12.sp)
                 }
             }

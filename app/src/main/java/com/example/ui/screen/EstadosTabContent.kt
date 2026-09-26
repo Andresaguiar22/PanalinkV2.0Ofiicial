@@ -92,6 +92,8 @@ import java.util.*
 import com.example.ui.viewmodel.NotificationsViewModel
 import com.example.ui.settings.ios.IosSettingsColors
 import com.example.ui.settings.ios.IosFont
+import androidx.compose.material.icons.rounded.Add
+import androidx.compose.material.icons.rounded.PlayArrow
 
 @OptIn(ExperimentalMaterial3Api::class)
 
@@ -149,7 +151,7 @@ fun EstadosTabContent(
                             .border(1.5.dp, IosSettingsColors.groupBackground, CircleShape),
                         contentAlignment = Alignment.Center
                     ) {
-                        Icon(Icons.Default.Add, contentDescription = null, tint = IosSettingsColors.label, modifier = Modifier.size(14.dp))
+                        Icon(Icons.Rounded.Add, contentDescription = null, tint = IosSettingsColors.label, modifier = Modifier.size(14.dp))
                     }
                 }
 
@@ -318,7 +320,7 @@ fun EstadosTabContent(
                                                 .border(2.dp, IosSettingsColors.groupBackground, CircleShape),
                                             contentAlignment = Alignment.Center
                                         ) {
-                                            Icon(Icons.Default.Add, contentDescription = null, tint = IosSettingsColors.label, modifier = Modifier.size(18.dp))
+                                            Icon(Icons.Rounded.Add, contentDescription = null, tint = IosSettingsColors.label, modifier = Modifier.size(18.dp))
                                         }
                                         Text(
                                             text = "Crear Estado",
@@ -614,7 +616,7 @@ fun EstadosTabContent(
                     .padding(start = 16.dp, top = 16.dp, bottom = 6.dp)
             ) {
                 Row(verticalAlignment = Alignment.CenterVertically) {
-                    Icon(Icons.Default.PlayArrow, contentDescription = null, tint = IosSettingsColors.secondaryLabel, modifier = Modifier.size(16.dp))
+                    Icon(Icons.Rounded.PlayArrow, contentDescription = null, tint = IosSettingsColors.secondaryLabel, modifier = Modifier.size(16.dp))
                     Spacer(modifier = Modifier.width(6.dp))
                     Text(
                         text = "EL FEED DE PANALINK",
@@ -647,7 +649,7 @@ fun EstadosTabContent(
                                 .padding(40.dp),
                             horizontalAlignment = Alignment.CenterHorizontally
                         ) {
-                            Icon(Icons.Default.PlayArrow, contentDescription = null, tint = IosSettingsColors.tertiaryLabel, modifier = Modifier.size(54.dp))
+                            Icon(Icons.Rounded.PlayArrow, contentDescription = null, tint = IosSettingsColors.tertiaryLabel, modifier = Modifier.size(54.dp))
                             Spacer(modifier = Modifier.height(12.dp))
                             Text(
                                 text = "Aún no hay vídeos publicados en la comunidad.",
@@ -698,7 +700,7 @@ fun EstadosTabContent(
                                             modifier = Modifier.fillMaxSize().background(IosSettingsColors.groupBackground),
                                             contentAlignment = Alignment.Center
                                         ) {
-                                            Icon(Icons.Default.PlayArrow, contentDescription="Play", tint=IosSettingsColors.label)
+                                            Icon(Icons.Rounded.PlayArrow, contentDescription="Play", tint=IosSettingsColors.label)
                                         }
                                     } else {
                                         AsyncImage(
@@ -728,7 +730,7 @@ fun EstadosTabContent(
                                             .padding(10.dp)
                                     ) {
                                         Icon(
-                                            imageVector = Icons.Default.PlayArrow,
+                                            imageVector = Icons.Rounded.PlayArrow,
                                             contentDescription = "Ver Video",
                                             tint = IosSettingsColors.label,
                                             modifier = Modifier.size(24.dp)

@@ -6,8 +6,8 @@ import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.MusicNote
-import androidx.compose.material.icons.filled.PlayArrow
+import androidx.compose.material.icons.rounded.MusicNote
+import androidx.compose.material.icons.rounded.PlayArrow
 import androidx.compose.material.icons.automirrored.filled.PlaylistAdd
 import androidx.compose.material3.*
 import androidx.compose.runtime.Composable
@@ -77,7 +77,7 @@ fun PlaylistChatBubble(
                         contentAlignment = Alignment.Center
                     ) {
                         Icon(
-                            Icons.Default.MusicNote,
+                            Icons.Rounded.MusicNote,
                             contentDescription = null,
                             tint = accent,
                             modifier = Modifier.size(56.dp)
@@ -123,7 +123,7 @@ fun PlaylistChatBubble(
                     contentAlignment = Alignment.Center
                 ) {
                     Icon(
-                        Icons.Default.PlayArrow,
+                        Icons.Rounded.PlayArrow,
                         contentDescription = "Reproducir",
                         tint = IosSettingsColors.label,
                         modifier = Modifier.size(28.dp)
@@ -176,7 +176,7 @@ fun PlaylistChatBubble(
                         contentPadding = PaddingValues(horizontal = 8.dp),
                         shape = RoundedCornerShape(17.dp)
                     ) {
-                        Icon(Icons.Default.PlayArrow, contentDescription = null, modifier = Modifier.size(16.dp))
+                        Icon(Icons.Rounded.PlayArrow, contentDescription = null, modifier = Modifier.size(16.dp))
                         Spacer(modifier = Modifier.width(4.dp))
                         Text("Reproducir", fontSize = 12.sp, fontWeight = FontWeight.SemiBold)
                     }

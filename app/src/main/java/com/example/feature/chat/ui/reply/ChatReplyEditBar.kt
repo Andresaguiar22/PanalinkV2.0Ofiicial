@@ -10,7 +10,7 @@ import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.width
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.Close
+import androidx.compose.material.icons.rounded.Close
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.Text
@@ -82,7 +82,7 @@ fun ChatReplyEditBar(
                 }
                 IconButton(onClick = { onCancelReply() }) {
                     Icon(
-                        imageVector = Icons.Default.Close,
+                        imageVector = Icons.Rounded.Close,
                         contentDescription = "Cancelar respuesta",
                         tint = IosSettingsColors.secondaryLabel
                     )
@@ -124,7 +124,7 @@ fun ChatReplyEditBar(
                 }
                 IconButton(onClick = onCancelEdit) {
                     Icon(
-                        imageVector = Icons.Default.Close,
+                        imageVector = Icons.Rounded.Close,
                         contentDescription = "Cancelar edición",
                         tint = IosSettingsColors.secondaryLabel
                     )

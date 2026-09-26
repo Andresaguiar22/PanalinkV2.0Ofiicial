@@ -18,15 +18,15 @@ import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.CheckCircle
-import androidx.compose.material.icons.filled.DeleteSweep
-import androidx.compose.material.icons.filled.Error
-import androidx.compose.material.icons.filled.Info
-import androidx.compose.material.icons.filled.MonitorHeart
-import androidx.compose.material.icons.filled.RadioButtonChecked
-import androidx.compose.material.icons.filled.Share
-import androidx.compose.material.icons.filled.Timeline
-import androidx.compose.material.icons.filled.Warning
+import androidx.compose.material.icons.rounded.CheckCircle
+import androidx.compose.material.icons.rounded.DeleteSweep
+import androidx.compose.material.icons.rounded.Error
+import androidx.compose.material.icons.rounded.Info
+import androidx.compose.material.icons.rounded.MonitorHeart
+import androidx.compose.material.icons.rounded.RadioButtonChecked
+import androidx.compose.material.icons.rounded.Share
+import androidx.compose.material.icons.rounded.Timeline
+import androidx.compose.material.icons.rounded.Warning
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.FilterChip
@@ -105,7 +105,7 @@ fun DiagnosticsScreen(
                         verticalAlignment = Alignment.CenterVertically
                     ) {
                         Icon(
-                            imageVector = if (captureState == DiagnosticCaptureState.CAPTURING) Icons.Default.RadioButtonChecked else Icons.Default.MonitorHeart,
+                            imageVector = if (captureState == DiagnosticCaptureState.CAPTURING) Icons.Rounded.RadioButtonChecked else Icons.Rounded.MonitorHeart,
                             contentDescription = null,
                             tint = if (captureState == DiagnosticCaptureState.CAPTURING) IosSettingsColors.green else IosSettingsColors.secondaryLabel,
                             modifier = Modifier.size(26.dp)
@@ -144,7 +144,7 @@ fun DiagnosticsScreen(
                     horizontalArrangement = Arrangement.spacedBy(10.dp)
                 ) {
                     OutlinedButton(onClick = viewModel::clear, modifier = Modifier.weight(1f)) {
-                        Icon(Icons.Default.DeleteSweep, contentDescription = null, modifier = Modifier.size(18.dp))
+                        Icon(Icons.Rounded.DeleteSweep, contentDescription = null, modifier = Modifier.size(18.dp))
                         Spacer(Modifier.width(6.dp))
                         Text("Limpiar", fontFamily = IosFont)
                     }
@@ -156,7 +156,7 @@ fun DiagnosticsScreen(
                             contentColor = IosSettingsColors.label
                         )
                     ) {
-                        Icon(Icons.Default.Share, contentDescription = null, modifier = Modifier.size(18.dp))
+                        Icon(Icons.Rounded.Share, contentDescription = null, modifier = Modifier.size(18.dp))
                         Spacer(Modifier.width(6.dp))
                         Text("Exportar", fontFamily = IosFont)
                     }
@@ -203,7 +203,7 @@ fun DiagnosticsScreen(
                             modifier = Modifier.fillMaxWidth().padding(24.dp),
                             horizontalAlignment = Alignment.CenterHorizontally
                         ) {
-                            Icon(Icons.Default.Timeline, contentDescription = null, tint = IosSettingsColors.secondaryLabel, modifier = Modifier.size(36.dp))
+                            Icon(Icons.Rounded.Timeline, contentDescription = null, tint = IosSettingsColors.secondaryLabel, modifier = Modifier.size(36.dp))
                             Spacer(Modifier.height(8.dp))
                             Text("Sin eventos todavía", color = IosSettingsColors.label, fontFamily = IosFont, fontWeight = FontWeight.Medium, fontSize = 16.sp)
                             Spacer(Modifier.height(4.dp))
@@ -230,10 +230,10 @@ fun DiagnosticsScreen(
 @Composable
 private fun DiagnosticEventCard(event: DiagnosticEvent) {
     val severityIcon = when (event.severity) {
-        DiagnosticSeverity.SUCCESS -> Icons.Default.CheckCircle
-        DiagnosticSeverity.WARNING -> Icons.Default.Warning
-        DiagnosticSeverity.ERROR -> Icons.Default.Error
-        DiagnosticSeverity.INFO -> Icons.Default.Info
+        DiagnosticSeverity.SUCCESS -> Icons.Rounded.CheckCircle
+        DiagnosticSeverity.WARNING -> Icons.Rounded.Warning
+        DiagnosticSeverity.ERROR -> Icons.Rounded.Error
+        DiagnosticSeverity.INFO -> Icons.Rounded.Info
     }
     val severityTint = when (event.severity) {
         DiagnosticSeverity.SUCCESS -> IosSettingsColors.green

@@ -11,13 +11,13 @@ import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.Close
-import androidx.compose.material.icons.filled.Lock
-import androidx.compose.material.icons.filled.Mic
-import androidx.compose.material.icons.filled.PhotoLibrary
-import androidx.compose.material.icons.filled.Public
-import androidx.compose.material.icons.filled.Videocam
-import androidx.compose.material.icons.filled.PlayCircle
+import androidx.compose.material.icons.rounded.Close
+import androidx.compose.material.icons.rounded.Lock
+import androidx.compose.material.icons.rounded.Mic
+import androidx.compose.material.icons.rounded.PhotoLibrary
+import androidx.compose.material.icons.rounded.Public
+import androidx.compose.material.icons.rounded.Videocam
+import androidx.compose.material.icons.rounded.PlayCircle
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
@@ -91,7 +91,7 @@ fun CreatePostBottomSheet(
                 verticalAlignment = Alignment.CenterVertically
             ) {
                 IconButton(onClick = onDismiss) {
-                    Icon(Icons.Default.Close, contentDescription = "Cerrar", tint = IosSettingsColors.label)
+                    Icon(Icons.Rounded.Close, contentDescription = "Cerrar", tint = IosSettingsColors.label)
                 }
                 
                 Text(
@@ -180,7 +180,7 @@ fun CreatePostBottomSheet(
                             verticalAlignment = Alignment.CenterVertically
                         ) {
                             Icon(
-                                imageVector = if (uiState.privacy == "PUBLIC") Icons.Default.Public else Icons.Default.Lock,
+                                imageVector = if (uiState.privacy == "PUBLIC") Icons.Rounded.Public else Icons.Rounded.Lock,
                                 contentDescription = null,
                                 tint = if (uiState.privacy == "PUBLIC") IosSettingsColors.blue else IosSettingsColors.yellow,
                                 modifier = Modifier.size(12.dp)
@@ -247,7 +247,7 @@ fun CreatePostBottomSheet(
                                         .background(IosSettingsColors.cellElevated),
                                     contentAlignment = Alignment.Center
                                 ) {
-                                    Icon(Icons.Default.Mic, contentDescription = "Audio", tint = IosSettingsColors.blue, modifier = Modifier.size(32.dp))
+                                    Icon(Icons.Rounded.Mic, contentDescription = "Audio", tint = IosSettingsColors.blue, modifier = Modifier.size(32.dp))
                                 }
                             } else {
                                 AsyncImage(
@@ -265,7 +265,7 @@ fun CreatePostBottomSheet(
                                     .padding(4.dp)
                                     .background(IosSettingsColors.mediaScrim, CircleShape)
                             ) {
-                                Icon(Icons.Default.Close, contentDescription = "Eliminar", tint = IosSettingsColors.label, modifier = Modifier.size(12.dp))
+                                Icon(Icons.Rounded.Close, contentDescription = "Eliminar", tint = IosSettingsColors.label, modifier = Modifier.size(12.dp))
                             }
                         }
                     }
@@ -319,7 +319,7 @@ fun CreatePostBottomSheet(
                             Text("YouTube", color = IosSettingsColors.secondaryLabel, fontSize = 12.sp)
                         }
                         IconButton(onClick = { /* Implementar eliminar preview en VM */ }) {
-                            Icon(Icons.Default.Close, contentDescription = "Eliminar", tint = IosSettingsColors.secondaryLabel)
+                            Icon(Icons.Rounded.Close, contentDescription = "Eliminar", tint = IosSettingsColors.secondaryLabel)
                         }
                     }
                 }
@@ -337,16 +337,16 @@ fun CreatePostBottomSheet(
             ) {
                 Row {
                     IconButton(onClick = { mediaPicker.launch("image/*") }) {
-                        Icon(Icons.Default.PhotoLibrary, contentDescription = "Galería Fotos", tint = IosSettingsColors.blue)
+                        Icon(Icons.Rounded.PhotoLibrary, contentDescription = "Galería Fotos", tint = IosSettingsColors.blue)
                     }
                     IconButton(onClick = { mediaPicker.launch("video/*") }) {
-                        Icon(Icons.Default.Videocam, contentDescription = "Videos", tint = IosSettingsColors.green)
+                        Icon(Icons.Rounded.Videocam, contentDescription = "Videos", tint = IosSettingsColors.green)
                     }
                     IconButton(onClick = { audioPicker.launch("audio/*") }) {
-                        Icon(Icons.Default.Mic, contentDescription = "Audio", tint = IosSettingsColors.blue)
+                        Icon(Icons.Rounded.Mic, contentDescription = "Audio", tint = IosSettingsColors.blue)
                     }
                     IconButton(onClick = { showYoutubeInput = !showYoutubeInput }) {
-                        Icon(Icons.Default.PlayCircle, contentDescription = "YouTube", tint = IosSettingsColors.red)
+                        Icon(Icons.Rounded.PlayCircle, contentDescription = "YouTube", tint = IosSettingsColors.red)
                     }
                 }
                 

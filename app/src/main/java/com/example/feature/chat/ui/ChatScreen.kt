@@ -118,6 +118,9 @@ import java.io.File
 import java.text.SimpleDateFormat
 import java.util.*
 import com.example.ui.settings.ios.IosSettingsColors
+import androidx.compose.material.icons.rounded.Mic
+import androidx.compose.material.icons.rounded.MusicNote
+import androidx.compose.material.icons.rounded.Delete
 
 
 @OptIn(ExperimentalMaterial3Api::class, ExperimentalFoundationApi::class)
@@ -1144,7 +1147,7 @@ fun ChatScreen(
                     contentAlignment = Alignment.Center
                 ) {
                     Icon(
-                        imageVector = Icons.Default.Mic,
+                        imageVector = Icons.Rounded.Mic,
                         contentDescription = null,
                         tint = IosSettingsColors.secondaryLabel,
                         modifier = Modifier.size(30.dp)
@@ -1158,7 +1161,7 @@ fun ChatScreen(
                     contentAlignment = Alignment.Center
                 ) {
                     Icon(
-                        imageVector = Icons.Default.Delete,
+                        imageVector = Icons.Rounded.Delete,
                         contentDescription = "Eliminada",
                         tint = IosSettingsColors.red,
                         modifier = Modifier.size(40.dp)
@@ -1403,7 +1406,7 @@ fun PlaylistPickerDialog(
                                         modifier = Modifier.fillMaxSize()
                                     )
                                 } else {
-                                    Icon(Icons.Default.MusicNote, contentDescription = null, tint = IosSettingsColors.secondaryLabel)
+                                    Icon(Icons.Rounded.MusicNote, contentDescription = null, tint = IosSettingsColors.secondaryLabel)
                                 }
                             }
                             Spacer(modifier = Modifier.width(12.dp))

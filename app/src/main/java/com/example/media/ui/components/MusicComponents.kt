@@ -5,8 +5,8 @@ import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.MoreVert
-import androidx.compose.material.icons.filled.MusicNote
+import androidx.compose.material.icons.rounded.MoreVert
+import androidx.compose.material.icons.rounded.MusicNote
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.Text
@@ -55,7 +55,7 @@ fun TrackItem(
                     modifier = Modifier.fillMaxSize()
                 )
             } else {
-                Icon(Icons.Default.MusicNote, contentDescription = null, tint = IosSettingsColors.secondaryLabel)
+                Icon(Icons.Rounded.MusicNote, contentDescription = null, tint = IosSettingsColors.secondaryLabel)
             }
         }
 
@@ -80,7 +80,7 @@ fun TrackItem(
         }
 
         IconButton(onClick = { onTrackOptionsClick(track) }) {
-            Icon(Icons.Default.MoreVert, contentDescription = "Opciones", tint = IosSettingsColors.secondaryLabel)
+            Icon(Icons.Rounded.MoreVert, contentDescription = "Opciones", tint = IosSettingsColors.secondaryLabel)
         }
     }
 }

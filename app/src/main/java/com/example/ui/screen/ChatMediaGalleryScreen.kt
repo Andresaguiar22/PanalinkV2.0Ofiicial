@@ -24,6 +24,11 @@ import com.example.ui.components.chat.gallery.MediaGridItem
 import com.example.ui.viewmodel.MediaGalleryUiState
 import com.example.ui.viewmodel.MediaGalleryViewModel
 import com.example.ui.settings.ios.IosSettingsColors
+import androidx.compose.material.icons.rounded.Description
+import androidx.compose.material.icons.rounded.FolderOpen
+import androidx.compose.material.icons.rounded.Image
+import androidx.compose.material.icons.rounded.Mic
+import androidx.compose.material.icons.rounded.Videocam
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -156,11 +161,11 @@ fun EmptyGalleryState(tabName: String) {
         horizontalAlignment = Alignment.CenterHorizontally
     ) {
         val icon = when (tabName) {
-            "Fotos" -> Icons.Default.Image
-            "Videos" -> Icons.Default.Videocam
-            "Documentos" -> Icons.Default.Description
-            "Audio" -> Icons.Default.Mic
-            else -> Icons.Default.FolderOpen
+            "Fotos" -> Icons.Rounded.Image
+            "Videos" -> Icons.Rounded.Videocam
+            "Documentos" -> Icons.Rounded.Description
+            "Audio" -> Icons.Rounded.Mic
+            else -> Icons.Rounded.FolderOpen
         }
         Icon(
             imageVector = icon,

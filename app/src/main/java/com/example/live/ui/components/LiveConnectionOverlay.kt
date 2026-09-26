@@ -22,6 +22,10 @@ import com.example.live.domain.model.LiveConnectionState
 import kotlinx.coroutines.delay
 import kotlin.math.abs
 import com.example.ui.settings.ios.IosSettingsColors
+import androidx.compose.material.icons.rounded.Videocam
+import androidx.compose.material.icons.rounded.Wifi
+import androidx.compose.material.icons.rounded.WifiOff
+import androidx.compose.material.icons.rounded.Refresh
 
 @Composable
 fun LiveConnectionOverlay(
@@ -65,11 +69,11 @@ fun LiveConnectionOverlay(
                     modifier = Modifier.fillMaxSize()
                 ) {
                     val icon = when {
-                        waitingForTrack -> Icons.Default.Videocam
-                        connectionState is LiveConnectionState.Connecting -> Icons.Default.Wifi
-                        connectionState is LiveConnectionState.Reconnecting -> Icons.Default.Refresh
-                        connectionState is LiveConnectionState.Error -> Icons.Default.WifiOff
-                        else -> Icons.Default.Wifi
+                        waitingForTrack -> Icons.Rounded.Videocam
+                        connectionState is LiveConnectionState.Connecting -> Icons.Rounded.Wifi
+                        connectionState is LiveConnectionState.Reconnecting -> Icons.Rounded.Refresh
+                        connectionState is LiveConnectionState.Error -> Icons.Rounded.WifiOff
+                        else -> Icons.Rounded.Wifi
                     }
                     val text = when {
                         waitingForTrack -> "Activando cámara..."

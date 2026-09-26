@@ -32,51 +32,83 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.example.ui.settings.ios.IosSettingsColors
+import androidx.compose.material.icons.rounded.AcUnit
+import androidx.compose.material.icons.rounded.AutoAwesome
+import androidx.compose.material.icons.rounded.Badge
+import androidx.compose.material.icons.rounded.Bolt
+import androidx.compose.material.icons.rounded.CallEnd
+import androidx.compose.material.icons.rounded.ChatBubbleOutline
+import androidx.compose.material.icons.rounded.Circle
+import androidx.compose.material.icons.rounded.ContentCopy
+import androidx.compose.material.icons.rounded.DeleteOutline
+import androidx.compose.material.icons.rounded.Description
+import androidx.compose.material.icons.rounded.DoNotDisturbOn
+import androidx.compose.material.icons.rounded.FilterList
+import androidx.compose.material.icons.rounded.GridView
+import androidx.compose.material.icons.rounded.MarkEmailRead
+import androidx.compose.material.icons.rounded.MicOff
+import androidx.compose.material.icons.rounded.NotificationsActive
+import androidx.compose.material.icons.rounded.NotificationsOff
+import androidx.compose.material.icons.rounded.RemoveRedEye
+import androidx.compose.material.icons.rounded.Shield
+import androidx.compose.material.icons.rounded.SkipNext
+import androidx.compose.material.icons.rounded.Timer
+import androidx.compose.material.icons.rounded.Tune
+import androidx.compose.material.icons.rounded.ViewAgenda
+import androidx.compose.material.icons.rounded.Visibility
+import androidx.compose.material.icons.rounded.VisibilityOff
+import androidx.compose.material.icons.rounded.Build
+import androidx.compose.material.icons.rounded.Call
+import androidx.compose.material.icons.rounded.Edit
+import androidx.compose.material.icons.rounded.Lock
+import androidx.compose.material.icons.rounded.Notifications
+import androidx.compose.material.icons.rounded.Person
+import androidx.compose.material.icons.rounded.Search
 
 private data class ToolboxCategory(val id: String, val title: String, val subtitle: String, val icon: androidx.compose.ui.graphics.vector.ImageVector)
 private data class ToolboxItem(val id: String, val title: String, val description: String, val category: String, val icon: androidx.compose.ui.graphics.vector.ImageVector, val accent: Color = IosSettingsColors.blue)
 
 private val categories = listOf(
-    ToolboxCategory("all", "Todas", "Todo tu arsenal", Icons.Default.GridView),
-    ToolboxCategory("protection", "Protección", "Mensajes y contenido", Icons.Default.Shield),
-    ToolboxCategory("ghost", "Invisibilidad", "Tu presencia, bajo control", Icons.Default.VisibilityOff),
-    ToolboxCategory("presence", "Presencia", "Actividad y conexión", Icons.Default.Circle),
-    ToolboxCategory("stories", "Estados", "Control de visualización", Icons.Default.Visibility),
-    ToolboxCategory("privacy", "Privacidad", "Chats y notificaciones", Icons.Default.Lock),
-    ToolboxCategory("organize", "Organización", "Una pantalla más limpia", Icons.Default.Tune),
-    ToolboxCategory("personalize", "Personalización", "Haz PanaLink tuyo", Icons.Default.AutoAwesome),
-    ToolboxCategory("focus", "Concentración", "Menos interrupciones", Icons.Default.DoNotDisturbOn),
-    ToolboxCategory("calls", "Llamadas", "Control y privacidad", Icons.Default.Call)
+    ToolboxCategory("all", "Todas", "Todo tu arsenal", Icons.Rounded.GridView),
+    ToolboxCategory("protection", "Protección", "Mensajes y contenido", Icons.Rounded.Shield),
+    ToolboxCategory("ghost", "Invisibilidad", "Tu presencia, bajo control", Icons.Rounded.VisibilityOff),
+    ToolboxCategory("presence", "Presencia", "Actividad y conexión", Icons.Rounded.Circle),
+    ToolboxCategory("stories", "Estados", "Control de visualización", Icons.Rounded.Visibility),
+    ToolboxCategory("privacy", "Privacidad", "Chats y notificaciones", Icons.Rounded.Lock),
+    ToolboxCategory("organize", "Organización", "Una pantalla más limpia", Icons.Rounded.Tune),
+    ToolboxCategory("personalize", "Personalización", "Haz PanaLink tuyo", Icons.Rounded.AutoAwesome),
+    ToolboxCategory("focus", "Concentración", "Menos interrupciones", Icons.Rounded.DoNotDisturbOn),
+    ToolboxCategory("calls", "Llamadas", "Control y privacidad", Icons.Rounded.Call)
 )
 
 private val toolboxItems = listOf(
-    ToolboxItem("anti_delete_messages", "Escudo de Mensajes", "Protege los mensajes recibidos mientras la herramienta esté activa.", "protection", Icons.Default.DeleteOutline),
-    ToolboxItem("anti_temporary", "Resguardo de Temporales", "Conserva contenido temporal dentro de tu espacio protegido.", "protection", Icons.Default.Timer),
-    ToolboxItem("delete_alert", "Alerta de Eliminación", "Recibe una alerta cuando un mensaje sea eliminado.", "protection", Icons.Default.NotificationsActive),
-    ToolboxItem("ghost_mode", "Modo Fantasma", "Centraliza tus controles de invisibilidad en un solo acceso.", "ghost", Icons.Default.VisibilityOff),
-    ToolboxItem("silent_read", "Lectura Silenciosa", "Controla las señales de lectura de tus conversaciones.", "ghost", Icons.Default.MarkEmailRead),
-    ToolboxItem("hidden_typing", "Escritura Invisible", "Oculta la señal de escritura mientras redactas.", "ghost", Icons.Default.Edit),
-    ToolboxItem("hidden_recording", "Grabación Invisible", "Controla la señal de grabación de audio.", "ghost", Icons.Default.MicOff),
-    ToolboxItem("frozen_presence", "Última Visita Congelada", "Mantén fija la información de última visita que muestras.", "ghost", Icons.Default.AcUnit),
-    ToolboxItem("online_alert", "Alerta de Presencia", "Recibe una alerta cuando un contacto seleccionado aparezca activo.", "presence", Icons.Default.Notifications),
-    ToolboxItem("presence_dot", "Punto de Presencia", "Muestra un indicador de disponibilidad junto a las conversaciones.", "presence", Icons.Default.Circle),
-    ToolboxItem("presence_chat", "Presencia en Conversaciones", "Muestra información de disponibilidad en tu lista de chats.", "presence", Icons.Default.ChatBubbleOutline),
-    ToolboxItem("anonymous_status", "Vista Silenciosa", "Controla las señales asociadas a la visualización de estados.", "stories", Icons.Default.VisibilityOff),
-    ToolboxItem("status_view_alert", "Alerta de Visualización", "Recibe una notificación cuando alguien visualice tu estado.", "stories", Icons.Default.RemoveRedEye),
-    ToolboxItem("copy_status", "Texto Copiable", "Mantén pulsado para copiar el texto de un estado.", "stories", Icons.Default.ContentCopy),
-    ToolboxItem("status_advance", "Control de Avance", "Decide si el siguiente estado se abre automáticamente.", "stories", Icons.Default.SkipNext),
-    ToolboxItem("private_vault", "Bóveda de Chats", "Protege conversaciones seleccionadas dentro de un espacio privado.", "privacy", Icons.Default.Lock),
-    ToolboxItem("private_contact", "Privacidad por Contacto", "Personaliza controles de privacidad para contactos concretos.", "privacy", Icons.Default.Person),
-    ToolboxItem("private_notifications", "Notificaciones Privadas", "Controla cuánto contenido aparece en tus notificaciones.", "privacy", Icons.Default.NotificationsOff),
-    ToolboxItem("chat_separator", "Separador de Conversaciones", "Organiza chats, grupos, estados y llamadas en secciones claras.", "organize", Icons.Default.ViewAgenda),
-    ToolboxItem("smart_filters", "Filtros Inteligentes", "Filtra rápidamente por no leídos, privados, grupos o favoritos.", "organize", Icons.Default.FilterList),
-    ToolboxItem("flex_search", "Búsqueda Flexible", "Elige el estilo de búsqueda que prefieras en PanaLink.", "organize", Icons.Default.Search),
-    ToolboxItem("identity_home", "Identidad en Inicio", "Muestra tu nombre en la cabecera de la pantalla principal.", "personalize", Icons.Default.Badge),
-    ToolboxItem("bio_home", "Bio en Inicio", "Muestra una pequeña biografía bajo tu nombre.", "personalize", Icons.Default.Description),
-    ToolboxItem("quick_actions", "Acciones Rápidas", "Añade accesos directos a las acciones que más utilizas.", "personalize", Icons.Default.Bolt),
-    ToolboxItem("focus_mode", "Modo Concentración", "Reduce interrupciones y centraliza tus controles de silencio.", "focus", Icons.Default.DoNotDisturbOn),
-    ToolboxItem("call_filter", "Filtro de Llamadas", "Controla qué llamadas pueden generar una interrupción.", "calls", Icons.Default.Call),
-    ToolboxItem("call_summary", "Resumen de Llamada", "Muestra información adicional al finalizar una llamada.", "calls", Icons.Default.CallEnd)
+    ToolboxItem("anti_delete_messages", "Escudo de Mensajes", "Protege los mensajes recibidos mientras la herramienta esté activa.", "protection", Icons.Rounded.DeleteOutline),
+    ToolboxItem("anti_temporary", "Resguardo de Temporales", "Conserva contenido temporal dentro de tu espacio protegido.", "protection", Icons.Rounded.Timer),
+    ToolboxItem("delete_alert", "Alerta de Eliminación", "Recibe una alerta cuando un mensaje sea eliminado.", "protection", Icons.Rounded.NotificationsActive),
+    ToolboxItem("ghost_mode", "Modo Fantasma", "Centraliza tus controles de invisibilidad en un solo acceso.", "ghost", Icons.Rounded.VisibilityOff),
+    ToolboxItem("silent_read", "Lectura Silenciosa", "Controla las señales de lectura de tus conversaciones.", "ghost", Icons.Rounded.MarkEmailRead),
+    ToolboxItem("hidden_typing", "Escritura Invisible", "Oculta la señal de escritura mientras redactas.", "ghost", Icons.Rounded.Edit),
+    ToolboxItem("hidden_recording", "Grabación Invisible", "Controla la señal de grabación de audio.", "ghost", Icons.Rounded.MicOff),
+    ToolboxItem("frozen_presence", "Última Visita Congelada", "Mantén fija la información de última visita que muestras.", "ghost", Icons.Rounded.AcUnit),
+    ToolboxItem("online_alert", "Alerta de Presencia", "Recibe una alerta cuando un contacto seleccionado aparezca activo.", "presence", Icons.Rounded.Notifications),
+    ToolboxItem("presence_dot", "Punto de Presencia", "Muestra un indicador de disponibilidad junto a las conversaciones.", "presence", Icons.Rounded.Circle),
+    ToolboxItem("presence_chat", "Presencia en Conversaciones", "Muestra información de disponibilidad en tu lista de chats.", "presence", Icons.Rounded.ChatBubbleOutline),
+    ToolboxItem("anonymous_status", "Vista Silenciosa", "Controla las señales asociadas a la visualización de estados.", "stories", Icons.Rounded.VisibilityOff),
+    ToolboxItem("status_view_alert", "Alerta de Visualización", "Recibe una notificación cuando alguien visualice tu estado.", "stories", Icons.Rounded.RemoveRedEye),
+    ToolboxItem("copy_status", "Texto Copiable", "Mantén pulsado para copiar el texto de un estado.", "stories", Icons.Rounded.ContentCopy),
+    ToolboxItem("status_advance", "Control de Avance", "Decide si el siguiente estado se abre automáticamente.", "stories", Icons.Rounded.SkipNext),
+    ToolboxItem("private_vault", "Bóveda de Chats", "Protege conversaciones seleccionadas dentro de un espacio privado.", "privacy", Icons.Rounded.Lock),
+    ToolboxItem("private_contact", "Privacidad por Contacto", "Personaliza controles de privacidad para contactos concretos.", "privacy", Icons.Rounded.Person),
+    ToolboxItem("private_notifications", "Notificaciones Privadas", "Controla cuánto contenido aparece en tus notificaciones.", "privacy", Icons.Rounded.NotificationsOff),
+    ToolboxItem("chat_separator", "Separador de Conversaciones", "Organiza chats, grupos, estados y llamadas en secciones claras.", "organize", Icons.Rounded.ViewAgenda),
+    ToolboxItem("smart_filters", "Filtros Inteligentes", "Filtra rápidamente por no leídos, privados, grupos o favoritos.", "organize", Icons.Rounded.FilterList),
+    ToolboxItem("flex_search", "Búsqueda Flexible", "Elige el estilo de búsqueda que prefieras en PanaLink.", "organize", Icons.Rounded.Search),
+    ToolboxItem("identity_home", "Identidad en Inicio", "Muestra tu nombre en la cabecera de la pantalla principal.", "personalize", Icons.Rounded.Badge),
+    ToolboxItem("bio_home", "Bio en Inicio", "Muestra una pequeña biografía bajo tu nombre.", "personalize", Icons.Rounded.Description),
+    ToolboxItem("quick_actions", "Acciones Rápidas", "Añade accesos directos a las acciones que más utilizas.", "personalize", Icons.Rounded.Bolt),
+    ToolboxItem("focus_mode", "Modo Concentración", "Reduce interrupciones y centraliza tus controles de silencio.", "focus", Icons.Rounded.DoNotDisturbOn),
+    ToolboxItem("call_filter", "Filtro de Llamadas", "Controla qué llamadas pueden generar una interrupción.", "calls", Icons.Rounded.Call),
+    ToolboxItem("call_summary", "Resumen de Llamada", "Muestra información adicional al finalizar una llamada.", "calls", Icons.Rounded.CallEnd)
 )
 
 private val durations = listOf(3 to 30, 5 to 45, 10 to 100)
@@ -113,7 +145,7 @@ fun ToolboxScreen(onBack: () -> Unit) {
                 Box(Modifier.fillMaxWidth().clip(RoundedCornerShape(26.dp)).background(IosSettingsColors.cell).border(1.dp, IosSettingsColors.separator, RoundedCornerShape(26.dp)).padding(20.dp)) {
                     Row(verticalAlignment = Alignment.CenterVertically) {
                         Box(Modifier.size(56.dp).background(IosSettingsColors.blue.copy(alpha = .12f), CircleShape), contentAlignment = Alignment.Center) {
-                            Icon(Icons.Default.Build, null, tint = IosSettingsColors.blue, modifier = Modifier.size(29.dp))
+                            Icon(Icons.Rounded.Build, null, tint = IosSettingsColors.blue, modifier = Modifier.size(29.dp))
                         }
                         Spacer(Modifier.width(14.dp))
                         Column(Modifier.weight(1f)) {

@@ -6,8 +6,8 @@ import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.Visibility
-import androidx.compose.material.icons.filled.VisibilityOff
+import androidx.compose.material.icons.rounded.Visibility
+import androidx.compose.material.icons.rounded.VisibilityOff
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
@@ -60,7 +60,7 @@ fun GhostMessageBubble(
                     .padding(12.dp)
             ) {
                 Icon(
-                    imageVector = if (isOpened) Icons.Default.VisibilityOff else Icons.Default.Visibility,
+                    imageVector = if (isOpened) Icons.Rounded.VisibilityOff else Icons.Rounded.Visibility,
                     contentDescription = null,
                     tint = if (isOpened) IosSettingsColors.secondaryLabel else ghostColor,
                     modifier = Modifier.size(24.dp)

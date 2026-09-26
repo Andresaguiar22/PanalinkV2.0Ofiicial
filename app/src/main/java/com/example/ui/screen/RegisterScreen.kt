@@ -7,10 +7,10 @@ import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.Email
-import androidx.compose.material.icons.filled.Lock
-import androidx.compose.material.icons.filled.Person
-import androidx.compose.material.icons.filled.Warning
+import androidx.compose.material.icons.rounded.Email
+import androidx.compose.material.icons.rounded.Lock
+import androidx.compose.material.icons.rounded.Person
+import androidx.compose.material.icons.rounded.Warning
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
@@ -91,7 +91,7 @@ fun RegisterScreen(
                         value = displayName,
                         onValueChange = { displayName = it },
                         label = "Nombre Completo",
-                        leadingIcon = Icons.Default.Person,
+                        leadingIcon = Icons.Rounded.Person,
                         modifier = Modifier.testTag("register_name_input")
                     )
 
@@ -99,7 +99,7 @@ fun RegisterScreen(
                         value = email,
                         onValueChange = { email = it },
                         label = "Email",
-                        leadingIcon = Icons.Default.Email,
+                        leadingIcon = Icons.Rounded.Email,
                         keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Email),
                         modifier = Modifier.testTag("register_email_input")
                     )
@@ -108,7 +108,7 @@ fun RegisterScreen(
                         value = password,
                         onValueChange = { password = it },
                         label = "Contraseña",
-                        leadingIcon = Icons.Default.Lock,
+                        leadingIcon = Icons.Rounded.Lock,
                         visualTransformation = PasswordVisualTransformation(),
                         keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Password),
                         modifier = Modifier.testTag("register_password_input")
@@ -124,7 +124,7 @@ fun RegisterScreen(
                                 .padding(12.dp)
                         ) {
                             Icon(
-                                imageVector = Icons.Default.Warning,
+                                imageVector = Icons.Rounded.Warning,
                                 contentDescription = "Alerta",
                                 tint = IosSettingsColors.red,
                                 modifier = Modifier.size(20.dp)

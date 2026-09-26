@@ -16,10 +16,10 @@ import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.KeyboardArrowDown
-import androidx.compose.material.icons.filled.Notifications
-import androidx.compose.material.icons.filled.NotificationsOff
-import androidx.compose.material.icons.filled.Search
+import androidx.compose.material.icons.rounded.KeyboardArrowDown
+import androidx.compose.material.icons.rounded.Notifications
+import androidx.compose.material.icons.rounded.NotificationsOff
+import androidx.compose.material.icons.rounded.Search
 import androidx.compose.material3.Badge
 import androidx.compose.material3.BadgedBox
 import androidx.compose.material3.Icon
@@ -74,7 +74,7 @@ fun ChannelBottomBar(
             contentAlignment = Alignment.Center
         ) {
             Icon(
-                imageVector = Icons.Default.Search,
+                imageVector = Icons.Rounded.Search,
                 contentDescription = "Buscar en canal",
                 tint = primaryText,
                 modifier = Modifier.size(22.dp)
@@ -96,7 +96,7 @@ fun ChannelBottomBar(
         ) {
             Row(verticalAlignment = Alignment.CenterVertically) {
                 Icon(
-                    imageVector = if (isMuted) Icons.Default.Notifications else Icons.Default.NotificationsOff,
+                    imageVector = if (isMuted) Icons.Rounded.Notifications else Icons.Rounded.NotificationsOff,
                     contentDescription = null,
                     tint = if (isMuted) accentBlue else secondaryText,
                     modifier = Modifier.size(18.dp)
@@ -147,7 +147,7 @@ fun ChannelBottomBar(
                     contentAlignment = Alignment.Center
                 ) {
                     Icon(
-                        imageVector = Icons.Default.KeyboardArrowDown,
+                        imageVector = Icons.Rounded.KeyboardArrowDown,
                         contentDescription = "Bajar al final",
                         tint = primaryText,
                         modifier = Modifier.size(26.dp)

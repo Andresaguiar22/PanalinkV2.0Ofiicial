@@ -21,6 +21,14 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.example.ui.settings.ios.IosSettingsColors
+import androidx.compose.material.icons.rounded.AspectRatio
+import androidx.compose.material.icons.rounded.AutoAwesome
+import androidx.compose.material.icons.rounded.ColorLens
+import androidx.compose.material.icons.rounded.EmojiEmotions
+import androidx.compose.material.icons.rounded.PhotoLibrary
+import androidx.compose.material.icons.rounded.TextFields
+import androidx.compose.material.icons.rounded.Tune
+import androidx.compose.material.icons.rounded.Edit
 
 data class PostToolItem(
     val id: String,
@@ -39,14 +47,14 @@ fun PostStudioToolbar(
     modifier: Modifier = Modifier
 ) {
     val tools = listOf(
-        PostToolItem("media", "Multimedia", Icons.Default.PhotoLibrary, IosSettingsColors.blue),
-        PostToolItem("ai", "Asistente AI", Icons.Default.AutoAwesome, IosSettingsColors.pink),
-        PostToolItem("text", "Texto", Icons.Default.TextFields, Color(0xFFA855F7)),
-        PostToolItem("sticker", "Stickers", Icons.Default.EmojiEmotions, IosSettingsColors.orange),
-        PostToolItem("filter", "Filtros", Icons.Default.ColorLens, IosSettingsColors.green),
-        PostToolItem("draw", "Dibujar", Icons.Default.Edit, Color(0xFFEC4899)),
-        PostToolItem("ratio", "Aspecto", Icons.Default.AspectRatio, Color(0xFF6366F1)),
-        PostToolItem("inspector", "Inspector", Icons.Default.Tune, IosSettingsColors.blue),
+        PostToolItem("media", "Multimedia", Icons.Rounded.PhotoLibrary, IosSettingsColors.blue),
+        PostToolItem("ai", "Asistente AI", Icons.Rounded.AutoAwesome, IosSettingsColors.pink),
+        PostToolItem("text", "Texto", Icons.Rounded.TextFields, Color(0xFFA855F7)),
+        PostToolItem("sticker", "Stickers", Icons.Rounded.EmojiEmotions, IosSettingsColors.orange),
+        PostToolItem("filter", "Filtros", Icons.Rounded.ColorLens, IosSettingsColors.green),
+        PostToolItem("draw", "Dibujar", Icons.Rounded.Edit, Color(0xFFEC4899)),
+        PostToolItem("ratio", "Aspecto", Icons.Rounded.AspectRatio, Color(0xFF6366F1)),
+        PostToolItem("inspector", "Inspector", Icons.Rounded.Tune, IosSettingsColors.blue),
         PostToolItem("caption", "Texto Post", Icons.AutoMirrored.Filled.Article, Color(0xFF14B8A6))
     )
 

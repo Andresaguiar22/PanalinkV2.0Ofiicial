@@ -24,6 +24,11 @@ import androidx.compose.ui.unit.sp
 import coil.compose.AsyncImage
 import com.example.creative.core.CreativeLayer
 import com.example.ui.settings.ios.IosSettingsColors
+import androidx.compose.material.icons.rounded.ContentCopy
+import androidx.compose.material.icons.rounded.PlayCircle
+import androidx.compose.material.icons.rounded.TextFields
+import androidx.compose.material.icons.rounded.Add
+import androidx.compose.material.icons.rounded.Delete
 
 /**
  * P6.6.3 - Post Carousel Navigator
@@ -70,7 +75,7 @@ fun PostCarouselNavigator(
                         enabled = pages.isNotEmpty()
                     ) {
                         Icon(
-                            imageVector = Icons.Default.ContentCopy,
+                            imageVector = Icons.Rounded.ContentCopy,
                             contentDescription = "Duplicar Página",
                             tint = IosSettingsColors.blue,
                             modifier = Modifier.size(18.dp)
@@ -85,7 +90,7 @@ fun PostCarouselNavigator(
                             }
                         ) {
                             Icon(
-                                imageVector = Icons.Default.Delete,
+                                imageVector = Icons.Rounded.Delete,
                                 contentDescription = "Eliminar Página",
                                 tint = IosSettingsColors.red,
                                 modifier = Modifier.size(18.dp)
@@ -131,7 +136,7 @@ fun PostCarouselNavigator(
                                 contentAlignment = Alignment.Center
                             ) {
                                 Icon(
-                                    imageVector = Icons.Default.PlayCircle,
+                                    imageVector = Icons.Rounded.PlayCircle,
                                     contentDescription = "Video",
                                     tint = IosSettingsColors.label,
                                     modifier = Modifier.size(24.dp)
@@ -143,7 +148,7 @@ fun PostCarouselNavigator(
                                 contentAlignment = Alignment.Center
                             ) {
                                 Icon(
-                                    imageVector = Icons.Default.TextFields,
+                                    imageVector = Icons.Rounded.TextFields,
                                     contentDescription = "Texto",
                                     tint = IosSettingsColors.secondaryLabel,
                                     modifier = Modifier.size(20.dp)
@@ -186,7 +191,7 @@ fun PostCarouselNavigator(
                             verticalArrangement = Arrangement.Center
                         ) {
                             Icon(
-                                imageVector = Icons.Default.Add,
+                                imageVector = Icons.Rounded.Add,
                                 contentDescription = "Agregar Página",
                                 tint = IosSettingsColors.blue,
                                 modifier = Modifier.size(24.dp)

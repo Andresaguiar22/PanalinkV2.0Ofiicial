@@ -19,6 +19,10 @@ import com.example.ui.settings.ios.IosSettingsScaffold
 import com.example.media.playlist.PlaylistCollaboratorEntity
 import com.example.media.playlist.PlaylistInvitationEntity
 import com.example.media.playlist.PlaylistMemberRole
+import androidx.compose.material.icons.rounded.PersonAdd
+import androidx.compose.material.icons.rounded.Close
+import androidx.compose.material.icons.rounded.Delete
+import androidx.compose.material.icons.rounded.Edit
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -40,7 +44,7 @@ fun PlaylistCollaboratorsScreen(
                     containerColor = IosSettingsColors.blue,
                     contentColor = IosSettingsColors.cell
                 ) {
-                    Icon(Icons.Default.PersonAdd, contentDescription = "Invitar")
+                    Icon(Icons.Rounded.PersonAdd, contentDescription = "Invitar")
                 }
             }
         }
@@ -154,10 +158,10 @@ fun CollaboratorItem(
                         val nextRole = if (role == "EDITOR") "VIEWER" else "EDITOR"
                         onUpdateRole?.invoke(nextRole)
                     }) {
-                        Icon(Icons.Default.Edit, contentDescription = "Cambiar Rol")
+                        Icon(Icons.Rounded.Edit, contentDescription = "Cambiar Rol")
                     }
                     IconButton(onClick = { onRemove?.invoke() }) {
-                        Icon(Icons.Default.Delete, contentDescription = "Eliminar", tint = MaterialTheme.colorScheme.error)
+                        Icon(Icons.Rounded.Delete, contentDescription = "Eliminar", tint = MaterialTheme.colorScheme.error)
                     }
                 }
             }
@@ -190,7 +194,7 @@ fun InvitationItem(
 
             if (canRevoke) {
                 IconButton(onClick = onRevoke) {
-                    Icon(Icons.Default.Close, contentDescription = "Revocar", tint = MaterialTheme.colorScheme.error)
+                    Icon(Icons.Rounded.Close, contentDescription = "Revocar", tint = MaterialTheme.colorScheme.error)
                 }
             }
         }

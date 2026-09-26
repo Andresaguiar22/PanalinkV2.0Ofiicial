@@ -5,10 +5,10 @@ import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
-import androidx.compose.material.icons.filled.Mic
-import androidx.compose.material.icons.filled.MicOff
-import androidx.compose.material.icons.filled.Videocam
-import androidx.compose.material.icons.filled.VideocamOff
+import androidx.compose.material.icons.rounded.Mic
+import androidx.compose.material.icons.rounded.MicOff
+import androidx.compose.material.icons.rounded.Videocam
+import androidx.compose.material.icons.rounded.VideocamOff
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
@@ -202,7 +202,7 @@ fun LiveGuestScreen(
                             colors = IconButtonDefaults.iconButtonColors(containerColor = if (isMicMuted) IosSettingsColors.red else IosSettingsColors.mediaScrimSoft)
                         ) {
                             Icon(
-                                imageVector = if (isMicMuted) Icons.Default.MicOff else Icons.Default.Mic,
+                                imageVector = if (isMicMuted) Icons.Rounded.MicOff else Icons.Rounded.Mic,
                                 contentDescription = "Micrófono",
                                 tint = IosSettingsColors.label
                             )
@@ -216,7 +216,7 @@ fun LiveGuestScreen(
                             colors = IconButtonDefaults.iconButtonColors(containerColor = if (isCameraOff) IosSettingsColors.red else IosSettingsColors.mediaScrimSoft)
                         ) {
                             Icon(
-                                imageVector = if (isCameraOff) Icons.Default.VideocamOff else Icons.Default.Videocam,
+                                imageVector = if (isCameraOff) Icons.Rounded.VideocamOff else Icons.Rounded.Videocam,
                                 contentDescription = "Cámara",
                                 tint = IosSettingsColors.label
                             )

@@ -16,6 +16,9 @@ import androidx.compose.ui.unit.sp
 import com.example.call.CallState
 import com.example.call.CallType
 import com.example.ui.settings.ios.IosSettingsColors
+import androidx.compose.material.icons.rounded.CallEnd
+import androidx.compose.material.icons.rounded.SignalCellularConnectedNoInternet0Bar
+import androidx.compose.material.icons.rounded.Warning
 
 /**
  * CallScreen is the master component that dynamically renders the entire VoIP call interface.
@@ -160,7 +163,7 @@ fun CallScreen(
                         opponentId = opponentId,
                         opponentName = opponentName,
                         onDismiss = onDismissError,
-                        icon = Icons.Default.Warning,
+                        icon = Icons.Rounded.Warning,
                         iconColor = IosSettingsColors.orange // Amber
                     )
                 }
@@ -172,7 +175,7 @@ fun CallScreen(
                         opponentId = opponentId,
                         opponentName = opponentName,
                         onDismiss = onDismissError,
-                        icon = Icons.Default.CallEnd,
+                        icon = Icons.Rounded.CallEnd,
                         iconColor = IosSettingsColors.red // Red
                     )
                 }
@@ -184,7 +187,7 @@ fun CallScreen(
                         opponentId = opponentId,
                         opponentName = opponentName,
                         onDismiss = onDismissError,
-                        icon = Icons.Default.SignalCellularConnectedNoInternet0Bar,
+                        icon = Icons.Rounded.SignalCellularConnectedNoInternet0Bar,
                         iconColor = IosSettingsColors.red
                     )
                 }
@@ -196,7 +199,7 @@ fun CallScreen(
                         opponentId = opponentId,
                         opponentName = opponentName,
                         onDismiss = onDismissError,
-                        icon = Icons.Default.CallEnd,
+                        icon = Icons.Rounded.CallEnd,
                         iconColor = IosSettingsColors.label.copy(alpha = 0.5f)
                     )
                 }

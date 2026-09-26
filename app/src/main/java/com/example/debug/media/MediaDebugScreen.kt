@@ -18,6 +18,11 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.example.ui.settings.ios.IosSettingsColors
+import androidx.compose.material.icons.rounded.CleaningServices
+import androidx.compose.material.icons.rounded.Folder
+import androidx.compose.material.icons.rounded.OfflinePin
+import androidx.compose.material.icons.rounded.Storage
+import androidx.compose.material.icons.rounded.CheckCircle
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -65,13 +70,13 @@ fun MediaDebugScreen(
                     MetricCard(
                         title = "Archivos locales",
                         value = "${state.localFilesCount}",
-                        icon = Icons.Default.Folder,
+                        icon = Icons.Rounded.Folder,
                         modifier = Modifier.weight(1f)
                     )
                     MetricCard(
                         title = "Espacio usado",
                         value = state.formattedCacheSize,
-                        icon = Icons.Default.Storage,
+                        icon = Icons.Rounded.Storage,
                         modifier = Modifier.weight(1f)
                     )
                 }
@@ -85,13 +90,13 @@ fun MediaDebugScreen(
                     MetricCard(
                         title = "Cache Hit Rate",
                         value = "%.1f%%".format(state.report?.cacheHitRatePercentage ?: 100f),
-                        icon = Icons.Default.OfflinePin,
+                        icon = Icons.Rounded.OfflinePin,
                         modifier = Modifier.weight(1f)
                     )
                     MetricCard(
                         title = "Éxito Offline",
                         value = "%.1f%%".format(state.report?.offlineSuccessRatePercentage ?: 100f),
-                        icon = Icons.Default.CheckCircle,
+                        icon = Icons.Rounded.CheckCircle,
                         modifier = Modifier.weight(1f)
                     )
                 }
@@ -126,7 +131,7 @@ fun MediaDebugScreen(
                         Spacer(modifier = Modifier.width(8.dp))
                         Text("Purgando cache...")
                     } else {
-                        Icon(Icons.Default.CleaningServices, contentDescription = null)
+                        Icon(Icons.Rounded.CleaningServices, contentDescription = null)
                         Spacer(modifier = Modifier.width(8.dp))
                         Text("Purgar Archivos Expirados")
                     }

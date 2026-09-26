@@ -5,8 +5,8 @@ import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
-import androidx.compose.material.icons.filled.Check
-import androidx.compose.material.icons.filled.Close
+import androidx.compose.material.icons.rounded.Check
+import androidx.compose.material.icons.rounded.Close
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
@@ -97,13 +97,13 @@ fun ReceivedInvitationItem(
             
             Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.End) {
                 TextButton(onClick = onReject, colors = ButtonDefaults.textButtonColors(contentColor = MaterialTheme.colorScheme.error)) {
-                    Icon(Icons.Default.Close, contentDescription = null)
+                    Icon(Icons.Rounded.Close, contentDescription = null)
                     Spacer(modifier = Modifier.width(4.dp))
                     Text("Rechazar")
                 }
                 Spacer(modifier = Modifier.width(8.dp))
                 Button(onClick = onAccept) {
-                    Icon(Icons.Default.Check, contentDescription = null)
+                    Icon(Icons.Rounded.Check, contentDescription = null)
                     Spacer(modifier = Modifier.width(4.dp))
                     Text("Aceptar")
                 }

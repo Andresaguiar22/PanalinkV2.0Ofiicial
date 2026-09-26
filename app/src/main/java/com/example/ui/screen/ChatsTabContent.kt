@@ -91,6 +91,12 @@ import java.util.*
 
 import com.example.ui.viewmodel.NotificationsViewModel
 import com.example.ui.settings.ios.IosSettingsColors
+import androidx.compose.material.icons.rounded.ChevronRight
+import androidx.compose.material.icons.rounded.DoneAll
+import androidx.compose.material.icons.rounded.NotificationsOff
+import androidx.compose.material.icons.rounded.PushPin
+import androidx.compose.material.icons.rounded.CheckCircle
+import androidx.compose.material.icons.rounded.Done
 
 
 @Composable
@@ -293,7 +299,7 @@ fun ChatItemRow(
                     )
                     if (isPinned) {
                         Spacer(Modifier.width(5.dp))
-                        Icon(Icons.Default.PushPin, contentDescription = "Anclado", tint = IosSettingsColors.secondaryLabel, modifier = Modifier.size(12.dp))
+                        Icon(Icons.Rounded.PushPin, contentDescription = "Anclado", tint = IosSettingsColors.secondaryLabel, modifier = Modifier.size(12.dp))
                     }
                 }
 
@@ -322,13 +328,13 @@ fun ChatItemRow(
 
                 if (isMuted) {
                     Spacer(Modifier.width(6.dp))
-                    Icon(Icons.Default.NotificationsOff, contentDescription = "Silenciado", tint = IosSettingsColors.secondaryLabel, modifier = Modifier.size(14.dp))
+                    Icon(Icons.Rounded.NotificationsOff, contentDescription = "Silenciado", tint = IosSettingsColors.secondaryLabel, modifier = Modifier.size(14.dp))
                 }
 
                 if (isMine && lastMessage != null) {
                     Spacer(Modifier.width(6.dp))
                     Icon(
-                        imageVector = if (lastMessage.seenAt != null) Icons.Default.DoneAll else Icons.Default.Done,
+                        imageVector = if (lastMessage.seenAt != null) Icons.Rounded.DoneAll else Icons.Rounded.Done,
                         contentDescription = if (lastMessage.seenAt != null) "Visto" else "Enviado",
                         tint = IosSettingsColors.blue,
                         modifier = Modifier.size(16.dp)
@@ -358,7 +364,7 @@ color = IosSettingsColors.onAccent,
         Spacer(Modifier.width(2.dp))
 
         Icon(
-            imageVector = Icons.Default.ChevronRight,
+            imageVector = Icons.Rounded.ChevronRight,
             contentDescription = null,
             tint = IosSettingsColors.chevron,
             modifier = Modifier.size(18.dp)
@@ -486,7 +492,7 @@ if (hasUnread) com.example.ui.theme.getPremiumActiveIconGradient() else Brush.li
                 contentAlignment = Alignment.Center
             ) {
                 Icon(
-                    imageVector = Icons.Default.CheckCircle,
+                    imageVector = Icons.Rounded.CheckCircle,
                     contentDescription = "Selected",
                     tint = IosSettingsColors.blue,
                     modifier = Modifier.size(20.dp)

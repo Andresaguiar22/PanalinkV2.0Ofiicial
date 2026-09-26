@@ -48,18 +48,15 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.outlined.ArrowBack
 import androidx.compose.material.icons.automirrored.rounded.Forward
 import androidx.compose.material.icons.automirrored.rounded.Send
-import androidx.compose.material.icons.filled.Add
-import androidx.compose.material.icons.filled.ArrowBack
-import androidx.compose.material.icons.filled.Bookmark
-import androidx.compose.material.icons.filled.Check
-import androidx.compose.material.icons.filled.Close
-import androidx.compose.material.icons.filled.Delete
-import androidx.compose.material.icons.filled.Favorite
-import androidx.compose.material.icons.filled.MusicNote
-import androidx.compose.material.icons.filled.Pause
-import androidx.compose.material.icons.filled.PlayArrow
-import androidx.compose.material.icons.filled.Refresh
-import androidx.compose.material.icons.filled.Search
+import androidx.compose.material.icons.rounded.Add
+import androidx.compose.material.icons.rounded.Bookmark
+import androidx.compose.material.icons.rounded.Check
+import androidx.compose.material.icons.rounded.Close
+import androidx.compose.material.icons.rounded.Delete
+import androidx.compose.material.icons.rounded.Favorite
+import androidx.compose.material.icons.rounded.Pause
+import androidx.compose.material.icons.rounded.PlayArrow
+import androidx.compose.material.icons.rounded.Refresh
 import androidx.compose.material.icons.outlined.Search
 
 import androidx.compose.material.icons.rounded.ChatBubble
@@ -473,7 +470,7 @@ fun ReelsFeedScreen(
                 exit = fadeOut() + scaleOut(targetScale = 1.5f),
             ) {
                 Icon(
-                    Icons.Filled.Favorite,
+                    Icons.Rounded.Favorite,
                     "Me gusta",
                     tint = IosSettingsColors.pink,
                     modifier = Modifier.size(150.dp)
@@ -604,7 +601,7 @@ fun ReelsFeedScreen(
                     )
                 } else {
                     Icon(
-                        Icons.Default.Refresh,
+                        Icons.Rounded.Refresh,
                         contentDescription = "Actualizar reels",
                         tint = Color.White,
                         modifier = Modifier.size(20.dp)
@@ -777,7 +774,7 @@ private fun ReelFeedOverlay(
             ) {
                 IconButton(onClick = onTogglePlayPause) {
                     Icon(
-                        if (paused) Icons.Filled.PlayArrow else Icons.Filled.Pause,
+                        if (paused) Icons.Rounded.PlayArrow else Icons.Rounded.Pause,
                         "ReproducciГіn",
                         tint = IosSettingsColors.label,
                         modifier = Modifier.size(30.dp)
@@ -833,7 +830,7 @@ private fun ReelFeedOverlay(
                         contentAlignment = Alignment.Center,
                     ) {
                         Icon(
-                            if (isFollowing) Icons.Filled.Check else Icons.Filled.Add,
+                            if (isFollowing) Icons.Rounded.Check else Icons.Rounded.Add,
                             contentDescription = if (isFollowing) "Dejar de seguir" else "Seguir",
                             tint = IosSettingsColors.label,
                             modifier = Modifier.size(13.dp)
@@ -842,7 +839,7 @@ private fun ReelFeedOverlay(
                 }
             }
             ReelActionButtonV2(
-                icon = Icons.Filled.Favorite,
+                icon = Icons.Rounded.Favorite,
                 count = compactCountV2(localLikes),
                 selected = liked,
                 selectedColor = IosSettingsColors.red,
@@ -858,7 +855,7 @@ private fun ReelFeedOverlay(
                 count = compactCountV2(commentsCount),
             ) { onComments() }
             ReelActionButtonV2(
-                icon = Icons.Filled.Bookmark,
+                icon = Icons.Rounded.Bookmark,
                 count = compactCountV2(localFavorites),
                 selected = favorited,
                 selectedColor = IosSettingsColors.yellow,
@@ -1270,7 +1267,7 @@ private fun ReelsCommentsSheetV2(
                             fontSize = 16.sp
                         )
                         IconButton(onClick = onDismiss) {
-                            Icon(Icons.Filled.Close, contentDescription = "Cerrar", tint = IosSettingsColors.label)
+                            Icon(Icons.Rounded.Close, contentDescription = "Cerrar", tint = IosSettingsColors.label)
                         }
                     }
 
@@ -1380,7 +1377,7 @@ private fun ReelsCommentsSheetV2(
                                     }
                                     if (comment.deletedAt != null) {
                                         IconButton(onClick = { viewModel.deleteComment(reelId, comment.id) }) {
-                                            Icon(Icons.Filled.Delete, contentDescription = "Eliminar", tint = IosSettingsColors.secondaryLabel)
+                                            Icon(Icons.Rounded.Delete, contentDescription = "Eliminar", tint = IosSettingsColors.secondaryLabel)
                                         }
                                     }
                                 }
@@ -1412,7 +1409,7 @@ private fun ReelsCommentsSheetV2(
                                 modifier = Modifier.size(18.dp)
                             ) {
                                 Icon(
-                                    imageVector = Icons.Filled.Close,
+                                    imageVector = Icons.Rounded.Close,
                                     contentDescription = "Cancelar respuesta",
                                     tint = Color.LightGray,
                                     modifier = Modifier.size(14.dp)

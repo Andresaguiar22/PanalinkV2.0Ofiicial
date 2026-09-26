@@ -15,13 +15,13 @@ import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.Call
+import androidx.compose.material.icons.rounded.Call
 import androidx.compose.material.icons.automirrored.filled.Chat
-import androidx.compose.material.icons.filled.Edit
-import androidx.compose.material.icons.filled.Mic
-import androidx.compose.material.icons.filled.NotificationsOff
-import androidx.compose.material.icons.filled.FileUpload
-import androidx.compose.material.icons.filled.Videocam
+import androidx.compose.material.icons.rounded.Edit
+import androidx.compose.material.icons.rounded.Mic
+import androidx.compose.material.icons.rounded.NotificationsOff
+import androidx.compose.material.icons.rounded.FileUpload
+import androidx.compose.material.icons.rounded.Videocam
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
@@ -96,12 +96,12 @@ fun PresenceIndicator(
     }
 
     val iconVector = when (activeStatus) {
-        "typing" -> Icons.Default.Edit
-        "recording_audio", "recording" -> Icons.Default.Mic
-        "uploading_file", "uploading" -> Icons.Default.FileUpload
-        "voice_call" -> Icons.Default.Call
-        "video_call" -> Icons.Default.Videocam
-        "dnd" -> Icons.Default.NotificationsOff
+        "typing" -> Icons.Rounded.Edit
+        "recording_audio", "recording" -> Icons.Rounded.Mic
+        "uploading_file", "uploading" -> Icons.Rounded.FileUpload
+        "voice_call" -> Icons.Rounded.Call
+        "video_call" -> Icons.Rounded.Videocam
+        "dnd" -> Icons.Rounded.NotificationsOff
         "messages_only" -> Icons.AutoMirrored.Filled.Chat
         else -> null
     }

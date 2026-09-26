@@ -5,9 +5,9 @@ import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.Favorite
-import androidx.compose.material.icons.filled.PlayArrow
-import androidx.compose.material.icons.filled.Star
+import androidx.compose.material.icons.rounded.Favorite
+import androidx.compose.material.icons.rounded.PlayArrow
+import androidx.compose.material.icons.rounded.Star
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
@@ -46,7 +46,7 @@ fun SavedGrid(viewModel: ProfileViewModel, onNavigateToReel: (String) -> Unit) {
                     verticalArrangement = Arrangement.spacedBy(8.dp)
                 ) {
                     Icon(
-                        imageVector = Icons.Default.Star,
+                        imageVector = Icons.Rounded.Star,
                         contentDescription = null,
                         tint = IosSettingsColors.yellow.copy(alpha = 0.7f),
                         modifier = Modifier.size(48.dp)
@@ -144,7 +144,7 @@ fun SavedGrid(viewModel: ProfileViewModel, onNavigateToReel: (String) -> Unit) {
 
                                     // Top right saved badge
                                     Icon(
-                                        imageVector = Icons.Default.Star,
+                                        imageVector = Icons.Rounded.Star,
                                         contentDescription = "Guardado",
                                         tint = IosSettingsColors.yellow,
                                         modifier = Modifier
@@ -161,7 +161,7 @@ fun SavedGrid(viewModel: ProfileViewModel, onNavigateToReel: (String) -> Unit) {
                                         horizontalArrangement = Arrangement.spacedBy(4.dp)
                                     ) {
                                         Icon(
-                                            imageVector = if (item.state.isReel) Icons.Default.PlayArrow else Icons.Default.Favorite,
+                                            imageVector = if (item.state.isReel) Icons.Rounded.PlayArrow else Icons.Rounded.Favorite,
                                             contentDescription = null,
                                             tint = IosSettingsColors.label,
                                             modifier = Modifier.size(12.dp)

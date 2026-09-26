@@ -49,6 +49,15 @@ import androidx.compose.ui.platform.LocalHapticFeedback
 import androidx.compose.ui.platform.LocalDensity
 import kotlin.math.abs
 import com.example.ui.settings.ios.IosSettingsColors
+import androidx.compose.material.icons.rounded.Fullscreen
+import androidx.compose.material.icons.rounded.Public
+import androidx.compose.material.icons.rounded.Report
+import androidx.compose.material.icons.rounded.Delete
+import androidx.compose.material.icons.rounded.Edit
+import androidx.compose.material.icons.rounded.Favorite
+import androidx.compose.material.icons.rounded.KeyboardArrowDown
+import androidx.compose.material.icons.rounded.MoreVert
+import androidx.compose.material.icons.rounded.ThumbUp
 
 @Composable
 internal fun rememberResolvedMediaUrl(rawUrl: String?): String {
@@ -300,7 +309,7 @@ fun FeedPostCard(
                         Text(text = timeStr, color = IosSettingsColors.secondaryLabel, fontSize = 12.sp)
                         Text(text = "  ·  ", color = IosSettingsColors.secondaryLabel, fontSize = 12.sp)
                         Icon(
-                            imageVector = Icons.Default.Public,
+                            imageVector = Icons.Rounded.Public,
                             contentDescription = "Público",
                             tint = IosSettingsColors.secondaryLabel,
                             modifier = Modifier.size(12.dp)
@@ -310,7 +319,7 @@ fun FeedPostCard(
 
                 Box {
                     IconButton(onClick = { showMenu = true }, modifier = Modifier.size(36.dp)) {
-                        Icon(Icons.Default.MoreVert, contentDescription = "Opciones", tint = IosSettingsColors.secondaryLabel)
+                        Icon(Icons.Rounded.MoreVert, contentDescription = "Opciones", tint = IosSettingsColors.secondaryLabel)
                     }
                     DropdownMenu(
                         expanded = showMenu,
@@ -320,7 +329,7 @@ fun FeedPostCard(
                         if (isMyPost) {
                             DropdownMenuItem(
                                 text = { Text("Editar", color = IosSettingsColors.label) },
-                                leadingIcon = { Icon(Icons.Default.Edit, contentDescription = null, tint = IosSettingsColors.label) },
+                                leadingIcon = { Icon(Icons.Rounded.Edit, contentDescription = null, tint = IosSettingsColors.label) },
                                 onClick = {
                                     showMenu = false
                                     onEditClick(post.content ?: "")
@@ -328,7 +337,7 @@ fun FeedPostCard(
                             )
                             DropdownMenuItem(
                                 text = { Text("Eliminar", color = IosSettingsColors.red) },
-                                leadingIcon = { Icon(Icons.Default.Delete, contentDescription = null, tint = IosSettingsColors.red) },
+                                leadingIcon = { Icon(Icons.Rounded.Delete, contentDescription = null, tint = IosSettingsColors.red) },
                                 onClick = {
                                     showMenu = false
                                     onDeleteClick()
@@ -337,7 +346,7 @@ fun FeedPostCard(
                         } else {
                             DropdownMenuItem(
                                 text = { Text("Reportar", color = IosSettingsColors.secondaryLabel) },
-                                leadingIcon = { Icon(Icons.Default.Report, contentDescription = null, tint = IosSettingsColors.secondaryLabel) },
+                                leadingIcon = { Icon(Icons.Rounded.Report, contentDescription = null, tint = IosSettingsColors.secondaryLabel) },
                                 onClick = {
                                     showMenu = false
                                     Toast.makeText(context, "Publicación reportada", Toast.LENGTH_SHORT).show()
@@ -382,7 +391,7 @@ fun FeedPostCard(
                                 fontWeight = FontWeight.Bold
                             )
                             Icon(
-                                imageVector = Icons.Default.KeyboardArrowDown,
+                                imageVector = Icons.Rounded.KeyboardArrowDown,
                                 contentDescription = null,
                                 tint = IosSettingsColors.blue,
                                 modifier = Modifier.size(16.dp)
@@ -483,7 +492,7 @@ fun FeedPostCard(
                                         exit = scaleOut() + fadeOut()
                                     ) {
                                         Icon(
-                                            imageVector = Icons.Default.Favorite,
+                                            imageVector = Icons.Rounded.Favorite,
                                             contentDescription = null,
                                             tint = IosSettingsColors.red,
                                             modifier = Modifier.size(80.dp)
@@ -521,7 +530,7 @@ fun FeedPostCard(
                             horizontalArrangement = Arrangement.spacedBy(8.dp)
                         ) {
                             Icon(
-                                imageVector = Icons.Default.Fullscreen,
+                                imageVector = Icons.Rounded.Fullscreen,
                                 contentDescription = "Expandir",
                                 tint = IosSettingsColors.secondaryLabel,
                                 modifier = Modifier
@@ -641,7 +650,7 @@ fun FeedPostCard(
                 ) {
                     if (post.likesCount > 0) {
                         Icon(
-                            imageVector = Icons.Default.ThumbUp,
+                            imageVector = Icons.Rounded.ThumbUp,
                             contentDescription = null,
                             tint = IosSettingsColors.blue,
                             modifier = Modifier.size(14.dp)
@@ -678,7 +687,7 @@ fun FeedPostCard(
                     verticalAlignment = Alignment.CenterVertically
                 ) {
                     Icon(
-                        imageVector = if (postIsLiked) Icons.Default.ThumbUp else Icons.Outlined.ThumbUp,
+                        imageVector = if (postIsLiked) Icons.Rounded.ThumbUp else Icons.Outlined.ThumbUp,
                         tint = if (postIsLiked) IosSettingsColors.blue else IosSettingsColors.secondaryLabel,
                         contentDescription = "Me gusta",
                         modifier = Modifier

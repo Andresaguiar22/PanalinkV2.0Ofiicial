@@ -4,10 +4,10 @@ import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.Email
-import androidx.compose.material.icons.filled.Refresh
-import androidx.compose.material.icons.filled.Warning
-import androidx.compose.material.icons.filled.MarkEmailRead
+import androidx.compose.material.icons.rounded.Email
+import androidx.compose.material.icons.rounded.Refresh
+import androidx.compose.material.icons.rounded.Warning
+import androidx.compose.material.icons.rounded.MarkEmailRead
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
@@ -86,7 +86,7 @@ fun EmailVerificationScreen(
                 modifier = Modifier.size(96.dp)
             ) {
                 Box(contentAlignment = Alignment.Center) {
-                    Icon(Icons.Default.MarkEmailRead, contentDescription = null, tint = IosSettingsColors.blue, modifier = Modifier.size(48.dp))
+                    Icon(Icons.Rounded.MarkEmailRead, contentDescription = null, tint = IosSettingsColors.blue, modifier = Modifier.size(48.dp))
                 }
             }
 
@@ -144,7 +144,7 @@ fun EmailVerificationScreen(
                                 viewModel.checkVerification()
                             }
                         },
-                        icon = Icons.Default.Refresh,
+                        icon = Icons.Rounded.Refresh,
                         isLoading = uiState is AuthUiState.Loading,
                         modifier = Modifier.testTag("verify_confirm_button")
                     )
@@ -167,7 +167,7 @@ fun EmailVerificationScreen(
                             verticalAlignment = Alignment.CenterVertically,
                             horizontalArrangement = Arrangement.Center
                         ) {
-                            Icon(Icons.Default.Email, contentDescription = null, tint = IosSettingsColors.blue, modifier = Modifier.size(20.dp))
+                            Icon(Icons.Rounded.Email, contentDescription = null, tint = IosSettingsColors.blue, modifier = Modifier.size(20.dp))
                             Spacer(modifier = Modifier.width(8.dp))
                             Text("Reenviar correo", color = IosSettingsColors.blue, fontFamily = IosFont, fontWeight = FontWeight.SemiBold, fontSize = 16.sp)
                         }
@@ -192,7 +192,7 @@ fun EmailVerificationScreen(
                                 .background(IosSettingsColors.red.copy(alpha = 0.12f), RoundedCornerShape(10.dp))
                                 .padding(12.dp)
                         ) {
-                            Icon(Icons.Default.Warning, contentDescription = null, tint = IosSettingsColors.red)
+                            Icon(Icons.Rounded.Warning, contentDescription = null, tint = IosSettingsColors.red)
                             Spacer(modifier = Modifier.width(8.dp))
                             Text(
                                 text = (uiState as AuthUiState.Error).message,

@@ -19,16 +19,16 @@ import androidx.compose.foundation.verticalScroll
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.Chair
-import androidx.compose.material.icons.filled.Check
-import androidx.compose.material.icons.filled.Close
-import androidx.compose.material.icons.filled.Group
-import androidx.compose.material.icons.filled.Lock
-import androidx.compose.material.icons.filled.Mic
-import androidx.compose.material.icons.filled.MicOff
-import androidx.compose.material.icons.filled.People
+import androidx.compose.material.icons.rounded.Chair
+import androidx.compose.material.icons.rounded.Check
+import androidx.compose.material.icons.rounded.Close
+import androidx.compose.material.icons.rounded.Group
+import androidx.compose.material.icons.rounded.Lock
+import androidx.compose.material.icons.rounded.Mic
+import androidx.compose.material.icons.rounded.MicOff
+import androidx.compose.material.icons.rounded.People
 import androidx.compose.material.icons.automirrored.filled.Send
-import androidx.compose.material.icons.filled.Settings
+import androidx.compose.material.icons.rounded.Settings
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import kotlinx.coroutines.launch
@@ -208,7 +208,7 @@ fun VoiceRoomHeader(
             Row(verticalAlignment = Alignment.CenterVertically) {
                 if (isPrivate) {
                     Icon(
-                        Icons.Default.Lock,
+                        Icons.Rounded.Lock,
                         contentDescription = "Privada",
                         tint = VoiceRoomPalette.Gold,
                         modifier = Modifier.size(11.dp)
@@ -246,7 +246,7 @@ fun VoiceRoomHeader(
                 modifier = Modifier.padding(horizontal = 8.dp)
             ) {
                 Icon(
-                    Icons.Default.Group,
+                    Icons.Rounded.Group,
                     contentDescription = null,
                     tint = VoiceRoomPalette.TextSecondary,
                     modifier = Modifier.size(14.dp)
@@ -265,7 +265,7 @@ fun VoiceRoomHeader(
             IconButton(onClick = onOpenRequests, modifier = Modifier.size(36.dp)) {
                 Box {
                     Icon(
-                        Icons.Default.People,
+                        Icons.Rounded.People,
                         contentDescription = "Solicitudes",
                         tint = VoiceRoomPalette.Pink,
                         modifier = Modifier.size(20.dp)
@@ -285,7 +285,7 @@ fun VoiceRoomHeader(
         onOpenShare?.let { share ->
             IconButton(onClick = share, modifier = Modifier.size(36.dp)) {
                 Icon(
-                    Icons.Default.People,
+                    Icons.Rounded.People,
                     contentDescription = "Invitar",
                     tint = VoiceRoomPalette.TextSecondary,
                     modifier = Modifier.size(18.dp)
@@ -295,7 +295,7 @@ fun VoiceRoomHeader(
         onOpenSettings?.let { settings ->
             IconButton(onClick = settings, modifier = Modifier.size(36.dp)) {
                 Icon(
-                    Icons.Default.Settings,
+                    Icons.Rounded.Settings,
                     contentDescription = "Configuración",
                     tint = VoiceRoomPalette.TextSecondary,
                     modifier = Modifier.size(18.dp)
@@ -304,7 +304,7 @@ fun VoiceRoomHeader(
         }
         IconButton(onClick = onClose, modifier = Modifier.size(36.dp)) {
             Icon(
-                Icons.Default.Close,
+                Icons.Rounded.Close,
                 contentDescription = "Salir",
                 tint = VoiceRoomPalette.TextSecondary,
                 modifier = Modifier.size(18.dp)
@@ -595,7 +595,7 @@ private fun VoiceRoomSeatCircle(
             }
         } else {
             Icon(
-                Icons.Default.Chair,
+                Icons.Rounded.Chair,
                 contentDescription = "Sillón libre",
                 tint = VoiceRoomPalette.TextSecondary,
                 modifier = Modifier.size(size * 0.4f)
@@ -612,7 +612,7 @@ private fun VoiceRoomSeatCircle(
                 contentAlignment = Alignment.Center
             ) {
                 Icon(
-                    Icons.Default.MicOff,
+                    Icons.Rounded.MicOff,
                     contentDescription = "Silenciado",
                     tint = IosSettingsColors.label,
                     modifier = Modifier.size((size.value * 0.18f).dp)
@@ -631,7 +631,7 @@ private fun VoiceRoomSeatCircle(
                 contentAlignment = Alignment.Center
             ) {
                 Icon(
-                    Icons.Default.Settings,
+                    Icons.Rounded.Settings,
                     contentDescription = "Administrar",
                     tint = VoiceRoomPalette.DeepBlue,
                     modifier = Modifier.size((size.value * 0.18f).dp)
@@ -1062,7 +1062,7 @@ fun VoiceRoomMicSeatButton(
     onEnableMic: () -> Unit
 ) {
     val active = isSeated && !isMuted
-    val icon = if (needsPermission || (isMuted && isSeated)) Icons.Default.MicOff else Icons.Default.Mic
+    val icon = if (needsPermission || (isMuted && isSeated)) Icons.Rounded.MicOff else Icons.Rounded.Mic
     val tint = when {
         needsPermission -> VoiceRoomPalette.ActiveCyan
         !isSeated -> if (pendingRequest) IosSettingsColors.tertiaryLabel else VoiceRoomPalette.ActiveCyan
@@ -1136,7 +1136,7 @@ fun VoiceRoomMembersSheet(
                 Text("Miembros (${members.size})", color = VoiceRoomPalette.TextPrimary, fontWeight = FontWeight.ExtraBold, fontSize = 17.sp)
                 Spacer(modifier = Modifier.weight(1f))
                 IconButton(onClick = { scope.launch { sheetState.hide(); onDismiss() } }) {
-                    Icon(Icons.Default.Close, "Cerrar", tint = VoiceRoomPalette.TextPrimary)
+                    Icon(Icons.Rounded.Close, "Cerrar", tint = VoiceRoomPalette.TextPrimary)
                 }
             }
             Spacer(modifier = Modifier.height(12.dp))
@@ -1253,11 +1253,11 @@ fun VoiceRoomSettingsSheet(
     ModalBottomSheet(onDismissRequest = { onClose() }, containerColor = VoiceRoomPalette.DeepBlue, contentColor = IosSettingsColors.label, tonalElevation = 16.dp, modifier = Modifier.navigationBarsPadding()) {
         Column(Modifier.fillMaxWidth().padding(horizontal = 16.dp, vertical = 10.dp)) {
             Row(verticalAlignment = Alignment.CenterVertically) {
-                Icon(Icons.Default.Settings, null, tint = VoiceRoomPalette.ActiveCyan, modifier = Modifier.size(22.dp))
+                Icon(Icons.Rounded.Settings, null, tint = VoiceRoomPalette.ActiveCyan, modifier = Modifier.size(22.dp))
                 Spacer(modifier = Modifier.width(8.dp))
                 Text("Configuración de la sala", color = VoiceRoomPalette.TextPrimary, fontSize = 18.sp, fontWeight = FontWeight.ExtraBold)
                 Spacer(modifier = Modifier.weight(1f))
-                IconButton(onClick = onClose) { Icon(Icons.Default.Close, "Cerrar", tint = VoiceRoomPalette.TextPrimary) }
+                IconButton(onClick = onClose) { Icon(Icons.Rounded.Close, "Cerrar", tint = VoiceRoomPalette.TextPrimary) }
             }
             Spacer(modifier = Modifier.height(6.dp))
             message?.let {
@@ -1416,7 +1416,7 @@ fun SettingsRow(title: String, subtitle: String = "", danger: Boolean = false, o
             Text(text = title, color = if (danger) IosSettingsColors.red else VoiceRoomPalette.TextPrimary, fontSize = 14.sp, fontWeight = FontWeight.Medium)
             if (subtitle.isNotBlank()) { Text(text = subtitle, color = VoiceRoomPalette.TextSecondary, fontSize = 11.sp, maxLines = 1, overflow = TextOverflow.Ellipsis) }
         }
-        if (danger) Text("⚠️", fontSize = 14.sp) else if (onClick != null) Icon(Icons.Default.Check, null, tint = VoiceRoomPalette.TextSecondary, modifier = Modifier.size(16.dp))
+        if (danger) Text("⚠️", fontSize = 14.sp) else if (onClick != null) Icon(Icons.Rounded.Check, null, tint = VoiceRoomPalette.TextSecondary, modifier = Modifier.size(16.dp))
     }
 }
 

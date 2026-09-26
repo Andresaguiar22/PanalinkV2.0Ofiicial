@@ -25,6 +25,9 @@ import com.example.creative.animation.EasingType
 import com.example.creative.core.CreativeLayer
 import com.example.creative.timeline.CreativeTrack
 import com.example.ui.settings.ios.IosSettingsColors
+import androidx.compose.material.icons.rounded.Add
+import androidx.compose.material.icons.rounded.Close
+import androidx.compose.material.icons.rounded.Delete
 
 /**
  * P6.5A - Unified Property Inspector Composable
@@ -78,7 +81,7 @@ fun PropertyInspector(
                 )
 
                 IconButton(onClick = onDismiss) {
-                    Icon(Icons.Default.Close, contentDescription = "Cerrar Inspector", tint = IosSettingsColors.label)
+                    Icon(Icons.Rounded.Close, contentDescription = "Cerrar Inspector", tint = IosSettingsColors.label)
                 }
             }
 
@@ -301,13 +304,13 @@ private fun KeyframeAnimationPanel(
                 },
                 colors = ButtonDefaults.buttonColors(containerColor = IosSettingsColors.blue)
             ) {
-                Icon(Icons.Default.Add, contentDescription = null, tint = IosSettingsColors.onAccent, modifier = Modifier.size(16.dp))
+                Icon(Icons.Rounded.Add, contentDescription = null, tint = IosSettingsColors.onAccent, modifier = Modifier.size(16.dp))
                 Spacer(modifier = Modifier.width(4.dp))
                 Text("Insertar Keyframe ($currentTimeMs ms)", color = IosSettingsColors.onAccent, fontSize = 12.sp, fontWeight = FontWeight.Bold)
             }
 
             IconButton(onClick = { onRemoveKeyframe(layer.id, selectedProperty, currentTimeMs) }) {
-                Icon(Icons.Default.Delete, contentDescription = "Eliminar Keyframe", tint = IosSettingsColors.red)
+                Icon(Icons.Rounded.Delete, contentDescription = "Eliminar Keyframe", tint = IosSettingsColors.red)
             }
         }
     }

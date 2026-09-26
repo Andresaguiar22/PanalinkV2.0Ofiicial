@@ -91,6 +91,18 @@ import com.example.ui.theme.PanalinkPalette
 import com.example.ui.settings.ios.IosSettingsColors
 import com.example.ui.settings.ios.IosFont
 import com.example.ui.settings.ios.IosGroup
+import androidx.compose.material.icons.automirrored.rounded.CallMade
+import androidx.compose.material.icons.automirrored.rounded.CallReceived
+import androidx.compose.material.icons.automirrored.rounded.PhoneMissed
+import androidx.compose.material.icons.rounded.Sync
+import androidx.compose.material.icons.rounded.Videocam
+import androidx.compose.material.icons.rounded.Call
+import androidx.compose.material.icons.rounded.Close
+import androidx.compose.material.icons.rounded.Delete
+import androidx.compose.material.icons.rounded.Email
+import androidx.compose.material.icons.rounded.MoreVert
+import androidx.compose.material.icons.rounded.Person
+import androidx.compose.material.icons.rounded.Refresh
 
 @OptIn(ExperimentalMaterial3Api::class)
 
@@ -244,7 +256,7 @@ fun LlamadasTabContent(
                     Box {
                         IconButton(onClick = { showCallsMenu = true }) {
                             Icon(
-                                imageVector = Icons.Default.MoreVert,
+                                imageVector = Icons.Rounded.MoreVert,
                                 contentDescription = "Opciones de llamadas",
                                 tint = IosSettingsColors.secondaryLabel
                             )
@@ -259,7 +271,7 @@ fun LlamadasTabContent(
                                     showCallsMenu = false
                                     onRefresh()
                                 },
-                                leadingIcon = { Icon(Icons.Default.Refresh, contentDescription = null, tint = IosSettingsColors.blue, modifier = Modifier.size(18.dp)) }
+                                leadingIcon = { Icon(Icons.Rounded.Refresh, contentDescription = null, tint = IosSettingsColors.blue, modifier = Modifier.size(18.dp)) }
                             )
                             DropdownMenuItem(
                                 text = { Text("Reconectar servicio 🔁", color = IosSettingsColors.label, fontFamily = IosFont) },
@@ -267,7 +279,7 @@ fun LlamadasTabContent(
                                     showCallsMenu = false
                                     scope.launch { callManager.forceReconnect() }
                                 },
-                                leadingIcon = { Icon(Icons.Default.Sync, contentDescription = null, tint = IosSettingsColors.blue, modifier = Modifier.size(18.dp)) }
+                                leadingIcon = { Icon(Icons.Rounded.Sync, contentDescription = null, tint = IosSettingsColors.blue, modifier = Modifier.size(18.dp)) }
                             )
                             if (callHistory.isNotEmpty()) {
                                 HorizontalDivider()
@@ -277,7 +289,7 @@ fun LlamadasTabContent(
                                         showCallsMenu = false
                                         showClearHistoryDialog = true
                                     },
-                                    leadingIcon = { Icon(Icons.Default.Delete, contentDescription = null, tint = IosSettingsColors.red, modifier = Modifier.size(18.dp)) }
+                                    leadingIcon = { Icon(Icons.Rounded.Delete, contentDescription = null, tint = IosSettingsColors.red, modifier = Modifier.size(18.dp)) }
                                 )
                             }
                         }
@@ -347,10 +359,10 @@ fun LlamadasTabContent(
                                 Row(verticalAlignment = Alignment.CenterVertically) {
                                     val icon = when (log.status) {
                                         com.example.data.model.CallLogStatus.MISSED ->
-                                            if (isOutgoing) Icons.Default.CallMade else Icons.Default.CallReceived
-                                        com.example.data.model.CallLogStatus.REJECTED -> Icons.Default.PhoneMissed
-                                        com.example.data.model.CallLogStatus.CANCELLED -> Icons.Default.Close
-                                        else -> if (isOutgoing) Icons.Default.CallMade else Icons.Default.CallReceived
+                                            if (isOutgoing) Icons.AutoMirrored.Rounded.CallMade else Icons.AutoMirrored.Rounded.CallReceived
+                                        com.example.data.model.CallLogStatus.REJECTED -> Icons.AutoMirrored.Rounded.PhoneMissed
+                                        com.example.data.model.CallLogStatus.CANCELLED -> Icons.Rounded.Close
+                                        else -> if (isOutgoing) Icons.AutoMirrored.Rounded.CallMade else Icons.AutoMirrored.Rounded.CallReceived
                                     }
                                     val statusColor = when (log.status) {
                                         com.example.data.model.CallLogStatus.MISSED, com.example.data.model.CallLogStatus.REJECTED -> IosSettingsColors.red
@@ -388,7 +400,7 @@ fun LlamadasTabContent(
                                     .size(38.dp)
                             ) {
                                 Icon(
-                                    imageVector = Icons.Default.Call,
+                                    imageVector = Icons.Rounded.Call,
                                     contentDescription = "Llamar de nuevo",
                                     tint = IosSettingsColors.blue,
                                     modifier = Modifier.size(18.dp)
@@ -397,7 +409,7 @@ fun LlamadasTabContent(
                             // Per-call-item 3-dot menu
                             Box {
                                 IconButton(onClick = { showCallItemMenu = true }) {
-                                    Icon(Icons.Default.MoreVert, contentDescription = "Opciones", tint = IosSettingsColors.secondaryLabel)
+                                    Icon(Icons.Rounded.MoreVert, contentDescription = "Opciones", tint = IosSettingsColors.secondaryLabel)
                                 }
                                 DropdownMenu(
                                     expanded = showCallItemMenu,
@@ -409,7 +421,7 @@ fun LlamadasTabContent(
                                             showCallItemMenu = false
                                             tryStartCall(peerId, peerName, com.example.call.CallType.AUDIO)
                                         },
-                                        leadingIcon = { Icon(Icons.Default.Call, contentDescription = null, tint = IosSettingsColors.blue, modifier = Modifier.size(18.dp)) }
+                                        leadingIcon = { Icon(Icons.Rounded.Call, contentDescription = null, tint = IosSettingsColors.blue, modifier = Modifier.size(18.dp)) }
                                     )
                                     DropdownMenuItem(
                                         text = { Text("Videollamar 🎥", color = IosSettingsColors.label, fontFamily = IosFont) },
@@ -417,7 +429,7 @@ fun LlamadasTabContent(
                                             showCallItemMenu = false
                                             tryStartCall(peerId, peerName, com.example.call.CallType.VIDEO)
                                         },
-                                        leadingIcon = { Icon(Icons.Default.Videocam, contentDescription = null, tint = IosSettingsColors.blue, modifier = Modifier.size(18.dp)) }
+                                        leadingIcon = { Icon(Icons.Rounded.Videocam, contentDescription = null, tint = IosSettingsColors.blue, modifier = Modifier.size(18.dp)) }
                                     )
                                     HorizontalDivider()
                                     DropdownMenuItem(
@@ -426,7 +438,7 @@ fun LlamadasTabContent(
                                             showCallItemMenu = false
                                             messagesRepo.deleteCallLog(log.id)
                                         },
-                                        leadingIcon = { Icon(Icons.Default.Delete, contentDescription = null, tint = IosSettingsColors.red, modifier = Modifier.size(18.dp)) }
+                                        leadingIcon = { Icon(Icons.Rounded.Delete, contentDescription = null, tint = IosSettingsColors.red, modifier = Modifier.size(18.dp)) }
                                     )
                                 }
                             }
@@ -565,7 +577,7 @@ fun LlamadasTabContent(
                                                 .size(40.dp)
                                         ) {
                                             Icon(
-                                                imageVector = Icons.Default.Call,
+                                                imageVector = Icons.Rounded.Call,
                                                 contentDescription = "Llamada de voz",
                                                 tint = IosSettingsColors.blue,
                                                 modifier = Modifier.size(20.dp)
@@ -587,7 +599,7 @@ fun LlamadasTabContent(
                                                 .size(40.dp)
                                         ) {
                                             Icon(
-                                                imageVector = Icons.Default.Videocam,
+                                                imageVector = Icons.Rounded.Videocam,
                                                 contentDescription = "Videollamada",
                                                 tint = IosSettingsColors.blue,
                                                 modifier = Modifier.size(20.dp)
@@ -595,7 +607,7 @@ fun LlamadasTabContent(
                                         }
                                         Box {
                                             IconButton(onClick = { showCallContactMenu = true }) {
-                                                Icon(Icons.Default.MoreVert, contentDescription = "Opciones", tint = IosSettingsColors.secondaryLabel)
+                                                Icon(Icons.Rounded.MoreVert, contentDescription = "Opciones", tint = IosSettingsColors.secondaryLabel)
                                             }
                                             DropdownMenu(
                                                 expanded = showCallContactMenu,
@@ -615,14 +627,14 @@ fun LlamadasTabContent(
                                                             }
                                                         }
                                                     },
-                                                    leadingIcon = { Icon(Icons.Default.Email, contentDescription = null, tint = IosSettingsColors.blue, modifier = Modifier.size(18.dp)) }
+                                                    leadingIcon = { Icon(Icons.Rounded.Email, contentDescription = null, tint = IosSettingsColors.blue, modifier = Modifier.size(18.dp)) }
                                                 )
                                                 DropdownMenuItem(
                                                     text = { Text("Ver perfil 👤", color = IosSettingsColors.label, fontFamily = IosFont) },
                                                     onClick = {
                                                         showCallContactMenu = false
                                                     },
-                                                    leadingIcon = { Icon(Icons.Default.Person, contentDescription = null, tint = IosSettingsColors.blue, modifier = Modifier.size(18.dp)) }
+                                                    leadingIcon = { Icon(Icons.Rounded.Person, contentDescription = null, tint = IosSettingsColors.blue, modifier = Modifier.size(18.dp)) }
                                                 )
                                             }
                                         }

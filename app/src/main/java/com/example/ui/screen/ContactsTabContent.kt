@@ -90,6 +90,16 @@ import java.util.*
 
 import com.example.ui.viewmodel.NotificationsViewModel
 import com.example.ui.settings.ios.IosSettingsColors
+import androidx.compose.material.icons.rounded.Videocam
+import androidx.compose.material.icons.rounded.Call
+import androidx.compose.material.icons.rounded.CheckCircle
+import androidx.compose.material.icons.rounded.Delete
+import androidx.compose.material.icons.rounded.Email
+import androidx.compose.material.icons.rounded.KeyboardArrowDown
+import androidx.compose.material.icons.rounded.KeyboardArrowUp
+import androidx.compose.material.icons.rounded.MoreVert
+import androidx.compose.material.icons.rounded.Person
+import androidx.compose.material.icons.rounded.Share
 
 @OptIn(ExperimentalMaterial3Api::class)
 
@@ -225,7 +235,7 @@ fun ContactsTabContent(
                             verticalArrangement = Arrangement.Center
                         ) {
                             Icon(
-                                imageVector = Icons.Default.Person,
+                                imageVector = Icons.Rounded.Person,
                                 contentDescription = null,
                                 tint = IosSettingsColors.cell,
                                 modifier = Modifier.size(72.dp)
@@ -263,7 +273,7 @@ fun ContactsTabContent(
                                     verticalAlignment = Alignment.CenterVertically,
                                     horizontalArrangement = Arrangement.spacedBy(8.dp)
                                 ) {
-                                    Icon(Icons.Default.Email, contentDescription = null, tint = IosSettingsColors.label)
+                                    Icon(Icons.Rounded.Email, contentDescription = null, tint = IosSettingsColors.label)
                                     Text(
                                         text = "Selecciona un pana para chatear 💬",
                                         color = IosSettingsColors.label,
@@ -350,7 +360,7 @@ item {
                             Box {
                                 IconButton(onClick = { showContactMenu = true }) {
                                     Icon(
-                                        imageVector = Icons.Default.MoreVert,
+                                        imageVector = Icons.Rounded.MoreVert,
                                         contentDescription = "Opciones",
                                         tint = IosSettingsColors.secondaryLabel
                                     )
@@ -367,7 +377,7 @@ item {
                                                 onNavigateToChat(chat.id, contact.id)
                                             }
                                         },
-                                        leadingIcon = { Icon(Icons.Default.Email, contentDescription = null, modifier = Modifier.size(18.dp)) }
+                                        leadingIcon = { Icon(Icons.Rounded.Email, contentDescription = null, modifier = Modifier.size(18.dp)) }
                                     )
                                     DropdownMenuItem(
                                         text = { Text("Llamada de voz 📞") },
@@ -381,7 +391,7 @@ item {
                                                 type = com.example.call.CallType.AUDIO
                                             )
                                         },
-                                        leadingIcon = { Icon(Icons.Default.Call, contentDescription = null, modifier = Modifier.size(18.dp)) }
+                                        leadingIcon = { Icon(Icons.Rounded.Call, contentDescription = null, modifier = Modifier.size(18.dp)) }
                                     )
                                     DropdownMenuItem(
                                         text = { Text("Videollamada 🎥") },
@@ -395,7 +405,7 @@ item {
                                                 type = com.example.call.CallType.VIDEO
                                             )
                                         },
-                                        leadingIcon = { Icon(Icons.Default.Videocam, contentDescription = null, modifier = Modifier.size(18.dp)) }
+                                        leadingIcon = { Icon(Icons.Rounded.Videocam, contentDescription = null, modifier = Modifier.size(18.dp)) }
                                     )
                                     HorizontalDivider()
                                     DropdownMenuItem(
@@ -410,7 +420,7 @@ item {
                                             }
                                             context.startActivity(Intent.createChooser(shareIntent, "Compartir contacto"))
                                         },
-                                        leadingIcon = { Icon(Icons.Default.Share, contentDescription = null, modifier = Modifier.size(18.dp)) }
+                                        leadingIcon = { Icon(Icons.Rounded.Share, contentDescription = null, modifier = Modifier.size(18.dp)) }
                                     )
                                     HorizontalDivider()
                                     DropdownMenuItem(
@@ -419,7 +429,7 @@ item {
                                             showContactMenu = false
                                             onContactLongClick(contact)
                                         },
-                                        leadingIcon = { Icon(Icons.Default.Delete, contentDescription = null, tint = IosSettingsColors.red, modifier = Modifier.size(18.dp)) }
+                                        leadingIcon = { Icon(Icons.Rounded.Delete, contentDescription = null, tint = IosSettingsColors.red, modifier = Modifier.size(18.dp)) }
                                     )
                                 }
                             }
@@ -503,7 +513,7 @@ private fun AddPanaHeroCard(
                 fontWeight = FontWeight.Medium
             )
             Icon(
-                imageVector = if (isRevealed) Icons.Default.KeyboardArrowUp else Icons.Default.KeyboardArrowDown,
+                imageVector = if (isRevealed) Icons.Rounded.KeyboardArrowUp else Icons.Rounded.KeyboardArrowDown,
                 contentDescription = "Ocultar",
                 tint = IosSettingsColors.green,
                 modifier = Modifier.size(20.dp)
@@ -574,7 +584,7 @@ private fun AddPanaHeroCard(
                         )
                         Spacer(Modifier.width(8.dp))
                         Icon(
-                            imageVector = Icons.Default.Share,
+                            imageVector = Icons.Rounded.Share,
                             contentDescription = "Compartir",
                             tint = IosSettingsColors.green,
                             modifier = Modifier
@@ -621,7 +631,7 @@ private fun AddPanaHeroCard(
 
 
 
-                Icon(Icons.Default.CheckCircle, contentDescription = "Scan", tint = IosSettingsColors.onAccent, modifier = Modifier.size(20.dp))
+                Icon(Icons.Rounded.CheckCircle, contentDescription = "Scan", tint = IosSettingsColors.onAccent, modifier = Modifier.size(20.dp))
                 Spacer(Modifier.width(8.dp))
                 Text("Escanear QR", color = IosSettingsColors.onAccent, fontSize =  16.sp, fontWeight = FontWeight.SemiBold)
             }
@@ -637,7 +647,7 @@ private fun AddPanaHeroCard(
             ) {
 
 
-                Icon(Icons.Default.Person, contentDescription = "PIN", tint = IosSettingsColors.green, modifier = Modifier.size(20.dp))
+                Icon(Icons.Rounded.Person, contentDescription = "PIN", tint = IosSettingsColors.green, modifier = Modifier.size(20.dp))
                 Spacer(Modifier.width(8.dp))
                 Text("Ingresar PIN", color = IosSettingsColors.label, fontSize =  16.sp, fontWeight = FontWeight.SemiBold)
             }

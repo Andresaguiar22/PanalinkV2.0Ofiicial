@@ -15,9 +15,9 @@ import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.Circle
-import androidx.compose.material.icons.filled.Visibility
-import androidx.compose.material.icons.filled.VisibilityOff
+import androidx.compose.material.icons.rounded.Circle
+import androidx.compose.material.icons.rounded.Visibility
+import androidx.compose.material.icons.rounded.VisibilityOff
 import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.Icon
 import androidx.compose.material3.Text
@@ -128,7 +128,7 @@ fun PresenceCenterScreen(
                             subtitle = "Oculta tu actividad mientras usas PanaLink.",
                             checked = uiState.isInvisibleMode,
                             onCheckedChange = { viewModel.dispatch(PresenceAction.ToggleInvisibleMode(it)) },
-                            icon = if (uiState.isInvisibleMode) Icons.Default.VisibilityOff else Icons.Default.Visibility,
+                            icon = if (uiState.isInvisibleMode) Icons.Rounded.VisibilityOff else Icons.Rounded.Visibility,
                             iconTint = IosSettingsColors.indigo
                         )
                     }
@@ -163,7 +163,7 @@ private fun StatusHeaderGroup(status: String) {
                     .background(color.copy(alpha = 0.16f)),
                 contentAlignment = Alignment.Center
             ) {
-                Icon(Icons.Default.Circle, contentDescription = null, tint = color, modifier = Modifier.size(22.dp))
+                Icon(Icons.Rounded.Circle, contentDescription = null, tint = color, modifier = Modifier.size(22.dp))
             }
             Spacer(Modifier.width(14.dp))
             Column(modifier = Modifier.weight(1f)) {

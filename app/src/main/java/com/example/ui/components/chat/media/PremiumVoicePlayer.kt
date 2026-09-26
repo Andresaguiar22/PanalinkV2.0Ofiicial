@@ -28,6 +28,11 @@ import androidx.compose.ui.unit.sp
 import kotlin.math.abs
 import com.example.ui.components.PanaAvatar
 import com.example.ui.settings.ios.IosSettingsColors
+import androidx.compose.material.icons.rounded.Error
+import androidx.compose.material.icons.rounded.Mic
+import androidx.compose.material.icons.rounded.Pause
+import androidx.compose.material.icons.rounded.PlayArrow
+import androidx.compose.material.icons.rounded.Refresh
 
 @Composable
 fun PremiumVoicePlayer(
@@ -146,10 +151,10 @@ fun PremiumVoicePlayer(
             } else {
                 Icon(
                     imageVector = when {
-                        isFailed -> Icons.Default.Error
-                        isError -> Icons.Default.Refresh
-                        isPlaying -> Icons.Default.Pause
-                        else -> Icons.Default.PlayArrow
+                        isFailed -> Icons.Rounded.Error
+                        isError -> Icons.Rounded.Refresh
+                        isPlaying -> Icons.Rounded.Pause
+                        else -> Icons.Rounded.PlayArrow
                     },
                     contentDescription = null,
                     tint = if (isFailed) Color.Red else playedColor,
@@ -301,7 +306,7 @@ fun PremiumVoicePlayer(
                     contentAlignment = Alignment.Center
                 ) {
                     Icon(
-                        imageVector = Icons.Default.Mic,
+                        imageVector = Icons.Rounded.Mic,
                         contentDescription = null,
                         tint = IosSettingsColors.label,
                         modifier = Modifier.size(9.dp)

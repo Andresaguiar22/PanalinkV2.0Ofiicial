@@ -7,9 +7,8 @@ import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.CloudDownload
-import androidx.compose.material.icons.filled.ErrorOutline
-import androidx.compose.material.icons.filled.Info
+import androidx.compose.material.icons.rounded.CloudDownload
+import androidx.compose.material.icons.rounded.ErrorOutline
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
@@ -79,7 +78,7 @@ fun UpdateDialog(
                     modifier = Modifier.fillMaxWidth()
                 ) {
                     Icon(
-                        imageVector = Icons.Default.CloudDownload,
+                        imageVector = Icons.Rounded.CloudDownload,
                         contentDescription = "Actualización",
                         tint = IosSettingsColors.blue,
                         modifier = Modifier.size(32.dp)
@@ -200,7 +199,7 @@ fun UpdateDialog(
                                 .background(IosSettingsColors.red.copy(alpha = 0.15f), RoundedCornerShape(12.dp))
                                 .padding(12.dp)
                         ) {
-                            Icon(Icons.Default.ErrorOutline, contentDescription = null, tint = IosSettingsColors.red)
+                            Icon(Icons.Rounded.ErrorOutline, contentDescription = null, tint = IosSettingsColors.red)
                             Spacer(modifier = Modifier.width(8.dp))
                             Text(
                                 text = "Error: ${state.message}",
@@ -225,7 +224,7 @@ fun UpdateDialog(
                             .background(IosSettingsColors.red.copy(alpha = 0.15f), RoundedCornerShape(12.dp))
                             .padding(12.dp)
                     ) {
-                        Icon(Icons.Default.ErrorOutline, contentDescription = null, tint = IosSettingsColors.red)
+                        Icon(Icons.Rounded.ErrorOutline, contentDescription = null, tint = IosSettingsColors.red)
                         Spacer(modifier = Modifier.width(8.dp))
                         Text(
                             text = "Error al instalar: $error",

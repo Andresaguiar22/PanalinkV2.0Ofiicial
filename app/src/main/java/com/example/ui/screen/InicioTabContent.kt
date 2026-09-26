@@ -97,6 +97,20 @@ import java.util.*
 
 import com.example.ui.viewmodel.NotificationsViewModel
 import com.example.ui.settings.ios.IosSettingsColors
+import androidx.compose.material.icons.rounded.AddBox
+import androidx.compose.material.icons.rounded.ArrowDownward
+import androidx.compose.material.icons.rounded.ChatBubbleOutline
+import androidx.compose.material.icons.rounded.Pause
+import androidx.compose.material.icons.rounded.PauseCircle
+import androidx.compose.material.icons.rounded.PlayCircle
+import androidx.compose.material.icons.rounded.SkipNext
+import androidx.compose.material.icons.rounded.SkipPrevious
+import androidx.compose.material.icons.rounded.WifiOff
+import androidx.compose.material.icons.rounded.Add
+import androidx.compose.material.icons.rounded.Close
+import androidx.compose.material.icons.rounded.Edit
+import androidx.compose.material.icons.rounded.PlayArrow
+import androidx.compose.material.icons.rounded.Share
 
 @OptIn(ExperimentalMaterial3Api::class)
 
@@ -197,7 +211,7 @@ fun TuTabContent(
                             modifier = Modifier.size(24.dp)
                         ) {
                             Icon(
-                                imageVector = Icons.Default.Edit,
+                                imageVector = Icons.Rounded.Edit,
                                 contentDescription = "Editar nombre",
                                 tint = colors.accent,
                                 modifier = Modifier.size(18.dp)
@@ -284,7 +298,7 @@ fun TuTabContent(
                                 modifier = Modifier.size(24.dp)
                             ) {
                                 Icon(
-                                    imageVector = Icons.Default.Share,
+                                    imageVector = Icons.Rounded.Share,
                                     contentDescription = "Copiar PIN",
                                     tint = colors.accent,
                                     modifier = Modifier.size(18.dp)
@@ -704,7 +718,7 @@ fun InicioTabContent(
                                 verticalAlignment = Alignment.CenterVertically
                             ) {
                                 Icon(
-                                    Icons.Default.WifiOff,
+                                    Icons.Rounded.WifiOff,
                                     contentDescription = null,
                                     tint = IosSettingsColors.blue,
                                     modifier = Modifier.size(18.dp),
@@ -741,7 +755,7 @@ fun InicioTabContent(
                             modifier = Modifier.size(36.dp)
                         ) {
                             Icon(
-                                imageVector = Icons.Default.AddBox,
+                                imageVector = Icons.Rounded.AddBox,
                                 contentDescription = "Publicar",
                                 tint = IosSettingsColors.blue
                             )
@@ -903,7 +917,7 @@ fun InicioTabContent(
                             horizontalAlignment = Alignment.CenterHorizontally
                         ) {
                             Icon(
-                                imageVector = Icons.Default.WifiOff,
+                                imageVector = Icons.Rounded.WifiOff,
                                 contentDescription = null,
                                 tint = IosSettingsColors.secondaryLabel.copy(alpha = 0.5f),
                                 modifier = Modifier.size(48.dp)
@@ -936,7 +950,7 @@ fun InicioTabContent(
                             horizontalAlignment = Alignment.CenterHorizontally
                         ) {
                             Icon(
-                                imageVector = Icons.Default.ChatBubbleOutline,
+                                imageVector = Icons.Rounded.ChatBubbleOutline,
                                 contentDescription = null,
                                 tint = IosSettingsColors.secondaryLabel.copy(alpha = 0.3f),
                                 modifier = Modifier.size(64.dp)
@@ -966,7 +980,7 @@ fun InicioTabContent(
                                     verticalAlignment = Alignment.CenterVertically,
                                     horizontalArrangement = Arrangement.spacedBy(8.dp)
                                 ) {
-                                    Icon(Icons.Default.Add, contentDescription = null, tint = IosSettingsColors.label, modifier = Modifier.size(18.dp))
+                                    Icon(Icons.Rounded.Add, contentDescription = null, tint = IosSettingsColors.label, modifier = Modifier.size(18.dp))
                                     Text("Crear publicación", color = IosSettingsColors.label, fontWeight = FontWeight.Bold, fontSize = 14.sp)
                                 }
                             }
@@ -1030,7 +1044,7 @@ fun InicioTabContent(
                         item {
                             Box(modifier = Modifier.fillMaxWidth().padding(24.dp), contentAlignment = Alignment.Center) {
                                 Column(horizontalAlignment = Alignment.CenterHorizontally) {
-                                    Icon(Icons.Default.ChatBubbleOutline, contentDescription = null, tint = IosSettingsColors.secondaryLabel.copy(alpha = 0.3f), modifier = Modifier.size(48.dp))
+                                    Icon(Icons.Rounded.ChatBubbleOutline, contentDescription = null, tint = IosSettingsColors.secondaryLabel.copy(alpha = 0.3f), modifier = Modifier.size(48.dp))
                                     Spacer(modifier = Modifier.height(8.dp))
                                     Text("No hay comentarios aún. Sé el primero.", color = IosSettingsColors.secondaryLabel, fontSize = 14.sp)
                                 }
@@ -1376,7 +1390,7 @@ fun InicioTabContent(
                     },
                     modifier = Modifier.background(IosSettingsColors.mediaScrimSoft, CircleShape)
                 ) {
-                    Icon(Icons.Default.Close, contentDescription = "Cerrar", tint = IosSettingsColors.label)
+                    Icon(Icons.Rounded.Close, contentDescription = "Cerrar", tint = IosSettingsColors.label)
                 }
 
                 if (mediaList.size > 1) {
@@ -1428,7 +1442,7 @@ fun InicioTabContent(
                     modifier = Modifier.background(IosSettingsColors.mediaScrimSoft, CircleShape)
                 ) {
                     Icon(
-                        imageVector = Icons.Default.ArrowDownward,
+                        imageVector = Icons.Rounded.ArrowDownward,
                         contentDescription = "Descargar",
                         tint = IosSettingsColors.label
                     )
@@ -1521,7 +1535,7 @@ fun InicioTabContent(
                         exoPlayer.stop()
                         activePlaylistPost = null 
                     }) {
-                        Icon(Icons.Default.Close, contentDescription = "Cerrar", tint = IosSettingsColors.label)
+                        Icon(Icons.Rounded.Close, contentDescription = "Cerrar", tint = IosSettingsColors.label)
                     }
                 }
                 
@@ -1558,7 +1572,7 @@ fun InicioTabContent(
                             ) {
                                 Row(verticalAlignment = Alignment.CenterVertically) {
                                     Icon(
-                                        imageVector = if (isCurrent && isPlaying) Icons.Default.PauseCircle else Icons.Default.PlayCircle,
+                                        imageVector = if (isCurrent && isPlaying) Icons.Rounded.PauseCircle else Icons.Rounded.PlayCircle,
                                         contentDescription = null,
                                         tint = if (isCurrent) IosSettingsColors.blue else IosSettingsColors.label,
                                         modifier = Modifier.size(28.dp)
@@ -1599,7 +1613,7 @@ fun InicioTabContent(
                                     }
                                 ) {
                                     Icon(
-                                        imageVector = Icons.Default.ArrowDownward,
+                                        imageVector = Icons.Rounded.ArrowDownward,
                                         contentDescription = "Descargar",
                                         tint = IosSettingsColors.blue,
                                         modifier = Modifier.size(20.dp)
@@ -1672,7 +1686,7 @@ fun InicioTabContent(
                                 },
                                 enabled = currentAudioIndex > 0
                             ) {
-                                Icon(Icons.Default.SkipPrevious, contentDescription = "Anterior", tint = if (currentAudioIndex > 0) IosSettingsColors.label else IosSettingsColors.secondaryLabel, modifier = Modifier.size(36.dp))
+                                Icon(Icons.Rounded.SkipPrevious, contentDescription = "Anterior", tint = if (currentAudioIndex > 0) IosSettingsColors.label else IosSettingsColors.secondaryLabel, modifier = Modifier.size(36.dp))
                             }
                             
                             Spacer(modifier = Modifier.width(24.dp))
@@ -1691,7 +1705,7 @@ fun InicioTabContent(
                                     .background(IosSettingsColors.blue, CircleShape)
                             ) {
                                 Icon(
-                                    imageVector = if (isPlaying) Icons.Default.Pause else Icons.Default.PlayArrow,
+                                    imageVector = if (isPlaying) Icons.Rounded.Pause else Icons.Rounded.PlayArrow,
                                     contentDescription = "Play/Pause",
                                     tint = IosSettingsColors.onAccent,
                                     modifier = Modifier.size(32.dp)
@@ -1708,7 +1722,7 @@ fun InicioTabContent(
                                 },
                                 enabled = currentAudioIndex + 1 < audiosList.size
                             ) {
-                                Icon(Icons.Default.SkipNext, contentDescription = "Siguiente", tint = if (currentAudioIndex + 1 < audiosList.size) IosSettingsColors.label else IosSettingsColors.secondaryLabel, modifier = Modifier.size(36.dp))
+                                Icon(Icons.Rounded.SkipNext, contentDescription = "Siguiente", tint = if (currentAudioIndex + 1 < audiosList.size) IosSettingsColors.label else IosSettingsColors.secondaryLabel, modifier = Modifier.size(36.dp))
                             }
                         }
                     }
@@ -1817,7 +1831,7 @@ internal fun FeedFullscreenVideoPlayer(
                     .background(IosSettingsColors.mediaScrimSoft, CircleShape)
             ) {
                 Icon(
-                    imageVector = if (isPlaying) Icons.Default.Pause else Icons.Default.PlayArrow,
+                    imageVector = if (isPlaying) Icons.Rounded.Pause else Icons.Rounded.PlayArrow,
                     contentDescription = if (isPlaying) "Pausar" else "Reproducir",
                     tint = IosSettingsColors.label,
                     modifier = Modifier.size(36.dp)
@@ -1945,7 +1959,7 @@ private fun FacebookMyStoryCard(
                 .border(4.dp, IosStoryDarkBg, CircleShape),
             contentAlignment = Alignment.Center
         ) {
-            Icon(Icons.Default.Add, contentDescription = "Add", tint = IosSettingsColors.onAccent, modifier = Modifier.size(20.dp))
+            Icon(Icons.Rounded.Add, contentDescription = "Add", tint = IosSettingsColors.onAccent, modifier = Modifier.size(20.dp))
         }
     }
 }

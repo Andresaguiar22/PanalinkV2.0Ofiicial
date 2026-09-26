@@ -16,10 +16,10 @@ import androidx.compose.foundation.text.KeyboardActions
 import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
-import androidx.compose.material.icons.filled.Clear
-import androidx.compose.material.icons.filled.Favorite
-import androidx.compose.material.icons.filled.PlayArrow
-import androidx.compose.material.icons.filled.Search
+import androidx.compose.material.icons.rounded.Clear
+import androidx.compose.material.icons.rounded.Favorite
+import androidx.compose.material.icons.rounded.PlayArrow
+import androidx.compose.material.icons.rounded.Search
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.runtime.saveable.rememberSaveable
@@ -151,7 +151,7 @@ fun ReelSearchScreen(
                         verticalAlignment = Alignment.CenterVertically
                     ) {
                         Icon(
-                            Icons.Filled.Search,
+                            Icons.Rounded.Search,
                             contentDescription = null,
                             tint = IosSettingsColors.secondaryLabel,
                             modifier = Modifier.size(20.dp)
@@ -198,7 +198,7 @@ fun ReelSearchScreen(
                         if (query.isNotEmpty()) {
                             Spacer(Modifier.width(4.dp))
                             Icon(
-                                Icons.Filled.Clear,
+                                Icons.Rounded.Clear,
                                 contentDescription = "Limpiar",
                                 tint = IosSettingsColors.secondaryLabel,
                                 modifier = Modifier
@@ -313,7 +313,7 @@ fun ReelSearchScreen(
                     ) {
                         Column(horizontalAlignment = Alignment.CenterHorizontally) {
                             Icon(
-                                Icons.Filled.Search,
+                                Icons.Rounded.Search,
                                 contentDescription = null,
                                 tint = IosSettingsColors.secondaryLabel.copy(alpha = 0.6f),
                                 modifier = Modifier.size(52.dp)
@@ -391,7 +391,7 @@ private fun ReelSearchGrid(
                     ) {
                         Row(verticalAlignment = Alignment.CenterVertically) {
                             Icon(
-                                Icons.Filled.PlayArrow,
+                                Icons.Rounded.PlayArrow,
                                 contentDescription = null,
                                 tint = IosSettingsColors.label,
                                 modifier = Modifier.size(12.dp)
@@ -409,7 +409,7 @@ private fun ReelSearchGrid(
                         if (likes > 0) {
                             Row(verticalAlignment = Alignment.CenterVertically) {
                                 Icon(
-                                    Icons.Filled.Favorite,
+                                    Icons.Rounded.Favorite,
                                     contentDescription = null,
                                     tint = IosSettingsColors.red,
                                     modifier = Modifier.size(11.dp)

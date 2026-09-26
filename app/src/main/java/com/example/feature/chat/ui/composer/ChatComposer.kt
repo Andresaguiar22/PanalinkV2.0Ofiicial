@@ -45,6 +45,17 @@ import com.example.ui.screen.triggerLightVibration
 import com.example.util.CameraPermissionState
 import kotlinx.coroutines.delay
 import com.example.ui.settings.ios.IosSettingsColors
+import androidx.compose.material.icons.rounded.AttachFile
+import androidx.compose.material.icons.rounded.Keyboard
+import androidx.compose.material.icons.rounded.Mic
+import androidx.compose.material.icons.rounded.Pause
+import androidx.compose.material.icons.rounded.SentimentSatisfied
+import androidx.compose.material.icons.rounded.Stop
+import androidx.compose.material.icons.rounded.Close
+import androidx.compose.material.icons.rounded.Delete
+import androidx.compose.material.icons.rounded.KeyboardArrowUp
+import androidx.compose.material.icons.rounded.Lock
+import androidx.compose.material.icons.rounded.PlayArrow
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -198,7 +209,7 @@ fun ChatComposer(
                         contentAlignment = Alignment.Center
                     ) {
                         Icon(
-                            imageVector = Icons.Default.Delete,
+                            imageVector = Icons.Rounded.Delete,
                             contentDescription = "Eliminar",
                             tint = IosSettingsColors.red,
                             modifier = Modifier.size(30.dp)
@@ -279,7 +290,7 @@ fun ChatComposer(
                         // Botón Emoji
                         IconButton(onClick = { onToggleStickerPanel() }) {
                             Icon(
-                                imageVector = if (isStickerPanelOpen) Icons.Default.Keyboard else Icons.Default.SentimentSatisfied,
+                                imageVector = if (isStickerPanelOpen) Icons.Rounded.Keyboard else Icons.Rounded.SentimentSatisfied,
                                 contentDescription = "Emojis, GIFs y Stickers",
                                 tint = if (isStickerPanelOpen) primaryColor else IosSettingsColors.secondaryLabel,
                                 modifier = Modifier.size(24.dp)
@@ -334,7 +345,7 @@ fun ChatComposer(
                         // Botón Adjuntar (Clip) dentro de la píldora
                         IconButton(onClick = { onToggleAttachmentMenu() }) {
                             Icon(
-                                imageVector = if (isAttachmentMenuOpen) Icons.Default.Close else Icons.Default.AttachFile,
+                                imageVector = if (isAttachmentMenuOpen) Icons.Rounded.Close else Icons.Rounded.AttachFile,
                                 contentDescription = "Menú Adjuntos",
                                 tint = if (isAttachmentMenuOpen) IosSettingsColors.pink else IosSettingsColors.secondaryLabel,
                                 modifier = Modifier.size(24.dp)
@@ -460,7 +471,7 @@ fun ChatComposer(
                             AnimatedAudioWaves(amplitudes = voiceAmplitudes, isPaused = isRecordingPaused)
                         else ->
                             Icon(
-                                imageVector = Icons.Default.Mic,
+                                imageVector = Icons.Rounded.Mic,
                                 contentDescription = "Grabar nota de voz",
                                 tint = primaryColor,
                                 modifier = Modifier.size(24.dp)
@@ -505,7 +516,7 @@ fun ChatComposer(
                         contentAlignment = Alignment.Center
                     ) {
                         Icon(
-                            imageVector = Icons.Default.Stop,
+                            imageVector = Icons.Rounded.Stop,
                             contentDescription = "Detener grabación",
                             tint = IosSettingsColors.red,
                             modifier = Modifier.size(20.dp)
@@ -592,7 +603,7 @@ fun ChatComposer(
                         contentAlignment = Alignment.Center
                     ) {
                         Icon(
-                            imageVector = Icons.Default.Delete,
+                            imageVector = Icons.Rounded.Delete,
                             contentDescription = "Eliminar",
                             tint = androidx.compose.ui.graphics.Color.Red,
                             modifier = Modifier.size(20.dp)
@@ -616,7 +627,7 @@ fun ChatComposer(
                         contentAlignment = Alignment.Center
                     ) {
                         Icon(
-                            imageVector = if (previewPlayerState.isPlaying) Icons.Default.Pause else Icons.Default.PlayArrow,
+                            imageVector = if (previewPlayerState.isPlaying) Icons.Rounded.Pause else Icons.Rounded.PlayArrow,
                             contentDescription = "Reproducir / Pausar",
                             tint = IosSettingsColors.label,
                             modifier = Modifier.size(22.dp)
@@ -803,7 +814,7 @@ fun ChatComposer(
                     verticalArrangement = Arrangement.Center
                 ) {
                     Icon(
-                        imageVector = Icons.Default.Lock,
+                        imageVector = Icons.Rounded.Lock,
                         contentDescription = "Fijar grabación",
                         tint = if (lockHighlight > 0.8f) primaryColor else IosSettingsColors.secondaryLabel,
                         modifier = Modifier.size(20.dp).graphicsLayer {
@@ -815,7 +826,7 @@ fun ChatComposer(
                     )
                     Spacer(modifier = Modifier.height(12.dp))
                     Icon(
-                        imageVector = Icons.Default.KeyboardArrowUp,
+                        imageVector = Icons.Rounded.KeyboardArrowUp,
                         contentDescription = null,
                         tint = IosSettingsColors.secondaryLabel,
                         modifier = Modifier.size(16.dp).graphicsLayer {

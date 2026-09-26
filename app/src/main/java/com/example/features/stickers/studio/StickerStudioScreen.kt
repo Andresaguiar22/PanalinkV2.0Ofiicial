@@ -22,11 +22,11 @@ import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
-import androidx.compose.material.icons.filled.CameraAlt
-import androidx.compose.material.icons.filled.Check
-import androidx.compose.material.icons.filled.Image
-import androidx.compose.material.icons.filled.TextFields
-import androidx.compose.material.icons.filled.Videocam
+import androidx.compose.material.icons.rounded.CameraAlt
+import androidx.compose.material.icons.rounded.Check
+import androidx.compose.material.icons.rounded.Image
+import androidx.compose.material.icons.rounded.TextFields
+import androidx.compose.material.icons.rounded.Videocam
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
@@ -379,9 +379,9 @@ fun StickerStudioScreen(
                     .padding(horizontal = 12.dp, vertical = 8.dp),
                 horizontalArrangement = Arrangement.spacedBy(8.dp)
             ) {
-                StudioModeChip("Imagen", Icons.Filled.Image, mode == StudioMode.IMAGE, Modifier.weight(1f)) { mode = StudioMode.IMAGE }
-                StudioModeChip("Texto", Icons.Filled.TextFields, mode == StudioMode.TEXT, Modifier.weight(1f)) { mode = StudioMode.TEXT }
-                StudioModeChip("Video", Icons.Filled.Videocam, mode == StudioMode.VIDEO, Modifier.weight(1f)) { mode = StudioMode.VIDEO }
+                StudioModeChip("Imagen", Icons.Rounded.Image, mode == StudioMode.IMAGE, Modifier.weight(1f)) { mode = StudioMode.IMAGE }
+                StudioModeChip("Texto", Icons.Rounded.TextFields, mode == StudioMode.TEXT, Modifier.weight(1f)) { mode = StudioMode.TEXT }
+                StudioModeChip("Video", Icons.Rounded.Videocam, mode == StudioMode.VIDEO, Modifier.weight(1f)) { mode = StudioMode.VIDEO }
             }
 
             // Canvas preview
@@ -425,7 +425,7 @@ fun StickerStudioScreen(
                                         onClick = { pickImage.launch(PickVisualMediaRequest(ActivityResultContracts.PickVisualMedia.ImageOnly)) },
                                         colors = ButtonDefaults.buttonColors(containerColor = PANA_GREEN)
                                     ) {
-                                        Icon(Icons.Filled.Image, null, tint = IosSettingsColors.onAccent)
+                                        Icon(Icons.Rounded.Image, null, tint = IosSettingsColors.onAccent)
                                         Spacer(Modifier.width(6.dp))
                                         Text("Galería", color = IosSettingsColors.onAccent)
                                     }
@@ -433,7 +433,7 @@ fun StickerStudioScreen(
                                         onClick = { cameraPermissionState.requestPermissions() },
                                         colors = ButtonDefaults.buttonColors(containerColor = IosSettingsColors.cellElevated)
                                     ) {
-                                        Icon(Icons.Filled.CameraAlt, null, tint = IosSettingsColors.label)
+                                        Icon(Icons.Rounded.CameraAlt, null, tint = IosSettingsColors.label)
                                         Spacer(Modifier.width(6.dp))
                                         Text("Cámara", color = IosSettingsColors.label)
                                     }
@@ -470,7 +470,7 @@ fun StickerStudioScreen(
                                     onClick = { pickVideo.launch(PickVisualMediaRequest(ActivityResultContracts.PickVisualMedia.VideoOnly)) },
                                     colors = ButtonDefaults.buttonColors(containerColor = PANA_GREEN)
                                 ) {
-                                    Icon(Icons.Filled.Videocam, null, tint = IosSettingsColors.onAccent)
+                                    Icon(Icons.Rounded.Videocam, null, tint = IosSettingsColors.onAccent)
                                     Spacer(Modifier.width(6.dp))
                                     Text("Elegir video", color = IosSettingsColors.onAccent)
                                 }
@@ -591,7 +591,7 @@ fun StickerStudioScreen(
                         .height(50.dp),
                     colors = ButtonDefaults.buttonColors(containerColor = PANA_GREEN)
                 ) {
-                    Icon(Icons.Filled.Check, null, tint = IosSettingsColors.onAccent)
+                    Icon(Icons.Rounded.Check, null, tint = IosSettingsColors.onAccent)
                     Spacer(Modifier.width(8.dp))
                     Text("Guardar sticker", color = IosSettingsColors.onAccent, fontWeight = FontWeight.Bold)
                 }

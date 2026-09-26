@@ -10,10 +10,9 @@ import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
-import androidx.compose.material.icons.filled.CheckCircle
-import androidx.compose.material.icons.filled.Edit
-import androidx.compose.material.icons.filled.PlayArrow
-import androidx.compose.material.icons.filled.Settings
+import androidx.compose.material.icons.rounded.CheckCircle
+import androidx.compose.material.icons.rounded.Edit
+import androidx.compose.material.icons.rounded.Settings
 import androidx.compose.material.icons.outlined.BookmarkBorder
 import androidx.compose.material.icons.outlined.GridView
 import androidx.compose.material3.*
@@ -148,7 +147,7 @@ fun ProfileScreen(
                         com.example.premium.ui.CoinChip(onClick = onOpenPremium)
                     }
                     IosCircleButton(
-                        Icons.Default.Settings,
+                        Icons.Rounded.Settings,
                         "Ajustes",
                         onClick = { showControlCenter = true }
                     )
@@ -237,7 +236,7 @@ fun ProfileScreen(
                         if (reputationState == "Verificado") {
                             Spacer(modifier = Modifier.width(6.dp))
                             Icon(
-                                Icons.Default.CheckCircle,
+                                Icons.Rounded.CheckCircle,
                                 contentDescription = "Verificado",
                                 tint = IosBlue,
                                 modifier = Modifier.size(20.dp)
@@ -279,8 +278,8 @@ fun ProfileScreen(
                     ) {
                         IosBadge("${if (reputationState == "Verificado") "✓ " else ""}$reputationState", if (reputationState == "Verificado") IosBlue else IosSettingsColors.blue, Modifier.weight(1f))
                         IosBadge("Fundador 👑", IosGold, Modifier.weight(1f))
-                        IosActionButton(Icons.Default.Edit, "Editar", false, Modifier.weight(1.05f)) { isEditingProfile = true }
-                        IosActionButton(Icons.Default.Settings, "Ajustes", true, Modifier.weight(1.15f)) { showControlCenter = true }
+                        IosActionButton(Icons.Rounded.Edit, "Editar", false, Modifier.weight(1.05f)) { isEditingProfile = true }
+                        IosActionButton(Icons.Rounded.Settings, "Ajustes", true, Modifier.weight(1.15f)) { showControlCenter = true }
                     }
                 }
 

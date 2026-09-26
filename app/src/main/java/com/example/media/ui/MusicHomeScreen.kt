@@ -28,6 +28,15 @@ import com.example.media.ui.components.TrackItem
 import com.example.media.playlist.PlaylistEntity
 import com.example.media.player.ui.MusicViewModel
 import com.example.ui.settings.ios.IosSettingsColors
+import androidx.compose.material.icons.rounded.AddCircleOutline
+import androidx.compose.material.icons.rounded.Album
+import androidx.compose.material.icons.rounded.FileUpload
+import androidx.compose.material.icons.rounded.GraphicEq
+import androidx.compose.material.icons.rounded.LibraryMusic
+import androidx.compose.material.icons.rounded.Add
+import androidx.compose.material.icons.rounded.Notifications
+import androidx.compose.material.icons.rounded.Person
+import androidx.compose.material.icons.rounded.Search
 
 /**
  * P6.7 - Music Home Screen
@@ -101,7 +110,7 @@ fun MusicHomeScreen(
                 TopAppBar(
                     title = {
                         Row(verticalAlignment = Alignment.CenterVertically) {
-                            Icon(Icons.Default.GraphicEq, contentDescription = null, tint = IosSettingsColors.blue)
+                            Icon(Icons.Rounded.GraphicEq, contentDescription = null, tint = IosSettingsColors.blue)
                             Spacer(modifier = Modifier.width(8.dp))
                             Text("PanaLink Music", color = IosSettingsColors.label, fontWeight = FontWeight.Bold)
                         }
@@ -120,14 +129,14 @@ fun MusicHomeScreen(
                             if (isImporting) {
                                 CircularProgressIndicator(modifier = Modifier.size(20.dp), color = IosSettingsColors.blue, strokeWidth = 2.dp)
                             } else {
-                                Icon(Icons.Default.FileUpload, contentDescription = "Subir canciones", tint = IosSettingsColors.blue)
+                                Icon(Icons.Rounded.FileUpload, contentDescription = "Subir canciones", tint = IosSettingsColors.blue)
                             }
                         }
                         IconButton(onClick = onInvitationsClick) {
-                            Icon(Icons.Default.Notifications, contentDescription = "Invitaciones", tint = IosSettingsColors.label)
+                            Icon(Icons.Rounded.Notifications, contentDescription = "Invitaciones", tint = IosSettingsColors.label)
                         }
                         IconButton(onClick = { showCreateDialog = true }) {
-                            Icon(Icons.Default.AddCircleOutline, contentDescription = "Nueva Playlist", tint = IosSettingsColors.blue)
+                            Icon(Icons.Rounded.AddCircleOutline, contentDescription = "Nueva Playlist", tint = IosSettingsColors.blue)
                         }
                     },
                     colors = TopAppBarDefaults.topAppBarColors(containerColor = IosSettingsColors.groupBackground.copy(alpha = 0.92f))
@@ -141,7 +150,7 @@ fun MusicHomeScreen(
                         .fillMaxWidth()
                         .padding(horizontal = 16.dp, vertical = 8.dp),
                     placeholder = { Text("Buscar canciones, artistas...", color = IosSettingsColors.secondaryLabel) },
-                    leadingIcon = { Icon(Icons.Default.Search, contentDescription = null, tint = IosSettingsColors.secondaryLabel) },
+                    leadingIcon = { Icon(Icons.Rounded.Search, contentDescription = null, tint = IosSettingsColors.secondaryLabel) },
                     shape = RoundedCornerShape(14.dp),
                     colors = OutlinedTextFieldDefaults.colors(
                         focusedContainerColor = IosSettingsColors.cellElevated,
@@ -357,7 +366,7 @@ fun AllSongsSection(
                         Spacer(modifier = Modifier.width(8.dp))
                         Text("Importando...", color = IosSettingsColors.label, fontSize = 13.sp)
                     } else {
-                        Icon(Icons.Default.FileUpload, contentDescription = null, modifier = Modifier.size(16.dp))
+                        Icon(Icons.Rounded.FileUpload, contentDescription = null, modifier = Modifier.size(16.dp))
                         Spacer(modifier = Modifier.width(6.dp))
                         Text("Subir canciones", color = IosSettingsColors.label, fontSize = 13.sp)
                     }
@@ -372,7 +381,7 @@ fun AllSongsSection(
                     horizontalAlignment = Alignment.CenterHorizontally
                 ) {
                     Icon(
-                        Icons.Default.LibraryMusic,
+                        Icons.Rounded.LibraryMusic,
                         contentDescription = null,
                         tint = IosSettingsColors.secondaryLabel.copy(alpha = 0.4f),
                         modifier = Modifier.size(72.dp)
@@ -387,7 +396,7 @@ fun AllSongsSection(
                     )
                     Spacer(modifier = Modifier.height(20.dp))
                     OutlinedButton(onClick = onImportClick) {
-                        Icon(Icons.Default.FileUpload, contentDescription = null, tint = IosSettingsColors.blue)
+                        Icon(Icons.Rounded.FileUpload, contentDescription = null, tint = IosSettingsColors.blue)
                         Spacer(modifier = Modifier.width(8.dp))
                         Text("Elegir archivos de audio", color = IosSettingsColors.blue)
                     }
@@ -443,7 +452,7 @@ fun CreatePlaylistCard(onClick: () -> Unit) {
             verticalArrangement = Arrangement.Center,
             horizontalAlignment = Alignment.CenterHorizontally
         ) {
-            Icon(Icons.Default.Add, contentDescription = null, tint = IosSettingsColors.label, modifier = Modifier.size(32.dp))
+            Icon(Icons.Rounded.Add, contentDescription = null, tint = IosSettingsColors.label, modifier = Modifier.size(32.dp))
             Spacer(modifier = Modifier.height(8.dp))
             Text("Nueva", color = IosSettingsColors.label)
         }
@@ -464,7 +473,7 @@ fun PlaylistCard(playlist: PlaylistEntity, onClick: () -> Unit) {
                 if (!playlist.coverPath.isNullOrEmpty()) {
                     AsyncImage(model = playlist.coverPath, contentDescription = null, contentScale = ContentScale.Crop, modifier = Modifier.fillMaxSize())
                 } else {
-                    Icon(Icons.Default.GraphicEq, contentDescription = null, modifier = Modifier.size(48.dp).align(Alignment.Center), tint = IosSettingsColors.blue)
+                    Icon(Icons.Rounded.GraphicEq, contentDescription = null, modifier = Modifier.size(48.dp).align(Alignment.Center), tint = IosSettingsColors.blue)
                 }
             }
             Spacer(modifier = Modifier.height(8.dp))
@@ -500,7 +509,7 @@ fun AlbumGrid(albums: List<String>) {
                 modifier = Modifier.fillMaxWidth().padding(vertical = 4.dp)
             ) {
                 Row(modifier = Modifier.padding(16.dp), verticalAlignment = Alignment.CenterVertically) {
-                    Icon(Icons.Default.Album, contentDescription = null, tint = IosSettingsColors.blue)
+                    Icon(Icons.Rounded.Album, contentDescription = null, tint = IosSettingsColors.blue)
                     Spacer(modifier = Modifier.width(16.dp))
                     Text(album, color = IosSettingsColors.label, fontWeight = FontWeight.Bold)
                 }
@@ -518,7 +527,7 @@ fun ArtistGrid(artists: List<String>) {
                 modifier = Modifier.fillMaxWidth().padding(vertical = 4.dp)
             ) {
                 Row(modifier = Modifier.padding(16.dp), verticalAlignment = Alignment.CenterVertically) {
-                    Icon(Icons.Default.Person, contentDescription = null, tint = IosSettingsColors.blue)
+                    Icon(Icons.Rounded.Person, contentDescription = null, tint = IosSettingsColors.blue)
                     Spacer(modifier = Modifier.width(16.dp))
                     Text(artist, color = IosSettingsColors.label, fontWeight = FontWeight.Bold)
                 }

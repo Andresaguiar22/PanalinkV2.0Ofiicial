@@ -16,17 +16,17 @@ import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.Call
+import androidx.compose.material.icons.rounded.Call
 import androidx.compose.material.icons.automirrored.filled.Chat
-import androidx.compose.material.icons.filled.CheckCircle
-import androidx.compose.material.icons.filled.Computer
-import androidx.compose.material.icons.filled.DataUsage
-import androidx.compose.material.icons.filled.Folder
-import androidx.compose.material.icons.filled.MonitorHeart
-import androidx.compose.material.icons.filled.Refresh
-import androidx.compose.material.icons.filled.Smartphone
-import androidx.compose.material.icons.filled.Storage
-import androidx.compose.material.icons.filled.Wifi
+import androidx.compose.material.icons.rounded.CheckCircle
+import androidx.compose.material.icons.rounded.Computer
+import androidx.compose.material.icons.rounded.DataUsage
+import androidx.compose.material.icons.rounded.Folder
+import androidx.compose.material.icons.rounded.MonitorHeart
+import androidx.compose.material.icons.rounded.Refresh
+import androidx.compose.material.icons.rounded.Smartphone
+import androidx.compose.material.icons.rounded.Storage
+import androidx.compose.material.icons.rounded.Wifi
 import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
@@ -79,7 +79,7 @@ fun ActivityCenterScreen(
         onBack = onBack,
         actions = {
             IconButton(onClick = { viewModel.dispatch(ActivityAction.RefreshSummary) }) {
-                Icon(Icons.Default.Refresh, contentDescription = "Actualizar")
+                Icon(Icons.Rounded.Refresh, contentDescription = "Actualizar")
             }
         }
     ) { padding ->
@@ -97,14 +97,14 @@ fun ActivityCenterScreen(
                     IosGroup {
                         IosValueRow("Mensajes", uiState.messagesCount.toString(), Icons.AutoMirrored.Filled.Chat, IosSettingsColors.teal)
                         IosDivider()
-                        IosValueRow("Llamadas", uiState.callsCount.toString(), Icons.Default.Call, IosSettingsColors.green)
+                        IosValueRow("Llamadas", uiState.callsCount.toString(), Icons.Rounded.Call, IosSettingsColors.green)
                         IosDivider()
-                        IosValueRow("Almacenamiento", uiState.storageUsed, Icons.Default.Storage, IosSettingsColors.orange)
+                        IosValueRow("Almacenamiento", uiState.storageUsed, Icons.Rounded.Storage, IosSettingsColors.orange)
                         IosDivider()
                         IosValueRow(
                             title = "Red",
                             value = if (uiState.isOnline) "Conectado" else "Sin red",
-                            icon = Icons.Default.Wifi,
+                            icon = Icons.Rounded.Wifi,
                             iconTint = if (uiState.isOnline) IosSettingsColors.green else IosSettingsColors.red
                         )
                     }
@@ -116,7 +116,7 @@ fun ActivityCenterScreen(
                         IosRow(
                             title = "Diagnóstico del sistema",
                             subtitle = "Monitoriza Reels, VCDN, ExoPlayer, caché, red y errores desde el teléfono.",
-                            icon = Icons.Default.MonitorHeart,
+                            icon = Icons.Rounded.MonitorHeart,
                             iconTint = IosSettingsColors.pink,
                             onClick = onNavigateToDiagnostics
                         )
@@ -126,25 +126,25 @@ fun ActivityCenterScreen(
                 item { IosSectionHeader("Almacenamiento local") }
                 item {
                     IosGroup {
-                        IosValueRow("Base de datos (Room)", uiState.databaseSize, Icons.Default.Storage, IosSettingsColors.blue)
+                        IosValueRow("Base de datos (Room)", uiState.databaseSize, Icons.Rounded.Storage, IosSettingsColors.blue)
                         IosDivider()
-                        IosValueRow("Caché y multimedia", uiState.mediaSize, Icons.Default.Folder, IosSettingsColors.orange)
+                        IosValueRow("Caché y multimedia", uiState.mediaSize, Icons.Rounded.Folder, IosSettingsColors.orange)
                     }
                 }
 
                 item { IosSectionHeader("Estado del sistema") }
                 item {
                     IosGroup {
-                        IosValueRow("Sincronización de chats", uiState.lastSynchronization, Icons.Default.CheckCircle, IosSettingsColors.green)
+                        IosValueRow("Sincronización de chats", uiState.lastSynchronization, Icons.Rounded.CheckCircle, IosSettingsColors.green)
                         IosDivider()
                         IosValueRow(
                             title = "Calidad de conexión",
                             value = uiState.connectionStatus,
-                            icon = Icons.Default.Wifi,
+                            icon = Icons.Rounded.Wifi,
                             iconTint = if (uiState.isOnline) IosSettingsColors.green else IosSettingsColors.red
                         )
                         IosDivider()
-                        IosValueRow("Caché de datos en disco", uiState.dataUsageToday, Icons.Default.DataUsage, IosSettingsColors.teal)
+                        IosValueRow("Caché de datos en disco", uiState.dataUsageToday, Icons.Rounded.DataUsage, IosSettingsColors.teal)
                     }
                 }
 
@@ -164,7 +164,7 @@ fun ActivityCenterScreen(
                                 DeviceRow(
                                     name = device.name,
                                     time = device.lastActive,
-                                    icon = if (device.iconType == "computer") Icons.Default.Computer else Icons.Default.Smartphone,
+                                    icon = if (device.iconType == "computer") Icons.Rounded.Computer else Icons.Rounded.Smartphone,
                                     isCurrent = device.isCurrent
                                 )
                             }

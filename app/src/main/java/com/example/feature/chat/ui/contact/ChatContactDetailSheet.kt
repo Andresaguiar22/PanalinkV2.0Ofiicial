@@ -9,8 +9,8 @@ import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.Info
-import androidx.compose.material.icons.filled.Share
+import androidx.compose.material.icons.rounded.Info
+import androidx.compose.material.icons.rounded.Share
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.Card
@@ -120,7 +120,7 @@ fun ChatContactDetailSheet(
     .padding(16.dp),
     verticalAlignment = Alignment.CenterVertically
     ) {
-    Icon(Icons.Default.Info, contentDescription = null, tint = IosSettingsColors.blue, modifier = Modifier.size(24.dp))
+    Icon(Icons.Rounded.Info, contentDescription = null, tint = IosSettingsColors.blue, modifier = Modifier.size(24.dp))
     Spacer(modifier = Modifier.width(16.dp))
     Column {
     Text(
@@ -162,7 +162,7 @@ fun ChatContactDetailSheet(
     .bounceClick(),
     shape = RoundedCornerShape(12.dp)
     ) {
-    Icon(Icons.Default.Share, contentDescription = null, modifier = Modifier.size(18.dp))
+    Icon(Icons.Rounded.Share, contentDescription = null, modifier = Modifier.size(18.dp))
     Spacer(modifier = Modifier.width(8.dp))
     Text("Compartir Contacto", fontWeight = FontWeight.Bold, fontSize = 13.sp)
     }

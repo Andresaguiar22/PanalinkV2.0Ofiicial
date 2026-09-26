@@ -14,11 +14,11 @@ import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
-import androidx.compose.material.icons.filled.CheckCircle
-import androidx.compose.material.icons.filled.MoreVert
-import androidx.compose.material.icons.filled.Notifications
-import androidx.compose.material.icons.filled.NotificationsOff
-import androidx.compose.material.icons.filled.Search
+import androidx.compose.material.icons.rounded.CheckCircle
+import androidx.compose.material.icons.rounded.MoreVert
+import androidx.compose.material.icons.rounded.Notifications
+import androidx.compose.material.icons.rounded.NotificationsOff
+import androidx.compose.material.icons.rounded.Search
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.Text
@@ -109,7 +109,7 @@ fun ChannelTopAppBar(
                     if (isVerified) {
                         Spacer(modifier = Modifier.width(4.dp))
                         Icon(
-                            imageVector = Icons.Default.CheckCircle,
+                            imageVector = Icons.Rounded.CheckCircle,
                             contentDescription = "Verificado",
                             tint = verifiedBadgeColor,
                             modifier = Modifier.size(16.dp)
@@ -132,7 +132,7 @@ fun ChannelTopAppBar(
         // Action Icons (Search, Mute toggle, Options)
         IconButton(onClick = onSearchClick) {
             Icon(
-                imageVector = Icons.Default.Search,
+                imageVector = Icons.Rounded.Search,
                 contentDescription = "Buscar",
                 tint = contentColor
             )
@@ -140,7 +140,7 @@ fun ChannelTopAppBar(
 
         IconButton(onClick = onMuteToggleClick) {
             Icon(
-                imageVector = if (isMuted) Icons.Default.NotificationsOff else Icons.Default.Notifications,
+                imageVector = if (isMuted) Icons.Rounded.NotificationsOff else Icons.Rounded.Notifications,
                 contentDescription = if (isMuted) "Activar notificaciones" else "Silenciar",
                 tint = if (isMuted) IosSettingsColors.red else contentColor
             )
@@ -148,7 +148,7 @@ fun ChannelTopAppBar(
 
         IconButton(onClick = onMoreClick) {
             Icon(
-                imageVector = Icons.Default.MoreVert,
+                imageVector = Icons.Rounded.MoreVert,
                 contentDescription = "Más opciones",
                 tint = contentColor
             )

@@ -13,10 +13,10 @@ import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.layout.size
 import androidx.compose.material3.Text
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.Done
-import androidx.compose.material.icons.filled.DoneAll
-import androidx.compose.material.icons.filled.AccessTime
-import androidx.compose.material.icons.filled.WarningAmber
+import androidx.compose.material.icons.rounded.Done
+import androidx.compose.material.icons.rounded.DoneAll
+import androidx.compose.material.icons.rounded.AccessTime
+import androidx.compose.material.icons.rounded.WarningAmber
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -24,8 +24,8 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-import androidx.compose.material.icons.filled.Error
-import androidx.compose.material.icons.filled.Refresh
+import androidx.compose.material.icons.rounded.Error
+import androidx.compose.material.icons.rounded.Refresh
 import com.example.util.DeliveryState
 import com.example.ui.settings.ios.IosSettingsColors
 
@@ -83,7 +83,7 @@ fun MessageStatusIndicator(
                 when (targetStatus) {
                     DeliveryState.SENDING -> {
                         androidx.compose.material3.Icon(
-                            imageVector = Icons.Filled.AccessTime,
+                            imageVector = Icons.Rounded.AccessTime,
                             contentDescription = "Enviando",
                             tint = textColor.copy(alpha = 0.7f),
                             modifier = Modifier.size(13.dp)
@@ -92,7 +92,7 @@ fun MessageStatusIndicator(
                     DeliveryState.OFFLINE_PENDING -> {
                         Row(verticalAlignment = Alignment.CenterVertically) {
                             androidx.compose.material3.Icon(
-                                imageVector = Icons.Filled.WarningAmber,
+                                imageVector = Icons.Rounded.WarningAmber,
                                 contentDescription = "Pendiente (Sin conexión)",
                                 tint = IosSettingsColors.yellow,
                                 modifier = Modifier.size(13.dp)
@@ -106,7 +106,7 @@ fun MessageStatusIndicator(
                                 modifier = Modifier.size(22.dp)
                             ) {
                                 androidx.compose.material3.Icon(
-                                    imageVector = Icons.Filled.Refresh,
+                                    imageVector = Icons.Rounded.Refresh,
                                     contentDescription = "Reintentar envío",
                                     tint = IosSettingsColors.red,
                                     modifier = Modifier.size(16.dp)
@@ -114,7 +114,7 @@ fun MessageStatusIndicator(
                             }
                         } else {
                             androidx.compose.material3.Icon(
-                                imageVector = Icons.Filled.Error,
+                                imageVector = Icons.Rounded.Error,
                                 contentDescription = "Error",
                                 tint = IosSettingsColors.red,
                                 modifier = Modifier.size(14.dp)
@@ -123,7 +123,7 @@ fun MessageStatusIndicator(
                     }
                     DeliveryState.SENT -> {
                         androidx.compose.material3.Icon(
-                            imageVector = Icons.Filled.Done,
+                            imageVector = Icons.Rounded.Done,
                             contentDescription = "Enviado",
                             tint = textColor.copy(alpha = 0.8f),
                             modifier = Modifier.size(15.dp)
@@ -131,7 +131,7 @@ fun MessageStatusIndicator(
                     }
                     DeliveryState.DELIVERED -> {
                         androidx.compose.material3.Icon(
-                            imageVector = Icons.Filled.DoneAll,
+                            imageVector = Icons.Rounded.DoneAll,
                             contentDescription = "Entregado",
                             tint = textColor.copy(alpha = 0.8f),
                             modifier = Modifier.size(15.dp)
@@ -139,7 +139,7 @@ fun MessageStatusIndicator(
                     }
                     DeliveryState.READ -> {
                         androidx.compose.material3.Icon(
-                            imageVector = Icons.Filled.DoneAll,
+                            imageVector = Icons.Rounded.DoneAll,
                             contentDescription = "Leído",
                             tint = IosSettingsColors.blue,
                             modifier = Modifier.size(15.dp)

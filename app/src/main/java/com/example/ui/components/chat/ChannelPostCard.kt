@@ -14,10 +14,10 @@ import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.Reply
-import androidx.compose.material.icons.filled.Add
-import androidx.compose.material.icons.filled.ArrowDownward
-import androidx.compose.material.icons.filled.Check
-import androidx.compose.material.icons.filled.MoreVert
+import androidx.compose.material.icons.rounded.Add
+import androidx.compose.material.icons.rounded.ArrowDownward
+import androidx.compose.material.icons.rounded.Check
+import androidx.compose.material.icons.rounded.MoreVert
 import androidx.compose.material.icons.outlined.ChatBubbleOutline
 import androidx.compose.material.icons.outlined.RemoveRedEye
 import androidx.compose.material3.*
@@ -222,7 +222,7 @@ fun ChannelPostCard(
                     ) {
                         Box(contentAlignment = Alignment.Center) {
                             Icon(
-                                imageVector = Icons.Default.Add,
+                                imageVector = Icons.Rounded.Add,
                                 contentDescription = "Reaccionar",
                                 tint = IosSettingsColors.secondaryLabel,
                                 modifier = Modifier.size(16.dp)
@@ -369,7 +369,7 @@ fun ApkFileAttachmentCard(
                     .background(IosSettingsColors.blue)
             ) {
                 Icon(
-                    imageVector = if (isDownloaded) Icons.Default.Check else Icons.Default.ArrowDownward,
+                    imageVector = if (isDownloaded) Icons.Rounded.Check else Icons.Rounded.ArrowDownward,
                     contentDescription = "Descargar",
                     tint = IosSettingsColors.label,
                     modifier = Modifier.size(24.dp)
@@ -397,7 +397,7 @@ fun ApkFileAttachmentCard(
 
             IconButton(onClick = { /* File options */ }) {
                 Icon(
-                    imageVector = Icons.Default.MoreVert,
+                    imageVector = Icons.Rounded.MoreVert,
                     contentDescription = "Opciones",
                     tint = IosSettingsColors.secondaryLabel
                 )

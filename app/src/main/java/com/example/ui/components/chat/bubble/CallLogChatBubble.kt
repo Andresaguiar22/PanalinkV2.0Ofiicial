@@ -8,8 +8,8 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.CallMade
 import androidx.compose.material.icons.automirrored.filled.CallMissed
 import androidx.compose.material.icons.automirrored.filled.CallReceived
-import androidx.compose.material.icons.filled.Call
-import androidx.compose.material.icons.filled.Videocam
+import androidx.compose.material.icons.rounded.Call
+import androidx.compose.material.icons.rounded.Videocam
 import androidx.compose.material3.Icon
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
@@ -84,7 +84,7 @@ fun CallLogChatBubble(
                 contentAlignment = Alignment.Center
             ) {
                 Icon(
-                    imageVector = if (isVideo) Icons.Default.Videocam else Icons.Default.Call,
+                    imageVector = if (isVideo) Icons.Rounded.Videocam else Icons.Rounded.Call,
                     contentDescription = null,
                     tint = iconColor,
                     modifier = Modifier.size(20.dp)

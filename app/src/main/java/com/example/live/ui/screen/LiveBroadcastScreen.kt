@@ -11,11 +11,11 @@ import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.Cameraswitch
-import androidx.compose.material.icons.filled.Mic
-import androidx.compose.material.icons.filled.MicOff
-import androidx.compose.material.icons.filled.Videocam
-import androidx.compose.material.icons.filled.VideocamOff
+import androidx.compose.material.icons.rounded.Cameraswitch
+import androidx.compose.material.icons.rounded.Mic
+import androidx.compose.material.icons.rounded.MicOff
+import androidx.compose.material.icons.rounded.Videocam
+import androidx.compose.material.icons.rounded.VideocamOff
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
@@ -578,7 +578,7 @@ fun LiveBroadcastScreen(
                         verticalAlignment = Alignment.CenterVertically
                     ) {
                         LiveGlassIconButton(
-                            icon = if (isMicMuted) Icons.Default.MicOff else Icons.Default.Mic,
+                            icon = if (isMicMuted) Icons.Rounded.MicOff else Icons.Rounded.Mic,
                             contentDescription = if (isMicMuted) "Activar micrófono" else "Silenciar micrófono",
                             isAlert = isMicMuted,
                             onClick = {
@@ -587,7 +587,7 @@ fun LiveBroadcastScreen(
                             }
                         )
                         LiveGlassIconButton(
-                            icon = if (isCameraOff) Icons.Default.VideocamOff else Icons.Default.Videocam,
+                            icon = if (isCameraOff) Icons.Rounded.VideocamOff else Icons.Rounded.Videocam,
                             contentDescription = if (isCameraOff) "Activar cámara" else "Apagar cámara",
                             isAlert = isCameraOff,
                             onClick = {
@@ -596,7 +596,7 @@ fun LiveBroadcastScreen(
                             }
                         )
                         LiveGlassIconButton(
-                            icon = Icons.Default.Cameraswitch,
+                            icon = Icons.Rounded.Cameraswitch,
                             contentDescription = "Cambiar cámara",
                             onClick = { scope.launch { roomRepository.switchCamera() } }
                         )

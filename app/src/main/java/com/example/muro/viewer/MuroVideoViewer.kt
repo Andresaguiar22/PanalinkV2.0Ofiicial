@@ -29,11 +29,9 @@ import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material.icons.automirrored.filled.Comment
 import androidx.compose.material.icons.automirrored.filled.VolumeOff
 import androidx.compose.material.icons.automirrored.filled.VolumeUp
-import androidx.compose.material.icons.filled.Favorite
-import androidx.compose.material.icons.filled.FavoriteBorder
-import androidx.compose.material.icons.filled.MoreHoriz
-import androidx.compose.material.icons.filled.Pause
-import androidx.compose.material.icons.filled.PlayArrow
+import androidx.compose.material.icons.rounded.Favorite
+import androidx.compose.material.icons.rounded.FavoriteBorder
+import androidx.compose.material.icons.rounded.PlayArrow
 import androidx.compose.material.icons.automirrored.filled.Send
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
@@ -225,7 +223,7 @@ fun MuroVideoViewer(
                         contentAlignment = Alignment.Center
                     ) {
                         Icon(
-                            Icons.Default.PlayArrow,
+                            Icons.Rounded.PlayArrow,
                             contentDescription = "Reproducir",
                             tint = Color.White,
                             modifier = Modifier.size(40.dp)
@@ -311,7 +309,7 @@ private fun MuroViewerActions(
         verticalArrangement = Arrangement.spacedBy(18.dp)
     ) {
         MuroActionButton(
-            icon = if (post.isLikedByMe) Icons.Default.Favorite else Icons.Default.FavoriteBorder,
+            icon = if (post.isLikedByMe) Icons.Rounded.Favorite else Icons.Rounded.FavoriteBorder,
             count = compactCount(post.likesCount),
             tint = if (post.isLikedByMe) IosSettingsColors.red else Color.White,
             onClick = {

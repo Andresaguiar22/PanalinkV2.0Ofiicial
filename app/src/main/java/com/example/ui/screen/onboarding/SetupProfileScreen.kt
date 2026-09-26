@@ -34,6 +34,10 @@ import com.example.ui.viewmodel.onboarding.OnboardingViewModel
 import com.example.ui.settings.ios.IosSettingsColors
 import com.example.ui.settings.ios.IosFont
 import com.example.ui.settings.ios.IosPrimaryButton
+import androidx.compose.material.icons.rounded.AddAPhoto
+import androidx.compose.material.icons.rounded.CalendarToday
+import androidx.compose.material.icons.rounded.CameraAlt
+import androidx.compose.material.icons.rounded.Person
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -300,7 +304,7 @@ fun IdentityStep(
                         contentAlignment = Alignment.Center
                     ) {
                         Column(horizontalAlignment = Alignment.CenterHorizontally) {
-                            Icon(Icons.Default.AddAPhoto, "Add Cover", tint = IosSettingsColors.tertiaryLabel, modifier = Modifier.size(32.dp))
+                            Icon(Icons.Rounded.AddAPhoto, "Add Cover", tint = IosSettingsColors.tertiaryLabel, modifier = Modifier.size(32.dp))
                             Text("Añadir Portada", fontSize = 12.sp, fontFamily = IosFont, color = IosSettingsColors.secondaryLabel)
                         }
                     }
@@ -337,7 +341,7 @@ fun IdentityStep(
                         )
                     }
                 } else {
-                    Icon(Icons.Default.Person, null, tint = IosSettingsColors.tertiaryLabel, modifier = Modifier.size(48.dp))
+                    Icon(Icons.Rounded.Person, null, tint = IosSettingsColors.tertiaryLabel, modifier = Modifier.size(48.dp))
                 }
                 
                 if (isUploadingAvatar) {
@@ -356,7 +360,7 @@ fun IdentityStep(
                         .padding(4.dp),
                     contentAlignment = Alignment.Center
                 ) {
-                    Icon(Icons.Default.CameraAlt, null, tint = IosSettingsColors.onAccent, modifier = Modifier.size(16.dp))
+                    Icon(Icons.Rounded.CameraAlt, null, tint = IosSettingsColors.onAccent, modifier = Modifier.size(16.dp))
                 }
             }
         }
@@ -464,7 +468,7 @@ fun DetailsStep(
             modifier = Modifier.fillMaxWidth().clickable { showDatePicker = true },
             shape = RoundedCornerShape(16.dp),
             colors = textFieldColors(),
-            leadingIcon = { Icon(Icons.Default.CalendarToday, null, tint = IosSettingsColors.secondaryLabel) },
+            leadingIcon = { Icon(Icons.Rounded.CalendarToday, null, tint = IosSettingsColors.secondaryLabel) },
             enabled = false
         )
 
@@ -666,7 +670,7 @@ fun PreviewStep(
                                 )
                             }
                         } else {
-                            Icon(Icons.Default.Person, null, tint = IosSettingsColors.tertiaryLabel, modifier = Modifier.size(40.dp))
+                            Icon(Icons.Rounded.Person, null, tint = IosSettingsColors.tertiaryLabel, modifier = Modifier.size(40.dp))
                         }
                     }
                 }

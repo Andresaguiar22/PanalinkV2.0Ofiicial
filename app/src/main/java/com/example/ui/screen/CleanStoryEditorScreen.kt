@@ -23,9 +23,9 @@ import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBackIos
-import androidx.compose.material.icons.filled.Audiotrack
-import androidx.compose.material.icons.filled.LibraryMusic
-import androidx.compose.material.icons.filled.Stop
+import androidx.compose.material.icons.rounded.Audiotrack
+import androidx.compose.material.icons.rounded.LibraryMusic
+import androidx.compose.material.icons.rounded.Stop
 import androidx.compose.material.icons.outlined.FileUpload
 import androidx.compose.material.icons.outlined.Image
 import androidx.compose.material.icons.outlined.TextFields
@@ -639,7 +639,7 @@ Box(
                                     .padding(horizontal = 10.dp, vertical = 8.dp),
                                 verticalAlignment = Alignment.CenterVertically
                             ) {
-                                Icon(Icons.Filled.LibraryMusic, null, Modifier.size(14.dp), tint = IosSettingsColors.label
+                                Icon(Icons.Rounded.LibraryMusic, null, Modifier.size(14.dp), tint = IosSettingsColors.label
                                 )
                                 Spacer(Modifier.width(4.dp))
                                 Text(item.name, color = IosSettingsColors.label, fontSize = 12.sp)
@@ -665,7 +665,7 @@ Box(
                             if (audioName != null) {
                                 IconButton(onClick = { togglePreviewAudio() }) {
                                     Icon(
-                                        if (audioPlaying) Icons.Filled.Stop else Icons.Filled.Audiotrack,
+                                        if (audioPlaying) Icons.Rounded.Stop else Icons.Rounded.Audiotrack,
                                         contentDescription = if (audioPlaying) "Parar" else "Reproducir",
                                         tint = if (audioPlaying) BrandGreenStory else IosSettingsColors.label
                                     )

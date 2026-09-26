@@ -23,6 +23,16 @@ import com.example.media.player.PanaMusicPlayerManager
 import com.example.media.player.PlayerState
 import com.example.media.player.RepeatMode
 import com.example.ui.settings.ios.IosSettingsColors
+import androidx.compose.material.icons.rounded.GraphicEq
+import androidx.compose.material.icons.rounded.Pause
+import androidx.compose.material.icons.rounded.Repeat
+import androidx.compose.material.icons.rounded.RepeatOne
+import androidx.compose.material.icons.rounded.Shuffle
+import androidx.compose.material.icons.rounded.SkipNext
+import androidx.compose.material.icons.rounded.SkipPrevious
+import androidx.compose.material.icons.rounded.KeyboardArrowDown
+import androidx.compose.material.icons.rounded.PlayArrow
+import androidx.compose.material.icons.rounded.Share
 
 /**
  * P6.7 - Music Player Screen (Poweramp / Spotify Style)
@@ -45,12 +55,12 @@ fun MusicPlayerScreen(
                 title = { Text("Reproduciendo", color = IosSettingsColors.label, fontSize = 16.sp) },
                 navigationIcon = {
                     IconButton(onClick = onBackClick) {
-                        Icon(Icons.Default.KeyboardArrowDown, contentDescription = "Cerrar", tint = IosSettingsColors.label)
+                        Icon(Icons.Rounded.KeyboardArrowDown, contentDescription = "Cerrar", tint = IosSettingsColors.label)
                     }
                 },
                 actions = {
                     IconButton(onClick = onShareTrackClick) {
-                        Icon(Icons.Default.Share, contentDescription = "Compartir en PanaLink", tint = IosSettingsColors.blue)
+                        Icon(Icons.Rounded.Share, contentDescription = "Compartir en PanaLink", tint = IosSettingsColors.blue)
                     }
                 },
                 colors = TopAppBarDefaults.topAppBarColors(containerColor = IosSettingsColors.groupBackground)
@@ -94,7 +104,7 @@ fun MusicPlayerScreen(
                         )
                     } else {
                         Icon(
-                            imageVector = Icons.Default.GraphicEq,
+                            imageVector = Icons.Rounded.GraphicEq,
                             contentDescription = null,
                             tint = IosSettingsColors.blue,
                             modifier = Modifier.size(100.dp)
@@ -151,7 +161,7 @@ fun MusicPlayerScreen(
                 ) {
                     IconButton(onClick = { playerManager.toggleShuffle() }) {
                         Icon(
-                            imageVector = Icons.Default.Shuffle,
+                            imageVector = Icons.Rounded.Shuffle,
                             contentDescription = "Aleatorio",
                             tint = if (playerState.isShuffle) IosSettingsColors.blue else IosSettingsColors.secondaryLabel
                         )
@@ -159,7 +169,7 @@ fun MusicPlayerScreen(
 
                     IconButton(onClick = { playerManager.previousTrack() }) {
                         Icon(
-                            imageVector = Icons.Default.SkipPrevious,
+                            imageVector = Icons.Rounded.SkipPrevious,
                             contentDescription = "Anterior",
                             tint = IosSettingsColors.label,
                             modifier = Modifier.size(36.dp)
@@ -175,7 +185,7 @@ fun MusicPlayerScreen(
                         modifier = Modifier.size(64.dp)
                     ) {
                         Icon(
-                            imageVector = if (playerState.isPlaying) Icons.Default.Pause else Icons.Default.PlayArrow,
+                            imageVector = if (playerState.isPlaying) Icons.Rounded.Pause else Icons.Rounded.PlayArrow,
                             contentDescription = if (playerState.isPlaying) "Pausar" else "Reproducir",
                             modifier = Modifier.size(36.dp)
                         )
@@ -183,7 +193,7 @@ fun MusicPlayerScreen(
 
                     IconButton(onClick = { playerManager.nextTrack() }) {
                         Icon(
-                            imageVector = Icons.Default.SkipNext,
+                            imageVector = Icons.Rounded.SkipNext,
                             contentDescription = "Siguiente",
                             tint = IosSettingsColors.label,
                             modifier = Modifier.size(36.dp)
@@ -193,8 +203,8 @@ fun MusicPlayerScreen(
                     IconButton(onClick = { playerManager.toggleRepeat() }) {
                         Icon(
                             imageVector = when (playerState.repeatMode) {
-                                RepeatMode.ONE -> Icons.Default.RepeatOne
-                                else -> Icons.Default.Repeat
+                                RepeatMode.ONE -> Icons.Rounded.RepeatOne
+                                else -> Icons.Rounded.Repeat
                             },
                             contentDescription = "Repetir",
                             tint = if (playerState.repeatMode != RepeatMode.NONE) IosSettingsColors.blue else IosSettingsColors.secondaryLabel

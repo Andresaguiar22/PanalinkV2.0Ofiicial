@@ -46,6 +46,11 @@ import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 import com.example.ui.settings.ios.IosSettingsColors
+import androidx.compose.material.icons.rounded.Download
+import androidx.compose.material.icons.rounded.Pause
+import androidx.compose.material.icons.rounded.Close
+import androidx.compose.material.icons.rounded.PlayArrow
+import androidx.compose.material.icons.rounded.Share
 
 /**
  * Visor a Pantalla Completa para Fotos y Videos en el Chat.
@@ -126,7 +131,7 @@ fun FullScreenMediaViewer(
                     Row(verticalAlignment = Alignment.CenterVertically) {
                         IconButton(onClick = onClose) {
                             Icon(
-                                imageVector = Icons.Default.Close,
+                                imageVector = Icons.Rounded.Close,
                                 contentDescription = "Cerrar",
                                 tint = IosSettingsColors.label
                             )
@@ -150,7 +155,7 @@ fun FullScreenMediaViewer(
                             }
                         ) {
                             Icon(
-                                imageVector = Icons.Default.Download,
+                                imageVector = Icons.Rounded.Download,
                                 contentDescription = "Guardar en Galería",
                                 tint = IosSettingsColors.label
                             )
@@ -163,7 +168,7 @@ fun FullScreenMediaViewer(
                             }
                         ) {
                             Icon(
-                                imageVector = Icons.Default.Share,
+                                imageVector = Icons.Rounded.Share,
                                 contentDescription = "Compartir",
                                 tint = IosSettingsColors.label
                             )
@@ -388,7 +393,7 @@ private fun VideoViewerContent(
                         .background(IosSettingsColors.mediaScrimSoft)
                 ) {
                     Icon(
-                        imageVector = if (isPlaying) Icons.Default.Pause else Icons.Default.PlayArrow,
+                        imageVector = if (isPlaying) Icons.Rounded.Pause else Icons.Rounded.PlayArrow,
                         contentDescription = if (isPlaying) "Pausar" else "Reproducir",
                         tint = IosSettingsColors.label,
                         modifier = Modifier.size(40.dp)

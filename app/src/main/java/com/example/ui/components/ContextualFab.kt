@@ -9,7 +9,7 @@ import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.Add
+import androidx.compose.material.icons.rounded.Add
 import androidx.compose.material3.FloatingActionButton
 import androidx.compose.material3.Icon
 import androidx.compose.material3.Text
@@ -47,7 +47,7 @@ data class FabSubItem(
 
 @Composable
 fun ContextualExpandableFab(
-    mainIcon: ImageVector = Icons.Default.Add,
+    mainIcon: ImageVector = Icons.Rounded.Add,
     subItems: List<FabSubItem>,
     modifier: Modifier = Modifier,
     testTag: String = "contextual_fab",

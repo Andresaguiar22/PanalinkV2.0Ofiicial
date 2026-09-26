@@ -15,8 +15,8 @@ import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
-import androidx.compose.material.icons.filled.LiveTv
-import androidx.compose.material.icons.filled.Videocam
+import androidx.compose.material.icons.rounded.LiveTv
+import androidx.compose.material.icons.rounded.Videocam
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.FloatingActionButton
 import androidx.compose.material3.Icon
@@ -126,7 +126,7 @@ fun LiveFeedScreen(
                             verticalArrangement = Arrangement.Center
                         ) {
                             Icon(
-                                imageVector = Icons.Default.LiveTv,
+                                imageVector = Icons.Rounded.LiveTv,
                                 contentDescription = null,
                                 tint = IosSettingsColors.secondaryLabel.copy(alpha = 0.5f),
                                 modifier = Modifier.size(72.dp)
@@ -198,7 +198,7 @@ private fun LiveBroadcastFab(onClick: () -> Unit) {
             contentColor = IosSettingsColors.onAccent,
             shape = CircleShape
         ) {
-            Icon(Icons.Default.Videocam, contentDescription = "Transmitir en Vivo")
+            Icon(Icons.Rounded.Videocam, contentDescription = "Transmitir en Vivo")
         }
     }
 }

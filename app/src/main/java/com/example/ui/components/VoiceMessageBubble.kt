@@ -10,10 +10,10 @@ import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.Pause
-import androidx.compose.material.icons.filled.PlayArrow
-import androidx.compose.material.icons.filled.Mic
-import androidx.compose.material.icons.filled.Check
+import androidx.compose.material.icons.rounded.Pause
+import androidx.compose.material.icons.rounded.PlayArrow
+import androidx.compose.material.icons.rounded.Mic
+import androidx.compose.material.icons.rounded.Check
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
@@ -134,7 +134,7 @@ fun VoiceMessageBubble(
                 contentAlignment = Alignment.Center
             ) {
                 Icon(
-                    imageVector = Icons.Filled.Mic,
+                    imageVector = Icons.Rounded.Mic,
                     contentDescription = null,
                     tint = IosSettingsColors.label,
                     modifier = Modifier.size(8.dp)
@@ -154,7 +154,7 @@ fun VoiceMessageBubble(
             contentAlignment = Alignment.Center
         ) {
             Icon(
-                imageVector = if (isPlaying) Icons.Filled.Pause else Icons.Filled.PlayArrow,
+                imageVector = if (isPlaying) Icons.Rounded.Pause else Icons.Rounded.PlayArrow,
                 contentDescription = if (isPlaying) "Pausar nota de voz" else "Reproducir nota de voz",
                 tint = playedColor,
                 modifier = Modifier.size(20.dp)
@@ -262,13 +262,13 @@ fun VoiceMessageBubble(
                             verticalAlignment = Alignment.CenterVertically
                         ) {
                              Icon(
-                                imageVector = Icons.Filled.Check,
+                                imageVector = Icons.Rounded.Check,
                                 contentDescription = "Leído",
                                 tint = IosSettingsColors.blue,
                                 modifier = Modifier.size(11.dp)
                             )
                             Icon(
-                                imageVector = Icons.Filled.Check,
+                                imageVector = Icons.Rounded.Check,
                                 contentDescription = "Leído",
                                 tint = IosSettingsColors.blue,
                                 modifier = Modifier.size(11.dp)
