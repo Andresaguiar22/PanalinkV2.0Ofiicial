@@ -382,7 +382,7 @@ fun PostDetailScreen(
         Box(
             modifier = Modifier
                 .fillMaxSize()
-                .background(Color.Black)
+                .background(IosSettingsColors.groupBackground)
         ) {
             HorizontalPager(
                 state = pagerState,
@@ -451,7 +451,7 @@ fun PostDetailScreen(
                             backgroundAudioPlayer = null
                         }
                     },
-                    modifier = Modifier.background(Color.Black.copy(alpha = 0.5f), CircleShape)
+                    modifier = Modifier.background(IosSettingsColors.mediaScrimSoft, CircleShape)
                 ) {
                     Icon(Icons.Default.Close, contentDescription = "Cerrar", tint = IosSettingsColors.label)
                 }
@@ -463,7 +463,7 @@ fun PostDetailScreen(
                         fontWeight = FontWeight.Bold,
                         fontSize = 16.sp,
                         modifier = Modifier
-                            .background(Color.Black.copy(alpha = 0.5f), RoundedCornerShape(12.dp))
+                            .background(IosSettingsColors.mediaScrimSoft, RoundedCornerShape(12.dp))
                             .padding(horizontal = 12.dp, vertical = 6.dp)
                     )
                 }
@@ -475,7 +475,7 @@ fun PostDetailScreen(
                             backgroundAudioMuted = !backgroundAudioMuted
                             backgroundAudioPlayer?.volume = if (backgroundAudioMuted) 0f else 1f
                         },
-                        modifier = Modifier.background(Color.Black.copy(alpha = 0.5f), CircleShape)
+                        modifier = Modifier.background(IosSettingsColors.mediaScrimSoft, CircleShape)
                     ) {
                         Icon(
                             imageVector = if (backgroundAudioMuted) Icons.AutoMirrored.Filled.VolumeMute else Icons.AutoMirrored.Filled.VolumeUp,
@@ -505,7 +505,7 @@ fun PostDetailScreen(
                             Toast.makeText(context, "Error: ${e.message}", Toast.LENGTH_LONG).show()
                         }
                     },
-                    modifier = Modifier.background(Color.Black.copy(alpha = 0.5f), CircleShape)
+                    modifier = Modifier.background(IosSettingsColors.mediaScrimSoft, CircleShape)
                 ) {
                     Icon(
                         imageVector = Icons.Filled.ArrowDownward,

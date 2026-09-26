@@ -54,8 +54,8 @@ fun ActiveCallControls(
                 onClick = onMuteToggle,
                 icon = if (isMuted) Icons.Default.MicOff else Icons.Default.Mic,
                 contentDescription = "Toggle Mute",
-                containerColor = if (isMuted) Color.White else Color.White.copy(alpha = 0.15f),
-                contentColor = if (isMuted) Color.Black else Color.White,
+                containerColor = if (isMuted) IosSettingsColors.label else IosSettingsColors.separator,
+                contentColor = if (isMuted) IosSettingsColors.groupBackground else IosSettingsColors.label,
                 label = if (isMuted) "Silenciado" else "Silenciar",
                 testTag = "mute_button"
             )
@@ -65,8 +65,8 @@ fun ActiveCallControls(
                 onClick = onSpeakerToggle,
                 icon = if (isSpeakerOn) Icons.AutoMirrored.Filled.VolumeUp else Icons.AutoMirrored.Filled.VolumeMute,
                 contentDescription = "Toggle Speaker",
-                containerColor = if (isSpeakerOn) Color.White else Color.White.copy(alpha = 0.15f),
-                contentColor = if (isSpeakerOn) Color.Black else Color.White,
+                containerColor = if (isSpeakerOn) IosSettingsColors.label else IosSettingsColors.separator,
+                contentColor = if (isSpeakerOn) IosSettingsColors.groupBackground else IosSettingsColors.label,
                 label = if (isSpeakerOn) "Altavoz" else "Auricular",
                 testTag = "speaker_button"
             )
@@ -77,8 +77,8 @@ fun ActiveCallControls(
                     onClick = onCameraToggle,
                     icon = if (isCameraOn) Icons.Default.Videocam else Icons.Default.VideocamOff,
                     contentDescription = "Toggle Camera",
-                    containerColor = if (isCameraOn) Color.White.copy(alpha = 0.15f) else Color.White,
-                    contentColor = if (isCameraOn) Color.White else Color.Black,
+                    containerColor = if (isCameraOn) IosSettingsColors.separator else IosSettingsColors.label,
+                    contentColor = if (isCameraOn) IosSettingsColors.label else IosSettingsColors.groupBackground,
                     label = if (isCameraOn) "Cámara" else "Sin Cámara",
                     testTag = "camera_button"
                 )
@@ -88,8 +88,8 @@ fun ActiveCallControls(
                     onClick = onCameraSwitch,
                     icon = Icons.Default.FlipCameraAndroid,
                     contentDescription = "Switch Camera",
-                    containerColor = Color.White.copy(alpha = 0.15f),
-                    contentColor = Color.White,
+                    containerColor = IosSettingsColors.separator,
+                    contentColor = IosSettingsColors.label,
                     label = "Girar",
                     testTag = "switch_camera_button"
                 )
@@ -100,8 +100,8 @@ fun ActiveCallControls(
                         onClick = { showMoreMenu = true },
                         icon = Icons.Default.MoreVert,
                         contentDescription = "More options",
-                        containerColor = Color.White.copy(alpha = 0.15f),
-                        contentColor = Color.White,
+                        containerColor = IosSettingsColors.separator,
+                        contentColor = IosSettingsColors.label,
                         label = "Más",
                         testTag = "more_options_button"
                     )
@@ -145,7 +145,7 @@ fun ActiveCallControls(
                 icon = Icons.Default.CallEnd,
                 contentDescription = "End Call",
                 containerColor = IosSettingsColors.red, // Red 500
-                contentColor = Color.White,
+                contentColor = IosSettingsColors.label,
                 size = 64.dp,
                 iconSize = 30.dp,
                 label = "Colgar",

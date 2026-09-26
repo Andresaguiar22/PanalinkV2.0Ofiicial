@@ -9,6 +9,7 @@ import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.*
+import androidx.compose.material.icons.automirrored.filled.*
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
@@ -96,7 +97,7 @@ fun MultiTrackTimelineUI(
                         modifier = Modifier
                             .fillMaxWidth()
                             .background(
-                                if (isSelected) Color(0xFF222238) else Color(0xFF1A1A24),
+                                if (isSelected) IosSettingsColors.cellElevated else IosSettingsColors.cell,
                                 RoundedCornerShape(8.dp)
                             )
                             .clickable { onSelectTrack(track.id) }
@@ -108,9 +109,9 @@ fun MultiTrackTimelineUI(
                             modifier = Modifier.size(24.dp)
                         ) {
                             Icon(
-                                imageVector = if (track.isMuted) Icons.Default.VolumeOff else Icons.Default.VolumeUp,
+                                imageVector = if (track.isMuted) Icons.AutoMirrored.Filled.VolumeOff else Icons.AutoMirrored.Filled.VolumeUp,
                                 contentDescription = "Mute",
-                                tint = if (track.isMuted) Color.Red else Color.Gray,
+                                tint = if (track.isMuted) IosSettingsColors.red else IosSettingsColors.secondaryLabel,
                                 modifier = Modifier.size(16.dp)
                             )
                         }
@@ -138,7 +139,7 @@ fun MultiTrackTimelineUI(
                                         is CreativeTrack.VideoTrack -> IosSettingsColors.blue.copy(alpha = 0.8f)
                                         is CreativeTrack.AudioTrack -> IosSettingsColors.blue.copy(alpha = 0.8f)
                                         is CreativeTrack.VoiceTrack -> IosSettingsColors.green.copy(alpha = 0.8f)
-                                        else -> Color(0xFFFFD54F).copy(alpha = 0.8f)
+                                        else -> IosSettingsColors.yellow.copy(alpha = 0.8f)
                                     },
                                     RoundedCornerShape(4.dp)
                                 ),
@@ -146,7 +147,7 @@ fun MultiTrackTimelineUI(
                         ) {
                             Text(
                                 text = " Clip (${track.durationMs / 1000}s)",
-                                color = Color.Black,
+                                color = IosSettingsColors.onAccent,
                                 fontSize = 10.sp,
                                 fontWeight = FontWeight.Bold
                             )
@@ -173,14 +174,14 @@ fun MultiTrackTimelineUI(
                         modifier = Modifier
                             .fillMaxWidth()
                             .background(
-                                if (isSelected) Color(0xFF28283E) else Color(0xFF1E1E2A),
+                                if (isSelected) IosSettingsColors.cellElevated else IosSettingsColors.cell,
                                 RoundedCornerShape(8.dp)
                             )
                             .clickable { onSelectLayer(layer.id) }
                             .padding(6.dp),
                         verticalAlignment = Alignment.CenterVertically
                     ) {
-                        Icon(Icons.Default.Layers, contentDescription = null, tint = Color.Gray, modifier = Modifier.size(16.dp))
+                        Icon(Icons.Default.Layers, contentDescription = null, tint = IosSettingsColors.secondaryLabel, modifier = Modifier.size(16.dp))
                         Spacer(modifier = Modifier.width(6.dp))
 
                         Text(
@@ -197,7 +198,7 @@ fun MultiTrackTimelineUI(
                             modifier = Modifier
                                 .weight(1f)
                                 .height(20.dp)
-                                .background(Color(0xFF33334A), RoundedCornerShape(4.dp))
+                                .background(IosSettingsColors.separator, RoundedCornerShape(4.dp))
                         ) {
                             val startPct = (layer.startOffsetMs.toFloat() / totalDurationMs.toFloat()).coerceIn(0f, 1f)
                             val durPct = (layer.durationMs.toFloat() / totalDurationMs.toFloat()).coerceIn(0f, 1f - startPct)

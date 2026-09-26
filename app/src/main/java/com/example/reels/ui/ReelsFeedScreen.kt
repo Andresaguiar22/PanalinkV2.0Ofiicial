@@ -317,13 +317,13 @@ fun ReelsFeedScreen(
     }
 
     if (filteredReels.isEmpty()) {
-        Box(modifier = Modifier.fillMaxSize().background(Color.Black), contentAlignment = Alignment.Center) {
+        Box(modifier = Modifier.fillMaxSize().background(IosSettingsColors.groupBackground), contentAlignment = Alignment.Center) {
             Text("Sin reels todavía", color = IosSettingsColors.label)
         }
         return
     }
 
-    Box(modifier = Modifier.fillMaxSize().background(Color.Black)) {
+    Box(modifier = Modifier.fillMaxSize().background(IosSettingsColors.groupBackground)) {
         VerticalPager(
             state = pagerState,
             modifier = Modifier.fillMaxSize()
@@ -766,7 +766,7 @@ private fun ReelFeedOverlay(
             Surface(
                 modifier = Modifier.size(56.dp),
                 shape = CircleShape,
-                color = Color.Black.copy(alpha = if (paused) 0.74f else 0.28f),
+                color = IosSettingsColors.mediaScrimSoft.copy(alpha = if (paused) 0.74f else 0.28f),
             ) {
                 IconButton(onClick = onTogglePlayPause) {
                     Icon(
@@ -927,7 +927,7 @@ private fun ReelFeedOverlay(
                         style = MaterialTheme.typography.labelMedium,
                         modifier = Modifier
                             .clip(RoundedCornerShape(6.dp))
-                            .background(if (isFollowing) Color.White.copy(alpha = 0.16f) else IosSettingsColors.red)
+                            .background(if (isFollowing) IosSettingsColors.separator else IosSettingsColors.red)
                             .clickable {
                                 if (currentUid.isNullOrBlank()) return@clickable
                                 overlayScope.launch {
@@ -956,7 +956,7 @@ private fun ReelFeedOverlay(
                     modifier = Modifier
                         .animateContentSize(animationSpec = spring(dampingRatio = Spring.DampingRatioNoBouncy))
                         .clip(RoundedCornerShape(8.dp))
-                        .background(Color.Black.copy(alpha = 0.14f))
+                        .background(IosSettingsColors.mediaScrimSoft.copy(alpha = 0.14f))
                         .padding(horizontal = 10.dp, vertical = 6.dp)
                 ) {
                     Text(
@@ -1015,7 +1015,7 @@ private fun ReelFeedOverlay(
                     overflow = TextOverflow.Ellipsis,
                     modifier = Modifier
                         .clip(RoundedCornerShape(6.dp))
-                        .background(Color.Black.copy(alpha = 0.14f))
+                        .background(IosSettingsColors.mediaScrimSoft.copy(alpha = 0.14f))
                         .padding(horizontal = 10.dp, vertical = 6.dp)
                         .clickable {
                             val first = compoundTags.firstOrNull() ?: return@clickable
@@ -1147,7 +1147,7 @@ private fun ReelActionButtonV2(
                 fontWeight = FontWeight.SemiBold,
                 style = TextStyle(
                     shadow = androidx.compose.ui.graphics.Shadow(
-                        color = Color.Black.copy(alpha = 0.7f),
+                        color = IosSettingsColors.mediaScrim,
                         offset = androidx.compose.ui.geometry.Offset(1f, 1f),
                         blurRadius = 3f
                     )
@@ -1219,7 +1219,7 @@ private fun ReelsCommentsSheetV2(
         Box(
             modifier = Modifier
                 .fillMaxSize()
-                .background(Color.Black.copy(alpha = 0.5f))
+                .background(IosSettingsColors.mediaScrimSoft)
                 .clickable(interactionSource = remember { MutableInteractionSource() }, indication = null, onClick = onDismiss)
         )
         AnimatedVisibility(
@@ -1361,14 +1361,14 @@ private fun ReelsCommentsSheetV2(
                                     if (comment.deletedAt != null) {
                                         Text(
                                             text = "Este comentario ha sido eliminado",
-                                            color = Color.White.copy(alpha = 0.4f),
+                                            color = IosSettingsColors.label.copy(alpha = 0.4f),
                                               fontSize = if (isReply) 13.sp else 14.sp,
                                             fontStyle = FontStyle.Italic
                                         )
                                     } else {
                                         com.example.ui.components.CommentMediaText(
                                             text = comment.text,
-                                            fallbackColor = Color.White
+                                            fallbackColor = IosSettingsColors.label
                                         )
                                     }
                                     if (comment.deletedAt != null) {
@@ -1435,8 +1435,8 @@ private fun ReelsCommentsSheetV2(
                             textStyle = TextStyle(color = IosSettingsColors.label, fontSize = 14.sp),
                             maxLines = 2,
                             colors = OutlinedTextFieldDefaults.colors(
-                                focusedTextColor = Color.White,
-                                unfocusedTextColor = Color.White,
+                                focusedTextColor = IosSettingsColors.label,
+                                unfocusedTextColor = IosSettingsColors.label,
                                 focusedContainerColor = IosSettingsColors.cell,
                                 unfocusedContainerColor = IosSettingsColors.cell,
                                 focusedBorderColor = IosSettingsColors.blue,

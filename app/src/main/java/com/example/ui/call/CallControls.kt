@@ -3,6 +3,7 @@ package com.example.ui.call
 import androidx.compose.foundation.layout.*
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.*
+import androidx.compose.material.icons.automirrored.filled.*
 import androidx.compose.material3.*
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
@@ -41,7 +42,7 @@ fun CallControls(
             IconButton(
                 onClick = {},
                 colors = IconButtonDefaults.iconButtonColors(
-                    containerColor = if (isMuted) Color.White else Color.Black.copy(alpha = 0.5f)
+                    containerColor = if (isMuted) IosSettingsColors.label else IosSettingsColors.mediaScrimSoft
                 ),
                 modifier = Modifier
                     .size(56.dp)
@@ -50,7 +51,7 @@ fun CallControls(
                 Icon(
                     imageVector = if (isMuted) Icons.Default.MicOff else Icons.Default.Mic,
                     contentDescription = "Mute Microphone",
-                    tint = if (isMuted) Color.Black else Color.White
+                    tint = if (isMuted) IosSettingsColors.groupBackground else IosSettingsColors.label
                 )
             }
     
@@ -58,16 +59,16 @@ fun CallControls(
             IconButton(
                 onClick = {},
                 colors = IconButtonDefaults.iconButtonColors(
-                    containerColor = if (isSpeakerOn) Color.White else Color.Black.copy(alpha = 0.5f)
+                    containerColor = if (isSpeakerOn) IosSettingsColors.label else IosSettingsColors.mediaScrimSoft
                 ),
                 modifier = Modifier
                     .size(56.dp)
                     .bounceClick(onSpeakerToggle)
             ) {
                 Icon(
-                    imageVector = if (isSpeakerOn) Icons.Default.VolumeUp else Icons.Default.VolumeMute,
+                    imageVector = if (isSpeakerOn) Icons.AutoMirrored.Filled.VolumeUp else Icons.AutoMirrored.Filled.VolumeMute,
                     contentDescription = "Toggle Speaker",
-                    tint = if (isSpeakerOn) Color.Black else Color.White
+                    tint = if (isSpeakerOn) IosSettingsColors.groupBackground else IosSettingsColors.label
                 )
             }
     
@@ -76,7 +77,7 @@ fun CallControls(
                 IconButton(
                     onClick = {},
                     colors = IconButtonDefaults.iconButtonColors(
-                        containerColor = if (!isCameraOn) Color.White else Color.Black.copy(alpha = 0.5f)
+                        containerColor = if (!isCameraOn) IosSettingsColors.label else IosSettingsColors.mediaScrimSoft
                     ),
                     modifier = Modifier
                         .size(56.dp)
@@ -85,7 +86,7 @@ fun CallControls(
                     Icon(
                         imageVector = if (isCameraOn) Icons.Default.Videocam else Icons.Default.VideocamOff,
                         contentDescription = "Toggle Video",
-                        tint = if (!isCameraOn) Color.Black else Color.White
+                        tint = if (!isCameraOn) IosSettingsColors.groupBackground else IosSettingsColors.label
                     )
                 }
     
@@ -93,7 +94,7 @@ fun CallControls(
                 IconButton(
                     onClick = {},
                     colors = IconButtonDefaults.iconButtonColors(
-                        containerColor = Color.Black.copy(alpha = 0.5f)
+                        containerColor = IosSettingsColors.mediaScrimSoft
                     ),
                     modifier = Modifier
                         .size(56.dp)

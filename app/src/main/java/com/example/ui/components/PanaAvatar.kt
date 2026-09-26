@@ -40,7 +40,7 @@ fun PanaAvatar(
     modifier: Modifier = Modifier,
     size: Dp = 40.dp,
     borderWidth: Dp = 1.dp,
-    borderColor: Color = Color.White,
+    borderColor: Color = IosSettingsColors.label,
     contentDescription: String? = "Avatar",
     placeholderName: String? = ""
 ) {

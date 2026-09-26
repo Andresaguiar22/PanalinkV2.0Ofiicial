@@ -89,7 +89,7 @@ fun SmartAssistantPanel(
                 }
 
                 IconButton(onClick = onDismiss) {
-                    Icon(Icons.Default.Close, contentDescription = "Cerrar", tint = Color.Gray)
+                    Icon(Icons.Default.Close, contentDescription = "Cerrar", tint = IosSettingsColors.secondaryLabel)
                 }
             }
 
@@ -155,7 +155,7 @@ fun SmartAssistantPanel(
                                     )
                                     Text(
                                         text = brainResult.recommendedTemplate.description,
-                                        color = Color.Gray,
+                                        color = IosSettingsColors.secondaryLabel,
                                         fontSize = 12.sp
                                     )
                                     Spacer(modifier = Modifier.height(10.dp))
@@ -167,7 +167,7 @@ fun SmartAssistantPanel(
                                         colors = ButtonDefaults.buttonColors(containerColor = IosSettingsColors.blue),
                                         modifier = Modifier.fillMaxWidth()
                                     ) {
-                                        Text("Aplicar Estilo Completo", color = Color.Black, fontWeight = FontWeight.Bold)
+                                        Text("Aplicar Estilo Completo", color = IosSettingsColors.onAccent, fontWeight = FontWeight.Bold)
                                     }
                                 }
                             }
@@ -192,7 +192,7 @@ fun SmartAssistantPanel(
                                 ) {
                                     Column(modifier = Modifier.weight(1f)) {
                                         Text(text = suggestion.title, color = IosSettingsColors.label, fontSize = 13.sp, fontWeight = FontWeight.Bold)
-                                        Text(text = suggestion.description, color = Color.Gray, fontSize = 11.sp)
+                                        Text(text = suggestion.description, color = IosSettingsColors.secondaryLabel, fontSize = 11.sp)
                                     }
                                     Button(
                                         onClick = {
@@ -343,7 +343,7 @@ fun SmartAssistantPanel(
                                 ) {
                                     Column {
                                         Text(text = animType.name.replace("_", " "), color = IosSettingsColors.label, fontWeight = FontWeight.Bold, fontSize = 14.sp)
-                                        Text(text = "Efecto de movimiento dinámico para esta página", color = Color.Gray, fontSize = 11.sp)
+                                        Text(text = "Efecto de movimiento dinámico para esta página", color = IosSettingsColors.secondaryLabel, fontSize = 11.sp)
                                     }
                                     Icon(Icons.Default.PlayArrow, contentDescription = null, tint = IosSettingsColors.blue)
                                 }
@@ -368,9 +368,9 @@ fun SmartAssistantPanel(
                                         fontWeight = FontWeight.Bold
                                     )
                                     Spacer(modifier = Modifier.height(6.dp))
-                                    Text(text = "Enganche Título: ${brainResult.viralReport.hookScore}/100", color = Color.Gray, fontSize = 12.sp)
-                                    Text(text = "Atractivo Visual: ${brainResult.viralReport.visualAppealScore}/100", color = Color.Gray, fontSize = 12.sp)
-                                    Text(text = "Engagement Potencial: ${brainResult.viralReport.engagementScore}/100", color = Color.Gray, fontSize = 12.sp)
+                                    Text(text = "Enganche Título: ${brainResult.viralReport.hookScore}/100", color = IosSettingsColors.secondaryLabel, fontSize = 12.sp)
+                                    Text(text = "Atractivo Visual: ${brainResult.viralReport.visualAppealScore}/100", color = IosSettingsColors.secondaryLabel, fontSize = 12.sp)
+                                    Text(text = "Engagement Potencial: ${brainResult.viralReport.engagementScore}/100", color = IosSettingsColors.secondaryLabel, fontSize = 12.sp)
                                 }
                             }
                         }

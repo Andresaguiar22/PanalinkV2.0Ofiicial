@@ -92,26 +92,26 @@ fun PropertyInspector(
                 FilterChip(
                     selected = activeTab == "transform",
                     onClick = { activeTab = "transform" },
-                    label = { Text("Transform", fontSize = 11.sp, color = if (activeTab == "transform") Color.Black else Color.White) },
+                    label = { Text("Transform", fontSize = 11.sp, color = if (activeTab == "transform") IosSettingsColors.onAccent else IosSettingsColors.label) },
                     colors = FilterChipDefaults.filterChipColors(selectedContainerColor = IosSettingsColors.blue)
                 )
                 FilterChip(
                     selected = activeTab == "style",
                     onClick = { activeTab = "style" },
-                    label = { Text("Estilo", fontSize = 11.sp, color = if (activeTab == "style") Color.Black else Color.White) },
+                    label = { Text("Estilo", fontSize = 11.sp, color = if (activeTab == "style") IosSettingsColors.onAccent else IosSettingsColors.label) },
                     colors = FilterChipDefaults.filterChipColors(selectedContainerColor = IosSettingsColors.blue)
                 )
                 FilterChip(
                     selected = activeTab == "animation",
                     onClick = { activeTab = "animation" },
-                    label = { Text("Keyframes", fontSize = 11.sp, color = if (activeTab == "animation") Color.Black else Color.White) },
+                    label = { Text("Keyframes", fontSize = 11.sp, color = if (activeTab == "animation") IosSettingsColors.onAccent else IosSettingsColors.label) },
                     colors = FilterChipDefaults.filterChipColors(selectedContainerColor = IosSettingsColors.blue)
                 )
                 if (selectedLayer is CreativeLayer.Audio || selectedTrack is CreativeTrack.AudioTrack || selectedTrack is CreativeTrack.VideoTrack) {
                     FilterChip(
                         selected = activeTab == "audio",
                         onClick = { activeTab = "audio" },
-                        label = { Text("Audio", fontSize = 11.sp, color = if (activeTab == "audio") Color.Black else Color.White) },
+                        label = { Text("Audio", fontSize = 11.sp, color = if (activeTab == "audio") IosSettingsColors.onAccent else IosSettingsColors.label) },
                         colors = FilterChipDefaults.filterChipColors(selectedContainerColor = IosSettingsColors.blue)
                     )
                 }
@@ -214,7 +214,7 @@ private fun StyleInspectorPanel(
                     FilterChip(
                         selected = layer.fontFamily == font,
                         onClick = { onUpdateLayer(layer.copy(fontFamily = font)) },
-                        label = { Text(font, fontSize = 11.sp, color = if (layer.fontFamily == font) Color.Black else Color.White) },
+                        label = { Text(font, fontSize = 11.sp, color = if (layer.fontFamily == font) IosSettingsColors.onAccent else IosSettingsColors.label) },
                         colors = FilterChipDefaults.filterChipColors(selectedContainerColor = IosSettingsColors.blue)
                     )
                 }
@@ -254,7 +254,7 @@ private fun StyleInspectorPanel(
             }
         }
     } else {
-        Text("No hay opciones avanzadas de estilo para este tipo de capa.", color = Color.Gray, fontSize = 12.sp)
+        Text("No hay opciones avanzadas de estilo para este tipo de capa.", color = IosSettingsColors.secondaryLabel, fontSize = 12.sp)
     }
 }
 
@@ -278,7 +278,7 @@ private fun KeyframeAnimationPanel(
                 FilterChip(
                     selected = selectedProperty == prop,
                     onClick = { selectedProperty = prop },
-                    label = { Text(label, fontSize = 11.sp, color = if (selectedProperty == prop) Color.Black else Color.White) },
+                    label = { Text(label, fontSize = 11.sp, color = if (selectedProperty == prop) IosSettingsColors.onAccent else IosSettingsColors.label) },
                     colors = FilterChipDefaults.filterChipColors(selectedContainerColor = IosSettingsColors.blue)
                 )
             }
@@ -301,9 +301,9 @@ private fun KeyframeAnimationPanel(
                 },
                 colors = ButtonDefaults.buttonColors(containerColor = IosSettingsColors.blue)
             ) {
-                Icon(Icons.Default.Add, contentDescription = null, tint = Color.Black, modifier = Modifier.size(16.dp))
+                Icon(Icons.Default.Add, contentDescription = null, tint = IosSettingsColors.onAccent, modifier = Modifier.size(16.dp))
                 Spacer(modifier = Modifier.width(4.dp))
-                Text("Insertar Keyframe ($currentTimeMs ms)", color = Color.Black, fontSize = 12.sp, fontWeight = FontWeight.Bold)
+                Text("Insertar Keyframe ($currentTimeMs ms)", color = IosSettingsColors.onAccent, fontSize = 12.sp, fontWeight = FontWeight.Bold)
             }
 
             IconButton(onClick = { onRemoveKeyframe(layer.id, selectedProperty, currentTimeMs) }) {

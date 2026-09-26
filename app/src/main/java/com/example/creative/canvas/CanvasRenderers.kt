@@ -196,8 +196,8 @@ fun InteractiveLayerRenderer(
                 if (isSelected) Modifier.border(1.5.dp, IosSettingsColors.blue, RoundedCornerShape(12.dp))
                 else Modifier
             )
-            .background(Color(0xEE1F1F2C), RoundedCornerShape(16.dp))
-            .border(1.dp, Color(0xFF3F3F52), RoundedCornerShape(16.dp))
+            .background(IosSettingsColors.cellElevated.copy(alpha = 0.93f), RoundedCornerShape(16.dp))
+            .border(1.dp, IosSettingsColors.separator, RoundedCornerShape(16.dp))
             .padding(16.dp)
     ) {
         Column(horizontalAlignment = Alignment.CenterHorizontally) {
@@ -224,7 +224,7 @@ fun InteractiveLayerRenderer(
                     if (layer.optionA.isNotEmpty()) {
                         Box(
                             modifier = Modifier
-                                .background(Color(0xFF2D2D3E), RoundedCornerShape(8.dp))
+                                .background(IosSettingsColors.cell, RoundedCornerShape(8.dp))
                                 .padding(horizontal = 12.dp, vertical = 6.dp)
                         ) {
                             Text(layer.optionA, color = IosSettingsColors.label, fontSize = 12.sp)
@@ -233,7 +233,7 @@ fun InteractiveLayerRenderer(
                     if (layer.optionB.isNotEmpty()) {
                         Box(
                             modifier = Modifier
-                                .background(Color(0xFF2D2D3E), RoundedCornerShape(8.dp))
+                                .background(IosSettingsColors.cell, RoundedCornerShape(8.dp))
                                 .padding(horizontal = 12.dp, vertical = 6.dp)
                         ) {
                             Text(layer.optionB, color = IosSettingsColors.label, fontSize = 12.sp)
