@@ -60,6 +60,9 @@ import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.compose.ui.zIndex
+import androidx.lifecycle.Lifecycle
+import androidx.lifecycle.LifecycleEventObserver
+import androidx.lifecycle.compose.LocalLifecycleOwner
 import com.example.data.model.PostDto
 import com.example.reels.ui.ReelPlayerSurface
 import com.example.ui.components.PanaAvatar
@@ -104,6 +107,25 @@ fun MuroVideoViewer(
 
     DisposableEffect(pool) {
         onDispose { pool.releaseAll() }
+    }
+
+    // Android lifecycle: leaving the app must not keep decoding video in the
+    // background. Resuming re-arms the visible page through the pager effect below.
+    val lifecycleOwner = LocalLifecycleOwner.current
+    DisposableEffect(lifecycleOwner, pool) {
+        val observer = LifecycleEventObserver { _, event ->
+            when (event) {
+                Lifecycle.Event.ON_PAUSE -> pool.pauseAll()
+                Lifecycle.Event.ON_RESUME -> {
+                    val current = posts.getOrNull(pagerState.settledPage) ?: return@LifecycleEventObserver
+                    val id = current.id ?: return@LifecycleEventObserver
+                    pool.setTarget(id)
+                }
+                else -> Unit
+            }
+        }
+        lifecycleOwner.lifecycle.addObserver(observer)
+        onDispose { lifecycleOwner.lifecycle.removeObserver(observer) }
     }
 
     // Land on the requested post even if the list arrived after the first
