@@ -13,6 +13,9 @@ class FakeSupabaseApi : SupabaseApiService {
     var upsertedPlaylists = mutableListOf<RemoteMusicPlaylist>()
     var upsertedTracks = mutableListOf<RemoteMusicPlaylistTrack>()
 
+    override suspend fun getOtherActiveDevices(apiKey: String, authorization: String, params: Map<String, String>): Response<List<ActiveDeviceDto>> = Response.success(emptyList())
+    override suspend fun registerDevice(apiKey: String, authorization: String, params: Map<String, String>): Response<Unit> = Response.success(Unit)
+    override suspend fun logoutOtherSessions(apiKey: String, authorization: String): Response<Unit> = Response.success(Unit)
     override suspend fun getUserEntitlements(apiKey: String, authHeader: String, userIdFilter: String): Response<List<UserEntitlementDto>> = TODO()
     override suspend fun getUserPrivacySettings(apiKey: String, authHeader: String, userIdFilter: String): Response<List<UserPrivacySettingDto>> = TODO()
     override suspend fun upsertUserPrivacySetting(apiKey: String, authHeader: String, prefer: String, setting: UserPrivacySettingDto): Response<Unit> = TODO()
