@@ -522,7 +522,7 @@ fun InicioTabContent(
     // (one video per screen, swipe to the next video); photos open in their own
     // horizontal viewer, so a photo swipe never lands on a video and vice versa.
     var muroVideoPostId by remember { mutableStateOf<String?>(null) }
-    var muroPhotoViewer by remember { mutableStateOf<Pair<List<String>, Int>?>(null) }
+    var muroPhotoViewer by remember { mutableStateOf<Triple<List<com.example.data.model.PostDto>, String, Int>?>(null) }
     var postToDeleteId by remember { mutableStateOf<String?>(null) }
     var activePlaylistPost by remember { mutableStateOf<com.example.data.model.PostDto?>(null) }
 
@@ -874,9 +874,15 @@ fun InicioTabContent(
                                     fullScreenStartPosition = position
                                     muroVideoPostId = post.id
                                 } else {
-                                    val photos = list.filterNot { com.example.ui.components.isVideoUrl(it) }
-                                    val photoPage = photos.indexOf(tappedUrl).coerceAtLeast(0)
-                                    muroPhotoViewer = photos to photoPage
+                                    // The photo viewer walks photo publications, not a flat URL list:
+                                    // it needs the posts to show reactions and caption. Photos before the
+                                    // tapped one inside this post give the index within the post.
+                                    val photosInPost = list.filterNot { com.example.ui.components.isVideoUrl(it) }
+                                    val photoIndex = photosInPost.indexOf(tappedUrl).coerceAtLeast(0)
+                                    val photoPosts = feedUiState.posts.filter { com.example.muro.viewer.isPhotoPost(it) }
+                                    if (photoPosts.isNotEmpty()) {
+                                        muroPhotoViewer = Triple(photoPosts, post.id ?: "", photoIndex)
+                                    }
                                 }
                             },
                             onAudioPlaylistClick = { activePlaylistPost = it }
@@ -1168,12 +1174,16 @@ fun InicioTabContent(
         }
     }
 
-    // Photo viewer: horizontal, photos only.
-    muroPhotoViewer?.let { (photos, page) ->
+    // Photo viewer: vertical, photos only, with the same actions as the video viewer.
+    muroPhotoViewer?.let { (photoPosts, initialPostId, photoIndex) ->
         com.example.muro.viewer.MuroPhotoViewer(
-            mediaUrls = photos,
-            initialPage = page,
-            onBack = { muroPhotoViewer = null }
+            posts = photoPosts,
+            initialPostId = initialPostId,
+            initialPhotoIndex = photoIndex,
+            onBack = { muroPhotoViewer = null },
+            onToggleLike = { post -> feedViewModel.toggleLike(post) },
+            onOpenComments = { post -> selectedPostForComments = post },
+            onShare = { post -> feedViewModel.sharePost(post) }
         )
     }
 

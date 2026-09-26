@@ -337,7 +337,7 @@ private fun MuroViewerActions(
 }
 
 @Composable
-private fun MuroActionButton(
+internal fun MuroActionButton(
     icon: androidx.compose.ui.graphics.vector.ImageVector,
     count: String? = null,
     tint: Color = Color.White,
@@ -364,7 +364,7 @@ private fun MuroActionButton(
 }
 
 @Composable
-private fun MuroPostHeader(
+internal fun MuroPostHeader(
     post: PostDto,
     onProfileClick: () -> Unit,
     modifier: Modifier = Modifier,
