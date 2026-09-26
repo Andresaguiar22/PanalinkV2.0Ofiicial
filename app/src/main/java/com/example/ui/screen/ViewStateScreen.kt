@@ -31,7 +31,7 @@ import androidx.compose.material.icons.filled.Visibility
 import androidx.compose.material.icons.filled.VisibilityOff
 import androidx.compose.material.icons.filled.KeyboardArrowUp
 import androidx.compose.material.icons.filled.MoreVert
-import androidx.compose.material.icons.filled.Send
+import androidx.compose.material.icons.automirrored.filled.Send
 import androidx.compose.material.icons.filled.Star
 import androidx.compose.material.icons.outlined.Delete
 import androidx.compose.material.icons.rounded.Favorite
@@ -773,7 +773,21 @@ var showGifPicker by remember { mutableStateOf(false) }
                     elapsedMs = position
                 }
             }
+            try {
+                kotlinx.coroutines.awaitCancellation()
+            } finally {
+                // La sesion es compartida entre historias: al salir de esta story hay
+                // que retirar el callback o el video sigue empujando elapsedMs mientras
+                // la siguiente historia (p.ej. una foto) avanza con su temporizador.
+                storyPlayer.onPositionChanged = null
+            }
         } else {
+            // La story visible NO es un video: si venimos de una (misma publicacion,
+            // p.ej. video -> foto) hay que PARAR la sesion, no solo pausarla. Es unica
+            // para todo el visor, asi que sin esto el audio del video seguia sonando
+            // por debajo de la foto. `stop()` libera decoder y audio ya; el siguiente
+            // video de la cadena vuelve a hacer setMediaItem+prepare.
+            storyPlayer.stopPlayback()
             val interval = 50L
             while (elapsedMs < currentDurationMs) {
                 delay(interval)
@@ -1666,7 +1680,7 @@ var showGifPicker by remember { mutableStateOf(false) }
                         modifier = Modifier.size(36.dp)
                     ) {
                         Icon(
-                            imageVector = Icons.Default.Send,
+                            imageVector = Icons.AutoMirrored.Filled.Send,
                             contentDescription = "Enviar",
                             tint = IosSettingsColors.green,
                             modifier = Modifier.size(20.dp)
@@ -1808,7 +1822,7 @@ var showGifPicker by remember { mutableStateOf(false) }
                         }
                     }
 
-                    Divider(color = IosSettingsColors.separator)
+                    HorizontalDivider(color = IosSettingsColors.separator)
 
                     // List of comments
                     LazyColumn(
@@ -1927,7 +1941,7 @@ var showGifPicker by remember { mutableStateOf(false) }
                         }
                     }
 
-                    Divider(color = IosSettingsColors.separator)
+                    HorizontalDivider(color = IosSettingsColors.separator)
 
                     // Text write comments input bar
                     Row(
@@ -1977,7 +1991,7 @@ Box(
                                         }
                                     ) {
                                         Icon(
-                                            imageVector = Icons.Filled.Send,
+                                            imageVector = Icons.AutoMirrored.Filled.Send,
                                             contentDescription = "Enviar",
                                             tint = IosSettingsColors.green,
                                             modifier = Modifier.size(20.dp)
@@ -2057,7 +2071,7 @@ if (showGifPicker) {
                         }
                     }
 
-                    Divider(color = IosSettingsColors.separator)
+                    HorizontalDivider(color = IosSettingsColors.separator)
 
                     LazyColumn(
                         modifier = Modifier
@@ -2359,6 +2373,23 @@ fun VideoPlayer(
 
     LaunchedEffect(isMuted) { session.setMuted(isMuted) }
     LaunchedEffect(isPaused) { session.setPaused(isPaused) }
+
+    // Al desmontarse se limpian los callbacks: son estado COMPARTIDO de la sesion
+    // (que es unica para todo el visor). Si quedan colgando, el video sigue empujando
+    // elapsedMs mientras la siguiente story avanza con su propio temporizador.
+    // La detencion del player NO va aqui: parar en cada dispose obligaria a un
+    // re-buffer entre dos historias de video consecutivas. Se detiene solo cuando la
+    // historia visible deja de ser video (rama else del loop de progreso).
+    DisposableEffect(stateId) {
+        onDispose {
+            session.onPositionChanged = null
+            session.onMediaEnded = null
+            session.onDurationReady = null
+            session.onReady = null
+            session.onStateChanged = null
+            session.onError = null
+        }
+    }
 
     Box(modifier = modifier) {
         AndroidView(

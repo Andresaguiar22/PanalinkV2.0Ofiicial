@@ -443,6 +443,30 @@ class StoryVideoPlayerSession(private val context: Context) {
         if (!isReleased.get()) player.playWhenReady = !paused
     }
 
+    /**
+     * Detiene la reproduccion cuando la story visible deja de ser un video (p.ej. la
+     * siguiente de la misma publicacion es una foto).
+     *
+     * Esta sesion es UNICA para todo el visor y se reutiliza entre historias, asi que
+     * al desmontarse [com.example.ui.screen.VideoPlayer] el player seguia con
+     * `playWhenReady = true` y el audio del video continuaba sonando por debajo de la
+     * foto. `stop()` libera decoder y audio de inmediato; el siguiente [play] vuelve a
+     * hacer setMediaItem + prepare, asi que la sesion queda reutilizable.
+     */
+    fun stopPlayback() {
+        if (isReleased.get()) return
+        try {
+            player.stop()
+        } catch (_: IllegalStateException) {
+            // Player liberandose entre el chequeo y la llamada.
+        }
+        // `stop()` deja el player en IDLE pero CONSERVA el media item, asi que si el
+        // usuario vuelve al video anterior [play] lo tomaria por "misma story"
+        // (isSameStory) y solo haria play() sobre un player sin preparar -> negro.
+        // Invalidar el stateId cargado fuerza un setMediaItem+prepare en el proximo play.
+        currentMediaStateId = null
+    }
+
     fun setMuted(muted: Boolean) {
         if (!isReleased.get()) player.volume = if (muted) 0f else 1f
     }
