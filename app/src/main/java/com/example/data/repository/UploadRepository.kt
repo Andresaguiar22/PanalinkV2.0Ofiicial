@@ -23,18 +23,26 @@ open class UploadRepository {
     private val TAG = "UploadRepository"
 
     companion object {
+        /**
+         * Emitted once a post is confirmed by the backend. Carries the REAL server
+         * post id so the UI can open that exact publication instead of guessing a
+         * position in the feed. A null id means the id is unknown (legacy callers),
+         * and the UI falls back to a plain refresh.
+         */
+        data class UploadSuccess(val postId: String?)
+
         private val _globalUploadProgress = MutableStateFlow<Float?>(null)
         val globalUploadProgress: StateFlow<Float?> = _globalUploadProgress.asStateFlow()
         
-        private val _uploadSuccessEvent = kotlinx.coroutines.flow.MutableSharedFlow<Unit>(extraBufferCapacity = 1)
-        val uploadSuccessEvent: kotlinx.coroutines.flow.SharedFlow<Unit> = _uploadSuccessEvent
+        private val _uploadSuccessEvent = kotlinx.coroutines.flow.MutableSharedFlow<UploadSuccess>(extraBufferCapacity = 1)
+        val uploadSuccessEvent: kotlinx.coroutines.flow.SharedFlow<UploadSuccess> = _uploadSuccessEvent
 
         fun setGlobalProgress(progress: Float?) {
             _globalUploadProgress.value = progress
         }
         
-        fun triggerUploadSuccess() {
-            _uploadSuccessEvent.tryEmit(Unit)
+        fun triggerUploadSuccess(postId: String? = null) {
+            _uploadSuccessEvent.tryEmit(UploadSuccess(postId))
         }
     }
 

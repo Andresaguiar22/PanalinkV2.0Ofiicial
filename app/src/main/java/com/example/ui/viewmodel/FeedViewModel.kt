@@ -80,10 +80,28 @@ class FeedViewModel(
 
     private fun observeUploadSuccess() {
         viewModelScope.launch(errorHandler + kotlinx.coroutines.Dispatchers.IO) {
-            com.example.data.repository.UploadRepository.uploadSuccessEvent.collect {
+            com.example.data.repository.UploadRepository.uploadSuccessEvent.collect { success ->
                 refreshFeed()
+                // Surface the confirmed id so the screen can open the publication the
+                // user just made, instead of leaving them to hunt for it in the feed.
+                success.postId?.let { postId ->
+                    _publishedPostId.value = postId
+                }
             }
         }
+    }
+
+    /**
+     * Id of the last publication confirmed by the backend, or null. The Muro screen
+     * consumes it (then clears it) to open the freshly published video. The id is
+     * cleared with [consumePublishedPost] so returning to the Muro does not reopen
+     * the viewer.
+     */
+    private val _publishedPostId = MutableStateFlow<String?>(null)
+    val publishedPostId: StateFlow<String?> = _publishedPostId.asStateFlow()
+
+    fun consumePublishedPost() {
+        _publishedPostId.value = null
     }
 
     private fun observePendingPosts() {

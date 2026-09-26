@@ -174,11 +174,10 @@ fun FeedPostCard(
         }
     }
 
-    var isLiked by rememberSaveable(post.id) { mutableStateOf(post.isLikedByMe ?: false) }
-    LaunchedEffect(post.isLikedByMe) {
-        post.isLikedByMe?.let { isLiked = it }
-    }
-
+    // No local like state: the repository writes the optimistic toggle straight to
+    // Room, and the feed list is a Room flow, so `post.isLikedByMe` is already the
+    // single source of truth. Keeping a shadow copy here is what made the card and
+    // the viewer disagree after a like.
     var likeScale by remember { mutableStateOf(1f) }
     val likeAnimScale by animateFloatAsState(
         targetValue = likeScale,
@@ -632,7 +631,7 @@ fun FeedPostCard(
                 Spacer(modifier = Modifier.height(8.dp))
             }
 
-            val postIsLiked = post.isLikedByMe ?: isLiked
+            val postIsLiked = post.isLikedByMe ?: false
             if (post.likesCount > 0 || post.commentsCount > 0 || post.sharesCount > 0) {
                 Row(
                     modifier = Modifier

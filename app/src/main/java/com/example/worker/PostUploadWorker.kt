@@ -285,6 +285,10 @@ open class PostUploadWorker(
             if (createResult.isSuccess) {
                 Log.i(TAG, "Feed post created successfully!")
 
+                // The confirmed server id is what the UI navigates to. It is read
+                // from the create response (authoritative) and falls back to the id
+                // we sent, which the backend echoes because it is client-supplied.
+                val confirmedPostId = createResult.getOrNull()?.id ?: serverPostId
 
                 db.withTransaction {
 
@@ -299,7 +303,7 @@ open class PostUploadWorker(
 
                 }
                 UploadRepository.setGlobalProgress(null)
-                UploadRepository.triggerUploadSuccess()
+                UploadRepository.triggerUploadSuccess(confirmedPostId)
                 return Result.success()
             } else {
                 Log.e(TAG, "Failed to create feed post", createResult.exceptionOrNull())

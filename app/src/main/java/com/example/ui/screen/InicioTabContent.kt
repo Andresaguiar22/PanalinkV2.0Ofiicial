@@ -507,6 +507,7 @@ fun InicioTabContent(
     val context = androidx.compose.ui.platform.LocalContext.current
 
     val feedUiState by feedViewModel.uiState.collectAsStateWithLifecycle()
+    val publishedPostId by feedViewModel.publishedPostId.collectAsStateWithLifecycle()
     var showCreatePostSheet by remember { mutableStateOf(false) }
     var selectedPostForComments by remember { mutableStateOf<com.example.data.model.PostDto?>(null) }
     var editingPostId by remember { mutableStateOf<String?>(null) }
@@ -516,8 +517,34 @@ fun InicioTabContent(
     var fullScreenInitialPage by remember { mutableIntStateOf(0) }
     var fullScreenBackgroundAudio by remember { mutableStateOf<String?>(null) }
     var fullScreenStartPosition by remember { mutableLongStateOf(0L) }
+
+    // Immersive viewers launched from the Muro. Videos open in a vertical viewer
+    // (one video per screen, swipe to the next video); photos open in their own
+    // horizontal viewer, so a photo swipe never lands on a video and vice versa.
+    var muroVideoPostId by remember { mutableStateOf<String?>(null) }
+    var muroPhotoViewer by remember { mutableStateOf<Pair<List<String>, Int>?>(null) }
     var postToDeleteId by remember { mutableStateOf<String?>(null) }
     var activePlaylistPost by remember { mutableStateOf<com.example.data.model.PostDto?>(null) }
+
+    // After publishing, open the video the user just posted instead of dropping them
+    // back on the feed with no feedback. The id is consumed so coming back to the
+    // Muro later does not reopen the viewer.
+    LaunchedEffect(publishedPostId) {
+        val id = publishedPostId ?: return@LaunchedEffect
+        // The refresh that carries the new post may still be in flight; poll the
+        // latest state for a bounded moment and open only if the post arrived.
+        var post = feedViewModel.uiState.value.posts.firstOrNull { it.id == id }
+        var attempts = 0
+        while (post == null && attempts < 10) {
+            kotlinx.coroutines.delay(300)
+            post = feedViewModel.uiState.value.posts.firstOrNull { it.id == id }
+            attempts++
+        }
+        if (post != null && com.example.muro.viewer.isVideoPost(post)) {
+            muroVideoPostId = id
+        }
+        feedViewModel.consumePublishedPost()
+    }
 
     // Comments Bottom Sheet State
     var showCommentsSheet by remember { mutableStateOf(false) }
@@ -835,10 +862,22 @@ fun InicioTabContent(
                                 editingPostContent = content
                             },
                             onMediaClick = { list, page, audio, position ->
-                                fullScreenMediaList = list
-                                fullScreenInitialPage = page
-                                fullScreenBackgroundAudio = audio
-                                fullScreenStartPosition = position
+                                // Split by kind so each viewer only walks its own
+                                // media. A video opens the vertical viewer anchored on
+                                // the tapped post; a photo opens the photo viewer on
+                                // the tapped page.
+                                val tappedUrl = list.getOrNull(page)
+                                val isVideoTap = tappedUrl?.let { com.example.ui.components.isVideoUrl(it) } == true
+
+                                if (isVideoTap) {
+                                    fullScreenBackgroundAudio = audio
+                                    fullScreenStartPosition = position
+                                    muroVideoPostId = post.id
+                                } else {
+                                    val photos = list.filterNot { com.example.ui.components.isVideoUrl(it) }
+                                    val photoPage = photos.indexOf(tappedUrl).coerceAtLeast(0)
+                                    muroPhotoViewer = photos to photoPage
+                                }
                             },
                             onAudioPlaylistClick = { activePlaylistPost = it }
                         )
@@ -1106,6 +1145,35 @@ fun InicioTabContent(
             postId = post.id ?: "",
             onDismiss = { selectedPostForComments = null },
             viewModel = feedViewModel
+        )
+    }
+
+    // Vertical video viewer: continues from the tapped post across the videos of
+    // the Muro, so swiping up always lands on another video (never on a photo).
+    muroVideoPostId?.let { initialId ->
+        val videoPosts = feedUiState.posts.filter { com.example.muro.viewer.isVideoPost(it) }
+        if (videoPosts.isNotEmpty()) {
+            com.example.muro.viewer.MuroVideoViewer(
+                posts = videoPosts,
+                initialPostId = initialId,
+                onBack = {
+                    muroVideoPostId = null
+                    fullScreenBackgroundAudio = null
+                },
+                onToggleLike = { post -> feedViewModel.toggleLike(post) },
+                onOpenComments = { post -> selectedPostForComments = post },
+                onShare = { post -> feedViewModel.sharePost(post) },
+                onProfileClick = { /* Perfil desde el visor */ }
+            )
+        }
+    }
+
+    // Photo viewer: horizontal, photos only.
+    muroPhotoViewer?.let { (photos, page) ->
+        com.example.muro.viewer.MuroPhotoViewer(
+            mediaUrls = photos,
+            initialPage = page,
+            onBack = { muroPhotoViewer = null }
         )
     }
 

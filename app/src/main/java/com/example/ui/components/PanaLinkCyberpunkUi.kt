@@ -37,6 +37,7 @@ import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.text.font.FontFamily
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.zIndex
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.example.data.supabase.SupabaseClient
@@ -594,9 +595,11 @@ fun PaniOSUnifiedTopBar(
                     Box(
                         modifier = Modifier
                             .size(40.dp)
-                            .clip(CircleShape)
                             .clickable(onClick = onProfile)
                     ) {
+                        // The avatar is clipped, the container is NOT: clipping the
+                        // container also clipped the presence dot at the avatar edge,
+                        // which is why it looked cut off inside the photo.
                         com.example.ui.components.PanaAvatar(
                             avatarUrl = SupabaseClient.currentProfile?.avatarUrl,
                             userId = SupabaseClient.currentUser?.id,
@@ -604,18 +607,22 @@ fun PaniOSUnifiedTopBar(
                             borderWidth =  1.5.dp,
                             borderColor = IosSettingsColors.green,
                             placeholderName = SupabaseClient.currentProfile?.displayName ?: "",
-                            contentDescription = "Perfil"
+                            contentDescription = "Perfil",
+                            modifier = Modifier.clip(CircleShape)
                         )
                         val myPresence by com.example.data.repository.PresenceRepository.currentUserStatus.collectAsStateWithLifecycle()
                         val mySecondaryPresence by com.example.data.repository.PresenceRepository.currentUserSecondaryStatus.collectAsStateWithLifecycle()
+                        // Border matches the bar background so the dot reads as a
+                        // separate badge instead of a blob stuck on the photo.
                         com.example.ui.components.chat.list.PresenceIndicator(
                             status = myPresence.rawValue,
                             secondaryStatus = if (mySecondaryPresence != com.example.data.repository.SecondaryPresenceStatus.NONE) mySecondaryPresence.rawValue else null,
                             size =  12.dp,
-                            borderColor = IosSettingsColors.label,
+                            borderColor = IosSettingsColors.groupBackground,
                             modifier = Modifier
                                 .align(Alignment.BottomEnd)
-                                .offset(x =  2.dp, y =  2.dp)
+                                .offset(x =  1.dp, y =  1.dp)
+                                .zIndex(1f)
                         )
                     }
                     PaniOSStatusLabel()

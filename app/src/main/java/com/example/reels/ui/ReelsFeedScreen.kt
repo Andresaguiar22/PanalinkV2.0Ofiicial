@@ -731,6 +731,13 @@ private fun ReelFeedOverlay(
     var localLikes by remember(state.id) { mutableIntStateOf(state.likesCount ?: 0) }
     var localFavorites by remember(state.id) { mutableIntStateOf(state.favoritesCount ?: 0) }
     var localShares by remember(state.id) { mutableIntStateOf(state.sharesCount ?: 0) }
+    // The optimistic counters above make the toggle instant, but the server value
+    // must win once it arrives: without this, a like made elsewhere (or the value
+    // corrected by the backend) never reaches the counter.
+    LaunchedEffect(state.likesCount) { state.likesCount?.let { localLikes = it } }
+    LaunchedEffect(state.favoritesCount) { state.favoritesCount?.let { localFavorites = it } }
+    LaunchedEffect(state.likedByMe) { state.likedByMe?.let { liked = it } }
+    LaunchedEffect(state.favoritedByMe) { state.favoritedByMe?.let { favorited = it } }
     var menuExpanded by remember { mutableStateOf(false) }
     LaunchedEffect(state.userId) {
         if (!currentUid.isNullOrBlank() && state.userId.isNotBlank()) {
