@@ -104,8 +104,8 @@ VERSION_NAME=vX.Y.Z VERSION_CODE=N ./gradlew :app:assembleRelease   # release
 ### Canal OTA (Andresaguiar22/panalink-ota)
 * Repo público de distribución: `https://github.com/Andresaguiar22/panalink-ota` (rama `main`).
 * `manifest.json` en `main` es la fuente de verdad para la app; vivir también se adjunta como asset del release.
-* Convención de versiones: `versionCode` incrementa de 1 en 1; `versionName` es la tag (`v1.3.x`). Actual: **v1.3.59 / code 86** (publicada 2026-09-26).
-* `minimumSupportedVersionCode` = versionCode de la versión anterior publicada (85 para v1.3.59); `mandatory` casi siempre `false`.
+* Convención de versiones: `versionCode` incrementa de 1 en 1; `versionName` es la tag (`v1.3.x`). Actual: **v1.3.60 / code  ‎87** (publicada 2026-09-26).
+* `minimumSupportedVersionCode` = versionCode de la versión anterior publicada (86 para v1.3.60); `mandatory` casi siempre `false` (excepción: **v1.3.60 fue `true`** por ser hotfix crítico de crash al arrancar).
 * Últimas publicadas(histórico): v1.3.34/code 61 (2026-09-11), v1.3.33/code  60 (2026-09-11), v1.3.32/code 59 (2026-09-10), v1.3.31/code  58 (2026-09-10)y v1.3.30/code  ⁵⁷ (2026-09-10.
 * **Política de build universal (desde v1.3.33):** `app/build.gradle.kts` incluye `packaging { jniLibs { useLegacyPackaging = true } } }` con las 4 ABIs→ el APK sale con `extractNativeLibs=true` (fix de instalación en XOS/Transsion - Infinix/Tecno/itel y ROMs estrictas Android   7-11+) y `Panalink-<versionName>.apk` de ~78 MB. Adjuntar también `manifest.json` al release.
 * `sha256` del APK es obligatorio en el manifest (64 hex).
@@ -339,9 +339,11 @@ cd /workspace/project/PanalinkV2.0Ofiicial/.toolchain && nohup python3 serve_ran
   (reglas keep para kotlinx.serialization, Moshi, Supabase, enums serializados).
 
 **Hallazgo validado en sesión** (no inferido):
-* `assembleRelease` con estas flags compila y ofusca **correctamente** (BUILD SUCCESSFUL ~12 min, 4 DEX, APK ~70 MB).
-  **Pendiente real**: probar el APK ofuscado EN DISPOSITIVO (login, chat multimedia, GIFs, feed, llamada) antes de
-  cualquier release OTA. Si rompe por minificacion, anadir su regla keep - NUNCA desactivar R8.
+* `assembleRelease` con estas flags compila y ofusca **correctamente** (BUILD SUCCESSFUL ~12 min,  ‎4 DEX, APK ~70 MB).
+  **RESUELTO (hotfix v1.3.60, sesión 2026-09-26)**: la pendiente real se cumplió—la v1.3.59 (con R8) **reventó en producción** con
+  `NoClassDefFoundError: <clinit> failed for SupabaseClient` (ver sección "🔥 Hotfix R8" más abajo). Se añadieron los keeps de
+  kotlin-reflect/Moshi y se verificó el APK con las clases presentes en el dex. Regla vigente: **NUNCA desactivar R8**—se
+  añade la regla keep que falte y se vuelve a compilar/verificar en el dex antes de publicar.
 * El keystore beta se borro del arbol pero **sigue en el historial git** (borrarlo no lo purga); la purga
   (`git filter-repo`/BFG) es accion manual del dueno. Mientras tanto la firma beta se recupero fuera del repo
   (ver seccion Firma BETA estable): `/workspace/beta-keystore/panalink-beta.keystore` + `app/secrets.properties`.
@@ -1338,5 +1340,55 @@ La spec original vive en el historial de la conversacion (`/workspace/conversati
 * **⚠️ Robolectric + `FileSystemAlreadyExistsException` (diagnostico CORREGIDO)**: en esta sesion se atribuyo primero a `createConfigurationContext`. **Falso.** El stack real es `ZipFileSystemProvider.newFileSystem` → `DefaultNativeRuntimeLoader.maybeCopyFonts` → `AndroidTestEnvironment.setUpApplicationState` → `RobolectricTestRunner.beforeTest`: revienta en el **setup de Robolectric, antes del cuerpo del test**, y basta con que la clase exista para desestabilizar la suite (medido: con la clase 1 fallo, sin ella 332/332 verde con `--rerun-tasks`). Es una carrera de Robolectric al copiar fuentes, no un bug del test. **Salida**: no testear formulas puras con Robolectric; extraer la formula y testearla en JVM puro.
 * **⚠️ Ojo con el 4K en tests de cap**: el cap es sobre el **lado largo**. En 4K el lado largo es **3840**, no 2160 (ese es el alto). Un aserto `cap < 2160` es incorrecto: en un panel 1080p el cap es 2304, legitimo y por debajo de 3840.
 * Leccion de metodo: la sesion habia reportado "el fix del cap esta aplicado" basandose en que el motor existia. **Existir != estar cableado**: hay que contar los call sites. Y al diagnosticar un test rojo, **leer el stack completo antes de proponer la causa**: los dos diagnosticos de esta sesion (`createConfigurationContext`, `clearVideoSizeConstraints`) eran plausibles pero incorrectos.
+## 🔥 Hotfix R8: crash al abrir la app (v1.3.60 / code 87, sesión 2026-09-26, commit `f79a356`)
+
+**Síntoma reportado por usuarios finales** (urgencia máxima, usuarios enojados):
+```
+java.lang.NoClassDefFoundError: <clinit> failed for class com.example.data.supabase.SupabaseClient; see exception in other thread
+	at ck.invokeSuspend(Panalink:1547)
+	Suppressed: ww0: [ma4{Cancelling}@1f93e7a, Dispatchers.IO]
+```
+
+### Causa raíz (medida del dex, no inferida)
+* `SupabaseClient.<clinit>` construye su `Moshi` con `KotlinJsonAdapterFactory` (de `moshi-kotlin`), que a su vez usa **kotlin-reflect** para leer `@Metadata` y generar adapters por reflexión en runtime.
+* Se usa **en ≥9 sitios** (`CallManager`, `MessageBubbleEngine`, `PanaTVRepository`, `StickerCatalogRepository`, `ReelCommentReactionRemoteDataSource`, `CallHistoryDataSource`, y el propio `SupabaseClient`).
+* Con `isMinifyEnabled=true` (R8, release), las reglas ProGuard **NO conservaban** el stack de reflexión:
+  `kotlin.reflect.**`, `kotlin.Metadata`, `com.squareup.moshi.kotlin.**` y los adapters generados por KSP (`**JsonAdapter`) se eliminaban/ofuscaban. El `<clinit>` reventaba al primer acceso (el crash "see exception in other thread" es la firma de un ExceptionInInitializerError/NoClassDefFoundError secundario).
+* **Anatomía del APK de v1.3.60 (verificado con `dexdump`)**: 4 DEX; `com/squareup/moshi` → 99 clases en dex3, `com/squareup/moshi/kotlin/reflect/KotlinJsonAdapterFactory` → presente, `kotlin/reflect/jvm/internal` → 1.889 clases en dex4, `kotlin/Metadata` → presente (1), `getMetadata` → 412 referencias. **Con el fix, TODO el stack está en el APK.**
+
+### Fix (`app/proguard-rules.pro`, +51 líneas, commit `f79a356`)
+Reglas añadidas (tras la sección de enums):
+* **Reflexión de Kotlin**: `-keep class kotlin.reflect.**`, `kotlin.reflect.jvm.**`, `kotlin.reflect.full.**`, `kotlin.Metadata`, `-keepclassmembers ... getMetadata(...)`, `-dontwarn kotlin.**`.
+* **Moshi runtime y moshi-kotlin**: `-keep class com.squareup.moshi.**`, `com.squareup.moshi.kotlin.**` y `-dontwarn`.
+* **Adapters KSP**: `-keep class **JsonAdapter { *; }`, `-keepclasseswithmembers ... @com.squareup.moshi.Generated`, `-keep class com.squareup.moshi.Generated`.
+* **Refuerzos**: `retrofit2.converter.moshi.**`, `okio.**`, y `-keep @com.squareup.moshi.JsonClass class * { *; }`.
+* Importante: `-keepattributes` ampliado (RuntimeVisibleAnnotations, ParameterAnnotations, TypeAnnotations, AnnotationDefault, Signature, Exceptions).
+
+### 🏭 Diagnóstico: cómo verificar que un APK con R8 lleva las clases de reflexión ANTES de publicar
+* **`unzip -l` NO sirve para clases**: Android empaqueta en **dex** (classes*.dex), no `.class` sueltos. `unzip -l` solo lista el dex, no su contenido.
+* **Verificación correcta**: extraer los dex y usar `dexdump` (build-tools):
+  ```bash
+  python3 -c 'import zipfile;[open(f"/tmp/classes{i}.dex","wb").write(zipfile.ZipFile("app-release.apk").read(f"classes{i}.dex")) for i in range(1,5)]'
+  for i in 1 2 3 4; do .toolchain/sdk/build-tools/*/dexdump -d /tmp/classes$i.dex | grep -c "Class descriptor  : 'Lkotlin/reflect/jvm/internal"; done
+  ```
+  Con el fix: dex4 → 1.889. **Un 0 con el stack esperado = crash seguro en runtime**.
+* **El `usage.txt` de R8** (`app/build/outputs/mapping/release/usage.txt`) lista lo que **se descartó**: si una clase que el código referencia no aparece, es que R8 la eliminó (o el código estaba muerto). `grep com.squareup.moshi usage.txt` debe mostrar referencias de tipos en vivo, no la clase entera listada como descartada.
+
+
+### Release OTA (publicada 2026-09-26)
+* Version: **v1.3.60 / code  ‎87**; package `com.panalink.app`; firma `CN=Panalink`; ‎4 ABIs; `extractNativeLibs=0xffffffff`; zipalign OK; `zip.testzip()=None`; SHA-256 `1c5d30867322552e5127e6f18a03089e0d6fa71eab7960dd218165a4e5cb7908` (APK 71.242.863 bytes).
+* **`mandatory: true`** y `minimumSupportedVersionCode: 86` (el anterior publicado): al ser hotfix crítico de crash, la app **fuerza la actualización inmediata** para que los usuarios dejen de ver el crash al abrir.
+* Build: `assembleRelease` (~12m), R8 activo, 4 DEX. `APP_URL` = `https://${SUPABASE_PROJECT_ID}.supabase.co` (BuildConfig.BACKEND_URL no se consume; ver nota en release v1.3.59).
+* Release publicado: `https://github.com/Andresaguiar22/panalink-ota/releases/tag/v1.3.60`; assets: APK + `manifest.json`. `manifest.json` en vivo (raw.githubusercontent main) sirve code 87 / v1.3.60.
+* Verificación end-to-end: descarga pública == SHA local byte a byte; 302→200; `content-length: 71242863` exacto.
+
+
+### 🧠 Lecciones (aplicar en próximas releases con R8)
+1. **Cada vez que se toquen reglas ProGuard o se active/desactive R8, verificar en el dexdump del APK final** que las clases de reflexión que el código usa **estén** (kotlin-reflect, Moshi, adapters KSP). No basta con que compile:"compila con R8" ≠ "funciona en runtime". El usuario final es el que descubre el crash presence.
+
+2. **El stack de serialización de Moshi en Kotlin es: `com.squareup.moshi.kotlin.reflect.KotlinJsonAdapterFactory` → lee `kotlin.Metadata` (vía kotlin-reflect) → genera `KotlinJsonAdapter`. Si R8 toca CUALQUIERA de esos tres, el `<clinit>` de cualquier `object` que construya un `Moshi` revienta con `NoClassDefFoundError: <clinit> failed for class ...`. Los keeps deben cubrir los TRES niveles.**
+3. **`mandatory: true` es para hotfixes críticos**: un crash al arrancar justifica forzar la actualización; para releases normales seguir con `false` para no molestar.
+4. **Un `NoClassDefFoundError` con "see exception in other thread"** es la firma de un `ExceptionInInitializerError` secundario: la causa raíz está en el `<clinit>` de la clase nombrada (aquí SupabaseClient), no en el call-site que la referencia。
+5. **Receta para diagnosticar qué clase falta** (sin cambiar código): contar en los dex las clases del paquete esperado y comparar contra lo que el `<clinit>` referencia. Si el paquete esperado está pero una clase hija concreta no (p.ej. `KotlinJsonAdapter` sin `KotlinJsonAdapterFactory`), esa es la que falta.
 
 
