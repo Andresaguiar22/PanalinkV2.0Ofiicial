@@ -361,7 +361,7 @@ fun PaniOSSearchBar(
             .fillMaxWidth()
             .height(36.dp)
             .clip(RoundedCornerShape(10.dp))
-            .background(Color(0xFF1C1C1E))
+            .background(IosSettingsColors.cell)
             .clickable(onClick = onSearchClick)
             .padding(horizontal = 10.dp),
         verticalAlignment = Alignment.CenterVertically
@@ -369,13 +369,13 @@ fun PaniOSSearchBar(
         Icon(
             imageVector = Icons.Default.Search,
             contentDescription = "Buscar",
-            tint = Color(0xFF8E8E93),
+            tint = IosSettingsColors.secondaryLabel,
             modifier = Modifier.size(18.dp)
         )
         Spacer(modifier = Modifier.width(6.dp))
         Text(
             text = "Buscar",
-            color = Color(0xFF8E8E93),
+            color = IosSettingsColors.secondaryLabel,
             fontSize = 17.sp,
             maxLines = 1,
             overflow = TextOverflow.Ellipsis
@@ -429,13 +429,13 @@ private fun PaniOSToolboxIcon(
         )
         val bodyRadius = size.minDimension * 0.14f
         drawRoundRect(
-            color = Color(0xFF1C1C1E),
+            color = IosSettingsColors.cell,
             topLeft = body.topLeft,
             size = body.size,
             cornerRadius = androidx.compose.ui.geometry.CornerRadius(bodyRadius, bodyRadius)
         )
         drawRoundRect(
-            color = Color(0xFF8E8E93),
+            color = IosSettingsColors.secondaryLabel,
             topLeft = body.topLeft,
             size = body.size,
             cornerRadius = androidx.compose.ui.geometry.CornerRadius(bodyRadius, bodyRadius),
@@ -451,7 +451,7 @@ private fun PaniOSToolboxIcon(
         )
 
         drawLine(
-            color = Color(0xFF0A84FF),
+            color = IosSettingsColors.blue,
             start = androidx.compose.ui.geometry.Offset(size.width * 0.20f, size.height * 0.50f),
             end = androidx.compose.ui.geometry.Offset(size.width * 0.80f, size.height * 0.50f),
             strokeWidth = stroke,
@@ -567,7 +567,7 @@ fun PaniOSUnifiedTopBar(
                                             .align(Alignment.TopEnd)
                                             .offset(x =  2.dp, y =  2.dp)
                                             .size(15.dp)
-                                            .background(Color(0xFFFF1744), CircleShape),
+                                            .background(IosSettingsColors.red, CircleShape),
                                         contentAlignment = Alignment.Center
                                     ) {
                                         Text(
@@ -651,7 +651,7 @@ private fun PaniOSStatusLabel() {
     }
     Text(
         text = label,
-        color = if (myPresence == com.example.data.repository.UserPresenceStatus.ONLINE) IosSettingsColors.green else Color(0xFF8E8E93),
+        color = if (myPresence == com.example.data.repository.UserPresenceStatus.ONLINE) IosSettingsColors.green else IosSettingsColors.secondaryLabel,
         fontSize =  10.sp,
         fontWeight = FontWeight.Medium,
         maxLines =  1,

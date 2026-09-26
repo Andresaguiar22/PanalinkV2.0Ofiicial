@@ -27,6 +27,10 @@ import androidx.compose.foundation.text.BasicTextField
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.*
+import androidx.compose.material.icons.automirrored.filled.ArrowBack
+import androidx.compose.material.icons.automirrored.filled.List
+import androidx.compose.material.icons.automirrored.filled.VolumeOff
+import androidx.compose.material.icons.automirrored.filled.VolumeUp
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
@@ -40,7 +44,7 @@ import androidx.compose.ui.graphics.vector.rememberVectorPainter
 import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalContext
-import androidx.compose.ui.platform.LocalLifecycleOwner
+import androidx.lifecycle.compose.LocalLifecycleOwner
 import androidx.compose.ui.platform.LocalView
 import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.text.font.FontFamily
@@ -74,7 +78,7 @@ private val TvBg: Color get() = IosSettingsColors.groupBackground
 private val TvCard: Color get() = IosSettingsColors.groupBackground
 private val TvCardAlt: Color get() = IosSettingsColors.cellElevated
 private val TvAccent: Color get() = IosSettingsColors.blue
-private val TvAccentSoft = Color(0x3318E7F5)
+private val TvAccentSoft: Color get() = IosSettingsColors.blue.copy(alpha = 0.20f)
 private val TvTextSecondary: Color get() = IosSettingsColors.secondaryLabel
 
 internal fun tvCategoryLabel(category: String): String = when (category) {
@@ -187,7 +191,7 @@ fun PanaTVScreen(viewModel: PanaTVViewModel = viewModel()) {
                 }
             },
             containerColor = TvCard,
-            textContentColor = Color.White
+            textContentColor = IosSettingsColors.label
         )
     }
 
@@ -205,10 +209,10 @@ fun PanaTVScreen(viewModel: PanaTVViewModel = viewModel()) {
                         keyboardOptions = androidx.compose.foundation.text.KeyboardOptions(keyboardType = androidx.compose.ui.text.input.KeyboardType.Number),
                         modifier = Modifier.fillMaxWidth(),
                         colors = OutlinedTextFieldDefaults.colors(
-                            focusedTextColor = Color.White,
-                            unfocusedTextColor = Color.White,
+                            focusedTextColor = IosSettingsColors.label,
+                            unfocusedTextColor = IosSettingsColors.label,
                             focusedBorderColor = TvAccent,
-                            unfocusedBorderColor = Color.Gray
+                            unfocusedBorderColor = IosSettingsColors.secondaryLabel
                         )
                     )
                     if (channelNumberInput.isNotBlank()) {
@@ -244,8 +248,8 @@ fun PanaTVScreen(viewModel: PanaTVViewModel = viewModel()) {
                 }
             },
             containerColor = TvCard,
-            titleContentColor = Color.White,
-            textContentColor = Color.White
+            titleContentColor = IosSettingsColors.label,
+            textContentColor = IosSettingsColors.label
         )
     }
 
@@ -742,7 +746,7 @@ fun PanaTVScreen(viewModel: PanaTVViewModel = viewModel()) {
                                 }
                                 IconButton(onClick = { isMuted = !isMuted }) {
                                     Icon(
-                                        if (isMuted) Icons.Default.VolumeOff else Icons.Default.VolumeUp,
+                                        if (isMuted) Icons.AutoMirrored.Filled.VolumeOff else Icons.AutoMirrored.Filled.VolumeUp,
                                         contentDescription = null,
                                         tint = IosSettingsColors.label
                                     )
@@ -796,7 +800,7 @@ fun PanaTVScreen(viewModel: PanaTVViewModel = viewModel()) {
                                         .fillMaxWidth()
                                         .height(3.dp)
                                         .clip(RoundedCornerShape(2.dp))
-                                        .background(Color.White.copy(alpha = 0.2f))
+                                        .background(IosSettingsColors.label.copy(alpha = 0.2f))
                                 )
                                 Box(
                                     modifier = Modifier
@@ -1042,7 +1046,7 @@ fun PanaTVScreen(viewModel: PanaTVViewModel = viewModel()) {
                                 verticalAlignment = Alignment.CenterVertically
                             ) {
                                 IconButton(onClick = { isFullscreen = false }) {
-                                    Icon(Icons.Default.ArrowBack, contentDescription = "Volver", tint = IosSettingsColors.label)
+                                    Icon(Icons.AutoMirrored.Filled.ArrowBack, contentDescription = "Volver", tint = IosSettingsColors.label)
                                 }
                                 Box(
                                     modifier = Modifier
@@ -1083,20 +1087,20 @@ fun PanaTVScreen(viewModel: PanaTVViewModel = viewModel()) {
                                     verticalAlignment = Alignment.CenterVertically,
                                     modifier = Modifier
                                         .clip(RoundedCornerShape(16.dp))
-                                        .background(if (showChannelList) TvAccentSoft else Color.White.copy(alpha = 0.12f))
+                                        .background(if (showChannelList) TvAccentSoft else IosSettingsColors.label.copy(alpha = 0.12f))
                                         .clickable { showChannelList = !showChannelList }
                                         .padding(horizontal = 10.dp, vertical = 6.dp)
                                 ) {
                                     Icon(
-                                        Icons.Default.List,
+                                        Icons.AutoMirrored.Filled.List,
                                         contentDescription = null,
-                                        tint = if (showChannelList) TvAccent else Color.White,
+                                        tint = if (showChannelList) TvAccent else IosSettingsColors.label,
                                         modifier = Modifier.size(16.dp)
                                     )
                                     Spacer(modifier = Modifier.width(6.dp))
                                     Text(
                                         "Canales",
-                                        color = if (showChannelList) TvAccent else Color.White,
+                                        color = if (showChannelList) TvAccent else IosSettingsColors.label,
                                         fontSize = 13.sp,
                                         fontWeight = FontWeight.Bold
                                     )
@@ -1118,7 +1122,7 @@ fun PanaTVScreen(viewModel: PanaTVViewModel = viewModel()) {
                                                 .fillMaxWidth()
                                                 .height(4.dp)
                                                 .clip(RoundedCornerShape(2.dp))
-                                                .background(Color.White.copy(alpha = 0.2f))
+                                                .background(IosSettingsColors.label.copy(alpha = 0.2f))
                                         )
                                         Box(
                                             modifier = Modifier
@@ -1150,7 +1154,7 @@ fun PanaTVScreen(viewModel: PanaTVViewModel = viewModel()) {
                                             colors = SliderDefaults.colors(
                                                 thumbColor = TvAccent,
                                                 activeTrackColor = TvAccent,
-                                                inactiveTrackColor = Color.White.copy(alpha = 0.3f)
+                                                inactiveTrackColor = IosSettingsColors.label.copy(alpha = 0.3f)
                                             ),
                                             modifier = Modifier
                                                 .fillMaxWidth()
@@ -1198,7 +1202,7 @@ fun PanaTVScreen(viewModel: PanaTVViewModel = viewModel()) {
                                     }
                                     IconButton(onClick = { isMuted = !isMuted }) {
                                         Icon(
-                                            if (isMuted) Icons.Default.VolumeOff else Icons.Default.VolumeUp,
+                                            if (isMuted) Icons.AutoMirrored.Filled.VolumeOff else Icons.AutoMirrored.Filled.VolumeUp,
                                             contentDescription = null,
                                             tint = IosSettingsColors.label
                                         )
@@ -1253,7 +1257,7 @@ fun PanaTVScreen(viewModel: PanaTVViewModel = viewModel()) {
                             modifier = Modifier
                                 .fillMaxHeight()
                                 .width(260.dp)
-                                .background(Color(0xCC131A22))
+                                .background(IosSettingsColors.mediaScrim)
                         ) {
                             Text(
                                 "Canales",
@@ -1310,7 +1314,7 @@ fun PanaTVScreen(viewModel: PanaTVViewModel = viewModel()) {
                                         Spacer(modifier = Modifier.width(10.dp))
                                         Text(
                                             channel.name,
-                                            color = if (isCurrent) TvAccent else Color.White,
+                                            color = if (isCurrent) TvAccent else IosSettingsColors.label,
                                             fontSize = 13.sp,
                                             fontWeight = if (isCurrent) FontWeight.Bold else FontWeight.Normal,
                                             maxLines = 2,
@@ -1429,7 +1433,7 @@ private fun CategoryChip(label: String, selected: Boolean, onClick: () -> Unit) 
     ) {
         Text(
             label,
-            color = if (selected) Color.White else TvTextSecondary,
+            color = if (selected) IosSettingsColors.label else TvTextSecondary,
             fontSize = 13.sp,
             fontWeight = if (selected) FontWeight.Bold else FontWeight.Normal
         )
@@ -1509,7 +1513,7 @@ private fun ChannelCard(
                 Icon(
                     if (isFavorite) Icons.Default.Favorite else Icons.Default.FavoriteBorder,
                     contentDescription = "Favorito",
-                    tint = if (isFavorite) TvAccent else Color.White.copy(alpha = 0.7f),
+                    tint = if (isFavorite) TvAccent else IosSettingsColors.label.copy(alpha = 0.7f),
                     modifier = Modifier.size(14.dp)
                 )
             }
@@ -1522,7 +1526,7 @@ private fun ChannelCard(
                         .fillMaxWidth()
                         .height(4.dp)
                         .clip(RoundedCornerShape(2.dp))
-                        .background(Color(0xFF1B2430))
+                        .background(IosSettingsColors.cellElevated)
                 ) {
                     Box(
                         modifier = Modifier
@@ -1538,7 +1542,7 @@ private fun ChannelCard(
         Column(modifier = Modifier.padding(horizontal = 6.dp, vertical = 4.dp)) {
             Text(
                 channel.name,
-                color = if (isSelected) Color.White else TvTextSecondary,
+                color = if (isSelected) IosSettingsColors.label else TvTextSecondary,
                 fontSize = 11.sp,
                 fontWeight = if (isSelected) FontWeight.Bold else FontWeight.Medium,
                 maxLines = 1,

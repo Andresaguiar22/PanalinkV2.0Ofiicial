@@ -131,7 +131,7 @@ fun PremiumHomeScreen(
                             shape = RoundedCornerShape(14.dp),
                             modifier = Modifier.fillMaxWidth()
                         ) {
-                            Text("🎯 Reclamar recompensas de misiones", color = Color.White, fontWeight = FontWeight.Bold)
+                            Text("🎯 Reclamar recompensas de misiones", color = IosSettingsColors.label, fontWeight = FontWeight.Bold)
                         }
                     }
                 }
@@ -178,7 +178,7 @@ fun WalletHeroCard(
             .fillMaxWidth()
             .clickable(onClick = onClick)
             .background(
-                Brush.linearGradient(listOf(Color(0xFF2A2320), Color(0xFF171A24))),
+                Brush.linearGradient(listOf(IosSettingsColors.cellElevated, IosSettingsColors.cell)),
                 RoundedCornerShape(24.dp)
             )
             .border(1.dp, gold.copy(alpha = 0.4f), RoundedCornerShape(24.dp))
@@ -194,10 +194,10 @@ fun WalletHeroCard(
             }
             Spacer(modifier = Modifier.height(12.dp))
             Row(verticalAlignment = Alignment.CenterVertically) {
-                Text("⭐ Nivel ${wallet.level}", color = Color.White, fontSize = 13.sp, fontWeight = FontWeight.Bold)
+                Text("⭐ Nivel ${wallet.level}", color = IosSettingsColors.label, fontSize = 13.sp, fontWeight = FontWeight.Bold)
                 Spacer(modifier = Modifier.height(0.dp))
                 Spacer(modifier = Modifier.weight(1f))
-                Text("🪙 gana con recompensas, misiones y eventos", color = Color.White.copy(alpha = 0.6f), fontSize = 10.sp)
+                Text("🪙 gana con recompensas, misiones y eventos", color = IosSettingsColors.secondaryLabel, fontSize = 10.sp)
             }
         }
     }
@@ -207,7 +207,7 @@ fun WalletHeroCard(
 private fun BalanceItem(emoji: String, amount: Int) {
     Column {
         Text(emoji, fontSize = 22.sp)
-        Text("$amount", color = Color.White, fontWeight = FontWeight.ExtraBold, fontSize = 18.sp)
+        Text("$amount", color = IosSettingsColors.label, fontWeight = FontWeight.ExtraBold, fontSize = 18.sp)
     }
 }
 
@@ -225,13 +225,13 @@ fun EntitlementRow(e: com.example.premium.domain.model.Entitlement) {
         Spacer(modifier = Modifier.width(10.dp))
         Column(modifier = Modifier.weight(1f)) {
             Text(e.name, color = PanalinkSkin.TitleCream, fontWeight = FontWeight.Bold, fontSize = 14.sp)
-            Text("Vence en ${e.daysLeft} días", color = Color.White.copy(alpha = 0.6f), fontSize = 12.sp)
+            Text("Vence en ${e.daysLeft} días", color = IosSettingsColors.secondaryLabel, fontSize = 12.sp)
         }
         LinearProgressIndicator(
             progress = { (e.daysLeft / 30f).coerceIn(0f, 1f) },
             modifier = Modifier.width(80.dp),
             color = PanalinkSkin.Gold,
-            trackColor = Color.White.copy(alpha = 0.1f)
+            trackColor = IosSettingsColors.separator
         )
     }
 }
@@ -246,14 +246,14 @@ private fun EmptyEntitlementsCard(onOpenShop: () -> Unit) {
             .padding(16.dp),
         horizontalAlignment = Alignment.CenterHorizontally
     ) {
-        Text("🔒 Aún no tienes beneficios activos", color = Color.White.copy(alpha = 0.7f), fontSize = 13.sp)
+        Text("🔒 Aún no tienes beneficios activos", color = IosSettingsColors.secondaryLabel, fontSize = 13.sp)
         Spacer(modifier = Modifier.height(8.dp))
         Button(
             onClick = onOpenShop,
             colors = ButtonDefaults.buttonColors(containerColor = PanalinkSkin.GoldDeep),
             shape = RoundedCornerShape(14.dp)
         ) {
-            Text("🛍️ Ir a la tienda", color = Color.White)
+            Text("🛍️ Ir a la tienda", color = IosSettingsColors.label)
         }
     }
 }
@@ -264,14 +264,14 @@ fun PromotionCard(p: com.example.premium.domain.model.PremiumPromotion) {
     Row(
         modifier = Modifier
             .fillMaxWidth()
-            .background(Color(0xFF131B26), RoundedCornerShape(14.dp))
+            .background(IosSettingsColors.cell, RoundedCornerShape(14.dp))
             .border(1.dp, PanalinkSkin.Gold.copy(alpha = 0.25f), RoundedCornerShape(14.dp))
             .padding(14.dp),
         verticalAlignment = Alignment.CenterVertically
     ) {
         Column(modifier = Modifier.weight(1f)) {
-            Text(p.title, color = Color.White, fontWeight = FontWeight.Bold, fontSize = 14.sp)
-            p.subtitle?.let { Text(it, color = Color.White.copy(alpha = 0.7f), fontSize = 12.sp) }
+            Text(p.title, color = IosSettingsColors.label, fontWeight = FontWeight.Bold, fontSize = 14.sp)
+            p.subtitle?.let { Text(it, color = IosSettingsColors.secondaryLabel, fontSize = 12.sp) }
             if (p.discountPercent > 0) {
                 Text("🔥 -${p.discountPercent}% OFF", color = PanalinkSkin.GoldBright, fontWeight = FontWeight.Bold, fontSize = 12.sp)
             }
@@ -288,14 +288,14 @@ fun EventCard(ev: com.example.premium.domain.model.PremiumEvent) {
     Row(
         modifier = Modifier
             .fillMaxWidth()
-            .background(Color(0xFF1B1428), RoundedCornerShape(14.dp))
+            .background(IosSettingsColors.cellElevated, RoundedCornerShape(14.dp))
             .padding(14.dp),
         verticalAlignment = Alignment.CenterVertically
     ) {
         Text(ev.emoji ?: "🎉", fontSize = 22.sp)
         Spacer(modifier = Modifier.width(10.dp))
         Column {
-            Text(ev.title, color = Color.White, fontWeight = FontWeight.Bold, fontSize = 14.sp)
+            Text(ev.title, color = IosSettingsColors.label, fontWeight = FontWeight.Bold, fontSize = 14.sp)
             Text(
                 "🪙 x${ev.multiplierCoins} · ⭐ x${ev.multiplierXp}",
                 color = PanalinkSkin.GoldBright,
@@ -323,10 +323,10 @@ fun DailyRewardCard(
         Text("🎁", fontSize = 26.sp)
         Spacer(modifier = Modifier.width(10.dp))
         Column(modifier = Modifier.weight(1f)) {
-            Text("Racha: ${status.streak} días 🔥", color = Color.White, fontWeight = FontWeight.Bold, fontSize = 14.sp)
+            Text("Racha: ${status.streak} días 🔥", color = IosSettingsColors.label, fontWeight = FontWeight.Bold, fontSize = 14.sp)
             Text(
                 if (status.claimedToday) "Volviste mañana por tu recompensa ✨" else "¡Reclama tu recompensa diaria!",
-                color = Color.White.copy(alpha = 0.7f),
+                color = IosSettingsColors.secondaryLabel,
                 fontSize = 12.sp
             )
         }
@@ -334,10 +334,10 @@ fun DailyRewardCard(
             onClick = onClaim,
             enabled = !status.claimedToday && !claiming,
             colors = ButtonDefaults.buttonColors(
-                containerColor = if (status.claimedToday) Color(0xFF2A3040) else PanalinkSkin.GoldDeep,
-                contentColor = Color.White,
-                disabledContainerColor = Color(0xFF2A3040),
-                disabledContentColor = Color.White.copy(alpha = 0.5f)
+                containerColor = if (status.claimedToday) IosSettingsColors.cellElevated else PanalinkSkin.GoldDeep,
+                contentColor = IosSettingsColors.onAccent,
+                disabledContainerColor = IosSettingsColors.cellElevated,
+                disabledContentColor = IosSettingsColors.secondaryLabel
             ),
             shape = RoundedCornerShape(12.dp)
         ) {
@@ -353,14 +353,14 @@ fun MissionRow(m: com.example.premium.domain.model.Mission) {
     Row(
         modifier = Modifier
             .fillMaxWidth()
-            .background(Color(0xFF151E28), RoundedCornerShape(12.dp))
+            .background(IosSettingsColors.cellElevated, RoundedCornerShape(12.dp))
             .padding(12.dp),
         verticalAlignment = Alignment.CenterVertically
     ) {
         Column(modifier = Modifier.weight(1f)) {
             Text(
                 m.title,
-                color = if (done) Color.White.copy(alpha = 0.5f) else Color.White,
+                color = if (done) IosSettingsColors.secondaryLabel else IosSettingsColors.label,
                 fontWeight = FontWeight.Medium,
                 fontSize = 13.sp
             )
@@ -368,13 +368,13 @@ fun MissionRow(m: com.example.premium.domain.model.Mission) {
                 progress = { (m.progress.toFloat() / m.target).coerceIn(0f, 1f) },
                 modifier = Modifier.fillMaxWidth(0.8f).padding(top = 4.dp).height(4.dp),
                 color = if (done) IosSettingsColors.green else PanalinkSkin.Gold,
-                trackColor = Color.White.copy(alpha = 0.1f)
+                trackColor = IosSettingsColors.separator
             )
         }
         Spacer(modifier = Modifier.width(8.dp))
         Text(
             "${m.progress}/${m.target}",
-            color = Color.White.copy(alpha = 0.5f),
+            color = IosSettingsColors.secondaryLabel,
             fontSize = 11.sp
         )
         Spacer(modifier = Modifier.width(6.dp))
@@ -399,7 +399,7 @@ private fun PremiumNotifRow(
         modifier = Modifier
             .fillMaxWidth()
             .background(
-                if (notification.isRead) IosSettingsColors.groupBackground else Color(0xFF1B2432),
+                if (notification.isRead) IosSettingsColors.groupBackground else IosSettingsColors.cell,
                 RoundedCornerShape(12.dp)
             )
             .clickable(enabled = !notification.isRead, onClick = onRead)
@@ -411,14 +411,14 @@ private fun PremiumNotifRow(
         Column(modifier = Modifier.weight(1f)) {
             Text(
                 notification.title,
-                color = if (notification.isRead) Color.White.copy(alpha = 0.6f) else Color.White,
+                color = if (notification.isRead) IosSettingsColors.secondaryLabel else IosSettingsColors.label,
                 fontWeight = if (notification.isRead) FontWeight.Normal else FontWeight.Bold,
                 fontSize = 13.sp
             )
             notification.body?.let {
                 Text(
                     it,
-                    color = Color.White.copy(alpha = 0.55f),
+                    color = IosSettingsColors.secondaryLabel,
                     fontSize = 11.sp,
                     maxLines = 2,
                     overflow = androidx.compose.ui.text.style.TextOverflow.Ellipsis
@@ -430,7 +430,7 @@ private fun PremiumNotifRow(
             Box(
                 modifier = Modifier
                     .size(9.dp)
-                    .background(Color(0xFFE8B23A), CircleShape)
+                    .background(IosSettingsColors.orange, CircleShape)
             )
         }
     }

@@ -7,7 +7,7 @@ import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.ArrowBack
+import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material.icons.filled.Check
 import androidx.compose.material.icons.filled.ChevronRight
 import androidx.compose.material.icons.filled.Public
@@ -26,13 +26,14 @@ import androidx.compose.ui.window.DialogProperties
 import coil.compose.AsyncImage
 import com.example.data.supabase.SupabaseClient
 import com.example.rooms.repository.CreateRoomRequest
+import com.example.ui.settings.ios.IosSettingsColors
 
-private val ScreenBg = Color(0xFFF2F2F4)
-private val RowBg = Color.White
-private val TitleColor = Color(0xFF6E6E73)
-private val TextColor = Color(0xFF1B1B1F)
-private val ValueColor = Color(0xFF9E9EA3)
-private val RoomAccent2 = Color(0xFF4ADEAF)
+private val ScreenBg: Color get() = IosSettingsColors.groupBackground
+private val RowBg: Color get() = IosSettingsColors.cell
+private val TitleColor: Color get() = IosSettingsColors.secondaryLabel
+private val TextColor: Color get() = IosSettingsColors.label
+private val ValueColor: Color get() = IosSettingsColors.tertiaryLabel
+private val RoomAccent2: Color get() = IosSettingsColors.mint
 
 @Composable
 fun VoiceRoomCreateDialog(onDismiss:()->Unit,onCreate:(CreateRoomRequest)->Unit){
@@ -53,7 +54,7 @@ fun VoiceRoomCreateDialog(onDismiss:()->Unit,onCreate:(CreateRoomRequest)->Unit)
    Column(Modifier.fillMaxSize().verticalScroll(rememberScrollState())){
     // Header
     Row(Modifier.fillMaxWidth().padding(horizontal=16.dp,vertical=12.dp),verticalAlignment=Alignment.CenterVertically){
-     IconButton(onClick=onDismiss,modifier=Modifier.size(40.dp)){Icon(Icons.Default.ArrowBack,"Volver",tint=TextColor)}
+     IconButton(onClick=onDismiss,modifier=Modifier.size(40.dp)){Icon(Icons.AutoMirrored.Filled.ArrowBack,"Volver",tint=TextColor)}
      Spacer(Modifier.width(4.dp));Text("Crear mi sala",color=TextColor,fontSize=20.sp,fontWeight=FontWeight.Bold)
     }
 
@@ -63,7 +64,7 @@ fun VoiceRoomCreateDialog(onDismiss:()->Unit,onCreate:(CreateRoomRequest)->Unit)
       RowItem(
        title="Foto de portada",
        onClick={editingField="cover"},
-       trailing={Box(Modifier.size(38.dp).clip(RoundedCornerShape(8.dp)).background(Color(0xFFE9E9EC)),contentAlignment=Alignment.Center){if(coverUrl.isNotBlank())AsyncImage(model=coverUrl,contentDescription=null,contentScale=ContentScale.Crop,modifier=Modifier.fillMaxSize())else Icon(Icons.Default.Public,null,tint=ValueColor,modifier=Modifier.size(16.dp))}}
+       trailing={Box(Modifier.size(38.dp).clip(RoundedCornerShape(8.dp)).background(IosSettingsColors.cellElevated),contentAlignment=Alignment.Center){if(coverUrl.isNotBlank())AsyncImage(model=coverUrl,contentDescription=null,contentScale=ContentScale.Crop,modifier=Modifier.fillMaxSize())else Icon(Icons.Default.Public,null,tint=ValueColor,modifier=Modifier.size(16.dp))}}
       )
       RowDivider()
       RowItem(title="Nombre",onClick={editingField="name"},value=name.ifBlank{"Toca para nombrar"},isError=name.isNotBlank()&&name.trim().length<2)
@@ -80,7 +81,7 @@ fun VoiceRoomCreateDialog(onDismiss:()->Unit,onCreate:(CreateRoomRequest)->Unit)
       RowItem(
        title="Sala privada",
        subtitle="Solo invitados podrán entrar",
-       trailing={Switch(checked=privateRoom,onCheckedChange={privateRoom=it},colors=SwitchDefaults.colors(checkedThumbColor=RoomAccent2,checkedTrackColor=RoomAccent2.copy(.35f),uncheckedThumbColor=Color.White,uncheckedTrackColor=Color(0xFFC2C2C7)))}
+       trailing={Switch(checked=privateRoom,onCheckedChange={privateRoom=it},colors=SwitchDefaults.colors(checkedThumbColor=RoomAccent2,checkedTrackColor=RoomAccent2.copy(.35f),uncheckedThumbColor=IosSettingsColors.cell,uncheckedTrackColor=IosSettingsColors.separator))}
       )
      }
     }
@@ -98,7 +99,7 @@ fun VoiceRoomCreateDialog(onDismiss:()->Unit,onCreate:(CreateRoomRequest)->Unit)
         minLines=if(editingField=="description")2 else 1,
         maxLines=if(editingField=="description")4 else 1,
         placeholder={Text(if(editingField=="cover")"https://..." else "")},
-        colors=OutlinedTextFieldDefaults.colors(focusedBorderColor=RoomAccent2,unfocusedBorderColor=Color(0xFFC2C2C7),focusedTextColor=TextColor,unfocusedTextColor=TextColor)
+        colors=OutlinedTextFieldDefaults.colors(focusedBorderColor=RoomAccent2,unfocusedBorderColor=IosSettingsColors.separator,focusedTextColor=TextColor,unfocusedTextColor=TextColor)
        )
        Row(Modifier.fillMaxWidth().padding(horizontal=12.dp),horizontalArrangement=Arrangement.End){
         TextButton(onClick={editingField=null}){Text("Listo",color=RoomAccent2,fontWeight=FontWeight.Bold)}
@@ -114,7 +115,7 @@ fun VoiceRoomCreateDialog(onDismiss:()->Unit,onCreate:(CreateRoomRequest)->Unit)
      onClick={onCreate(CreateRoomRequest(name.trim(),description.trim(),coverUrl.trim().ifEmpty{null},category,if(privateRoom)"private" else "public"))},
      enabled=canCreate,
      modifier=Modifier.fillMaxWidth().padding(horizontal=24.dp),
-     colors=ButtonDefaults.buttonColors(containerColor=RoomAccent2,contentColor=Color(0xFF13302A)),
+     colors=ButtonDefaults.buttonColors(containerColor=RoomAccent2,contentColor=IosSettingsColors.groupBackground),
      shape=RoundedCornerShape(24.dp)
     ){Text("Crear y entrar",fontWeight=FontWeight.Bold,fontSize=15.sp)}
     Spacer(Modifier.height(20.dp))
@@ -135,7 +136,7 @@ private fun CreateSectionTitle(text:String){
 
 @Composable
 private fun RowDivider(){
- HorizontalDivider(color=Color(0xFFEBEBEF),modifier=Modifier.padding(horizontal=20.dp))
+ HorizontalDivider(color=IosSettingsColors.separator,modifier=Modifier.padding(horizontal=20.dp))
 }
 
  @Composable
@@ -157,7 +158,7 @@ private fun RowItem(
   if(trailing!=null){trailing()}
   else{
    Row(verticalAlignment=Alignment.CenterVertically){
-    if(value!=null)Text(value,color=if(isError)Color(0xFFD32F2F) else ValueColor,fontSize=14.sp,maxLines=1)
+    if(value!=null)Text(value,color=if(isError)IosSettingsColors.red else ValueColor,fontSize=14.sp,maxLines=1)
     if(onClick!=null)Spacer(Modifier.width(3.dp))
     if(onClick!=null)Icon(Icons.Default.ChevronRight,null,tint=ValueColor,modifier=Modifier.size(16.dp))
    }

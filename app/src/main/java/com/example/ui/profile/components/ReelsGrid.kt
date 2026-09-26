@@ -103,7 +103,7 @@ fun ReelsGrid(viewModel: ProfileViewModel, onNavigateToReel: (String) -> Unit) {
                                     .weight(1f)
                                     .aspectRatio(0.75f)
                                     .clip(RoundedCornerShape(8.dp))
-                                    .background(Color(0xFF1E1E24))
+                                    .background(IosSettingsColors.cell)
                                     .clickable { onNavigateToReel(reel.state.id) }
                                     .pointerInput(reel.state.id) {
                                         detectTapGestures(
@@ -125,7 +125,7 @@ fun ReelsGrid(viewModel: ProfileViewModel, onNavigateToReel: (String) -> Unit) {
                                             .fillMaxSize()
                                             .background(
                                                 Brush.verticalGradient(
-                                                    colors = listOf(Color.Transparent, Color.Black.copy(alpha = 0.6f))
+                                                    colors = listOf(Color.Transparent, IosSettingsColors.mediaScrimSoft)
                                                 )
                                             )
                                     )

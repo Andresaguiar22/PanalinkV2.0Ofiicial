@@ -120,7 +120,7 @@ fun PendingUploadsBanner(
     com.example.ui.components.MiniUploadBar(
         label = fText,
         percent = fPercent,
-        color = Color(0xFFFF453A),
+        color = IosSettingsColors.red,
         onRetry = if (fileExists) { { pendingUploadsViewModel.retryUpload(context, failedUpload.id) } } else null,
         onDiscard = { pendingUploadsViewModel.dismissUpload(failedUpload.id) }
     )
@@ -138,7 +138,7 @@ fun PendingUploadsBanner(
         label = text,
         percent = percent,
         onCancel = { pendingUploadsViewModel.cancelUpload(context, uploading.id, deleteLocalFile = true) },
-        color = Color(0xFF00C6FF)
+        color = IosSettingsColors.teal
     )
 }
 }
@@ -147,12 +147,12 @@ fun PendingUploadsBanner(
 @Composable
 fun LocalStatusChip(status: String) {
     val (bgColor, textColor, label) = when (status) {
-        "uploading" -> Triple(Color(0xFF0C2A4A), Color(0xFF64D2FF), "Subiendo")
-        "pending" -> Triple(Color(0xFF332B00), Color(0xFFFFD60A), "En cola")
-        "failed" -> Triple(Color(0xFF3B0D0C), Color(0xFFFF453A), "Fallido")
-        "completed" -> Triple(Color(0xFF0F3818), Color(0xFF30D158), "Publicado")
-        "cancelled" -> Triple(Color(0xFF262628), Color(0xFF8E8E93), "Cancelado")
-        else -> Triple(Color.DarkGray, Color.White, status)
+        "uploading" -> Triple(IosSettingsColors.cellElevated, IosSettingsColors.teal, "Subiendo")
+        "pending" -> Triple(IosSettingsColors.cellElevated, IosSettingsColors.yellow, "En cola")
+        "failed" -> Triple(IosSettingsColors.cellElevated, IosSettingsColors.red, "Fallido")
+        "completed" -> Triple(IosSettingsColors.cellElevated, IosSettingsColors.green, "Publicado")
+        "cancelled" -> Triple(IosSettingsColors.cellElevated, IosSettingsColors.secondaryLabel, "Cancelado")
+        else -> Triple(IosSettingsColors.cellElevated, IosSettingsColors.label, status)
     }
 
     Box(
@@ -212,7 +212,7 @@ fun PendingPostCard(post: com.example.data.database.PendingPostEntity) {
             LinearProgressIndicator(
                 modifier = Modifier.fillMaxWidth().height(4.dp).clip(RoundedCornerShape(2.dp)),
                 color = IosSettingsColors.green,
-                trackColor = Color(0xFF2C2C2E)
+                trackColor = IosSettingsColors.cellElevated
             )
         }
     }

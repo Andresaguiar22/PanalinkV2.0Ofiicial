@@ -84,9 +84,9 @@ fun ChannelPostBubble(
     val bubbleBg = IosSettingsColors.cell // Telegram Post Surface Dark
     val fileCardBg = IosSettingsColors.groupBackground // Inner Card Surface
     val accentBlue = IosSettingsColors.blue
-    val forwardedTextColor = Color(0xFFB388FF) // Telegram Purple Header
+    val forwardedTextColor = IosSettingsColors.purple // Telegram Purple Header
     val secondaryText = IosSettingsColors.secondaryLabel
-    val primaryText = Color.White
+    val primaryText = IosSettingsColors.label
 
     Row(
         modifier = modifier
@@ -337,7 +337,7 @@ private fun ChannelFileCard(
                 Spacer(modifier = Modifier.height(2.dp))
                 Text(
                     text = file.description,
-                    color = Color(0xFFD0D7DE),
+                    color = IosSettingsColors.secondaryLabel,
                     fontSize = 11.5.sp,
                     maxLines = 2,
                     overflow = TextOverflow.Ellipsis

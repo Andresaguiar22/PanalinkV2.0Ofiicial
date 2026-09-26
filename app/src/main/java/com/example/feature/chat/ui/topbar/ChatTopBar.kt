@@ -79,11 +79,11 @@ fun ChatTopBar(
     val isTyping = typingUsers.contains(otherUser?.id ?: "other_user_id_demo")
 
     // Paleta iOS para la barra superior (negro puro + azul iOS)
-    val glassTop = Color(0xFF000000)
-    val glassBottom = Color(0xFF000000)
-    val glassBorder = Color(0xFF38383A).copy(alpha =   0.5f)
-    val iconTint = Color(0xFF0A84FF)
-    val accentCyan = Color(0xFF0A84FF)
+    val glassTop = IosSettingsColors.groupBackground
+    val glassBottom = IosSettingsColors.groupBackground
+    val glassBorder = IosSettingsColors.separator.copy(alpha = 0.5f)
+    val iconTint = IosSettingsColors.blue
+    val accentCyan = IosSettingsColors.blue
 
     Box(modifier = Modifier.fillMaxWidth()) {
         if (isLocalSearching) {
@@ -144,13 +144,13 @@ fun ChatTopBar(
                         .background(
                             Brush.verticalGradient(
                                 listOf(
-                                    Color(0xE6000000),
-                                    Color(0xCC1C1C1E),
-                                    Color(0xE6000000)
+                                    IosSettingsColors.groupBackground.copy(alpha = 0.9f),
+                                    IosSettingsColors.cell.copy(alpha = 0.8f),
+                                    IosSettingsColors.groupBackground.copy(alpha = 0.9f)
                                 )
                             )
                         )
-                        .border(width = 0.5.dp, color = Color.White.copy(alpha = 0.12f))
+                        .border(width = 0.5.dp, color = IosSettingsColors.separator)
                         .clickable(enabled = otherUser != null) { onShowContactDetail() }
                         .padding(horizontal = 8.dp, vertical =   6.dp),
                     horizontalAlignment = Alignment.CenterHorizontally
@@ -204,8 +204,8 @@ fun ChatTopBar(
                                     .offset(x = 1.dp, y = 1.dp)
                                     .size(13.dp)
                                     .clip(CircleShape)
-                                    .background(if (isOnlineReal) Color(0xFF4ADE80) else IosSettingsColors.secondaryLabel)
-                                    .border(2.dp, Color(0xFF1C1C1E), CircleShape)
+                                    .background(if (isOnlineReal) IosSettingsColors.green else IosSettingsColors.secondaryLabel)
+                                    .border(2.dp, IosSettingsColors.cell, CircleShape)
                             )
                         }
 
@@ -437,13 +437,13 @@ private fun PresenceLabel(
             Box(
                 modifier = Modifier
                     .size(8.dp)
-                    .background(Color(0xFF4ADE80), CircleShape)
+                    .background(IosSettingsColors.green, CircleShape)
             )
             Spacer(modifier = Modifier.width(5.dp))
             Text(
                 text = "En línea",
                 fontSize = 12.sp,
-                color = Color(0xFFCBD5E1),
+                color = IosSettingsColors.secondaryLabel,
                 maxLines = 1,
                 overflow = TextOverflow.Ellipsis
             )

@@ -95,7 +95,7 @@ fun ChatComposer(
     var micDragOffsetY by remember { androidx.compose.runtime.mutableFloatStateOf(0f) }
     val isInputEmpty = inputMessage.trim().isEmpty()
     val primaryColor = IosSettingsColors.blue
-    val bubbleColor = androidx.compose.ui.graphics.Color(0xFF09090B)
+    val bubbleColor = IosSettingsColors.cellElevated
     // Distancia en PX que debe recorrer el dedo (con el micrófono) para que el
     // candado atrape el mic. Geometría real: el candado vive en el top-end del
     // composer con offset(y=-96.dp) y alto 88dp (su centro queda ~52dp por encima
@@ -138,9 +138,9 @@ fun ChatComposer(
             .background(
                 Brush.verticalGradient(
                     listOf(
-                        androidx.compose.ui.graphics.Color(0xE6000000),
-                        androidx.compose.ui.graphics.Color(0xD91C1C1E),
-                        androidx.compose.ui.graphics.Color(0xE6000000)
+                        IosSettingsColors.mediaScrim,
+                        IosSettingsColors.mediaScrim,
+                        IosSettingsColors.mediaScrim
                     )
                 )
             )
@@ -229,7 +229,7 @@ fun ChatComposer(
 
                     Text(
                         text = if (deleteProgress < 0.55f) "Desliza para eliminar" else "Suelta para eliminar",
-                        color = androidx.compose.ui.graphics.Color(0xFFFFDADA),
+                        color = IosSettingsColors.red,
                         fontSize = 13.sp,
                         fontWeight = FontWeight.Medium
                     )
@@ -266,7 +266,7 @@ fun ChatComposer(
                         .weight(1f)
                         .heightIn(min = 52.dp)
                         .background(bubbleColor, CircleShape)
-                        .border(1.dp, androidx.compose.ui.graphics.Color(0xFF38383A), CircleShape)
+                        .border(1.dp, IosSettingsColors.separator, CircleShape)
                         .padding(start = 4.dp, end = 4.dp),
                     verticalAlignment = Alignment.CenterVertically
                 ) {
@@ -322,7 +322,7 @@ fun ChatComposer(
                                     if (inputMessage.isEmpty()) {
                                         Text(
                                             text = "Mensaje de iMessage",
-                                            color = androidx.compose.ui.graphics.Color(0xFF8E8E93),
+                                            color = IosSettingsColors.secondaryLabel,
                                             fontSize = 16.sp
                                         )
                                     }
@@ -360,7 +360,7 @@ fun ChatComposer(
                                 Brush.linearGradient(
                                     colors = listOf(
                                         IosSettingsColors.blue,
-                                        androidx.compose.ui.graphics.Color(0xFF2563EB)
+                                        IosSettingsColors.blue
                                     )
                                 )
                             )
@@ -395,8 +395,8 @@ fun ChatComposer(
                                 recordState == RecordState.RECORDING || recordState == RecordState.LOCKED_RECORDING ->
                                     Brush.radialGradient(
                                         colors = listOf(
-                                            androidx.compose.ui.graphics.Color(0xFF2A3546).copy(alpha = 0.95f),
-                                            androidx.compose.ui.graphics.Color(0xFF131A26)
+                                            IosSettingsColors.cellElevated.copy(alpha = 0.95f),
+                                            IosSettingsColors.cell
                                         )
                                     )
                                 else -> Brush.radialGradient(
@@ -497,7 +497,7 @@ fun ChatComposer(
                         modifier = Modifier
                             .size(40.dp)
                             .clip(CircleShape)
-                            .background(androidx.compose.ui.graphics.Color(0xFFFCE8E6))
+                            .background(IosSettingsColors.red.copy(alpha = 0.15f))
                             .clickable {
                                 triggerLightVibration(context)
                                 onVoiceGestureEvent(VoiceGestureEvent.StopAndPreviewRecording, context, null, null)
@@ -507,7 +507,7 @@ fun ChatComposer(
                         Icon(
                             imageVector = Icons.Default.Stop,
                             contentDescription = "Detener grabación",
-                            tint = androidx.compose.ui.graphics.Color(0xFFE11D48),
+                            tint = IosSettingsColors.red,
                             modifier = Modifier.size(20.dp)
                         )
                     }
@@ -536,7 +536,7 @@ fun ChatComposer(
                                 Brush.linearGradient(
                                     colors = listOf(
                                         IosSettingsColors.blue,
-                                        androidx.compose.ui.graphics.Color(0xFF2563EB)
+                                        IosSettingsColors.blue
                                     )
                                 )
                             )
@@ -583,7 +583,7 @@ fun ChatComposer(
                         modifier = Modifier
                             .size(36.dp)
                             .clip(CircleShape)
-                            .background(androidx.compose.ui.graphics.Color(0xFFFCE8E6))
+                            .background(IosSettingsColors.red.copy(alpha = 0.15f))
                             .clickable {
                                 triggerLightVibration(context)
                                 viewModel.cancelPreviewRecording(context)

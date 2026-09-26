@@ -31,7 +31,7 @@ fun MediaRenderer(
 ) {
     Box(
         modifier = modifier
-            .background(Color(0xFF0D0F12)),
+            .background(IosSettingsColors.groupBackground),
         contentAlignment = Alignment.Center
     ) {
         when (resource) {
@@ -64,7 +64,7 @@ fun MediaRenderer(
                     Spacer(modifier = Modifier.height(8.dp))
                     Text(
                         text = "Cargando...",
-                        color = Color.Gray,
+                        color = IosSettingsColors.secondaryLabel,
                         fontSize = 12.sp
                     )
                 }
@@ -77,13 +77,13 @@ fun MediaRenderer(
                     Icon(
                         imageVector = Icons.Default.BrokenImage,
                         contentDescription = "Archivo no disponible",
-                        tint = Color.Gray,
+                        tint = IosSettingsColors.secondaryLabel,
                         modifier = Modifier.size(40.dp)
                     )
                     Spacer(modifier = Modifier.height(4.dp))
                     Text(
                         text = "No disponible",
-                        color = Color.Gray,
+                        color = IosSettingsColors.secondaryLabel,
                         fontSize = 12.sp
                     )
                 }

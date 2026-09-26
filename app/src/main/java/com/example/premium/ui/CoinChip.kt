@@ -61,14 +61,14 @@ fun MiniCoinChip(modifier: Modifier = Modifier) {
     val wallet by PremiumManager.wallet.collectAsState()
     Row(
         modifier = modifier
-            .background(Color(0xFFFFFFFF).copy(alpha = 0.08f), RoundedCornerShape(50))
+            .background(IosSettingsColors.cellElevated, RoundedCornerShape(50))
             .padding(horizontal = 8.dp, vertical = 3.dp),
         verticalAlignment = Alignment.CenterVertically
     ) {
         Text("🪙", fontSize = 12.sp)
         Text(
             " ${wallet.coins}",
-            color = Color.White,
+            color = IosSettingsColors.label,
             fontWeight = FontWeight.Bold,
             fontSize = 12.sp
         )

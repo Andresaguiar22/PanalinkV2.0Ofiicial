@@ -4,7 +4,7 @@ import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.ArrowBack
+import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material.icons.filled.Check
 import androidx.compose.material.icons.filled.Close
 import androidx.compose.material3.*
@@ -14,6 +14,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import com.example.media.player.ui.PlaylistViewModel
+import com.example.ui.settings.ios.IosSettingsScaffold
 import com.example.media.playlist.PlaylistInvitationEntity
 import com.example.media.playlist.PlaylistInvitationRepository
 import com.example.data.database.PanalinkDatabase
@@ -40,18 +41,7 @@ fun PlaylistInvitationsScreen(
     val invitations by invitationRepo.observeReceivedInvitations(currentUserId).collectAsState(initial = emptyList())
     val scope = rememberCoroutineScope()
 
-    Scaffold(
-        topBar = {
-            TopAppBar(
-                title = { Text("Invitaciones de Playlist") },
-                navigationIcon = {
-                    IconButton(onClick = onBack) {
-                        Icon(Icons.Default.ArrowBack, contentDescription = "Atrás")
-                    }
-                }
-            )
-        }
-    ) { padding ->
+    IosSettingsScaffold(title = "Invitaciones de Playlist", onBack = onBack) { padding ->
         if (invitations.isEmpty()) {
             Box(modifier = Modifier.fillMaxSize().padding(padding), contentAlignment = Alignment.Center) {
                 Text("No tienes invitaciones pendientes")

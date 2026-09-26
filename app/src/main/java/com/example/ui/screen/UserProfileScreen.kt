@@ -121,7 +121,7 @@ fun UserProfileScreen(
         com.example.data.repository.PresenceRepository.getPresenceForUser(userId)
     }
     val isUserOnline = presenceInfo.status == com.example.data.repository.UserPresenceStatus.ONLINE
-    val onlineStatusColor = if (isUserOnline) IosSettingsColors.green else Color(0xFF2A3A44)
+    val onlineStatusColor = if (isUserOnline) IosSettingsColors.green else IosSettingsColors.tertiaryLabel
     val presenceStatusLabel = when (presenceInfo.status) {
         com.example.data.repository.UserPresenceStatus.ONLINE -> "Estado: En línea 🟢"
         com.example.data.repository.UserPresenceStatus.AWAY -> "Estado: Ausente 🟡"
@@ -279,7 +279,7 @@ fun UserProfileScreen(
                                         avatarUrl = profile.avatarUrl,
                                         size = 76.dp,
                                         borderWidth = 2.5.dp,
-                                        borderColor = Color.White.copy(alpha = 0.9f),
+                                        borderColor = IosSettingsColors.label.copy(alpha = 0.9f),
                                         contentDescription = "Avatar de Perfil",
                                         placeholderName = profile.displayName
                                     )

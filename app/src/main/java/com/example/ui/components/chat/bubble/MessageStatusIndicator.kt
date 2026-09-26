@@ -94,7 +94,7 @@ fun MessageStatusIndicator(
                             androidx.compose.material3.Icon(
                                 imageVector = Icons.Filled.WarningAmber,
                                 contentDescription = "Pendiente (Sin conexión)",
-                                tint = Color(0xFFFBC02D),
+                                tint = IosSettingsColors.yellow,
                                 modifier = Modifier.size(13.dp)
                             )
                         }
@@ -141,7 +141,7 @@ fun MessageStatusIndicator(
                         androidx.compose.material3.Icon(
                             imageVector = Icons.Filled.DoneAll,
                             contentDescription = "Leído",
-                            tint = Color(0xFF0A84FF),
+                            tint = IosSettingsColors.blue,
                             modifier = Modifier.size(15.dp)
                         )
                     }

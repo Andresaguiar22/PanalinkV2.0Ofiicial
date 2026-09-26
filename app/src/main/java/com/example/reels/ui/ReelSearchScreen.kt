@@ -141,8 +141,8 @@ fun ReelSearchScreen(
                         .weight(1f)
                         .height(42.dp)
                         .clip(RoundedCornerShape(22.dp))
-                        .border(1.dp, Color.White.copy(alpha = 0.10f), RoundedCornerShape(22.dp))
-                        .background(Color(0xFF2B2B2B))
+                        .border(1.dp, IosSettingsColors.separator, RoundedCornerShape(22.dp))
+                        .background(IosSettingsColors.cellElevated)
                 ) {
                     Row(
                         modifier = Modifier
@@ -226,13 +226,13 @@ fun ReelSearchScreen(
                     Box(
                         modifier = Modifier
                             .clip(RoundedCornerShape(8.dp))
-                            .background(Color(0xFF2B2B2B))
+                            .background(IosSettingsColors.cellElevated)
                             .clickable { onHashtagClick(initialTag.removePrefix("#")) }
                             .padding(horizontal = 12.dp, vertical = 6.dp)
                     ) {
                         Text(
                             text = "#${initialTag.removePrefix("#")}",
-                            color = Color(0xFF7FB8FF),
+                            color = IosSettingsColors.blue,
                             fontWeight = FontWeight.Bold,
                             fontSize = 15.sp
                         )
@@ -299,7 +299,7 @@ fun ReelSearchScreen(
                         contentAlignment = Alignment.Center
                     ) {
                         CircularProgressIndicator(
-                            color = Color(0xFFFE2C55),
+                            color = IosSettingsColors.pink,
                             modifier = Modifier.size(28.dp),
                             strokeWidth = 3.dp
                         )

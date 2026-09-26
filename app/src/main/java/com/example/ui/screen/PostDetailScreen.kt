@@ -147,15 +147,15 @@ fun PostDetailScreen(
                                 onValueChange = { commentText = it },
                                 modifier = Modifier.weight(1f),
                                 placeholder = {
-                                    Text("Escribe un comentario...", color = Color.Gray, fontSize = 14.sp)
+                                    Text("Escribe un comentario...", color = IosSettingsColors.secondaryLabel, fontSize = 14.sp)
                                 },
                                 colors = OutlinedTextFieldDefaults.colors(
                                     focusedContainerColor = IosSettingsColors.cellElevated,
                                     unfocusedContainerColor = IosSettingsColors.cellElevated,
                                     focusedBorderColor = Color.Transparent,
                                     unfocusedBorderColor = Color.Transparent,
-                                    focusedTextColor = Color.White,
-                                    unfocusedTextColor = Color.White
+                                    focusedTextColor = IosSettingsColors.label,
+                                    unfocusedTextColor = IosSettingsColors.label
                                 ),
                                 shape = RoundedCornerShape(24.dp),
                                 textStyle = androidx.compose.ui.text.TextStyle(fontSize = 14.sp),
@@ -192,7 +192,7 @@ fun PostDetailScreen(
                             ) {
                                 if (isSending) {
                                     CircularProgressIndicator(
-                                        color = Color.Black,
+                                        color = IosSettingsColors.onAccent,
                                         modifier = Modifier.size(18.dp),
                                         strokeWidth = 2.dp
                                     )
@@ -200,7 +200,7 @@ fun PostDetailScreen(
                                     Icon(
                                         imageVector = Icons.AutoMirrored.Filled.Send,
                                         contentDescription = "Enviar",
-                                        tint = if (commentText.isNotBlank()) Color.Black else Color.Gray,
+                                        tint = if (commentText.isNotBlank()) IosSettingsColors.onAccent else IosSettingsColors.tertiaryLabel,
                                         modifier = Modifier.size(18.dp)
                                     )
                                 }
@@ -227,7 +227,7 @@ fun PostDetailScreen(
                 ) {
                     Text(
                         text = "La publicación no existe o fue eliminada.",
-                        color = Color.Gray,
+                        color = IosSettingsColors.secondaryLabel,
                         fontSize = 16.sp,
                         fontWeight = FontWeight.Medium
                     )
@@ -296,7 +296,7 @@ fun PostDetailScreen(
                             ) {
                                 Text(
                                     text = "Aún no hay comentarios. ¡Sé el primero! 💬",
-                                    color = Color.Gray,
+                                    color = IosSettingsColors.secondaryLabel,
                                     fontSize = 14.sp
                                 )
                             }

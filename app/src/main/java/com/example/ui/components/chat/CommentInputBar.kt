@@ -62,7 +62,7 @@ fun CommentInputBar(
     val barBg = IosSettingsColors.groupBackground // Telegram Dark Bar Surface
     val inputBg = IosSettingsColors.cell
     val accentBlue = IosSettingsColors.blue
-    val primaryText = Color.White
+    val primaryText = IosSettingsColors.label
     val secondaryText = IosSettingsColors.secondaryLabel
 
     var textState by remember { mutableStateOf("") }
@@ -168,7 +168,7 @@ fun CommentInputBar(
                         modifier = Modifier
                             .size(42.dp)
                             .clip(CircleShape)
-                            .background(if (textState.isNotBlank()) accentBlue else Color(0xFF2B3A4A))
+                            .background(if (textState.isNotBlank()) accentBlue else IosSettingsColors.separator)
                             .clickable(enabled = textState.isNotBlank()) {
                                 onSendMessage(textState.trim())
                                 textState = ""
@@ -178,7 +178,7 @@ fun CommentInputBar(
                         Icon(
                             imageVector = Icons.AutoMirrored.Filled.Send,
                             contentDescription = "Enviar comentario",
-                            tint = if (textState.isNotBlank()) Color.White else secondaryText,
+                            tint = if (textState.isNotBlank()) IosSettingsColors.onAccent else secondaryText,
                             modifier = Modifier.size(20.dp)
                         )
                     }
@@ -215,7 +215,7 @@ fun CommentInputBar(
                         onClick = onJoinChannelClick,
                         colors = ButtonDefaults.buttonColors(
                             containerColor = accentBlue,
-                            contentColor = Color.White
+                            contentColor = IosSettingsColors.onAccent
                         ),
                         shape = RoundedCornerShape(20.dp),
                         modifier = Modifier.height(38.dp)

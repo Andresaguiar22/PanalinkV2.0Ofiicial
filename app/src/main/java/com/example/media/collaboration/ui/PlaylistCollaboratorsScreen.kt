@@ -14,6 +14,8 @@ import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import com.example.media.player.ui.PlaylistViewModel
+import com.example.ui.settings.ios.IosSettingsColors
+import com.example.ui.settings.ios.IosSettingsScaffold
 import com.example.media.playlist.PlaylistCollaboratorEntity
 import com.example.media.playlist.PlaylistInvitationEntity
 import com.example.media.playlist.PlaylistMemberRole
@@ -28,20 +30,16 @@ fun PlaylistCollaboratorsScreen(
     val uiState by viewModel.uiState.collectAsState()
     var showInviteDialog by remember { mutableStateOf(false) }
 
-    Scaffold(
-        topBar = {
-            TopAppBar(
-                title = { Text("Colaboradores") },
-                navigationIcon = {
-                    IconButton(onClick = onBack) {
-                        Icon(Icons.Default.ArrowBack, contentDescription = "Atrás")
-                    }
-                }
-            )
-        },
+    IosSettingsScaffold(
+        title = "Colaboradores",
+        onBack = onBack,
         floatingActionButton = {
             if (uiState.userRole == PlaylistMemberRole.OWNER) {
-                FloatingActionButton(onClick = { showInviteDialog = true }) {
+                FloatingActionButton(
+                    onClick = { showInviteDialog = true },
+                    containerColor = IosSettingsColors.blue,
+                    contentColor = IosSettingsColors.cell
+                ) {
                     Icon(Icons.Default.PersonAdd, contentDescription = "Invitar")
                 }
             }

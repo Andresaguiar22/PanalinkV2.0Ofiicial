@@ -216,7 +216,7 @@ fun LiveViewerScreen(
                     modifier = Modifier
                         .fillMaxSize()
                         .clip(RoundedCornerShape(14.dp))
-                        .background(Color(0x55222222))
+                        .background(IosSettingsColors.mediaScrimSoft)
                         .padding(horizontal = 8.dp, vertical = 8.dp)
                 )
             }
@@ -314,7 +314,7 @@ fun LiveViewerScreen(
                     .padding(32.dp),
                 contentAlignment = Alignment.Center
             ) {
-                Card(colors = CardDefaults.cardColors(containerColor = Color(0xE6222222))) {
+                Card(colors = CardDefaults.cardColors(containerColor = IosSettingsColors.mediaScrim)) {
                     Column(
                         modifier = Modifier.padding(18.dp),
                         horizontalAlignment = Alignment.CenterHorizontally
@@ -446,7 +446,7 @@ private fun LiveRailHeartButton(
             modifier = Modifier
                 .size(46.dp)
                 .clip(CircleShape)
-                .background(Color(0x66222222))
+                .background(IosSettingsColors.mediaScrimSoft)
                 .clickable {
                     onTap()
                     scope.launch {
@@ -488,7 +488,7 @@ private fun LiveRailAction(
             modifier = Modifier
                 .size(46.dp)
                 .clip(CircleShape)
-                .background(Color(0x66222222)),
+                .background(IosSettingsColors.mediaScrimSoft),
             contentAlignment = Alignment.Center
         ) {
             Text(text = emoji, fontSize = 21.sp)

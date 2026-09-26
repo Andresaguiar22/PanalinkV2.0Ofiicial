@@ -8,6 +8,9 @@ import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.*
+import androidx.compose.material.icons.automirrored.filled.Article
+import androidx.compose.material.icons.automirrored.filled.InsertDriveFile
+import androidx.compose.material.icons.automirrored.filled.OpenInNew
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
@@ -164,7 +167,7 @@ fun DocumentMessageBubble(
                         }
                         localFile != null -> {
                             Icon(
-                                imageVector = Icons.Default.OpenInNew,
+                                imageVector = Icons.AutoMirrored.Filled.OpenInNew,
                                 contentDescription = "Abrir",
                                 tint = secondaryColor,
                                 modifier = Modifier.size(18.dp)
@@ -198,14 +201,14 @@ fun DocumentMessageBubble(
 
 private fun getDocumentFileInfo(extension: String): Pair<ImageVector, Color> {
     return when (extension) {
-        "pdf" -> Icons.Default.PictureAsPdf to Color(0xFFF44336)
+        "pdf" -> Icons.Default.PictureAsPdf to IosSettingsColors.red
         "doc", "docx" -> Icons.Default.Description to IosSettingsColors.blue
         "xls", "xlsx" -> Icons.Default.TableChart to IosSettingsColors.green
         "ppt", "pptx" -> Icons.Default.PresentToAll to IosSettingsColors.orange
         "zip", "rar", "7z" -> Icons.Default.FolderZip to IosSettingsColors.yellow
-        "apk" -> Icons.Default.Android to Color(0xFF3DDC84)
-        "txt" -> Icons.Default.Article to IosSettingsColors.secondaryLabel
-        else -> Icons.Default.InsertDriveFile to Color(0xFF607D8B)
+        "apk" -> Icons.Default.Android to IosSettingsColors.green
+        "txt" -> Icons.AutoMirrored.Filled.Article to IosSettingsColors.secondaryLabel
+        else -> Icons.AutoMirrored.Filled.InsertDriveFile to IosSettingsColors.secondaryLabel
     }
 }
 

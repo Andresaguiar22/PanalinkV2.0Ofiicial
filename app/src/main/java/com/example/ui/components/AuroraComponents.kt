@@ -31,14 +31,14 @@ fun AuroraButton(
     icon: ImageVector? = null,
     enabled: Boolean = true,
     isLoading: Boolean = false,
-    gradient: Brush = Brush.horizontalGradient(listOf(Color(0xFF0A84FF), Color(0xFF5E5CE6)))
+    gradient: Brush = Brush.horizontalGradient(listOf(IosSettingsColors.blue, IosSettingsColors.indigo))
 ) {
     Box(
         modifier = modifier
             .fillMaxWidth()
             .height(56.dp)
             .clip(RoundedCornerShape(16.dp))
-            .background(if (enabled) gradient else Brush.horizontalGradient(listOf(Color.Gray, Color.DarkGray)))
+            .background(if (enabled) gradient else Brush.horizontalGradient(listOf(IosSettingsColors.secondaryLabel, IosSettingsColors.groupBackground)))
             .clickable(
                 enabled = enabled && !isLoading,
                 onClick = onClick,
@@ -83,7 +83,7 @@ fun AuroraOutlinedButton(
         modifier = modifier.fillMaxWidth().height(56.dp),
         shape = RoundedCornerShape(16.dp),
         color = IosSettingsColors.label.copy(alpha = 0.05f),
-        border = BorderStroke(1.dp, Color.White.copy(alpha = 0.2f))
+        border = BorderStroke(1.dp, IosSettingsColors.separator)
     ) {
         Row(
             modifier = Modifier.fillMaxSize(),
@@ -113,8 +113,8 @@ fun GlassCard(
     Card(
         modifier = modifier.fillMaxWidth(),
         shape = shape,
-        colors = CardDefaults.cardColors(containerColor = Color.White.copy(alpha = 0.05f)),
-        border = BorderStroke(1.dp, Color.White.copy(alpha = 0.1f))
+        colors = CardDefaults.cardColors(containerColor = IosSettingsColors.cellElevated),
+        border = BorderStroke(1.dp, IosSettingsColors.separator)
     ) {
         Column(
             modifier = Modifier.padding(24.dp),

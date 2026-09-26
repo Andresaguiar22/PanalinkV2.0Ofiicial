@@ -289,8 +289,8 @@ item {
                             modifier = Modifier
                                 .fillMaxWidth()
                                 .padding(horizontal =  16.dp)
-                                .background(Color(0xFF1C1C1E), RoundedCornerShape(20.dp))
-                                .border(1.dp, Color.White.copy(alpha =  0.05f), RoundedCornerShape(20.dp))
+                                .background(IosSettingsColors.cell, RoundedCornerShape(20.dp))
+                                .border(1.dp, IosSettingsColors.separator, RoundedCornerShape(20.dp))
                                 .clip(RoundedCornerShape(20.dp))
                         ) {
 
@@ -414,18 +414,18 @@ item {
                                     )
                                     HorizontalDivider()
                                     DropdownMenuItem(
-                                        text = { Text("Eliminar contacto 🗑️", color = Color(0xFFEF4444)) },
+                                        text = { Text("Eliminar contacto 🗑️", color = IosSettingsColors.red) },
                                         onClick = {
                                             showContactMenu = false
                                             onContactLongClick(contact)
                                         },
-                                        leadingIcon = { Icon(Icons.Default.Delete, contentDescription = null, tint = Color(0xFFEF4444), modifier = Modifier.size(18.dp)) }
+                                        leadingIcon = { Icon(Icons.Default.Delete, contentDescription = null, tint = IosSettingsColors.red, modifier = Modifier.size(18.dp)) }
                                     )
                                 }
                             }
                         }
                         if (index < contacts.size - 1) {
-                            HorizontalDivider(color = Color(0xFF38383A), thickness =  0.5.dp, modifier = Modifier.padding(start =  76.dp))
+                            HorizontalDivider(color = IosSettingsColors.separator, thickness =  0.5.dp, modifier = Modifier.padding(start =  76.dp))
                         }
                     }
                     }
@@ -467,8 +467,8 @@ private fun AddPanaHeroCard(
         modifier = Modifier
             .fillMaxWidth()
             .padding(16.dp)
-            .background(Color(0xFF1C1C1E), RoundedCornerShape(24.dp))
-            .border(1.dp, Color.White.copy(alpha =  0.05f), RoundedCornerShape(24.dp))
+            .background(IosSettingsColors.cell, RoundedCornerShape(24.dp))
+            .border(1.dp, IosSettingsColors.separator, RoundedCornerShape(24.dp))
             .padding(20.dp),
         horizontalAlignment = Alignment.CenterHorizontally
     ) {
@@ -476,7 +476,7 @@ private fun AddPanaHeroCard(
 
             Text(
                 text = "Agregar un Pana",
-                color = Color.White,
+                color = IosSettingsColors.label,
                 fontSize =  20.sp,
                 fontWeight = FontWeight.Bold
             )
@@ -515,8 +515,8 @@ private fun AddPanaHeroCard(
         Row(
             modifier = Modifier
                 .fillMaxWidth()
-                .background(Color(0xFF000000), RoundedCornerShape(16.dp))
-                .border(1.dp, Color.White.copy(alpha =  0.1f), RoundedCornerShape(16.dp))
+                .background(IosSettingsColors.cellElevated, RoundedCornerShape(16.dp))
+                .border(1.dp, IosSettingsColors.separator, RoundedCornerShape(16.dp))
                 .padding(16.dp),
             verticalAlignment = Alignment.CenterVertically
         ) {
@@ -529,7 +529,7 @@ private fun AddPanaHeroCard(
                 Box(
                     modifier = Modifier
                         .size(70.dp)
-                        .background(Color.White, RoundedCornerShape(12.dp))
+                        .background(IosSettingsColors.onAccent, RoundedCornerShape(12.dp))
                         .padding(8.dp)
                 ) {
 
@@ -566,7 +566,7 @@ private fun AddPanaHeroCard(
 
                         Text(
                             text = myPin.chunked(3).joinToString(" "),
-                            color = Color.White,
+                            color = IosSettingsColors.label,
                             fontSize =  28.sp,
                             fontWeight = FontWeight.Bold,
                             fontFamily = androidx.compose.ui.text.font.FontFamily.Monospace,
@@ -621,15 +621,15 @@ private fun AddPanaHeroCard(
 
 
 
-                Icon(Icons.Default.CheckCircle, contentDescription = "Scan", tint = Color(0xFF000000), modifier = Modifier.size(20.dp))
+                Icon(Icons.Default.CheckCircle, contentDescription = "Scan", tint = IosSettingsColors.onAccent, modifier = Modifier.size(20.dp))
                 Spacer(Modifier.width(8.dp))
-                Text("Escanear QR", color = Color(0xFF000000), fontSize =  16.sp, fontWeight = FontWeight.SemiBold)
+                Text("Escanear QR", color = IosSettingsColors.onAccent, fontSize =  16.sp, fontWeight = FontWeight.SemiBold)
             }
 
             Row(
                 modifier = Modifier
                     .weight(1f)
-                    .background(Color(0xFF2C2C2E), RoundedCornerShape(14.dp))
+                    .background(IosSettingsColors.cellElevated, RoundedCornerShape(14.dp))
                     .padding(vertical =  14.dp)
                     .clickable { onAddByPinManually() },
                 horizontalArrangement = Arrangement.Center,
@@ -639,7 +639,7 @@ private fun AddPanaHeroCard(
 
                 Icon(Icons.Default.Person, contentDescription = "PIN", tint = IosSettingsColors.green, modifier = Modifier.size(20.dp))
                 Spacer(Modifier.width(8.dp))
-                Text("Ingresar PIN", color = Color.White, fontSize =  16.sp, fontWeight = FontWeight.SemiBold)
+                Text("Ingresar PIN", color = IosSettingsColors.label, fontSize =  16.sp, fontWeight = FontWeight.SemiBold)
             }
         }
     }

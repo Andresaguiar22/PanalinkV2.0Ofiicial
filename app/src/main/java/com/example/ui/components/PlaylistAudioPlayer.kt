@@ -108,8 +108,8 @@ fun PlaylistAudioPlayer(audioUrls: List<String>) {
         modifier = Modifier
             .fillMaxWidth()
             .clip(RoundedCornerShape(16.dp))
-            .background(Color(0xFF1E1E22))
-            .border(1.dp, Color.White.copy(alpha = 0.05f), RoundedCornerShape(16.dp))
+            .background(IosSettingsColors.cellElevated)
+            .border(1.dp, IosSettingsColors.separator, RoundedCornerShape(16.dp))
             .padding(16.dp)
     ) {
         // Player Header
@@ -152,7 +152,7 @@ fun PlaylistAudioPlayer(audioUrls: List<String>) {
                 Spacer(modifier = Modifier.height(4.dp))
                 Text(
                     text = if (audioUrls.size > 1) "Pista ${currentTrackIndex + 1} de ${audioUrls.size}" else "Audio",
-                    color = Color.Gray,
+                    color = IosSettingsColors.secondaryLabel,
                     fontSize = 12.sp
                 )
             }
@@ -169,13 +169,13 @@ fun PlaylistAudioPlayer(audioUrls: List<String>) {
                 .fillMaxWidth()
                 .height(4.dp)
                 .clip(CircleShape)
-                .background(Color.Gray.copy(alpha = 0.3f))
+                .background(IosSettingsColors.separator)
         ) {
             Box(
                 modifier = Modifier
                     .fillMaxWidth(fraction = progress.coerceIn(0f, 1f))
                     .fillMaxHeight()
-                    .background(Color(0xFF1DB954)) // Spotify Green
+                    .background(IosSettingsColors.green) // Spotify Green
             )
         }
         
@@ -188,12 +188,12 @@ fun PlaylistAudioPlayer(audioUrls: List<String>) {
         ) {
             Text(
                 text = formatAudioTime(currentPositionMs),
-                color = Color.Gray,
+                color = IosSettingsColors.secondaryLabel,
                 fontSize = 11.sp
             )
             Text(
                 text = formatAudioTime(durationMs),
-                color = Color.Gray,
+                color = IosSettingsColors.secondaryLabel,
                 fontSize = 11.sp
             )
         }
@@ -218,7 +218,7 @@ fun PlaylistAudioPlayer(audioUrls: List<String>) {
                 Icon(
                     imageVector = Icons.Default.SkipPrevious,
                     contentDescription = "Anterior",
-                    tint = if (currentTrackIndex > 0) Color.White else Color.Gray.copy(alpha = 0.5f),
+                    tint = if (currentTrackIndex > 0) IosSettingsColors.label else IosSettingsColors.secondaryLabel,
                     modifier = Modifier.size(32.dp)
                 )
             }
@@ -227,7 +227,7 @@ fun PlaylistAudioPlayer(audioUrls: List<String>) {
                 modifier = Modifier
                     .size(64.dp)
                     .clip(CircleShape)
-                    .background(Color.White)
+                    .background(IosSettingsColors.onAccent)
                     .clickable {
                         if (isPlaying) {
                             mediaPlayer?.pause()
@@ -242,7 +242,7 @@ fun PlaylistAudioPlayer(audioUrls: List<String>) {
                 Icon(
                     imageVector = if (isPlaying) Icons.Default.Pause else Icons.Default.PlayArrow,
                     contentDescription = "Play/Pause",
-                    tint = Color.Black,
+                    tint = IosSettingsColors.onAccent,
                     modifier = Modifier.size(36.dp)
                 )
             }
@@ -259,7 +259,7 @@ fun PlaylistAudioPlayer(audioUrls: List<String>) {
                 Icon(
                     imageVector = Icons.Default.SkipNext,
                     contentDescription = "Siguiente",
-                    tint = if (currentTrackIndex < audioUrls.size - 1) Color.White else Color.Gray.copy(alpha = 0.5f),
+                    tint = if (currentTrackIndex < audioUrls.size - 1) IosSettingsColors.label else IosSettingsColors.secondaryLabel,
                     modifier = Modifier.size(32.dp)
                 )
             }
@@ -268,7 +268,7 @@ fun PlaylistAudioPlayer(audioUrls: List<String>) {
         // Playlist (if multiple)
         if (audioUrls.size > 1) {
             Spacer(modifier = Modifier.height(16.dp))
-            Divider(color = IosSettingsColors.label.copy(alpha = 0.1f))
+            HorizontalDivider(color = IosSettingsColors.label.copy(alpha = 0.1f))
             Spacer(modifier = Modifier.height(8.dp))
             
             Column(
@@ -290,14 +290,14 @@ fun PlaylistAudioPlayer(audioUrls: List<String>) {
                     ) {
                         Text(
                             text = "${index + 1}",
-                            color = if (isCurrent) Color(0xFF1DB954) else Color.Gray,
+                            color = if (isCurrent) IosSettingsColors.green else IosSettingsColors.secondaryLabel,
                             fontSize = 12.sp,
                             modifier = Modifier.width(24.dp)
                         )
                         Spacer(modifier = Modifier.width(8.dp))
                         Text(
                             text = extractFilename(url),
-                            color = if (isCurrent) Color(0xFF1DB954) else Color.White,
+                            color = if (isCurrent) IosSettingsColors.green else IosSettingsColors.label,
                             fontSize = 14.sp,
                             maxLines = 1,
                             overflow = TextOverflow.Ellipsis,
@@ -308,7 +308,7 @@ fun PlaylistAudioPlayer(audioUrls: List<String>) {
                             Icon(
                                 imageVector = Icons.Default.GraphicEq,
                                 contentDescription = null,
-                                tint = Color(0xFF1DB954),
+                                tint = IosSettingsColors.green,
                                 modifier = Modifier.size(16.dp)
                             )
                         }

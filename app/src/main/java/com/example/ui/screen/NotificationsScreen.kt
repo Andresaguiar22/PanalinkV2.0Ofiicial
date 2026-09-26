@@ -39,6 +39,7 @@ import com.example.ui.settings.ios.IosSettingsColors
 import com.example.ui.settings.ios.IosSettingsScaffold
 import com.example.ui.settings.ios.IosFont
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
+import androidx.compose.material.icons.automirrored.filled.TrendingUp
 
 @OptIn(ExperimentalMaterial3Api::class, ExperimentalFoundationApi::class)
 @Composable
@@ -213,7 +214,7 @@ fun NotificationCard(
                     Icon(
                         imageVector = icon,
                         contentDescription = null,
-                        tint = Color.White,
+                        tint = IosSettingsColors.onAccent,
                         modifier = Modifier.size(11.dp)
                     )
                 }
@@ -425,16 +426,16 @@ fun handleNotificationNavigation(
 }
 fun getNotificationIcon(type: NotificationType): Pair<ImageVector, Color> {
     return when (type) {
-        NotificationType.LIKE -> Pair(Icons.Default.Favorite, Color.Red)
-        NotificationType.COMMENT -> Pair(Icons.Default.ChatBubble, Color(0xFF00C853))
-        NotificationType.FOLLOWER -> Pair(Icons.Default.Person, Color(0xFF2962FF))
-        NotificationType.MESSAGE -> Pair(Icons.Default.Email, Color(0xFFFF9100))
-        NotificationType.CALL -> Pair(Icons.Default.Call, Color(0xFFD50000))
-        NotificationType.FAVORITE -> Pair(Icons.Default.Star, Color(0xFFFFD600))
+        NotificationType.LIKE -> Pair(Icons.Default.Favorite, IosSettingsColors.red)
+        NotificationType.COMMENT -> Pair(Icons.Default.ChatBubble, IosSettingsColors.green)
+        NotificationType.FOLLOWER -> Pair(Icons.Default.Person, IosSettingsColors.blue)
+        NotificationType.MESSAGE -> Pair(Icons.Default.Email, IosSettingsColors.orange)
+        NotificationType.CALL -> Pair(Icons.Default.Call, IosSettingsColors.red)
+        NotificationType.FAVORITE -> Pair(Icons.Default.Star, IosSettingsColors.yellow)
         NotificationType.SHARE -> Pair(Icons.Default.Share, IosSettingsColors.blue)
         NotificationType.VIEW -> Pair(Icons.Default.Visibility, IosSettingsColors.green)
-        NotificationType.TRENDING -> Pair(Icons.Default.TrendingUp, Color(0xFFFF3D00))
-        else -> Pair(Icons.Default.Notifications, Color.Gray)
+        NotificationType.TRENDING -> Pair(Icons.AutoMirrored.Filled.TrendingUp, IosSettingsColors.orange)
+        else -> Pair(Icons.Default.Notifications, IosSettingsColors.gray)
     }
 }
 
@@ -493,13 +494,13 @@ fun NotificationBadge(count: Int, modifier: Modifier = Modifier) {
     if (count > 0) {
         Box(
             modifier = modifier
-                .background(Color.Red, CircleShape)
+                .background(IosSettingsColors.red, CircleShape)
                 .padding(horizontal = 6.dp, vertical = 2.dp),
             contentAlignment = Alignment.Center
         ) {
             Text(
                 text = if (count > 99) "+99" else count.toString(),
-                color = Color.White,
+                color = IosSettingsColors.onAccent,
                 fontSize = 11.sp,
                 fontWeight = FontWeight.Bold
             )

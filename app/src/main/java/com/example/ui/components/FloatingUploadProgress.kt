@@ -25,7 +25,7 @@ fun FloatingUploadProgress(
         modifier = Modifier
             .fillMaxWidth()
             .padding(horizontal = 16.dp, vertical = 60.dp),
-        color = Color.Black.copy(alpha = 0.9f),
+        color = IosSettingsColors.mediaScrim,
         shape = RoundedCornerShape(12.dp),
         shadowElevation = 8.dp
     ) {
@@ -39,8 +39,8 @@ fun FloatingUploadProgress(
                 LinearProgressIndicator(
                     progress = { progress },
                     modifier = Modifier.fillMaxWidth().height(4.dp),
-                    color = Color(0xFF64D2FF),
-                    trackColor = Color.White.copy(alpha = 0.2f)
+                    color = IosSettingsColors.teal,
+                    trackColor = IosSettingsColors.label.copy(alpha = 0.2f)
                 )
             }
             Spacer(modifier = Modifier.width(8.dp))

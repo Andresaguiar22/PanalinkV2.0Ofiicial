@@ -6,7 +6,7 @@ import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.Comment
+import androidx.compose.material.icons.automirrored.filled.Comment
 import androidx.compose.material.icons.filled.Share
 import androidx.compose.material.icons.filled.ThumbUp
 import androidx.compose.material3.*
@@ -77,7 +77,7 @@ fun ChannelPostItem(
                 Row(
                     modifier = Modifier
                         .clip(RoundedCornerShape(16.dp))
-                        .background(Color(0xFF2C3943))
+                        .background(IosSettingsColors.cellElevated)
                         .clickable { onReactClick() }
                         .padding(horizontal = 12.dp, vertical = 6.dp),
                     verticalAlignment = Alignment.CenterVertically
@@ -85,7 +85,7 @@ fun ChannelPostItem(
                     Icon(
                         imageVector = Icons.Default.ThumbUp,
                         contentDescription = "Reactions",
-                        tint = if (reactionsCount > 0) Color(0xFF0088CC) else Color.Gray,
+                        tint = if (reactionsCount > 0) IosSettingsColors.blue else IosSettingsColors.secondaryLabel,
                         modifier = Modifier.size(16.dp)
                     )
                     if (reactionsCount > 0) {
@@ -105,13 +105,13 @@ fun ChannelPostItem(
                         Row(
                             modifier = Modifier
                                 .clip(RoundedCornerShape(16.dp))
-                                .background(Color(0xFF2C3943))
+                                .background(IosSettingsColors.cellElevated)
                                 .clickable { onCommentClick() }
                                 .padding(horizontal = 12.dp, vertical = 6.dp),
                             verticalAlignment = Alignment.CenterVertically
                         ) {
                             Icon(
-                                imageVector = Icons.Default.Comment,
+                                imageVector = Icons.AutoMirrored.Filled.Comment,
                                 contentDescription = "Comments",
                                 tint = Color.Gray,
                                 modifier = Modifier.size(16.dp)
@@ -135,7 +135,7 @@ fun ChannelPostItem(
                         modifier = Modifier
                             .size(32.dp)
                             .clip(CircleShape)
-                            .background(Color(0xFF2C3943))
+                            .background(IosSettingsColors.cellElevated)
                     ) {
                         Icon(
                             imageVector = Icons.Default.Share,

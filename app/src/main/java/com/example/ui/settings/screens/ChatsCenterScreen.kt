@@ -130,7 +130,7 @@ fun ChatsCenterScreen(
                             ) {
                                 Text(
                                     text = wpLabel,
-                                    color = if (isSelected) IosSettingsColors.green else Color.White,
+                                    color = if (isSelected) IosSettingsColors.green else IosSettingsColors.label,
                                     fontFamily = IosFont,
                                     fontSize = 11.sp,
                                     fontWeight = if (isSelected) FontWeight.Bold else FontWeight.Normal
@@ -192,7 +192,7 @@ private fun ChatPreview(wallpaper: String, textSize: Float) {
             ) {
                 Text(
                     text = "¿Qué pasó chamo? ¿Cómo vas?",
-                    color = Color.White,
+                    color = IosSettingsColors.label,
                     fontFamily = IosFont,
                     fontSize = textSize.sp,
                     lineHeight = (textSize + 5).sp
@@ -200,14 +200,14 @@ private fun ChatPreview(wallpaper: String, textSize: Float) {
             }
             Box(
                 modifier = Modifier
-                    .background(Color(0xFF005C4B), RoundedCornerShape(12.dp, 12.dp, 0.dp, 12.dp))
+                    .background(IosSettingsColors.green.copy(alpha = 0.35f), RoundedCornerShape(12.dp, 12.dp, 0.dp, 12.dp))
                     .padding(10.dp)
                     .align(Alignment.End)
                     .widthIn(max = 220.dp)
             ) {
                 Text(
                     text = "¡Todo fino de pana! Mira el tamaño de letra.",
-                    color = Color.White,
+                    color = IosSettingsColors.label,
                     fontFamily = IosFont,
                     fontSize = textSize.sp,
                     lineHeight = (textSize + 5).sp

@@ -54,10 +54,10 @@ fun VoiceMessageBubble(
     val isVoiceNote = true // Acción 4: always voice note style
     
     // Acción 1 & 4: Premium Glassmorphism colors
-    val bubbleColor = if (isSender) Color(0xFF0066CC) else Color(0xFF262628)
-    val contentColor = Color.White
-    val playedColor = Color(0xFF0A84FF)
-    val unplayedColor = Color(0xFF8E8E93).copy(alpha = 0.34f)
+    val bubbleColor = if (isSender) IosSettingsColors.blue else IosSettingsColors.cell
+    val contentColor = IosSettingsColors.onAccent
+    val playedColor = IosSettingsColors.blue
+    val unplayedColor = IosSettingsColors.secondaryLabel.copy(alpha = 0.34f)
     
     // Waveform configuration
     val barCount = 35
@@ -99,14 +99,14 @@ fun VoiceMessageBubble(
                 }
             )
             .background(
-                brush = if (isSender) Brush.verticalGradient(listOf(Color(0xFF007AFF), Color(0xFF0066CC))) else Brush.verticalGradient(listOf(Color(0xFF2A2A2C), Color(0xFF232325))),
+                brush = if (isSender) Brush.verticalGradient(listOf(IosSettingsColors.blue, IosSettingsColors.blue)) else Brush.verticalGradient(listOf(IosSettingsColors.cellElevated, IosSettingsColors.cell)),
                 shape = if (isSender) RoundedCornerShape(
                     topStart = 20.dp, topEnd = 20.dp, bottomStart = 20.dp, bottomEnd = 4.dp
                 ) else RoundedCornerShape(
                     topStart = 20.dp, topEnd = 20.dp, bottomStart = 4.dp, bottomEnd = 20.dp
                 )
             )
-            .border(1.dp, Color.White.copy(alpha = 0.07f), if (isSender) RoundedCornerShape(20.dp) else RoundedCornerShape(20.dp))
+            .border(1.dp, IosSettingsColors.separator, if (isSender) RoundedCornerShape(20.dp) else RoundedCornerShape(20.dp))
             .widthIn(min = 240.dp, max = 300.dp)
             .padding(horizontal = 10.dp, vertical = 6.dp),
         verticalAlignment = Alignment.CenterVertically

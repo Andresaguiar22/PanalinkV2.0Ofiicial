@@ -84,14 +84,14 @@ fun FeedCommentsBottomSheet(
                     value = text,
                     onValueChange = { text = it },
                     modifier = Modifier.weight(1f),
-                    placeholder = { Text("Añadir un comentario...", color = Color.Gray) },
+                    placeholder = { Text("Añadir un comentario...", color = IosSettingsColors.secondaryLabel) },
                     colors = TextFieldDefaults.colors(
                         focusedContainerColor = IosSettingsColors.cell,
                         unfocusedContainerColor = IosSettingsColors.cell,
                         focusedIndicatorColor = Color.Transparent,
                         unfocusedIndicatorColor = Color.Transparent,
-                        focusedTextColor = Color.White,
-                        unfocusedTextColor = Color.White
+                        focusedTextColor = IosSettingsColors.label,
+                        unfocusedTextColor = IosSettingsColors.label
                     ),
                     shape = CircleShape
                 )
@@ -146,7 +146,7 @@ fun CommentItem(comment: ChannelComment) {
                 Text(
                     text = formatTime(comment.createdAt),
                     fontSize = 12.sp,
-                    color = Color.Gray
+                    color = IosSettingsColors.secondaryLabel
                 )
             }
             Spacer(modifier = Modifier.height(4.dp))

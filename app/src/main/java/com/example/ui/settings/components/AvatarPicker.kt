@@ -29,7 +29,7 @@ fun AvatarPicker(
             colors = ButtonDefaults.buttonColors(containerColor = IosSettingsColors.cellElevated),
             modifier = Modifier.fillMaxWidth(),
             shape = RoundedCornerShape(12.dp),
-            border = BorderStroke(1.dp, Color(0xFF37474F))
+            border = BorderStroke(1.dp, IosSettingsColors.separator)
         ) {
             Row(
                 verticalAlignment = Alignment.CenterVertically,
@@ -49,7 +49,7 @@ fun AvatarPicker(
             Spacer(modifier = Modifier.height(8.dp))
             Text(
                 text = statusMessage,
-                color = if (isUploading) IosSettingsColors.green else Color.White,
+                color = if (isUploading) IosSettingsColors.green else IosSettingsColors.label,
                 fontSize = 12.sp,
                 fontWeight = FontWeight.Medium,
                 modifier = Modifier.fillMaxWidth(),

@@ -43,7 +43,7 @@ fun ActiveCallOverlay(
         Box(
         modifier = Modifier
         .fillMaxSize()
-        .background(Color.Black.copy(alpha = 0.94f))
+        .background(IosSettingsColors.mediaScrim)
         .clickable(enabled = false) {}, // absorb clicks
         contentAlignment = Alignment.Center
         ) {
@@ -75,7 +75,7 @@ fun ActiveCallOverlay(
         .scale(pulseScale)
         .background(
         if (activeCallState == "active") IosSettingsColors.green.copy(alpha = 0.15f)
-        else Color(0xFF007AFF).copy(alpha = 0.15f),
+        else IosSettingsColors.blue.copy(alpha = 0.15f),
         CircleShape
         )
         )
@@ -84,7 +84,7 @@ fun ActiveCallOverlay(
         avatarUrl = otherUser?.avatarUrl,
         userId = otherUser?.id,
         size = 100.dp,
-        borderColor = if (activeCallState == "active") IosSettingsColors.green else Color(0xFF007AFF),
+        borderColor = if (activeCallState == "active") IosSettingsColors.green else IosSettingsColors.blue,
         borderWidth = 3.dp,
         placeholderName = otherName
         )

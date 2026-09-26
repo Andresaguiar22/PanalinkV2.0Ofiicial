@@ -81,7 +81,7 @@ fun PremiumShopScreen(
             ) {
                 Text("🪙", fontSize = 20.sp)
                 Spacer(modifier = Modifier.width(8.dp))
-                Text("Saldo disponible", color = Color.White.copy(alpha = 0.7f), fontSize = 13.sp)
+                Text("Saldo disponible", color = IosSettingsColors.secondaryLabel, fontSize = 13.sp)
                 Spacer(modifier = Modifier.weight(1f))
                 Text("${state.wallet.coins} 🪙", color = PanalinkSkin.TitleCream, fontSize = 18.sp, fontWeight = FontWeight.ExtraBold)
             }
@@ -116,8 +116,8 @@ fun PremiumShopScreen(
                         Row(
                             modifier = Modifier
                                 .fillMaxWidth()
-                                .background(Color(0xFF152038), RoundedCornerShape(16.dp))
-                                .border(1.dp, Color(0xFF5B7BE8).copy(alpha = 0.4f), RoundedCornerShape(16.dp))
+                                .background(IosSettingsColors.cellElevated, RoundedCornerShape(16.dp))
+                                .border(1.dp, IosSettingsColors.blue.copy(alpha = 0.4f), RoundedCornerShape(16.dp))
                                 .clickable { viewModel.exchangeDiamonds() }
                                 .padding(14.dp),
                             verticalAlignment = Alignment.CenterVertically
@@ -125,14 +125,14 @@ fun PremiumShopScreen(
                             Text("💎", fontSize = 24.sp)
                             Spacer(modifier = Modifier.width(10.dp))
                             Column(modifier = Modifier.weight(1f)) {
-                                Text("Canjear diamantes", color = Color.White, fontWeight = FontWeight.Bold, fontSize = 14.sp)
+                                Text("Canjear diamantes", color = IosSettingsColors.label, fontWeight = FontWeight.Bold, fontSize = 14.sp)
                                 Text(
                                     "$diamonds 💎 disponibles → monedas 🪙 (100 🪙 c/u)",
-                                    color = Color.White.copy(alpha = 0.6f),
+                                    color = IosSettingsColors.secondaryLabel,
                                     fontSize = 11.sp
                                 )
                             }
-                            Text("Canjear", color = Color(0xFF5B7BE8), fontWeight = FontWeight.Bold, fontSize = 13.sp)
+                            Text("Canjear", color = IosSettingsColors.blue, fontWeight = FontWeight.Bold, fontSize = 13.sp)
                         }
                     }
                 }
@@ -160,10 +160,10 @@ private fun ProductCard(
             Text(product.emoji, fontSize = 26.sp)
             Spacer(modifier = Modifier.width(10.dp))
             Column(modifier = Modifier.weight(1f)) {
-                Text(product.name, color = Color.White, fontWeight = FontWeight.Bold, fontSize = 15.sp)
+                Text(product.name, color = IosSettingsColors.label, fontWeight = FontWeight.Bold, fontSize = 15.sp)
                 Text(
                     "${product.durationDays} días",
-                    color = Color.White.copy(alpha = 0.6f),
+                    color = IosSettingsColors.secondaryLabel,
                     fontSize = 12.sp
                 )
             }
@@ -180,7 +180,7 @@ private fun ProductCard(
         product.description?.let { desc ->
             Text(
                 desc,
-                color = Color.White.copy(alpha = 0.7f),
+                color = IosSettingsColors.secondaryLabel,
                 fontSize = 12.sp,
                 modifier = Modifier.padding(top = 8.dp)
             )
@@ -192,7 +192,7 @@ private fun ProductCard(
             enabled = !buying,
             colors = ButtonDefaults.buttonColors(
                 containerColor = PanalinkSkin.GoldDeep,
-                contentColor = Color.White,
+                contentColor = IosSettingsColors.onAccent,
                 disabledContainerColor = PanalinkSkin.GoldDeep.copy(alpha = 0.5f)
             ),
             shape = RoundedCornerShape(14.dp),
@@ -204,7 +204,7 @@ private fun ProductCard(
                 Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(8.dp)) {
                     Text(
                         "${product.originalPriceCoins} 🪙",
-                        color = Color.White.copy(alpha = 0.5f),
+                        color = IosSettingsColors.secondaryLabel,
                         textDecoration = TextDecoration.LineThrough,
                         fontSize = 12.sp
                     )

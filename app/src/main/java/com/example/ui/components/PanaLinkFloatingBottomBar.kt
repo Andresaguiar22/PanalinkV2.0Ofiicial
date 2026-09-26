@@ -45,8 +45,8 @@ import androidx.compose.ui.zIndex
 import com.example.ui.settings.ios.IosSettingsColors
 
 // Colores iOS del mockup
-private val IosTabTextGray = Color(0xFF8E8E93)
-private val PanalinkTabTint = Color(0xFF0A84FF)
+private val IosTabTextGray = IosSettingsColors.secondaryLabel
+private val PanalinkTabTint = IosSettingsColors.blue
 
 @Composable
 fun PanaLinkFloatingBottomBar(
@@ -184,7 +184,7 @@ val glowAlpha by animateFloatAsState(
                 ) {
                     Text(
                         text = if (badgeCount > 99) "99+" else badgeCount.toString(),
-                        color = Color.White,
+                        color = IosSettingsColors.onAccent,
                         fontSize = 8.sp,
                         fontWeight = FontWeight.Bold
                     )

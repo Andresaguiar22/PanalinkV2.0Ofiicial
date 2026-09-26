@@ -76,13 +76,13 @@ private val FREE_MUSIC = listOf(
 
 // Paleta de Colores estilo iOS (dark premium)
 private val IosBlackStory = Color(0xFF000000)
-private val BrandGreenStory = Color(0xFF00FF7F) // Verde Esmeralda/Neón de la marca
-private val SegmentedBgStory = Color(0xFF1C1C1E)
-private val SegmentedActiveStory = Color(0xFF3A3A3C)
+private val BrandGreenStory = IosSettingsColors.green
+private val SegmentedBgStory = IosSettingsColors.cell
+private val SegmentedActiveStory = IosSettingsColors.separator
 private val PlaceholderBgStory: Color get() = IosSettingsColors.cell
-private val IconBoxBgStory = Color(0xFF2C2C2E)
-private val TextGrayStory = Color(0xFF8E8E93)
-private val BorderWhiteAlphaStory = Color(0x0DFFFFFF) // Blanco al 5%
+private val IconBoxBgStory = IosSettingsColors.cellElevated
+private val TextGrayStory = IosSettingsColors.secondaryLabel
+private val BorderWhiteAlphaStory = IosSettingsColors.separator
 
 @OptIn(androidx.compose.material3.ExperimentalMaterial3Api::class)
 @Composable
@@ -833,7 +833,7 @@ private fun IosCustomSwitchStory(checked: Boolean, onCheckedChange:(Boolean) -> 
         animationSpec = tween(durationMillis = 300)
     )
     val bgColor by animateColorAsState(
-        targetValue = if (checked) BrandGreenStory else Color(0xFF39393D),
+        targetValue = if (checked) BrandGreenStory else IosSettingsColors.separator,
         animationSpec = tween(durationMillis = 300)
     )
     Box(

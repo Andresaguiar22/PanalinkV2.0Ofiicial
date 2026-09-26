@@ -23,7 +23,7 @@ fun CompactUploadIndicator(
     Column(
         modifier = Modifier
             .fillMaxWidth()
-            .background(Color(0xFF1F1F2C), RoundedCornerShape(8.dp))
+            .background(IosSettingsColors.cellElevated, RoundedCornerShape(8.dp))
             .padding(12.dp)
     ) {
         Row(
@@ -78,10 +78,10 @@ fun CompactUploadIndicator(
         if (upload.status == "uploading") {
             Spacer(modifier = Modifier.height(4.dp))
             LinearProgressIndicator(
-                progress = progress,
+                progress = { progress },
                 modifier = Modifier.fillMaxWidth().height(4.dp),
                 color = IosSettingsColors.blue,
-                trackColor = Color.DarkGray
+                trackColor = IosSettingsColors.separator
             )
         }
     }

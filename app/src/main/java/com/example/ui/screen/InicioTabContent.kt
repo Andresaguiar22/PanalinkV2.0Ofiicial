@@ -736,10 +736,10 @@ fun InicioTabContent(
                                 .clip(RoundedCornerShape(14.dp))
                                 .background(
                                     Brush.linearGradient(
-                                        listOf(Color(0xFF3D2E00), Color(0xFF6B5310))
+                                        listOf(IosSettingsColors.cellElevated, IosSettingsColors.cell)
                                     )
                                 )
-                                .border(1.dp, Color(0xFFE9C46A).copy(alpha = 0.6f), RoundedCornerShape(14.dp))
+                                .border(1.dp, IosSettingsColors.yellow.copy(alpha = 0.6f), RoundedCornerShape(14.dp))
                                 .clickable { showCreatePostSheet = true }
                                 .padding(horizontal = 16.dp, vertical = 12.dp)
                         ) {
@@ -749,13 +749,13 @@ fun InicioTabContent(
                                 Column(modifier = Modifier.weight(1f)) {
                                     Text(
                                         "Wall Gold activo",
-                                        color = Color(0xFFFFE29A),
+                                        color = IosSettingsColors.yellow,
                                         fontWeight = FontWeight.Bold,
                                         fontSize = 14.sp
                                     )
                                     Text(
                                         "Tu muro tiene boost de visibilidad y estadísticas detalladas.",
-                                        color = Color(0xFFFFF3C4).copy(alpha = 0.85f),
+                                        color = IosSettingsColors.label.copy(alpha = 0.85f),
                                         fontSize = 11.sp
                                     )
                                 }
@@ -1786,14 +1786,14 @@ internal fun FeedFullscreenVideoPlayer(
 }
 
 /* iOS-Facebook Muro palette (inside content only: stories + post cards) */
-internal val IosWallBlack = Color(0xFF000000)
-internal val IosCardBackground = Color(0xFF1C1C1E)
-internal val IosDividerGray = Color(0xFF38383A)
-internal val IosTextGray = Color(0xFF8E8E93)
+internal val IosWallBlack: Color get() = IosSettingsColors.groupBackground
+internal val IosCardBackground: Color get() = IosSettingsColors.cell
+internal val IosDividerGray: Color get() = IosSettingsColors.separator
+internal val IosTextGray: Color get() = IosSettingsColors.secondaryLabel
 internal val IosPanaLinkGreen: Color get() = IosSettingsColors.green
-internal val IosStoryDarkBg = Color(0xFF242526)
-internal val IosActionButtonBg = Color(0x1AFFFFFF)
-internal val IosAvatarButtonBg = Color(0xFF2C2C2E)
+internal val IosStoryDarkBg: Color get() = IosSettingsColors.cellElevated
+internal val IosActionButtonBg: Color get() = IosSettingsColors.label.copy(alpha = 0.10f)
+internal val IosAvatarButtonBg: Color get() = IosSettingsColors.cellElevated
 
 @Composable
 private fun FacebookMyStoryCard(
@@ -1815,7 +1815,7 @@ private fun FacebookMyStoryCard(
                 modifier = Modifier
                     .weight(0.65f)
                     .fillMaxWidth()
-                    .background(Brush.verticalGradient(listOf(Color(0xFF4B5563), IosSettingsColors.groupBackground))),
+                    .background(Brush.verticalGradient(listOf(IosSettingsColors.secondaryLabel, IosSettingsColors.groupBackground))),
                 contentAlignment = Alignment.Center
             ) {
                 val resolvedAvatar = remember(avatarUrl) {
@@ -1886,7 +1886,7 @@ private fun FacebookFriendStoryCard(
             .width(115.dp)
             .height(195.dp)
             .clip(RoundedCornerShape(16.dp))
-            .background(Brush.verticalGradient(listOf(Color(0xFF2563EB), Color(0xFF60A5FA))))
+            .background(Brush.verticalGradient(listOf(IosSettingsColors.blue, IosSettingsColors.teal)))
             .border(1.dp, Color.White.copy(alpha =  0.05f), RoundedCornerShape(16.dp))
             .clickable(onClick = onClick)
     ) {

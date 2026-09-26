@@ -13,6 +13,8 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material.icons.filled.*
 import androidx.compose.material3.*
+import androidx.compose.material.icons.automirrored.filled.Backspace
+import androidx.compose.material.icons.automirrored.filled.StickyNote2
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -95,7 +97,7 @@ fun EmojiAndMediaSheet(
             Box(
                 modifier = Modifier
                     .fillMaxSize()
-                    .background(Color.Black.copy(alpha = 0.7f))
+                    .background(IosSettingsColors.mediaScrimSoft)
                     .clickable { previewSticker = null },
                 contentAlignment = Alignment.Center
             ) {
@@ -147,7 +149,7 @@ fun EmojiAndMediaSheet(
                 .padding(vertical = 8.dp)
                 .size(40.dp, 4.dp)
                 .clip(RoundedCornerShape(2.dp))
-                .background(Color.Gray.copy(alpha = 0.5f))
+                .background(IosSettingsColors.separator)
         )
 
         // Unified Header Row or Search Active Row
@@ -234,7 +236,7 @@ fun EmojiAndMediaSheet(
                                     .weight(1f)
                                     .fillMaxHeight()
                                     .clip(RoundedCornerShape(24.dp))
-                                    .background(if (isSelected) Color(0xFF374248) else Color.Transparent)
+                                    .background(if (isSelected) IosSettingsColors.cellElevated else Color.Transparent)
                                     .clickable { onTabSelected(index) },
                                 contentAlignment = Alignment.Center
                             ) {
@@ -242,7 +244,7 @@ fun EmojiAndMediaSheet(
                                     Icon(
                                         imageVector = Icons.Default.SentimentSatisfied,
                                         contentDescription = "Emojis",
-                                        tint = if (isSelected) Color.White else IosSettingsColors.secondaryLabel,
+                                        tint = if (isSelected) IosSettingsColors.label else IosSettingsColors.secondaryLabel,
                                         modifier = Modifier.size(20.dp)
                                     )
                                 } else if (index == 1) {
@@ -250,13 +252,13 @@ fun EmojiAndMediaSheet(
                                         text = "GIF",
                                         fontWeight = FontWeight.Bold,
                                         fontSize = 13.sp,
-                                        color = if (isSelected) Color.White else IosSettingsColors.secondaryLabel
+                                        color = if (isSelected) IosSettingsColors.label else IosSettingsColors.secondaryLabel
                                     )
                                 } else {
                                     Icon(
-                                        imageVector = Icons.Default.StickyNote2,
+                                        imageVector = Icons.AutoMirrored.Filled.StickyNote2,
                                         contentDescription = "Stickers",
-                                        tint = if (isSelected) Color.White else IosSettingsColors.secondaryLabel,
+                                        tint = if (isSelected) IosSettingsColors.label else IosSettingsColors.secondaryLabel,
                                         modifier = Modifier.size(20.dp)
                                     )
                                 }
@@ -277,7 +279,7 @@ fun EmojiAndMediaSheet(
 
                 // Right: Backspace/Clear character
                 IconButton(onClick = onBackspace) {
-                    Icon(Icons.Default.Backspace, contentDescription = "Borrar", tint = IosSettingsColors.secondaryLabel)
+                    Icon(Icons.AutoMirrored.Filled.Backspace, contentDescription = "Borrar", tint = IosSettingsColors.secondaryLabel)
                 }
             }
         }

@@ -94,10 +94,10 @@ private fun ReactionPillButton(
     item: ReactionItem,
     onClick: () -> Unit
 ) {
-    val activeBg = Color(0xFF2B5278) // Telegram Active Pill Blue-Gray
+    val activeBg = IosSettingsColors.blue.copy(alpha = 0.35f) // Telegram Active Pill Blue-Gray
     val inactiveBg = IosSettingsColors.cell // Telegram Inactive Pill Surface
     val activeBorder = IosSettingsColors.blue
-    val inactiveBorder = Color(0xFF2B3A4A)
+    val inactiveBorder = IosSettingsColors.separator
 
     val bgColor by animateColorAsState(
         targetValue = if (item.isUserReacted) activeBg else inactiveBg,
@@ -136,7 +136,7 @@ private fun ReactionPillButton(
 
         Text(
             text = formatReactionCount(item.count),
-            color = if (item.isUserReacted) Color.White else IosSettingsColors.secondaryLabel,
+            color = if (item.isUserReacted) IosSettingsColors.label else IosSettingsColors.secondaryLabel,
             fontSize = 12.sp,
             fontWeight = if (item.isUserReacted) FontWeight.Bold else FontWeight.Medium
         )

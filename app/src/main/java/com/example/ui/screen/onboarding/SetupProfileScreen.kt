@@ -139,14 +139,14 @@ fun SetupProfileScreen(
                     ) {
                         if (uiState is OnboardingUiState.Loading && currentStep == totalSteps) {
                             CircularProgressIndicator(
-                                color = Color.White,
+                                color = IosSettingsColors.onAccent,
                                 modifier = Modifier.size(24.dp),
                                 strokeWidth = 2.dp
                             )
                         } else {
                             Text(
                                 if (currentStep == totalSteps) "¡Listo, Vamos! 🚀" else "Siguiente Paso ✨",
-                                color = Color.White,
+                                color = IosSettingsColors.onAccent,
                                 fontWeight = FontWeight.SemiBold,
                                 fontFamily = IosFont,
                                 fontSize = 16.sp
@@ -356,7 +356,7 @@ fun IdentityStep(
                         .padding(4.dp),
                     contentAlignment = Alignment.Center
                 ) {
-                    Icon(Icons.Default.CameraAlt, null, tint = Color.Black, modifier = Modifier.size(16.dp))
+                    Icon(Icons.Default.CameraAlt, null, tint = IosSettingsColors.onAccent, modifier = Modifier.size(16.dp))
                 }
             }
         }
@@ -583,7 +583,7 @@ fun VibeStep(
                     label = { Text(interest, fontSize = 12.sp) },
                     colors = FilterChipDefaults.filterChipColors(
                         selectedContainerColor = IosSettingsColors.blue,
-                        selectedLabelColor = Color.White,
+                        selectedLabelColor = IosSettingsColors.onAccent,
                         containerColor = IosSettingsColors.cellElevated,
                         labelColor = IosSettingsColors.label
                     ),

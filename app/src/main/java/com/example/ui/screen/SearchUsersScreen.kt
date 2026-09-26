@@ -62,9 +62,9 @@ fun SearchUsersScreen(
                             unfocusedContainerColor = Color.Transparent,
                             focusedIndicatorColor = Color.Transparent,
                             unfocusedIndicatorColor = Color.Transparent,
-                            cursorColor = Color.White,
-                            focusedTextColor = Color.White,
-                            unfocusedTextColor = Color.White
+                            cursorColor = IosSettingsColors.label,
+                            focusedTextColor = IosSettingsColors.label,
+                            unfocusedTextColor = IosSettingsColors.label
                         ),
                         singleLine = true,
                         trailingIcon = {
@@ -126,7 +126,7 @@ fun SearchUsersScreen(
                         Spacer(modifier = Modifier.height(4.dp))
                         Text(
                             text = "Busca a tus panas para empezar a mensajear.",
-                            color = Color(0xFF7D8CA3),
+                            color = IosSettingsColors.tertiaryLabel,
                             fontSize = 13.sp
                         )
                     }

@@ -141,7 +141,7 @@ fun PostStudioScreen(
                         Icon(
                             Icons.AutoMirrored.Filled.Undo,
                             contentDescription = "Deshacer",
-                            tint = if (viewModel.canUndo()) Color.White else Color.DarkGray
+                            tint = if (viewModel.canUndo()) IosSettingsColors.label else IosSettingsColors.tertiaryLabel
                         )
                     }
                     IconButton(
@@ -151,7 +151,7 @@ fun PostStudioScreen(
                         Icon(
                             Icons.AutoMirrored.Filled.Redo,
                             contentDescription = "Rehacer",
-                            tint = if (viewModel.canRedo()) Color.White else Color.DarkGray
+                            tint = if (viewModel.canRedo()) IosSettingsColors.label else IosSettingsColors.tertiaryLabel
                         )
                     }
                     Button(
@@ -167,7 +167,7 @@ fun PostStudioScreen(
                         shape = RoundedCornerShape(12.dp),
                         modifier = Modifier.padding(end = 8.dp)
                     ) {
-                        Text("Publicar", color = Color.Black, fontWeight = FontWeight.Bold)
+                        Text("Publicar", color = IosSettingsColors.onAccent, fontWeight = FontWeight.Bold)
                     }
                 },
                 colors = TopAppBarDefaults.topAppBarColors(containerColor = IosSettingsColors.groupBackground)
@@ -225,7 +225,7 @@ fun PostStudioScreen(
                     .aspectRatio(canvasAspectRatio)
                     .clip(RoundedCornerShape(16.dp))
                     .background(IosSettingsColors.groupBackground)
-                    .border(1.dp, Color(0xFF1F2937), RoundedCornerShape(16.dp))
+                    .border(1.dp, IosSettingsColors.separator, RoundedCornerShape(16.dp))
             ) {
                 val mainMediaLayer = currentPage.getMainMediaLayer()
 
@@ -274,7 +274,7 @@ fun PostStudioScreen(
                             ) {
                                 Text(
                                     text = "Post Studio Canvas",
-                                    color = Color.DarkGray,
+                                    color = IosSettingsColors.secondaryLabel,
                                     fontSize = 18.sp,
                                     fontWeight = FontWeight.Bold
                                 )
@@ -353,7 +353,7 @@ fun PostStudioScreen(
                         ) {
                             Text(
                                 text = ratio,
-                                color = if (currentPage.aspectRatio == ratio) Color.Black else Color.White,
+                                color = if (currentPage.aspectRatio == ratio) IosSettingsColors.onAccent else IosSettingsColors.label,
                                 fontWeight = FontWeight.Bold
                             )
                         }
@@ -474,7 +474,7 @@ fun PostStudioScreen(
                     colors = OutlinedTextFieldDefaults.colors(
                         focusedBorderColor = IosSettingsColors.blue,
                         unfocusedBorderColor = IosSettingsColors.cellElevated,
-                        focusedTextColor = Color.White
+                        focusedTextColor = IosSettingsColors.label
                     )
                 )
                 Spacer(modifier = Modifier.height(12.dp))
@@ -486,7 +486,7 @@ fun PostStudioScreen(
                     colors = OutlinedTextFieldDefaults.colors(
                         focusedBorderColor = IosSettingsColors.blue,
                         unfocusedBorderColor = IosSettingsColors.cellElevated,
-                        focusedTextColor = Color.White
+                        focusedTextColor = IosSettingsColors.label
                     )
                 )
                 Spacer(modifier = Modifier.height(16.dp))
@@ -500,7 +500,7 @@ fun PostStudioScreen(
                     modifier = Modifier.fillMaxWidth(),
                     colors = ButtonDefaults.buttonColors(containerColor = IosSettingsColors.blue)
                 ) {
-                    Text("Guardar Texto", color = Color.Black, fontWeight = FontWeight.Bold)
+                    Text("Guardar Texto", color = IosSettingsColors.onAccent, fontWeight = FontWeight.Bold)
                 }
             }
         }

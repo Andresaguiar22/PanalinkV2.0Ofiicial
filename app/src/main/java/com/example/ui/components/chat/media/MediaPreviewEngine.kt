@@ -102,7 +102,7 @@ fun MediaPreviewEngine(
                 modifier = Modifier
                     .padding(top = 4.dp, bottom = 4.dp, end = 4.dp)
                     .clip(RoundedCornerShape(18.dp))
-                    .background(Color(0xFF2E3A4D).copy(alpha = 0.92f))
+                    .background(IosSettingsColors.cellElevated.copy(alpha = 0.92f))
                     .border(1.dp, IosSettingsColors.blue.copy(alpha = 0.55f), RoundedCornerShape(18.dp))
             )
         }

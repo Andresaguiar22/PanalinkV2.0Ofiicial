@@ -17,7 +17,7 @@ import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Description
-import androidx.compose.material.icons.filled.HelpOutline
+import androidx.compose.material.icons.automirrored.filled.HelpOutline
 import androidx.compose.material.icons.filled.Security
 import androidx.compose.material.icons.filled.Sync
 import androidx.compose.material3.Button
@@ -159,7 +159,7 @@ fun AboutScreen(onBack: () -> Unit) {
                     IosDivider()
                     AboutFeatureRow(Icons.Default.Description, "Multimedia integrada", "Fotos, vídeos, documentos, notas de voz y llamadas.")
                     IosDivider()
-                    AboutFeatureRow(Icons.Default.HelpOutline, "Soporte técnico", "Comunícate con el equipo desde la sección de ayuda.")
+                    AboutFeatureRow(Icons.AutoMirrored.Filled.HelpOutline, "Soporte técnico", "Comunícate con el equipo desde la sección de ayuda.")
                 }
             }
 

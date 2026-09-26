@@ -87,7 +87,7 @@ fun SavedGrid(viewModel: ProfileViewModel, onNavigateToReel: (String) -> Unit) {
                                         .weight(1f)
                                         .aspectRatio(0.75f)
                                         .clip(RoundedCornerShape(8.dp))
-                                        .background(Color(0xFF1E1E24))
+                                        .background(IosSettingsColors.cell)
                                         .clickable { onNavigateToReel(item.state.id) }
                                 ) {
                                     // Saved items are reels/stories too: reuse the same
@@ -113,7 +113,7 @@ fun SavedGrid(viewModel: ProfileViewModel, onNavigateToReel: (String) -> Unit) {
                                                 .fillMaxSize()
                                                 .background(
                                                     Brush.linearGradient(
-                                                        listOf(IosSettingsColors.cellElevated, Color(0xFF0F1A1E))
+                                                        listOf(IosSettingsColors.cellElevated, IosSettingsColors.cell)
                                                     )
                                                 ),
                                             contentAlignment = Alignment.Center
@@ -134,9 +134,9 @@ fun SavedGrid(viewModel: ProfileViewModel, onNavigateToReel: (String) -> Unit) {
                                             .background(
                                                 Brush.verticalGradient(
                                                     colors = listOf(
-                                                        Color.Black.copy(alpha = 0.3f),
+                                                        IosSettingsColors.mediaScrimSoft,
                                                         Color.Transparent,
-                                                        Color.Black.copy(alpha = 0.7f)
+                                                        IosSettingsColors.mediaScrim
                                                     )
                                                 )
                                             )

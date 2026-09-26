@@ -124,12 +124,12 @@ private fun CollectionBanner(level: Int, nextLevel: Int?) {
             .background(IosSettingsColors.cell, RoundedCornerShape(16.dp))
             .padding(16.dp)
     ) {
-        Text("⭐ Tu nivel: $level", color = Color.White, fontWeight = FontWeight.Bold, fontSize = 16.sp)
+        Text("⭐ Tu nivel: $level", color = IosSettingsColors.label, fontWeight = FontWeight.Bold, fontSize = 16.sp)
         Spacer(modifier = Modifier.height(4.dp))
         Text(
             nextLevel?.let { "Sube al nivel $it para desbloquear el próximo marco." }
                 ?: "¡Alcanzaste todos los marcos!",
-            color = Color.White.copy(alpha = 0.6f),
+            color = IosSettingsColors.secondaryLabel,
             fontSize = 12.sp
         )
     }
@@ -146,14 +146,14 @@ private fun CosmeticTile(
     val spec = AvatarFrameCatalog.byCode(entry.code)
     val borderColor = when {
         equipped -> PanalinkSkin.Gold
-        owned -> Color.White.copy(alpha = 0.18f)
-        else -> Color.White.copy(alpha = 0.06f)
+        owned -> IosSettingsColors.separator
+        else -> IosSettingsColors.cellElevated
     }
 
     Column(
         modifier = Modifier
             .aspectRatio(1.1f)
-            .background(if (owned) IosSettingsColors.cell else Color(0xFF131C26), RoundedCornerShape(14.dp))
+            .background(if (owned) IosSettingsColors.cell else IosSettingsColors.cellElevated, RoundedCornerShape(14.dp))
             .border(1.dp, borderColor, RoundedCornerShape(14.dp))
             .clickable(enabled = owned && !equipping) { onEquip() }
             .padding(8.dp),
@@ -169,7 +169,7 @@ private fun CosmeticTile(
                     .size(if (spec != null) 34.dp else 44.dp)
                     .background(
                         androidx.compose.ui.graphics.Brush.linearGradient(
-                            listOf(Color(0xFF475569), IosSettingsColors.groupBackground)
+                            listOf(IosSettingsColors.separator, IosSettingsColors.groupBackground)
                         ),
                         CircleShape
                     ),
@@ -182,7 +182,7 @@ private fun CosmeticTile(
                 Box(
                     modifier = Modifier
                         .size(56.dp)
-                        .background(Color(0x880F161F), CircleShape),
+                        .background(IosSettingsColors.mediaScrimSoft, CircleShape),
                     contentAlignment = Alignment.Center
                 ) { Text("🔒", fontSize = 18.sp) }
             }
@@ -190,7 +190,7 @@ private fun CosmeticTile(
         Spacer(modifier = Modifier.height(6.dp))
         Text(
             entry.label,
-            color = if (owned) Color.White else Color.White.copy(alpha = 0.5f),
+            color = if (owned) IosSettingsColors.label else IosSettingsColors.secondaryLabel,
             fontSize = 10.sp,
             fontWeight = FontWeight.SemiBold,
             textAlign = TextAlign.Center,
@@ -203,7 +203,7 @@ private fun CosmeticTile(
                 equipping -> "Equipando..."
                 else -> "Tocar para equipar"
             },
-            color = if (equipped) PanalinkSkin.Gold else Color.White.copy(alpha = 0.5f),
+            color = if (equipped) PanalinkSkin.Gold else IosSettingsColors.secondaryLabel,
             fontSize = 9.sp
         )
     }

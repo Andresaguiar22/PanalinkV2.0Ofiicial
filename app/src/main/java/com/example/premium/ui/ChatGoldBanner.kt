@@ -16,6 +16,7 @@ import androidx.compose.runtime.getValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
+import com.example.ui.settings.ios.IosSettingsColors
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
@@ -43,8 +44,8 @@ fun ChatGoldUpgradeBanner(
         Row(
             modifier = Modifier
                 .fillMaxWidth()
-                .background(Color(0xFF1E1A0D))
-                .border(1.dp, Color(0xFF8A6F3E).copy(alpha = 0.45f), RoundedCornerShape(0.dp))
+                .background(IosSettingsColors.cellElevated)
+                .border(1.dp, IosSettingsColors.separator, RoundedCornerShape(0.dp))
                 .padding(horizontal = 12.dp, vertical = 5.dp),
             horizontalArrangement = Arrangement.Center,
             verticalAlignment = Alignment.CenterVertically
@@ -53,7 +54,7 @@ fun ChatGoldUpgradeBanner(
                 text = if (daysLeft != null)
                     "⭐ Chat Gold activo — $daysLeft día${if (daysLeft == 1) "" else "s"} restante${if (daysLeft == 1) "" else "s"}"
                 else "⭐ Chat Gold activo",
-                color = Color(0xFFE8D8BA),
+                color = IosSettingsColors.label,
                 fontSize = 12.sp,
                 fontWeight = FontWeight.SemiBold
             )
@@ -62,14 +63,14 @@ fun ChatGoldUpgradeBanner(
         Box(
             modifier = Modifier
                 .fillMaxWidth()
-                .background(Color(0xFF1E1A0D))
+                .background(IosSettingsColors.cellElevated)
                 .clickable(onClick = onNavigateToPremium)
                 .padding(horizontal = 12.dp, vertical = 5.dp),
             contentAlignment = Alignment.Center
         ) {
             Text(
                 text = "💎 Chat Gold — mensajes premium y ventajas exclusivas. Tocá para activar.",
-                color = Color(0xFFE8D8BA),
+                color = IosSettingsColors.label,
                 fontSize = 12.sp,
                 fontWeight = FontWeight.SemiBold
             )

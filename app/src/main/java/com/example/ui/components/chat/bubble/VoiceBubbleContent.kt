@@ -44,7 +44,7 @@ fun VoiceBubbleContent(
                     androidx.compose.ui.graphics.Brush.linearGradient(
                         listOf(
                             IosSettingsColors.blue,
-                            androidx.compose.ui.graphics.Color(0xFF1D4ED8)
+                            IosSettingsColors.blue
                         )
                     )
                 } else {

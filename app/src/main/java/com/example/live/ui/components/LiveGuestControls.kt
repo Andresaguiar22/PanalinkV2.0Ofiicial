@@ -71,8 +71,8 @@ fun LiveGuestControls(
             shape = CircleShape,
             border = BorderStroke(1.dp, PanalinkNeonGreen),
             colors = ButtonDefaults.outlinedButtonColors(
-                containerColor = Color(0xFF111113).copy(alpha = 0.5f),
-                contentColor = Color.White
+                containerColor = IosSettingsColors.cellElevated.copy(alpha = 0.5f),
+                contentColor = IosSettingsColors.label
             )
         ) {
             Icon(
@@ -136,7 +136,7 @@ fun LiveGuestControls(
                                 PanaAvatar(avatarUrl = selectedUser?.avatarUrl, userId = selectedUser?.id, size =  32.dp)
                                 Spacer(modifier = Modifier.width(8.dp))
                                 Column {
-                                    Text(selectedUser!!.displayName ?: "", color = Color.White, fontWeight = FontWeight.Bold, fontSize =  13.sp)
+                                    Text(selectedUser!!.displayName ?: "", color = IosSettingsColors.label, fontWeight = FontWeight.Bold, fontSize =  13.sp)
                                     Text(
                                         "Invitar a este usuario",
                                         color = Color.Gray,
@@ -177,7 +177,7 @@ fun LiveGuestControls(
                                             PanaAvatar(avatarUrl = user.avatarUrl, userId = user.id, size =  32.dp)
                                             Spacer(modifier = Modifier.width(10.dp))
                                             Column(modifier = Modifier.weight(1f)) {
-                                                Text(user.displayName ?: "", color = Color.White, fontWeight = FontWeight.Medium, fontSize =  13.sp, maxLines = 1, overflow = TextOverflow.Ellipsis)
+                                                Text(user.displayName ?: "", color = IosSettingsColors.label, fontWeight = FontWeight.Medium, fontSize =  13.sp, maxLines = 1, overflow = TextOverflow.Ellipsis)
                                                 Text(
                                                     "Tocar para invitar",
                                                     color = Color.Gray,
@@ -225,7 +225,7 @@ fun LiveGuestControls(
                                             color = when (guest.status) {
                                                 GuestStatus.ACTIVE -> IosSettingsColors.blue
                                                 GuestStatus.PENDING -> IosSettingsColors.yellow
-                                                else -> Color.White
+                                                else -> IosSettingsColors.label
                                             }
                                         )
                                         if (onRemove != null) {
@@ -261,8 +261,8 @@ fun LiveGuestControls(
                     }
                 },
                 containerColor = IosSettingsColors.cell,
-                titleContentColor = Color.White,
-                textContentColor = Color.White
+                titleContentColor = IosSettingsColors.label,
+                textContentColor = IosSettingsColors.label
             )
         }
     }

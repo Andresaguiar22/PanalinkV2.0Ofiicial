@@ -19,6 +19,7 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.Shape
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
+import com.example.ui.settings.ios.IosSettingsColors
 import coil.compose.AsyncImage
 
 @Composable
@@ -28,9 +29,9 @@ fun IncomingBubbleContainer(
     avatarUserId: String? = null,
     modifier: Modifier = Modifier,
     shape: Shape = BubbleShapeFactory.createShape(groupPosition, isMe = false),
-    containerColor: Color = Color(0xFF262628),
+    containerColor: Color = IosSettingsColors.cell,
     containerBrush: Brush? = null,
-    borderColor: Color = Color(0xFFFFFFFF).copy(alpha = 0.055f),
+    borderColor: Color = IosSettingsColors.separator,
     borderWidth: Dp = 0.dp,
     tonalElevation: Float = 1f,
     content: @Composable () -> Unit

@@ -33,7 +33,7 @@ fun PanaLinkLogo(modifier: Modifier = Modifier, logoSize: Dp = 100.dp) {
         modifier = modifier
             .size(logoSize)
             .clip(RoundedCornerShape(logoSize * 0.28f))
-            .background(Color.Black)
+            .background(IosSettingsColors.groupBackground)
             .drawBehind {
                 val width = this.size.width
                 val height = this.size.height
@@ -42,7 +42,7 @@ fun PanaLinkLogo(modifier: Modifier = Modifier, logoSize: Dp = 100.dp) {
                 // 1. Draw rich radial slate/black gradient background
                 drawRect(
                     brush = Brush.radialGradient(
-                        colors = listOf(Color(0xFF24282D), Color(0xFF121315), Color(0xFF070809)),
+                        colors = listOf(IosSettingsColors.cell, IosSettingsColors.groupBackground, IosSettingsColors.groupBackground),
                         center = this.size.center,
                         radius = width * 0.75f
                     )

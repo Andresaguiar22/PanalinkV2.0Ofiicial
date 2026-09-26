@@ -93,6 +93,13 @@ object IosSettingsColors {
     val indigo: Color get() = if (dark) Color(0xFF5E5CE6) else Color(0xFF5856D6)
     val gray: Color get() = Color(0xFF8E8E93)
     val mint: Color get() = if (dark) Color(0xFF66D4CF) else Color(0xFF00C7BE)
+
+    /** Texto/icono sobre un control relleno con color de acento (blue, green, red...). */
+    val onAccent: Color get() = Color.White
+
+    /** Velo sobre video/foto: se mantiene oscuro en ambos temas para no lavar la imagen. */
+    val mediaScrim: Color get() = Color(0xE61C1C1E)
+    val mediaScrimSoft: Color get() = Color(0x661C1C1E)
 }
 
 /** Medidas compartidas del kit. */
@@ -115,12 +122,14 @@ fun IosSettingsScaffold(
     title: String,
     onBack: () -> Unit,
     actions: @Composable RowScope.() -> Unit = {},
+    floatingActionButton: @Composable () -> Unit = {},
     content: @Composable (PaddingValues) -> Unit
 ) {
     val scrollBehavior = TopAppBarDefaults.exitUntilCollapsedScrollBehavior(rememberTopAppBarState())
     Scaffold(
         modifier = Modifier.nestedScroll(scrollBehavior.nestedScrollConnection),
         containerColor = IosSettingsColors.groupBackground,
+        floatingActionButton = floatingActionButton,
         topBar = {
             LargeTopAppBar(
                 title = {

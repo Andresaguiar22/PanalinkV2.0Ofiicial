@@ -91,11 +91,11 @@ fun PremiumVoicePlayer(
     // El fondo real de la burbuja lo pinta el contenedor (Incoming/OutgoingBubbleContainer);
     // aquí solo se usa para los bordes del badge del avatar.
     val bubbleBgColor = backgroundColor
-    val contentTextColor = if (isSender) Color.White else Color(0xE6FFFFFF) // 90% white
+    val contentTextColor = if (isSender) IosSettingsColors.onAccent else IosSettingsColors.label.copy(alpha = 0.9f) // 90% white
     val playedColor = if (isVoiceNote || isSender) {
         if (isSender) IosSettingsColors.blue else IosSettingsColors.blue
     } else {
-        Color(0xFFA78BFA)
+        IosSettingsColors.purple
     }
     val unplayedColor = IosSettingsColors.secondaryLabel.copy(alpha = 0.35f)
     val secondaryText = IosSettingsColors.secondaryLabel

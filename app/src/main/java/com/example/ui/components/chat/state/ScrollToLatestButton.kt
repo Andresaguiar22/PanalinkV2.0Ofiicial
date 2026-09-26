@@ -41,13 +41,13 @@ fun ScrollToLatestButton(
                     .size(42.dp)
                     .shadow(4.dp, CircleShape)
                     .clip(CircleShape)
-                    .background(Color.White)
+                    .background(IosSettingsColors.cell)
                     .bounceClick()
             ) {
                 Icon(
                     imageVector = Icons.Default.KeyboardDoubleArrowDown,
                     contentDescription = "Scroll to bottom",
-                    tint = Color(0xFF54656F),
+                    tint = IosSettingsColors.secondaryLabel,
                     modifier = Modifier.size(24.dp)
                 )
             }

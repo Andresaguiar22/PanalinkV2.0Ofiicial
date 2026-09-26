@@ -15,7 +15,7 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Close
 import androidx.compose.material.icons.filled.Favorite
 import androidx.compose.material.icons.filled.FavoriteBorder
-import androidx.compose.material.icons.filled.Send
+import androidx.compose.material.icons.automirrored.filled.Send
 import androidx.compose.material.icons.outlined.ThumbDown
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
@@ -86,7 +86,7 @@ fun FeedCommentsBottomSheet(
                         fontWeight = FontWeight.Bold
                     )
                     Spacer(modifier = Modifier.width(4.dp))
-                    Text(text = "≡", color = Color.Gray, fontSize = 16.sp)
+                    Text(text = "≡", color = IosSettingsColors.secondaryLabel, fontSize = 16.sp)
                 }
 
                 Row(
@@ -112,7 +112,7 @@ fun FeedCommentsBottomSheet(
                 }
             }
 
-            Divider(color = IosSettingsColors.label.copy(alpha = 0.08f))
+            HorizontalDivider(color = IosSettingsColors.label.copy(alpha = 0.08f))
 
             // Comments List
             LazyColumn(
@@ -132,7 +132,7 @@ fun FeedCommentsBottomSheet(
                         ) {
                             Text(
                                 text = "Aún no hay comentarios. ¡Sé el primero! 💬",
-                                color = Color.Gray,
+                                color = IosSettingsColors.secondaryLabel,
                                 fontSize = 14.sp
                             )
                         }
@@ -193,15 +193,15 @@ fun FeedCommentsBottomSheet(
                         onValueChange = { commentText = it },
                         modifier = Modifier.weight(1f),
                         placeholder = {
-                            Text("Agregar comentario...", color = Color.Gray, fontSize = 14.sp)
+                            Text("Agregar comentario...", color = IosSettingsColors.secondaryLabel, fontSize = 14.sp)
                         },
                         colors = OutlinedTextFieldDefaults.colors(
                             focusedContainerColor = Color.Transparent,
                             unfocusedContainerColor = Color.Transparent,
                             focusedBorderColor = Color.Transparent,
                             unfocusedBorderColor = Color.Transparent,
-                            focusedTextColor = Color.White,
-                            unfocusedTextColor = Color.White
+                            focusedTextColor = IosSettingsColors.label,
+                            unfocusedTextColor = IosSettingsColors.label
                         ),
                         textStyle = androidx.compose.ui.text.TextStyle(fontSize = 14.sp),
                         maxLines = 4
@@ -218,7 +218,7 @@ fun FeedCommentsBottomSheet(
                             },
                             modifier = Modifier.size(32.dp)
                         ) {
-                            Text("@", color = Color.Gray, fontSize = 18.sp, fontWeight = FontWeight.Bold)
+                            Text("@", color = IosSettingsColors.secondaryLabel, fontSize = 18.sp, fontWeight = FontWeight.Bold)
                         }
 
                         IconButton(
@@ -256,15 +256,15 @@ fun FeedCommentsBottomSheet(
                         ) {
                             if (isSending) {
                                 CircularProgressIndicator(
-                                    color = Color.Black,
+                                    color = IosSettingsColors.onAccent,
                                     modifier = Modifier.size(18.dp),
                                     strokeWidth = 2.dp
                                 )
                             } else {
                                 Icon(
-                                    imageVector = Icons.Default.Send,
+                                    imageVector = Icons.AutoMirrored.Filled.Send,
                                     contentDescription = "Enviar",
-                                    tint = if (commentText.isNotBlank()) Color.Black else Color.Gray,
+                                    tint = if (commentText.isNotBlank()) IosSettingsColors.onAccent else IosSettingsColors.secondaryLabel,
                                     modifier = Modifier.size(18.dp)
                                 )
                             }
@@ -316,7 +316,7 @@ fun TikTokCommentRow(
             // Author Name
             Text(
                 text = identityState?.displayName ?: comment.profile?.displayName ?: "",
-                color = Color.Gray,
+                color = IosSettingsColors.secondaryLabel,
                 fontWeight = FontWeight.Bold,
                 fontSize = 13.sp
             )
@@ -355,13 +355,13 @@ fun TikTokCommentRow(
             ) {
                 Text(
                     text = comment.createdAt?.let { formatFeedCommentDate(it) } ?: "Ahora",
-                    color = Color.Gray,
+                    color = IosSettingsColors.secondaryLabel,
                     fontSize = 12.sp
                 )
 
                 Text(
                     text = "Responder",
-                    color = Color.Gray,
+                    color = IosSettingsColors.secondaryLabel,
                     fontWeight = FontWeight.Bold,
                     fontSize = 12.sp,
                     modifier = Modifier.clickable {
@@ -393,7 +393,7 @@ fun TikTokCommentRow(
                 Icon(
                     imageVector = if (isLiked) Icons.Default.Favorite else Icons.Default.FavoriteBorder,
                     contentDescription = "Me gusta",
-                    tint = if (isLiked) IosSettingsColors.pink else Color.Gray,
+                    tint = if (isLiked) IosSettingsColors.pink else IosSettingsColors.secondaryLabel,
                     modifier = Modifier.size(18.dp)
                 )
             }
@@ -401,7 +401,7 @@ fun TikTokCommentRow(
             if (likeCount > 0) {
                 Text(
                     text = "$likeCount",
-                    color = Color.Gray,
+                    color = IosSettingsColors.secondaryLabel,
                     fontSize = 11.sp
                 )
             }
@@ -419,7 +419,7 @@ fun TikTokCommentRow(
                 Icon(
                     imageVector = Icons.Outlined.ThumbDown,
                     contentDescription = "No me gusta",
-                    tint = if (isDisliked) Color(0xFFFF9500) else Color.Gray,
+                    tint = if (isDisliked) IosSettingsColors.orange else IosSettingsColors.secondaryLabel,
                     modifier = Modifier.size(16.dp)
                 )
             }

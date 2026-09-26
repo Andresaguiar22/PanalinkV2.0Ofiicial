@@ -63,7 +63,7 @@ fun ChatPreviewCard(
     val secondaryStatus = if (presenceInfo?.secondaryStatus != com.example.data.repository.SecondaryPresenceStatus.NONE) presenceInfo?.secondaryStatus?.rawValue else null
     val isOnline = userStatus != "offline"
 
-    val selectedContainer = Color(0xFF243744)
+    val selectedContainer = IosSettingsColors.cellElevated
     val containerColor by animateColorAsState(
         targetValue = if (isSelected) selectedContainer else PanalinkSkin.GlassStrong,
         label = "container_color"

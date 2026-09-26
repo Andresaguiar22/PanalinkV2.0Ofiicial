@@ -40,7 +40,7 @@ fun GhostViewerDialog(
         Box(
             modifier = Modifier
                 .fillMaxSize()
-                .background(Color.Black.copy(alpha = 0.95f))
+                .background(IosSettingsColors.mediaScrim)
         ) {
             Column(
                 modifier = Modifier
@@ -81,7 +81,7 @@ fun GhostViewerDialog(
                         .weight(1f)
                         .fillMaxWidth()
                         .clip(RoundedCornerShape(12.dp))
-                        .background(Color(0xFF1F1F1F)),
+                        .background(IosSettingsColors.cellElevated),
                     contentAlignment = Alignment.Center
                 ) {
                     val rawText = message.textContent.removePrefix("[Ghost] ").removePrefix("[Ghost]").trim()

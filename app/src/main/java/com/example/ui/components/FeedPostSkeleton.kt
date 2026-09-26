@@ -35,7 +35,7 @@ fun FeedPostSkeleton() {
 
     val shimmerColors = listOf(
         IosSettingsColors.cell,
-        Color(0xFF2A3A42),
+        IosSettingsColors.cellElevated,
         IosSettingsColors.cell
     )
 

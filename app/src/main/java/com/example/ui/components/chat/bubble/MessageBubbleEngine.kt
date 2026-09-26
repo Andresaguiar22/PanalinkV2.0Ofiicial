@@ -40,7 +40,7 @@ import androidx.compose.foundation.layout.wrapContentWidth
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.Chat
+import androidx.compose.material.icons.automirrored.filled.Chat
 import androidx.compose.material.icons.filled.ChevronRight
 import androidx.compose.material3.DropdownMenu
 import androidx.compose.material3.DropdownMenuItem
@@ -275,7 +275,7 @@ fun MessageBubbleEngine(
     val paletteColors = if (outgoingBubbleColors != null && outgoingBubbleColors.size >= 2) {
         outgoingBubbleColors
     } else {
-        listOf(Color(0xFF007AFF), Color(0xFF007AFF))
+        listOf(IosSettingsColors.blue, IosSettingsColors.blue)
     }
     val outgoingGradient = Brush.linearGradient(
         colors = paletteColors,
@@ -661,7 +661,7 @@ fun MessageBubbleEngine(
                                     Box(
                                         modifier = Modifier
                                             .padding(bottom = 8.dp, end = 8.dp)
-                                            .background(Color.Black.copy(alpha = 0.4f), RoundedCornerShape(8.dp))
+                                            .background(IosSettingsColors.mediaScrimSoft, RoundedCornerShape(8.dp))
                                             .padding(horizontal = 6.dp, vertical = 2.dp)
                                     ) {
                                         MessageStatusIndicator(
@@ -671,7 +671,7 @@ fun MessageBubbleEngine(
                                             isEdited = isEdited,
                                             isFavorited = isFavorited,
                                             isPinned = isPinned,
-                                            textColor = Color.White,
+                                            textColor = IosSettingsColors.onAccent,
                                             onRetry = { onRetry?.invoke(message.id) }
                                         )
                                     }
@@ -782,7 +782,7 @@ fun MessageBubbleEngine(
                         Spacer(modifier = Modifier.height(8.dp))
                         androidx.compose.material3.HorizontalDivider(
                             thickness = 0.5.dp,
-                            color = Color(0xFF374248).copy(alpha = 0.5f)
+                            color = IosSettingsColors.separator.copy(alpha = 0.5f)
                         )
                         Row(
                             modifier = Modifier
@@ -794,15 +794,15 @@ fun MessageBubbleEngine(
                         ) {
                             Row(verticalAlignment = Alignment.CenterVertically) {
                                 Icon(
-                                    imageVector = Icons.Default.Chat,
+                                    imageVector = Icons.AutoMirrored.Filled.Chat,
                                     contentDescription = null,
-                                    tint = Color(0xFF0088CC),
+                                    tint = IosSettingsColors.blue,
                                     modifier = Modifier.size(16.dp)
                                 )
                                 Spacer(modifier = Modifier.width(8.dp))
                                 Text(
                                     text = "20 comentarios", // Mock count
-                                    color = Color(0xFF0088CC),
+                                    color = IosSettingsColors.blue,
                                     fontSize = 13.sp,
                                     fontWeight = FontWeight.Bold
                                 )
@@ -810,7 +810,7 @@ fun MessageBubbleEngine(
                             Icon(
                                 imageVector = Icons.Default.ChevronRight,
                                 contentDescription = null,
-                                tint = Color(0xFF0088CC),
+                                tint = IosSettingsColors.blue,
                                 modifier = Modifier.size(18.dp)
                             )
                         }
@@ -829,8 +829,8 @@ fun MessageBubbleEngine(
                                 y = 8.dp
                             )
                             .clip(RoundedCornerShape(10.dp))
-                            .background(Color.White)
-                            .border(1.dp, Color(0xFFE9EDEF), RoundedCornerShape(10.dp))
+                            .background(IosSettingsColors.cell)
+                            .border(1.dp, IosSettingsColors.separator, RoundedCornerShape(10.dp))
                             .clickable {
                                 val myReaction = reactions[SupabaseClient.currentUser?.id ?: ""]
                                 if (myReaction != null) {
@@ -1035,13 +1035,13 @@ private fun ConsumedGhostMessageContent(
             imageVector = Icons.Default.VisibilityOff,
             contentDescription = null,
             modifier = Modifier.size(16.dp),
-            tint = Color.Gray
+            tint = IosSettingsColors.gray
         )
         Spacer(modifier = Modifier.width(8.dp))
         Text(
             text = "Mensaje consumido",
             style = MaterialTheme.typography.bodyMedium,
-            color = Color.Gray,
+            color = IosSettingsColors.gray,
             fontStyle = FontStyle.Italic
         )
     }

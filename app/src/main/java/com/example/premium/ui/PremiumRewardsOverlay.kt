@@ -25,6 +25,7 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.scale
 import androidx.compose.ui.graphics.Color
+import com.example.ui.settings.ios.IosSettingsColors
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
@@ -88,8 +89,8 @@ fun PremiumRewardsOverlay(
             modifier = Modifier
                 .fillMaxWidth()
                 .padding(horizontal = 40.dp)
-                .background(Color(0xEE231A0E), RoundedCornerShape(20.dp))
-                .border(1.dp, Color(0xFFC9A96A).copy(alpha = 0.7f), RoundedCornerShape(20.dp))
+                .background(IosSettingsColors.mediaScrim, RoundedCornerShape(20.dp))
+                .border(1.dp, IosSettingsColors.separator, RoundedCornerShape(20.dp))
                 .padding(20.dp),
             horizontalAlignment = Alignment.CenterHorizontally,
             verticalArrangement = Arrangement.spacedBy(6.dp)
@@ -102,7 +103,7 @@ fun PremiumRewardsOverlay(
                     is PremiumEvent.CoinsEarned -> "🪙 +${current.amount} monedas"
                     else -> "⭐"
                 },
-                color = Color(0xFFE8D8BA),
+                color = IosSettingsColors.label,
                 fontWeight = FontWeight.Bold,
                 fontSize = 18.sp,
                 textAlign = TextAlign.Center
@@ -119,7 +120,7 @@ fun PremiumRewardsOverlay(
                         (current.note ?: (current.source))
                     else -> ""
                 },
-                color = Color(0xFFC9B99A),
+                color = IosSettingsColors.secondaryLabel,
                 fontSize = 13.sp,
                 textAlign = TextAlign.Center
             )

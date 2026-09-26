@@ -75,7 +75,7 @@ fun CreatePostBottomSheet(
     ModalBottomSheet(
         onDismissRequest = onDismiss,
         containerColor = IosSettingsColors.groupBackground,
-        dragHandle = { BottomSheetDefaults.DragHandle(color = Color.Gray) },
+        dragHandle = { BottomSheetDefaults.DragHandle(color = IosSettingsColors.secondaryLabel) },
         shape = RoundedCornerShape(topStart = 32.dp, topEnd = 32.dp),
         modifier = Modifier.imePadding()
     ) {
@@ -113,7 +113,7 @@ fun CreatePostBottomSheet(
                     ) {
                         Text(
                             "Studio Pro ✨",
-                            color = Color.Black,
+                            color = IosSettingsColors.onAccent,
                             fontWeight = FontWeight.Bold,
                             fontSize = 12.sp
                         )
@@ -131,7 +131,7 @@ fun CreatePostBottomSheet(
                         },
                         colors = ButtonDefaults.buttonColors(
                             containerColor = IosSettingsColors.blue,
-                            disabledContainerColor = Color.Gray.copy(alpha = 0.3f)
+                            disabledContainerColor = IosSettingsColors.separator
                         ),
                         shape = RoundedCornerShape(20.dp),
                         enabled = uiState.content.isNotBlank() || uiState.selectedMediaUris.isNotEmpty() || youtubeUrl.isNotBlank(),
@@ -140,7 +140,7 @@ fun CreatePostBottomSheet(
                     ) {
                         Text(
                             "Publicar",
-                            color = Color.Black,
+                            color = IosSettingsColors.onAccent,
                             fontWeight = FontWeight.Bold,
                             fontSize = 14.sp
                         )
@@ -182,7 +182,7 @@ fun CreatePostBottomSheet(
                             Icon(
                                 imageVector = if (uiState.privacy == "PUBLIC") Icons.Default.Public else Icons.Default.Lock,
                                 contentDescription = null,
-                                tint = if (uiState.privacy == "PUBLIC") IosSettingsColors.blue else Color(0xFFFFD600),
+                                tint = if (uiState.privacy == "PUBLIC") IosSettingsColors.blue else IosSettingsColors.yellow,
                                 modifier = Modifier.size(12.dp)
                             )
                             Spacer(modifier = Modifier.width(6.dp))
@@ -204,7 +204,7 @@ fun CreatePostBottomSheet(
                         placeholder = { 
                             Text(
                                 "¿Qué está pasando, Pana?", 
-                                color = Color.Gray, 
+                                color = IosSettingsColors.secondaryLabel, 
                                 fontSize = 18.sp, 
                                 fontWeight = FontWeight.Normal
                             ) 
@@ -214,8 +214,8 @@ fun CreatePostBottomSheet(
                             unfocusedContainerColor = Color.Transparent,
                             focusedIndicatorColor = Color.Transparent,
                             unfocusedIndicatorColor = Color.Transparent,
-                            focusedTextColor = Color.White,
-                            unfocusedTextColor = Color.White,
+                            focusedTextColor = IosSettingsColors.label,
+                            unfocusedTextColor = IosSettingsColors.label,
                             cursorColor = IosSettingsColors.blue
                         ),
                         textStyle = androidx.compose.ui.text.TextStyle(
@@ -238,7 +238,7 @@ fun CreatePostBottomSheet(
                             modifier = Modifier
                                 .size(120.dp)
                                 .clip(RoundedCornerShape(16.dp))
-                                .border(1.dp, Color.White.copy(alpha = 0.1f), RoundedCornerShape(16.dp))
+                                .border(1.dp, IosSettingsColors.separator, RoundedCornerShape(16.dp))
                         ) {
                             if (isAudio) {
                                 Box(
@@ -284,15 +284,15 @@ fun CreatePostBottomSheet(
                         }
                     },
                     label = { Text("Enlace de Video de YouTube", color = IosSettingsColors.red) },
-                    placeholder = { Text("https://www.youtube.com/watch?v=...", color = Color.Gray) },
+                    placeholder = { Text("https://www.youtube.com/watch?v=...", color = IosSettingsColors.secondaryLabel) },
                     singleLine = true,
                     colors = OutlinedTextFieldDefaults.colors(
                         focusedBorderColor = IosSettingsColors.red,
-                        unfocusedBorderColor = Color.White.copy(alpha = 0.2f),
+                        unfocusedBorderColor = IosSettingsColors.separator,
                         focusedLabelColor = IosSettingsColors.red,
-                        unfocusedLabelColor = Color.Gray,
-                        focusedTextColor = Color.White,
-                        unfocusedTextColor = Color.White
+                        unfocusedLabelColor = IosSettingsColors.secondaryLabel,
+                        focusedTextColor = IosSettingsColors.label,
+                        unfocusedTextColor = IosSettingsColors.label
                     ),
                     modifier = Modifier.fillMaxWidth(),
                     shape = RoundedCornerShape(12.dp)
@@ -316,10 +316,10 @@ fun CreatePostBottomSheet(
                         Spacer(modifier = Modifier.width(8.dp))
                         Column(modifier = Modifier.weight(1f)) {
                             Text(preview.title, color = IosSettingsColors.label, fontSize = 14.sp, fontWeight = FontWeight.Bold, maxLines = 2)
-                            Text("YouTube", color = Color.Gray, fontSize = 12.sp)
+                            Text("YouTube", color = IosSettingsColors.secondaryLabel, fontSize = 12.sp)
                         }
                         IconButton(onClick = { /* Implementar eliminar preview en VM */ }) {
-                            Icon(Icons.Default.Close, contentDescription = "Eliminar", tint = Color.Gray)
+                            Icon(Icons.Default.Close, contentDescription = "Eliminar", tint = IosSettingsColors.secondaryLabel)
                         }
                     }
                 }
@@ -350,7 +350,7 @@ fun CreatePostBottomSheet(
                     }
                 }
                 
-                Text("${uiState.content.length}/500", color = if (uiState.content.length > 450) Color.Red else Color.Gray, fontSize = 12.sp)
+                Text("${uiState.content.length}/500", color = if (uiState.content.length > 450) IosSettingsColors.red else IosSettingsColors.secondaryLabel, fontSize = 12.sp)
             }
             
             Spacer(modifier = Modifier.height(12.dp))

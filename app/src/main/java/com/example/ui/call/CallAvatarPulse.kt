@@ -11,6 +11,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.scale
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
+import com.example.ui.settings.ios.IosSettingsColors
 import androidx.compose.ui.text.font.FontWeight
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.example.identity.model.toIdentityUiState
@@ -30,7 +31,7 @@ fun CallAvatarPulse(
     avatarUrl: String? = null,
     modifier: Modifier = Modifier,
     avatarSize: Dp = 130.dp,
-    pulseColor: Color = Color(0xFF22C55E), // Default to Green/Emerald
+    pulseColor: Color = IosSettingsColors.green,
     isAnimating: Boolean = true
 ) {
     val transition = rememberInfiniteTransition(label = "pulseTransition")

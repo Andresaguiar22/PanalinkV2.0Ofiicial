@@ -213,7 +213,7 @@ fun ProfileEditScreen(
                                 .height(180.dp),
                             contentAlignment = Alignment.Center
                         ) {
-                            CircularProgressIndicator(color = Color(0xFF0A84FF))
+                            CircularProgressIndicator(color = IosSettingsColors.blue)
                         }
                     }
                     is ProfileUiState.Error -> {
@@ -319,7 +319,7 @@ fun ProfileEditScreen(
                                 Column(modifier = Modifier.weight(0.9f)) {
                                     Text(
                                         text = "Género 👤",
-                                        color = Color(0xFF8E8E93),
+                                        color = IosSettingsColors.secondaryLabel,
                                         fontSize = 10.sp,
                                         fontWeight = FontWeight.Medium
                                     )
@@ -336,8 +336,8 @@ fun ProfileEditScreen(
                                                     .weight(1f)
                                                     .height(38.dp)
                                                     .clip(RoundedCornerShape(8.dp))
-                                                    .background(if (isSelected) Color(0xFF34C759) else Color(0xFF1C1C1E))
-                                                    .border(1.dp, if (isSelected) Color.Transparent else Color(0x1FFFFFFF), RoundedCornerShape(8.dp))
+                                                    .background(if (isSelected) IosSettingsColors.green else IosSettingsColors.cell)
+                                                    .border(1.dp, if (isSelected) Color.Transparent else IosSettingsColors.separator, RoundedCornerShape(8.dp))
                                                     .clickable { sex = gCode },
                                                 contentAlignment = Alignment.Center
                                             ) {
@@ -377,7 +377,7 @@ fun ProfileEditScreen(
                                                 .height(34.dp)
                                                 .clip(RoundedCornerShape(8.dp))
                                                 .background(if (isSelected) IosSettingsColors.green.copy(alpha = 0.2f) else IosSettingsColors.groupBackground)
-                                                .border(1.dp, if (isSelected) IosSettingsColors.green else Color(0xFF37474F), RoundedCornerShape(8.dp))
+                                                .border(1.dp, if (isSelected) IosSettingsColors.green else IosSettingsColors.separator, RoundedCornerShape(8.dp))
                                                 .clickable {
                                                     interests = if (isSelected) interests - interest else interests + interest
                                                 },
@@ -400,7 +400,7 @@ fun ProfileEditScreen(
                                                 .height(34.dp)
                                                 .clip(RoundedCornerShape(8.dp))
                                                 .background(if (isSelected) IosSettingsColors.green.copy(alpha = 0.2f) else IosSettingsColors.groupBackground)
-                                                .border(1.dp, if (isSelected) IosSettingsColors.green else Color(0xFF37474F), RoundedCornerShape(8.dp))
+                                                .border(1.dp, if (isSelected) IosSettingsColors.green else IosSettingsColors.separator, RoundedCornerShape(8.dp))
                                                 .clickable {
                                                     interests = if (isSelected) interests - interest else interests + interest
                                                 },

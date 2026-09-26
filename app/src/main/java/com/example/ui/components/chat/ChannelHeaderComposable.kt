@@ -35,7 +35,7 @@ fun ChannelHeaderComposable(
             .shadow(8.dp, RoundedCornerShape(24.dp))
             .background(
                 brush = Brush.horizontalGradient(
-                    colors = listOf(IosSettingsColors.cell, Color(0xFF2C3E50))
+                    colors = listOf(IosSettingsColors.cell, IosSettingsColors.cellElevated)
                 ),
                 shape = RoundedCornerShape(24.dp)
             )
@@ -73,7 +73,7 @@ fun ChannelHeaderComposable(
                     .clip(RoundedCornerShape(20.dp))
                     .background(
                         brush = Brush.linearGradient(
-                            colors = listOf(Color(0xFF00C6FF), Color(0xFF0072FF))
+                            colors = listOf(IosSettingsColors.blue, IosSettingsColors.blue)
                         )
                     )
                     .clickable { onJoinClick() }

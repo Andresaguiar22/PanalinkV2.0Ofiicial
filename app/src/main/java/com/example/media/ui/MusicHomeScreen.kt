@@ -101,7 +101,7 @@ fun MusicHomeScreen(
                 TopAppBar(
                     title = {
                         Row(verticalAlignment = Alignment.CenterVertically) {
-                            Icon(Icons.Default.GraphicEq, contentDescription = null, tint = Color(0xFF0A84FF))
+                            Icon(Icons.Default.GraphicEq, contentDescription = null, tint = IosSettingsColors.blue)
                             Spacer(modifier = Modifier.width(8.dp))
                             Text("PanaLink Music", color = IosSettingsColors.label, fontWeight = FontWeight.Bold)
                         }
@@ -140,16 +140,16 @@ fun MusicHomeScreen(
                     modifier = Modifier
                         .fillMaxWidth()
                         .padding(horizontal = 16.dp, vertical = 8.dp),
-                    placeholder = { Text("Buscar canciones, artistas...", color = Color.Gray) },
-                    leadingIcon = { Icon(Icons.Default.Search, contentDescription = null, tint = Color.Gray) },
+                    placeholder = { Text("Buscar canciones, artistas...", color = IosSettingsColors.secondaryLabel) },
+                    leadingIcon = { Icon(Icons.Default.Search, contentDescription = null, tint = IosSettingsColors.secondaryLabel) },
                     shape = RoundedCornerShape(14.dp),
                     colors = OutlinedTextFieldDefaults.colors(
                         focusedContainerColor = IosSettingsColors.cellElevated,
                         unfocusedContainerColor = IosSettingsColors.cell,
                         focusedBorderColor = IosSettingsColors.blue,
                         unfocusedBorderColor = Color.Transparent,
-                        focusedTextColor = Color.White,
-                        unfocusedTextColor = Color.White
+                        focusedTextColor = IosSettingsColors.label,
+                        unfocusedTextColor = IosSettingsColors.label
                     ),
                     singleLine = true
                 )
@@ -302,7 +302,7 @@ fun ExploreSection(
         item {
             SectionHeader("Escuchado recientemente")
             if (recentTracks.isEmpty()) {
-                Text("No hay actividad reciente", color = Color.Gray, fontSize = 14.sp)
+                Text("No hay actividad reciente", color = IosSettingsColors.secondaryLabel, fontSize = 14.sp)
             }
         }
         
@@ -313,7 +313,7 @@ fun ExploreSection(
         item {
             SectionHeader("Tus favoritos")
             if (favoriteTracks.isEmpty()) {
-                Text("No tienes favoritos aún", color = Color.Gray, fontSize = 14.sp)
+                Text("No tienes favoritos aún", color = IosSettingsColors.secondaryLabel, fontSize = 14.sp)
             }
         }
         
@@ -374,15 +374,15 @@ fun AllSongsSection(
                     Icon(
                         Icons.Default.LibraryMusic,
                         contentDescription = null,
-                        tint = Color.Gray.copy(alpha = 0.4f),
+                        tint = IosSettingsColors.secondaryLabel.copy(alpha = 0.4f),
                         modifier = Modifier.size(72.dp)
                     )
                     Spacer(modifier = Modifier.height(16.dp))
-                    Text("Tu biblioteca está vacía", color = Color.Gray, fontSize = 16.sp, fontWeight = FontWeight.Medium)
+                    Text("Tu biblioteca está vacía", color = IosSettingsColors.secondaryLabel, fontSize = 16.sp, fontWeight = FontWeight.Medium)
                     Spacer(modifier = Modifier.height(6.dp))
                     Text(
                         "Sube tus canciones favoritas desde tu galería",
-                        color = Color.Gray.copy(alpha = 0.7f),
+                        color = IosSettingsColors.secondaryLabel.copy(alpha = 0.7f),
                         fontSize = 13.sp
                     )
                     Spacer(modifier = Modifier.height(20.dp))
@@ -469,7 +469,7 @@ fun PlaylistCard(playlist: PlaylistEntity, onClick: () -> Unit) {
             }
             Spacer(modifier = Modifier.height(8.dp))
             Text(playlist.name, color = IosSettingsColors.label, fontSize = 14.sp, fontWeight = FontWeight.Bold, maxLines = 1, overflow = TextOverflow.Ellipsis)
-            Text("Playlist", color = Color.Gray, fontSize = 12.sp)
+            Text("Playlist", color = IosSettingsColors.secondaryLabel, fontSize = 12.sp)
         }
     }
 }

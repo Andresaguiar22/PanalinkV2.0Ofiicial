@@ -14,6 +14,7 @@ import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.Shape
 import androidx.compose.ui.unit.Dp
+import com.example.ui.settings.ios.IosSettingsColors
 import androidx.compose.ui.unit.dp
 
 @Composable
@@ -21,9 +22,9 @@ fun OutgoingBubbleContainer(
     groupPosition: MessageGroupPosition,
     modifier: Modifier = Modifier,
     shape: Shape = BubbleShapeFactory.createShape(groupPosition, isMe = true),
-    containerColor: Color = Color(0xFF0066CC),
+    containerColor: Color = IosSettingsColors.blue,
     containerBrush: Brush? = null,
-    borderColor: Color = Color(0xFF0A84FF).copy(alpha = 0.32f),
+    borderColor: Color = IosSettingsColors.blue.copy(alpha = 0.32f),
     borderWidth: Dp = 0.dp,
     tonalElevation: Float = 1f,
     content: @Composable () -> Unit

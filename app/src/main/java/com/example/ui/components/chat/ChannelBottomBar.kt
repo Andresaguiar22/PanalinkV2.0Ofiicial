@@ -52,7 +52,7 @@ fun ChannelBottomBar(
 ) {
     val barBg = IosSettingsColors.groupBackground // Telegram Bottom Bar Surface
     val buttonBg = IosSettingsColors.cell // Telegram Button Surface
-    val primaryText = Color.White
+    val primaryText = IosSettingsColors.label
     val secondaryText = IosSettingsColors.secondaryLabel
     val accentBlue = IosSettingsColors.blue
 
@@ -90,7 +90,7 @@ fun ChannelBottomBar(
                 .height(44.dp)
                 .shadow(2.dp, RoundedCornerShape(22.dp))
                 .clip(RoundedCornerShape(22.dp))
-                .background(if (isMuted) buttonBg else Color(0xFF2B5278))
+                .background(if (isMuted) buttonBg else IosSettingsColors.blue.copy(alpha = 0.35f))
                 .clickable { onMuteToggleClick() },
             contentAlignment = Alignment.Center
         ) {
@@ -126,7 +126,7 @@ fun ChannelBottomBar(
                     if (unreadCount > 0) {
                         Badge(
                             containerColor = accentBlue,
-                            contentColor = Color.White
+                            contentColor = IosSettingsColors.onAccent
                         ) {
                             Text(
                                 text = if (unreadCount > 999) "999+" else unreadCount.toString(),

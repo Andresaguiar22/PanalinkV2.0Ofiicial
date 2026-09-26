@@ -79,7 +79,7 @@ fun PremiumMessageMenu(
         Box(
             modifier = Modifier
                 .fillMaxSize()
-                .background(Color.Black.copy(alpha = 0.35f))
+                .background(IosSettingsColors.mediaScrimSoft)
                 .clickable(
                     interactionSource = remember { MutableInteractionSource() },
                     indication = null
@@ -118,7 +118,7 @@ fun PremiumMessageMenu(
                 ) {
                     Surface(
                         shape = RoundedCornerShape(20.dp),
-                        color = Color(0xFF233138),
+                        color = IosSettingsColors.cellElevated,
                         tonalElevation = 8.dp,
                         shadowElevation = 12.dp,
                         modifier = Modifier.fillMaxWidth()
@@ -128,7 +128,7 @@ fun PremiumMessageMenu(
                                 .padding(vertical = 6.dp)
                         ) {
                             menuItems.forEachIndexed { index, item ->
-                                val textColor = if (item.isDestructive) IosSettingsColors.red else Color.White
+                                val textColor = if (item.isDestructive) IosSettingsColors.red else IosSettingsColors.label
 
                                 Row(
                                     modifier = Modifier
@@ -155,7 +155,7 @@ fun PremiumMessageMenu(
 
                                 if (index < menuItems.size - 1) {
                                     HorizontalDivider(
-                                        color = Color(0xFF2E3B43),
+                                        color = IosSettingsColors.separator,
                                         thickness = 0.5.dp,
                                         modifier = Modifier.padding(horizontal = 12.dp)
                                     )

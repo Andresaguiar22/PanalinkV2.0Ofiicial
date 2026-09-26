@@ -68,7 +68,7 @@ fun MediaGridItem(
                 Box(
                     modifier = Modifier
                         .fillMaxSize()
-                        .background(Color.Black.copy(alpha = 0.3f)),
+                        .background(IosSettingsColors.mediaScrimSoft),
                     contentAlignment = Alignment.Center
                 ) {
                     Icon(
@@ -121,7 +121,7 @@ fun MediaGridItem(
                     Icon(
                         imageVector = Icons.Default.Mic,
                         contentDescription = null,
-                        tint = Color(0xFF34B7F1),
+                        tint = IosSettingsColors.blue,
                         modifier = Modifier.size(40.dp)
                     )
                     Spacer(modifier = Modifier.height(4.dp))

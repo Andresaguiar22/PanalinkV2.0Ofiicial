@@ -932,8 +932,8 @@ fun ChatScreen(
                                         textSizeSp = chatTextSize,
                                         outgoingBubbleColors = if (bubblePaletteState.id == "panalink_blue") {
                                             listOf(
-                                                Color(0xFF007AFF),
-                                                Color(0xFF007AFF)
+                                                IosSettingsColors.blue,
+                                                IosSettingsColors.blue
                                             )
                                         } else {
                                             bubblePaletteState.colors
@@ -1234,7 +1234,7 @@ fun ChatScreen(
                         modifier = Modifier.padding(bottom = 12.dp)
                     )
                     if (contactsList.isEmpty()) {
-                        Text("No tienes contactos agregados chamo 🥺", color = Color.Gray, fontSize = 13.sp)
+                        Text("No tienes contactos agregados chamo 🥺", color = IosSettingsColors.secondaryLabel, fontSize = 13.sp)
                     } else {
                         LazyColumn(
                             modifier = Modifier.height(250.dp),
@@ -1376,7 +1376,7 @@ fun PlaylistPickerDialog(
         text = {
             if (playlists.isEmpty()) {
                 Box(modifier = Modifier.fillMaxWidth().height(100.dp), contentAlignment = Alignment.Center) {
-                    Text("No tienes playlists creadas", color = Color.Gray)
+                    Text("No tienes playlists creadas", color = IosSettingsColors.secondaryLabel)
                 }
             } else {
                 LazyColumn(modifier = Modifier.heightIn(max = 300.dp)) {
@@ -1403,13 +1403,13 @@ fun PlaylistPickerDialog(
                                         modifier = Modifier.fillMaxSize()
                                     )
                                 } else {
-                                    Icon(Icons.Default.MusicNote, contentDescription = null, tint = Color.Gray)
+                                    Icon(Icons.Default.MusicNote, contentDescription = null, tint = IosSettingsColors.secondaryLabel)
                                 }
                             }
                             Spacer(modifier = Modifier.width(12.dp))
                             Column {
                                 Text(playlist.name, color = IosSettingsColors.label, fontWeight = FontWeight.Bold, fontSize = 14.sp)
-                                Text("Playlist • Actualizada recientemente", color = Color.Gray, fontSize = 11.sp)
+                                Text("Playlist • Actualizada recientemente", color = IosSettingsColors.secondaryLabel, fontSize = 11.sp)
                             }
                         }
                         HorizontalDivider(color = IosSettingsColors.separator)

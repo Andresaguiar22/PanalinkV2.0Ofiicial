@@ -23,12 +23,12 @@ import androidx.compose.material.icons.filled.Description
 import androidx.compose.material.icons.filled.Image
 import androidx.compose.material.icons.filled.MusicNote
 import androidx.compose.material.icons.filled.PhotoCamera
-import androidx.compose.material.icons.filled.QueueMusic
+import androidx.compose.material.icons.automirrored.filled.QueueMusic
 import androidx.compose.material.icons.filled.Videocam
 import androidx.compose.material.icons.filled.Visibility
 import androidx.compose.material.icons.filled.VisibilityOff
 import androidx.compose.material.icons.filled.Gif
-import androidx.compose.material.icons.filled.StickyNote2
+import androidx.compose.material.icons.automirrored.filled.StickyNote2
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.Icon
@@ -85,25 +85,25 @@ fun ChatAttachmentSheet(
                     AttachmentItem(icon = Icons.Default.PhotoCamera, label = "Cámara", color = IosSettingsColors.pink) {
                         onCamera()
                     }
-                    AttachmentItem(icon = Icons.Default.Image, label = "Imagen", color = Color(0xFF007AFF)) {
+                    AttachmentItem(icon = Icons.Default.Image, label = "Imagen", color = IosSettingsColors.blue) {
                         onImage()
                     }
-                    AttachmentItem(icon = Icons.Default.Videocam, label = "Video", color = Color(0xFF5856D6)) {
+                    AttachmentItem(icon = Icons.Default.Videocam, label = "Video", color = IosSettingsColors.purple) {
                         onVideo()
                     }
-                    AttachmentItem(icon = Icons.Default.Description, label = "Doc", color = Color(0xFF4CD964)) {
+                    AttachmentItem(icon = Icons.Default.Description, label = "Doc", color = IosSettingsColors.green) {
                         onDocument()
                     }
-                    AttachmentItem(icon = Icons.Default.MusicNote, label = "Audio", color = Color(0xFFFF9500)) {
+                    AttachmentItem(icon = Icons.Default.MusicNote, label = "Audio", color = IosSettingsColors.orange) {
                         onAudio()
                     }
-                    AttachmentItem(icon = Icons.Default.QueueMusic, label = "Playlist", color = IosSettingsColors.blue) {
+                    AttachmentItem(icon = Icons.AutoMirrored.Filled.QueueMusic, label = "Playlist", color = IosSettingsColors.blue) {
                         onPlaylist()
                     }
-                    AttachmentItem(icon = Icons.Default.Gif, label = "GIF", color = Color(0xFFFF9E00)) {
+                    AttachmentItem(icon = Icons.Default.Gif, label = "GIF", color = IosSettingsColors.orange) {
                         onGif()
                     }
-                    AttachmentItem(icon = Icons.Default.StickyNote2, label = "Stickers", color = IosSettingsColors.pink) {
+                    AttachmentItem(icon = Icons.AutoMirrored.Filled.StickyNote2, label = "Stickers", color = IosSettingsColors.pink) {
                         onSticker()
                     }
                     AttachmentItem(
@@ -141,6 +141,6 @@ private fun AttachmentItem(
             Icon(icon, contentDescription = label, tint = IosSettingsColors.label, modifier = Modifier.size(22.dp))
         }
         Spacer(modifier = Modifier.height(6.dp))
-        Text(label, color = Color(0xFF54656F), fontSize =  11.sp, fontWeight = FontWeight.SemiBold)
+        Text(label, color = IosSettingsColors.secondaryLabel, fontSize =  11.sp, fontWeight = FontWeight.SemiBold)
     }
 }

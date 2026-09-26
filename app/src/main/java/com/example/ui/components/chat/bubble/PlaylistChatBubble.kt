@@ -8,7 +8,7 @@ import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.MusicNote
 import androidx.compose.material.icons.filled.PlayArrow
-import androidx.compose.material.icons.filled.PlaylistAdd
+import androidx.compose.material.icons.automirrored.filled.PlaylistAdd
 import androidx.compose.material3.*
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
@@ -71,7 +71,7 @@ fun PlaylistChatBubble(
                             .fillMaxSize()
                             .background(
                                 Brush.linearGradient(
-                                    listOf(IosSettingsColors.groupBackground, Color(0xFF203A43), Color(0xFF2C5364))
+                                    listOf(IosSettingsColors.groupBackground, IosSettingsColors.cell, IosSettingsColors.cellElevated)
                                 )
                             ),
                         contentAlignment = Alignment.Center
@@ -91,7 +91,7 @@ fun PlaylistChatBubble(
                         .fillMaxSize()
                         .background(
                             Brush.verticalGradient(
-                                listOf(Color.Transparent, Color.Black.copy(alpha = 0.55f))
+                                listOf(Color.Transparent, IosSettingsColors.mediaScrimSoft)
                             )
                         )
                 )
@@ -107,7 +107,7 @@ fun PlaylistChatBubble(
                         .align(Alignment.TopStart)
                         .padding(10.dp)
                         .clip(RoundedCornerShape(6.dp))
-                        .background(Color.Black.copy(alpha = 0.45f))
+                        .background(IosSettingsColors.mediaScrimSoft)
                         .padding(horizontal = 8.dp, vertical = 3.dp)
                 )
 
@@ -186,12 +186,12 @@ fun PlaylistChatBubble(
                         modifier = Modifier.height(34.dp),
                         contentPadding = PaddingValues(horizontal = 10.dp),
                         shape = RoundedCornerShape(17.dp),
-                        colors = ButtonDefaults.outlinedButtonColors(contentColor = Color.White),
-                        border = ButtonDefaults.outlinedButtonBorder.copy(
-                            brush = Brush.linearGradient(listOf(Color.White.copy(alpha = 0.4f), Color.White.copy(alpha = 0.4f)))
+                        colors = ButtonDefaults.outlinedButtonColors(contentColor = IosSettingsColors.label),
+                        border = ButtonDefaults.outlinedButtonBorder(enabled = true).copy(
+                            brush = Brush.linearGradient(listOf(IosSettingsColors.label.copy(alpha = 0.4f), IosSettingsColors.label.copy(alpha = 0.4f)))
                         )
                     ) {
-                        Icon(Icons.Default.PlaylistAdd, contentDescription = "Guardar", modifier = Modifier.size(16.dp))
+                        Icon(Icons.AutoMirrored.Filled.PlaylistAdd, contentDescription = "Guardar", modifier = Modifier.size(16.dp))
                     }
                 }
 

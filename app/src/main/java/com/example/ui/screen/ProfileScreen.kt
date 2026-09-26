@@ -135,7 +135,7 @@ fun ProfileScreen(
 
                 Text(
                     text = "Mi Perfil",
-                    color = Color.White,
+                    color = IosSettingsColors.label,
                     fontSize = 17.sp,
                     fontWeight = FontWeight.Bold
                 )
@@ -229,7 +229,7 @@ fun ProfileScreen(
                     Row(verticalAlignment = Alignment.CenterVertically) {
                         Text(
                             text = displayName.ifEmpty { "Pana de Panalink" },
-                            color = Color.White,
+                            color = IosSettingsColors.label,
                             fontSize = 24.sp,
                             fontWeight = FontWeight.Bold,
                             letterSpacing = (-0.5).sp
@@ -258,7 +258,7 @@ fun ProfileScreen(
                     Row(
                         modifier = Modifier
                             .fillMaxWidth()
-                            .background(Color.White.copy(alpha = 0.05f), RoundedCornerShape(16.dp))
+                            .background(IosSettingsColors.separator, RoundedCornerShape(16.dp))
                             .border(1.dp, IosBorder, RoundedCornerShape(16.dp))
                             .padding(vertical = 12.dp, horizontal = 10.dp),
                         horizontalArrangement = Arrangement.SpaceAround,
@@ -334,7 +334,7 @@ fun ProfileScreen(
                 .width(134.dp)
                 .height(5.dp)
                 .clip(CircleShape)
-                .background(Color.White.copy(alpha = 0.72f))
+                .background(IosSettingsColors.label.copy(alpha = 0.72f))
         )
     }
 }
@@ -349,19 +349,19 @@ private fun IosCircleButton(
         modifier = Modifier
             .size(40.dp)
             .clip(CircleShape)
-            .background(Color.White.copy(alpha = 0.09f))
+            .background(IosSettingsColors.label.copy(alpha = 0.09f))
             .border(1.dp, IosBorder, CircleShape)
             .clickable(onClick = onClick),
         contentAlignment = Alignment.Center
     ) {
-        Icon(icon, contentDescription, tint = Color.White, modifier = Modifier.size(21.dp))
+        Icon(icon, contentDescription, tint = IosSettingsColors.label, modifier = Modifier.size(21.dp))
     }
 }
 
 @Composable
 private fun IosStatItem(count: String, label: String) {
     Column(horizontalAlignment = Alignment.CenterHorizontally) {
-        Text(count, color = Color.White, fontSize = 16.sp, fontWeight = FontWeight.Bold)
+        Text(count, color = IosSettingsColors.label, fontSize = 16.sp, fontWeight = FontWeight.Bold)
         Text(label, color = IosGray, fontSize = 12.sp, fontWeight = FontWeight.Medium)
     }
 }
@@ -404,9 +404,9 @@ private fun IosActionButton(
         horizontalArrangement = Arrangement.Center,
         verticalAlignment = Alignment.CenterVertically
     ) {
-        Icon(icon, contentDescription = label, tint = Color.White, modifier = Modifier.size(15.dp))
+        Icon(icon, contentDescription = label, tint = IosSettingsColors.label, modifier = Modifier.size(15.dp))
         Spacer(modifier = Modifier.width(4.dp))
-        Text(label, color = Color.White, fontSize = 12.sp, fontWeight = FontWeight.Bold, maxLines = 1)
+        Text(label, color = IosSettingsColors.label, fontSize = 12.sp, fontWeight = FontWeight.Bold, maxLines = 1)
     }
 }
 
@@ -427,13 +427,13 @@ private fun IosTabButton(
         Icon(
             icon,
             contentDescription = title,
-            tint = if (isActive) Color.White else IosGray,
+            tint = if (isActive) IosSettingsColors.label else IosGray,
             modifier = Modifier.size(19.dp)
         )
         Spacer(modifier = Modifier.height(4.dp))
         Text(
             title,
-            color = if (isActive) Color.White else IosGray,
+            color = if (isActive) IosSettingsColors.label else IosGray,
             fontSize = 13.sp,
             fontWeight = if (isActive) FontWeight.Bold else FontWeight.Medium
         )

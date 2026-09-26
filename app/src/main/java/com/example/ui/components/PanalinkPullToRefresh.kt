@@ -167,7 +167,7 @@ fun PanalinkRefreshIndicator(
 
                     // 3. Draw inner white-emerald core circular plate
                     drawCircle(
-                        color = Color(0xFF111F1D),
+                        color = IosSettingsColors.groupBackground,
                         radius = radius
                     )
 

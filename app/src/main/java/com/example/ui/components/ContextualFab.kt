@@ -168,7 +168,7 @@ fun ContextualExpandableFab(
                             .size(52.dp)
                             // Bright glowing neon border
                             .border(1.5.dp, colors.accent, CircleShape)
-                            .background(Color.Black, CircleShape)
+                            .background(IosSettingsColors.cellElevated, CircleShape)
                             .clickable {
                                 haptic.performHapticFeedback(androidx.compose.ui.hapticfeedback.HapticFeedbackType.LongPress)
                                 isExpanded = false
@@ -190,7 +190,7 @@ fun ContextualExpandableFab(
                         Box(
                             modifier = Modifier
                                 .offset(x = xOffsetDp.dp, y = (yOffsetDp - 38f).dp)
-                                .background(Color.Black.copy(alpha = 0.85f), RoundedCornerShape(6.dp))
+                                .background(IosSettingsColors.mediaScrim, RoundedCornerShape(6.dp))
                                 .border(0.5.dp, colors.accent.copy(alpha = 0.5f), RoundedCornerShape(6.dp))
                                 .padding(horizontal = 6.dp, vertical = 3.dp)
                         ) {
@@ -238,11 +238,11 @@ fun ContextualExpandableFab(
                             brush = Brush.sweepGradient(
                                 colors = listOf(
                                     IosSettingsColors.red, // Red
-                                    Color(0xFFFF7F00), // Orange
+                                    IosSettingsColors.orange,
                                     IosSettingsColors.yellow, // Yellow/Gold
                                     IosSettingsColors.blue, // Neon Green
                                     IosSettingsColors.blue, // Cyan
-                                    Color(0xFF8B00FF), // Violet
+                                    IosSettingsColors.purple,
                                     IosSettingsColors.red  // Red
                                 )
                             ),
@@ -257,7 +257,7 @@ fun ContextualExpandableFab(
                         .background(
                             brush = Brush.linearGradient(
                                 colors = listOf(
-                                    Color(0xFF8B00FF), // Violet / Purple
+                                    IosSettingsColors.purple, // Violet / Purple
                                     IosSettingsColors.blue, // Blue / Cyan
                                     IosSettingsColors.blue  // Neon Green / Mint
                                 )
@@ -298,7 +298,7 @@ fun ContextualExpandableFab(
                         modifier = Modifier
                             .size(26.dp)
                             .rotate(rotationAngle),
-                        tint = Color.Black // Black icon in the center of the gradient as shown in the image
+                        tint = IosSettingsColors.onAccent
                     )
                 }
             }

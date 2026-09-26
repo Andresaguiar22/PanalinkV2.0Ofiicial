@@ -30,6 +30,7 @@ import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.*
 import androidx.compose.material.icons.automirrored.filled.ExitToApp
+import androidx.compose.material.icons.automirrored.filled.VolumeUp
 import androidx.compose.material3.*
 import androidx.compose.material3.TabRowDefaults.tabIndicatorOffset
 import androidx.compose.runtime.*
@@ -452,7 +453,7 @@ fun EstadosTabContent(
                                             Box(
                                                 modifier = Modifier
                                                     .fillMaxSize()
-                                                    .background(Color(0xFF7E57C2)),
+                                                    .background(IosSettingsColors.purple),
                                                 contentAlignment = Alignment.Center
                                             ) {
                                                 Text(
@@ -493,7 +494,7 @@ fun EstadosTabContent(
                                                             contentAlignment = Alignment.Center
                                                         ) {
                                                             Icon(
-                                                                Icons.Default.VolumeUp,
+                                                                Icons.AutoMirrored.Filled.VolumeUp,
                                                                 contentDescription = "Video",
                                                                 tint = IosSettingsColors.secondaryLabel,
                                                                 modifier = Modifier.size(26.dp)
@@ -521,11 +522,11 @@ fun EstadosTabContent(
                                                     modifier = Modifier
                                                         .align(Alignment.BottomEnd)
                                                         .padding(bottom = 8.dp, end = 8.dp)
-                                                        .background(Color.Black.copy(alpha = 0.6f), CircleShape)
+                                                        .background(IosSettingsColors.mediaScrimSoft, CircleShape)
                                                         .padding(4.dp)
                                                 ) {
                                                     Icon(
-                                                        imageVector = Icons.Default.VolumeUp,
+                                                        imageVector = Icons.AutoMirrored.Filled.VolumeUp,
                                                         contentDescription = "Contenido Multimedia",
                                                         tint = Color.White,
                                                         modifier = Modifier.size(12.dp)
@@ -723,7 +724,7 @@ fun EstadosTabContent(
                                     Box(
                                         modifier = Modifier
                                             .align(Alignment.Center)
-                                            .background(Color.Black.copy(alpha = 0.5f), CircleShape)
+                                            .background(IosSettingsColors.mediaScrimSoft, CircleShape)
                                             .padding(10.dp)
                                     ) {
                                         Icon(

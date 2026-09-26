@@ -76,7 +76,7 @@ fun PremiumLockedPanel(
         modifier = Modifier
             .fillMaxWidth()
             .padding(20.dp)
-            .background(Color(0xFF1A1410), RoundedCornerShape(20.dp))
+            .background(IosSettingsColors.cellElevated, RoundedCornerShape(20.dp))
             .border(1.dp, PanalinkSkin.Gold.copy(alpha = 0.3f), RoundedCornerShape(20.dp))
             .padding(20.dp),
         horizontalAlignment = Alignment.CenterHorizontally,
@@ -100,7 +100,7 @@ fun PremiumLockedPanel(
                 onClick = onOpenPremium,
                 colors = ButtonDefaults.buttonColors(
                     containerColor = PanalinkSkin.GoldDeep,
-                    contentColor = Color.White
+                    contentColor = IosSettingsColors.onAccent
                 ),
                 shape = RoundedCornerShape(14.dp)
             ) {

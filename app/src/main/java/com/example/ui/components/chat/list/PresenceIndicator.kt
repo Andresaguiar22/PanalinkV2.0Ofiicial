@@ -16,7 +16,7 @@ import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Call
-import androidx.compose.material.icons.filled.Chat
+import androidx.compose.material.icons.automirrored.filled.Chat
 import androidx.compose.material.icons.filled.Edit
 import androidx.compose.material.icons.filled.Mic
 import androidx.compose.material.icons.filled.NotificationsOff
@@ -43,7 +43,7 @@ fun PresenceIndicator(
     status: String = if (isOnline) "online" else "offline",
     secondaryStatus: String? = null,
     size: Dp = 12.dp,
-    borderColor: Color = Color.Black,
+    borderColor: Color = IosSettingsColors.groupBackground,
     showOffline: Boolean = false,
     showText: Boolean = false,
     textStyle: androidx.compose.ui.text.TextStyle = MaterialTheme.typography.bodySmall.copy(fontSize = 12.sp),
@@ -54,10 +54,10 @@ fun PresenceIndicator(
         "online" -> IosSettingsColors.green
         "away" -> IosSettingsColors.orange
         "busy", "in_call", "on_call", "voice_call", "video_call" -> IosSettingsColors.red
-        "typing", "recording_audio", "recording", "uploading_file", "uploading" -> Color(0xFF3498DB)
-        "dnd" -> Color(0xFFE74C3C)
-        "messages_only" -> Color(0xFF9B59B6)
-        else -> Color(0xFF8E8E93)
+        "typing", "recording_audio", "recording", "uploading_file", "uploading" -> IosSettingsColors.blue
+        "dnd" -> IosSettingsColors.red
+        "messages_only" -> IosSettingsColors.purple
+        else -> IosSettingsColors.secondaryLabel
     }
 
     val isVisible = isOnline || activeStatus in listOf(
@@ -102,7 +102,7 @@ fun PresenceIndicator(
         "voice_call" -> Icons.Default.Call
         "video_call" -> Icons.Default.Videocam
         "dnd" -> Icons.Default.NotificationsOff
-        "messages_only" -> Icons.Default.Chat
+        "messages_only" -> Icons.AutoMirrored.Filled.Chat
         else -> null
     }
 

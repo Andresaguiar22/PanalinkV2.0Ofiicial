@@ -84,7 +84,7 @@ fun PremiumWalletScreen(
                 item {
                     Text(
                         "Aún no hay movimientos. Comprá funciones o ganá recompensas para ver tu historial.",
-                        color = Color.White.copy(alpha = 0.6f),
+                        color = IosSettingsColors.secondaryLabel,
                         fontSize = 12.sp,
                         modifier = Modifier.padding(vertical = 8.dp)
                     )
@@ -107,7 +107,7 @@ private fun WalletBalanceCard(wallet: com.example.premium.domain.model.WalletBal
         modifier = Modifier
             .fillMaxWidth()
             .background(
-                Brush.linearGradient(listOf(Color(0xFF2A2320), Color(0xFF171A24))),
+                Brush.linearGradient(listOf(IosSettingsColors.cell, IosSettingsColors.cellElevated)),
                 RoundedCornerShape(24.dp)
             )
             .border(1.dp, gold.copy(alpha = 0.4f), RoundedCornerShape(24.dp))
@@ -123,9 +123,9 @@ private fun WalletBalanceCard(wallet: com.example.premium.domain.model.WalletBal
             }
             Spacer(modifier = Modifier.height(12.dp))
             Row(verticalAlignment = Alignment.CenterVertically) {
-                Text("⭐ Nivel ${wallet.level}", color = Color.White, fontSize = 13.sp, fontWeight = FontWeight.Bold)
+                Text("⭐ Nivel ${wallet.level}", color = IosSettingsColors.label, fontSize = 13.sp, fontWeight = FontWeight.Bold)
                 Spacer(modifier = Modifier.weight(1f))
-                Text("💰 ${wallet.xp} XP", color = Color.White.copy(alpha = 0.6f), fontSize = 10.sp)
+                Text("💰 ${wallet.xp} XP", color = IosSettingsColors.secondaryLabel, fontSize = 10.sp)
             }
         }
     }
@@ -135,7 +135,7 @@ private fun WalletBalanceCard(wallet: com.example.premium.domain.model.WalletBal
 private fun BalanceItem(emoji: String, amount: Int) {
     Column {
         Text(emoji, fontSize = 22.sp)
-        Text("$amount", color = Color.White, fontWeight = FontWeight.ExtraBold, fontSize = 18.sp)
+        Text("$amount", color = IosSettingsColors.label, fontWeight = FontWeight.ExtraBold, fontSize = 18.sp)
     }
 }
 
@@ -155,7 +155,7 @@ private fun LevelProgressCard(levelInfo: com.example.premium.domain.model.LevelI
             .padding(14.dp)
     ) {
         Row(verticalAlignment = Alignment.CenterVertically) {
-            Text("${current?.emoji ?: "⭐"} ${current?.title ?: "Pana"}", color = Color.White, fontWeight = FontWeight.Bold, fontSize = 14.sp)
+            Text("${current?.emoji ?: "⭐"} ${current?.title ?: "Pana"}", color = IosSettingsColors.label, fontWeight = FontWeight.Bold, fontSize = 14.sp)
             Spacer(modifier = Modifier.weight(1f))
             Text("Nv ${levelInfo.level}", color = PanalinkSkin.GoldBright, fontWeight = FontWeight.Bold, fontSize = 13.sp)
         }
@@ -165,7 +165,7 @@ private fun LevelProgressCard(levelInfo: com.example.premium.domain.model.LevelI
             modifier = Modifier
                 .fillMaxWidth()
                 .height(8.dp)
-                .background(Color.White.copy(alpha = 0.12f), RoundedCornerShape(4.dp))
+                .background(IosSettingsColors.separator, RoundedCornerShape(4.dp))
         ) {
             Box(
                 modifier = Modifier
@@ -181,7 +181,7 @@ private fun LevelProgressCard(levelInfo: com.example.premium.domain.model.LevelI
             } else {
                 "¡Nivel máximo alcanzado!"
             },
-            color = Color.White.copy(alpha = 0.6f),
+            color = IosSettingsColors.secondaryLabel,
             fontSize = 11.sp
         )
 
@@ -189,13 +189,13 @@ private fun LevelProgressCard(levelInfo: com.example.premium.domain.model.LevelI
         val future = levelInfo.levelTiers.filter { it.level > levelInfo.level }.take(3)
         if (future.isNotEmpty()) {
             Spacer(modifier = Modifier.height(10.dp))
-            Text("🎁 Recompensas por nivel", color = Color.White.copy(alpha = 0.5f), fontSize = 11.sp, fontWeight = FontWeight.Bold)
+            Text("🎁 Recompensas por nivel", color = IosSettingsColors.secondaryLabel, fontSize = 11.sp, fontWeight = FontWeight.Bold)
             Spacer(modifier = Modifier.height(4.dp))
             future.forEach { tier ->
                 Text(
                     "Nv ${tier.level} · ${tier.emoji} ${tier.title}" +
                         (if (tier.rewardAmount > 0) " · +${tier.rewardAmount} ${tier.rewardCurrency.orEmpty()}" else ""),
-                    color = Color.White.copy(alpha = 0.7f),
+                    color = IosSettingsColors.label.copy(alpha = 0.7f),
                     fontSize = 11.sp,
                     maxLines = 1,
                     overflow = TextOverflow.Ellipsis
@@ -215,7 +215,7 @@ private fun ActionChip(
     Box(
         modifier = modifier
             .background(
-                if (enabled) Color(0xFF1B2432) else IosSettingsColors.cell,
+                if (enabled) IosSettingsColors.cellElevated else IosSettingsColors.cell,
                 RoundedCornerShape(14.dp)
             )
             .clickable(enabled = enabled, onClick = onClick)
@@ -224,7 +224,7 @@ private fun ActionChip(
     ) {
         Text(
             label,
-            color = if (enabled) Color.White else Color.White.copy(alpha = 0.3f),
+            color = if (enabled) IosSettingsColors.label else IosSettingsColors.tertiaryLabel,
             fontWeight = FontWeight.Bold,
             fontSize = 13.sp
         )
@@ -233,7 +233,7 @@ private fun ActionChip(
 
 @Composable
 private fun SectionTitle(title: String) {
-    Text(title, color = Color.White, fontWeight = FontWeight.Bold, fontSize = 15.sp, modifier = Modifier.padding(top = 6.dp))
+    Text(title, color = IosSettingsColors.label, fontWeight = FontWeight.Bold, fontSize = 15.sp, modifier = Modifier.padding(top = 6.dp))
 }
 
 /** Fila del historial (entrada/salida del ledger). */
@@ -251,18 +251,18 @@ private fun TransactionRow(tx: WalletTransaction) {
             modifier = Modifier
                 .size(34.dp)
                 .background(
-                    if (isPositive) Color(0xFF1E4D2B) else Color(0xFF4D1E1E),
+                    if (isPositive) IosSettingsColors.green.copy(alpha = 0.25f) else IosSettingsColors.red.copy(alpha = 0.22f),
                     CircleShape
                 ),
             contentAlignment = Alignment.Center
         ) {
-            Text(if (isPositive) "▲" else "▼", color = if (isPositive) Color(0xFF5CE57E) else Color(0xFFE57E7E), fontSize = 12.sp)
+            Text(if (isPositive) "▲" else "▼", color = if (isPositive) IosSettingsColors.green else IosSettingsColors.red, fontSize = 12.sp)
         }
         Spacer(modifier = Modifier.width(10.dp))
         Column(modifier = Modifier.weight(1f)) {
             Text(
                 tx.description ?: kindLabel(tx.kind),
-                color = Color.White,
+                color = IosSettingsColors.label,
                 fontSize = 13.sp,
                 fontWeight = FontWeight.SemiBold,
                 maxLines = 1,
@@ -270,18 +270,18 @@ private fun TransactionRow(tx: WalletTransaction) {
             )
             Text(
                 kindLabel(tx.kind),
-                color = Color.White.copy(alpha = 0.5f),
+                color = IosSettingsColors.secondaryLabel,
                 fontSize = 10.sp
             )
         }
         Column(horizontalAlignment = Alignment.End) {
             Text(
                 "${if (isPositive) "+" else ""}$tx.amount ${currencyEmoji(tx.currency)}",
-                color = if (isPositive) Color(0xFF5CE57E) else Color(0xFFE57979),
+                color = if (isPositive) IosSettingsColors.green else IosSettingsColors.red,
                 fontWeight = FontWeight.Bold,
                 fontSize = 13.sp
             )
-            Text("Saldo ${tx.balanceAfter}", color = Color.White.copy(alpha = 0.4f), fontSize = 9.sp)
+            Text("Saldo ${tx.balanceAfter}", color = IosSettingsColors.tertiaryLabel, fontSize = 9.sp)
         }
     }
 }

@@ -237,7 +237,7 @@ fun ChannelPostCard(
                         modifier = Modifier
                             .fillMaxWidth()
                             .padding(top = 8.dp)
-                            .background(Color(0xFF182229), RoundedCornerShape(12.dp))
+                            .background(IosSettingsColors.cellElevated, RoundedCornerShape(12.dp))
                             .padding(horizontal = 8.dp, vertical = 4.dp),
                         horizontalArrangement = Arrangement.SpaceBetween
                     ) {
@@ -348,7 +348,7 @@ fun ApkFileAttachmentCard(
         modifier = Modifier
             .fillMaxWidth()
             .clip(RoundedCornerShape(12.dp)),
-        color = Color(0xFF263843),
+        color = IosSettingsColors.cellElevated,
         shape = RoundedCornerShape(12.dp)
     ) {
         Row(

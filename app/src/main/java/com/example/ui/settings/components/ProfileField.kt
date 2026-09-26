@@ -30,13 +30,13 @@ fun ProfileField(
         value = value,
         onValueChange = onValueChange,
         label = { Text(label, color = IosSettingsColors.secondaryLabel) },
-        placeholder = if (placeholder != null) { { Text(placeholder, color = Color.Gray) } } else null,
+        placeholder = if (placeholder != null) { { Text(placeholder, color = IosSettingsColors.secondaryLabel) } } else null,
         colors = OutlinedTextFieldDefaults.colors(
             focusedBorderColor = IosSettingsColors.green,
-            unfocusedBorderColor = Color(0xFF37474F),
+            unfocusedBorderColor = IosSettingsColors.separator,
             focusedLabelColor = IosSettingsColors.green,
-            focusedTextColor = Color.White,
-            unfocusedTextColor = Color.White,
+            focusedTextColor = IosSettingsColors.label,
+            unfocusedTextColor = IosSettingsColors.label,
             focusedPlaceholderColor = Color.Gray,
             unfocusedPlaceholderColor = Color.Gray
         ),

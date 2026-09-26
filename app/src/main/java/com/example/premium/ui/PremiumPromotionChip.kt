@@ -17,6 +17,7 @@ import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
+import com.example.ui.settings.ios.IosSettingsColors
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
@@ -35,17 +36,17 @@ fun PremiumPromotionChip(
     Row(
         modifier = Modifier
             .fillMaxWidth()
-            .background(Color(0xFF1C1428), RoundedCornerShape(14.dp))
-            .border(1.dp, PanalinkSkin.Gold.copy(alpha = 0.45f), RoundedCornerShape(14.dp))
+            .background(IosSettingsColors.cellElevated, RoundedCornerShape(14.dp))
+            .border(1.dp, IosSettingsColors.separator, RoundedCornerShape(14.dp))
             .clickable(onClick = onClick)
             .padding(horizontal = 14.dp, vertical = 10.dp),
         verticalAlignment = Alignment.CenterVertically,
         horizontalArrangement = Arrangement.SpaceBetween
     ) {
         Column(modifier = Modifier.weight(1f)) {
-            Text(promotion.title, color = Color.White, fontWeight = FontWeight.Bold, fontSize = 13.sp)
+            Text(promotion.title, color = IosSettingsColors.label, fontWeight = FontWeight.Bold, fontSize = 13.sp)
             promotion.subtitle?.let {
-                Text(it, color = Color.White.copy(alpha = 0.7f), fontSize = 11.sp)
+                Text(it, color = IosSettingsColors.secondaryLabel, fontSize = 11.sp)
             }
         }
         Row(verticalAlignment = Alignment.CenterVertically) {

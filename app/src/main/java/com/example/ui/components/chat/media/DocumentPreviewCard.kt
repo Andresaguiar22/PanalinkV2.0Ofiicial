@@ -3,6 +3,7 @@ package com.example.ui.components.chat.media
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
+import com.example.ui.settings.ios.IosSettingsColors
 import com.example.ui.components.chat.bubble.DocumentMessageBubble
 
 @Composable
@@ -10,7 +11,7 @@ fun DocumentPreviewCard(
     docUrl: String,
     fileName: String? = null,
     mediaSize: Long?,
-    bubbleColor: Color = Color(0xFFE7FFDB),
+    bubbleColor: Color = IosSettingsColors.cellElevated,
     senderAvatarUrl: String? = null,
     isSender: Boolean = true,
     messageStatus: String? = "sent",
