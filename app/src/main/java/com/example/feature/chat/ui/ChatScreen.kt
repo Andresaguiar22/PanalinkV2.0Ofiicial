@@ -219,6 +219,7 @@ fun ChatScreen(
     val inputMessage by viewModel.inputMessage.collectAsStateWithLifecycle()
     val isGhostMode by viewModel.isGhostMode.collectAsStateWithLifecycle()
     val typingUsers = viewModel.typingUsers.collectAsStateWithLifecycle()
+    val recordingUsers = viewModel.recordingUsers.collectAsStateWithLifecycle()
     val userPresence = viewModel.userPresence.collectAsStateWithLifecycle()
     val editedMessages = viewModel.editedMessages.collectAsStateWithLifecycle()
 
@@ -975,9 +976,39 @@ fun ChatScreen(
                                     )
                                 }
 
-                                // Typing indicator in-chat list entry
+                                // Typing indicator in-chat list entry (grabando nota de voz / escribiendo)
                                 val otherUser = state.otherUser
-                                val isOtherUserTyping = typingUsers.value.contains(otherUser?.id ?: "other_user_id_demo")
+                                val otherUid = otherUser?.id ?: "other_user_id_demo"
+                                val isOtherUserRecording = recordingUsers.value.contains(otherUid)
+                                val isOtherUserTyping = typingUsers.value.contains(otherUid)
+                                if (isOtherUserRecording) {
+                                    item(contentType = "recording_indicator") {
+                                        Row(
+                                            modifier = Modifier
+                                                .padding(horizontal = 16.dp, vertical = 4.dp)
+                                                .background(IosSettingsColors.cellElevated.copy(alpha = 0.7f), RoundedCornerShape(16.dp, 16.dp, 16.dp, 4.dp))
+                                                .padding(horizontal = 14.dp, vertical = 10.dp),
+                                            verticalAlignment = Alignment.CenterVertically,
+                                            horizontalArrangement = Arrangement.spacedBy(8.dp)
+                                        ) {
+                                            // Micrófono iOS en rojo pulsante.
+                                            Icon(
+                                                imageVector = Icons.Rounded.Mic,
+                                                contentDescription = "Grabando nota de voz",
+                                                tint = IosSettingsColors.red,
+                                                modifier = Modifier.size(16.dp)
+                                            )
+                                            Text(
+                                                text = "${otherUser?.displayName ?: "Tu pana"} está grabando nota de voz...",
+                                                color = IosSettingsColors.red,
+                                                fontSize = 13.sp,
+                                                fontWeight = FontWeight.Medium
+                                            )
+                                            // Ondas de nivel de audio (3 barras animadas) estilo voice-note iOS.
+                                            VoiceWaveMini()
+                                        }
+                                    }
+                                }
                                 if (isOtherUserTyping) {
                                     item(contentType = "typing_indicator") {
                                             Row(
@@ -1428,4 +1459,38 @@ fun PlaylistPickerDialog(
         containerColor = IosSettingsColors.cell.copy(alpha = 0.72f),
         shape = RoundedCornerShape(28.dp)
     )
+}
+
+/**
+ * Pequeñas ondas de audio animadas (3 barras) para el chip "grabando nota de voz",
+ * imitando el voice-note de iOS. Se animan en bucle con retardos escalonados.
+ */
+@Composable
+private fun VoiceWaveMini() {
+    val transition = androidx.compose.animation.core.rememberInfiniteTransition(label = "voiceWave")
+    val heights = listOf(0.45f, 1f, 0.7f)
+    Box(
+        modifier = Modifier.height(14.dp).width(20.dp)
+    ) {
+        heights.forEachIndexed { index, base ->
+            val phase by transition.animateFloat(
+                initialValue = base - 0.35f,
+                targetValue = base + 0.35f,
+                animationSpec = androidx.compose.animation.core.infiniteRepeatable(
+                    animation = androidx.compose.animation.core.tween(durationMillis = 380 + index * 130),
+                    repeatMode = androidx.compose.animation.core.RepeatMode.Reverse
+                ),
+                label = "voiceWave$index"
+            )
+            Box(
+                modifier = Modifier
+                    .width(3.dp)
+                    .height(14.dp * phase)
+                    .align(Alignment.Center)
+                    .offset(x = ((index - 1) * 5).dp)
+                    .clip(androidx.compose.foundation.shape.CircleShape)
+                    .background(IosSettingsColors.red)
+            )
+        }
+    }
 }

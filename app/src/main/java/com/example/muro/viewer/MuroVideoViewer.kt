@@ -33,6 +33,8 @@ import androidx.compose.material.icons.rounded.Favorite
 import androidx.compose.material.icons.rounded.FavoriteBorder
 import androidx.compose.material.icons.rounded.PlayArrow
 import androidx.compose.material.icons.automirrored.filled.Send
+import androidx.compose.material3.Button
+import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.Text
@@ -200,6 +202,11 @@ fun MuroVideoViewer(
                     MuroBufferingIndicator()
                 }
 
+                if (isActive && pool.isError(postId)) {
+
+                    MuroErrorOverlay(onRetry = { pool.retry(postId) })
+                }
+
                 // Readability scrim: the caption must stay legible over any frame.
                 Box(
                     modifier = Modifier
@@ -271,6 +278,59 @@ fun MuroVideoViewer(
                 contentDescription = "Volver al muro",
                 tint = Color.White
             )
+        }
+    }
+}
+
+/** Elegant terminal-error overlay: never a black/frozen frame without an explanation. */
+@Composable
+private fun MuroErrorOverlay(onRetry: () -> Unit) {
+    Box(
+        modifier = Modifier
+            .fillMaxSize()
+            .background(Color.Black.copy(alpha = 0.55f)),
+        contentAlignment = Alignment.Center
+    ) {
+        Column(
+            horizontalAlignment = Alignment.CenterHorizontally,
+            verticalArrangement = Arrangement.spacedBy(14.dp)
+        ) {
+            Box(
+                modifier = Modifier
+                    .size(72.dp)
+                    .clip(CircleShape)
+                    .background(Color.White.copy(alpha = 0.14f)),
+                contentAlignment = Alignment.Center
+            ) {
+                Icon(
+                    Icons.Rounded.PlayArrow,
+                    contentDescription = null,
+                    tint = Color.White,
+                    modifier = Modifier.size(34.dp)
+                )
+            }
+            Text(
+                text = "No se pudo reproducir el vídeo",
+                color = Color.White,
+                fontSize = 15.sp,
+                fontWeight = FontWeight.SemiBold
+            )
+            Text(
+                text = "Comprueba tu conexión e inténtalo de nuevo",
+                color = Color.White.copy(alpha = 0.7f),
+                fontSize = 12.sp
+            )
+            Button(
+                onClick = onRetry,
+                colors = ButtonDefaults.buttonColors(
+                    containerColor = Color.White.copy(alpha = 0.92f),
+                    contentColor = Color(0xFF0B0F14)
+                ),
+                shape = RoundedCornerShape(14.dp),
+                contentPadding = PaddingValues(horizontal = 22.dp, vertical = 10.dp)
+            ) {
+                Text("Reintentar", fontWeight = FontWeight.SemiBold)
+            }
         }
     }
 }

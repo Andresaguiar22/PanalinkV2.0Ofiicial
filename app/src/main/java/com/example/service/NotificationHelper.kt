@@ -323,18 +323,30 @@ object NotificationHelper {
             PendingIntent.FLAG_UPDATE_CURRENT or PendingIntent.FLAG_IMMUTABLE
         )
 
+        // Icono chiquito de la app tintado por tipo (iOS-like: el smallIcon se tiñe con el color).
+        val accentColor = colorForType(notificationType)
         val builder = NotificationCompat.Builder(context, channelId)
-            .setSmallIcon(android.R.drawable.stat_notify_chat)
+            .setSmallIcon(com.example.R.drawable.ic_notification)
             .setContentTitle(title)
             .setContentText(body)
             .setPriority(NotificationCompat.PRIORITY_HIGH)
             .setAutoCancel(true)
             .setContentIntent(pendingIntent)
+            .setColor(accentColor)
+
+        // Avatar "botón" circular con halo de color (grande y legible).
+        val avatarBitmap = largeIcon?.let { img ->
+            makeCircularAvatarWithRing(context, img, accentColor)
+        } ?: if (senderName?.isNotBlank() == true) {
+            createColorfulAvatar(context, senderName, accentColor)
+        } else {
+            null
+        }
 
         if (notificationType == "new_message") {
             val finalSenderName = senderName ?: title
-            val finalIcon = largeIcon ?: createInitialsBitmap(context, finalSenderName)
-            
+            val finalIcon = avatarBitmap ?: createInitialsBitmap(context, finalSenderName)
+
             val senderPerson = Person.Builder()
                 .setName(finalSenderName)
                 .setIcon(IconCompat.createWithBitmap(finalIcon))
@@ -343,23 +355,55 @@ object NotificationHelper {
             val messagingStyle = NotificationCompat.MessagingStyle(senderPerson)
                 .setConversationTitle(if (chatId.isNotEmpty() && senderName != null) null else title)
                 .addMessage(body, System.currentTimeMillis(), senderPerson)
-            
+
             builder.setStyle(messagingStyle)
             builder.setLargeIcon(finalIcon)
         } else {
-            if (largeIcon != null) {
-                builder.setLargeIcon(largeIcon)
+            if (avatarBitmap != null) {
+                builder.setLargeIcon(avatarBitmap)
             }
 
-            if (!imageUrl.isNullOrEmpty() && largeIcon != null) {
-                builder.setStyle(NotificationCompat.BigPictureStyle()
-                    .bigPicture(largeIcon)
-                    .bigLargeIcon(null as android.graphics.Bitmap?)
-                    .setSummaryText(body))
+            if (!imageUrl.isNullOrEmpty()) {
+                // BigPicture con la miniatura real de la publicación en grande
+                // y el avatar pequeño en la esquina (bigLargeIcon).
+                val bigPictureUrl = imageUrl
+                builder.setStyle(
+                    NotificationCompat.BigPictureStyle()
+                        .bigLargeIcon(avatarBitmap)
+                        .setSummaryText(body)
+                )
+                // Cargar el thumbnail real en background y repintar la notificación.
+                com.example.util.PanaNotificationImageLoader.loadBigImage(
+                    context = context,
+                    url = bigPictureUrl,
+                    onLoaded = { loaded ->
+                        try {
+                            val newStyle = NotificationCompat.BigPictureStyle()
+                                .bigPicture(loaded)
+                                .bigLargeIcon(avatarBitmap)
+                                .setSummaryText(body)
+                            val updated = androidx.core.app.NotificationCompat.Builder(context, channelId)
+                                .setSmallIcon(com.example.R.drawable.ic_notification)
+                                .setContentTitle(title)
+                                .setContentText(body)
+                                .setPriority(NotificationCompat.PRIORITY_HIGH)
+                                .setAutoCancel(true)
+                                .setContentIntent(pendingIntent)
+                                .setColor(accentColor)
+                                .setStyle(newStyle)
+                                .setCategory(NotificationCompat.CATEGORY_MESSAGE)
+                                .build()
+                            notificationManager.notify(uniqueRequestCode, updated)
+                        } catch (e: Exception) {
+                            Log.e(TAG, "Failed to upgrade notification big image", e)
+                        }
+                    }
+                )
             } else {
                 builder.setStyle(NotificationCompat.BigTextStyle().bigText(body))
             }
         }
+
 
         if (notificationType == "llamada_entrante") {
             builder.setCategory(NotificationCompat.CATEGORY_CALL)
@@ -388,4 +432,104 @@ object NotificationHelper {
             Log.e(TAG, "Error posting notification to manager", e)
         }
     }
+
+    // ---------------------------------------------------------------------------
+    // Identidad visual de notificaciones (estilo iOS / Starmaker / TikTok)
+    // ---------------------------------------------------------------------------
+
+    /** Color de acento por tipo: el smallIcon y los halos se pintan de este color. */
+    fun colorForType(notificationType: String): Int = when (notificationType) {
+        "new_message", "chat_message", "message", "reply", "direct_message" -> 0xFF0A84FF.toInt()      // azul iOS (chat)
+        "new_story", "story", "stories", "new_story_reaction" -> 0xFF30D158.toInt()                            // verde iOS (historia)
+        "post_like", "like", "me_gusta", "heart" -> 0xFFFF2D55.toInt()                 // rosa TikTok (likes)
+        "post_comment", "comment", "comentario", "new_comment", "comment_reply" -> 0xFFBF5AF2.toInt()  // violeta iOS (comentarios)
+        "new_reel", "reel", "clips" -> 0xFFFF9F0A.toInt()                              // naranja (reels)
+        "follow", "friend_request", "friend_request_accepted" -> 0xFF5E5CE6.toInt()    // indigo (gente)
+        "system_news", "app_update", "new_content" -> 0xFF64D2FF.toInt()               // teal (sistema)
+        "llamada_entrante", "call_incoming", "call" -> 0xFFFF453A.toInt()              // rojo (llamadas)
+        "new_reaction", "reaction" -> 0xFFFF9F0A.toInt()                                // naranja (reacciones)
+        "premium", "coins", "wallet" -> 0xFFEBCB8B.toInt()                             // dorado (premium)
+        else -> 0xFF0A84FF.toInt()                                                      // default azul
+    }
+
+    /**
+     * Convierte un bitmap de avatar en un circulo con anillo/halo degradado del color
+     * de acento, recortado limpio y listo para setLargeIcon.
+     */
+    fun makeCircularAvatarWithRing(context: Context, source: android.graphics.Bitmap, ringColor: Int): android.graphics.Bitmap {
+        val size = 128
+        val bitmap = android.graphics.Bitmap.createBitmap(size, size, android.graphics.Bitmap.Config.ARGB_8888)
+        val canvas = android.graphics.Canvas(bitmap)
+        val paint = android.graphics.Paint(android.graphics.Paint.ANTI_ALIAS_FLAG)
+
+        // Anillo exterior del color de acento (premium, estilo iOS).
+        val ringPaint = android.graphics.Paint(android.graphics.Paint.ANTI_ALIAS_FLAG)
+        ringPaint.color = ringColor
+        ringPaint.style = android.graphics.Paint.Style.STROKE
+        ringPaint.strokeWidth = 8f
+        canvas.drawCircle(size / 2f, size / 2f, (size - 8) / 2f, ringPaint)
+
+        // Recorte circular del avatar.
+        val srcSide = minOf(source.width, source.height)
+        val sLeft = (source.width - srcSide) / 2f
+        val sTop = (source.height - srcSide) / 2f
+        val srcRect = android.graphics.Rect(
+            sLeft.toInt(), sTop.toInt(),
+            (sLeft + srcSide).toInt(), (sTop + srcSide).toInt()
+        )
+        val dstRect = android.graphics.Rect(10, 10, size - 10, size - 10)
+        val srcPaint = android.graphics.Paint(android.graphics.Paint.ANTI_ALIAS_FLAG)
+        canvas.drawCircle(size / 2f, size / 2f, (size - 10) / 2f, srcPaint)
+        srcPaint.xfermode = android.graphics.PorterDuffXfermode(android.graphics.PorterDuff.Mode.SRC_IN)
+        canvas.drawBitmap(source, srcRect, dstRect, srcPaint)
+
+        return bitmap
+    }
+
+    /**
+     * Avatar de color (iniciales + degradado) cuando no hay foto de perfil.
+     * Similar al del motor de avatares, pero en forma de "boton" circular.
+     */
+    fun createColorfulAvatar(context: Context, name: String, ringColor: Int): android.graphics.Bitmap {
+        val size = 128
+        val bitmap = android.graphics.Bitmap.createBitmap(size, size, android.graphics.Bitmap.Config.ARGB_8888)
+        val canvas = android.graphics.Canvas(bitmap)
+
+        val colors = intArrayOf(
+            0xFF1ABC9C.toInt(), 0xFF2ECC71.toInt(), 0xFF3498DB.toInt(),
+            0xFF9B59B6.toInt(), 0xFF34495E.toInt(), 0xFF16A085.toInt(),
+            0xFF27AE60.toInt(), 0xFF2980B9.toInt(), 0xFF8E44AD.toInt(),
+            0xFF2C3E50.toInt(), 0xFFF1C40F.toInt(), 0xFFE67E22.toInt(),
+            0xFFE74C3C.toInt(), 0xFF95A5A6.toInt(), 0xFFF39C12.toInt(),
+            0xFFD35400.toInt(), 0xFFC0392B.toInt(), 0xFFBDC3C7.toInt(), 0xFF7F8C8D.toInt()
+        )
+        val base = colors[Math.abs(name.hashCode()) % colors.size]
+
+        // Fondo circular con degradado del color base y el de acento.
+        val paint = android.graphics.Paint(android.graphics.Paint.ANTI_ALIAS_FLAG)
+        paint.shader = android.graphics.LinearGradient(
+            0f, 0f, size.toFloat(), size.toFloat(),
+            base, ringColor,
+            android.graphics.Shader.TileMode.CLAMP
+        )
+        canvas.drawCircle(size / 2f, size / 2f, size / 2f, paint)
+
+        // Iniciales blancas.
+        val initials = name.split(" ")
+            .filter { it.isNotEmpty() }
+            .take(2)
+            .map { it[0].uppercaseChar() }
+            .joinToString("")
+
+        val textPaint = android.graphics.Paint(android.graphics.Paint.ANTI_ALIAS_FLAG)
+        textPaint.color = android.graphics.Color.WHITE
+        textPaint.textSize = size / 2.2f
+        textPaint.textAlign = android.graphics.Paint.Align.CENTER
+        textPaint.typeface = android.graphics.Typeface.create(android.graphics.Typeface.DEFAULT, android.graphics.Typeface.BOLD)
+        val fm = textPaint.fontMetrics
+        canvas.drawText(initials, size / 2f, (size / 2f) - (fm.ascent + fm.descent) / 2f, textPaint)
+
+        return bitmap
+    }
 }
+

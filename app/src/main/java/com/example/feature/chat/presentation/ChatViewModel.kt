@@ -142,6 +142,10 @@ class ChatViewModel : ViewModel() {
     private val _typingUsers = MutableStateFlow<List<String>>(emptyList())
     val typingUsers: StateFlow<List<String>> = _typingUsers.asStateFlow()
 
+    /** Usuarios que están grabando una nota de voz en este chat (realtime). */
+    private val _recordingUsers = MutableStateFlow<List<String>>(emptyList())
+    val recordingUsers: StateFlow<List<String>> = _recordingUsers.asStateFlow()
+
     private val _userPresence = MutableStateFlow<Map<String, String>>(emptyMap())
     val userPresence: StateFlow<Map<String, String>> = _userPresence.asStateFlow()
 
@@ -361,6 +365,39 @@ private var chatJob: kotlinx.coroutines.Job? = null
                             currentList.remove(status.userId)
                         }
                         _typingUsers.value = currentList
+
+                        // Grabando nota de voz (chip micrófono iOS) — flujo separado del typing para
+                        // que un "grabando" activo no se pise con un "escribiendo" del mismo usuario.
+                        val recList = _recordingUsers.value.toMutableList()
+                        if (status.isRecordingAudio) {
+                            if (!recList.contains(status.userId)) {
+                                recList.add(status.userId)
+                            }
+                        } else {
+                            recList.remove(status.userId)
+                        }
+                        _recordingUsers.value = recList
+
+                        // Realtime en la LISTA de chats: el punto de presencia del contacto
+                        // muestra "Escribiendo..." o "Grabando audio..." en vivo.
+                        if (status.isRecordingAudio) {
+                            com.example.data.repository.PresenceRepository.setUserSecondaryStatus(
+                                status.userId,
+                                com.example.data.repository.SecondaryPresenceStatus.RECORDING_AUDIO,
+                                autoClearMs = 12_000L
+                            )
+                        } else if (status.isTyping) {
+                            com.example.data.repository.PresenceRepository.setUserSecondaryStatus(
+                                status.userId,
+                                com.example.data.repository.SecondaryPresenceStatus.TYPING,
+                                autoClearMs = 6_000L
+                            )
+                        } else {
+                            com.example.data.repository.PresenceRepository.setUserSecondaryStatus(
+                                status.userId,
+                                com.example.data.repository.SecondaryPresenceStatus.NONE
+                            )
+                        }
                     }
                 }
             } catch (e: kotlinx.coroutines.CancellationException) {
@@ -522,7 +559,15 @@ private var chatJob: kotlinx.coroutines.Job? = null
             com.example.data.supabase.SupabaseClient.sendTypingStatus(chatId, isTyping)
         }
     }
-    
+
+    /** Apaga la senalizacion realtime grabando nota de voz. */
+    private fun stopRecordingSignal() {
+        val chatId = currentChatId ?: return
+        viewModelScope.launch(Dispatchers.IO) {
+            com.example.data.supabase.SupabaseClient.sendRecordingStatus(chatId, false)
+        }
+    }
+
     fun setReplyingToMessage(msg: Message?) {
         _replyingToMessage.value = msg
     }
@@ -628,6 +673,7 @@ private var chatJob: kotlinx.coroutines.Job? = null
         typingJob?.cancel()
         typingJob = null
         _typingUsers.value = emptyList()
+        _recordingUsers.value = emptyList()
     }
 
     fun sendMessage(text: String, replyToId: String? = null, context: Context? = null) {
@@ -850,6 +896,8 @@ private var chatJob: kotlinx.coroutines.Job? = null
                 val file = voiceController.start()
                 if (file != null) {
                     _recordState.value = RecordState.RECORDING
+                    // Señalización realtime: el otro usuario ve el chip "grabando nota de voz".
+                    currentChatId?.let { com.example.data.supabase.SupabaseClient.sendRecordingStatus(it, true) }
                     com.example.util.PanaLinkSoundManager.play(context, com.example.util.PanaSoundEvent.VOICE_START)
                     ChatDiagnostics.event(name = "chat.voice.record.started")
                 }
@@ -866,6 +914,7 @@ private var chatJob: kotlinx.coroutines.Job? = null
                     voiceController.cancel()
                     _recordState.value = RecordState.IDLE
                     _voiceAmplitudes.value = emptyList()
+                    stopRecordingSignal()
                     com.example.util.PanaLinkSoundManager.play(context, com.example.util.PanaSoundEvent.VOICE_CANCEL)
                     ChatDiagnostics.event(name = "chat.voice.record.cancelled")
                 }
@@ -878,7 +927,7 @@ private var chatJob: kotlinx.coroutines.Job? = null
                 if (_recordState.value == RecordState.RECORDING) {
                     val result = voiceController.stopAndValidate(fallbackDurationSeconds = fallbackDurationSeconds)
                     _voiceAmplitudes.value = emptyList()
-
+                    stopRecordingSignal()
                     if (result is com.example.ui.components.chat.voice.VoiceRecordingResult.Success) {
                         previewFile = result.file
                         previewDurationSeconds = result.durationSeconds
@@ -901,6 +950,7 @@ private var chatJob: kotlinx.coroutines.Job? = null
                 if (_recordState.value == RecordState.LOCKED_RECORDING) {
                     val result = voiceController.stopAndValidate(fallbackDurationSeconds = fallbackDurationSeconds)
                     _voiceAmplitudes.value = emptyList()
+                    stopRecordingSignal()
                     if (result is com.example.ui.components.chat.voice.VoiceRecordingResult.Success) {
                         previewFile = result.file
                         previewDurationSeconds = result.durationSeconds
@@ -915,6 +965,7 @@ private var chatJob: kotlinx.coroutines.Job? = null
                 if (_recordState.value == RecordState.RECORDING || _recordState.value == RecordState.LOCKED_RECORDING) {
                     val result = voiceController.stopAndValidate(fallbackDurationSeconds = fallbackDurationSeconds)
                     _voiceAmplitudes.value = emptyList()
+                    stopRecordingSignal()
                     if (result is com.example.ui.components.chat.voice.VoiceRecordingResult.Success) {
                         previewFile = result.file
                         previewDurationSeconds = result.durationSeconds

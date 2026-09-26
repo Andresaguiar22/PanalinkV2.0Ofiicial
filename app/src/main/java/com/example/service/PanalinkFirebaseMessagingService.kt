@@ -233,19 +233,21 @@ class PanalinkFirebaseMessagingService : FirebaseMessagingService() {
                     }
 
                     val senderName = remoteMessage.data["sender_name"] ?: remoteMessage.data["senderName"] ?: notificationTitle
-                    var largeIconBitmap: android.graphics.Bitmap? = null
-                    val loadUrl = thumbnailUrl ?: mediaUrl ?: senderAvatar
+                    // Avatar del remitente (grande, circular) + thumbnail de la publicacion (BigPicture).
+                    val avatarUrl = senderAvatar?.takeIf { it.isNotBlank() }
+                    val bigPictureUrl = (thumbnailUrl ?: mediaUrl)?.takeIf { it.isNotBlank() }
+                    var avatarBitmap: android.graphics.Bitmap? = null
 
-                    if (!loadUrl.isNullOrEmpty()) {
+                    if (!avatarUrl.isNullOrEmpty()) {
                         try {
                             val request = ImageRequest.Builder(applicationContext)
-                                .data(loadUrl)
-                                .size(512, 512)
+                                .data(avatarUrl)
+                                .size(256, 256)
                                 .build()
                             val result = applicationContext.imageLoader.execute(request)
-                            largeIconBitmap = result.drawable?.toBitmap()
+                            avatarBitmap = result.drawable?.toBitmap()
                         } catch (e: Exception) {
-                            Log.e(TAG, "Error loading notification image: ${e.message}")
+                            Log.e(TAG, "Error loading notification avatar: ${e.message}")
                         }
                     }
 
@@ -258,8 +260,8 @@ class PanalinkFirebaseMessagingService : FirebaseMessagingService() {
                         notificationType = notificationType,
                         channelId = channelId,
                         extras = extrasMap,
-                        imageUrl = thumbnailUrl ?: mediaUrl,
-                        largeIcon = largeIconBitmap,
+                        imageUrl = bigPictureUrl,
+                        largeIcon = avatarBitmap,
                         senderName = senderName
                     )
                 }

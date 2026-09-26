@@ -995,9 +995,6 @@ fun MainNavHost(
                 userId = userId,
                 statesViewModel = statesViewModel,
                 onBack = { mainNavController.popBackStack() },
-                onNavigateToChat = { chatId, otherUserId ->
-                    mainNavController.navigate("chat/$chatId/$otherUserId") { launchSingleTop = true }
-                },
                 onNavigateToReel = { reelId ->
                     mainNavController.navigate("tiktok/$reelId") { launchSingleTop = true }
                 }

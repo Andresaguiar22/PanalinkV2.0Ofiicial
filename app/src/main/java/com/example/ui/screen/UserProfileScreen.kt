@@ -30,7 +30,6 @@ import coil.compose.AsyncImage
 import com.example.ui.components.PanaAvatar
 import com.example.data.model.Profile
 import com.example.data.model.UserStateWithUser
-import com.example.data.repository.ChatsRepository
 import com.example.data.repository.ProfilesRepository
 import com.example.data.supabase.SupabaseClient
 import com.example.ui.viewmodel.StatesUiState
@@ -40,8 +39,8 @@ import com.example.ui.settings.ios.IosSettingsColors
 import androidx.compose.material.icons.rounded.Add
 import androidx.compose.material.icons.rounded.Check
 import androidx.compose.material.icons.rounded.DateRange
-import androidx.compose.material.icons.rounded.Email
 import androidx.compose.material.icons.rounded.Info
+import androidx.compose.material.icons.rounded.IosShare
 import androidx.compose.material.icons.rounded.LocationOn
 import androidx.compose.material.icons.rounded.Lock
 import androidx.compose.material.icons.rounded.PlayArrow
@@ -54,13 +53,11 @@ fun UserProfileScreen(
     userId: String,
     statesViewModel: StatesViewModel,
     onBack: () -> Unit,
-    onNavigateToChat: (String, String) -> Unit,
     onNavigateToReel: (String) -> Unit
 ) {
     val context = LocalContext.current
     val scope = rememberCoroutineScope()
     val profilesRepository = remember { ProfilesRepository() }
-    val chatsRepository = remember { ChatsRepository() }
 
     // State Variables
     var userProfile by remember { mutableStateOf<Profile?>(null) }
@@ -441,34 +438,33 @@ fun UserProfileScreen(
                                 )
                             }
 
-                            // Message Button (Direct Chat opening)
+                            // Share Button — comparte el reel más reciente del perfil (misma acción social
+                            // que en ReelsFeedScreen; sustituye al antiguo "Mensaje" por decisión de
+                            // producto para no invitar a un chat directo desde el perfil público.
                             OutlinedButton(
                                 onClick = {
-                                    scope.launch {
-                                        chatsRepository.createDirectChat(userId)
-                                            .onSuccess { chat ->
-                                                onNavigateToChat(chat.id, userId)
-                                            }
-                                            .onFailure {
-                                                Toast.makeText(context, "Error abriendo chat: ${it.localizedMessage}", Toast.LENGTH_SHORT).show()
-                                            }
+                                    val latestReel = userReels.maxByOrNull { it.state.createdAt.orEmpty() }
+                                    if (latestReel != null) {
+                                        com.example.reels.ui.shareReelV2(context, latestReel)
+                                    } else {
+                                        Toast.makeText(context, "Este usuario aún no tiene reels para compartir", Toast.LENGTH_SHORT).show()
                                     }
                                 },
                                 modifier = Modifier
                                     .weight(1f)
                                     .height(48.dp)
-                                    .testTag("message_button"),
+                                    .testTag("share_button"),
                                 shape = RoundedCornerShape(24.dp),
                                 border = BorderStroke(1.5.dp, MaterialTheme.colorScheme.outline)
                             ) {
                                 Icon(
-                                    imageVector = Icons.Rounded.Email,
+                                    imageVector = Icons.Rounded.IosShare,
                                     contentDescription = null,
                                     modifier = Modifier.size(18.dp)
                                 )
                                 Spacer(modifier = Modifier.width(8.dp))
                                 Text(
-                                    text = "Mensaje",
+                                    text = "Compartir",
                                     fontWeight = FontWeight.Bold,
                                     fontSize = 15.sp
                                 )
@@ -480,7 +476,6 @@ fun UserProfileScreen(
                     selectedTabIndex = selectedTab,
                     containerColor = Color.Transparent,
                     contentColor = IosSettingsColors.blue,
-                    modifier = Modifier.offset(y = (-20).dp)
                 ) {
                     Tab(
                         selected = selectedTab == 0,
@@ -516,7 +511,6 @@ fun UserProfileScreen(
                         .fillMaxWidth()
                         .heightIn(min = 350.dp)
                         .padding(horizontal = 16.dp)
-                        .offset(y = (-10).dp)
                 ) {
                     if (selectedTab == 0) {
                         // REELS TAB (Grid display)

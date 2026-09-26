@@ -173,3 +173,12 @@
 
 # Clases de modelo del dominio con @JsonClass se resuelven por reflexion generica
 -keep @com.squareup.moshi.JsonClass class * { *; }
+# Notificaciones ricas (invocadas por FCM/broadcast receivers y PendingIntents):
+# el R8 debe conservar el stack entero para que el estilo rico (avatar circular,
+# halo, BigPicture, loaders de Coil) no se ofusque ni se elimine.
+-keep class com.example.service.PanaLinkNotificationManager { *; }
+-keep class com.example.service.NotificationHelper { *; }
+-keep class com.example.service.PanalinkFirebaseMessagingService { *; }
+-keep class com.example.service.NotificationReplyReceiver { *; }
+-keep class com.example.util.PanaNotificationImageLoader { *; }
+-keep class com.example.util.PanaLinkSoundManager { *; }

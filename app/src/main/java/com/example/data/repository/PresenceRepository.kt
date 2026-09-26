@@ -304,6 +304,45 @@ object PresenceRepository {
         _currentUserSecondaryStatus.value = secondaryStatus
     }
 
+    private val secondaryStatusJobs = ConcurrentHashMap<String, Job>()
+
+    /**
+     * Marca el secondary status de OTRO usuario en el presenceMap (p.ej. "escribiendo"
+     * o "grabando audio...") para que el punto de la lista de chats reaccione en caliente.
+     * autoClearMs: si > 0, limpia el estado secundario pasados esos ms (red de seguridad
+     * si el otro cliente no envía el stop).
+     */
+    fun setUserSecondaryStatus(
+        userId: String,
+        secondaryStatus: SecondaryPresenceStatus,
+        autoClearMs: Long = 0L
+    ) {
+        val updated = _presenceMap.value.toMutableMap()
+        val current = updated[userId] ?: run {
+            val info = UserPresenceInfo(userId, UserPresenceStatus.ONLINE, lastSeen = System.currentTimeMillis())
+            updated[userId] = info
+            info
+        }
+        if (secondaryStatus == SecondaryPresenceStatus.NONE) {
+            val cleared = current.copy(secondaryStatus = SecondaryPresenceStatus.NONE)
+            updated[userId] = cleared
+            _presenceMap.value = updated
+            secondaryStatusJobs.remove(userId)?.cancel()
+            return
+        }
+        val marked = current.copy(secondaryStatus = secondaryStatus)
+        updated[userId] = marked
+        _presenceMap.value = updated
+
+        if (autoClearMs > 0L) {
+            secondaryStatusJobs.remove(userId)?.cancel()
+            secondaryStatusJobs[userId] = scope.launch {
+                delay(autoClearMs)
+                setUserSecondaryStatus(userId, SecondaryPresenceStatus.NONE)
+            }
+        }
+    }
+
     fun onLogin(userId: String) {
         updateMyStatus(UserPresenceStatus.ONLINE, isManualOrLifecycle = true)
         startHeartbeat(userId)

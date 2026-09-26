@@ -6,9 +6,7 @@ import androidx.annotation.OptIn
 import androidx.media3.common.MediaItem
 import androidx.media3.common.Player
 import androidx.media3.common.util.UnstableApi
-import androidx.media3.exoplayer.DefaultLoadControl
 import androidx.media3.exoplayer.ExoPlayer
-import androidx.media3.exoplayer.trackselection.DefaultTrackSelector
 import com.example.data.repository.CdnManager
 import java.util.concurrent.atomic.AtomicBoolean
 import kotlinx.coroutines.CoroutineScope
@@ -42,10 +40,22 @@ class StoryVideoPlayerSession(private val context: Context) {
 
     companion object {
         // Media3 error 2004 = HTTP 401 (expired signed token) — triggers the
-        // reactive re-resolution path. Like the reel player (v1.3.35), the only
-        // defense against VCDN token expiry is REACTIVE: never swap the media item
-        // proactively, which would discard the buffered ranges and recreate codecs.
+        // reactive re-resolution path. The reactive defense is now a LAST RESORT:
+        // a scheduled proactive refresh happens BEFORE The signed URL actually dies,
+        // exactly like ReelPlayerPool does for long videos — long stories therefore
+        // never stall at the token-expiry mark with a frozen frame.
+
         private const val PLAYBACK_ERROR_HTTP_401 = 2004
+
+        // VCDN signed URLs expire ~60s (BFF TTL). Mint a fresh URL shortly before
+        // the real expiry (from the resolved URL's own expiry field, or a fallback
+        // TTL when unknown), while playback continues, preserving position and
+        // playWhenReady. This is what makes a long story play fully to the end without
+        // a visible stall or a reconstruction — the same transparent behavior reels
+        // already have..
+        private const val REFRESH_AHEAD_MS = 25_000L
+        private const val REFRESH_COOLDOWN_MS = 50_000L
+        private const val FALLBACK_TTL_MS = 40_000L
     }
 
     var stateId: String = ""
@@ -75,6 +85,11 @@ class StoryVideoPlayerSession(private val context: Context) {
     private var lastTrim: Pair<Float, Float>? = null
     private val retryScope = CoroutineScope(Dispatchers.Main.immediate + SupervisorJob())
 
+    /** Próximo instante en que hay que re-resolver la URL firmada (0 = no programado). */
+    private var refreshAtMs: Long = 0L
+    /** ´ltimo refresh preventivo hecho (cooldown anti-loop). */
+    private var lastRefreshAtMs: Long = 0L
+
     val player: ExoPlayer = createPlayer()
 
     private val mainHandler = android.os.Handler(android.os.Looper.getMainLooper())
@@ -95,6 +110,17 @@ class StoryVideoPlayerSession(private val context: Context) {
                 }
                 try {
                     val p = this@StoryVideoPlayerSession.player
+                    // Refresh preventivo (igual que ReelPlayerPool): antes de que la
+                    // URL firmada VCDN expire (~60s), re-resolvemos y la aplicamos
+                    // preservando posicion/playWhenReady — un video largo asi nunca se
+                    // corta a mitad/queda congelado por el token.
+                    val nowRefresh = System.currentTimeMillis()
+                    if (refreshAtMs > 0L && nowRefresh >= refreshAtMs &&
+                        nowRefresh - lastRefreshAtMs > REFRESH_COOLDOWN_MS &&
+                        com.example.data.repository.VcdnUrlResolver.isVcdnUrl(lastStableVideoUrl)
+                    ) {
+                        proactiveRefreshUrl()
+                    }
                     val trim = lastTrim
                     val current = p.currentPosition
                     val rawPlayerDuration = p.duration
@@ -162,50 +188,15 @@ class StoryVideoPlayerSession(private val context: Context) {
     }
 
     private fun createPlayer(): ExoPlayer {
-        // Same fast-start tuning as the reel pool: start almost immediately with
-        // 300 ms of buffered data, allow a wide margin after a rebuffer so a long
-        // VCDN clip does not stall while the player refills after a URL swap.
-        val loadControl = DefaultLoadControl.Builder()
-            .setBufferDurationsMs(
-                10_000,  // minBufferMs: keep 10s (long HLS VCDN segments)
-                60_000,  // maxBufferMs
-                300,     // bufferForPlaybackMs: fast start
-                6_000    // bufferForPlaybackAfterRebufferMs: tolerant after hiccup
-            )
-            .setBackBuffer(4_000, true)
-            .setPrioritizeTimeOverSizeThresholds(true)
-            .build()
-        val capped = com.example.core.media.VideoPlaybackEngine.maxDecodeEdge(
+        // Mismo motor de reproduccion que Reels/Muro (VideoPlaybackEngine.build):
+        // hardware decode, cap de resolucion/bitrate, FastStart y cache compartida..
+        // Las historias comparten asi el pipeline robusto unico de la app, en vez de
+        // construir un player a mano con tuning divergente (causa historica de
+        // CodecException/stutter y de comportamiento inconsistente entre pantallas).
+        val player = com.example.core.media.VideoPlaybackEngine.build(
             context,
-            com.example.core.media.VideoPlaybackEngine.Profile.VIEWER
+            com.example.core.media.VideoPlaybackEngine.Profile.STORY
         )
-        val trackSelector = DefaultTrackSelector(context).apply {
-            // Igual que en los reels: no decodificar mas pixeles de los que la
-            // pantalla puede mostrar (4K en panel 1080p solo causa tirones).
-            setParameters(
-                buildUponParameters()
-                    .setMaxVideoSize(capped, capped)
-                    .setMaxVideoBitrate(
-                        com.example.core.media.VideoPlaybackEngine.maxBitrate(
-                            com.example.core.media.VideoPlaybackEngine.Profile.VIEWER
-                        )
-                    )
-            )
-        }
-        val player = ExoPlayer.Builder(context, PanaRenderersFactory.create(context))
-            .setTrackSelector(trackSelector)
-            .setMediaSourceFactory(
-                androidx.media3.exoplayer.source.DefaultMediaSourceFactory(context)
-                    .setDataSourceFactory(
-                        androidx.media3.datasource.DefaultDataSource.Factory(
-                            context,
-                            com.example.data.video.CacheDataSourceFactory.getCacheDataSourceFactory(context)
-                        )
-                    )
-            )
-            .setLoadControl(loadControl)
-            .setHandleAudioBecomingNoisy(true)
-            .build()
         player.repeatMode = Player.REPEAT_MODE_OFF
         player.addListener(object : Player.Listener {
             override fun onPlaybackStateChanged(playbackState: Int) {
@@ -436,6 +427,67 @@ class StoryVideoPlayerSession(private val context: Context) {
             player.play()
         } else {
             if (!player.playWhenReady) player.play()
+        }
+        // Programar el refresh preventivo (proactiveRefreshUrl) desde la expiracion
+        // REAL de la URL firmada actual (vcdn://): asi el disparo ocurre justo antes
+        // de que el token muera, igual que ReelPlayerPool hace con reels.
+
+        lastRefreshAtMs = 0L
+        refreshAtMs = refreshDeadlineFor(videoUrl)
+
+    }
+
+    /**
+     * Instante (epoch millis) en que hay que re-resolver la URL firmada actual,
+     *  0 si se desconoce y no hay que refrescar (URL normal o local).
+     */
+    private fun refreshDeadlineFor(url: String): Long {
+        val now = System.currentTimeMillis()
+        if (!com.example.data.repository.VcdnUrlResolver.isVcdnUrl(lastStableVideoUrl)) return 0L
+        val ownExpiry = com.example.data.repository.VcdnSignatureUtils.expiresAtEpochMillisOf(url)
+        val bffExpiry = com.example.data.repository.VcdnUrlResolver.expiresAtMillisOf(url)
+        val deadline = when {
+            ownExpiry > 0L -> ownExpiry - REFRESH_AHEAD_MS
+            bffExpiry > 0L -> bffExpiry
+            else -> now + FALLBACK_TTL_MS
+        }
+        return if (deadline > now) deadline else 0L
+    }
+
+    /**
+     * Re-resuelve la URL firmada desde el puntero estable (vcdn://, ver
+     *  [lastStableVideoUrl]) y la aplica en caliente, preservando la posicion
+     *  y el estado de reproduccion. Cooldown anti-loop via [lastRefreshAtMs] para
+     *  no re-resolver mas de una vez por ventana aunque el player tarde en drenar.
+     */
+    private fun proactiveRefreshUrl() {
+        val stable = lastStableVideoUrl
+        if (stable.isBlank() || isReleased.get() || !com.example.util.NetworkMonitor.isOnline.value) return
+        val expectedStateId = stateId
+        val expectedStable = stable
+        val positionMs = player.currentPosition.coerceAtLeast(0L)
+        lastRefreshAtMs = System.currentTimeMillis()
+        // No re-resolver si la URL actual acaba de caducar y el player ya la esta
+        // reproduciendo sin swap en vuelo: la recuperacion reactiva (401) cubre eso..
+        retryScope.launch {
+            val freshUrl = runCatching {
+                CdnManager.resolveMediaUrlFresh(stable)
+            }.getOrNull() ?: return@launch
+            if (isReleased.get() || stateId != expectedStateId || lastStableVideoUrl != expectedStable) return@launch
+            if (freshUrl.isBlank() || freshUrl.startsWith("vcdn://") || freshUrl == lastVideoUrl) return@launch
+            lastVideoUrl = freshUrl
+            try {
+                val wasPlaying = player.playWhenReady
+                player.setMediaItem(MediaItem.fromUri(freshUrl), false) // resetPosition=false
+                player.prepare()
+                player.seekTo(positionMs)
+                player.playWhenReady = wasPlaying
+                refreshAtMs = System.currentTimeMillis() + REFRESH_COOLDOWN_MS
+                Log.i(TAG, "stateId=$stateId Refresh preventivo VCDN (pos=$positionMs)")
+            } catch (_: IllegalStateException) {
+                // Player liberandose entre el chequeo y la llamada: el 401 reactivo lo cubre.
+
+            }
         }
     }
 

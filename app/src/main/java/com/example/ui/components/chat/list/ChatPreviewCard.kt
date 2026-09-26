@@ -171,18 +171,17 @@ fun ChatPreviewCard(
                         }
 
                         Row(verticalAlignment = Alignment.CenterVertically) {
-                            // Tildes de estado del último mensaje propio (enviado / entregado / leído)
+                            // Círculos de estado del último mensaje propio (enviado=1 gris / entregado=2 naranja / leído=3 verdes)
                             val myUserId = SupabaseClient.currentUser?.id
                             if (lastMessage != null && myUserId != null && lastMessage.senderId == myUserId && !isTyping) {
                                 val seen = lastMessage.seenAt != null ||
                                     lastMessage.status == "read" || lastMessage.status == "seen"
                                 val delivered = lastMessage.deliveredAt != null || lastMessage.status == "delivered"
-                                Icon(
-                                    imageVector = if (seen || delivered) Icons.Rounded.DoneAll else Icons.Rounded.Done,
-                                    contentDescription = "Estado del mensaje",
-                                    tint = PanalinkSkin.ReadTick,
-                                    modifier = Modifier.size(16.dp)
-                                )
+                                when {
+                                    seen -> StatusCirclesMini(count = 3, color = Color(0xFF22C55E))
+                                    delivered -> StatusCirclesMini(count = 2, color = Color(0xFFF59E0B))
+                                    else -> StatusCirclesMini(count = 1, color = Color(0xFF9CA3AF))
+                                }
                                 Spacer(modifier = Modifier.width(6.dp))
                             }
 
@@ -229,4 +228,27 @@ private fun isEmojiOnly(text: String): Boolean {
     val t = text.trim()
     if (t.isEmpty() || t.length > 6) return false
     return t.none { it.isLetterOrDigit() }
+}
+
+/** Círculos pequeños de estado del mensaje para la preview de chat (enviado/entregado/leído). */
+@androidx.compose.runtime.Composable
+private fun StatusCirclesMini(count: Int, color: Color) {
+    val diameter = 4.dp
+    val gap = 1.5.dp
+    androidx.compose.foundation.layout.Box(
+        modifier = Modifier
+            .height(11.dp)
+            .width(gap * (count - 1) + diameter)
+    ) {
+        for (i in 0 until count) {
+            androidx.compose.foundation.Canvas(
+                modifier = Modifier
+                    .size(diameter)
+                    .align(androidx.compose.ui.Alignment.CenterStart)
+                    .offset(x = gap * i)
+            ) {
+                drawCircle(color = color, radius = size.minDimension / 2f)
+            }
+        }
+    }
 }

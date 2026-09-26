@@ -9,12 +9,12 @@ import androidx.compose.animation.scaleIn
 import androidx.compose.animation.togetherWith
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.offset
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.layout.size
 import androidx.compose.material3.Text
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.rounded.Done
-import androidx.compose.material.icons.rounded.DoneAll
 import androidx.compose.material.icons.rounded.AccessTime
 import androidx.compose.material.icons.rounded.WarningAmber
 import androidx.compose.runtime.Composable
@@ -122,33 +122,62 @@ fun MessageStatusIndicator(
                         }
                     }
                     DeliveryState.SENT -> {
-                        androidx.compose.material3.Icon(
-                            imageVector = Icons.Rounded.Done,
-                            contentDescription = "Enviado",
-                            tint = textColor.copy(alpha = 0.8f),
-                            modifier = Modifier.size(15.dp)
+                        // Un círculo pintado (gris) = enviado al servidor.
+                        StatusCircles(
+                            count = 1,
+                            color = Color(0xFF9CA3AF),
+                            offsetStagger = false
                         )
                     }
                     DeliveryState.DELIVERED -> {
-                        androidx.compose.material3.Icon(
-                            imageVector = Icons.Rounded.DoneAll,
-                            contentDescription = "Entregado",
-                            tint = textColor.copy(alpha = 0.8f),
-                            modifier = Modifier.size(15.dp)
+                        // Dos círculos pintados (naranja) = entregado al otro dispositivo.
+                        StatusCircles(
+                            count = 2,
+                            color = Color(0xFFF59E0B),
+                            offsetStagger = true
                         )
                     }
                     DeliveryState.READ -> {
-                        androidx.compose.material3.Icon(
-                            imageVector = Icons.Rounded.DoneAll,
-                            contentDescription = "Leído",
-                            tint = IosSettingsColors.blue,
-                            modifier = Modifier.size(15.dp)
+                        // Tres círculos pintados (verde) = leído por el destinatario.
+                        StatusCircles(
+                            count = 3,
+                            color = Color(0xFF22C55E),
+                            offsetStagger = true
                         )
                     }
                     else -> {
                         // UNKNOWN -> Do not show tick
                     }
                 }
+            }
+        }
+    }
+}
+
+/**
+ * Círculos de estado del mensaje (estilo WhatsApp/iOS):
+ *  - count 1 → enviado (gris)
+ *  - count 2 → entregado (naranja), con el segundo círculo ligeramente
+ *    desplazado hacia la derecha para leerlo como "dos"
+ *  - count 3 → leído (verde), tres círculos en abanico.
+ *
+ * El offset (stagger) hace que los círculos no queden apilados exactamente iguales.
+ */
+@Composable
+private fun StatusCircles(count: Int, color: Color, offsetStagger: Boolean) {
+    val diameter = 4.dp
+    val gap = 1.dp
+    androidx.compose.foundation.layout.Box(
+        modifier = Modifier.height(11.dp).width(gap * (count - 1) + diameter)
+    ) {
+        for (i in 0 until count) {
+            androidx.compose.foundation.Canvas(
+                modifier = Modifier
+                    .size(diameter)
+                    .align(Alignment.CenterStart)
+                    .offset(x = gap * i)
+            ) {
+                drawCircle(color = color, radius = size.minDimension / 2f)
             }
         }
     }

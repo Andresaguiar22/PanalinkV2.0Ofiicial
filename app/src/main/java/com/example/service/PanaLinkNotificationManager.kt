@@ -31,12 +31,12 @@ object PanaLinkNotificationManager {
         val notificationManager = context.getSystemService(Context.NOTIFICATION_SERVICE) as NotificationManager
         
         val builder = NotificationCompat.Builder(context, CHANNEL_MESSAGES)
-            .setSmallIcon(android.R.drawable.stat_sys_upload_done)
+            .setSmallIcon(com.example.R.drawable.ic_notification)
             .setContentTitle("PanaLink")
             .setContentText("¡Hola! 🚀 Tu video se ha publicado correctamente y ya está disponible para que todos lo vean.")
             .setPriority(NotificationCompat.PRIORITY_HIGH)
             .setAutoCancel(true)
-            .setColor(0xFF0A84FF.toInt())
+            .setColor(NotificationHelper.colorForType("new_reel"))
 
         notificationManager.notify(1001, builder.build())
     }
@@ -68,8 +68,10 @@ object PanaLinkNotificationManager {
                 }
             }
 
-            // Fallback to initials if bitmap failed
-            val finalIcon = largeIconBitmap ?: NotificationHelper.createInitialsBitmap(context, senderName)
+            // Fallback to initials if bitmap failed, y avatar circular con halo azul iOS.
+            val accentColor = NotificationHelper.colorForType("new_message") // 0xFF0A84FF
+            val baseAvatar = largeIconBitmap ?: NotificationHelper.createInitialsBitmap(context, senderName)
+            val finalIcon = NotificationHelper.makeCircularAvatarWithRing(context, baseAvatar, accentColor)
 
             // Intent to open chat using canonical thread_id.
             val intent = Intent(context, MainActivity::class.java).apply {
@@ -130,7 +132,7 @@ object PanaLinkNotificationManager {
                 .addMessage(messageText, System.currentTimeMillis(), senderPerson)
 
             val builder = NotificationCompat.Builder(context, CHANNEL_MESSAGES)
-                .setSmallIcon(android.R.drawable.stat_notify_chat)
+                .setSmallIcon(com.example.R.drawable.ic_notification)
                 .setContentTitle(senderName)
                 .setContentText(messageText)
                 .setPriority(NotificationCompat.PRIORITY_HIGH)
@@ -139,7 +141,7 @@ object PanaLinkNotificationManager {
                 .setContentIntent(pendingIntent)
                 .addAction(replyAction)
                 .setAutoCancel(true)
-                .setColor(0xFF0A84FF.toInt())
+                .setColor(accentColor)
 
             notificationManager.notify(chatId.hashCode(), builder.build())
         }

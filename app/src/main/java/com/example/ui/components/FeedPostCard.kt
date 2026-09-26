@@ -1,8 +1,8 @@
 package com.example.ui.components
 
 import android.content.Context
-import android.net.Uri
 import android.widget.Toast
+import coil.compose.rememberAsyncImagePainter
 import androidx.compose.animation.*
 import androidx.compose.animation.core.*
 import androidx.compose.foundation.BorderStroke
@@ -27,6 +27,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.draw.scale
 import androidx.compose.ui.geometry.Offset
+import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.input.pointer.pointerInput
@@ -50,6 +51,7 @@ import androidx.compose.ui.platform.LocalDensity
 import kotlin.math.abs
 import com.example.ui.settings.ios.IosSettingsColors
 import androidx.compose.material.icons.rounded.Fullscreen
+import androidx.compose.material.icons.rounded.PlayArrow
 import androidx.compose.material.icons.rounded.Public
 import androidx.compose.material.icons.rounded.Report
 import androidx.compose.material.icons.rounded.Delete
@@ -109,6 +111,96 @@ internal fun rememberFreshMediaUrl(rawUrl: String?): String {
     }
     return com.example.data.repository.CdnManager.resolveMediaUrlSync(raw)
 }
+
+/**
+ * Resuelve el thumbnail estático de un vídeo de una tarjeta del Muro.
+ *
+ * El feed NO reproduce vídeos en la tarjeta (cero ExoPlayer en el listado); solo pinta
+ * una miniatura. La prioridad es:
+ *  1. poster real del BFF de VCDN (`resolvePoster`, estable y cacheado) cuando la
+ *     URL del post es el puntero `vcdn://{id}` (el caso de los vídeos del Muro).
+ *  2. la URL cruda cuando ya es una imagen (no aplica aqui; es un vídeo).
+ *
+ * La resolución es asíncrona (Compose effect), no bloquea el scroll y se cachea
+ * en memoria por VcdnUrlResolver, asi que el scroll no genera llamadas repetidas.
+
+ * Si no se puede resolver un poster (vídeo borrado/offline/B2), devuelve "" y
+ * la tarjeta cae al overlay Play sobre fondo scrim (nunca un frame negro vacío).
+ */
+@Composable
+internal fun rememberFeedVideoThumbnail(rawMediaUrl: String?): String {
+    val raw = rawMediaUrl?.trim().orEmpty()
+    if (!com.example.data.repository.VcdnUrlResolver.isVcdnUrl(raw)) return ""
+    var poster by remember(raw) { mutableStateOf("") }
+    LaunchedEffect(raw) {
+        if (!com.example.util.NetworkMonitor.isOnline.value) return@LaunchedEffect
+        poster = com.example.data.repository.VcdnUrlResolver.resolvePoster(raw) ?: ""
+    }
+    return poster
+}
+
+/** Overlay elegante "estoy es un video": Play centrado + scrim degradado. */
+@Composable
+internal fun VideoThumbnailOverlay(resolvedThumbnail: String, modifier: Modifier = Modifier) {
+    Box(modifier = modifier.fillMaxSize().background(iosBgWhenNoThumb(resolvedThumbnail)), contentAlignment = Alignment.Center) {
+        if (resolvedThumbnail.isNotBlank()) {
+
+            androidx.compose.foundation.Image(
+                painter = rememberAsyncImagePainter(resolvedThumbnail),
+                contentDescription = "Vídeo",
+                modifier = Modifier.fillMaxSize(),
+                contentScale = ContentScale.Crop
+            )
+        }
+        // Scrim legibilidad para el Play
+        Box(
+            modifier = Modifier
+                .fillMaxSize()
+                .background(
+                    Brush.verticalGradient(
+                        0.0f to Color.Black.copy(alpha = 0.05f),
+                        0.7f to Color.Transparent,
+                        1.0f to Color.Black.copy(alpha = 0.35f)
+                    )
+                )
+        )
+        // Círculo Play centrado
+        Box(
+            modifier = Modifier
+                .align(Alignment.Center)
+                .size(64.dp)
+                .clip(CircleShape)
+                .background(Color.Black.copy(alpha = 0.45f)),
+            contentAlignment = Alignment.Center
+        ) {
+            Icon(
+                imageVector = Icons.Rounded.PlayArrow,
+                contentDescription = "Reproducir vídeo",
+                tint = Color.White,
+                modifier = Modifier.size(36.dp)
+            )
+        }
+        // Etiqueta "Vídeo" discreta
+        Text(
+            text = "Vídeo",
+            color = Color.White.copy(alpha = 0.92f),
+            fontSize = 11.sp,
+            fontWeight = FontWeight.SemiBold,
+            modifier = Modifier
+                .align(Alignment.BottomStart)
+                .padding(10.dp)
+                .background(Color.Black.copy(alpha = 0.35f), RoundedCornerShape(6.dp))
+                .padding(horizontal = 8.dp, vertical = 4.dp)
+        )
+    }
+}
+
+private fun iosBgWhenNoThumb(resolvedThumbnail: String): Brush =
+    if (resolvedThumbnail.isBlank()) {
+        Brush.linearGradient(listOf(Color(0xFF141A26), Color(0xFF1E2632)))
+    } else {
+        Brush.linearGradient(listOf(Color.Transparent, Color.Transparent))
+    }
 
 private fun urlPathOf(url: String): String =
     url.substringBefore('?').substringBefore('#').lowercase()
@@ -418,9 +510,6 @@ fun FeedPostCard(
 
             if (mediaImagesAndVideos.isNotEmpty()) {
                 val pagerState = rememberPagerState(pageCount = { mediaImagesAndVideos.size })
-                var isMuted by remember { mutableStateOf(true) }
-                // Per-media video position tracking keyed by stable raw URL
-                val videoPositionMap = remember { mutableStateMapOf<String, Long>() }
 
                 Box(
                     modifier = Modifier
@@ -440,7 +529,7 @@ fun FeedPostCard(
                                 .fillMaxSize()
                                 .pointerInput(Unit) {
                                     detectTapGestures(
-                                        onTap = { onMediaClick(mediaImagesAndVideos, page, voiceAudioUrl, videoPositionMap[mediaImagesAndVideos[page]] ?: 0L) },
+                                        onTap = { onMediaClick(mediaImagesAndVideos, page, voiceAudioUrl, 0L) },
                                         onDoubleTap = { performLike() }
                                     )
                                 }
@@ -450,13 +539,14 @@ fun FeedPostCard(
                                     CircularProgressIndicator(color = IosSettingsColors.blue, modifier = Modifier.size(32.dp), strokeWidth = 2.dp)
                                 }
                             } else if (post.type == "VIDEO" || post.type == "REEL" || isVideoUrl(resolvedUrl)) {
-                                val videoUri = remember(resolvedUrl) { Uri.parse(resolvedUrl) }
-                                SimpleVideoPreviewPlayer(
-                                    videoUri = videoUri,
-                                    isMuted = isMuted,
-                                    modifier = Modifier.fillMaxSize(),
-                                    onPositionUpdate = { pos -> videoPositionMap[url] = pos },
-                                    stableUrl = url
+                                // Tarjeta 100% estática: nunca reproducir el vídeo en el feed.
+                                // Se pinta un thumbnail (poster del BFF VCDN si existe) + overlay
+                                // Play exuberante; el tap abre el visor (Mini-Reels Muro), donde
+                                // si se reproduce con el motor robusto de reels.
+                                val videoThumb = rememberFeedVideoThumbnail(url)
+                                VideoThumbnailOverlay(
+                                    resolvedThumbnail = videoThumb,
+                                    modifier = Modifier.fillMaxSize()
                                 )
                             } else {
                                 val resolvedResources = com.example.media.feed.PostMediaResolver.rememberResolvedMediaResources(
@@ -500,25 +590,6 @@ fun FeedPostCard(
                                     }
                                 }
                             }
-                        }
-                    }
-
-                    val currentUrl = mediaImagesAndVideos.getOrNull(pagerState.currentPage) ?: ""
-                    if (post.type == "VIDEO" || post.type == "REEL" || isVideoUrl(currentUrl)) {
-                        IconButton(
-                            onClick = { isMuted = !isMuted },
-                            modifier = Modifier
-                                .align(Alignment.BottomEnd)
-                                .padding(12.dp)
-                                .size(36.dp)
-                                .background(IosSettingsColors.mediaScrim, CircleShape)
-                        ) {
-                            Icon(
-                                imageVector = if (isMuted) Icons.AutoMirrored.Filled.VolumeMute else Icons.AutoMirrored.Filled.VolumeUp,
-                                contentDescription = "Sonido",
-                                tint = IosSettingsColors.label,
-                                modifier = Modifier.size(20.dp)
-                            )
                         }
                     }
 

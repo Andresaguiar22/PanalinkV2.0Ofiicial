@@ -87,7 +87,12 @@ object SupabaseClient {
     var isChatScreenActive: Boolean = false
 
     // Realtime Flow
-    data class TypingStatus(val chatId: String, val userId: String, val isTyping: Boolean)
+    data class TypingStatus(
+        val chatId: String,
+        val userId: String,
+        val isTyping: Boolean,
+        val isRecordingAudio: Boolean = false
+    )
     data class UserPresence(val userId: String, val status: String, val lastSeen: Long)
     data class ReactionBroadcast(val messageId: String, val chatId: String, val userId: String, val emoji: String)
 
@@ -613,8 +618,9 @@ object SupabaseClient {
                         val chatId = finalPayload?.optString("chat_id") ?: ""
                         val userId = finalPayload?.optString("user_id") ?: ""
                         val isTyping = finalPayload?.optBoolean("is_typing") ?: false
+                        val isRecordingAudio = finalPayload?.optBoolean("is_recording") ?: false
                         clientScope.launch {
-                            _realtimeTyping.emit(TypingStatus(chatId, userId, isTyping))
+                            _realtimeTyping.emit(TypingStatus(chatId, userId, isTyping, isRecordingAudio))
                         }
                     } else if (event == "presence_state") {
                         val payload = obj.optJSONObject("payload") ?: JSONObject()
@@ -1011,8 +1017,17 @@ object SupabaseClient {
     }
 
     fun sendTypingStatus(chatId: String, isTyping: Boolean) {
+        sendChatSignal(chatId, isTyping = isTyping, isRecordingAudio = false)
+    }
+
+    /** Señalización realtime "estoy grabando una nota de voz" (mismo broadcast que typing). */
+    fun sendRecordingStatus(chatId: String, isRecording: Boolean) {
+        sendChatSignal(chatId, isTyping = false, isRecordingAudio = isRecording)
+    }
+
+    private fun sendChatSignal(chatId: String, isTyping: Boolean, isRecordingAudio: Boolean) {
         if (com.example.data.repository.PrivacyManager.isPremiumFeatureActive("hide_typing")) {
-            return // Intercept and block typing status
+            return // Intercept and block typing status (también cubre la del micrófono)
         }
         val currentUid = currentUser?.id ?: ""
         if (isConfigured && webSocket != null) {
@@ -1020,6 +1035,7 @@ object SupabaseClient {
                 put("chat_id", chatId)
                 put("user_id", currentUid)
                 put("is_typing", isTyping)
+                put("is_recording", isRecordingAudio)
             }
             val msg = JSONObject().apply {
                 put("topic", "realtime:public:messages")

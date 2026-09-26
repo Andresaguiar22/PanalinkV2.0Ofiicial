@@ -92,7 +92,7 @@ import java.util.*
 import com.example.ui.viewmodel.NotificationsViewModel
 import com.example.ui.settings.ios.IosSettingsColors
 import androidx.compose.material.icons.rounded.ChevronRight
-import androidx.compose.material.icons.rounded.DoneAll
+
 import androidx.compose.material.icons.rounded.NotificationsOff
 import androidx.compose.material.icons.rounded.PushPin
 import androidx.compose.material.icons.rounded.CheckCircle
@@ -333,11 +333,10 @@ fun ChatItemRow(
 
                 if (isMine && lastMessage != null) {
                     Spacer(Modifier.width(6.dp))
-                    Icon(
-                        imageVector = if (lastMessage.seenAt != null) Icons.Rounded.DoneAll else Icons.Rounded.Done,
-                        contentDescription = if (lastMessage.seenAt != null) "Visto" else "Enviado",
-                        tint = IosSettingsColors.blue,
-                        modifier = Modifier.size(16.dp)
+                    ChatStatusCircles(
+                        seen = lastMessage.seenAt != null ||
+                            lastMessage.status == "read" || lastMessage.status == "seen",
+                        delivered = lastMessage.deliveredAt != null || lastMessage.status == "delivered"
                     )
                 }
 
@@ -524,4 +523,29 @@ private fun chatCardPositionFor(index: Int, total: Int): com.example.ui.theme.Ch
     index <= 0 -> com.example.ui.theme.ChatCardPosition.TOP
     index >= total - 1 -> com.example.ui.theme.ChatCardPosition.BOTTOM
     else -> com.example.ui.theme.ChatCardPosition.MIDDLE
+}
+
+/** Círculos pequeños de estado del mensaje (enviado=1 gris / entregado=2 naranja / leído=3 verdes). */
+@androidx.compose.runtime.Composable
+private fun ChatStatusCircles(seen: Boolean, delivered: Boolean) {
+    val count = if (seen) 3 else if (delivered) 2 else 1
+    val color = if (seen) Color(0xFF22C55E) else if (delivered) Color(0xFFF59E0B) else Color(0xFF9CA3AF)
+    val diameter = 4.dp
+    val gap = 1.5.dp
+    androidx.compose.foundation.layout.Box(
+        modifier = Modifier
+            .height(11.dp)
+            .width(gap * (count - 1) + diameter)
+    ) {
+        for (i in 0 until count) {
+            androidx.compose.foundation.Canvas(
+                modifier = Modifier
+                    .size(diameter)
+                    .align(Alignment.CenterStart)
+                    .offset(x = gap * i)
+            ) {
+                drawCircle(color = color, radius = size.minDimension / 2f)
+            }
+        }
+    }
 }
